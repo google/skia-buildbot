@@ -1,68 +1,53 @@
 import './index.js'
 
-let container = document.createElement("div");
+let container = document.createElement('div');
 document.body.appendChild(container);
 
 afterEach(function() {
-  container.innerHTML = "";
+  container.innerHTML = '';
 });
 
-describe('select-sk', function() {
+describe('multi-select-sk', function() {
   describe('selection property', function() {
     it('has a default value', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
-        container.innerHTML = `<select-sk></select-sk>`;
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
+        container.innerHTML = `<multi-select-sk></multi-select-sk>`;
         let s = container.firstElementChild;
-        assert.equal(-1, s._selection);
-        assert.equal(-1, s.selection);
+        assert.deepEqual([], s._selection);
+        assert.deepEqual([], s.selection);
       })
     });
 
     it('changes based on children', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
-        <select-sk id=select>
+        <multi-select-sk id=select>
           <div id=a></div>
           <div id=b selected></div>
         </select>
         `;
         let s = container.firstElementChild;
-        assert.equal(1, s._selection);
-        assert.equal(1, s.selection);
+        assert.deepEqual([1], s._selection);
+        assert.deepEqual([1], s.selection);
       })
     });
 
-    it('can go back to -1', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
+    it('can go back to []', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
-        <select-sk id=select>
+        <multi-select-sk id=select>
           <div id=a></div>
           <div id=b selected></div>
         </select>
         `;
         let s = container.firstElementChild;
-        s.selection = -1;
-        assert.equal(-1, s.selection);
+        s.selection = [];
+        assert.deepEqual([], s.selection);
         assert.isFalse(s.querySelector('#b').hasAttribute('selected'));
       })
     });
 
-    it('parses strings', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
-        container.innerHTML = `
-        <select-sk id=select>
-          <div id=a></div>
-          <div id=b></div>
-        </select>
-        `;
-        let s = container.firstElementChild;
-        s.selection = "1";
-        assert.equal(1, s.selection);
-        assert.isTrue(s.querySelector('#b').hasAttribute('selected'));
-      })
-    });
-
-    it('treats null and undefined as -1', function() {
+    it('treats null and undefined as []', function() {
       return window.customElements.whenDefined('select-sk').then(() => {
         container.innerHTML = `
         <select-sk id=select>
@@ -84,10 +69,10 @@ describe('select-sk', function() {
       })
     });
 
-    it('changes selected attributes on children', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
+   it('changes the selected attributes on the children', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
-        <select-sk id=select>
+        <multi-select-sk id=select>
           <div id=a></div>
           <div id=b></div>
         </select>
@@ -95,85 +80,116 @@ describe('select-sk', function() {
         let s = container.firstElementChild;
         let a = s.querySelector('#a');
         let b = s.querySelector('#b');
-        s.selection = 0;
-        assert.equal(0, s.selection);
+        s.selection = [0];
+        assert.deepEqual([0], s.selection);
         assert.isTrue(a.hasAttribute('selected'));
         assert.isFalse(b.hasAttribute('selected'));
-        s.selection = 1;
-        assert.equal(1, s.selection);
-        assert.isFalse(a.hasAttribute('selected'));
+        s.selection = [0, 1];
+
+        assert.deepEqual([0, 1], s.selection);
+        assert.isTrue(a.hasAttribute('selected'));
         assert.isTrue(b.hasAttribute('selected'));
+      });
+    });
+
+    it('is always sorted when read', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
+        container.innerHTML = `
+        <multi-select-sk id=select>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </select>`;
+        let s = container.firstElementChild;
+        s.selection = [5,4,0,2];
+        assert.deepEqual([0,2,4,5], s.selection);
       });
     });
   });
 
+
   describe('click', function() {
-    it('changes selection', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
+    it('changes selection in an additive fashion', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
-        <select-sk id=select>
+        <multi-select-sk id=select>
           <div id=a></div>
           <div id=b></div>
+          <div id=c></div>
         </select>
         `;
         let s = container.firstElementChild;
         let a = s.querySelector('#a');
         let b = s.querySelector('#b');
         a.click();
-        assert.equal(0, s.selection);
+        assert.deepEqual([0], s.selection);
         assert.isTrue(a.hasAttribute('selected'));
         assert.isFalse(b.hasAttribute('selected'));
+        assert.isFalse(c.hasAttribute('selected'));
         b.click();
-        assert.equal(1, s.selection);
-        assert.isFalse(a.hasAttribute('selected'));
+        assert.deepEqual([0, 1], s.selection);
+        assert.isTrue(a.hasAttribute('selected'));
         assert.isTrue(b.hasAttribute('selected'));
+        assert.isFalse(c.hasAttribute('selected'));
+        // unselect
+        b.click();
+        assert.deepEqual([0], s.selection);
+        assert.isTrue(a.hasAttribute('selected'));
+        assert.isFalse(b.hasAttribute('selected'));
+        assert.isFalse(c.hasAttribute('selected'));
       })
     });
   });
 
-  describe('inserting new children', function() {
-    it('updates selection property', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
+  describe('addition of children', function() {
+    it('updates selection when a selected child is added', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
-        <select-sk id=select>
+        <multi-select-sk id=select>
           <div></div>
           <div></div>
           <div></div>
         </select>
         `;
         let s = container.firstElementChild;
-        assert.equal(-1, s.selection);
+        assert.deepEqual([], s.selection);
         let div = document.createElement('div');
         div.setAttribute('selected', '');
         s.appendChild(div)
         div = document.createElement('div');
         s.appendChild(div)
+        div = document.createElement('div');
+        div.setAttribute('selected', '');
+        s.appendChild(div)
         // Need to do the check post microtask so the mutation observer gets a
         // chance to fire.
         return Promise.resolve().then(() => {
-          assert.equal(3, s.selection);
+          assert.deepEqual([3, 5], s.selection);
         });
-      })
+      });
     });
   });
 
   describe('mutation of child selected attribute', function() {
     it('does not update selection', function() {
-      return window.customElements.whenDefined('select-sk').then(() => {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
-        <select-sk id=select>
+        <multi-select-sk id=select>
           <div></div>
           <div></div>
           <div id=d2 selected></div>
         </select>
         `;
         let s = container.firstElementChild;
-        assert.equal(2, s.selection);
+        assert.deepEqual([2], s.selection);
         s.querySelector('#d2').removeAttribute('selected');
         // Need to do the check post microtask so the mutation observer gets a
         // chance to fire.
         return Promise.resolve().then(() => {
-          assert.equal(2, s.selection);
+          assert.deepEqual([2], s.selection);
         });
       })
     });
