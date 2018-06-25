@@ -16,6 +16,24 @@
       "revId": "340c4fd358fa9c2d6ffeaeb6dd8cbfe123cef01a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0be120f_f7b39cb6",
+        "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-25T13:06:52Z",
+      "side": 1,
+      "message": "Much cleaner.  I can also jettison the binarySearch logic (although if we need it again, we can just revive this patchset).",
+      "parentUuid": "1d051d96_a8abd827",
+      "revId": "340c4fd358fa9c2d6ffeaeb6dd8cbfe123cef01a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
