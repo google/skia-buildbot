@@ -59,6 +59,9 @@ Examples:
   # Push the latest version of all images from the given container repository.
   pushk
 
+  # Pusk an exact tag.
+  pushk gcr.io/skia-public/fiddler:694900e3ca9468784a5794dc53382d1c8411ab07
+
   # Push the latest version of docserver.
   pushk docserver --message="Fix bug #1234"
 
@@ -117,7 +120,7 @@ func filter(tags []string) ([]string, error) {
 	return validTags, nil
 }
 
-// findAllImageNames searches for all the images that comes from the given
+// findAllImageNames searches for all the images that come from the given
 // project container registry across all the yaml files listed in filenames.
 func findAllImageNames(filenames []string, server, project string) []string {
 	// allImageRegex has the following groups returned on match:
@@ -137,6 +140,44 @@ func findAllImageNames(filenames []string, server, project string) []string {
 		}
 	}
 	return filenameSet.Keys()
+}
+
+// tagProvider is a type that returns the correct tag to push for the given imageName.
+type tagProvider func(imageName string) ([]string, error)
+
+// imageFromCmdLineImage handles image names, which can be either short, ala 'fiddler', or exact,
+// such as gcr.io/skia-public/fiddler:694900e3ca9468784a5794dc53382d1c8411ab07, both of which can
+// appear on the command-line.
+func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
+	if strings.HasPrefix(imageName, "gcr.io/") {
+		if *rollback {
+			return "", fmt.Errorf("Supplying a fully qualified image name and the --rollback flag are mutually exclusive.")
+		}
+		return imageName, nil
+	}
+	// Get all the tags for the selected image.
+	tags, err := tp(imageName)
+	if err != nil {
+		return "", fmt.Errorf("Tag provider failed: %s", err)
+	}
+
+	// Filter the tags
+	tags, err = filter(tags)
+	if err != nil {
+		return "", fmt.Errorf("Failed to filter: %s", err)
+	}
+
+	// Pick the target tag we want to move to.
+	tag := tags[len(tags)-1]
+	if *rollback {
+		if len(tags) < 2 {
+			return "", fmt.Errorf("No version to rollback to.")
+		}
+		tag = tags[len(tags)-2]
+	}
+
+	// The full docker image name and tag of the image we want to deploy.
+	return fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, *project, imageName, tag), nil
 }
 
 func main() {
@@ -170,8 +211,17 @@ func main() {
 	}
 	sklog.Infof("Pushing the following images: %q", imageNames)
 
+	gcrTagProvider := func(imageName string) ([]string, error) {
+		return gcr.NewClient(tokenSource, *project, imageName).Tags()
+	}
+
 	changed := util.StringSet{}
 	for _, imageName := range imageNames {
+		image, err := imageFromCmdLineImage(imageName, gcrTagProvider)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+
 		// imageRegex has the following groups returned on match:
 		// 0 - the entire line
 		// 1 - the prefix, i.e. image:, with correct spacing.
@@ -181,31 +231,12 @@ func main() {
 		// We pull out the 'prefix' so we can use it when
 		// we rewrite the image: line so the indent level is
 		// unchanged.
-		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s/%s/%s:(\S+))\s*$`, gcr.SERVER, *project, imageName))
-
-		// Get all the tags for the selected image.
-		tags, err := gcr.NewClient(tokenSource, *project, imageName).Tags()
-		if err != nil {
-			sklog.Fatal(err)
+		parts := strings.SplitN(image, ":", 2)
+		if len(parts) != 2 {
+			sklog.Fatalf("Failed to split imageName: %v", parts)
 		}
-
-		// Filter the tags
-		tags, err = filter(tags)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-
-		// Pick the target tag we want to move to.
-		tag := tags[len(tags)-1]
-		if *rollback {
-			if len(tags) < 2 {
-				sklog.Fatal(fmt.Errorf("No version to rollback to."))
-			}
-			tag = tags[len(tags)-2]
-		}
-
-		// The full docker image name and tag of the image we want to deploy.
-		image := fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, *project, imageName, tag)
+		imageNoTag := parts[0]
+		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s).*$`, imageNoTag))
 
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
@@ -217,14 +248,11 @@ func main() {
 			lines := strings.Split(string(b), "\n")
 			for i, line := range lines {
 				matches := imageRegex.FindStringSubmatch(line)
-				if len(matches) != 4 {
+				if len(matches) != 3 {
 					continue
 				}
-				if matches[3] != tag {
-					changed[filename] = true
-					// Replace with the old 'prefix' and our new image.
-					lines[i] = matches[1] + image
-				}
+				changed[filename] = true
+				lines[i] = matches[1] + image
 			}
 			if changed[filename] {
 				err := util.WithWriteFile(filename, func(w io.Writer) error {
