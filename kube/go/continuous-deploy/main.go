@@ -4,10 +4,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"go.skia.org/infra/go/auth"
@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/sklog"
+	cloudbuild "google.golang.org/api/cloudbuild/v1"
 	"google.golang.org/api/option"
 )
 
@@ -76,7 +77,15 @@ func main() {
 			msg.Ack()
 			sklog.Infof("msg.Data: %s", string(msg.Data))
 			if msg.Attributes["status"] == "SUCCESS" {
-				cmd := fmt.Sprintf("%s --any_tag --logtostderr %s", pushk, strings.Join(flag.Args(), " "))
+				// JSON decode msg.Data
+
+				sklog.Info(string(msg.Data))
+				var buildInfo cloudbuild.Build
+				if err := json.Unmarshal(msg.Data, &buildInfo); err != nil {
+					sklog.Errorf("Failed to decode: %s: %q", err, string(msg.Data))
+					return
+				}
+				cmd := fmt.Sprintf("%s --logtostderr %s", pushk, buildInfo.Results.Images[0].Name)
 				sklog.Infof("About to execute: %q", cmd)
 				output, err := exec.RunSimple(ctx, cmd)
 				if err != nil {
