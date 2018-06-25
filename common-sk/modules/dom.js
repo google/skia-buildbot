@@ -22,7 +22,7 @@ export const DomReady = new Promise(function(resolve, reject) {
  *
  */
 export const $ = (query, ele = document) => {
-  return Array.prototype.map.call(ele.querySelectorAll(query), (e) => e);
+  return Array.prototype.slice.call(ele.querySelectorAll(query));
 };
 
 /** @function $$
