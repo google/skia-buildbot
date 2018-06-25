@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/sklog"
+	cloudbuild "google.golang.org/api/cloudbuild/v1"
 	"google.golang.org/api/option"
 )
 
@@ -76,7 +78,24 @@ func main() {
 			msg.Ack()
 			sklog.Infof("msg.Data: %s", string(msg.Data))
 			if msg.Attributes["status"] == "SUCCESS" {
-				cmd := fmt.Sprintf("%s --any_tag --logtostderr %s", pushk, strings.Join(flag.Args(), " "))
+				var buildInfo cloudbuild.Build
+				if err := json.Unmarshal(msg.Data, &buildInfo); err != nil {
+					sklog.Errorf("Failed to decode: %s: %q", err, string(msg.Data))
+					return
+				}
+				imageName := buildInfo.Results.Images[0].Name
+				// Is this one of the images we are pushing?
+				found := false
+				for _, name := range flag.Args() {
+					if strings.Contains(imageName, name) {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return
+				}
+				cmd := fmt.Sprintf("%s --logtostderr %s", pushk, imageName)
 				sklog.Infof("About to execute: %q", cmd)
 				output, err := exec.RunSimple(ctx, cmd)
 				if err != nil {
