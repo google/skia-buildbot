@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -105,23 +106,27 @@ func main() {
 					return fmt.Errorf("Failed to encode an individual request: %s", err)
 				}
 				var resp *http.Response
+				runResults := types.RunResults{}
 				success := false
 				for tries := 0; tries < RETRIES; tries++ {
 					resp, err = c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
-					if err == nil && resp.StatusCode == 200 {
-						success = true
-						break
+					if err != nil || resp.StatusCode != 200 {
+						time.Sleep(time.Second)
+						continue
 					}
+
+					// Decode response and add to all responses.
+					if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
+						time.Sleep(time.Second)
+						continue
+					}
+					success = true
+					break
 				}
 				if !success {
 					return fmt.Errorf("Failed to make request: %s %s", err, resp.Status)
 				}
 
-				// Decode response and add to all responses.
-				runResults := types.RunResults{}
-				if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
-					return fmt.Errorf("Failed to read response: %s", err)
-				}
 				mutex.Lock()
 				response[req.id] = &runResults
 				mutex.Unlock()
