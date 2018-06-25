@@ -212,7 +212,11 @@ func main() {
 	sklog.Infof("Pushing the following images: %q", imageNames)
 
 	gcrTagProvider := func(imageName string) ([]string, error) {
-		return gcr.NewClient(tokenSource, *project, imageName).Tags()
+		c, err := gcr.NewClient(tokenSource, *project, imageName)
+		if err != nil {
+			return nil, fmt.Errorf("Failed creating client: %s", err)
+		}
+		return c.Tags()
 	}
 
 	changed := util.StringSet{}

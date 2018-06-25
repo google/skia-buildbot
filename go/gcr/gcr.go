@@ -15,11 +15,15 @@
 package gcr
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/docker/distribution"
+	"github.com/docker/distribution/reference"
+	"github.com/docker/distribution/registry/client"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -70,7 +74,7 @@ func (g *gcrTokenSource) Token() (*oauth2.Token, error) {
 
 // Client talks to the Google Cloud Registry that supports the v2 Docker API.
 type Client struct {
-	client *http.Client
+	client distribution.Repository
 
 	// projectId - The Google Cloud project name, e.g. 'skia-public'.
 	projectId string
@@ -84,36 +88,33 @@ type Client struct {
 // tokenSource - An oauth2.TokenSource that Has read access to the bucket that the docker images are stored in.
 // projectId - The Google Cloud project name, e.g. 'skia-public'.
 // imageName - The name of the image, e.g. docserver.
-func NewClient(tokenSource oauth2.TokenSource, projectId, imageName string) *Client {
+func NewClient(tokenSource oauth2.TokenSource, projectId, imageName string) (*Client, error) {
+	c := auth.ClientFromTokenSource(tokenSource)
 	gcrTokenSource := &gcrTokenSource{
-		client:    auth.ClientFromTokenSource(tokenSource),
+		client:    c,
 		projectId: projectId,
 		imageName: imageName,
 	}
+	named, err := reference.ParseNamed(fmt.Sprintf("%s/%s/%s", SERVER, projectId, imageName))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse regsitry name: %s", err)
+	}
+	gcrAuthClient := auth.ClientFromTokenSource(gcrTokenSource)
+
+	gcrClient, err := client.NewRepository(named, "https://gcr.io", gcrAuthClient.Transport)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create regsitry client: %s", err)
+	}
+
 	return &Client{
-		client:    auth.ClientFromTokenSource(gcrTokenSource),
+		client:    gcrClient,
 		projectId: projectId,
 		imageName: imageName,
-	}
+	}, nil
 }
 
 // Tags returns all of the tags for all versions of the image.
 func (c *Client) Tags() ([]string, error) {
-	// TODO(jcgregorio) Look for link rel=next header to do pagination. https://docs.docker.com/registry/spec/api/#listing-image-tags
-	resp, err := c.client.Get(fmt.Sprintf("https://%s/v2/%s/%s/tags/list", SERVER, c.projectId, c.imageName))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to request tags: %s", err)
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Got unexpected response: %s", resp.Status)
-	}
-	type Response struct {
-		Tags []string `json:"tags"`
-	}
-	var response Response
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, fmt.Errorf("Could not decode response: %s", err)
-	}
-	return response.Tags, nil
+	ctx := context.Background()
+	return c.client.Tags(ctx).All(ctx)
 }
