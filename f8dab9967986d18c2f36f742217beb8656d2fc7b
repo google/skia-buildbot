@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1730205f_517a40fc",
+        "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-25T12:23:20Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "0585345b_38e7f585",
+      "revId": "f8dab9967986d18c2f36f742217beb8656d2fc7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e78de542_0ce7f06a",
         "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
         "patchSetId": 4
@@ -33,6 +51,24 @@
       "revId": "f8dab9967986d18c2f36f742217beb8656d2fc7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32af7065_82fbe1fd",
+        "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-25T12:23:20Z",
+      "side": 1,
+      "message": "Done.  Small theoretical performance drop\nbefore: 1 insertion + O(N) iteration [_rationalize()]\nafter: O(N) iteration + s appends [_bubbleUp()] + O(N) iteration [_rationalize()] \n\nbut it probably doesn\u0027t matter unless N and s get really really large, in which case we can revisit.",
+      "parentUuid": "e78de542_0ce7f06a",
+      "revId": "f8dab9967986d18c2f36f742217beb8656d2fc7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
