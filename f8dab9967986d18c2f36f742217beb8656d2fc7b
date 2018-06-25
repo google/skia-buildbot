@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0585345b_38e7f585",
+        "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-25T11:46:37Z",
+      "side": 1,
+      "message": "\"index where item should go\"?",
+      "revId": "f8dab9967986d18c2f36f742217beb8656d2fc7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e78de542_0ce7f06a",
+        "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-25T11:46:37Z",
+      "side": 1,
+      "message": "You always call rationalize(), which loops through all of the children, why not just toggle the selected attribute and call _bubbleUp() instead of the complicated slicing logic above?",
+      "revId": "f8dab9967986d18c2f36f742217beb8656d2fc7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
