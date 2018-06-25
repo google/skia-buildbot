@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d051d96_a8abd827",
+        "filename": "common-sk/modules/multi-select-sk/multi-select-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-25T12:32:50Z",
+      "side": 1,
+      "message": "You can drop one loop:\n\n\nif (!target || target.parentElement !\u003d\u003d this) {\n  return\n}\ntoggleAttr(target, \u0027selected\u0027);\nthis._bubbleUp();\nthis.dispatchEvent(...);\n\nWhere toggleAttr does the obvious thing.",
+      "revId": "340c4fd358fa9c2d6ffeaeb6dd8cbfe123cef01a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
