@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6b5e3b6_79c420b0",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-26T14:35:01Z",
+      "side": 1,
+      "message": "Based on https://docs.docker.com/registry/spec/api/#listing-image-tags, pagination is not enabled unless you specify the \"n\" param.",
+      "range": {
+        "startLine": 106,
+        "startChar": 62,
+        "endLine": 106,
+        "endChar": 66
+      },
+      "revId": "fa0714570e39e46c973a28b2af1c0afec97d1fb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbfb5eed_6b2cd142",
+        "filename": "go/gcr/gcr.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-26T14:35:01Z",
+      "side": 1,
+      "message": "for debugging?",
+      "revId": "fa0714570e39e46c973a28b2af1c0afec97d1fb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
