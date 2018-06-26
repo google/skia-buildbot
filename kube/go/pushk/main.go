@@ -236,7 +236,7 @@ func main() {
 			sklog.Fatalf("Failed to split imageName: %v", parts)
 		}
 		imageNoTag := parts[0]
-		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s).*$`, imageNoTag))
+		imageRegex := regexp.MustCompile(fmt.Sprintf(`^(\s+image:\s+)(%s):.*$`, imageNoTag))
 
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
