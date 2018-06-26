@@ -48,3 +48,9 @@ both the author and commiter date to the matching timestamp.
 
    GIT_COMMITTER_DATE=1480456484 git commit -m "https://android-ingest.skia.org/r/3529135" --date=1480456484
 
+Upload Log
+==========
+
+POST requests with new data are not able to be re-triggered so we have to take
+special care not to lose data. A transaction log is kept of all incoming POST
+requests that can be replayed if needed.

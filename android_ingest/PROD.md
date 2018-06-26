@@ -27,3 +27,9 @@ Make sure the git-cookie-authdaemon is running and that it is populating the
 git cookie at /home/default/.git-credentials-cache/cookie.
 
 Also check the logs for the exact operation in the process that is failing.
+
+tx_log
+------
+
+The storing of all uploaded data in the transaction log is failing. Check
+GCS permissions and the logs for the errors generated.
