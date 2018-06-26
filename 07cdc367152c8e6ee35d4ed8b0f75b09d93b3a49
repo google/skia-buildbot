@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "80339956_2e4d459f",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-26T14:51:17Z",
+      "side": 1,
+      "message": "Suppose my entity group consists of three kinds: Grandparent, Parent, Child. Child\u0027s key.Parent points to Parent; Parent\u0027s key.Parent points to Grandparent. Grandparent is the root of the entity group. Will it cause problems to group Child entities for the same Parent, but process Child entities for the same Grandparent in separate transactions?",
+      "parentUuid": "5f31c9a9_a0b1d0d2",
+      "range": {
+        "startLine": 202,
+        "startChar": 38,
+        "endLine": 202,
+        "endChar": 51
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "612935b4_735df167",
         "filename": "cmd/dstool/main.go",
         "patchSetId": 12
@@ -234,6 +258,30 @@
       "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "928dadde_1619655f",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-26T14:51:17Z",
+      "side": 1,
+      "message": "The new code introduces a new problem. In the same situation, you will now never process byParent[0], because len(byParent[0]) \u003d\u003d maxSliceSize will not be true on later iterations.\n\nMaybe it would be better to fail early if we see entities both with and without a parent.",
+      "parentUuid": "ae7efb56_de7b9b78",
+      "range": {
+        "startLine": 231,
+        "startChar": 0,
+        "endLine": 232,
+        "endChar": 21
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
