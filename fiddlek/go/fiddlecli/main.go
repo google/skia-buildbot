@@ -20,6 +20,8 @@ import (
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -40,6 +42,30 @@ var (
 type chanRequest struct {
 	id  string
 	req *types.FiddleContext
+}
+
+// singleRequest does a single request to fiddle.skia.org.
+func singleRequest(c *http.Client, body []byte, domain string) (*types.RunResults, bool) {
+	resp, err := c.Post(domain+"/_/run", "application/json", bytes.NewReader(body))
+	sleep := time.Second
+	if err != nil {
+		sklog.Infof("Send error: %s", err)
+		time.Sleep(sleep)
+		return nil, false
+	}
+	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		sklog.Infof("Send failed: %s", resp.Status)
+		time.Sleep(sleep)
+		return nil, false
+	}
+	var runResults types.RunResults
+	if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
+		sklog.Infof("Malformed response: %s", err)
+		time.Sleep(sleep)
+		return nil, false
+	}
+	return &runResults, true
 }
 
 func main() {
@@ -103,32 +129,24 @@ func main() {
 				// POST to fiddle.
 				b, err = json.Marshal(req.req)
 				if err != nil {
-					return fmt.Errorf("Failed to encode an individual request: %s", err)
+					sklog.Errorf("Failed to encode an individual request: %s", err)
+					continue
 				}
-				var resp *http.Response
-				runResults := types.RunResults{}
 				success := false
+				var runResults *types.RunResults
 				for tries := 0; tries < RETRIES; tries++ {
-					resp, err = c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
-					if err != nil || resp.StatusCode != 200 {
-						time.Sleep(time.Second)
-						continue
+					runResults, success = singleRequest(c, b, *domain)
+					if success {
+						break
 					}
-
-					// Decode response and add to all responses.
-					if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
-						time.Sleep(time.Second)
-						continue
-					}
-					success = true
-					break
 				}
 				if !success {
-					return fmt.Errorf("Failed to make request: %s %s", err, resp.Status)
+					sklog.Errorf("Failed to make request after %d tries", RETRIES)
+					continue
 				}
 
 				mutex.Lock()
-				response[req.id] = &runResults
+				response[req.id] = runResults
 				mutex.Unlock()
 			}
 			return nil

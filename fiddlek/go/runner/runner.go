@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -68,6 +70,7 @@ type Runner struct {
 	fastClient *http.Client
 	local      bool
 	clientset  *kubernetes.Clientset
+	rand       *rand.Rand
 
 	mutex       sync.Mutex // mutex protects skiaGitHash.
 	skiaGitHash string
@@ -79,6 +82,7 @@ func New(local bool, sourceDir string) (*Runner, error) {
 		client:     httputils.NewTimeoutClient(),
 		fastClient: httputils.NewFastTimeoutClient(),
 		local:      local,
+		rand:       rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 	if !local {
 		config, err := rest.InClusterConfig()
@@ -177,7 +181,33 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String())
 	}
+	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
+		return nil, failedToSendErr
+	}
 	return res, nil
+}
+
+// shuffle is copied from the Go 1.10 library until we can switch to Go 1.10.
+func shuffle(r *rand.Rand, n int, swap func(i, j int)) {
+	if n < 0 {
+		panic("invalid argument to Shuffle")
+	}
+
+	// Fisher-Yates shuffle: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+	// Shuffle really ought not be called with n that doesn't fit in 32 bits.
+	// Not only will it take a very long time, but with 2³¹! possible permutations,
+	// there's no way that any PRNG can have a big enough internal state to
+	// generate even a minuscule percentage of the possible permutations.
+	// Nevertheless, the right API signature accepts an int n, so handle it as best we can.
+	i := n - 1
+	for ; i > 1<<31-1-1; i-- {
+		j := int(r.Int63n(int64(i + 1)))
+		swap(i, j)
+	}
+	for ; i > 0; i-- {
+		j := int(r.Int31n(int32(i + 1)))
+		swap(i, j)
+	}
 }
 
 // Run executes fiddle_run and then parses the JSON output into types.Results.
@@ -206,14 +236,20 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
 		for tries := 0; tries < 6; tries++ {
-			pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+			fiddlerList, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
 				LabelSelector: "app=fiddler",
 			})
 			if err != nil {
 				return nil, fmt.Errorf("Could not list fiddler pods: %s", err)
 			}
+			pods := fiddlerList.Items
+			// The kubernetes API returns the list of pods in sorted order. Shuffle
+			// them in order to avoid pummeling the first pod with tons of traffic.
+			shuffle(r.rand, len(pods), func(i, j int) {
+				pods[i], pods[j] = pods[j], pods[i]
+			})
 			// Loop over all the pods looking for an open one.
-			for i, p := range pods.Items {
+			for i, p := range pods {
 				sklog.Infof("Found pod %d: %s", i, p.Name)
 				rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
 				resp, err := r.fastClient.Get(rootURL)
@@ -231,7 +267,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				if fiddlerResp.State == types.IDLE {
 					// Run the fiddle in the open pod.
 					ret, err := r.singleRun(rootURL+"/run", body)
-					if err == alreadyRunningFiddleErr {
+					if err == alreadyRunningFiddleErr || err == failedToSendErr {
 						continue
 					} else {
 						// Kill the pod once we have a result.
@@ -246,7 +282,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				}
 			}
 			// Let the pods run and see of any new ones open up.
-			time.Sleep(time.Second)
+			time.Sleep((1 << uint64(tries)) * time.Second)
 		}
 		runExhaustion.Inc(1)
 		return nil, fmt.Errorf("Failed to find an available server to run the fiddle.")
