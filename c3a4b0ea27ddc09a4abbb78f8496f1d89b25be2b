@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4f8165fb_7611ce66",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-26T14:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd055302_d1e491d5",
+      "range": {
+        "startLine": 115,
+        "startChar": 73,
+        "endLine": 115,
+        "endChar": 75
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e030219_3ddf6dce",
         "filename": "cmd/dstool/main.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b58d4dbb_a7db40a7",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-26T14:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4e030219_3ddf6dce",
+      "range": {
+        "startLine": 116,
+        "startChar": 17,
+        "endLine": 116,
+        "endChar": 19
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a1cb188_eae6ec62",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-26T14:28:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f762b23_20f7639b",
+      "range": {
+        "startLine": 194,
+        "startChar": 16,
+        "endLine": 194,
+        "endChar": 22
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c73fcc6_21fd58e0",
         "filename": "go/ds/ds_test.go",
         "patchSetId": 11
@@ -91,6 +163,30 @@
       "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb2c3717_b3d76237",
+        "filename": "go/ds/ds_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-06-26T14:28:58Z",
+      "side": 1,
+      "message": "Done\nAdded comment why we don\u0027t use it here (calling DeleteAll in function)",
+      "parentUuid": "9c73fcc6_21fd58e0",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 5
+      },
+      "revId": "c3a4b0ea27ddc09a4abbb78f8496f1d89b25be2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
