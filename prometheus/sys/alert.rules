@@ -234,6 +234,13 @@ ALERT AndroidIngestFailures
     description = "Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures"
   }
 
+ALERT AndroidTxLogFailures
+  IF tx_log_write_failure > 0
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log"
+  }
+
 ALERT IngestErrorTooHigh
   IF rate(ingestion{metric="errors"}[5m]) > 1
   LABELS { category = "infra", severity = "critical" }
