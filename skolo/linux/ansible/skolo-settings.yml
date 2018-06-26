@@ -41,6 +41,8 @@
       apt: name=ethtool
 
     # These are needed to run our swarming tests
+    - name: Install Beignet OpenCL driver
+      apt: name=beignet-opencl-icd,ocl-icd-libopencl1
 
     # These are needed for general use
     - name: Install collectd, without the JDK
