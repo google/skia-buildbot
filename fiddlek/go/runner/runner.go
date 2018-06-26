@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -177,6 +178,9 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String())
 	}
+	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
+		return nil, failedToSendErr
+	}
 	return res, nil
 }
 
@@ -231,7 +235,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				if fiddlerResp.State == types.IDLE {
 					// Run the fiddle in the open pod.
 					ret, err := r.singleRun(rootURL+"/run", body)
-					if err == alreadyRunningFiddleErr {
+					if err == alreadyRunningFiddleErr || err == failedToSendErr {
 						continue
 					} else {
 						// Kill the pod once we have a result.
@@ -246,7 +250,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				}
 			}
 			// Let the pods run and see of any new ones open up.
-			time.Sleep(time.Second)
+			time.Sleep((1 << uint64(tries)) * time.Second)
 		}
 		runExhaustion.Inc(1)
 		return nil, fmt.Errorf("Failed to find an available server to run the fiddle.")

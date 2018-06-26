@@ -110,14 +110,15 @@ func main() {
 				success := false
 				for tries := 0; tries < RETRIES; tries++ {
 					resp, err = c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
+					sleep := (1 << uint64(tries)) * time.Second
 					if err != nil || resp.StatusCode != 200 {
-						time.Sleep(time.Second)
+						time.Sleep(sleep)
 						continue
 					}
 
 					// Decode response and add to all responses.
 					if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
-						time.Sleep(time.Second)
+						time.Sleep(sleep)
 						continue
 					}
 					success = true
