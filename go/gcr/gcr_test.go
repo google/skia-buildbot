@@ -1,51 +1,31 @@
 package gcr
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
 
 func TestTags(t *testing.T) {
 	testutils.SmallTest(t)
-	count := 0
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if count == 0 {
-			w.Header().Add("Link", "<?n=10&last=20>; rel=\"next\"")
-			err := json.NewEncoder(w).Encode(map[string]interface{}{
-				"tags": []string{"bar", "baz"},
-			})
-			assert.NoError(t, err)
-			count += 1
-		} else {
-			err := json.NewEncoder(w).Encode(map[string]interface{}{
-				"tags": []string{"quux"},
-			})
-			assert.NoError(t, err)
-		}
-	}))
-	defer ts.Close()
-	u, err := url.Parse(ts.URL)
-	assert.NoError(t, err)
-	SCHEME = "http"
-	SERVER = u.Host
-
+	url := fmt.Sprintf("https://%s/v2/skia-public/docserver/tags/list", SERVER)
+	m := mockhttpclient.NewURLMock()
+	m.Mock(url, mockhttpclient.MockGetDialogue([]byte(`{"tags": ["foo", "bar"]}`)))
 	c := &Client{
-		client:    httputils.NewTimeoutClient(),
+		client:    m.Client(),
 		projectId: "skia-public",
 		imageName: "docserver",
 	}
 	tags, err := c.Tags()
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"bar", "baz", "quux"}, tags)
+	assert.Equal(t, []string{"foo", "bar"}, tags)
+
+	c.imageName = "unknown"
+	tags, err = c.Tags()
+	assert.Error(t, err)
 }
 
 func TestGcrTokenSource(t *testing.T) {
