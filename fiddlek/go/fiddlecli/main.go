@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -110,14 +111,18 @@ func main() {
 				success := false
 				for tries := 0; tries < RETRIES; tries++ {
 					resp, err = c.Post(*domain+"/_/run", "application/json", bytes.NewReader(b))
+					//					sleep := (1 << uint64(tries)) * time.Second
+					sleep := time.Second
 					if err != nil || resp.StatusCode != 200 {
-						time.Sleep(time.Second)
+						sklog.Infof("Send failed: %d %s %s", tries, resp.Status, err)
+						time.Sleep(sleep)
 						continue
 					}
 
 					// Decode response and add to all responses.
 					if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
-						time.Sleep(time.Second)
+						sklog.Infof("Malformed response: %s %d", err, tries)
+						time.Sleep(sleep)
 						continue
 					}
 					success = true

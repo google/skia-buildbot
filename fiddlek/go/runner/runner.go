@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -177,6 +179,9 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		sklog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String())
 	}
+	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
+		return nil, failedToSendErr
+	}
 	return res, nil
 }
 
@@ -206,14 +211,18 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
 		for tries := 0; tries < 6; tries++ {
-			pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+			fiddlerList, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
 				LabelSelector: "app=fiddler",
 			})
 			if err != nil {
 				return nil, fmt.Errorf("Could not list fiddler pods: %s", err)
 			}
+			pods := fiddlerList.Items
+			rand.Shuffle(len(pods), func(i, j int) {
+				pods[i], pods[j] = pods[j], pods[i]
+			})
 			// Loop over all the pods looking for an open one.
-			for i, p := range pods.Items {
+			for i, p := range pods {
 				sklog.Infof("Found pod %d: %s", i, p.Name)
 				rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
 				resp, err := r.fastClient.Get(rootURL)
@@ -231,7 +240,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				if fiddlerResp.State == types.IDLE {
 					// Run the fiddle in the open pod.
 					ret, err := r.singleRun(rootURL+"/run", body)
-					if err == alreadyRunningFiddleErr {
+					if err == alreadyRunningFiddleErr || err == failedToSendErr {
 						continue
 					} else {
 						// Kill the pod once we have a result.
@@ -246,7 +255,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				}
 			}
 			// Let the pods run and see of any new ones open up.
-			time.Sleep(time.Second)
+			time.Sleep((1 << uint64(tries)) * time.Second)
 		}
 		runExhaustion.Inc(1)
 		return nil, fmt.Errorf("Failed to find an available server to run the fiddle.")
