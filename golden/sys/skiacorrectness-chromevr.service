@@ -15,6 +15,7 @@ ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --db_name=skiacorrectness_chromevr  \
     --default_corpus=chromevr \
     --ds_namespace=gold-chromevr \
+    --event_topic=gold-chromevr-eventbus \
     --force_login=false \
     --git_repo_dir=${DATA_DIR}/gold/chromevr_repo \
     --git_repo_url=https://chromium.googlesource.com/chromium/src \

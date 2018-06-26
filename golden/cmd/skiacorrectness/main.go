@@ -202,7 +202,7 @@ func main() {
 	}
 
 	// serviceName uniquely identifies this host and app and is used as ID for other services.
-	nodeName, err := getNodeName(*local)
+	nodeName, err := gevent.GetNodeName("gold", *local)
 	if err != nil {
 		sklog.Fatalf("Error getting unique service name: %s", err)
 	}
@@ -493,20 +493,4 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
-}
-
-// getNodeName generates a service name for this host based on the hostname and
-// whether we are running locally or in the cloud. This is enough to distinguish
-// between hosts and can be used across services, e.g. pubsub subscription or
-// logging and tracing information.
-func getNodeName(local bool) (string, error) {
-	hostName, err := os.Hostname()
-	if err != nil {
-		return "", err
-	}
-
-	if local {
-		return "local-" + hostName, nil
-	}
-	return hostName, nil
 }

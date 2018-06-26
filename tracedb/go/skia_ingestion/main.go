@@ -31,9 +31,11 @@ import (
 var (
 	configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
 	dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+	eventTopic         = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
+	projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 )
@@ -70,7 +72,7 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
 	}
 
-	if err := ds.InitWithOpt(common.PROJECT_ID, *dsNamespace, option.WithTokenSource(tokenSrc)); err != nil {
+	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSrc)); err != nil {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
@@ -80,7 +82,7 @@ func main() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client)
+	ingesters, err := ingestion.IngestersFromConfig(ctx, *projectID, config, client, *local)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
