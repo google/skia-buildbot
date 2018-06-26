@@ -18,8 +18,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	"go.skia.org/infra/go/auth"
@@ -27,8 +25,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var (
-	SCHEME = "https"
+const (
 	SERVER = "gcr.io"
 )
 
@@ -102,39 +99,21 @@ func NewClient(tokenSource oauth2.TokenSource, projectId, imageName string) *Cli
 
 // Tags returns all of the tags for all versions of the image.
 func (c *Client) Tags() ([]string, error) {
-	tags := []string{}
-	tagsURL, err := url.Parse(fmt.Sprintf("%s://%s/v2/%s/%s/tags/list", SCHEME, SERVER, c.projectId, c.imageName))
+	// TODO(jcgregorio) Look for link rel=next header to do pagination. https://docs.docker.com/registry/spec/api/#listing-image-tags
+	resp, err := c.client.Get(fmt.Sprintf("https://%s/v2/%s/%s/tags/list", SERVER, c.projectId, c.imageName))
 	if err != nil {
-		return tags, err
+		return nil, fmt.Errorf("Failed to request tags: %s", err)
 	}
-	for {
-		resp, err := c.client.Get(tagsURL.String())
-		if err != nil {
-			return nil, fmt.Errorf("Failed to request tags: %s", err)
-		}
-		defer util.Close(resp.Body)
-		if resp.StatusCode != 200 {
-			return nil, fmt.Errorf("Got unexpected response: %s", resp.Status)
-		}
-		type Response struct {
-			Tags []string `json:"tags"`
-		}
-		var response Response
-		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			return nil, fmt.Errorf("Could not decode response: %s", err)
-		}
-		tags = append(tags, response.Tags...)
-		fmt.Printf("Headers: %#v\n", resp.Header)
-
-		// Pagination: https://docs.docker.com/registry/spec/api/#listing-image-tags
-		if link := resp.Header.Get("Link"); link != "" {
-			linkURL, err := url.Parse(strings.Trim(strings.Split(link, ";")[0], "<>"))
-			if err != nil {
-				return tags, err
-			}
-			tagsURL = tagsURL.ResolveReference(linkURL)
-		} else {
-			return tags, nil
-		}
+	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Got unexpected response: %s", resp.Status)
 	}
+	type Response struct {
+		Tags []string `json:"tags"`
+	}
+	var response Response
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("Could not decode response: %s", err)
+	}
+	return response.Tags, nil
 }
