@@ -35,6 +35,11 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	// TX_LOG_DIR is the sub-directory of *storageUrl that is used to store the incoming POST transaction log.
+	TX_LOG_DIR = "tx_log"
+)
+
 // flags
 var (
 	branch       = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
@@ -49,20 +54,23 @@ var (
 )
 
 var (
-	templates      *template.Template
-	bucket         *storage.BucketHandle
-	gcsPath        string
-	converter      *parser.Converter
-	process        *continuous.Process
-	recentRequests *recent.Recent
-	uploads        metrics2.Counter
-	lookupCache    *lookup.Cache
+	templates         *template.Template
+	bucket            *storage.BucketHandle
+	gcsPath           string
+	converter         *parser.Converter
+	process           *continuous.Process
+	recentRequests    *recent.Recent
+	uploads           metrics2.Counter
+	txLogWriteFailure metrics2.Counter
+
+	lookupCache *lookup.Cache
 )
 
 func Init() {
 	ctx := context.Background()
 	loadTemplates()
 
+	txLogWriteFailure = metrics2.GetCounter("tx_log_write_failure", nil)
 	uploads = metrics2.GetCounter("uploads", nil)
 	// Create a new auth'd client for androidbuildinternal.
 	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
@@ -129,7 +137,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func badRequest(w http.ResponseWriter, r *http.Request, err error, message string) {
-	sklog.Errorln(message, err)
+	sklog.Warning(message, err)
 	w.WriteHeader(http.StatusBadRequest)
 	_, err = fmt.Fprintf(w, "%s: %s", message, err)
 	if err != nil {
@@ -145,17 +153,26 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		badRequest(w, r, err, "Failed to read body.")
 		return
 	}
+	// Write the data to the transaction log before even attempting to parse.
+	txLogName := upload.LogPath(filepath.Join(gcsPath, TX_LOG_DIR), time.Now().UTC(), b)
+	writer := bucket.Object(txLogName).NewWriter(context.Background())
+	if _, err := writer.Write(b); err != nil {
+		sklog.Errorf("Failed to create a log entry for incoming JSON data: %s", err)
+		txLogWriteFailure.Inc(1)
+	}
+	util.Close(writer)
 
 	// Convert to benchData.
 	buf := bytes.NewBuffer(b)
 	benchData, err := converter.Convert(buf)
 	if err != nil {
-		badRequest(w, r, err, "Failed to find valid incoming JSON.")
+		err = fmt.Errorf("Failed to find valid incoming JSON in: %q : %s", txLogName, err)
+		badRequest(w, r, err, "Failed to find valid incoming JSON")
 		return
 	}
 
 	// Write the benchData out as JSON in the right spot in Google Storage.
-	writer := bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
+	writer = bucket.Object(upload.ObjectPath(benchData, gcsPath, time.Now().UTC(), b)).NewWriter(context.Background())
 	b, err = json.MarshalIndent(benchData, "", "  ")
 	if err != nil {
 		badRequest(w, r, err, "Failed to encode benchData as JSON.")
@@ -269,7 +286,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
-	r.HandleFunc("/upload", UploadHandler)
+	r.HandleFunc("/upload", UploadHandler).Methods("POST")
 	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
 	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
 	r.HandleFunc("/", MainHandler)
