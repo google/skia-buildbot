@@ -333,6 +333,30 @@
     },
     {
       "key": {
+        "uuid": "084e2e83_4977a925",
+        "filename": "cmd/dstool/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-27T15:26:58Z",
+      "side": 1,
+      "message": "So, you are saying that all keys without parents will be sorted before any keys with parents? If so, you should add a comment explaining that. If not, I still think there is a problem.",
+      "parentUuid": "817a1ffb_6f64397d",
+      "range": {
+        "startLine": 231,
+        "startChar": 0,
+        "endLine": 232,
+        "endChar": 21
+      },
+      "revId": "07cdc367152c8e6ee35d4ed8b0f75b09d93b3a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0d42a9c0_caeb1141",
         "filename": "go/ds/ds.go",
         "patchSetId": 12
