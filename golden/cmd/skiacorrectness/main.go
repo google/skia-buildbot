@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/web"
 
 	"github.com/gorilla/mux"
@@ -202,7 +203,7 @@ func main() {
 	}
 
 	// serviceName uniquely identifies this host and app and is used as ID for other services.
-	nodeName, err := getNodeName(*local)
+	nodeName, err := gevent.GetNodeName("gold", *local)
 	if err != nil {
 		sklog.Fatalf("Error getting unique service name: %s", err)
 	}
@@ -309,6 +310,12 @@ func main() {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
 
+	// Extract the site URL
+	siteURL, err := httputils.GetBaseURL(*redirectURL)
+	if err != nil {
+		sklog.Fatalf("Error getting base URL: %s", err)
+	}
+
 	storages := &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
@@ -317,6 +324,7 @@ func main() {
 		NCommits:          *nCommits,
 		EventBus:          evt,
 		TryjobStore:       tryjobStore,
+		TryjobMonitor:     tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt),
 		GerritAPI:         gerritAPI,
 		GStorageClient:    gsClient,
 		Git:               git,
@@ -493,20 +501,4 @@ func main() {
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
 	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
-}
-
-// getNodeName generates a service name for this host based on the hostname and
-// whether we are running locally or in the cloud. This is enough to distinguish
-// between hosts and can be used across services, e.g. pubsub subscription or
-// logging and tracing information.
-func getNodeName(local bool) (string, error) {
-	hostName, err := os.Hostname()
-	if err != nil {
-		return "", err
-	}
-
-	if local {
-		return "local-" + hostName, nil
-	}
-	return hostName, nil
 }

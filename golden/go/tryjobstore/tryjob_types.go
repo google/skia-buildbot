@@ -73,6 +73,7 @@ type Issue struct {
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"         datastore:",noindex"`
 	Committed       bool              `json:"committed"         datastore:"Commited"`
 	QueryPatchsets  []int64           `json:"queryPatchsets"    datastore:"-"`
+	CommentAdded    bool              `json:"-"                 datastore:",noindex"`
 
 	clean bool
 }

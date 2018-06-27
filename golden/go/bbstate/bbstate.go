@@ -48,7 +48,7 @@ const (
 	maxConcurrentWrites = 1000
 )
 
-// Config defines the configaration options for BuildBucketState.
+// Config defines the configuration options for BuildBucketState.
 type Config struct {
 	// BuildBucketURL is the URL of the BuildBucket instance to poll for tryjobs.
 	BuildBucketURL string
@@ -71,7 +71,7 @@ type Config struct {
 	// TimeWindow is the time delta that defines how far back in time BuildBucket is queried.
 	TimeWindow time.Duration
 
-	// BuilderRegexp is the regular expresstion that has to match for a builder to be included.
+	// BuilderRegexp is the regular expression that has to match for a builder to be included.
 	BuilderRegexp string
 }
 
@@ -293,7 +293,7 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 	}
 
 	// Write the update issues to the store.
-	if err := b.tryjobStore.UpdateIssue(issue); err != nil {
+	if err := b.tryjobStore.UpdateIssue(issue, nil); err != nil {
 		return nil, err
 	}
 	sklog.Infof("Added information for issue %d", issueID)
@@ -360,7 +360,7 @@ func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, para
 	return !b.builderRegExp.Match([]byte(params.BuilderName))
 }
 
-// startBuildPoller polls the BuildBucket immediatedly and starts a poller at the
+// startBuildPoller polls the BuildBucket immediately and starts a poller at the
 // given interval with the given time windows. All results are written to buildCh.
 // If the first poll fails, an error is returned.
 func (b *BuildBucketState) startBuildPoller(buildsCh chan<- *bb_api.ApiCommonBuildMessage, interval, timeWindow time.Duration) error {
