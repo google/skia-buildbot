@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.skia.org/infra/go/gevent"
+
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/jsonutils"
@@ -25,8 +27,16 @@ const (
 	// for an issue change. It sends an instance of *TryjobExpChange.
 	EV_TRYJOB_EXP_CHANGED = "tryjobstore:change"
 
+	// EV_TRYJOB_UPDATED is the event that is fired when a tryjob is updated (update or creation).
 	EV_TRYJOB_UPDATED = "tryjobstore:tryjob-updated"
 )
+
+func init() {
+	// Register JSON codecs for the events fired by this package. This is necessary
+	// to distribute events globally.
+	gevent.RegisterCodec(EV_TRYJOB_EXP_CHANGED, util.JSONCodec(&IssueExpChange{}))
+	gevent.RegisterCodec(EV_TRYJOB_UPDATED, util.JSONCodec(&Tryjob{}))
+}
 
 // NewValueFn is a callback function that allows to update the value of
 // datastore entity within a transation. It receives the current value an
@@ -53,7 +63,7 @@ type TryjobStore interface {
 
 	// UpdateIssue updates the given issue with the provided data. If the issue does not
 	// exist in the database it will be created.
-	UpdateIssue(details *Issue) error
+	UpdateIssue(details *Issue, updateFn NewValueFn) error
 
 	// CommitIssueExp commits the expecations of the given issue. The writeFn
 	// is expected to make the changes to the master baseline. An issue is
@@ -187,8 +197,8 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool) (*Issue, er
 }
 
 // UpdateIssue implements the TryjobStore interface.
-func (c *cloudTryjobStore) UpdateIssue(details *Issue) error {
-	_, err := c.updateEntity(c.getIssueKey(details.ID), details, nil, false, nil)
+func (c *cloudTryjobStore) UpdateIssue(details *Issue, updateFn NewValueFn) error {
+	_, err := c.updateEntity(c.getIssueKey(details.ID), details, nil, false, updateFn)
 	return err
 }
 

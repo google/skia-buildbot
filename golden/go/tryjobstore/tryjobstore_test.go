@@ -90,7 +90,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 			{ID: patchsetID_2},
 		},
 	}
-	assert.NoError(t, store.UpdateIssue(issue))
+	assert.NoError(t, store.UpdateIssue(issue, nil))
 
 	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
 	assert.NoError(t, err)

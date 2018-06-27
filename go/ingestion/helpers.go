@@ -17,8 +17,10 @@ import (
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
@@ -37,7 +39,7 @@ const MAX_URI_GET_TRIES = 4
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   secondaryVCS is a secondary repo that is assumed to have vcs as a dependency.
 //   ex is an extractor to extract commits from the DEPS file of the secondary repo.
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (Processor, error)
+type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -57,7 +59,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, projectID string, config *sharedconfig.Config, client *http.Client, local bool) ([]*Ingester, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
@@ -78,6 +80,17 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
 		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
+	}
+
+	var eventBus eventbus.EventBus
+	if config.EventTopic != "" {
+		nodeName, err := gevent.GetNodeName("gold", local)
+		if err != nil {
+			return nil, err
+		}
+		eventBus, err = gevent.New(projectID, config.EventTopic, nodeName, option.WithHTTPClient(client))
+	} else {
+		eventBus = eventbus.New()
 	}
 
 	// Set up the Google storage client.
@@ -103,7 +116,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf, client)
+		processor, err := processorConstructor(vcs, ingesterConf, client, eventBus)
 		if err != nil {
 			return nil, err
 		}
