@@ -228,7 +228,7 @@ ALERT AndroidMasterPerfUntriagedClusters
   }
 
 ALERT AndroidIngestFailures
-  IF rate(process_failures[2m]) > 0.1
+  IF rate(process_failures[1h]) > 0
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     description = "Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures"
