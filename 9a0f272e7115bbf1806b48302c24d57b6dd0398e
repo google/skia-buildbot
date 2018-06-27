@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5154bf6a_6bb8382d",
+        "filename": "ct/PROD.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-27T15:15:00Z",
+      "side": 1,
+      "message": "are what?",
+      "range": {
+        "startLine": 30,
+        "startChar": 61,
+        "endLine": 30,
+        "endChar": 65
+      },
+      "revId": "9a0f272e7115bbf1806b48302c24d57b6dd0398e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
