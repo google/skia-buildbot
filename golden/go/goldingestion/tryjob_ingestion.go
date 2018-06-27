@@ -56,7 +56,7 @@ type goldTryjobProcessor struct {
 }
 
 // newGoldTryjobProcessor implementes the ingestion.Constructor function.
-func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clientx *http.Client) (ingestion.Processor, error) {
+func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clientx *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
 	sklog.Infof("Creating tryjob processor.")
 	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
 	if strings.TrimSpace(gerritURL) == "" {
@@ -93,7 +93,6 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
 
 	// Create the cloud tryjob store.
-	eventBus := eventbus.New()
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)

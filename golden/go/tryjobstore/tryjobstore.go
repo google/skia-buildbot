@@ -53,7 +53,7 @@ type TryjobStore interface {
 
 	// UpdateIssue updates the given issue with the provided data. If the issue does not
 	// exist in the database it will be created.
-	UpdateIssue(details *Issue) error
+	UpdateIssue(details *Issue, updateFn NewValueFn) error
 
 	// CommitIssueExp commits the expecations of the given issue. The writeFn
 	// is expected to make the changes to the master baseline. An issue is
@@ -187,8 +187,8 @@ func (c *cloudTryjobStore) GetIssue(issueID int64, loadTryjobs bool) (*Issue, er
 }
 
 // UpdateIssue implements the TryjobStore interface.
-func (c *cloudTryjobStore) UpdateIssue(details *Issue) error {
-	_, err := c.updateEntity(c.getIssueKey(details.ID), details, nil, false, nil)
+func (c *cloudTryjobStore) UpdateIssue(details *Issue, updateFn NewValueFn) error {
+	_, err := c.updateEntity(c.getIssueKey(details.ID), details, nil, false, updateFn)
 	return err
 }
 

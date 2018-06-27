@@ -237,7 +237,7 @@ Loop:
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
 func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
-	// Retieve the most recent tile.
+	// Retrieve the most recent tile.
 	tile := s.getWhiteListedTile(s.MasterTileBuilder.GetTile())
 
 	s.mutex.Lock()
@@ -340,6 +340,44 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 	}
 
 	return digestInfo, nil
+}
+
+const goldMessageTmpl = "Gold results for this tryjob are being ingested. See image differences at: %s"
+
+func (s *Storage) WriteGoldLinkToGerrit(issueID int64) error {
+	// // Load the issue from the database
+	// issue, err := s.TryjobStore.GetIssue(issueID, false)
+	// if err != nil {
+	// 	return sklog.FmtErrorf("Error loading issue %d: %s", issueID, err)
+	// }
+
+	// // If the issue doesn't exist we return an error
+	// if issue == nil {
+	// 	return sklog.FmtErrorf("Issue %d does not exist")
+	// }
+
+	// // If it's already been added we are done
+	// if issue.CommentAdded {
+	// 	return nil
+	// }
+
+	// gerritIssue, err := s.GerritAPI.GetIssueProperties(issueID)
+	// if err != nil {
+	// 	sklog.FmtErrorf("Error retrieving Gerrit issue %d: %s", issueID, err)
+	// }
+
+	// url := s.TryjobStore.IssueURL(issueID)
+	// msg := fmt.Sprintf(goldMessageTemplate, url)
+	// if err := s.GerritAPI.AddComment(gerritIssue, msg); err != nil {
+	// 	return sklog.FmtError("Error adding Gerrit comment to issue %d: %s", issueID, err)
+	// }
+
+	// s.TryjobStore.UpdateIssue(issue, func(issue interface{}) interface{} {
+	// 	return nil
+	// })
+
+	// // Add the comment to the issue and write it to the data.
+	return nil
 }
 
 // getWhiteListedTile creates a new tile from the given tile that contains
