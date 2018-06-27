@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99c2089c_3fc41c2b",
+        "filename": "android_ingest/replay-log.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-27T12:50:50Z",
+      "side": 1,
+      "message": "Optional suggestion: It would probably be useful to have a \"from\" and optional \"to\" flag.",
+      "range": {
+        "startLine": 10,
+        "startChar": 73,
+        "endLine": 10,
+        "endChar": 86
+      },
+      "revId": "376b76fde800642400eb0872028fb9d03c6e163e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
