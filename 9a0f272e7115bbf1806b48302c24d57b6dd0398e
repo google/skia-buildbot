@@ -22,6 +22,30 @@
       "revId": "9a0f272e7115bbf1806b48302c24d57b6dd0398e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ab46f79_8a5aca62",
+        "filename": "ct/PROD.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-27T19:40:25Z",
+      "side": 1,
+      "message": "Fixed, thanks!",
+      "parentUuid": "5154bf6a_6bb8382d",
+      "range": {
+        "startLine": 30,
+        "startChar": 61,
+        "endLine": 30,
+        "endChar": 65
+      },
+      "revId": "9a0f272e7115bbf1806b48302c24d57b6dd0398e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
