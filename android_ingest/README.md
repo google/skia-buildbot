@@ -54,3 +54,6 @@ Upload Log
 POST requests with new data are not able to be re-triggered so we have to take
 special care not to lose data. A transaction log is kept of all incoming POST
 requests that can be replayed if needed.
+
+Use the ./replay-log.sh script to replay logs back into android_ingest. See
+the comments in the script for how to run it.
