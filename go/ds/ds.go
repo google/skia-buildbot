@@ -240,6 +240,38 @@ func NewQuery(kind Kind) *datastore.Query {
 	return datastore.NewQuery(string(kind)).Namespace(Namespace)
 }
 
+// IterKeysItem is the item returned by the IterKeys function via a channel.
+type IterKeysItem struct {
+	Keys []*datastore.Key
+	Err  error
+}
+
+// IterKeys iterates all keys of the specified kind in slices of pageSize length.
+func IterKeys(client *datastore.Client, kind Kind, pageSize int) (<-chan *IterKeysItem, error) {
+	sliceIter := newKeySliceIterator(client, kind, pageSize)
+	keySlice, done, err := sliceIter.next()
+	if err != nil {
+		return nil, err
+	}
+
+	retCh := make(chan *IterKeysItem)
+	go func() {
+		defer close(retCh)
+
+		keyCount := 0
+		for !done {
+			keyCount += len(keySlice)
+			retCh <- &IterKeysItem{
+				Keys: keySlice,
+				Err:  err,
+			}
+			// Get the next slice of keys.
+			keySlice, done, err = sliceIter.next()
+		}
+	}()
+	return retCh, nil
+}
+
 // keySliceIterator allows to iterate over the keys of a specific entity
 // in slices of fixed size.
 type keySliceIterator struct {
