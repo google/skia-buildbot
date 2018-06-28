@@ -35,6 +35,15 @@ var statusStringRepr = []string{
 	"unknown",
 }
 
+var statusStringMap = map[string]TryjobStatus{}
+
+func init() {
+	// Initialize the mapping between TryjobStatus and it's string representation.
+	for idx, repr := range statusStringRepr {
+		statusStringMap[repr] = TryjobStatus(idx)
+	}
+}
+
 // TryjobStatus is an enum that captures the status of a tryjob.
 type TryjobStatus int
 
@@ -43,10 +52,23 @@ func (t TryjobStatus) String() string {
 	return statusStringRepr[t]
 }
 
+func tryjobStatusFromString(statusStr string) TryjobStatus {
+	if s, ok := statusStringMap[statusStr]; ok {
+		return s
+	}
+	return TRYJOB_UNKNOWN
+}
+
 // Serialize TryjobStatus as string to JSON.
 // Note: We only output JSON so we omit the UnmarshalJSON function.
 func (t TryjobStatus) MarshalJSON() ([]byte, error) {
 	return []byte("\"" + t.String() + "\""), nil
+}
+
+func (t *TryjobStatus) UnmarshalJSON(data []byte) error {
+	strStatus := strings.Trim(string(data), "\"")
+	*t = tryjobStatusFromString(strStatus)
+	return nil
 }
 
 // Reuse types from the buildbucket package.
@@ -73,6 +95,7 @@ type Issue struct {
 	PatchsetDetails []*PatchsetDetail `json:"patchsets"         datastore:",noindex"`
 	Committed       bool              `json:"committed"         datastore:"Commited"`
 	QueryPatchsets  []int64           `json:"queryPatchsets"    datastore:"-"`
+	CommentAdded    bool              `json:"-"                 datastore:",noindex"`
 
 	clean bool
 }
