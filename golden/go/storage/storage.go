@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -39,6 +40,7 @@ type Storage struct {
 	DigestStore       digeststore.DigestStore
 	EventBus          eventbus.EventBus
 	TryjobStore       tryjobstore.TryjobStore
+	TryjobMonitor     *tryjobs.TryjobMonitor
 	GerritAPI         *gerrit.Gerrit
 	GStorageClient    *GStorageClient
 	Git               *gitinfo.GitInfo
@@ -237,7 +239,7 @@ Loop:
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
 func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
-	// Retieve the most recent tile.
+	// Retrieve the most recent tile.
 	tile := s.getWhiteListedTile(s.MasterTileBuilder.GetTile())
 
 	s.mutex.Lock()
