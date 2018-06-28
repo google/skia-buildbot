@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bfd60514_9e6a6438",
+        "filename": "skolo/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-28T14:53:44Z",
+      "side": 0,
+      "message": "Should we remove this app to avoid misuse?",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 20
+      },
+      "revId": "fdec397d7ddc68a236f600f71e011d1e707ca6e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
