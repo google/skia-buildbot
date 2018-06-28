@@ -17,6 +17,7 @@ import (
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -37,7 +38,7 @@ const MAX_URI_GET_TRIES = 4
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   secondaryVCS is a secondary repo that is assumed to have vcs as a dependency.
 //   ex is an extractor to extract commits from the DEPS file of the secondary repo.
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (Processor, error)
+type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -57,7 +58,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus) ([]*Ingester, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
@@ -89,7 +90,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	for id, ingesterConf := range config.Ingesters {
 		processorConstructor, ok := constructors[id]
 		if !ok {
-			return nil, fmt.Errorf("Unknow ingester: '%s'", id)
+			return nil, fmt.Errorf("Unknown ingester: '%s'", id)
 		}
 
 		// Instantiate the sources
@@ -103,7 +104,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf, client)
+		processor, err := processorConstructor(vcs, ingesterConf, client, eventBus)
 		if err != nil {
 			return nil, err
 		}

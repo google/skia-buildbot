@@ -4,6 +4,7 @@
       "AppNames": [
         "pulld",
         "skiacorrectness-prod",
+        "git-cookie-authdaemon",
       ],
     },
     "skia-gold-public": {
