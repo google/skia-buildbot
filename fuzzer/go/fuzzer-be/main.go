@@ -97,7 +97,6 @@ func main() {
 		common.InitWithMust(
 			"fuzzer-be",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
 		)
 	}
 	ctx := context.Background()
@@ -246,10 +245,11 @@ func writeFlagsToConfig() error {
 }
 
 func setupOAuth(ctx context.Context) error {
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadWrite)
 	if err != nil {
-		return fmt.Errorf("Problem setting up client OAuth: %v", err)
+		return fmt.Errorf("Failed to get token source: %s", err)
 	}
+	client := auth.ClientFromTokenSource(ts)
 
 	if storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client)); err != nil {
 		return fmt.Errorf("Problem authenticating to GCS: %v", err)

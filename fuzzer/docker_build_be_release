@@ -1,0 +1,14 @@
+#!/bin/bash
+APPNAME=fuzzer-be-${CONFIG}
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+${INSTALL} --mode=644 -T fuzzer-be/Dockerfile    ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/fuzzer-be ${ROOT}/fuzzer-be
+}
+
+source ../bash/docker_build.sh
