@@ -17,11 +17,6 @@ hotspare_push: hotspare
 	./build_release_hotspare "`git log -n1 --format=%s`"
 	pushcli hotspare skia-rpi-master-spare
 
-.PHONY: service_account
-service_account:
-	go install -v ../get_service_account/go/get_service_account
-	get_service_account
-
 .PHONY: backup
 backup:
 	go install -v ./go/file-backup
@@ -31,7 +26,7 @@ rpi_backup_release: backup
 	./build_release_rpi_backup "`git log -n1 --format=%s`"
 
 .PHONY: rpi_backup_push
-rpi_backup_push: backup service_account
+rpi_backup_push: backup
 	go install -v ../push/go/pushcli
 	./build_release_rpi_backup "`git log -n1 --format=%s`"
 	pushcli rpi-backup skia-rpi-master
@@ -41,7 +36,7 @@ router_backup_release: backup
 	./build_release_router_backup "`git log -n1 --format=%s`"
 
 .PHONY: router_backup_push_all
-router_backup_push_all: backup service_account
+router_backup_push_all: backup
 	go install -v ../push/go/pushcli
 	./build_release_router_backup "`git log -n1 --format=%s`"
 	pushcli "router-backup" "jumphost-internal-01"
