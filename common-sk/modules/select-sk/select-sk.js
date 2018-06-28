@@ -44,6 +44,7 @@ window.customElements.define('select-sk', class extends HTMLElement {
 
   connectedCallback() {
     upgradeProperty(this, 'selection');
+    upgradeProperty(this, 'disabled');
     this.addEventListener('click', this._click);
     this._obs.observe(this, {
       childList: true,
@@ -56,10 +57,26 @@ window.customElements.define('select-sk', class extends HTMLElement {
     this._obs.disconnect();
   }
 
-  /** @prop {number} selection The index of the item selected. Has a value of -1 if nothing is selected.
+  /** @prop {Boolean} disabled - whether this element should respond to input.*/
+  get disabled() { return this.hasAttribute('disabled'); }
+  set disabled(val) {
+    if (!!val) {
+      this.setAttribute('disabled', '');
+      this.selection = -1;
+    } else {
+      this.removeAttribute('disabled');
+      this._bubbleUp();
+    }
+  }
+
+  /** @prop {Number} selection The index of the item selected. Has a
+   *                 value of -1 if nothing is selected.
    */
   get selection() { return this._selection; }
   set selection(val) {
+    if (this.disabled) {
+      return;
+    }
     if (val === undefined || val === null) {
       val = -1;
     }
@@ -68,6 +85,9 @@ window.customElements.define('select-sk', class extends HTMLElement {
   }
 
   _click(e) {
+    if (this.disabled) {
+      return;
+    }
     let oldIndex = this._selection;
     // Look up the DOM path until we find an element that is a child of
     // 'this', and set _selection based on that.
@@ -108,6 +128,9 @@ window.customElements.define('select-sk', class extends HTMLElement {
   // Loop over all immediate child elements and find the first one selected.
   _bubbleUp() {
     this._selection = -1;
+    if (this.disabled) {
+      return;
+    }
     for (let i = 0; i < this.children.length; i++) {
       if (this.children[i].hasAttribute('selected')) {
         this._selection = i;

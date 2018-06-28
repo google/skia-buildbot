@@ -92,6 +92,43 @@ describe('multi-select-sk', function() {
       });
     });
 
+    it('is stays fixed when disabled', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
+        container.innerHTML = `
+        <multi-select-sk id=select>
+          <div id=a></div>
+          <div id=b selected></div>
+        </select>
+        `;
+        let s = container.firstElementChild;
+        assert.deepEqual([1], s._selection);
+        assert.deepEqual([1], s.selection);
+        s.disabled = true;
+        s.selected = [0];
+        assert.deepEqual([1], s._selection);
+        assert.deepEqual([1], s.selection);
+        assert.isTrue(s.hasAttribute('disabled'));
+      })
+    });
+
+    it('gets updated when re-enabled', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
+        container.innerHTML = `
+        <multi-select-sk id=select disabled>
+          <div id=a></div>
+          <div id=b selected></div>
+        </select>
+        `;
+        let s = container.firstElementChild;
+        assert.deepEqual([], s._selection);
+        assert.deepEqual([], s.selection);
+        s.disabled = false;
+        assert.deepEqual([1], s._selection);
+        assert.deepEqual([1], s.selection);
+        assert.isFalse(s.hasAttribute('disabled'));
+      })
+    });
+
     it('is always sorted when read', function() {
       return window.customElements.whenDefined('multi-select-sk').then(() => {
         container.innerHTML = `
@@ -108,7 +145,7 @@ describe('multi-select-sk', function() {
         assert.deepEqual([0,2,4,5], s.selection);
       });
     });
-  });
+  }); // end describe('selection property')
 
 
   describe('click', function() {
@@ -142,7 +179,38 @@ describe('multi-select-sk', function() {
         assert.isFalse(c.hasAttribute('selected'));
       })
     });
-  });
+
+    it('ignores clicks when disabled', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
+        container.innerHTML = `
+        <multi-select-sk id=select disabled>
+          <div id=a></div>
+          <div id=b></div>
+          <div id=c></div>
+        </select>
+        `;
+        let s = container.firstElementChild;
+        let a = s.querySelector('#a');
+        let b = s.querySelector('#b');
+        a.click();
+        assert.deepEqual([], s.selection);
+        assert.isFalse(a.hasAttribute('selected'));
+        assert.isFalse(b.hasAttribute('selected'));
+        assert.isFalse(c.hasAttribute('selected'));
+        b.click();
+        assert.deepEqual([], s.selection);
+        assert.isFalse(a.hasAttribute('selected'));
+        assert.isFalse(b.hasAttribute('selected'));
+        assert.isFalse(c.hasAttribute('selected'));
+        // unselect
+        b.click();
+        assert.deepEqual([], s.selection);
+        assert.isFalse(a.hasAttribute('selected'));
+        assert.isFalse(b.hasAttribute('selected'));
+        assert.isFalse(c.hasAttribute('selected'));
+      })
+    });
+  }); // end describe('click')
 
   describe('addition of children', function() {
     it('updates selection when a selected child is added', function() {
@@ -171,7 +239,34 @@ describe('multi-select-sk', function() {
         });
       });
     });
-  });
+
+    it('does not check children when disabled', function() {
+      return window.customElements.whenDefined('multi-select-sk').then(() => {
+        container.innerHTML = `
+        <multi-select-sk id=select disabled>
+          <div></div>
+          <div></div>
+          <div></div>
+        </select>
+        `;
+        let s = container.firstElementChild;
+        assert.deepEqual([], s.selection);
+        let div = document.createElement('div');
+        div.setAttribute('selected', '');
+        s.appendChild(div)
+        div = document.createElement('div');
+        s.appendChild(div)
+        div = document.createElement('div');
+        div.setAttribute('selected', '');
+        s.appendChild(div)
+        // Need to do the check post microtask so the mutation observer gets a
+        // chance to fire.
+        return Promise.resolve().then(() => {
+          assert.deepEqual([], s.selection);
+        });
+      });
+    });
+  });  // end describe('addition of children')
 
   describe('mutation of child selected attribute', function() {
     it('does not update selection', function() {
@@ -193,6 +288,6 @@ describe('multi-select-sk', function() {
         });
       })
     });
-  });
+  }); // end describe('mutation of child selected attribute
 
 });
