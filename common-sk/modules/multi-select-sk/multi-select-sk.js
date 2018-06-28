@@ -45,6 +45,7 @@ window.customElements.define('multi-select-sk', class extends HTMLElement {
 
   connectedCallback() {
     upgradeProperty(this, 'selection');
+    upgradeProperty(this, 'disabled');
     this.addEventListener('click', this._click);
     this._obs.observe(this, {
       childList: true,
@@ -57,12 +58,27 @@ window.customElements.define('multi-select-sk', class extends HTMLElement {
     this._obs.disconnect();
   }
 
+  /** @prop {Boolean} disabled - whether this element should respond to input.*/
+  get disabled() { return this.hasAttribute('disabled'); }
+  set disabled(val) {
+    if (!!val) {
+      this.setAttribute('disabled', '');
+      this.selection = [];
+    } else {
+      this.removeAttribute('disabled');
+      this._bubbleUp();
+    }
+  }
+
   /** @prop {Array} selection - A sorted array of indices that are selected
    *                or [] if nothing is selected. If selection is set to a
    *                not sorted array, it will be sorted anyway.
    */
   get selection() { return this._selection; }
   set selection(val) {
+    if (this.disabled) {
+      return;
+    }
     if (!val || !val.sort) {
       val = [];
     }
@@ -72,6 +88,9 @@ window.customElements.define('multi-select-sk', class extends HTMLElement {
   }
 
   _click(e) {
+    if (this.disabled) {
+      return;
+    }
     // Look up the DOM path until we find an element that is a child of
     // 'this', and set _selection based on that.
     let target = e.target;
@@ -114,6 +133,9 @@ window.customElements.define('multi-select-sk', class extends HTMLElement {
   // attribute.
   _bubbleUp() {
     this._selection = [];
+    if (this.disabled) {
+      return;
+    }
     for (let i = 0; i < this.children.length; i++) {
       if (this.children[i].hasAttribute('selected')) {
         this._selection.push(i);
