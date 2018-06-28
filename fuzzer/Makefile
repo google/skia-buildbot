@@ -16,10 +16,13 @@ all: clean_webtools core_js elements_html skiaversion frontend backend
 fe_release: all
 	./build_fe_release "`git log -n1 --format=%s`"
 
-be_release: all
-	CONFIG=1 ./build_be_release "`git log -n1 --format=%s`"
-	CONFIG=2 ./build_be_release "`git log -n1 --format=%s`"
-	CONFIG=3 ./build_be_release "`git log -n1 --format=%s`"
+deprecated_be_release: all
+	CONFIG=1 ./deprecated_build_be_release "`git log -n1 --format=%s`"
+	CONFIG=2 ./deprecated_build_be_release "`git log -n1 --format=%s`"
+	CONFIG=3 ./deprecated_build_be_release "`git log -n1 --format=%s`"
+
+be_release: backend
+	./docker_build_be_release
 
 release: all fe_release be_release
 	echo
