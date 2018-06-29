@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 )
@@ -257,5 +258,11 @@ func setupOAuth(ctx context.Context) error {
 		return fmt.Errorf("Problem authenticating to GCS: %v", err)
 	}
 	issueManager = issues.NewManager(client)
+
+	// Set up git authentication.
+	if _, err := gitauth.New(ts, "/tmp/git-cookie", true); err != nil {
+		sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	}
+
 	return nil
 }
