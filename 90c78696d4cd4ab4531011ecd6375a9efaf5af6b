@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "e9dc90c6_8ce6c2eb",
+        "filename": "kube/build_basedebian_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T17:14:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47fbe6cc_e813b875",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "daabd075_35ab005b",
         "filename": "kube/build_basedebian_release",
         "patchSetId": 2
@@ -68,6 +92,30 @@
       "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98acdd58_c69aded0",
+        "filename": "kube/build_basedebian_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T17:14:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "daabd075_35ab005b",
+      "range": {
+        "startLine": 7,
+        "startChar": 35,
+        "endLine": 7,
+        "endChar": 41
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -106,6 +154,30 @@
       "side": 1,
       "message": "Use ${INSTALL_DIR} here.\nAlso vertically align the ${ROOT}\u0027s.\nWhy not copy to /usr/local/bin?",
       "parentUuid": "97d16ba6_989ffff4",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 54
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa978580_687a1e4d",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T17:14:13Z",
+      "side": 1,
+      "message": "Per live discussion, the install command doesn\u0027t recursively copy directories; we\u0027ll have to use cp.  The CIPD package for git includes a number of files, and the binaries are under a \u0027bin\u0027 dir.  So I can\u0027t just copy to /usr/local/bin; I\u0027d have to pull the binaries out from the \u0027bin\u0027 subdir, and I didn\u0027t want to get too fiddly.  It\u0027s easy enough to add the dir to PATH.",
+      "parentUuid": "3530530d_a8402a5d",
       "range": {
         "startLine": 22,
         "startChar": 0,
