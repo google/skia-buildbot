@@ -1,6 +1,7 @@
 {
-  GitRepoDir: "/mnt/pd0/pdfium-gold-ingestion/repo",        // Directory location for the Skia repo.
+  GitRepoDir: "/mnt/pd0/pdfium-gold-ingestion/repo",     // Directory location for the Skia repo.
   GitRepoURL: "https://pdfium.googlesource.com/pdfium",  // URL location for the repo.
+  EventTopic: "gold-pdfium-eventbus",
 
   Ingesters: {
     // Pdfium Gold ingester

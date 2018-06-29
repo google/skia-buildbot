@@ -231,6 +231,16 @@ func DefaultGitCookiesPath() string {
 	return filepath.Join(usr.HomeDir, ".gitcookies")
 }
 
+// GitCookieAuthDaemonPath returns the default path that git_cookie_authdaemon
+// writes to. See infra/git_cookie_authdaemon
+func GitCookieAuthDaemonPath() (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", sklog.FmtErrorf("Unable to retrieve user for git_auth_deamon default cookie path.")
+	}
+	return filepath.Join(usr.HomeDir, ".git-credential-cache", "cookie"), nil
+}
+
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
