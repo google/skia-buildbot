@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "502ba9d6_1de25ec2",
+        "filename": "fuzzer/docker_build_be_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T17:02:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cebe4cdc_a6985c2e",
+      "range": {
+        "startLine": 10,
+        "startChar": 25,
+        "endLine": 10,
+        "endChar": 34
+      },
+      "revId": "2062c9c3764467ba1d625d93bef25ce9f4b58589",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20bf2824_23c069e2",
         "filename": "fuzzer/docker_build_be_release",
         "patchSetId": 4
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "7155316f_dec7fdd5",
+        "filename": "fuzzer/docker_build_be_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T17:02:52Z",
+      "side": 1,
+      "message": "Take a look at jsdoc which puts it in / - that may also need changing.",
+      "parentUuid": "20bf2824_23c069e2",
+      "range": {
+        "startLine": 11,
+        "startChar": 53,
+        "endLine": 11,
+        "endChar": 60
+      },
+      "revId": "2062c9c3764467ba1d625d93bef25ce9f4b58589",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d105f3f0_c049e4a3",
+        "filename": "fuzzer/docker_build_be_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T17:02:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0a16311_8ba1164c",
+      "range": {
+        "startLine": 11,
+        "startChar": 39,
+        "endLine": 11,
+        "endChar": 48
+      },
+      "revId": "2062c9c3764467ba1d625d93bef25ce9f4b58589",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6af1d054_42c56d9b",
         "filename": "fuzzer/fuzzer-be/Dockerfile",
         "patchSetId": 4
@@ -82,6 +154,24 @@
       "writtenOn": "2018-06-29T16:44:08Z",
       "side": 1,
       "message": "ENTRYPOINT [\"/fuzzer-be\"]\nCMD [\"--logtostderr\", \"--skia_root\u003d/mnt/fuzzing/skia-be\", \\\n            \"--clang_path\u003d/usr/local/bin/clang\", \"--clang_p_p_path\u003d/usr/local/bin/clang++\", \\\n            \"--depot_tools_path\u003d/opt/depot_tools\", \"--afl_root\u003d/opt/afl\", \\\n            \"--afl_output_path\u003d/mnt/fuzzing/afl-out\", \"--fuzz_samples\u003d/mnt/fuzzing/samples\", \\\n            \"--generator_working_dir\u003d/mnt/fuzzing/generator-wd\", \\\n            \"--aggregator_working_dir\u003d/mnt/fuzzing/aggregator-wd\", \\\n            \"--executable_cache_path\u003d/mnt/fuzzing/executable_cache\", \\\n            \"--fuzz_path\u003d/mnt/fuzzing/fuzzes\", \\\n            \"--status_period\u003d10s\", \"--analysis_timeout\u003d5s\"]",
+      "revId": "2062c9c3764467ba1d625d93bef25ce9f4b58589",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "969e8bde_2a48ae30",
+        "filename": "fuzzer/fuzzer-be/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T17:02:52Z",
+      "side": 1,
+      "message": "Commented, as we discussed offline.",
+      "parentUuid": "6af1d054_42c56d9b",
       "revId": "2062c9c3764467ba1d625d93bef25ce9f4b58589",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
