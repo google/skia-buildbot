@@ -34,7 +34,7 @@ func assertCommits(t *testing.T, gb *git_testutils.GitBuilder, actual map[string
 }
 
 func TestIncrementalCommits(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	// Setup.
 	ctx := context.Background()
