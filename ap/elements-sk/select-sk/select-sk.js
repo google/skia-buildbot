@@ -1,13 +1,13 @@
-/** @module common-sk/modules/multi-select-sk
+/** @module common-sk/modules/select-sk
  *
- * @description <h2><code>multi-select-sk</code></h2>
+ * @description <h2><code>select-sk</code></h2>
  *
  * <p>
  *   Clicking on the children will cause them to be selected.
  * </p>
  *
  * <p>
- *   The multi-select-sk elements monitors for the addition and removal of child
+ *   The select-sk elements monitors for the addition and removal of child
  *   elements and will update the 'selected' property as needed. Note that it
  *   does not monitor the 'selected' attribute of child elements, and will not
  *   update the 'selected' property if they are changed directly.
@@ -15,32 +15,31 @@
  *
  * @example
  *
- *   <multi-select-sk>
+ *   <select-sk>
  *     <div></div>
  *     <div></div>
  *     <div selected></div>
  *     <div></div>
- *     <div selected></div>
- *   </multi-select-sk>
+ *   </select-sk>
  *
  * @evt selection-changed - Sent when an item is clicked and the selection is changed.
- *   The detail of the event contains the indices of the children elements:
+ *   The detail of the event contains the child element index:
  *
  *   <pre>
  *     detail: {
- *       selection: [2,4],
+ *       selection: 1,
  *     }
  *   </pre>
  *
  */
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
+import { upgradeProperty } from 'common-sk/modules/upgradeProperty'
 
-window.customElements.define('multi-select-sk', class extends HTMLElement {
+window.customElements.define('select-sk', class extends HTMLElement {
   constructor() {
     super();
     // Keep _selection up to date by monitoring DOM changes.
     this._obs = new MutationObserver(() => this._bubbleUp());
-    this._selection = [];
+    this._selection = -1;
   }
 
   connectedCallback() {
@@ -63,27 +62,25 @@ window.customElements.define('multi-select-sk', class extends HTMLElement {
   set disabled(val) {
     if (!!val) {
       this.setAttribute('disabled', '');
-      this.selection = [];
+      this.selection = -1;
     } else {
       this.removeAttribute('disabled');
       this._bubbleUp();
     }
   }
 
-  /** @prop {Array} selection - A sorted array of indices that are selected
-   *                or [] if nothing is selected. If selection is set to a
-   *                not sorted array, it will be sorted anyway.
+  /** @prop {Number} selection The index of the item selected. Has a
+   *                 value of -1 if nothing is selected.
    */
   get selection() { return this._selection; }
   set selection(val) {
     if (this.disabled) {
       return;
     }
-    if (!val || !val.sort) {
-      val = [];
+    if (val === undefined || val === null) {
+      val = -1;
     }
-    val.sort();
-    this._selection = val;
+    this._selection = +val;
     this._rationalize();
   }
 
@@ -91,54 +88,53 @@ window.customElements.define('multi-select-sk', class extends HTMLElement {
     if (this.disabled) {
       return;
     }
+    let oldIndex = this._selection;
     // Look up the DOM path until we find an element that is a child of
     // 'this', and set _selection based on that.
     let target = e.target;
     while (target && target.parentElement !== this) {
       target = target.parentElement;
     }
-    if (!target || target.parentElement !== this) {
-      return; // not a click we care about
+    if (target && target.parentElement === this) {
+      for (let i = 0; i < this.children.length; i++) {
+        if (this.children[i] === target) {
+          this._selection = i;
+          break;
+        }
+      }
     }
-    if (target.hasAttribute('selected')) {
-      target.removeAttribute('selected');
-    } else {
-      target.setAttribute('selected', '');
+    this._rationalize();
+    if (oldIndex != this._selection) {
+      this.dispatchEvent(new CustomEvent('selection-changed', {
+        detail: {
+          selection: this._selection,
+        },
+        bubbles: true,
+      }));
     }
-    this._bubbleUp();
-    this.dispatchEvent(new CustomEvent('selection-changed', {
-      detail: {
-        selection: this._selection,
-      },
-      bubbles: true,
-    }));
   }
 
-  // Loop over all immediate child elements update the selected attributes
-  // based on the selected property of this selement.
+  // Loop over all immediate child elements and make sure at most only one is selected.
   _rationalize() {
-    // assume this.selection is sorted when this is called.
-    let s = 0;
     for (let i = 0; i < this.children.length; i++) {
-      if (this._selection[s] === i) {
+      if (this._selection === i) {
         this.children[i].setAttribute('selected', '');
-        s++;
       } else {
         this.children[i].removeAttribute('selected');
       }
     }
   }
 
-  // Loop over all immediate child elements and find all with the selected
-  // attribute.
+  // Loop over all immediate child elements and find the first one selected.
   _bubbleUp() {
-    this._selection = [];
+    this._selection = -1;
     if (this.disabled) {
       return;
     }
     for (let i = 0; i < this.children.length; i++) {
       if (this.children[i].hasAttribute('selected')) {
-        this._selection.push(i);
+        this._selection = i;
+        break;
       }
     }
     this._rationalize();

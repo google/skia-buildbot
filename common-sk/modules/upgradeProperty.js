@@ -1,4 +1,4 @@
-/** @module elements-sk/upgradeProperty */
+/** @module common-sk/modules/upgradeProperty */
 
 /**
  * Capture the value from the unupgraded instance and delete the property so

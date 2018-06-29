@@ -1,5 +1,5 @@
 /**
- * @module common-sk/modules/login-sk
+ * @module infra-sk/modules/login-sk
  * @description <h2><code>login-sk</code></h2>
  *
  * <p>
@@ -8,7 +8,7 @@
  * {@linkcode module:common-sk/modules/errorMessage}.
  * </p>
  */
-import { errorMessage } from '../errorMessage';
+import { errorMessage } from 'elements-sk/error-toast-sk/errorMessage';
 import { Login } from '../login';
 
 window.customElements.define('login-sk', class extends HTMLElement {
@@ -21,7 +21,7 @@ window.customElements.define('login-sk', class extends HTMLElement {
           logInOut.href = status.LoginURL;
           logInOut.textContent = 'Login';
       } else {
-          logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
+          logInOut.href = '/logout/?redirect=' + encodeURIComponent(document.location);
           logInOut.textContent = 'Logout';
       }
     }).catch(errorMessage);

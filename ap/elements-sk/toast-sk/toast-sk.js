@@ -11,7 +11,7 @@
  *               Defaults to 5000. A value of 0 means to display
  *               forever.
  */
-import { upgradeProperty } from '../upgradeProperty'
+import { upgradeProperty } from 'common-sk/modules/upgradeProperty'
 
 window.customElements.define('toast-sk', class extends HTMLElement {
   constructor() {

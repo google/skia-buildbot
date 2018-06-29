@@ -11,7 +11,7 @@
  *     collapse, i.e., transition to display: none.
  *
  */
-import { upgradeProperty } from '../upgradeProperty'
+import { upgradeProperty } from 'common-sk/modules/upgradeProperty'
 
 window.customElements.define('collapse-sk', class extends HTMLElement {
   connectedCallback() {

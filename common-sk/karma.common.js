@@ -34,7 +34,6 @@ module.exports = function(dirname) {
       webpackConfig = webpackConfig({}, {mode: 'development'});
     }
     webpackConfig.entry = null;
-    console.log(webpackConfig.mode);
     webpackConfig.mode = 'development';
 
     config.set({
@@ -57,7 +56,7 @@ module.exports = function(dirname) {
 
       // list of files / patterns to load in the browser
       files: [
-        'https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.0.8/custom-elements.min.js',
+        'node_modules/@webcomponents/custom-elements/custom-elements.min.js',
         'modules/*_test.js',
         'modules/**/*_test.js',
       ],
@@ -97,7 +96,7 @@ module.exports = function(dirname) {
 
 
       // Start these browsers.
-      browsers: ['Chrome'],
+      browsers: ['Chrome', 'Firefox'],
 
 
       // If browser does not capture in given timeout [ms], kill it
