@@ -93,7 +93,7 @@ func TestPerfProcessor(t *testing.T) {
 	ingesterConf := &sharedconfig.IngesterConfig{}
 
 	// Set up the processor.
-	processor, err := newPerfProcessor(vcs, ingesterConf, nil)
+	processor, err := newPerfProcessor(vcs, ingesterConf, nil, nil)
 	assert.NoError(t, err)
 
 	// Load the example file and process it.
