@@ -7,6 +7,10 @@ release: package-lock.json
 serve: package-lock.json
 	npx webpack-dev-server --mode=production --content-base ./dist --watch-poll
 
+test:
+	# Run the generated tests just once under Xvfb.
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
 publish:
 	cd elements-sk; npm publish
 

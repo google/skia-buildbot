@@ -9,7 +9,7 @@
  * @attr active - Boolean attribute, if present, spinner is active.
  *
  */
-import { upgradeProperty } from '../upgradeProperty'
+import { upgradeProperty } from 'common-sk/modules/upgradeProperty'
 
 window.customElements.define('spinner-sk', class extends HTMLElement {
   // TODO(jcgregorio) What is ARIA for a spinner?

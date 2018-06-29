@@ -26,7 +26,7 @@
  * </footer>
  */
 import 'elements-sk/toast-sk'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
+import { upgradeProperty } from 'common-sk/modules/upgradeProperty'
 
 window.customElements.define('error-toast-sk', class extends HTMLElement {
   connectedCallback() {
