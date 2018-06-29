@@ -4,12 +4,14 @@
       "AppNames": [
         "pulld",
         "skiacorrectness-prod",
+        "git-cookie-authdaemon",
       ],
     },
     "skia-gold-public": {
       "AppNames": [
         "pulld",
         "skiacorrectness-public",
+        "git-cookie-authdaemon",
       ],
     },
     "skia-diffserver-prod": {
@@ -28,18 +30,21 @@
       "AppNames": [
         "pulld",
         "skiacorrectness-pdfium",
+        "git-cookie-authdaemon",
       ],
     },
     "skia-gold-stage": {
       "AppNames": [
         "pulld",
         "skiacorrectness-stage",
+        "git-cookie-authdaemon",
       ],
     },
     "skia-gold-chromevr": {
       "AppNames": [
         "pulld",
         "skiacorrectness-chromevr",
+        "git-cookie-authdaemon",
       ],
     },
     "skia-tracedb": {

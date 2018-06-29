@@ -19,6 +19,8 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -34,6 +36,7 @@ var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
+	projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 )
@@ -70,7 +73,7 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
 	}
 
-	if err := ds.InitWithOpt(common.PROJECT_ID, *dsNamespace, option.WithTokenSource(tokenSrc)); err != nil {
+	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSrc)); err != nil {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
@@ -80,7 +83,23 @@ func main() {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client)
+	// Set up the eventbus.
+	var eventBus eventbus.EventBus
+	if config.EventTopic != "" {
+		nodeName, err := gevent.GetNodeName(appName, *local)
+		if err != nil {
+			sklog.Fatalf("Error getting node name: %s", err)
+		}
+		eventBus, err = gevent.New(*projectID, config.EventTopic, nodeName, option.WithTokenSource(tokenSrc))
+		if err != nil {
+			sklog.Fatalf("Error creating global eventbus: %s", err)
+		}
+		sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created. %v", config.EventTopic, nodeName, eventBus == nil)
+	} else {
+		eventBus = eventbus.New()
+	}
+
+	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, eventBus)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
