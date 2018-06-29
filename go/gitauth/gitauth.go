@@ -54,10 +54,10 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 	}
 	contents := []string{}
 	// As documented on a random website: https://xiix.wordpress.com/2006/03/23/mozillafirefox-cookie-format/
-	contents = append(contents, fmt.Sprintf("source.developers.google.com\tFALSE\t/\tTRUE\t%d\to\t%s", token.Expiry.Unix(), token.AccessToken))
-	contents = append(contents, fmt.Sprintf(".googlesource.com\tTRUE\t/\tTRUE\t%d\to\t%s", token.Expiry.Unix(), token.AccessToken))
+	contents = append(contents, fmt.Sprintf("source.developers.google.com\tFALSE\t/\tTRUE\t%d\to\t%s\n", token.Expiry.Unix(), token.AccessToken))
+	contents = append(contents, fmt.Sprintf(".googlesource.com\tTRUE\t/\tTRUE\t%d\to\t%s\n", token.Expiry.Unix(), token.AccessToken))
 	err = util.WithWriteFile(g.filename, func(w io.Writer) error {
-		_, err := w.Write([]byte(strings.Join(contents, "\n")))
+		_, err := w.Write([]byte(strings.Join(contents, "")))
 		return err
 	})
 	if err != nil {
