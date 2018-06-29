@@ -832,3 +832,58 @@ func TestParseGCSPackage_StdoutButNoCrash(t *testing.T) {
 		t.Errorf("Should have been categorized as grey!")
 	}
 }
+
+func TestParseGCSPackage_ASAN_OOM(t *testing.T) {
+	testutils.SmallTest(t)
+	// ASAN ran out of memory - grey
+	g := GCSPackage{
+		Files: map[string]OutputFiles{
+			"ASAN_DEBUG": {
+				Key: "ASAN_DEBUG",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("13grey_debug.asan")),
+				},
+			},
+			"CLANG_DEBUG": {
+				Key: "CLANG_DEBUG",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("13grey_debug.err")),
+				},
+			},
+			"ASAN_RELEASE": {
+				Key: "ASAN_RELEASE",
+				Content: map[string]string{
+					"stderr": testutils.MustReadFile(stacktrace("13grey_release.asan")),
+				},
+			},
+			"CLANG_RELEASE": {
+				Key: "CLANG_RELEASE",
+				Content: map[string]string{
+					"stdout": "",
+					"stderr": testutils.MustReadFile(stacktrace("13grey_release.err")),
+				},
+			},
+		},
+		FuzzCategory:     "skcodec",
+		FuzzArchitecture: "mock_arm8",
+	}
+
+	result := ParseGCSPackage(g)
+	expectations := map[string]FuzzFlag{
+		"CLANG_DEBUG":   TerminatedGracefully,
+		"CLANG_RELEASE": TerminatedGracefully,
+		"ASAN_DEBUG":    BadAlloc,
+		"ASAN_RELEASE":  BadAlloc,
+	}
+	topTrace := map[string]string{
+		"CLANG_DEBUG":   "",
+		"CLANG_RELEASE": "",
+		"ASAN_DEBUG":    "include/c++/v1/memory:1548 std::__1::allocator_traits",
+		"ASAN_RELEASE":  "include/c++/v1/memory:1548 std::__1::allocator_traits",
+	}
+	assertExpectations(t, result, expectations, topTrace)
+	if result.IsGrey() != true {
+		t.Errorf("Should have been categorized as grey!")
+	}
+}
