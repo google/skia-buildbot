@@ -2,6 +2,7 @@ default: app
 	npx webpack --mode=development
 
 release: app
+	docker pull gcr.io/skia-public/skia-release:prod
 	npx webpack --mode=production
 	./build_release
 
