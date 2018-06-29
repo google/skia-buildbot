@@ -1,12 +1,7 @@
-FROM node:8-alpine
-
-RUN addgroup -g 2000 -S skia && \
-    adduser -u 2000 -S skia -G skia && \
-    apk update && \
-    apk add --no-cache git make ca-certificates
-
-COPY . /
+FROM gcr.io/skia-public/basedebian:testing-slim
 
 USER skia
+
+COPY . /
 
 ENTRYPOINT ["/usr/local/bin/statusk"]
