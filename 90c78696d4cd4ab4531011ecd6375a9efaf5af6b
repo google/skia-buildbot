@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0dd63bfe_b428547c",
+        "filename": "kube/basedebian/Dockerfile",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T15:29:52Z",
+      "side": 1,
+      "message": "Using \"addgroup\" and \"adduser\" instead of \"groupadd\" and \"useradd\" because they are higher-level command.  For example, \"useradd\" doesn\u0027t create a home directory for the user.",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 13
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97d16ba6_989ffff4",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T15:29:52Z",
+      "side": 1,
+      "message": "This feels a little hacky, but...",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 54
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa1b1d9e_e3d93d0c",
+        "filename": "status/cipd.ensure",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T15:29:52Z",
+      "side": 1,
+      "message": "I\u0027d like this to be shared between all apps, but I\u0027m not sure of the best place to put it.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 70
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
