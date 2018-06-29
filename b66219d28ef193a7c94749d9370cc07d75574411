@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f09fd8e5_18c417fa",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 13
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 12,
+        "startChar": 61,
+        "endLine": 12,
+        "endChar": 64
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5eee717d_76455506",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: maybe move to function doc.",
+      "range": {
+        "startLine": 480,
+        "startChar": 6,
+        "endLine": 480,
+        "endChar": 71
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5ff5695_8193c963",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit:\nrv :\u003d url.URL{\n  Scheme: parsedURL.Scheme,\n  Host:   parsedURL.Host,\n}",
+      "range": {
+        "startLine": 481,
+        "startChar": 0,
+        "endLine": 487,
+        "endChar": 24
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d9c311a_714d9779",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 12
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "013ae614_ce853d3e",
+        "filename": "go/util/concurrency.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: maybe rename MonitorRelease",
+      "range": {
+        "startLine": 33,
+        "startChar": 3,
+        "endLine": 33,
+        "endChar": 13
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8bbd39c_84956186",
+        "filename": "go/util/concurrency_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "Using sync.Map does not make this an atomic increment. Need a mutex (or use an array with atomic.AddInt).",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 34
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcc57d69_630c057d",
+        "filename": "go/util/concurrency_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: Not sure if this will always call runtime.Gosched().",
+      "range": {
+        "startLine": 29,
+        "startChar": 2,
+        "endLine": 29,
+        "endChar": 35
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73b8affb_63eb2bf5",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: appName",
+      "range": {
+        "startLine": 206,
+        "startChar": 37,
+        "endLine": 206,
+        "endChar": 62
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a009c3ba_25372bf4",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "maybe typo being?",
+      "range": {
+        "startLine": 19,
+        "startChar": 17,
+        "endLine": 19,
+        "endChar": 22
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b71629de_2fd09a5d",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: IMO, since these are only used in one place, just inline them. It\u0027s hard to correlate format strings and format args when they are not together.",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 1
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90122e0e_acf0de45",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "missing word \"once\"?",
+      "range": {
+        "startLine": 58,
+        "startChar": 75,
+        "endLine": 58,
+        "endChar": 79
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a524ffbf_a23c1e71",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: not really needed; not a problem if we make a no-op update.",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 3
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd4a03c1_d1249a1d",
+        "filename": "golden/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: slightly confusing to have a variable name the same as a package name except for s vs S.",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 12
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1aab90e8_1f87683a",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-06-29T17:59:05Z",
+      "side": 1,
+      "message": "nit: appName",
+      "range": {
+        "startLine": 89,
+        "startChar": 38,
+        "endLine": 89,
+        "endChar": 63
+      },
+      "revId": "b66219d28ef193a7c94749d9370cc07d75574411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
