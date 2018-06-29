@@ -1,6 +1,6 @@
 This is an experimental repo of v1 custom elements with a webpack build system.
 
-There are no tests.
+See the [demo page](https://jsdoc.skia.org/elements-sk/)
 
 Importing
 =========

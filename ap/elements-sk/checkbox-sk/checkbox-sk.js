@@ -33,7 +33,7 @@
  * @prop {string} label This mirrors the label attribute.
  *
  */
-import { upgradeProperty } from '../upgradeProperty'
+import { upgradeProperty } from 'common-sk/modules/upgradeProperty'
 
 export class CheckOrRadio extends HTMLElement {
   get _role() { return 'checkbox'; }
