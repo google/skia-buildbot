@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2919a617_1c71a4c6",
+        "filename": "cmd/gevent_viewer/main.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T18:51:59Z",
+      "side": 1,
+      "message": "What side-effects are needed?",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 2
+      },
+      "revId": "162e899b537a7d7d52e1cc259de3aeb89e5a8b34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "004da7ce_6806a92a",
+        "filename": "go/util/concurrency.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T18:51:59Z",
+      "side": 1,
+      "message": "NewCondMonitor",
+      "range": {
+        "startLine": 22,
+        "startChar": 3,
+        "endLine": 22,
+        "endChar": 22
+      },
+      "revId": "162e899b537a7d7d52e1cc259de3aeb89e5a8b34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "564290c2_299ff5b5",
+        "filename": "golden/go/tryjobs/tryjobs_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-06-29T18:51:59Z",
+      "side": 1,
+      "message": "finish",
+      "range": {
+        "startLine": 73,
+        "startChar": 34,
+        "endLine": 73,
+        "endChar": 39
+      },
+      "revId": "162e899b537a7d7d52e1cc259de3aeb89e5a8b34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
