@@ -162,11 +162,13 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 		}
 		return SKAbortHit
 	}
-	if strings.Contains(data.Key, "ASAN") && !asanCrashed(stderr) {
-		if strings.Contains(stderr, "[terminated]") || strings.Contains(stderr, "Signal boring") {
-			return TerminatedGracefully
+	if strings.Contains(data.Key, "ASAN") {
+		if !asanCrashed(stderr) {
+			if strings.Contains(stderr, "[terminated]") || strings.Contains(stderr, "Signal boring") {
+				return TerminatedGracefully
+			}
+			return TimedOut
 		}
-		return TimedOut
 	}
 
 	if strings.Contains(data.Key, "CLANG") && !clangDumped(stdout) {
@@ -202,7 +204,8 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 // includes things like ASAN_GlobalBufferOverflow.
 func parseAsan(category, asan string) FuzzFlag {
 	f := FuzzFlag(0)
-	if strings.Contains(asan, "AddressSanitizer failed to allocate") {
+	if strings.Contains(asan, "AddressSanitizer failed to allocate") ||
+		strings.Contains(asan, "exceeds maximum supported size of") {
 		return BadAlloc
 	}
 	f |= ASANCrashed
