@@ -68,6 +68,30 @@
       "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91edf6e0_920e93f0",
+        "filename": "status/cipd.ensure",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-06-29T16:50:50Z",
+      "side": 1,
+      "message": "I moved this into kube/basedebian, the idea being that the basedebian image would include git (and any other CIPD packages) by default.",
+      "parentUuid": "fa1b1d9e_e3d93d0c",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 70
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
