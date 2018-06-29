@@ -678,7 +678,7 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL)
+		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
 		if err != nil {
 			sklog.Fatal(err)
 		}
