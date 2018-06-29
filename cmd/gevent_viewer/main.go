@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/expstorage"
+	_ "go.skia.org/infra/golden/go/tryjobstore" // Import registers event codecs in that package.
 )
 
 // Command line flags.

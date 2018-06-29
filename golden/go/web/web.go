@@ -1038,6 +1038,33 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 	sendJsonResponse(w, baseline)
 }
 
+// JsonRefreshIssue forces a refresh of a Gerrit issue, i.e. reload data that
+// might not have been polled yet etc.
+func (wh *WebHandlers) JsonRefreshIssue(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to refresh tryjob data")
+		return
+	}
+
+	issueID := int64(0)
+	var err error
+	issueIDStr, ok := mux.Vars(r)["id"]
+	if ok {
+		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
+			return
+		}
+	}
+
+	if err := wh.Storages.TryjobMonitor.ForceRefresh(issueID); err != nil {
+		httputils.ReportError(w, r, err, "Refreshing issue failed.")
+		return
+	}
+	sendJsonResponse(w, map[string]string{})
+}
+
 // MakeResourceHandler creates a static file handler that sets a caching policy.
 func MakeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(resourceDir))

@@ -1261,7 +1261,7 @@ func initIngestion(ctx context.Context) {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client)
+	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}

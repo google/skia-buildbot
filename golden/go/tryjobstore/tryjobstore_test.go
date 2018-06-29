@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -90,7 +91,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 			{ID: patchsetID_2},
 		},
 	}
-	assert.NoError(t, store.UpdateIssue(issue))
+	assert.NoError(t, store.UpdateIssue(issue, nil))
 
 	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
 	assert.NoError(t, err)
@@ -258,4 +259,26 @@ func normalizeTimeToMs(t time.Time) time.Time {
 	secs := unixNano / int64(time.Second)
 	newNanoRemainder := ((unixNano % int64(time.Second)) / int64(time.Millisecond)) * int64(time.Millisecond)
 	return time.Unix(secs, newNanoRemainder)
+}
+
+func TestTryjobJsonCodec(t *testing.T) {
+	testutils.SmallTest(t)
+
+	tryjob_1 := &Tryjob{
+		IssueID:       12345,
+		PatchsetID:    9,
+		Builder:       "Test-Builder-1",
+		BuildBucketID: 45409309403,
+		Status:        TRYJOB_RUNNING,
+	}
+
+	// Create a codec like we do for firing events and test the round trip.
+	codec := util.JSONCodec(&Tryjob{})
+	jsonBytes, err := codec.Encode(tryjob_1)
+	assert.NoError(t, err)
+
+	foundInterface, err := codec.Decode(jsonBytes)
+	assert.NoError(t, err)
+	assert.IsType(t, foundInterface, &Tryjob{})
+	assert.Equal(t, tryjob_1, foundInterface.(*Tryjob))
 }

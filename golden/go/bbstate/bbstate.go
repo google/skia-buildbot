@@ -293,7 +293,7 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 	}
 
 	// Write the update issues to the store.
-	if err := b.tryjobStore.UpdateIssue(issue); err != nil {
+	if err := b.tryjobStore.UpdateIssue(issue, nil); err != nil {
 		return nil, err
 	}
 	sklog.Infof("Added information for issue %d", issueID)

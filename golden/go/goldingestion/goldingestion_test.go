@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/eventbus"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ingestion"
@@ -128,7 +129,8 @@ func TestGoldProcessor(t *testing.T) {
 	}
 
 	// Set up the processor.
-	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
+	eventBus := eventbus.New()
+	processor, err := newGoldProcessor(vcs, ingesterConf, nil, eventBus)
 	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 

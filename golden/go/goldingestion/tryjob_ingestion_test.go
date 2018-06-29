@@ -170,7 +170,7 @@ func (m *mockIBF) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstor
 	}
 
 	// Make sure the issue tryjob are in the store.
-	if err := m.tryjobStore.UpdateIssue(m.issue); err != nil {
+	if err := m.tryjobStore.UpdateIssue(m.issue, nil); err != nil {
 		return nil, nil, err
 	}
 

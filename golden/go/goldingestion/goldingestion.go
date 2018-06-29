@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/ingestion"
@@ -42,7 +43,7 @@ type goldProcessor struct {
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
 	if err != nil {
 		return nil, err

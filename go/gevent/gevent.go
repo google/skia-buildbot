@@ -3,6 +3,7 @@ package gevent
 import (
 	"context"
 	"fmt"
+	"os"
 	"sync"
 
 	"cloud.google.com/go/pubsub"
@@ -222,4 +223,23 @@ func (d *distEventBus) encodeMsg(channel string, data interface{}, codec util.LR
 	return &pubsub.Message{
 		Data: payload,
 	}, nil
+}
+
+// GetNodeName generates a service name for this host based on the hostname and
+// whether we are running locally or in the cloud. This is enough to distinguish
+// between hosts and can be used across services, e.g. pubsub subscription or
+// logging and tracing information. appName is usually the name of the executable
+// calling the function.
+func GetNodeName(appName string, local bool) (string, error) {
+	hostName, err := os.Hostname()
+	if err != nil {
+		return "", err
+	}
+
+	retHostName := hostName
+	if local {
+		retHostName = "local-" + hostName
+	}
+
+	return appName + "-" + retHostName, nil
 }

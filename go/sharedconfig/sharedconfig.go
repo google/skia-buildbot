@@ -28,6 +28,7 @@ type Config struct {
 	SecondaryRepoURL string // URL of the secondary repo that has above as a dependency.
 	SecondaryRepoDir string // Directory location for the secondary repo.
 	SecondaryRegEx   string // Regular expression to extract the commit hash from the DEPS file.
+	EventTopic       string // PubSub topic on which global events are sent.
 	Ingesters        map[string]*IngesterConfig
 }
 
