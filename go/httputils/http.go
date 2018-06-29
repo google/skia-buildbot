@@ -466,3 +466,20 @@ func AddMetricsToClient(c *http.Client) *http.Client {
 	c.Transport = NewMetricsTransport(c.Transport)
 	return c
 }
+
+// GetBaseURL strips everything but the scheme and hostname from the given URL e.g.:
+//
+//    https://example.com/some/path/action#abcde => https://example.com
+//
+// If the input URL cannot be parsed an error is returned.
+func GetBaseURL(urlStr string) (string, error) {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return "", err
+	}
+	rv := url.URL{
+		Scheme: parsedURL.Scheme,
+		Host:   parsedURL.Host,
+	}
+	return rv.String(), nil
+}
