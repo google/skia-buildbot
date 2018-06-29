@@ -194,7 +194,7 @@ var (
 
 	// Email address of cluster telemetry admins. They will be notified everytime
 	// a task has started and completed.
-	CtAdmins = []string{"rmistry@google.com", "benjaminwagner@google.com", "skiabot@google.com"}
+	CtAdmins = []string{"rmistry@google.com", "benjaminwagner@google.com"}
 
 	// Names of local directories and files.
 	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)
