@@ -25,6 +25,52 @@
     },
     {
       "key": {
+        "uuid": "47fbe6cc_e813b875",
+        "filename": "kube/build_basedebian_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-29T16:51:04Z",
+      "side": 1,
+      "message": "debian",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "daabd075_35ab005b",
+        "filename": "kube/build_basedebian_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-29T16:51:04Z",
+      "side": 1,
+      "message": "debian",
+      "range": {
+        "startLine": 7,
+        "startChar": 35,
+        "endLine": 7,
+        "endChar": 41
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "97d16ba6_989ffff4",
         "filename": "status/build_docker_release",
         "patchSetId": 2
@@ -36,6 +82,30 @@
       "writtenOn": "2018-06-29T15:29:52Z",
       "side": 1,
       "message": "This feels a little hacky, but...",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 22,
+        "endChar": 54
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3530530d_a8402a5d",
+        "filename": "status/build_docker_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-29T16:51:04Z",
+      "side": 1,
+      "message": "Use ${INSTALL_DIR} here.\nAlso vertically align the ${ROOT}\u0027s.\nWhy not copy to /usr/local/bin?",
+      "parentUuid": "97d16ba6_989ffff4",
       "range": {
         "startLine": 22,
         "startChar": 0,
@@ -92,6 +162,30 @@
       "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e20417dc_9ca32ae5",
+        "filename": "status/cipd.ensure",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-06-29T16:51:04Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fa1b1d9e_e3d93d0c",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 70
+      },
+      "revId": "90c78696d4cd4ab4531011ecd6375a9efaf5af6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
