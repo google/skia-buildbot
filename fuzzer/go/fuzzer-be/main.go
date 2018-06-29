@@ -65,7 +65,7 @@ var (
 	forceReanalysis  = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted from GCS), and reuploaded.")
 	verboseBuilds    = flag.Bool("verbose_builds", false, "If output from ninja and gyp should be printed to stdout.")
 	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	overrideHostname = flag.String("override_hostname", "", "Hostname to be used if running locally")
+	overrideHostname = flag.String("override_hostname", "", "Hostname to be used if running locally or on Kubernetes")
 	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
@@ -80,11 +80,13 @@ func main() {
 	flag.Parse()
 	// Reset this because flag.Parse() will be called again with common.Init*
 	fuzzesToRun.Reset()
+	if *overrideHostname != "" {
+		mc := tests.NewMockCommonImpl()
+		mc.On("Hostname").Return(*overrideHostname)
+		fcommon.SetMockCommon(mc)
+	}
 	if *local {
 		if *overrideHostname != "" {
-			mc := tests.NewMockCommonImpl()
-			mc.On("Hostname").Return(*overrideHostname)
-			fcommon.SetMockCommon(mc)
 			common.InitWithMust(
 				*overrideHostname,
 			)
@@ -97,7 +99,6 @@ func main() {
 		common.InitWithMust(
 			"fuzzer-be",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
 		)
 	}
 	ctx := context.Background()
@@ -246,10 +247,11 @@ func writeFlagsToConfig() error {
 }
 
 func setupOAuth(ctx context.Context) error {
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadWrite)
 	if err != nil {
-		return fmt.Errorf("Problem setting up client OAuth: %v", err)
+		return fmt.Errorf("Failed to get token source: %s", err)
 	}
+	client := auth.ClientFromTokenSource(ts)
 
 	if storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client)); err != nil {
 		return fmt.Errorf("Problem authenticating to GCS: %v", err)
