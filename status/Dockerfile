@@ -1,12 +1,9 @@
-FROM node:8-alpine
+FROM gcr.io/skia-public/basedebian:testing-slim
 
-RUN addgroup -g 2000 -S skia && \
-    adduser -u 2000 -S skia -G skia && \
-    apk update && \
-    apk add --no-cache git make ca-certificates
+USER skia
 
 COPY . /
 
-USER skia
+ENV PATH="/mnt/pd0/status_workdir/git/bin:${PATH}"
 
 ENTRYPOINT ["/usr/local/bin/statusk"]

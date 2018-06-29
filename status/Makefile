@@ -44,6 +44,9 @@ push_staging: all
 	./build_release "`git log -n1 --format=%s`"
 	pushcli statusd skia-status-staging
 
+cipd:
+	cipd ensure -root=/tmp/cipd -ensure-file ./cipd.ensure
+
 statusk: web skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/statusk
 
