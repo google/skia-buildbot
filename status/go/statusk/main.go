@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/login"
@@ -685,6 +686,11 @@ func main() {
 		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, c)
 		if err != nil {
 			sklog.Fatalf("Failed to create remote task DB: %s", err)
+		}
+
+		// Also create the git cookie updater.
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 	}
 

@@ -4,7 +4,6 @@ FROM launcher.gcr.io/google/clang-debian9 AS build
 
 # Things we need to build Skia
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
-  git \
   python \
   curl \
   make \
@@ -31,6 +30,8 @@ RUN tar -C /opt/afl -zxf /tmp/afl.tgz --strip=1 "afl-"$AFL_VERSION && \
 # TODO(kjlubick): Do that if we need the performance boost
 
 COPY . /
+
+ENV PATH="/cipd/git/bin:${PATH}"
 
 RUN mkdir -m 0777 /mnt/fuzzing/
 
