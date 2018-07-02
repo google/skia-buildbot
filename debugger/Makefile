@@ -4,12 +4,12 @@ build:
 
 .PHONY: image
 image:
-	CGO_ENABLED=0 GOOS=linux go install -installsuffix cgo ./go/debugger
+	CGO_ENABLED=0 GOOS=linux go install ./go/debugger
 	SKIP_UPLOAD=1 ./build_docker_release
 
 .PHONY: release
 release:
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/debugger
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger
 	./build_docker_release
 
 .PHONY: push

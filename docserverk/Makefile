@@ -17,7 +17,7 @@ res/css/docs.css: node_modules/lastupdate res/css/main.css ${BOWER_DIR}/google-c
 
 .PHONY: release
 release: default
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/docserverk
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/docserverk
 	./build_docker_release
 
 .PHONY: push
