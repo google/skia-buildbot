@@ -20,6 +20,7 @@
       "skcms.c",
       "skcms.gni",
       "skcms.h",
+      "skcms_internal.h",
       "src"
     ]
   }
