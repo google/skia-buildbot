@@ -35,6 +35,7 @@ set -x -e
 if [ -z "$ROOT" ]; then
   ROOT=`mktemp -d`
 fi
+mkdir -p ${ROOT}
 PROJECT="${PROJECT:-skia-public}"
 DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
