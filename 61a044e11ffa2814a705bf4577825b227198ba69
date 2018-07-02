@@ -140,6 +140,30 @@
       "revId": "61a044e11ffa2814a705bf4577825b227198ba69",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bb074d9_cfbb1a9f",
+        "filename": "kube/go/continuous-deploy/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-02T16:42:12Z",
+      "side": 1,
+      "message": "Per off-line discussion this is now done in gitauth.New().",
+      "parentUuid": "e6188000_bb5eeddd",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 32
+      },
+      "revId": "61a044e11ffa2814a705bf4577825b227198ba69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
