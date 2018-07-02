@@ -18,14 +18,14 @@ build: elements_html core_js
 
 .PHONY: image
 image: build
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/fiddle
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
 	docker pull gcr.io/skia-public/skia-release:prod
 	SKIP_UPLOAD=1 ./build_fiddle_release
 	SKIP_UPLOAD=1 ./build_fiddler_release
 
 .PHONY: release
 release: build
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/fiddle
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
 	docker pull gcr.io/skia-public/skia-release:prod
 	./build_fiddle_release
 	./build_fiddler_release

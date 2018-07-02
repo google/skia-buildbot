@@ -6,7 +6,7 @@ build:
 
 release: build package-lock.json
 	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/named-fiddles
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/named-fiddles
 	./build_release
 
 push:
