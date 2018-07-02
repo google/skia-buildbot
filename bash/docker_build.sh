@@ -25,6 +25,12 @@
 # This is useful when developing locally and needing to rapidly iterate on
 # the image.
 #
+# SKIP_BUILD
+# -----------
+# If SKIP_BUILD is set then do not run docker on the ROOT directory. This also
+# skips the upload step since nothing will have been built. Useful for cloud
+# builder steps.
+#
 # ROOT
 # ----
 # If ROOT is not set then it will be set to a temp directory that is created,
@@ -69,10 +75,12 @@ fi
 
 copy_release_files
 
+if [ -z "$SKIP_BUILD" ]; then
 docker build -t ${APPNAME} ${ROOT}
 
-if [ -z "$SKIP_UPLOAD" ]; then
-  docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
-  docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
-  echo gcr.io/${PROJECT}/${APPNAME}:${TAG}
+  if [ -z "$SKIP_UPLOAD" ]; then
+    docker tag ${APPNAME} gcr.io/${PROJECT}/${APPNAME}:${TAG}
+    docker push gcr.io/${PROJECT}/${APPNAME}:${TAG}
+    echo gcr.io/${PROJECT}/${APPNAME}:${TAG}
+  fi
 fi
