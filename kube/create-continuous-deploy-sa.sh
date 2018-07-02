@@ -8,7 +8,7 @@ source ./config.sh
 source ../bash/ramdisk.sh
 
 # New service account we will create.
-SA_NAME=continuous-deploy
+SA_NAME=skia-continuous-deploy
 
 cd /tmp/ramdisk
 
