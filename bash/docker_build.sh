@@ -20,14 +20,21 @@
 # participate in pushk, which expects the auto generated tag format.
 #
 # SKIP_UPLOAD
-# ---
+# -----------
 # If SKIP_UPLOAD is set then do not push the image to the container registry.
 # This is useful when developing locally and needing to rapidly iterate on
 # the image.
+#
+# ROOT
+# ----
+# If ROOT is not set then it will be set to a temp directory that is created,
+# otherewise ROOT is presumed to exist.
 
 set -x -e
 
-ROOT=`mktemp -d`
+if [ -z "$ROOT" ]; then
+  ROOT=`mktemp -d`
+fi
 PROJECT="${PROJECT:-skia-public}"
 DATETIME=`date --utc "+%Y-%m-%dT%H_%M_%SZ"`
 HASH=`git rev-parse HEAD`
