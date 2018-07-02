@@ -28,7 +28,7 @@ USER root
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
   && apt-get install -y nodejs
 
-USER skia
-
-#RUN cd /home/skia/golib/src/go.skia.org/infra/perf \
-#    && make
+# USER skia
+#
+# RUN cd /home/skia/golib/src/go.skia.org/infra/perf \
+#     && make
