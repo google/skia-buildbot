@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "36e34c0e_6b1297ca",
+        "filename": "go/gitauth/gitauth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-02T15:27:14Z",
+      "side": 1,
+      "message": "Driven by the expiration of the access_token returned in g.updateCookie.",
+      "parentUuid": "1489e799_0d2ee5f7",
+      "range": {
+        "startLine": 108,
+        "startChar": 3,
+        "endLine": 108,
+        "endChar": 13
+      },
+      "revId": "61a044e11ffa2814a705bf4577825b227198ba69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0a99860b_d9619c6f",
         "filename": "kube/Makefile",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7cba481a_32bad244",
+        "filename": "kube/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-02T15:27:14Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "0a99860b_d9619c6f",
+      "range": {
+        "startLine": 25,
+        "startChar": 40,
+        "endLine": 25,
+        "endChar": 58
+      },
+      "revId": "61a044e11ffa2814a705bf4577825b227198ba69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aa3eeed3_a3ab874c",
         "filename": "kube/go/continuous-deploy/main.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2018-07-02T15:22:13Z",
       "side": 1,
       "message": "Couldn\u0027t you do this in the Dockerfile itself?  Really all this is doing is writing to the .gitconfig file, right?",
+      "range": {
+        "startLine": 50,
+        "startChar": 14,
+        "endLine": 50,
+        "endChar": 32
+      },
+      "revId": "61a044e11ffa2814a705bf4577825b227198ba69",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6188000_bb5eeddd",
+        "filename": "kube/go/continuous-deploy/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-02T15:27:14Z",
+      "side": 1,
+      "message": "Or maybe this should be done in gitauth.New()?",
+      "parentUuid": "aa3eeed3_a3ab874c",
       "range": {
         "startLine": 50,
         "startChar": 14,
