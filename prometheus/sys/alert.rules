@@ -346,38 +346,6 @@ ALERT SwarmingLoggerErrorRate
     description = "The error rate for swarming_logger is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-swarming-logger2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fswarming_logger"
   }
 
-# Fuzzer
-
-ALERT FuzzerUploadQueue
-  IF fuzzer_queue_size_upload > 90
-  FOR 2m
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload"
-  }
-
-ALERT FuzzerAnalysisQueue
-  IF fuzzer_queue_size_analysis > 900000
-  FOR 2m
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "Fuzzer analysis queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_analysis"
-  }
-
-ALERT FuzzerStaleVersion
-  IF fuzzer_version_age{type="current"}/60/60/24 > 10
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "The Fuzzer hasn't rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version"
-  }
-
-ALERT FuzzerSlowRoll
-  IF fuzzer_version_age{type="pending"}/60/60 > 2
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll"
-  }
-
 # Status
 
 ALERT StatusLatency

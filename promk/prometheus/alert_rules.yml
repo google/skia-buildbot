@@ -99,3 +99,40 @@ groups:
     annotations:
       abbr: 'Insufficient fiddler pods.'
       description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/master/fiddlek/PROD.md#fiddler_pods'
+  # Fuzzer
+  - alert: FuzzerUploadQueue
+    expr: fuzzer_queue_size_upload > 90
+    for: 2m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: 'Full Upload Queue'
+      description: 'Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload'
+  - alert: FuzzerStaleVersion
+    expr: fuzzer_version_age{type="current"}/60/60/24 > 10
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'Fuzzer version stale'
+      description: 'The Fuzzer hasn't rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version'
+  - alert: FuzzerAnalysisQueue
+    expr: fuzzer_queue_size_analysis > 900000
+    for: 2m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: 'Full Analysis Queue'
+      description: 'Fuzzer analysis queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_analysis'
+ - alert: FuzzerSlowRoll
+    expr: fuzzer_version_age{type="pending"}/60/60 > 2
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: 'Fuzzer roll taking a while'
+      description: 'The fuzzer hasn't finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll'
+
+
