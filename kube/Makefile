@@ -1,4 +1,4 @@
-.PHONY: build test pushk release_configmap_reload release_expand_and_reload release_iap_proxy push
+.PHONY: build test pushk release_configmap_reload release_expand_and_reload release_iap_proxy push release_continuous_deploy
 
 build:
 	go install  ./go/...
@@ -21,6 +21,10 @@ release_iap_proxy:
 	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/iap-proxy
 	./build_iap_proxy_release
 
+release_continuous_deploy:
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/continuous-deploy ./go/pushk
+	./build_continuous_deploy_release
+
 push: pushk
-	pushk iap-proxy configmap-reload expand-and-reload
+	pushk iap-proxy configmap-reload expand-and-reload continuous-deploy
 

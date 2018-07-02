@@ -63,6 +63,8 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 	if err != nil {
 		return RETRY_INTERVAL, fmt.Errorf("Failed to write new cookie file: %s", err)
 	}
+	sklog.Infof("Refreshing cookie in %v", refresh_in)
+
 	return refresh_in, nil
 }
 
@@ -101,10 +103,12 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool) (*GitAuth
 		return nil, fmt.Errorf("Failed to get initial git cookie: %s", err)
 	}
 	go func() {
-		time.Sleep(refresh_in)
-		refresh_in, err = g.updateCookie()
-		if err != nil {
-			sklog.Errorf("Failed to get initial git cookie: %s", err)
+		for {
+			time.Sleep(refresh_in)
+			refresh_in, err = g.updateCookie()
+			if err != nil {
+				sklog.Errorf("Failed to get initial git cookie: %s", err)
+			}
 		}
 	}()
 	return g, nil
