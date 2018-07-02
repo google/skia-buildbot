@@ -63,6 +63,8 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 	if err != nil {
 		return RETRY_INTERVAL, fmt.Errorf("Failed to write new cookie file: %s", err)
 	}
+	sklog.Infof("Refreshing cookie in %v", refresh_in)
+
 	return refresh_in, nil
 }
 
@@ -70,13 +72,15 @@ func (g *GitAuth) updateCookie() (time.Duration, error) {
 //
 // tokenSource - An oauth2.TokenSource authorized to access the repository, with an appropriate scope set.
 // filename - The name of the git cookie file, e.g. "~/.git-credential-cache/cookie".
-// config - If true then set the http.cookiefile config globally for git.
+// config - If true then set the http.cookiefile config globally for git and set the user name and email globally if 'email' is not the empty string.
+// email - The email address of the authorized account. Used to set the git config user.name and user.email. Can be "", in which case user.name
+//    and user.email are not set.
 //
-// Git must be told about the location of the Cookie file with:
+// If config if false then Git must be told about the location of the Cookie file, for example:
 //
 //    git config --global http.cookiefile ~/.git-credential-cache/cookie
 //
-func New(tokenSource oauth2.TokenSource, filename string, config bool) (*GitAuth, error) {
+func New(tokenSource oauth2.TokenSource, filename string, config bool, email string) (*GitAuth, error) {
 	if config {
 		output := bytes.Buffer{}
 		err := exec.Run(context.Background(), &exec.Command{
@@ -91,6 +95,18 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool) (*GitAuth
 		if err != nil {
 			return nil, fmt.Errorf("Failed to set cookie in git config %q: %s", output.String(), err)
 		}
+		if email != "" {
+			ctx := context.Background()
+			out, err := exec.RunSimple(ctx, fmt.Sprintf("git config --global user.email %s", email))
+			if err != nil {
+				return nil, fmt.Errorf("Failed to config: %s: %s", err, out)
+			}
+			name := strings.Split(email, "@")[0]
+			out, err = exec.RunSimple(ctx, fmt.Sprintf("git config --global user.name %s", name))
+			if err != nil {
+				return nil, fmt.Errorf("Failed to config: %s: %s", err, out)
+			}
+		}
 	}
 	g := &GitAuth{
 		tokenSource: tokenSource,
@@ -100,17 +116,21 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool) (*GitAuth
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get initial git cookie: %s", err)
 	}
+
 	go func() {
-		time.Sleep(refresh_in)
-		refresh_in, err = g.updateCookie()
-		if err != nil {
-			sklog.Errorf("Failed to get initial git cookie: %s", err)
+		for {
+			time.Sleep(refresh_in)
+			refresh_in, err = g.updateCookie()
+			if err != nil {
+				sklog.Errorf("Failed to get initial git cookie: %s", err)
+			}
 		}
 	}()
 	return g, nil
 }
 
 // getCredentials returns the parsed contents of .gitCookies.
+//
 // This logic has been borrowed from
 // https://cs.chromium.org/chromium/tools/depot_tools/gerrit_util.py?l=143
 func getCredentials(gitCookiesPath string) (map[string]string, error) {
@@ -139,9 +159,10 @@ func getCredentials(gitCookiesPath string) (map[string]string, error) {
 	return gitCookies, nil
 }
 
-// Add a git authentication cookie to the given request.
-// TODO(borenet): It would be nice if this could be part of an http.Client,
-// or use an http.CookieJar in combination with the above code so that we don't
+// AddAuthenticationCookie adds a git authentication cookie to the given request.
+//
+// TODO(borenet): It would be nice if this could be part of an http.Client, or
+// use an http.CookieJar in combination with the above code so that we don't
 // have to call AddAuthenticationCookie manually all the time.
 func AddAuthenticationCookie(gitCookiesPath string, req *http.Request) error {
 	auth := ""

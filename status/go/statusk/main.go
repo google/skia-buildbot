@@ -689,7 +689,7 @@ func main() {
 		}
 
 		// Also create the git cookie updater.
-		if _, err := gitauth.New(ts, "/tmp/git-cookie", true); err != nil {
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 	}
