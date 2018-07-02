@@ -1,5 +1,6 @@
 // continuous-deploy monitors pubsub events for the GCP Container Builder and
 // pushes updated images when successful images are built.
+
 package main
 
 import (
@@ -35,8 +36,9 @@ func main() {
 	if len(flag.Args()) == 0 {
 		sklog.Fatal("continuous-deploy must be passed in at least one package name to push.")
 	}
+	sklog.Infof("Pushing to: %v", flag.Args())
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local, pubsub.ScopePubSub)
+	ts, err := auth.NewDefaultTokenSource(*local, pubsub.ScopePubSub, "https://www.googleapis.com/auth/gerritcodereview")
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -45,6 +47,15 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
+		out, err := exec.RunSimple(ctx, "git config --global user.email \"skia-continuous-deploy@skia-public.iam.gserviceaccount.com\"")
+		if err != nil {
+			sklog.Fatal(err, out)
+		}
+		out, err = exec.RunSimple(ctx, "git config --global user.name \"skia-continuous-deploy\"")
+		if err != nil {
+			sklog.Fatal(err, out)
+		}
+
 	}
 	client, err := pubsub.NewClient(ctx, *project, option.WithTokenSource(ts))
 	if err != nil {
@@ -76,7 +87,7 @@ func main() {
 	for {
 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
-			sklog.Infof("msg.Data: %s", string(msg.Data))
+			sklog.Infof("Status: %s", msg.Attributes["status"])
 			if msg.Attributes["status"] == "SUCCESS" {
 				var buildInfo cloudbuild.Build
 				if err := json.Unmarshal(msg.Data, &buildInfo); err != nil {
@@ -84,6 +95,7 @@ func main() {
 					return
 				}
 				imageName := buildInfo.Results.Images[0].Name
+				sklog.Infof("ImageName: %s", imageName)
 				// Is this one of the images we are pushing?
 				found := false
 				for _, name := range flag.Args() {
