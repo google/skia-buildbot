@@ -27,7 +27,7 @@ run_server_local: build
 
 .PHONY: release
 release: build
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/debugger-assets
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
 	./build_docker_release
 
 .PHONY: push

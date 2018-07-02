@@ -8,7 +8,7 @@ validate: default
 
 .PHONY: release
 release: default
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/proberk
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/proberk
 	./build_docker_release
 
 .PHONY: push

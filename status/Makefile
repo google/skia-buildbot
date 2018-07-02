@@ -45,7 +45,7 @@ push_staging: all
 	pushcli statusd skia-status-staging
 
 statusk: web skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/statusk
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/statusk
 
 release_kube: statusk
 	./build_docker_release
