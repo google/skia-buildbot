@@ -16,6 +16,24 @@
       "revId": "03d10ab5cb0a5558b485d81d2a0c2c9f9474b79d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8130fa12_063ea310",
+        "filename": "kube/go/continuous-deploy/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-03T13:21:08Z",
+      "side": 1,
+      "message": "This could happen and we are fine with it.",
+      "parentUuid": "852259b5_e950f217",
+      "revId": "03d10ab5cb0a5558b485d81d2a0c2c9f9474b79d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
