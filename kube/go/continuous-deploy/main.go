@@ -85,20 +85,21 @@ func main() {
 					sklog.Errorf("Failed to decode: %s: %q", err, string(msg.Data))
 					return
 				}
-				imageName := buildInfo.Results.Images[0].Name
-				sklog.Infof("ImageName: %s", imageName)
-				// Is this one of the images we are pushing?
-				found := false
-				for _, name := range flag.Args() {
-					if strings.Contains(imageName, name) {
-						found = true
-						break
+				imageNames := []string{}
+				for _, im := range buildInfo.Results.Images {
+					sklog.Infof("ImageName: %s", im.Name)
+					// Is this one of the images we are pushing?
+					for _, name := range flag.Args() {
+						if strings.Contains(im.Name, name) {
+							imageNames = append(imageNames, im.Name)
+							break
+						}
 					}
 				}
-				if !found {
+				if len(imageNames) == 0 {
 					return
 				}
-				cmd := fmt.Sprintf("%s --logtostderr %s", pushk, imageName)
+				cmd := fmt.Sprintf("%s --logtostderr %s", pushk, strings.Join(imageNames, " "))
 				sklog.Infof("About to execute: %q", cmd)
 				output, err := exec.RunSimple(ctx, cmd)
 				if err != nil {
