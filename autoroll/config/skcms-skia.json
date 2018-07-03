@@ -17,7 +17,7 @@
     "whitelist": [
       "LICENSE",
       "README.chromium",
-      "skcms.c",
+      "skcms.cc",
       "skcms.gni",
       "skcms.h",
       "skcms_internal.h",
