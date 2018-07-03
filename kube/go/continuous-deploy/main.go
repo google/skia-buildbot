@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"cloud.google.com/go/pubsub"
@@ -28,6 +29,47 @@ var (
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
+var (
+	parseImageName *regexp.Regexp
+)
+
+func Init() {
+	parseImageName = regexp.MustCompile("^gcr.io/" + *project + "/([^:]+).*$")
+}
+
+// baseImageName returns "fiddler" from "gcr.io/skia-public/fiddler:foo".
+//
+// If the image name doesn't start with "gcr.io" and the project name then "" is returned.
+func baseImageName(s string) string {
+	matches := parseImageName.FindStringSubmatch(s)
+	if len(matches) != 2 {
+		return ""
+	} else {
+		return matches[1]
+	}
+}
+
+// imagesFromMsg parses the incoming PubSub Data 'b' as JSON and then returns
+// the full image names of all the images that match 'shortImageNames'.
+func imagesFromMsg(shortImageNames []string, b []byte) ([]string, error) {
+	var buildInfo cloudbuild.Build
+	if err := json.Unmarshal(b, &buildInfo); err != nil {
+		return nil, fmt.Errorf("Failed to decode: %s: %q", err, string(b))
+	}
+	imageNames := []string{}
+	for _, im := range buildInfo.Results.Images {
+		sklog.Infof("ImageName: %s", im.Name)
+		// Is this one of the images we are pushing?
+		for _, name := range shortImageNames {
+			if baseImageName(im.Name) == name {
+				imageNames = append(imageNames, im.Name)
+				break
+			}
+		}
+	}
+	return imageNames, nil
+}
+
 func main() {
 	common.InitWithMust(
 		"continuous-deploy",
@@ -36,6 +78,7 @@ func main() {
 	if len(flag.Args()) == 0 {
 		sklog.Fatal("continuous-deploy must be passed in at least one package name to push.")
 	}
+	Init()
 	sklog.Infof("Pushing to: %v", flag.Args())
 	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*local, pubsub.ScopePubSub, "https://www.googleapis.com/auth/gerritcodereview")
@@ -75,40 +118,33 @@ func main() {
 	if *local {
 		pushk = "pushk"
 	}
+	shortImageNames := flag.Args()
 	for {
 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
 			sklog.Infof("Status: %s", msg.Attributes["status"])
-			if msg.Attributes["status"] == "SUCCESS" {
-				var buildInfo cloudbuild.Build
-				if err := json.Unmarshal(msg.Data, &buildInfo); err != nil {
-					sklog.Errorf("Failed to decode: %s: %q", err, string(msg.Data))
-					return
-				}
-				imageName := buildInfo.Results.Images[0].Name
-				sklog.Infof("ImageName: %s", imageName)
-				// Is this one of the images we are pushing?
-				found := false
-				for _, name := range flag.Args() {
-					if strings.Contains(imageName, name) {
-						found = true
-						break
-					}
-				}
-				if !found {
-					return
-				}
-				cmd := fmt.Sprintf("%s --logtostderr %s", pushk, imageName)
-				sklog.Infof("About to execute: %q", cmd)
-				output, err := exec.RunSimple(ctx, cmd)
-				if err != nil {
-					sklog.Errorf("Failed to run pushk: %s: %s", output, err)
-					return
-				} else {
-					sklog.Info(output)
-				}
-				sklog.Info("Finished push")
+			if msg.Attributes["status"] != "SUCCESS" {
+				return
 			}
+			imageNames, err := imagesFromMsg(shortImageNames, msg.Data)
+			if err != nil {
+				sklog.Error(err)
+				return
+			}
+			if len(imageNames) == 0 {
+				sklog.Infof("No images to push.")
+				return
+			}
+			cmd := fmt.Sprintf("%s --logtostderr %s", pushk, strings.Join(imageNames, " "))
+			sklog.Infof("About to execute: %q", cmd)
+			output, err := exec.RunSimple(ctx, cmd)
+			if err != nil {
+				sklog.Errorf("Failed to run pushk: %s: %s", output, err)
+				return
+			} else {
+				sklog.Info(output)
+			}
+			sklog.Info("Finished push")
 		})
 		if err != nil {
 			sklog.Errorf("Failed receiving pubsub message: %s", err)
