@@ -3,6 +3,11 @@ package alerts
 const (
 	// TOPIC is the PubSub topic for alert messages.
 	TOPIC = "promtheus-alerts"
+
+	// Well known keys and values for Metric.
+	TYPE         = "__name__" // The two valid values are ALERTS and HEALTHZ.
+	TYPE_ALERTS  = "ALERTS"
+	TYPE_HEALTHZ = "HEALTHZ"
 )
 
 // Result contains all the key-value pairs for each alert, for example:
