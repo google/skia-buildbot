@@ -1,0 +1,80 @@
+/**
+ * @module incident-sk
+ * @description <h2><code>incident-sk</code></h2>
+ *
+ * <p>
+ *   Displays a single Incident.
+ * </p>
+ *
+ * @evt add-note Sent when the user adds a note to an incident.
+ *    The detail includes the text of the note and the key of the incident.
+ *
+ *   <pre>
+ *     detail {
+ *       key: "12312123123",
+ *       text: "blah blah blah",
+ *     }
+ *   </pre>
+ *
+ */
+import { html, render } from 'lit-html/lib/lit-extended'
+import { $$ } from 'common-sk/modules/dom'
+
+function localTime(ts) {
+  let d = new Date(ts*1000);
+  return d.toLocaleDateString();
+}
+
+function notes(arr) {
+  if (!arr) {
+    return [];
+  }
+  return arr.map(note => html`<p>${note.text}</p> <span>${note.author}</span><span>${localTime(note.ts)}</span>`);
+}
+
+function table(o) {
+  let keys = Object.keys(o);
+  keys.sort();
+  return keys.filter(k => !k.startsWith("__")).map((k) => html`<tr><th>${k}</th><td>${o[k]}</td></tr>`);
+}
+
+const template = (ele) => html`
+<h2>${ele._state.params.alertname}</h2>
+  <table>
+  ${table(ele._state.params)}
+  </table>
+  ${notes(ele._state.notes)}
+  <section>
+    <textarea rows=2 cols=80></textarea>
+    <button on-click=${(e) => ele._addNote(e)}>Submit</button>
+  </section>
+`;
+
+window.customElements.define('incident-sk', class extends HTMLElement {
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+  }
+
+  /** @prop state {string} An Incident. */
+  get state() { return this._state }
+  set state(val) {
+    this._state = val;
+    this._render();
+  }
+
+  _addNote(e) {
+    let detail = {
+      key: this._state.key,
+      text: $$('textarea', this).value,
+    };
+    this.dispatchEvent(new CustomEvent('add-note', { detail: detail, bubbles: true }));
+  }
+
+  _render() {
+    render(template(this), this);
+  }
+
+});
