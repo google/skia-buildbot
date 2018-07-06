@@ -1,0 +1,62 @@
+@import '~common-sk/modules/colors';
+
+incident-sk {
+  display: block;
+  padding: 1em;
+  font-size: 90%;
+
+  td {
+    text-align: left;
+  }
+
+  th {
+    text-align: right;
+  }
+
+  td, td {
+    padding: 0.1em 0.4em;
+  }
+
+  textarea {
+    display: block;
+    margin: 0.6em 0.6em;
+  }
+
+  p {
+    max-width: 40em;
+    display: inline-block;
+    margin: 0;
+  }
+
+  section {
+    max-width: 40em;
+    margin: 0.6em;
+  }
+
+  .date {
+    margin-left: 2em;
+    color: $orange;
+  }
+
+  .author {
+    color: $blue;
+  }
+
+  delete-icon-sk {
+    fill: $blue;
+    cursor: pointer;
+    padding: 0.2em;
+    border: solid white 1px;
+  }
+
+  delete-icon-sk:hover {
+    border-bottom: solid $blue 1px;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+}
