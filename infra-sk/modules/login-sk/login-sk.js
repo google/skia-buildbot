@@ -1,14 +1,14 @@
 /**
- * @module common-sk/modules/login-sk
+ * @module infra-sk/modules/login-sk
  * @description <h2><code>login-sk</code></h2>
  *
  * <p>
  * The <login-sk> custom element. Uses the Login promise to display the
  * current login status and provides login/logout links. Reports errors via
- * {@linkcode module:common-sk/modules/errorMessage}.
+ * {@linkcode module:elements-sk/error-toast-sk}.
  * </p>
  */
-import { errorMessage } from '../errorMessage';
+import { errorMessage } from 'elements-sk/error-toast-sk';
 import { Login } from '../login';
 
 window.customElements.define('login-sk', class extends HTMLElement {
@@ -21,7 +21,7 @@ window.customElements.define('login-sk', class extends HTMLElement {
           logInOut.href = status.LoginURL;
           logInOut.textContent = 'Login';
       } else {
-          logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
+          logInOut.href = '/logout/?redirect=' + encodeURIComponent(document.location);
           logInOut.textContent = 'Logout';
       }
     }).catch(errorMessage);

@@ -1,11 +1,17 @@
 {
-  "name": "common-sk",
-  "version": "3.0.0",
-  "description": "Common Skia JS modules.",
-  "homepage": "https://github.com/google/skia-buildbot/tree/master/common-sk",
+  "name": "infra-sk",
+  "version": "0.1.0",
+  "description": "Common Skia Infra elements and JS.",
+  "homepage": "https://github.com/google/skia-buildbot/tree/master/infra-sk",
   "main": "index.js",
   "license": "Apache-2.0",
+  "dependencies": {
+    "common-sk": "~3.0.0",
+    "elements-sk": "~2.2.0",
+    "lit-html": "~0.10.2"
+  },
   "devDependencies": {
+    "@webcomponents/custom-elements": "^1.1.1",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "glob": "^7.1.2",
