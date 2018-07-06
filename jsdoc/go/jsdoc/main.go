@@ -21,32 +21,35 @@ import (
 
 // flags
 var (
-	gitRepoURL = flag.String("git_repo_url", "https://skia.googlesource.com/buildbot", "The directory to check out the doc repo into.")
-	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	refresh    = flag.Duration("refresh", 15*time.Minute, "The duration between doc git repo refreshes.")
-	gitRepoDir = flag.String("git_repo_dir", "/tmp/buildbot", "The directory to check out the doc repo into.")
+	infraGitRepoURL    = flag.String("infra_git_repo_url", "https://skia.googlesource.com/buildbot", "Git repo of the main infra repo.")
+	elementsGitRepoURL = flag.String("elements_git_repo_url", "https://github.com/google/elements-sk/", "Auxillary repo for elements-sk.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	refresh            = flag.Duration("refresh", 15*time.Minute, "The duration between doc git repo refreshes.")
+	infraGitRepoDir    = flag.String("infra_git_repo_dir", "/tmp/buildbot", "The directory to check out the doc repo into.")
+	elementsGitRepoDir = flag.String("elements_git_repo_dir", "/tmp/elements-sk", "The directory to check out the auxillary repo to.")
 )
 
 var (
-	git      *gitinfo.GitInfo  = nil
 	liveness metrics2.Liveness = metrics2.NewLiveness("build", nil)
 )
 
 func step() error {
 	ctx := context.Background()
-	var err error
-	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
-	if err != nil {
+
+	if _, err := gitinfo.CloneOrUpdate(ctx, *infraGitRepoURL, *infraGitRepoDir, false); err != nil {
 		return fmt.Errorf("Failed to clone buildbot repo: %s", err)
+	}
+	if _, err := gitinfo.CloneOrUpdate(ctx, *elementsGitRepoURL, *elementsGitRepoDir, false); err != nil {
+		return fmt.Errorf("Failed to clone elements-sk repo: %s", err)
 	}
 
 	// Build docs.
 	buildDocsCmd := &exec.Command{
 		Name:        "make",
 		Args:        []string{"docs"},
-		Dir:         path.Join(*gitRepoDir, "jsdoc"),
+		Dir:         path.Join(*infraGitRepoDir, "jsdoc"),
 		InheritPath: false,
 		LogStdout:   true,
 	}
@@ -59,7 +62,7 @@ func step() error {
 	buildElementDemoCmd := &exec.Command{
 		Name:        "make",
 		Args:        []string{"release"},
-		Dir:         path.Join(*gitRepoDir, "ap"),
+		Dir:         path.Join(*elementsGitRepoDir),
 		InheritPath: false,
 		LogStdout:   true,
 	}
@@ -72,7 +75,7 @@ func step() error {
 	buildCommonDemoCmd := &exec.Command{
 		Name:        "make",
 		Args:        []string{"demos"},
-		Dir:         path.Join(*gitRepoDir, "common-sk"),
+		Dir:         path.Join(*infraGitRepoDir, "common-sk"),
 		InheritPath: false,
 		LogStdout:   true,
 	}
@@ -107,9 +110,9 @@ func main() {
 		sklog.Fatalf("Failed initial checkout and doc build: %s", err)
 	}
 	go periodic()
-	docsDir := path.Join(*gitRepoDir, "jsdoc", "out")
-	elementsDemoDir := path.Join(*gitRepoDir, "ap", "dist")
-	commonDemoDir := path.Join(*gitRepoDir, "common-sk", "dist")
+	docsDir := path.Join(*infraGitRepoDir, "jsdoc", "out")
+	elementsDemoDir := path.Join(*elementsGitRepoDir, "dist")
+	commonDemoDir := path.Join(*infraGitRepoDir, "common-sk", "dist")
 	router := mux.NewRouter()
 	router.PathPrefix("/common-sk/").Handler(http.StripPrefix("/common-sk/", http.HandlerFunc(httputils.MakeResourceHandler(commonDemoDir))))
 	router.PathPrefix("/elements-sk/").Handler(http.StripPrefix("/elements-sk/", http.HandlerFunc(httputils.MakeResourceHandler(elementsDemoDir))))
