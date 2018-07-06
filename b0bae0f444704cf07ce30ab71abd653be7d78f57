@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "aafac4b5_a4130e0d",
+        "filename": "kube/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-06T13:21:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1d44f89_cd43fe0a",
+      "range": {
+        "startLine": 65,
+        "startChar": 51,
+        "endLine": 65,
+        "endChar": 77
+      },
+      "revId": "b0bae0f444704cf07ce30ab71abd653be7d78f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7aff51fa_d2237082",
         "filename": "kube/README.md",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "b0bae0f444704cf07ce30ab71abd653be7d78f57",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ebade4b_e7cf48a1",
+        "filename": "kube/README.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-06T13:21:54Z",
+      "side": 1,
+      "message": "Added some verbage and link to GCP Container Builder docs.",
+      "parentUuid": "7aff51fa_d2237082",
+      "range": {
+        "startLine": 72,
+        "startChar": 54,
+        "endLine": 72,
+        "endChar": 65
+      },
+      "revId": "b0bae0f444704cf07ce30ab71abd653be7d78f57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
