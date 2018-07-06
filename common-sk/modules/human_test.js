@@ -53,8 +53,7 @@ describe('The human functions',
       }
     }
 
-    it('should return human-readable duration from strDuration',
-       testStrDuration);
+    it('should return human-readable duration from strDuration', testStrDuration);
 
     function testDiffDate() {
       let now = Date.now();
@@ -105,8 +104,7 @@ describe('The human functions',
       }
     }
 
-    it('should return human-readable duration from diffDate',
-       testDiffDate);
+    it('should return human-readable duration from diffDate', testDiffDate);
 
     function testBytes() {
       let testBytes = [
@@ -165,7 +163,6 @@ describe('The human functions',
       }
     }
 
-    it('should return human-readable bytes from bytes',
-       testBytes);
+    it('should return human-readable bytes from bytes', testBytes);
   }
 );
