@@ -1,6 +1,6 @@
 import './index.js'
 
-import { $$ } from '../dom'
+import { $$ } from 'common-sk/modules/dom'
 
 let report = e => { $$('#event').textContent = JSON.stringify(e.detail, null, 2); }
 $$('#ele1').addEventListener('unit-action', report);
