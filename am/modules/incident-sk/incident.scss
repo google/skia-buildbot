@@ -1,0 +1,51 @@
+@import '~common-sk/modules/colors';
+
+incident-sk {
+  display: block;
+  padding: 1em;
+  font-size: 90%;
+
+  td {
+    text-align: left;
+  }
+
+  th {
+    text-align: right;
+  }
+
+  td, td {
+    padding: 0.1em 0.4em;
+  }
+
+  textarea {
+    display: block;
+    margin: 0.6em 0.6em;
+  }
+
+  p {
+    max-width: 40em;
+    display: inline-block;
+    margin: 0;
+  }
+
+  section {
+    max-width: 40em;
+    margin: 0.6em;
+  }
+
+  .date {
+    margin-left: 2em;
+    color: $orange;
+  }
+
+  .author {
+    color: $blue;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: flex-end;
+    font-size: 90%;
+  }
+
+}
