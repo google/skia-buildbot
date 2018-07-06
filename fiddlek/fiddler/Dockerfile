@@ -1,4 +1,3 @@
-# Keep this in sync with fiddler_ci/Dockerfile.
 FROM gcr.io/skia-public/skia-release:prod
 
 USER root
