@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5094946c_cf3557cd",
+        "filename": "common-sk/karma.common.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-06T21:08:18Z",
+      "side": 1,
+      "message": "You might need to add firefox to https://github.com/google/skia-buildbot/blob/master/docker/Dockerfile.",
+      "revId": "bbfc26c6ff95a3014f66af92022e2c62ced8115e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
