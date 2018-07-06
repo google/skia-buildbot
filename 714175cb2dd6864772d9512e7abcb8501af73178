@@ -16,6 +16,24 @@
       "revId": "714175cb2dd6864772d9512e7abcb8501af73178",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f87ee60_a6760fe3",
+        "filename": "fiddlek/fiddler/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-06T12:55:24Z",
+      "side": 1,
+      "message": "I\u0027ve removed this file and CD is now done using the same fiddler/Dockerfile that is used for desktop development and manual deployment.\n\nhttps://skia-review.googlesource.com/c/buildbot/+/139540",
+      "parentUuid": "094bab79_a9f3c248",
+      "revId": "714175cb2dd6864772d9512e7abcb8501af73178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
