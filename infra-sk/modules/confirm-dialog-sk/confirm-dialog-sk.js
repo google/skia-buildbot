@@ -1,5 +1,5 @@
 /**
- * @module common-sk/modules/confirm-dialog-sk
+ * @module infra-sk/modules/confirm-dialog-sk
  * @description <h2><code>confirm-dialog-sk</code></h2>
  *
  * <p>
@@ -24,10 +24,8 @@
  */
 import { html, render } from 'lit-html/lib/lit-extended'
 
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
-
 import 'elements-sk/dialog-sk'
-import 'elements-sk/buttons'
+import 'elements-sk/styles/buttons'
 
 const template = (ele) => html`<dialog-sk>
   <h2>Confirm</h2>

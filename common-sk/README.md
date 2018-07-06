@@ -1,7 +1,7 @@
-This is the common set of custom elements used by Skia Infrastructure.
-It is built on [pulito](https://www.npmjs.com/package/pulito) and [elements-sk](https://www.npmjs.com/package/elements-sk).
+This is the common set of JS libraries used by Skia Infrastructure.
 
-There is [documentation for each element](https://jsdoc.skia.org).
+
+There is [live documentation](https://jsdoc.skia.org).
 
 Disclaimer
 ==========

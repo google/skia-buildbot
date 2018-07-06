@@ -39,8 +39,14 @@ continuous_desktop: package-lock.json
 	# Continuously run the tests each time they are modified.
 	npx karma start &
 
+clean:
+	rm -rf node_modules
+	rm -f package-lock.json
+	npm install
+
 docs:
 	npx jsdoc -c jsdoc.config.js
+	xdg-open out/index.html
 
 package-lock.json: package.json
 	npm install

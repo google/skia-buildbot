@@ -1,5 +1,5 @@
 /**
- * @module common-sk/modules/app-sk
+ * @module infra-sk/modules/app-sk
  * @description <h2><code>app-sk</code></h2>
  *
  * <p>

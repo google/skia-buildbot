@@ -1,7 +1,0 @@
-multi-select-sk {
-  display: block;
-}
-
-multi-select-sk > [selected] {
-  background: lightgray;
-}
