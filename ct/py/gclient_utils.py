@@ -19,7 +19,7 @@ GIT = 'git'
 
 def _GetGclientPy():
   """ Return the path to the gclient.py file. """
-  return os.path.join('/', 'b', 'depot_tools', 'gclient.py')
+  return os.path.join('/', 'home', 'chrome-bot', 'depot_tools', 'gclient.py')
 
 
 GCLIENT_PY = _GetGclientPy()

@@ -8,7 +8,7 @@ gsutil_destination=$2
 
 # Make tools.
 cd /b/skia-repo/trunk
-/b/depot_tools/gclient sync
+/home/chrome-bot/depot_tools/gclient sync
 make tools
 
 # Make temporary local directory to store SKPs.
