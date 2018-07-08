@@ -53,12 +53,12 @@ sudo rm /usr/bin/ninja
 
 echo "Checking out depot_tools..."
 
-if [ ! -d "/b/depot_tools" ]; then
-  cd /b/
+if [ ! -d "~/depot_tools" ]; then
+  cd ~
   git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-  echo 'export PATH=/b/depot_tools:$PATH' >> ~/.bashrc
+  echo 'export PATH=~/depot_tools:$PATH' >> ~/.bashrc
 fi
-PATH=$PATH:/b/depot_tools
+PATH=$PATH:~/depot_tools
 
 # If the bot is a builder then checkout Chromium and Skia repositories.
 if [[ $(hostname -s) = ct-*-builder* ]]; then
@@ -67,13 +67,13 @@ if [[ $(hostname -s) = ct-*-builder* ]]; then
   cd /b/storage/chromium
   if [[ $(hostname -s) = *android* ]]; then
     # Say yes to prompts for installing Android SDK.
-    yes | /b/depot_tools/fetch android
+    yes | ~/depot_tools/fetch android
   else
-    /b/depot_tools/fetch chromium
+    ~/depot_tools/fetch chromium
   fi
   cd src
   git checkout master
-  /b/depot_tools/gclient sync
+  ~/depot_tools/gclient sync
 
   echo "Checking out Skia repository..."
   mkdir /b/skia-repo/
@@ -90,7 +90,7 @@ solutions = [
   },
 ]
 EOF
-  /b/depot_tools/gclient sync
+  ~/depot_tools/gclient sync
   cd trunk
   git checkout master
 fi
