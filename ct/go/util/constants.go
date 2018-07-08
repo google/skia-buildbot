@@ -199,7 +199,7 @@ var (
 	// Names of local directories and files.
 	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)
 	RepoDir                = filepath.Join("/", "b", REPO_DIR_NAME)
-	DepotToolsDir          = filepath.Join("/", "b", "depot_tools")
+	DepotToolsDir          = filepath.Join("/", "home", "chrome-bot", "depot_tools")
 	ChromiumBuildsDir      = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
 	ChromiumSrcDir         = filepath.Join(StorageDir, "chromium", "src")
 	TelemetryBinariesDir   = filepath.Join(ChromiumSrcDir, "tools", "perf")

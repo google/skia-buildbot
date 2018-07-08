@@ -53,8 +53,8 @@ sudo rm /usr/bin/ninja
 
 echo "Checking out depot_tools..."
 
-if [ ! -d "/b/depot_tools" ]; then
-  cd /b/
+if [ ! -d "~/depot_tools" ]; then
+  cd ~
   git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
   echo 'export PATH=/b/depot_tools:$PATH' >> ~/.bashrc
 fi
