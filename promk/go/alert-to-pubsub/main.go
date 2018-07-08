@@ -28,6 +28,7 @@ const (
 // flags
 var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	simulate       = flag.Bool("simulate", false, "Send simulated alerts as opposed to polling Prometheus.")
 	project        = flag.String("project", "skia-public", "The GCE project name.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	promHost       = flag.String("prom_host", "http://promtheus-0:9090", "The domain name and port to reach the prometheus query api.")
@@ -37,17 +38,43 @@ var (
 	failureCounter = metrics2.GetCounter("pubsub_send_failure", nil)
 )
 
+var (
+	sim1 = map[string]string{
+		"__name__":   "ALERTS",
+		"alertname":  "BotUnemployed",
+		"alertstate": "firing",
+		"bot":        "skia-rpi-064",
+		"category":   "infra",
+		"instance":   "skia-datahopper2:20000",
+		"job":        "datahopper",
+		"pool":       "Skia",
+		"severity":   "critical",
+		"swarming":   "chromium-swarm.appspot.com",
+	}
+	sim2 = map[string]string{
+		"__name__":   "ALERTS",
+		"alertname":  "BotMissing",
+		"alertstate": "firing",
+		"bot":        "skia-rpi-064",
+		"category":   "infra",
+		"instance":   "skia-datahopper2:20000",
+		"job":        "datahopper",
+		"pool":       "Skia",
+		"severity":   "critical",
+		"swarming":   "chromium-swarm.appspot.com",
+	}
+)
+
 func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 	b, err := json.Marshal(m)
 	if err != nil {
 		sklog.Errorf("Failed to encode message Data: %s: %#v", err, m)
 		return
 	}
+
+	m[alerts.LOCATION] = *location
 	msg := &pubsub.Message{
 		Data: b,
-		Attributes: map[string]string{
-			"location": *location,
-		},
 	}
 	res := topic.Publish(ctx, msg)
 	if _, err := res.Get(ctx); err != nil {
@@ -59,22 +86,27 @@ func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 }
 
 func singleStep(ctx context.Context, client *http.Client, topic *pubsub.Topic) error {
-	// Query for all ALERTS firing on the given Prometheus server.
-	resp, err := client.Get(*promHost + PROM_QUERY)
-	if err != nil {
-		return fmt.Errorf("Failed to request alerts from %q: %s", *promHost, err)
-	}
-	defer util.Close(resp.Body)
-	var queryResponse alerts.QueryResponse
-	if err := json.NewDecoder(resp.Body).Decode(&queryResponse); err != nil {
-		return fmt.Errorf("Failed to decode promethes query response: %s", err)
-	}
-	if queryResponse.Status != "success" {
-		return fmt.Errorf("Query was not successful")
-	}
-	// Send each alert as a PubSub message.
-	for _, r := range queryResponse.Data.Results {
-		sendPubSub(ctx, r.Metric, topic)
+	if *simulate {
+		sendPubSub(ctx, sim1, topic)
+		sendPubSub(ctx, sim2, topic)
+	} else {
+		// Query for all ALERTS firing on the given Prometheus server.
+		resp, err := client.Get(*promHost + PROM_QUERY)
+		if err != nil {
+			return fmt.Errorf("Failed to request alerts from %q: %s", *promHost, err)
+		}
+		defer util.Close(resp.Body)
+		var queryResponse alerts.QueryResponse
+		if err := json.NewDecoder(resp.Body).Decode(&queryResponse); err != nil {
+			return fmt.Errorf("Failed to decode promethes query response: %s", err)
+		}
+		if queryResponse.Status != "success" {
+			return fmt.Errorf("Query was not successful")
+		}
+		// Send each alert as a PubSub message.
+		for _, r := range queryResponse.Data.Results {
+			sendPubSub(ctx, r.Metric, topic)
+		}
 	}
 
 	// Send a healthz alert to be used as a marker that pubsub is still working.
