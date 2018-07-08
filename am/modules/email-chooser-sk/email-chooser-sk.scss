@@ -1,0 +1,45 @@
+@import '~common-sk/modules/colors';
+
+email-chooser-sk {
+  dialog-sk {
+
+    color: #ddd;
+    background: #111;
+
+    select,
+    option {
+      color: #ddd;
+      background: #111;
+    }
+
+    option:hover {
+      background: #222;
+    }
+
+    h2 {
+      margin: 0;
+    }
+
+    button {
+      text-transform: none;
+      height: initial;
+      padding: 0.2em;
+    }
+
+    button:focus,
+    button {
+      background: #333;
+      color: white;
+    }
+
+    button:focus {
+      background: #222;
+      color: yellow;
+    }
+
+    button:hover {
+      background: #222;
+    }
+
+  }
+}
