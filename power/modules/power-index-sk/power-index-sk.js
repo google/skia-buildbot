@@ -1,7 +1,7 @@
-import 'common-sk/modules/error-toast-sk'
+import 'elements-sk/error-toast-sk'
+import { errorMessage } from 'elements-sk/errorMessage'
 
 import { diffDate } from 'common-sk/modules/human'
-import { errorMessage } from 'common-sk/modules/errorMessage'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 import { html, render } from 'lit-html/lib/lit-extended'

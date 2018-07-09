@@ -5,9 +5,10 @@
   "main": "pages/index.js",
   "dependencies": {
     "common-sk": "^2.0.1",
+    "elements-sk": "^2.4.1",
+    "fetch-mock": "^6.4.3",
     "lit-html": "^0.10.0",
-    "pulito": "^4.0.1",
-    "fetch-mock": "^6.4.3"
+    "pulito": "^4.0.1"
   },
   "devDependencies": {
     "webpack": "^4.10.2",
