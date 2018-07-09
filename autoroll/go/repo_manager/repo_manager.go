@@ -34,7 +34,6 @@ be CC'd on the roll, and stop the roller if necessary.
 
 `
 
-	DEFAULT_LKGR   = "lkgr"
 	DEFAULT_REMOTE = "origin"
 
 	ROLL_BRANCH = "roll_branch"
@@ -267,7 +266,7 @@ func (r *commonRepoManager) CommitsNotRolled() int {
 
 // See documentation for RepoManger interface.
 func (r *commonRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_LKGR, DEFAULT_REMOTE, r.childRepo, nil)
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.childRepo, nil)
 }
 
 // See documentation for RepoManager interface.
@@ -313,7 +312,6 @@ func (r *commonRepoManager) DefaultStrategy() string {
 func (r *commonRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
-		strategy.ROLL_STRATEGY_LKGR,
 		strategy.ROLL_STRATEGY_SINGLE,
 	}
 }

@@ -66,13 +66,13 @@ func TestGetStrategyHistory(t *testing.T) {
 	}
 	m3 := &StrategyChange{
 		Message:  "Dry run",
-		Strategy: ROLL_STRATEGY_LKGR,
+		Strategy: ROLL_STRATEGY_BATCH,
 		Time:     time.Now().UTC().Add(2 * time.Minute),
 		User:     "me@google.com",
 	}
 	m4 := &StrategyChange{
 		Message:  "Dry run",
-		Strategy: ROLL_STRATEGY_LKGR,
+		Strategy: ROLL_STRATEGY_BATCH,
 		Time:     time.Now().UTC().Add(3 * time.Minute),
 		User:     "me@google.com",
 	}
