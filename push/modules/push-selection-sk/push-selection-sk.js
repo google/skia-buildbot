@@ -1,4 +1,4 @@
-import 'elements-sk/buttons'
+import 'elements-sk/styles/buttons'
 import 'elements-sk/dialog-sk'
 import 'elements-sk/icon/check-icon-sk'
 import 'elements-sk/icon/warning-icon-sk'
