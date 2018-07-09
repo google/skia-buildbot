@@ -4,7 +4,7 @@ import 'elements-sk/icon/check-icon-sk'
 import 'elements-sk/icon/warning-icon-sk'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import 'common-sk/modules/select-sk'
+import 'elements-sk/select-sk'
 import { diffDate } from 'common-sk/modules/human'
 
 import { html, render } from 'lit-html/lib/lit-extended'

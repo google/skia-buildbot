@@ -25,8 +25,8 @@
  * @evt cancelled - This event is generated when the user presses Cancel.
  *
  */
-import 'elements-sk/buttons'
-import { errorMessage } from 'common-sk/modules/errorMessage'
+import 'elements-sk/styles/buttons'
+import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html/lib/lit-extended'
 import { $$ } from 'common-sk/modules/dom'
 

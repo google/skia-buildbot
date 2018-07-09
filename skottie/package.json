@@ -5,12 +5,13 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
-    "common-sk": "^2.0.3",
-    "copy-webpack-plugin": "^4.5.1",
-    "elements-sk": "^2.1.0",
-    "lottie-web": "^5.1.17",
+    "common-sk": "^3.0.0",
+    "copy-webpack-plugin": "^4.5.2",
+    "elements-sk": "^2.4.1",
+    "lit-html": "^0.10.2",
+    "lottie-web": "^5.1.20",
     "pulito": "^4.1.0",
-    "webpack": "^4.12.0",
+    "webpack": "^4.15.1",
     "webpack-cli": "^3.0.8"
   },
   "scripts": {

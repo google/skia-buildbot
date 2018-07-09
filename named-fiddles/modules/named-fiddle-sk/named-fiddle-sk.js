@@ -15,7 +15,7 @@
  *
  */
 import { html, render } from 'lit-html/lib/lit-extended'
-import 'elements-sk/buttons'
+import 'elements-sk/styles/buttons'
 
 function status(ele) {
   return ele._state.status != 'OK'  ? ele._state.status : '';
