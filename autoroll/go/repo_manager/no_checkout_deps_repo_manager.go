@@ -40,6 +40,9 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	ChildRepo string `json:"childRepo"` // TODO(borenet): Can we just get this from DEPS?
 	// Gerrit project for the parent repo.
 	GerritProject string `json:"gerritProject"`
+	// If false, roll CLs do not link to bugs from the commits in the child
+	// repo.
+	IncludeBugs bool `json:"includeBugs"`
 	// If false, roll CLs do not include a git log.
 	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
@@ -91,6 +94,7 @@ type noCheckoutDEPSRepoManager struct {
 	g                   gerrit.GerritInterface
 	gclient             string
 	gerritProject       string
+	includeBugs         bool
 	includeLog          bool
 	infoMtx             sync.RWMutex
 	lastRollRev         string
@@ -145,6 +149,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		g:              g,
 		gerritProject:  c.GerritProject,
 		gclient:        path.Join(depotTools, GCLIENT),
+		includeBugs:    c.IncludeBugs,
 		includeLog:     c.IncludeLog,
 		parentBranch:   c.ParentBranch,
 		parentRepo:     gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
@@ -186,7 +191,7 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 		logStr += fmt.Sprintf("%s %s %s\n", date, author, c.Subject)
 
 		// Bugs list.
-		if monorailProject != "" {
+		if rm.includeBugs && monorailProject != "" {
 			b := util.BugsFromCommitMsg(c.Body)
 			for _, bug := range b[monorailProject] {
 				bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
