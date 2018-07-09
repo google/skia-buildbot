@@ -31,6 +31,7 @@
     "childPath": "src/third_party/catapult",
     "childRepo": "https://chromium.googlesource.com/catapult.git",
     "gerritProject": "chromium/src",
+    "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"

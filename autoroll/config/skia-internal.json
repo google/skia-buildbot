@@ -22,6 +22,7 @@
   "depsRepoManager": {
     "childBranch": "master",
     "childPath": "skia",
+    "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/internal_test.git",

@@ -14,6 +14,7 @@
     "childPath": "../src",
     "childRepo": "https://chromium.googlesource.com/chromium/src.git",
     "gerritProject": "skia",
+    "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"

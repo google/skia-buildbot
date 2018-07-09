@@ -10,6 +10,7 @@
     "childPath": "src-internal",
     "childRepo": "https://chrome-internal.googlesource.com/chrome/src-internal.git",
     "gerritProject": "chromium/src",
+    "includeBugs": true,
     "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"

@@ -22,6 +22,7 @@
     "childPath": "third_party/externals/angle2",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
     "gerritProject": "skia",
+    "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"

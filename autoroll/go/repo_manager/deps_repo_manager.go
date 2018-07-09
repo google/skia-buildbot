@@ -61,12 +61,17 @@ type issueJson struct {
 // depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
 type depsRepoManager struct {
 	*depotToolsRepoManager
-	includeLog bool
+	includeBugs bool
+	includeLog  bool
 }
 
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
 type DEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
+
+	// If false, roll CLs do not link to bugs from the commits in the child
+	// repo.
+	IncludeBugs bool `json:"includeBugs"`
 
 	// If false, roll CLs do not include a git log.
 	IncludeLog bool `json:"includeLog"`
@@ -89,6 +94,7 @@ func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir s
 	}
 	dr := &depsRepoManager{
 		depotToolsRepoManager: drm,
+		includeBugs:           c.IncludeBugs,
 		includeLog:            c.IncludeLog,
 	}
 
@@ -238,18 +244,20 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 
 	// Find relevant bugs.
 	bugs := []string{}
-	monorailProject := issues.REPO_PROJECT_MAPPING[dr.parentRepo]
-	if monorailProject == "" {
-		sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", dr.parentRepo)
-	} else {
-		for _, c := range commits {
-			d, err := cr.Details(ctx, c)
-			if err != nil {
-				return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
-			}
-			b := util.BugsFromCommitMsg(d.Body)
-			for _, bug := range b[monorailProject] {
-				bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
+	if dr.includeBugs {
+		monorailProject := issues.REPO_PROJECT_MAPPING[dr.parentRepo]
+		if monorailProject == "" {
+			sklog.Warningf("Found no entry in issues.REPO_PROJECT_MAPPING for %q", dr.parentRepo)
+		} else {
+			for _, c := range commits {
+				d, err := cr.Details(ctx, c)
+				if err != nil {
+					return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
+				}
+				b := util.BugsFromCommitMsg(d.Body)
+				for _, bug := range b[monorailProject] {
+					bugs = append(bugs, fmt.Sprintf("%s:%s", monorailProject, bug))
+				}
 			}
 		}
 	}

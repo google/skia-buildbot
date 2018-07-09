@@ -10,6 +10,7 @@
     "childPath": "src/third_party/perfetto",
     "childRepo": "https://android.googlesource.com/platform/external/perfetto.git",
     "gerritProject": "chromium/src",
+    "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"

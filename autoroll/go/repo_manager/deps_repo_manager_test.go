@@ -339,6 +339,7 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 
 		g := setupFakeGerrit(t, wd)
 		cfg := depsCfg()
+		cfg.IncludeBugs = true
 		cfg.ParentRepo = parent.RepoUrl()
 		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
 		assert.NoError(t, err)

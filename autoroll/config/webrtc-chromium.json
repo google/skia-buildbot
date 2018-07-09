@@ -27,6 +27,7 @@
     "childPath": "src/third_party/webrtc",
     "childRepo": "https://webrtc.googlesource.com/src.git",
     "gerritProject": "chromium/src",
+    "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"

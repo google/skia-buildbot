@@ -21,6 +21,7 @@
     "childPath": "src/third_party/chromite",
     "childRepo": "https://chromium.googlesource.com/chromiumos/chromite.git",
     "gerritProject": "chromium/src",
+    "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
