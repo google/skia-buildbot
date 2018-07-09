@@ -8,10 +8,10 @@
  *
  */
 import '../skottie-config-sk'
-import 'common-sk/modules/error-toast-sk'
+import 'elements-sk/error-toast-sk'
 import 'elements-sk/spinner-sk'
 import { $$ } from 'common-sk/modules/dom'
-import { errorMessage } from 'common-sk/modules/errorMessage'
+import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html/lib/lit-extended'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 

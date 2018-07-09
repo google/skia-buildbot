@@ -1,9 +1,9 @@
-import 'common-sk/modules/error-toast-sk'
+import 'elements-sk/error-toast-sk'
+import { errorMessage } from 'elements-sk/errorMessage'
+import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import { errorMessage } from 'common-sk/modules/errorMessage'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
-import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 import { html, render } from 'lit-html/lib/lit-extended'
 

@@ -1,12 +1,13 @@
 import { html, render } from 'lit-html/lib/lit-extended'
 
+import 'elements-sk/error-toast-sk'
+import { errorMessage } from 'elements-sk/errorMessage'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
-import 'common-sk/modules/error-toast-sk'
-import 'common-sk/modules/systemd-unit-status-sk'
-import { errorMessage } from 'common-sk/modules/errorMessage'
 import { fromObject } from 'common-sk/modules/query'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+
+import 'infra-sk/modules/systemd-unit-status-sk'
 
 const listUnits = (ele) =>  ele._units.map(
   unit => html`<systemd-unit-status-sk machine$="${ele._hostname}" value=${unit}></systemd-unit-status-sk>`

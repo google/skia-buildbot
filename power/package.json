@@ -4,12 +4,12 @@
   "main": "pages/index.js",
   "license": "",
   "dependencies": {
-    "common-sk": "^2.0.1",
-    "elements-sk": "^1.0.0",
-    "fetch-mock": "^6.4.3",
-    "lit-html": "^0.10.0",
-    "pulito": "^4.0.1",
-    "webpack": "^4.10.2",
-    "webpack-cli": "^2.1.4"
+    "common-sk": "^3.0.0",
+    "elements-sk": "^2.4.1",
+    "fetch-mock": "^6.5.0",
+    "lit-html": "^0.10.2",
+    "pulito": "^4.1.0",
+    "webpack": "^4.15.1",
+    "webpack-cli": "^3.0.8"
   }
 }

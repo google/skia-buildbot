@@ -3,6 +3,24 @@ It is built on [common-sk](https://www.npmjs.com/package/common-sk) and [element
 
 There is [documentation for each element](https://jsdoc.skia.org).
 
+
+Use
+===
+
+To use this library you should add an alias to your webpack config:
+
+```
+const { resolve } = require('path')
+
+module.exports = (env, argv) => {
+  let config = commonBuilder(env, argv, __dirname);
+  config.resolve = config.resolve || {};
+  config.resolve.alias = config.resolve.alias || {};
+  config.resolve.alias['infra-sk'] = resolve(__dirname, '../infra-sk/');
+  return config;
+}
+```
+
 Disclaimer
 ==========
 
