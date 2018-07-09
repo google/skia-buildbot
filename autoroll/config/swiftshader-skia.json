@@ -13,6 +13,7 @@
     "childPath": "third_party/externals/swiftshader",
     "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
     "gerritProject": "skia",
+    "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
