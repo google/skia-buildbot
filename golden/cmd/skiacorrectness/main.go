@@ -69,6 +69,7 @@ const (
 // Command line flags.
 var (
 	appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
+	authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
 	authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
@@ -331,7 +332,7 @@ func main() {
 		NCommits:          *nCommits,
 		EventBus:          evt,
 		TryjobStore:       tryjobStore,
-		TryjobMonitor:     tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt),
+		TryjobMonitor:     tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt, *authoritative),
 		GerritAPI:         gerritAPI,
 		GStorageClient:    gsClient,
 		Git:               git,
