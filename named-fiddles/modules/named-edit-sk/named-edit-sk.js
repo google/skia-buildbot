@@ -20,7 +20,7 @@
 import { html, render } from 'lit-html/lib/lit-extended'
 import { $$ } from 'common-sk/modules/dom'
 import 'elements-sk/dialog-sk'
-import 'elements-sk/buttons'
+import 'elements-sk/styles/buttons'
 
 const template = (ele) => html`
 <dialog-sk>
