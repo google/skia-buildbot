@@ -3,14 +3,12 @@ package strategy
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"google.golang.org/api/option"
 )
@@ -19,7 +17,6 @@ const (
 	ROLL_STRATEGY_AFDO         = "afdo"
 	ROLL_STRATEGY_BATCH        = "batch"
 	ROLL_STRATEGY_FUCHSIA_SDK  = "fuchsiaSDK"
-	ROLL_STRATEGY_LKGR         = "lkgr"
 	ROLL_STRATEGY_REMOTE_BATCH = "remote batch"
 	ROLL_STRATEGY_SINGLE       = "single"
 )
@@ -34,7 +31,7 @@ type NextRollStrategy interface {
 }
 
 // Return the NextRollStrategy indicated by the given string.
-func GetNextRollStrategy(ctx context.Context, strategy, branch, lkgr, upstreamRemote string, repo *git.Checkout, authClient *http.Client) (NextRollStrategy, error) {
+func GetNextRollStrategy(ctx context.Context, strategy, branch, upstreamRemote string, repo *git.Checkout, authClient *http.Client) (NextRollStrategy, error) {
 	switch strategy {
 	case ROLL_STRATEGY_AFDO:
 		storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
@@ -48,8 +45,6 @@ func GetNextRollStrategy(ctx context.Context, strategy, branch, lkgr, upstreamRe
 		return StrategyHead(branch), nil
 	case ROLL_STRATEGY_FUCHSIA_SDK:
 		return nil, nil // Handled by FuchsiaSDKRepoManager.
-	case ROLL_STRATEGY_LKGR:
-		return StrategyLKGR(lkgr), nil
 	case ROLL_STRATEGY_REMOTE_BATCH:
 		return StrategyRemoteHead(branch, upstreamRemote, repo), nil
 	case ROLL_STRATEGY_SINGLE:
@@ -126,44 +121,4 @@ func (s *singleStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinf
 // one commit at a time.
 func StrategySingle(branch string) NextRollStrategy {
 	return &singleStrategy{StrategyHead(branch).(*headStrategy)}
-}
-
-// urlStrategy is a NextRollStrategy which rolls to a revision specified by a web
-// server.
-type urlStrategy struct {
-	client *http.Client
-	parse  func(string) (string, error)
-	url    string
-}
-
-// See documentation for NextRollStrategy interface.
-func (s *urlStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.LongCommit) (string, error) {
-	resp, err := s.client.Get(s.url)
-	if err != nil {
-		return "", err
-	}
-	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return s.parse(string(body))
-}
-
-// StrategyURL returns a NextRollStrategy which rolls to a revision specified by a web
-// server.
-func StrategyURL(client *http.Client, url string, parseFn func(string) (string, error)) NextRollStrategy {
-	return &urlStrategy{
-		client: client,
-		parse:  parseFn,
-		url:    url,
-	}
-}
-
-// StrategyLKGR returns a NextRollStrategy which rolls to a Last Known Good Revision,
-// which is obtainable from a web server.
-func StrategyLKGR(url string) NextRollStrategy {
-	return StrategyURL(nil, url, func(body string) (string, error) {
-		return strings.TrimSpace(body), nil
-	})
 }

@@ -406,7 +406,7 @@ func (rm *noCheckoutDEPSRepoManager) GetIssueUrlBase() string {
 
 // See documentation for RepoManager interface.
 func (r *noCheckoutDEPSRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_LKGR, DEFAULT_REMOTE, nil, nil)
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, nil, nil)
 }
 
 // See documentation for RepoManager interface.
@@ -425,7 +425,6 @@ func (r *noCheckoutDEPSRepoManager) DefaultStrategy() string {
 func (r *noCheckoutDEPSRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
-		strategy.ROLL_STRATEGY_LKGR,
 		strategy.ROLL_STRATEGY_SINGLE,
 	}
 }
