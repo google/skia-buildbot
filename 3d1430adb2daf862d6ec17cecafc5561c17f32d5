@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adef907d_07db86cb",
+        "filename": "infra-sk/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-07-09T19:13:37Z",
+      "side": 1,
+      "message": "not 2.4.1?",
+      "range": {
+        "startLine": 10,
+        "startChar": 22,
+        "endLine": 10,
+        "endChar": 26
+      },
+      "revId": "3d1430adb2daf862d6ec17cecafc5561c17f32d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
