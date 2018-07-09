@@ -1,4 +1,4 @@
-import 'elements-sk/buttons'
+import 'elements-sk/styles/buttons'
 
 import { $$ } from 'common-sk/modules/dom'
 

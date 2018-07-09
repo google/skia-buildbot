@@ -1,5 +1,6 @@
 const commonBuilder = require('pulito');
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const { resolve } = require('path')
 
 module.exports = (env, argv) => {
   let config = commonBuilder(env, argv, __dirname);
@@ -10,5 +11,8 @@ module.exports = (env, argv) => {
       to: 'lottie.min.js'
     }])
   );
+  config.resolve = config.resolve || {};
+  config.resolve.alias = config.resolve.alias || {};
+  config.resolve.alias['infra-sk'] = resolve(__dirname, '../infra-sk/');
   return config;
 }
