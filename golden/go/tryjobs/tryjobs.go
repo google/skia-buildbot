@@ -19,18 +19,20 @@ type TryjobMonitor struct {
 	siteURL            string
 	eventBus           eventbus.EventBus
 	writeGerritMonitor *util.CondMonitor
+	isAuthoritative    bool
 }
 
 // NewTryjobMonitor creates a new instance of TryjobMonitor.
 // siteURL is URL under which the current site it served. It is used to
 // generate URLs that are written to Gerrit CLs.
-func NewTryjobMonitor(tryjobStore tryjobstore.TryjobStore, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus) *TryjobMonitor {
+func NewTryjobMonitor(tryjobStore tryjobstore.TryjobStore, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus, isAuthoritative bool) *TryjobMonitor {
 	ret := &TryjobMonitor{
 		tryjobStore:        tryjobStore,
 		gerritAPI:          gerritAPI,
 		siteURL:            strings.TrimRight(siteURL, "/"),
 		eventBus:           eventBus,
 		writeGerritMonitor: util.NewCondMonitor(1),
+		isAuthoritative:    isAuthoritative,
 	}
 
 	// Subscribe to events that a tryjob has been updated.
@@ -48,6 +50,11 @@ func (t *TryjobMonitor) ForceRefresh(issueID int64) error {
 // WriteGoldLinkToGerrit write a link to the Gerrit CL referenced by issueID.
 // It uses the tryjob store to ensure that the message is only added to the CL once.
 func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
+	// Make sure this instance is allowed to write the Gerrit comment.
+	if !t.isAuthoritative {
+		return nil
+	}
+
 	// Only one thread per issueID can enter at a time.
 	defer t.writeGerritMonitor.Enter(issueID).Release()
 
