@@ -39,7 +39,7 @@ func TestWriteGoldLinkToGerrit(t *testing.T) {
 	assert.NoError(t, err)
 
 	siteURL := "https://gold.skia.org"
-	tryjobMonitor := NewTryjobMonitor(tjStore, mockGerrit, siteURL, eventBus)
+	tryjobMonitor := NewTryjobMonitor(tjStore, mockGerrit, siteURL, eventBus, true)
 	_ = tryjobMonitor
 
 	issue1 := &tryjobstore.Issue{
