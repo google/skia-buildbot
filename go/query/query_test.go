@@ -380,7 +380,7 @@ func TestForceValue(t *testing.T) {
 		},
 		{
 			input: map[string]string{"arch::this": "x!~@#$%^&*()86"},
-			want:  map[string]string{"arch__this": "x___________86"},
+			want:  map[string]string{"arch::this": "x___________86"},
 		},
 		{
 			input: map[string]string{},
