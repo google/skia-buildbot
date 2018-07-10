@@ -680,6 +680,27 @@ server {
     return 301 https://google3-roll.skia.org$request_uri;
 }
 
+#####   lottie-web-lottie-ci-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name lottie-web-lottie-ci-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/lottie-web-lottie-ci-roll.access.log;
+    error_log /var/log/nginx/lottie-web-lottie-ci-roll.error.log error;
+
+    location / {
+        proxy_pass http://lottie-web-lottie-ci-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name lottie-web-lottie-ci-roll.skia.org;
+    return 301 https://lottie-web-lottie-ci-roll.skia.org$request_uri;
+}
+
 #####   nacl-roll.skia.org   ###########################
 server {
     listen      443;
@@ -846,6 +867,27 @@ server {
     listen      80;
     server_name skia-flutter-roll.skia.org;
     return 301 https://skia-flutter-roll.skia.org$request_uri;
+}
+
+#####   skia-lottie-ci-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name skia-lottie-ci-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/skia-lottie-ci-roll.access.log;
+    error_log /var/log/nginx/skia-lottie-ci-roll.error.log error;
+
+    location / {
+        proxy_pass http://skia-lottie-ci-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name skia-lottie-ci-roll.skia.org;
+    return 301 https://skia-lottie-ci-roll.skia.org$request_uri;
 }
 
 #####   src-internal-chromium-roll.skia.org   ###########################

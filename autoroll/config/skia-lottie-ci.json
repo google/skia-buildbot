@@ -1,0 +1,24 @@
+{
+  "childName": "Skia",
+  "cqExtraTrybots": [],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "maxRollFrequency": "0m",
+  "parentName": "Lottie CI",
+  "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
+  "safetyThrottle": {
+    "attemptCount": 0,
+    "timeWindow": "1h"
+  },
+  "serverURL": "",
+  "sheriff": ["borenet@google.com"],
+  "noCheckoutDepsRepoManager": {
+    "childBranch": "master",
+    "childPath": "skia",
+    "childRepo": "https://skia.googlesource.com/skia.git",
+    "gerritProject": "skia",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+  }
+}

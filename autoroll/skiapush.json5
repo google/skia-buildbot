@@ -97,6 +97,13 @@
         "pulld",
       ],
     },
+    "lottie-web-lottie-ci-autoroll": {
+      "AppNames": [
+        "lottie-web-lottie-ci-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "nacl-autoroll": {
       "AppNames": [
         "nacl-autorolld",
@@ -141,6 +148,13 @@
     "skia-internal-autoroll": {
       "AppNames": [
         "skia-internal-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
+    "skia-lottie-ci-autoroll": {
+      "AppNames": [
+        "skia-lottie-ci-autorolld",
         "git-cookie-authdaemon",
         "pulld",
       ],

@@ -27,7 +27,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-release: autoroll afdo_chromium_release android_master_release android_next_release android_o_release angle_skia_release angle_chromium_release catapult_release chromite_chromium_release chromium_skia_release depot_tools_chromium_release fuchsia_sdk_chromium_release google3_release ios_internal_chromium_release nacl_release pdfium_release perfetto_chromium_release fuchsia_release skcms_skia_release skia_release skia_flutter_release skia_internal_release src_internal_chromium_release swiftshader_skia_release webrtc_chromium_release
+release: autoroll afdo_chromium_release android_master_release android_next_release android_o_release angle_skia_release angle_chromium_release catapult_release chromite_chromium_release chromium_skia_release depot_tools_chromium_release fuchsia_sdk_chromium_release google3_release ios_internal_chromium_release lottie_web_lottie_ci_release nacl_release pdfium_release perfetto_chromium_release fuchsia_release skcms_skia_release skia_release skia_flutter_release skia_internal_release skia_lottie_ci_release src_internal_chromium_release swiftshader_skia_release webrtc_chromium_release
 
 afdo_chromium_release: autoroll
 	./build_afdo_chromium_release "$(MESSAGE)"
@@ -69,6 +69,9 @@ google3_release: autoroll
 ios_internal_chromium_release: autoroll
 	./build_ios_internal_chromium_release "$(MESSAGE)"
 
+lottie_web_lottie_ci_release: autoroll
+	./build_lottie_web_lottie_ci_release "$(MESSAGE)"
+
 nacl_release: autoroll
 	./build_nacl_release "$(MESSAGE)"
 
@@ -92,6 +95,9 @@ skia_flutter_release: autoroll
 
 skia_internal_release: autoroll
 	./build_skia_internal_release "$(MESSAGE)"
+
+skia_lottie_ci_relase: autoroll
+	./build_skia_lottie_ci_release "$(MESSAGE)"
 
 src_internal_chromium_release: autoroll
 	./build_src_internal_chromium_release "$(MESSAGE)"
