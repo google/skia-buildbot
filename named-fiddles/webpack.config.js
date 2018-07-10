@@ -1,11 +1,4 @@
 const commonBuilder = require('pulito');
-const { resolve } = require('path')
+const commonsk = require('../common-sk/webpack.common.js');
 
-module.exports = (env, argv) => {
-  let config = commonBuilder(env, argv, __dirname);
-  config.output.publicPath='/static/';
-  config.resolve = config.resolve || {};
-  config.resolve.alias = config.resolve.alias || {};
-  config.resolve.alias['infra-sk'] = resolve(__dirname, '../infra-sk/');
-  return config;
-}
+module.exports = (env, argv) => commonsk(commonBuilder(env, argv, __dirname));
