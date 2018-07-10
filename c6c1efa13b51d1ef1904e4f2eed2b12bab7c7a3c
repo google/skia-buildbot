@@ -22,6 +22,30 @@
       "revId": "c6c1efa13b51d1ef1904e4f2eed2b12bab7c7a3c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "715eb914_20d01a8f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-10T12:50:45Z",
+      "side": 1,
+      "message": "Oops, this is already landed :(",
+      "parentUuid": "6ef09e26_8af21577",
+      "range": {
+        "startLine": 7,
+        "startChar": 15,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "c6c1efa13b51d1ef1904e4f2eed2b12bab7c7a3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
