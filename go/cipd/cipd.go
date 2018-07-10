@@ -66,7 +66,7 @@ func Ensure(local bool, rootdir string, packages ...*Package) error {
 		}
 		pkgs[pkg.Dest] = common.PinSlice{pin}
 	}
-	if _, err := c.EnsurePackages(context.Background(), pkgs, false); err != nil {
+	if _, err := c.EnsurePackages(context.Background(), pkgs, cipd.CheckPresence, false); err != nil {
 		return fmt.Errorf("Failed to ensure packages: %s", err)
 	}
 	return nil
