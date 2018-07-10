@@ -8,6 +8,7 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "common-sk": "^3.0.0",
     "elements-sk": "^2.4.1",
     "lit-html": "^0.10.2",
     "pulito": "^4.1.0"
