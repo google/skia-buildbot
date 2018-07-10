@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "common-sk": "~3.0.0",
-    "elements-sk": "~2.3.0",
+    "elements-sk": "~2.4.1",
     "lit-html": "~0.10.2"
   },
   "devDependencies": {
