@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd112de6_63ba5147",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-10T19:25:08Z",
+      "side": 1,
+      "message": "nit: maybe make function \"applyTemplate\" for lines 110-238",
+      "revId": "40fe8d595a9ecb274d99c257e8317021a4e43585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3ef0f00_c8413c04",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-10T19:25:08Z",
+      "side": 1,
+      "message": "nit: Is it allowed to have two caches with the same name but different paths? Even if it is, it seems confusing. Maybe we should either return an error or override the path in that case.",
+      "range": {
+        "startLine": 123,
+        "startChar": 18,
+        "endLine": 123,
+        "endChar": 26
+      },
+      "revId": "40fe8d595a9ecb274d99c257e8317021a4e43585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9dae9ec_335f30d0",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-10T19:25:08Z",
+      "side": 1,
+      "message": "nit: Although using the same CIPD package at different paths makes more sense than for Caches, I still would be OK with returning an error when that occurs. It seems unlikely that someone would do that intentionally.\n\nAlso, I see from the test that we silently overwrite the version if it differs between the template and the spec, which maybe isn\u0027t a good idea.",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 18
+      },
+      "revId": "40fe8d595a9ecb274d99c257e8317021a4e43585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a09b500e_60bfa288",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-10T19:25:08Z",
+      "side": 1,
+      "message": "nit: Maybe also add to tmpl.ExtraTags.",
+      "revId": "40fe8d595a9ecb274d99c257e8317021a4e43585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffe451e0_81ea0b99",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 448,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-10T19:25:08Z",
+      "side": 1,
+      "message": "uber-nit: FWIW, I don\u0027t think this unit test exercises the cache arg of resolveTaskSpec.",
+      "revId": "40fe8d595a9ecb274d99c257e8317021a4e43585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
