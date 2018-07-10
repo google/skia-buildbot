@@ -8,7 +8,7 @@
  * {@linkcode module:elements-sk/error-toast-sk}.
  * </p>
  */
-import { errorMessage } from 'elements-sk/error-toast-sk';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { Login } from '../login';
 
 window.customElements.define('login-sk', class extends HTMLElement {
