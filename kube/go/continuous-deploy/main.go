@@ -17,7 +17,9 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	cloudbuild "google.golang.org/api/cloudbuild/v1"
 	"google.golang.org/api/option"
 )
@@ -49,13 +51,9 @@ func baseImageName(s string) string {
 	}
 }
 
-// imagesFromMsg parses the incoming PubSub Data 'b' as JSON and then returns
+// imagesFromInfo parses the incoming PubSub Data 'b' as JSON and then returns
 // the full image names of all the images that match 'shortImageNames'.
-func imagesFromMsg(shortImageNames []string, b []byte) ([]string, error) {
-	var buildInfo cloudbuild.Build
-	if err := json.Unmarshal(b, &buildInfo); err != nil {
-		return nil, fmt.Errorf("Failed to decode: %s: %q", err, string(b))
-	}
+func imagesFromInfo(shortImageNames []string, buildInfo cloudbuild.Build) []string {
 	imageNames := []string{}
 	for _, im := range buildInfo.Results.Images {
 		sklog.Infof("ImageName: %s", im.Name)
@@ -67,7 +65,7 @@ func imagesFromMsg(shortImageNames []string, b []byte) ([]string, error) {
 			}
 		}
 	}
-	return imageNames, nil
+	return imageNames
 }
 
 func main() {
@@ -123,10 +121,25 @@ func main() {
 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
 			sklog.Infof("Status: %s", msg.Attributes["status"])
+
+			var buildInfo cloudbuild.Build
+			if err := json.Unmarshal(msg.Data, &buildInfo); err != nil {
+				sklog.Errorf("Failed to decode: %s: %q", err, string(msg.Data))
+				return
+			}
+
+			// Record build failures so we can alert on them.
+			if util.In(msg.Attributes["status"], []string{"FAILURE", "SUCCESS"}) {
+				failure := 0
+				if msg.Attributes["status"] == "FAILURE" {
+					failure = 1
+				}
+				metrics2.GetInt64Metric("ci_build_failure", map[string]string{"trigger": buildInfo.Source.RepoSource.RepoName}).Update(int64(failure))
+			}
 			if msg.Attributes["status"] != "SUCCESS" {
 				return
 			}
-			imageNames, err := imagesFromMsg(shortImageNames, msg.Data)
+			imageNames := imagesFromInfo(shortImageNames, buildInfo)
 			if err != nil {
 				sklog.Error(err)
 				return
