@@ -115,6 +115,15 @@ func IosInternal_Chromium() *gce.Instance {
 	return vm
 }
 
+func LottieWeb_LottieCI() *gce.Instance {
+	vm := AutoRollBase("lottie-web-lottie-ci-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"borenet@google.com",
+	}
+	vm.ServiceAccount = "lottie-web-lottie-ci-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func NaCl() *gce.Instance {
 	vm := AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -179,6 +188,15 @@ func Skia_Flutter() *gce.Instance {
 		"brianosman@google.com",
 	}
 	vm.ServiceAccount = "skia-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
+func Skia_LottieCI() *gce.Instance {
+	vm := AutoRollBase("skia-lottie-ci-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"borenet@google.com",
+	}
+	vm.ServiceAccount = "skia-lottie-ci-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
@@ -278,6 +296,7 @@ func main() {
 		"fuchsia-sdk-chromium":  FuchsiaSDK_Chromium(),
 		"google3":               Google3(),
 		"ios-internal-chromium": IosInternal_Chromium(),
+		"lottie-web-lottie-ci":  LottieWeb_LottieCI(),
 		"nacl":                  NaCl(),
 		"pdfium":                PDFium(),
 		"perfetto-chromium":     PerfettoChromium(),
@@ -285,6 +304,7 @@ func main() {
 		"skia":                  Skia(),
 		"skia-flutter":          Skia_Flutter(),
 		"skia-internal":         SkiaInternal(),
+		"skia-lottie-ci":        Skia_LottieCI(),
 		"src-internal-chromium": SrcInternal_Chromium(),
 		"swiftshader-skia":      SwiftShader_Skia(),
 		"webrtc-chromium":       WebRTC_Chromium(),
