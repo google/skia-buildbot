@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -83,11 +84,176 @@ var (
 	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
 )
 
+// resolveTaskSpec fills in details of the TaskSpec.
+func resolveTaskSpec(cfg *TasksCfg, spec *TaskSpec, cache map[*TaskSpec]*TaskSpec, visited map[*TaskSpec]bool) (*TaskSpec, error) {
+	if cached, ok := cache[spec]; ok {
+		return cached, nil
+	}
+	if _, ok := visited[spec]; ok {
+		return nil, fmt.Errorf("Circular template reference.")
+	}
+	visited[spec] = true
+
+	if spec.Template == "" {
+		cache[spec] = spec
+		return spec.Copy(), nil
+	}
+	tmpl := cfg.Templates[spec.Template]
+	if tmpl == nil {
+		return nil, fmt.Errorf("No such template: %s", spec.Template)
+	}
+	t, err := resolveTaskSpec(cfg, tmpl, cache, visited)
+	if err != nil {
+		return nil, err
+	}
+
+	// For each property of spec, merge dicts, overwriting duplicate keys,
+	// concatentate lists while eliminating duplicates, and overwrite scalar
+	// properties.
+
+	cacheMap := map[string]map[string]*Cache{}
+	names := util.NewStringSet()
+	paths := util.NewStringSet()
+	for _, c := range t.Caches {
+		if _, ok := cacheMap[c.Name]; !ok {
+			cacheMap[c.Name] = map[string]*Cache{}
+		}
+		names[c.Name] = true
+		paths[c.Path] = true
+		cacheMap[c.Name][c.Path] = c
+	}
+	for _, c := range spec.Caches {
+		if _, ok := cacheMap[c.Name]; !ok {
+			cacheMap[c.Name] = map[string]*Cache{}
+		}
+		names[c.Name] = true
+		paths[c.Path] = true
+		cacheMap[c.Name][c.Path] = c
+	}
+	caches := []*Cache{}
+	for _, name := range names.Sorted() {
+		for _, path := range paths.Sorted() {
+			if c, ok := cacheMap[name][path]; ok {
+				caches = append(caches, c)
+			}
+		}
+	}
+	t.Caches = caches
+
+	// We only de-duplicate CIPD packages of the same name written to the
+	// same location.
+	cipdMap := map[string]map[string]*CipdPackage{}
+	names = util.NewStringSet()
+	paths = util.NewStringSet()
+	for _, c := range t.CipdPackages {
+		if _, ok := cipdMap[c.Name]; !ok {
+			cipdMap[c.Name] = map[string]*CipdPackage{}
+		}
+		names[c.Name] = true
+		paths[c.Path] = true
+		cipdMap[c.Name][c.Path] = c
+	}
+	for _, c := range spec.CipdPackages {
+		if _, ok := cipdMap[c.Name]; !ok {
+			cipdMap[c.Name] = map[string]*CipdPackage{}
+		}
+		names[c.Name] = true
+		paths[c.Path] = true
+		cipdMap[c.Name][c.Path] = c
+	}
+	cipdPackages := []*CipdPackage{}
+	for _, name := range names.Sorted() {
+		for _, path := range paths.Sorted() {
+			if c, ok := cipdMap[name][path]; ok {
+				cipdPackages = append(cipdPackages, c)
+			}
+		}
+	}
+	t.CipdPackages = cipdPackages
+
+	// Command is special; concatentate the template's Command and the
+	// spec's Command.
+	t.Command = append(t.Command, spec.Command...)
+	t.Dependencies = util.NewStringSet(t.Dependencies, spec.Dependencies).Sorted()
+
+	// De-duplicate dimensions by key.
+	dimsMap := make(map[string]string, len(t.Dimensions)+len(spec.Dimensions))
+	for _, d := range t.Dimensions {
+		split := strings.Split(d, ":")
+		if len(split) != 2 {
+			return nil, fmt.Errorf("Failed to parse dimension: %s", d)
+		}
+		dimsMap[split[0]] = split[1]
+	}
+	for _, d := range spec.Dimensions {
+		split := strings.Split(d, ":")
+		if len(split) != 2 {
+			return nil, fmt.Errorf("Failed to parse dimension: %s", d)
+		}
+		dimsMap[split[0]] = split[1]
+	}
+	dims := make([]string, 0, len(dimsMap))
+	for k, v := range dimsMap {
+		dims = append(dims, fmt.Sprintf("%s:%s", k, v))
+	}
+	sort.Strings(dims)
+	t.Dimensions = dims
+
+	// TODO(borenet): Should we try to do fancy things, like merging PATH?
+	for k, v := range spec.Environment {
+		t.Environment[k] = v
+	}
+	for k, v := range spec.EnvPrefixes {
+		// TODO(borenet): We may not actually want this to be sorted.
+		t.EnvPrefixes[k] = util.NewStringSet(t.EnvPrefixes[k], v).Sorted()
+	}
+	// ExtraArgs is special; concatenate the template's ExtraArgs and the
+	// spec's ExtraArgs.
+	t.ExtraArgs = append(t.ExtraArgs, spec.ExtraArgs...)
+	for k, v := range spec.ExtraTags {
+		t.ExtraTags[k] = v
+	}
+	t.Outputs = util.NewStringSet(t.Outputs, spec.Outputs).Sorted()
+	if spec.ExecutionTimeout != 0 {
+		t.ExecutionTimeout = spec.ExecutionTimeout
+	}
+	if spec.Expiration != 0 {
+		t.Expiration = spec.Expiration
+	}
+	if spec.IoTimeout != 0 {
+		t.IoTimeout = spec.IoTimeout
+	}
+	if spec.Isolate != "" {
+		t.Isolate = spec.Isolate
+	}
+	if spec.MaxAttempts != 0 {
+		t.MaxAttempts = spec.MaxAttempts
+	}
+	if spec.Priority != 0 {
+		t.Priority = spec.Priority
+	}
+	if spec.ServiceAccount != "" {
+		t.ServiceAccount = spec.ServiceAccount
+	}
+	t.Template = ""
+	cache[spec] = t
+	return t, nil
+}
+
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
 	if err := json.Unmarshal([]byte(contents), &rv); err != nil {
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s\nContents:\n%s", err, string(contents))
+	}
+	cache := map[*TaskSpec]*TaskSpec{}
+	visited := map[*TaskSpec]bool{}
+	for name, spec := range rv.Tasks {
+		resolved, err := resolveTaskSpec(&rv, spec, cache, visited)
+		if err != nil {
+			return nil, err
+		}
+		rv.Tasks[name] = resolved
 	}
 	if err := rv.Validate(); err != nil {
 		return nil, err
@@ -143,6 +309,10 @@ type TasksCfg struct {
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
 	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
+
+	// Templates is a map whose keys are template names and values are
+	// TaskSpecs which other TaskSpecs may inherit from.
+	Templates map[string]*TaskSpec `json:"templates,omitempty"`
 }
 
 // Validate returns an error if the TasksCfg is not valid.
@@ -225,6 +395,12 @@ type TaskSpec struct {
 	// ServiceAccount indicates the Swarming service account to use for the
 	// task. If not specified, we will attempt to choose a suitable default.
 	ServiceAccount string `json:"service_account,omitempty"`
+
+	// Template refers to another TaskSpec which is used to fill in this
+	// TaskSpec. It is only used when parsing from a file; all fields are
+	// fully filled in during parsing at which point this field is set
+	// empty.
+	Template string `json:"template,omitempty"`
 }
 
 // Validate ensures that the TaskSpec is defined properly.
@@ -304,6 +480,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		Outputs:          outputs,
 		Priority:         t.Priority,
 		ServiceAccount:   t.ServiceAccount,
+		Template:         t.Template,
 	}
 }
 
