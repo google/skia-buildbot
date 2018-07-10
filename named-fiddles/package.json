@@ -11,6 +11,7 @@
   "dependencies": {
     "@webcomponents/custom-elements": "^1.1.2",
     "chai": "^4.1.2",
+    "common-sk": "^3.0.0",
     "elements-sk": "^2.4.1",
     "karma": "^2.0.4",
     "karma-chai": "^0.1.0",

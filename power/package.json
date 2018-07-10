@@ -4,6 +4,7 @@
   "main": "pages/index.js",
   "license": "",
   "dependencies": {
+    "common-sk": "^3.0.0",
     "elements-sk": "^2.4.1",
     "fetch-mock": "^6.5.0",
     "lit-html": "^0.10.2",
