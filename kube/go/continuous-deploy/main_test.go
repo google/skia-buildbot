@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,15 +21,11 @@ func TestFindImages(t *testing.T) {
 			},
 		},
 	}
-	b, err := json.Marshal(buildInfo)
-	assert.NoError(t, err)
-	images, err := imagesFromMsg([]string{"fiddler", "skottie"}, b)
-	assert.NoError(t, err)
+	images := imagesFromInfo([]string{"fiddler", "skottie"}, buildInfo)
 	assert.Equal(t, "gcr.io/skia-public/fiddler:prod", images[0])
 	assert.Equal(t, "gcr.io/skia-public/skottie:prod", images[1])
 
-	images, err = imagesFromMsg([]string{"skottie"}, b)
-	assert.NoError(t, err)
+	images = imagesFromInfo([]string{"skottie"}, buildInfo)
 	assert.Equal(t, "gcr.io/skia-public/skottie:prod", images[0])
 }
 
