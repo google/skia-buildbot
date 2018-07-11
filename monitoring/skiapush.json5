@@ -9,6 +9,7 @@
         "proberd",
         "pulld",
         "graphite-exporter",
+        "alert-to-pubsub",
       ],
     },
   },
