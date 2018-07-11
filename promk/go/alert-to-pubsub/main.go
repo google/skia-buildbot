@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -20,22 +21,74 @@ import (
 	"google.golang.org/api/option"
 )
 
-const (
-	// PROM_QUERY is the path and query of the request we want to make to Prometheus.
-	PROM_QUERY = "/api/v1/query?query=ALERTS%7Balertstate%3D%22firing%22%7D"
-)
-
 // flags
 var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	simulate       = flag.Bool("simulate", false, "Send simulated alerts as opposed to polling Prometheus.")
 	project        = flag.String("project", "skia-public", "The GCE project name.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	promHost       = flag.String("prom_host", "http://promtheus-0:9090", "The domain name and port to reach the prometheus query api.")
 	period         = flag.Duration("period", 15*time.Second, "How often to query for alerts.")
 	location       = flag.String("location", "skia-public", "The name where this promethes server is running.")
 	successCounter = metrics2.GetCounter("pubsub_send_success", nil)
 	failureCounter = metrics2.GetCounter("pubsub_send_failure", nil)
 )
+
+var (
+	sim1 = map[string]string{
+		"__name__":   "ALERTS",
+		"alertname":  "BotUnemployed",
+		"alertstate": "firing",
+		"bot":        "skia-rpi-064",
+		"category":   "infra",
+		"instance":   "skia-datahopper2:20000",
+		"job":        "datahopper",
+		"pool":       "Skia",
+		"severity":   "critical",
+		"swarming":   "chromium-swarm.appspot.com",
+	}
+	sim2 = map[string]string{
+		"__name__":   "ALERTS",
+		"alertname":  "BotMissing",
+		"alertstate": "firing",
+		"bot":        "skia-rpi-064",
+		"category":   "infra",
+		"instance":   "skia-datahopper2:20000",
+		"job":        "datahopper",
+		"pool":       "Skia",
+		"severity":   "critical",
+		"swarming":   "chromium-swarm.appspot.com",
+	}
+)
+
+// Alert is a generic representation of an alert in the Prometheus eco-system.
+type Alert struct {
+	// Label value pairs for purpose of aggregation, matching, and disposition
+	// dispatching. This must minimally include an "alertname" label.
+	Labels map[string]string `json:"labels"`
+
+	// Extra key/value information which does not define alert identity.
+	Annotations map[string]string `json:"annotations"`
+
+	// The known time range for this alert. Both ends are optional.
+	StartsAt     time.Time `json:"startsAt,omitempty"`
+	EndsAt       time.Time `json:"endsAt,omitempty"`
+	GeneratorURL string    `json:"generatorURL,omitempty"`
+}
+
+// Resolved returns true iff the activity interval ended in the past.
+func (a *Alert) Resolved() bool {
+	return a.ResolvedAt(time.Now())
+}
+
+// ResolvedAt returns true off the activity interval ended before
+// the given timestamp.
+func (a *Alert) ResolvedAt(ts time.Time) bool {
+	if a.EndsAt.IsZero() {
+		return false
+	}
+	return !a.EndsAt.After(ts)
+}
 
 func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 	b, err := json.Marshal(m)
@@ -43,11 +96,10 @@ func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 		sklog.Errorf("Failed to encode message Data: %s: %#v", err, m)
 		return
 	}
+
+	m[alerts.LOCATION] = *location
 	msg := &pubsub.Message{
 		Data: b,
-		Attributes: map[string]string{
-			"location": *location,
-		},
 	}
 	res := topic.Publish(ctx, msg)
 	if _, err := res.Get(ctx); err != nil {
@@ -59,22 +111,9 @@ func sendPubSub(ctx context.Context, m map[string]string, topic *pubsub.Topic) {
 }
 
 func singleStep(ctx context.Context, client *http.Client, topic *pubsub.Topic) error {
-	// Query for all ALERTS firing on the given Prometheus server.
-	resp, err := client.Get(*promHost + PROM_QUERY)
-	if err != nil {
-		return fmt.Errorf("Failed to request alerts from %q: %s", *promHost, err)
-	}
-	defer util.Close(resp.Body)
-	var queryResponse alerts.QueryResponse
-	if err := json.NewDecoder(resp.Body).Decode(&queryResponse); err != nil {
-		return fmt.Errorf("Failed to decode promethes query response: %s", err)
-	}
-	if queryResponse.Status != "success" {
-		return fmt.Errorf("Query was not successful")
-	}
-	// Send each alert as a PubSub message.
-	for _, r := range queryResponse.Data.Results {
-		sendPubSub(ctx, r.Metric, topic)
+	if *simulate {
+		sendPubSub(ctx, sim1, topic)
+		sendPubSub(ctx, sim2, topic)
 	}
 
 	// Send a healthz alert to be used as a marker that pubsub is still working.
@@ -85,6 +124,44 @@ func singleStep(ctx context.Context, client *http.Client, topic *pubsub.Topic) e
 	sendPubSub(ctx, m, topic)
 
 	return nil
+}
+
+type Server struct {
+	topic *pubsub.Topic
+}
+
+func NewServer(topic *pubsub.Topic) *Server {
+	return &Server{
+		topic: topic,
+	}
+}
+
+func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
+	var alerts []Alert
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to read JSON.")
+		return
+	}
+	defer util.Close(r.Body)
+	if err := json.Unmarshal(b, &alerts); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+	sklog.Infof("Received %d alerts.", len(alerts))
+	for _, alert := range alerts {
+		if alert.Resolved() {
+			return
+		}
+		m := map[string]string{}
+		for k, v := range alert.Labels {
+			m[k] = v
+		}
+		for k, v := range alert.Annotations {
+			m[k] = v
+		}
+		sendPubSub(r.Context(), m, s.topic)
+	}
 }
 
 func main() {
@@ -113,12 +190,19 @@ func main() {
 		}
 	}
 	httpClient := httputils.NewTimeoutClient()
-	if err := singleStep(ctx, httpClient, topic); err != nil {
-		sklog.Fatalf("Failed first step: %s", err)
-	}
-	for _ = range time.Tick(*period) {
-		if err := singleStep(ctx, httpClient, topic); err != nil {
-			sklog.Errorf("Failed step: %s", err)
+	go func() {
+		for _ = range time.Tick(*period) {
+			if err := singleStep(ctx, httpClient, topic); err != nil {
+				sklog.Errorf("Failed step: %s", err)
+			}
 		}
-	}
+	}()
+
+	server := NewServer(topic)
+
+	r := mux.NewRouter()
+	r.HandleFunc("/api/v1/alerts", server.alertHandler)
+	http.Handle("/", httputils.LoggingRequestResponse(r))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
