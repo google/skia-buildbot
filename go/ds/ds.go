@@ -64,6 +64,12 @@ const (
 	RECREATE_PAGESETS_TASKS         Kind = "RecreatePageSetsTasks"
 	RECREATE_WEBPAGE_ARCHIVES_TASKS Kind = "RecreateWebpageArchivesTasks"
 	CLUSTER_TELEMETRY_IDS           Kind = "ClusterTelemetryIDs"
+
+	// AlertManager
+	INCIDENT_AM                Kind = "IncidentAm"
+	INCIDENT_ACTIVE_PARENT_AM  Kind = "IncidentActiveParentAm"
+	INCIDENT_ARCHIVE_PARENT_AM Kind = "IncidentArchiveParentAm"
+	SILENCE_AM                 Kind = "SilenceAm"
 )
 
 // Namespaces that are used in production, and thus might be backed up.
@@ -84,6 +90,9 @@ const (
 
 	// CT
 	CT_NS = "cluster-telemetry"
+
+	// AlertManager
+	ALERT_MANAGER_NS = "alert-manager"
 )
 
 var (
