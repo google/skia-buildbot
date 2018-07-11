@@ -15,7 +15,7 @@
     "childBranch": "master",
     "childPath": "lottie",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web.git",
-    "gerritProject": "skia",
+    "gerritProject": "lottie-ci",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

@@ -938,20 +938,20 @@ func (g *Gerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
 	b := []byte(content)
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
+		return fmt.Errorf("Failed to add auth cookie: %s", err)
 	}
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to execute request: %s", err)
 	}
 	defer util.Close(resp.Body)
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to read response body: %s", err)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 204 {
 		return fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))

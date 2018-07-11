@@ -201,13 +201,16 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 
 	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, bugs, len(rm.nextRollCommits), rm.includeLog)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Failed to build commit msg: %s", err)
 	}
 	commitMsg += "TBR=" + strings.Join(emails, ",")
 
 	// Create the change.
 	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		return g.EditFile(ci, "DEPS", string(rm.nextRollDEPSContent))
+		if err := g.EditFile(ci, "DEPS", string(rm.nextRollDEPSContent)); err != nil {
+			return fmt.Errorf("Failed to edit DEPS file: %s", err)
+		}
+		return nil
 	})
 	if err != nil {
 		if ci != nil {
