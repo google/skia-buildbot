@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+      - targets:
+        - localhost:8000
+
+rule_files:
+  - "alert_rules.yaml"
+
+scrape_configs:
+  - job_name: 'someserver'
+    static_configs:
+      - targets: ['localhost:30000']
