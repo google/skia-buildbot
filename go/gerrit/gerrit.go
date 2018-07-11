@@ -902,6 +902,8 @@ func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*Cha
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("POST %s", g.url+"/a/changes/")
+	sklog.Infof("body:\n%s", string(b))
 	req, err := http.NewRequest("POST", g.url+"/a/changes/", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
@@ -936,22 +938,23 @@ func (g *Gerrit) CreateChange(project, branch, subject, baseCommit string) (*Cha
 func (g *Gerrit) EditFile(ci *ChangeInfo, filepath, content string) error {
 	url := g.url + fmt.Sprintf("/a/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
 	b := []byte(content)
+	sklog.Infof("Sending request to %s", url)
 	req, err := http.NewRequest("PUT", url, bytes.NewReader(b))
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to create PUT request: %s", err)
 	}
 
 	if err := gitauth.AddAuthenticationCookie(g.gitCookiesPath, req); err != nil {
-		return err
+		return fmt.Errorf("Failed to add auth cookie: %s", err)
 	}
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to execute request: %s", err)
 	}
 	defer util.Close(resp.Body)
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to read response body: %s", err)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 204 {
 		return fmt.Errorf("Got status %s (%d): %s", resp.Status, resp.StatusCode, string(respBytes))

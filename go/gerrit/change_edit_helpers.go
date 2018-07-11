@@ -32,20 +32,20 @@ func EditChange(g GerritInterface, ci *ChangeInfo, fn func(GerritInterface, *Cha
 func CreateAndEditChange(g GerritInterface, project, branch, commitMsg, baseCommit string, fn func(GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
 	ci, err := g.CreateChange(project, branch, strings.Split(commitMsg, "\n")[0], baseCommit)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create change: %s", err)
 	}
 	if err := EditChange(g, ci, func(g GerritInterface, ci *ChangeInfo) error {
 		if err := g.SetCommitMessage(ci, commitMsg); err != nil {
-			return err
+			return fmt.Errorf("Failed to set commit message: %s", err)
 		}
 		return fn(g, ci)
 	}); err != nil {
-		return ci, err
+		return ci, fmt.Errorf("Failed to edit change: %s", err)
 	}
 	// Update the view of the Change to include the new patchset.
 	ci2, err := g.GetIssueProperties(ci.Issue)
 	if err != nil {
-		return ci, err
+		return ci, fmt.Errorf("Failed to retrieve issue properties: %s", err)
 	}
 	return ci2, nil
 }
