@@ -1,0 +1,23 @@
+@import '~common-sk/modules/colors';
+
+email-chooser-sk {
+  dialog-sk {
+
+    color: #ddd;
+    background: #111;
+
+    select,
+    option {
+      color: #ddd;
+      background: #111;
+    }
+
+    option:hover {
+      background: #222;
+    }
+
+    h2 {
+      margin: 0;
+    }
+  }
+}
