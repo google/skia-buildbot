@@ -1,0 +1,18 @@
+groups:
+- name: general
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 20s
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} has been down
+        for more than 5 minutes. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          '
