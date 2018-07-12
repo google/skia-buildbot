@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3370524_ff508e93",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T17:04:22Z",
+      "side": 1,
+      "message": "nit: add a unit test that exercises multiple chunks",
+      "revId": "5f44934514db050613a97115c098f88668c8005a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
