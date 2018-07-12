@@ -15,13 +15,10 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/types"
 )
 
 func TestCloudTryjobStore(t *testing.T) {
 	testutils.LargeTest(t)
-	t.Skip()
 
 	// Otherwise try and connect to a locally running emulator.
 	cleanup := testutil.InitDatastore(t,
@@ -35,7 +32,6 @@ func TestCloudTryjobStore(t *testing.T) {
 	eventBus := eventbus.New()
 	store, err := NewCloudTryjobStore(ds.DS, eventBus)
 	assert.NoError(t, err)
-
 	testTryjobStore(t, store)
 }
 
@@ -93,9 +89,9 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	}
 	assert.NoError(t, store.UpdateIssue(issue, nil))
 
-	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(expChangeKeys))
+	// expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
+	// assert.NoError(t, err)
+	// assert.Equal(t, 0, len(expChangeKeys))
 
 	// Insert the tryjobs into the datastore.
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_1, nil))
@@ -176,55 +172,6 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		foundTJs[idx].Key = nil
 		assert.Equal(t, allTryjobs[idx], foundTJs[idx])
 	}
-
-	// Add changes to the issue
-	allChanges := expstorage.NewExpectations()
-	expLogEntries := []*expstorage.TriageLogEntry{}
-	userName := "jdoe@example.com"
-	for i := 0; i < 5; i++ {
-		triageDetails := []*expstorage.TriageDetail{}
-		changes := expstorage.NewExpectations()
-		for testCount := 0; testCount < 5; testCount++ {
-			testName := fmt.Sprintf("test-%04d", testCount)
-			for digestCount := 0; digestCount < 5; digestCount++ {
-				digest := fmt.Sprintf("digest-%04d-%04d", testCount, digestCount)
-				label := types.Label((i + testCount + digestCount) % 3)
-				changes.SetTestExpectation(testName, digest, label)
-				triageDetails = append(triageDetails, &expstorage.TriageDetail{
-					TestName: testName, Digest: digest, Label: label.String(),
-				})
-			}
-		}
-		assert.NoError(t, store.AddChange(issueID, changes.Tests, userName))
-		allChanges.AddDigests(changes.Tests)
-		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
-			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
-		})
-		time.Sleep(2 * time.Second)
-	}
-
-	time.Sleep(30 * time.Second)
-	foundExp, err := store.GetExpectations(issueID)
-	assert.NoError(t, err)
-	assert.Equal(t, allChanges, foundExp)
-
-	logEntries, total, err := store.QueryLog(issueID, 0, -1, false)
-	assert.NoError(t, err)
-	assert.Equal(t, 5, total)
-	assert.Equal(t, 5, len(logEntries))
-
-	// Flip all expectations to untriaged.
-	for _, digests := range foundExp.Tests {
-		for digest := range digests {
-			digests[digest] = types.UNTRIAGED
-		}
-	}
-
-	assert.NoError(t, store.AddChange(issueID, foundExp.Tests, userName))
-	time.Sleep(5 * time.Second)
-	untriagedExp, err := store.GetExpectations(issueID)
-	assert.NoError(t, err)
-	assert.Equal(t, foundExp, untriagedExp)
 
 	// Test commiting where the commit fails.
 	assert.Error(t, store.CommitIssueExp(issueID, func() error {
