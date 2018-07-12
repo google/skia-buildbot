@@ -39,8 +39,8 @@
         GerritCodeReviewURL: "https://pdfium-review.googlesource.com",
         BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
         BuildBucketName: "master.tryserver.client.pdfium",
-        BuildBucketPollInterval: "10m",
-        BuildBucketTimeWindow: "6h",
+        BuildBucketPollInterval: "10s",
+        BuildBucketTimeWindow: "5h",
         BuilderRegEx: ".*",
       }
     },
