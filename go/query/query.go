@@ -17,7 +17,7 @@
 // Structuctured key parameter names and values are restricted to the following
 // chars:
 //
-//   [a-zA-Z0-9._-]
+//   [a-zA-Z0-9._-:]
 //
 package query
 
@@ -32,9 +32,9 @@ import (
 )
 
 var (
-	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-])")
-	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
-	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
+	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-:@])")
+	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-:@]+=[a-zA-Z0-9._\\-:@]+,)+$")
+	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-:@]+$")
 )
 
 func clean(s string) string {
