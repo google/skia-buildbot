@@ -127,7 +127,8 @@ func touchEntities(client *datastore.Client, params ...string) {
 		sliceSize := util.MinInt(len(keys), maxSliceSize)
 		targetArr := reflect.MakeSlice(targetType, sliceSize, sliceSize).Interface()
 		if err := tx.GetMulti(keys, targetArr); err != nil {
-			sklog.Fatalf("Error touching slice: %s", err)
+			sklog.Errorf("Error retrieving slice: %s", err)
+			return
 		}
 		_, err := tx.PutMulti(keys, targetArr)
 		if err != nil {
