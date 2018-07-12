@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fce627d_63ba63ba",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: The name and doc of this function suggests it is a read-only operation, but it\u0027s actually a modify operation.",
+      "range": {
+        "startLine": 132,
+        "startChar": 27,
+        "endLine": 132,
+        "endChar": 46
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32ef8233_8fd65096",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "typo Known",
+      "range": {
+        "startLine": 244,
+        "startChar": 7,
+        "endLine": 244,
+        "endChar": 12
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c60b28d3_d58e615c",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: ignoring non-nil err could make debugging harder",
+      "range": {
+        "startLine": 249,
+        "startChar": 4,
+        "endLine": 249,
+        "endChar": 7
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f40a0d2b_d2be7022",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "uber-nit: above you used \"return\" -- should be consistent",
+      "range": {
+        "startLine": 256,
+        "startChar": 6,
+        "endLine": 256,
+        "endChar": 11
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e761f446_4d4f7b25",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: generally go style is like this:\nif tryjob, err :\u003d b.fetchBuild(buildBucketID); err !\u003d nil {\n  sklog.Errorf(\"Error watching status for build %d: %s\", buildBucketID, err)\n} else {\n  ...\n}",
+      "range": {
+        "startLine": 265,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 3
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "867a4e35_a568b33b",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: ignoring non-nil err could make debugging harder",
+      "range": {
+        "startLine": 437,
+        "startChar": 5,
+        "endLine": 437,
+        "endChar": 8
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce0eedf6_d0cbe5d2",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: s/ok/_/",
+      "range": {
+        "startLine": 440,
+        "startChar": 12,
+        "endLine": 440,
+        "endChar": 16
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4093dcb7_8959a570",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: could eliminate skipTest with:\nif val, _ :\u003d props[\"skip_test\"].(bool); val {\n  return true\n}",
+      "range": {
+        "startLine": 439,
+        "startChar": 4,
+        "endLine": 440,
+        "endChar": 44
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c115332a_139b0337",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "Consider using interfaces and mocks to make this more testable.",
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adb80327_382adade",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "Small tests should not call time.Sleep.",
+      "range": {
+        "startLine": 21,
+        "startChar": 11,
+        "endLine": 21,
+        "endChar": 20
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d41d803_06a2c810",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:26:03Z",
+      "side": 1,
+      "message": "nit: seems like this should happen before NewCloudTryjobStore",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 23
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
