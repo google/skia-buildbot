@@ -4,7 +4,6 @@
     "master.tryserver.blink:linux_trusty_blink_rel",
     "luci.chromium.try:android_optional_gpu_tests_rel",
     "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
     "luci.chromium.try:win_optional_gpu_tests_rel"
   ],
   "gerritURL": "https://chromium-review.googlesource.com",
