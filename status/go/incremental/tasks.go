@@ -56,6 +56,7 @@ func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 		return nil, false, err
 	}
 	c.queryId = queryId
+	sklog.Infof("GetTasksFromDateRange(%s, %s)", w.EarliestStart(), time.Now())
 	tasks, err := c.db.GetTasksFromDateRange(w.EarliestStart(), time.Now())
 	if err != nil {
 		c.db.StopTrackingModifiedTasks(c.queryId)
