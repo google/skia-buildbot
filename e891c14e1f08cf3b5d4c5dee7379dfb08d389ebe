@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90f72b5f_78d35550",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-12T15:42:37Z",
+      "side": 1,
+      "message": "I wonder if we should just use TASK_STATUS_MISHAP here? Maybe log that we saw a new state?",
+      "revId": "e891c14e1f08cf3b5d4c5dee7379dfb08d389ebe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
