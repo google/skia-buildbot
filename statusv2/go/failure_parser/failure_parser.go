@@ -264,7 +264,7 @@ func (fp *FailureParser) GetNewlyFinishedTasks() ([]*db.Task, error) {
 		}
 		now := time.Now()
 		start := now.Add(-24 * time.Hour)
-		modTasks, err = fp.db.GetTasksFromDateRange(start, now)
+		modTasks, err = fp.db.GetTasksFromDateRange(start, now, "")
 		if err != nil {
 			fp.db.StopTrackingModifiedTasks(fp.queryId)
 			return nil, err

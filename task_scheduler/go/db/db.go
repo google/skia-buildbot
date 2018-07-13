@@ -65,8 +65,10 @@ type TaskReader interface {
 	GetTaskById(string) (*Task, error)
 
 	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
-	// The returned tasks are sorted by Created timestamp.
-	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
+	// The returned tasks are sorted by Created timestamp. The string field is
+	// an optional repository; if provided, only return tasks associated with
+	// that repo.
+	GetTasksFromDateRange(time.Time, time.Time, string) ([]*Task, error)
 
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
 	// the current caller. Returns a unique ID which can be used by the caller
@@ -389,7 +391,7 @@ func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*Task, error) {
 		p.TimeEnd = time.Now()
 		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
 	}
-	tasks, err := db.GetTasksFromDateRange(p.TimeStart, p.TimeEnd)
+	tasks, err := db.GetTasksFromDateRange(p.TimeStart, p.TimeEnd, p.Repo)
 	if err != nil {
 		return nil, err
 	}

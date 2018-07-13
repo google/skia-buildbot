@@ -190,7 +190,7 @@ func TestRemoteDBGetTasksFromDateRange(t *testing.T) {
 	// of tasks and made the correct number of HTTP requests.
 	test := func(start, end time.Time, expectTasks, expectReqs int) {
 		tp.Reset()
-		tasks, err := d.GetTasksFromDateRange(start, end)
+		tasks, err := d.GetTasksFromDateRange(start, end, "")
 		assert.NoError(t, err)
 		assert.Equal(t, expectTasks, len(tasks))
 		assert.Equal(t, expectReqs, tp.Get())
