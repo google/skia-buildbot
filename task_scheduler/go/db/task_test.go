@@ -693,7 +693,7 @@ func TestValidateTask(t *testing.T) {
 		assert.False(t, task.Valid())
 	}
 
-	tmpl := makeTask(time.Now(), []string{"a"})
+	tmpl := MakeTestTask(time.Now(), []string{"a"})
 	tmpl.SwarmingTaskId = ""
 	tmpl.Properties = map[string]string{
 		"barnDoor": "open",

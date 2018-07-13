@@ -21,7 +21,7 @@ const DEFAULT_TEST_REPO = "go-on-now.git"
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t assert.TestingT, expected, actual interface{})
 
-func makeTask(ts time.Time, commits []string) *Task {
+func MakeTestTask(ts time.Time, commits []string) *Task {
 	return &Task{
 		Created: ts,
 		TaskKey: TaskKey{
@@ -60,7 +60,7 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	t1 := makeTask(time.Time{}, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 
 	// AssignId should fill in t1.Id.
 	assert.Equal(t, "", t1.Id)
@@ -76,7 +76,8 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 
 	// Set Creation time. Ensure Created is not the time of AssignId to test the
 	// sequence (1) AssignId, (2) initialize task, (3) PutTask.
-	now := time.Now().Add(time.Nanosecond)
+	timeStart := time.Now()
+	now := timeStart.Add(time.Nanosecond)
 	t1.Created = now
 
 	// Insert the task.
@@ -97,7 +98,6 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	// Ensure that the task shows up in the correct date ranges.
-	timeStart := time.Time{}
 	t1Before := t1.Created
 	t1After := t1Before.Add(1 * time.Nanosecond)
 	timeEnd := now.Add(2 * time.Nanosecond)
@@ -113,8 +113,8 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
-	t2 := makeTask(now.Add(time.Nanosecond), []string{"e", "f"})
-	t3 := makeTask(now.Add(2*time.Nanosecond), []string{"g", "h"})
+	t2 := MakeTestTask(now.Add(time.Nanosecond), []string{"e", "f"})
+	t3 := MakeTestTask(now.Add(2*time.Nanosecond), []string{"g", "h"})
 	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
@@ -219,7 +219,7 @@ func TestTaskDBTooManyUsers(t assert.TestingT, db TaskDB) {
 // has been updated in the DB.
 func TestTaskDBConcurrentUpdate(t assert.TestingT, db TaskDB) {
 	// Insert a task.
-	t1 := makeTask(time.Now(), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Retrieve a copy of the task.
@@ -244,7 +244,7 @@ func TestTaskDBConcurrentUpdate(t assert.TestingT, db TaskDB) {
 	}
 
 	// Insert a second task.
-	t2 := makeTask(time.Now(), []string{"e", "f"})
+	t2 := MakeTestTask(time.Now(), []string{"e", "f"})
 	assert.NoError(t, db.PutTask(t2))
 
 	// Update t2 at the same time as t1Cached; should still get an error.
@@ -278,7 +278,7 @@ func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
 
 	// Create new task t1. (UpdateTasksWithRetries isn't actually useful in this case.)
 	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
-		t1 := makeTask(time.Time{}, []string{"a", "b", "c", "d"})
+		t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 		assert.NoError(t, db.AssignId(t1))
 		t1.Created = time.Now().Add(time.Nanosecond)
 		return []*Task{t1}, nil
@@ -292,7 +292,7 @@ func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
 		t1, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
 		t1.Status = TASK_STATUS_RUNNING
-		t2 := makeTask(t1.Created.Add(time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(t1.Created.Add(time.Nanosecond), []string{"e", "f"})
 		return []*Task{t1, t2}, nil
 	})
 	assert.NoError(t, err)
@@ -322,7 +322,7 @@ func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
@@ -342,7 +342,7 @@ func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 			}
 		}
 		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := makeTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
 		return []*Task{t1Cached, t2}, nil
 	})
 	assert.NoError(t, err)
@@ -378,7 +378,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 		callCount++
 		// Return a task just for fun.
 		return []*Task{
-			makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"}),
+			MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"}),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -401,7 +401,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t assert.TestingT, db TaskDB) {
 		callCount++
 		// Task has zero Created time.
 		return []*Task{
-			makeTask(time.Time{}, []string{"a", "b", "c", "d"}),
+			MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"}),
 		}, nil
 	})
 	assert.Error(t, err)
@@ -420,7 +420,7 @@ func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
@@ -433,7 +433,7 @@ func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := makeTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
 		return []*Task{t1Cached, t2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -453,7 +453,7 @@ func testUpdateTaskWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := makeTask(time.Time{}, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.AssignId(t1))
 	t1.Created = time.Now().Add(time.Nanosecond)
 	assert.NoError(t, db.PutTask(t1))
@@ -485,7 +485,7 @@ func testUpdateTaskWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
@@ -522,7 +522,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update and return an error.
@@ -556,7 +556,7 @@ func testUpdateTaskWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update original.
@@ -595,7 +595,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t assert.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
-	t1 := makeTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.AssignId(t1))
 
 	// Attempt to update non-existent task. Function shouldn't be called.

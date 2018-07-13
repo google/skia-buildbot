@@ -24,7 +24,7 @@ func TestModifiedTasks(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	t1 := makeTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
 	t1.Id = "1"
 
 	// Insert the task.
@@ -36,10 +36,10 @@ func TestModifiedTasks(t *testing.T) {
 	deepequal.AssertDeepEqual(t, []*Task{t1}, tasks)
 
 	// Insert two more tasks.
-	t2 := makeTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
+	t2 := MakeTestTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
 	t2.Id = "2"
 	m.TrackModifiedTask(t2)
-	t3 := makeTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
+	t3 := MakeTestTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
 	t3.Id = "3"
 	m.TrackModifiedTask(t3)
 
@@ -63,7 +63,7 @@ func TestMultipleTaskModifications(t *testing.T) {
 	id, err := m.StartTrackingModifiedTasks()
 	assert.NoError(t, err)
 
-	t1 := makeTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
 	t1.Id = "1"
 
 	// Insert the task.
