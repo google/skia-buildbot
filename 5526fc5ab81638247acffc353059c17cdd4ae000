@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "028e2c3a_1b7a44ab",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done\n- Changed the name of the interface and the function to make it clearer. \n- Moved the doc to the interface",
+      "parentUuid": "0fce627d_63ba63ba",
+      "range": {
+        "startLine": 132,
+        "startChar": 27,
+        "endLine": 132,
+        "endChar": 46
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32ef8233_8fd65096",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f138198_3c6769a2",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32ef8233_8fd65096",
+      "range": {
+        "startLine": 244,
+        "startChar": 7,
+        "endLine": 244,
+        "endChar": 12
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "01253f08_93230a39",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done\nReverted to the more idiomatic ... if err !\u003d nil ... and log the errors where they occur.",
+      "parentUuid": "c60b28d3_d58e615c",
+      "range": {
+        "startLine": 249,
+        "startChar": 4,
+        "endLine": 249,
+        "endChar": 7
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f40a0d2b_d2be7022",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0060ca4e_1f4741e5",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f40a0d2b_d2be7022",
+      "range": {
+        "startLine": 256,
+        "startChar": 6,
+        "endLine": 256,
+        "endChar": 11
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "da42950a_4c4c850c",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e761f446_4d4f7b25",
+      "range": {
+        "startLine": 265,
+        "startChar": 0,
+        "endLine": 267,
+        "endChar": 3
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "867a4e35_a568b33b",
         "filename": "golden/go/bbstate/bbstate.go",
         "patchSetId": 3
@@ -137,6 +257,30 @@
       "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a3d5f25_721922f7",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "867a4e35_a568b33b",
+      "range": {
+        "startLine": 437,
+        "startChar": 5,
+        "endLine": 437,
+        "endChar": 8
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +330,54 @@
     },
     {
       "key": {
+        "uuid": "20295bb5_17c2108a",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done\nI kept the \u0027ok\u0027 and check it. This will compile without the second return value of the type assertion, but panic when it fails at runtime.",
+      "parentUuid": "4093dcb7_8959a570",
+      "range": {
+        "startLine": 439,
+        "startChar": 4,
+        "endLine": 440,
+        "endChar": 44
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a0c53c3d_4cfb1574",
+        "filename": "golden/go/bbstate/bbstate.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce0eedf6_d0cbe5d2",
+      "range": {
+        "startLine": 440,
+        "startChar": 12,
+        "endLine": 440,
+        "endChar": 16
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c115332a_139b0337",
         "filename": "golden/go/bbstate/bbstate_test.go",
         "patchSetId": 3
@@ -200,6 +392,24 @@
       "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f563f3c4_323485df",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done\nAdded a TODO for now, but I\u0027ll do a revision of tryjob_ingestion.go soon where this \nwill be useful and revisit the issue then.",
+      "parentUuid": "c115332a_139b0337",
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "7ecbcfff_7a7a845e",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done\nRenamed to LargeTest for now and change the two lines below to skipping the test, since currently it should only be run locally.",
+      "parentUuid": "adb80327_382adade",
+      "range": {
+        "startLine": 21,
+        "startChar": 11,
+        "endLine": 21,
+        "endChar": 20
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3d41d803_06a2c810",
         "filename": "golden/go/bbstate/bbstate_test.go",
         "patchSetId": 3
@@ -246,6 +480,30 @@
       "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5eaca073_2a465faa",
+        "filename": "golden/go/bbstate/bbstate_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-13T09:16:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d41d803_06a2c810",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 23
+      },
+      "revId": "5526fc5ab81638247acffc353059c17cdd4ae000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
