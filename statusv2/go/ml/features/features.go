@@ -24,7 +24,7 @@ import (
 // Downloads all tasks in range from the task DB, stores in a convenient format
 // and calls into PySpark to perform the actual work.
 func ExtractRangeV0(ctx context.Context, d db.TaskReader, start, end time.Time) error {
-	tasks, err := d.GetTasksFromDateRange(start, end)
+	tasks, err := d.GetTasksFromDateRange(start, end, "")
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve tasks: %s", err)
 	}

@@ -516,6 +516,11 @@ func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	fromStr := r.URL.Query().Get("from")
 	toStr := r.URL.Query().Get("to")
+	repo, err := url.QueryUnescape(r.URL.Query().Get("repo"))
+	if err != nil {
+		httputils.ReportError(w, r, nil, "Failed to parse \"repo\" parameter.")
+		return
+	}
 	if id == "" && (fromStr == "" || toStr == "") {
 		httputils.ReportError(w, r, nil, "Only lookup by id or date range is implemented. Missing id/from/to params")
 		return
@@ -545,7 +550,7 @@ func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		from := time.Unix(0, fromInt)
 		to := time.Unix(0, toInt)
-		tasks, err = s.d.GetTasksFromDateRange(from, to)
+		tasks, err = s.d.GetTasksFromDateRange(from, to, repo)
 		if err != nil {
 			reportDBError(w, r, err, "Unable to retrieve tasks")
 			return
@@ -580,10 +585,13 @@ func (c *client) GetTaskById(id string) (*db.Task, error) {
 
 // See documentation for db.TaskReader.
 func (c *client) GetTasksFromDateRange(from time.Time, to time.Time) ([]*db.Task, error) {
+	params := url.Values{}
+	params.Set("format", "gob")
+	if repo != "" {
+		params.Set("repo", url.QueryEscape(repo))
+	}
 	tasks := make([]*db.Task, 0, 1024)
 	if err := util.IterTimeChunks(from, to, MAX_TASK_TIME_RANGE, func(chunkStart, chunkEnd time.Time) error {
-		params := url.Values{}
-		params.Set("format", "gob")
 		params.Set("from", strconv.FormatInt(chunkStart.UnixNano(), 10))
 		params.Set("to", strconv.FormatInt(chunkEnd.UnixNano(), 10))
 		sklog.Debugf("Retrieving tasks from (%s, %s)", chunkStart, chunkEnd)

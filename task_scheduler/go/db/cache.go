@@ -389,13 +389,22 @@ func (c *taskCache) reset() error {
 	if err != nil {
 		return err
 	}
-	start := c.timeWindow.EarliestStart()
+	startTimesByRepo := c.timeWindow.StartTimesByRepo()
 	now := time.Now()
-	sklog.Infof("Reading Tasks from %s to %s.", start, now)
-	tasks, err := c.db.GetTasksFromDateRange(start, now)
-	if err != nil {
-		c.db.StopTrackingModifiedTasks(queryId)
-		return err
+	if len(startTimesByRepo) == 0 {
+		// If the timeWindow has no associated repos, default to loading
+		// tasks for all repos from the beginning of the timeWindow.
+		startTimesByRepo[""] = c.timeWindow.EarliestStart()
+	}
+	tasks := make([]*Task, 0, 1024)
+	for repo, start := range startTimesByRepo {
+		sklog.Infof("Reading Tasks from %s to %s.", start, now)
+		t, err := c.db.GetTasksFromDateRange(start, now, repo)
+		if err != nil {
+			c.db.StopTrackingModifiedTasks(queryId)
+			return err
+		}
+		tasks = append(tasks, t...)
 	}
 	c.knownTaskNames = map[string]map[string]time.Time{}
 	c.queryId = queryId
@@ -403,6 +412,7 @@ func (c *taskCache) reset() error {
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
 	c.tasksByKey = map[TaskKey]map[string]*Task{}
 	c.unfinished = map[string]*Task{}
+	sort.Sort(TaskSlice(tasks))
 	c.expireAndUpdate(tasks)
 	return nil
 }

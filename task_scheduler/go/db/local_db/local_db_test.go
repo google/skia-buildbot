@@ -419,7 +419,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	deepequal.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
 
 	// Check that nothing was updated in the DB.
-	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now())
+	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now(), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasksInDb))
 	for _, task := range tasksInDb {

@@ -459,7 +459,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 }
 
 // See docs for TaskDB interface.
-func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error) {
+func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*db.Task, error) {
 	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.Add(MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	decoder := db.TaskDecoder{}
@@ -496,7 +496,16 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error
 	for endIdx > 0 && !result[endIdx-1].Created.Before(end) {
 		endIdx--
 	}
-	return result[startIdx:endIdx], nil
+	if repo == "" {
+		return result[startIdx:endIdx], nil
+	}
+	rv := make([]*db.Task, 0, len(result[startIdx:endIdx]))
+	for _, t := range result[startIdx:endIdx] {
+		if t.Repo == repo {
+			rv = append(rv, t)
+		}
+	}
+	return rv, nil
 }
 
 // See documentation for TaskDB interface.

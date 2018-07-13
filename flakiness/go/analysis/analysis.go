@@ -39,7 +39,7 @@ type Flake struct {
 // flakes, and returns a map[repo URL]map[task spec name]*Results.
 func Analyze(d db.TaskReader, start, end time.Time, repos repograph.Map) (map[string]map[string]*Results, error) {
 	// Obtain all tasks from the time range.
-	tasks, err := d.GetTasksFromDateRange(start, end)
+	tasks, err := d.GetTasksFromDateRange(start, end, "")
 	if err != nil {
 		return nil, err
 	}

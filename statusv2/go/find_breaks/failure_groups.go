@@ -203,9 +203,9 @@ func findFailureGroups(failures []*failure, commits []string) ([]*FailureGroup, 
 
 // FindFailureGroups pulls tasks and commits from the given time period and
 // finds potentially-related groups of failures.
-func FindFailureGroups(repo *repograph.Graph, taskDb db.TaskReader, start, end time.Time) ([]*FailureGroup, error) {
+func FindFailureGroups(repoUrl string, repo *repograph.Graph, taskDb db.TaskReader, start, end time.Time) ([]*FailureGroup, error) {
 	commits := commitSlices(repo, start, end)
-	tasks, err := taskDb.GetTasksFromDateRange(start, end)
+	tasks, err := taskDb.GetTasksFromDateRange(start, end, repoUrl)
 	if err != nil {
 		return nil, err
 	}
