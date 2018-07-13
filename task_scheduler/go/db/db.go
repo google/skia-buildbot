@@ -15,7 +15,7 @@ const (
 	MAX_MODIFIED_DATA_USERS = 20
 
 	// Expiration for GetModifiedTasks users.
-	MODIFIED_DATA_TIMEOUT = 10 * time.Minute
+	MODIFIED_DATA_TIMEOUT = 30 * time.Minute
 
 	// Retries attempted by Update*WithRetries.
 	NUM_RETRIES = 5

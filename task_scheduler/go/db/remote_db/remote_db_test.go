@@ -1,9 +1,12 @@
 package remote_db
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"os"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -52,6 +55,41 @@ func (b *clientWithBackdoor) PutJobs(jobs []*db.Job) error {
 	return b.backdoor.PutJobs(jobs)
 }
 
+type reqCountingTransport struct {
+	count    int
+	countMtx sync.RWMutex
+	rt       http.RoundTripper
+}
+
+func (t *reqCountingTransport) Inc() {
+	t.countMtx.Lock()
+	defer t.countMtx.Unlock()
+	t.count++
+}
+
+func (t *reqCountingTransport) Get() int {
+	t.countMtx.RLock()
+	defer t.countMtx.RUnlock()
+	return t.count
+}
+
+func (t *reqCountingTransport) Reset() {
+	t.countMtx.Lock()
+	defer t.countMtx.Unlock()
+	t.count = 0
+}
+
+func (t *reqCountingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	t.Inc()
+	return t.rt.RoundTrip(req)
+}
+
+func newReqCountingTransport(rt http.RoundTripper) http.RoundTripper {
+	return &reqCountingTransport{
+		rt: rt,
+	}
+}
+
 // makeDB sets up a client/server pair wrapped in a clientWithBackdoor.
 func makeDB(t *testing.T) db.DBCloser {
 	baseDB := db.NewInMemoryDB()
@@ -59,7 +97,9 @@ func makeDB(t *testing.T) db.DBCloser {
 	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter(), nil)
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
-	dbclient, err := NewClient(ts.URL+"/db/", httputils.NewTimeoutClient())
+	c := httputils.NewTimeoutClient()
+	c.Transport = newReqCountingTransport(c.Transport)
+	dbclient, err := NewClient(ts.URL+"/db/", c)
 	assert.NoError(t, err)
 	return &clientWithBackdoor{
 		RemoteDB:   dbclient,
@@ -129,4 +169,35 @@ func TestRemoteDBCommentDB(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestCommentDB(t, d)
+}
+
+func TestRemoteDBGetTasksFromDateRange(t *testing.T) {
+	testutils.SmallTest(t)
+	d := makeDB(t)
+	defer testutils.AssertCloses(t, d)
+
+	tp := d.(*clientWithBackdoor).RemoteDB.(*client).client.Transport.(*reqCountingTransport)
+
+	timeStart := time.Now().Add(-3 * MAX_TASK_TIME_RANGE)
+	t1 := db.MakeTestTask(timeStart.Add(time.Nanosecond), []string{"a", "b"})
+	assert.NoError(t, d.PutTask(t1))
+	t2 := db.MakeTestTask(t1.Created.Add(MAX_TASK_TIME_RANGE), []string{"c"})
+	assert.NoError(t, d.PutTask(t2))
+	t3 := db.MakeTestTask(t2.Created.Add(MAX_TASK_TIME_RANGE), []string{"d"})
+	assert.NoError(t, d.PutTask(t3))
+
+	// Request time ranges, and ensure that we get back the correct number
+	// of tasks and made the correct number of HTTP requests.
+	test := func(start, end time.Time, expectTasks, expectReqs int) {
+		tp.Reset()
+		tasks, err := d.GetTasksFromDateRange(start, end)
+		assert.NoError(t, err)
+		assert.Equal(t, expectTasks, len(tasks))
+		assert.Equal(t, expectReqs, tp.Get())
+	}
+	test(timeStart, t1.Created.Add(time.Nanosecond), 1, 1)
+	test(timeStart, t2.Created.Add(time.Nanosecond), 2, 2)
+	test(timeStart, t3.Created.Add(time.Nanosecond), 3, 3)
+	test(timeStart, timeStart.Add(MAX_TASK_TIME_RANGE), 1, 1)
+	test(timeStart, timeStart.Add(MAX_TASK_TIME_RANGE).Add(time.Nanosecond), 1, 2)
 }

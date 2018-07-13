@@ -34,7 +34,7 @@ func TestTaskCache(t *testing.T) {
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache. Ensure that the existing task is present.
@@ -45,7 +45,7 @@ func TestTaskCache(t *testing.T) {
 	testGetTasksForCommits(t, c, t1)
 
 	// Bisect the first task.
-	t2 := makeTask(startTime.Add(time.Minute), []string{"c", "d"})
+	t2 := MakeTestTask(startTime.Add(time.Minute), []string{"c", "d"})
 	t1.Commits = []string{"a", "b"}
 	assert.NoError(t, db.PutTasks([]*Task{t2, t1}))
 	assert.NoError(t, c.Update())
@@ -55,7 +55,7 @@ func TestTaskCache(t *testing.T) {
 	testGetTasksForCommits(t, c, t2)
 
 	// Insert a task on a second bot.
-	t3 := makeTask(startTime.Add(2*time.Minute), []string{"a", "b"})
+	t3 := MakeTestTask(startTime.Add(2*time.Minute), []string{"a", "b"})
 	t3.Name = "Another-Task"
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
@@ -79,7 +79,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 
 	// Try jobs don't count toward KnownTaskName.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	t1.Server = "fake-server"
 	t1.Issue = "fake-issue"
 	t1.Patchset = "fake-patchset"
@@ -88,14 +88,14 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 	assert.False(t, c.KnownTaskName(t1.Repo, t1.Name))
 
 	// Forced jobs don't count toward KnownTaskName.
-	t2 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t2 := MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	t2.ForcedJobId = "job-id"
 	assert.NoError(t, db.PutTask(t2))
 	assert.NoError(t, c.Update())
 	assert.False(t, c.KnownTaskName(t2.Repo, t2.Name))
 
 	// Normal task.
-	t3 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t3 := MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
 	assert.True(t, c.KnownTaskName(t3.Repo, t3.Name))
@@ -107,7 +107,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 	// Pre-load a task into the DB.
 	timeStart := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := makeTask(timeStart.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(timeStart.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache.
@@ -118,8 +118,8 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
-	t2 := makeTask(timeStart.Add(2*time.Nanosecond), []string{"e", "f"})
-	t3 := makeTask(timeStart.Add(3*time.Nanosecond), []string{"g", "h"})
+	t2 := MakeTestTask(timeStart.Add(2*time.Nanosecond), []string{"e", "f"})
+	t3 := MakeTestTask(timeStart.Add(3*time.Nanosecond), []string{"g", "h"})
 	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
 	assert.NoError(t, c.Update())
 
@@ -193,11 +193,11 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 	db := NewInMemoryTaskDB()
 
 	// Insert several tasks with different repos.
-	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := makeTask(startTime, []string{"a", "b"})  // Default Repo.
-	t2 := makeTask(startTime, []string{"a", "b"})
+	startTime := time.Now().Add(-30 * time.Minute)    // Arbitrary starting point.
+	t1 := MakeTestTask(startTime, []string{"a", "b"}) // Default Repo.
+	t2 := MakeTestTask(startTime, []string{"a", "b"})
 	t2.Repo = "thats-what-you.git"
-	t3 := makeTask(startTime, []string{"b", "c"})
+	t3 := MakeTestTask(startTime, []string{"b", "c"})
 	t3.Repo = "never-for.git"
 	assert.NoError(t, db.PutTasks([]*Task{t1, t2, t3}))
 
@@ -257,12 +257,12 @@ func TestTaskCacheReset(t *testing.T) {
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Add a pending task with no swarming ID to test that it won't appear
 	// in UnfinishedTasks.
-	fakeTask := makeTask(startTime, []string{"a", "b", "c", "d"})
+	fakeTask := MakeTestTask(startTime, []string{"a", "b", "c", "d"})
 	fakeTask.Name = "Fake-Task"
 	fakeTask.SwarmingTaskId = ""
 	assert.True(t, fakeTask.Fake())
@@ -280,7 +280,7 @@ func TestTaskCacheReset(t *testing.T) {
 	db.StopTrackingModifiedTasks(c.(*taskCache).queryId)
 
 	// Make an update.
-	t2 := makeTask(startTime.Add(time.Minute), []string{"c", "d"})
+	t2 := MakeTestTask(startTime.Add(time.Minute), []string{"c", "d"})
 	t1.Commits = []string{"a", "b"}
 	assert.NoError(t, db.PutTasks([]*Task{t2, t1}))
 
@@ -302,13 +302,13 @@ func TestTaskCacheUnfinished(t *testing.T) {
 
 	// Insert a task.
 	startTime := time.Now().Add(-30 * time.Minute)
-	t1 := makeTask(startTime, []string{"a"})
+	t1 := MakeTestTask(startTime, []string{"a"})
 	assert.False(t, t1.Done())
 	assert.NoError(t, db.PutTask(t1))
 
 	// Add a pending task with no swarming ID to test that it won't appear
 	// in UnfinishedTasks.
-	fakeTask := makeTask(startTime, []string{"b"})
+	fakeTask := MakeTestTask(startTime, []string{"b"})
 	fakeTask.SwarmingTaskId = ""
 	assert.NoError(t, db.PutTask(fakeTask))
 
@@ -331,7 +331,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	deepequal.AssertDeepEqual(t, []*Task{}, tasks)
 
 	// Already-finished task.
-	t2 := makeTask(time.Now(), []string{"a"})
+	t2 := MakeTestTask(time.Now(), []string{"a"})
 	t2.Status = TASK_STATUS_MISHAP
 	assert.True(t, t2.Done())
 	assert.NoError(t, db.PutTask(t2))
@@ -341,7 +341,7 @@ func TestTaskCacheUnfinished(t *testing.T) {
 	deepequal.AssertDeepEqual(t, []*Task{}, tasks)
 
 	// An unfinished task, created after the cache was created.
-	t3 := makeTask(time.Now(), []string{"b"})
+	t3 := MakeTestTask(time.Now(), []string{"b"})
 	assert.False(t, t3.Done())
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
@@ -415,7 +415,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 	// Make a bunch of tasks with various timestamps.
 	mk := func(mins int, name string, blame []string) *Task {
-		t := makeTask(timeStart.Add(time.Duration(mins)*time.Minute), blame)
+		t := MakeTestTask(timeStart.Add(time.Duration(mins)*time.Minute), blame)
 		t.Name = name
 		return t
 	}

@@ -43,6 +43,9 @@ const (
 	ERR_NOT_FOUND_CODE         = http.StatusNotFound
 	ERR_TOO_MANY_USERS_CODE    = http.StatusTooManyRequests
 	ERR_UNKNOWN_ID_CODE        = http.StatusGone
+
+	// Maximum time range of tasks to load at once in GetTasksFromDateRange.
+	MAX_TASK_TIME_RANGE = 7 * 24 * time.Hour
 )
 
 // server translates HTTP requests to method calls on d.
@@ -577,11 +580,23 @@ func (c *client) GetTaskById(id string) (*db.Task, error) {
 
 // See documentation for db.TaskReader.
 func (c *client) GetTasksFromDateRange(from time.Time, to time.Time) ([]*db.Task, error) {
-	params := url.Values{}
-	params.Set("format", "gob")
-	params.Set("from", strconv.FormatInt(from.UnixNano(), 10))
-	params.Set("to", strconv.FormatInt(to.UnixNano(), 10))
-	return c.getTaskList(c.serverRoot + TASKS_PATH + "?" + params.Encode())
+	tasks := make([]*db.Task, 0, 1024)
+	if err := util.IterTimeChunks(from, to, MAX_TASK_TIME_RANGE, func(chunkStart, chunkEnd time.Time) error {
+		params := url.Values{}
+		params.Set("format", "gob")
+		params.Set("from", strconv.FormatInt(chunkStart.UnixNano(), 10))
+		params.Set("to", strconv.FormatInt(chunkEnd.UnixNano(), 10))
+		sklog.Debugf("Retrieving tasks from (%s, %s)", chunkStart, chunkEnd)
+		chunkTasks, err := c.getTaskList(c.serverRoot + TASKS_PATH + "?" + params.Encode())
+		if err != nil {
+			return err
+		}
+		tasks = append(tasks, chunkTasks...)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return tasks, nil
 }
 
 // GetJobsHandler translates a GET request to GetJobsFromDateRange or
