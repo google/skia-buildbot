@@ -56,12 +56,17 @@ func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 		return nil, false, err
 	}
 	c.queryId = queryId
-	sklog.Infof("GetTasksFromDateRange(%s, %s)", w.EarliestStart(), time.Now())
-	tasks, err := c.db.GetTasksFromDateRange(w.EarliestStart(), time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-		c.queryId = ""
-		return nil, false, err
+	tasks := make([]*db.Task, 0, 1024)
+	end := time.Now()
+	for repo, start := range w.StartTimesByRepo() {
+		sklog.Infof("GetTasksFromDateRange(%s, %s, %s)", start, end, repo)
+		t, err := c.db.GetTasksFromDateRange(start, end, repo)
+		if err != nil {
+			c.db.StopTrackingModifiedTasks(c.queryId)
+			c.queryId = ""
+			return nil, false, err
+		}
+		tasks = append(tasks, t...)
 	}
 	return mapTasks(tasks), true, nil
 }

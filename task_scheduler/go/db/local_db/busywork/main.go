@@ -151,7 +151,7 @@ func findApproxLatestCommit(d db.TaskDB) int {
 		begin := t.Add(-24 * time.Hour)
 		sklog.Infof("findApproxLatestCommit loading %s to %s", begin, t)
 		before := time.Now()
-		t, err := d.GetTasksFromDateRange(begin, t)
+		t, err := d.GetTasksFromDateRange(begin, t, "")
 		getTasksDur := time.Now().Sub(before)
 		if err != nil {
 			sklog.Fatal(err)
@@ -331,7 +331,7 @@ func updateTasks(d db.TaskDB) {
 		begin := t.Add(-24 * time.Hour)
 		sklog.Infof("updateTasks loading %s to %s", begin, t)
 		before := time.Now()
-		t, err := d.GetTasksFromDateRange(begin, t)
+		t, err := d.GetTasksFromDateRange(begin, t, "")
 		getTasksDur := time.Now().Sub(before)
 		if err != nil {
 			sklog.Fatal(err)
@@ -421,7 +421,7 @@ func readTasks(d db.TaskDB) {
 	lastMessage := time.Now()
 	for range time.Tick(time.Second) {
 		now := time.Now()
-		t, err := d.GetTasksFromDateRange(now.Add(-time.Hour), now)
+		t, err := d.GetTasksFromDateRange(now.Add(-time.Hour), now, "")
 		dur := time.Now().Sub(now)
 		if err != nil {
 			sklog.Fatal(err)
