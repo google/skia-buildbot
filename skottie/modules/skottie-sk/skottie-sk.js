@@ -27,6 +27,7 @@ const displayLoaded= (ele) => html`
 <button class=edit-config on-click=${(e) => ele._startEdit()}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
 <button on-click=${(e) => ele._rewind(e)}>Rewind</button>
 <button id=playpause on-click=${(e) => ele._playpause(e)}>Pause</button>
+<div class=download><a target=_blank download href="https://storage.googleapis.com/skottie-renderer/${ele._hash}/lottie.json">JSON</a></div>
 <section class=figures>
   <figure>
     <video id=video muted on-loadeddata=${(e) => ele._videoLoaded(e)} title=lottie loop src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
