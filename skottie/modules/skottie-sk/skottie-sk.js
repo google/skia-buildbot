@@ -105,24 +105,24 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   _reflectFromURL() {
     // Check URL.
     let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
-    if (match) {
-      // If hash then load from server.
-      this._hash = match[1];
-      this._ui = LOADING_MODE;
-      this._render();
-      fetch(`/_/j/${this._hash}`).then(jsonOrThrow).then(json => {
-        this._state = json;
-        this._ui = LOADED_MODE;
-        this._render();
-      }).catch((msg) => {
-        msg.resp.text().then(errorMessage);
-        window.history.pushState(null, '', '/');
-        this._ui = DIALOG_MODE;
-        this._render();
-      });
+    if (!match) {
+      // Make this the hash of the lottie file you want to play on startup.
+      this._hash = '1112d01d28a776d777cebcd0632da15b';
     } else {
-      this._startEdit();
+      this._hash = match[1];
     }
+    this._ui = LOADING_MODE;
+    this._render();
+    fetch(`/_/j/${this._hash}`).then(jsonOrThrow).then(json => {
+      this._state = json;
+      this._ui = LOADED_MODE;
+      this._render();
+    }).catch((msg) => {
+      msg.resp.text().then(errorMessage);
+      window.history.pushState(null, '', '/');
+      this._ui = DIALOG_MODE;
+      this._render();
+    });
   }
 
   _startEdit() {
