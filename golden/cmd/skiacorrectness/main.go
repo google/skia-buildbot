@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/expstorage"
+
 	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/web"
 
@@ -45,7 +47,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/digeststore"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
@@ -313,7 +314,12 @@ func main() {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
+	cloudExpStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
+	if err != nil {
+		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
+	}
+
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
@@ -325,17 +331,18 @@ func main() {
 	}
 
 	storages := &storage.Storage{
-		DiffStore:         diffStore,
-		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
-		MasterTileBuilder: masterTileBuilder,
-		DigestStore:       digestStore,
-		NCommits:          *nCommits,
-		EventBus:          evt,
-		TryjobStore:       tryjobStore,
-		TryjobMonitor:     tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt, *authoritative),
-		GerritAPI:         gerritAPI,
-		GStorageClient:    gsClient,
-		Git:               git,
+		DiffStore:            diffStore,
+		ExpectationsStore:    expstorage.NewCachingExpectationStore(cloudExpStore, evt),
+		IssueExpStoreFactory: issueExpStoreFactory,
+		MasterTileBuilder:    masterTileBuilder,
+		DigestStore:          digestStore,
+		NCommits:             *nCommits,
+		EventBus:             evt,
+		TryjobStore:          tryjobStore,
+		TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt, *authoritative),
+		GerritAPI:            gerritAPI,
+		GStorageClient:       gsClient,
+		Git:                  git,
 	}
 
 	// Load the whitelist if there is one and disable querying for issues.
