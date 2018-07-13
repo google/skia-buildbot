@@ -10,6 +10,7 @@ alerting:
     - static_configs:
       - targets:
         - alertmanager:9090
+        - alert-to-pubsub:8000
 
 scrape_configs:
   # Scrape configs for pods that run multiple containers. If a pod doesn't
