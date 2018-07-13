@@ -6,7 +6,8 @@ import (
 	"reflect"
 	"sort"
 	"sync/atomic"
-	"time"
+
+	"go.skia.org/infra/golden/go/expstorage"
 
 	"cloud.google.com/go/datastore"
 	"golang.org/x/sync/errgroup"
@@ -14,10 +15,8 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
-	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -103,18 +102,6 @@ type TryjobStore interface {
 
 	// UpdateTryjobResult updates the results for the given tryjob.
 	UpdateTryjobResult(tryjob *Tryjob, results []*TryjobResult) error
-
-	// AddChange adds an update to the expectations provided by a user.
-	AddChange(issueID int64, changes map[string]types.TestClassification, userID string) error
-
-	// GetExpectations gets the expectations for the tryjob result of the given issue.
-	GetExpectations(issueID int64) (exp *expstorage.Expectations, err error)
-
-	// UndoChange reverts a previous expectations change for this issue.
-	UndoChange(issueID int64, changeID int64, userID string) (map[string]types.TestClassification, error)
-
-	// QueryLog returns a list of expectation changes for the given issue.
-	QueryLog(issueID int64, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error)
 }
 
 const (
@@ -126,12 +113,13 @@ const (
 
 // cloudTryjobStore implements the TryjobStore interface on top of cloud datastore.
 type cloudTryjobStore struct {
-	client   *datastore.Client
-	eventBus eventbus.EventBus
+	client          *datastore.Client
+	eventBus        eventbus.EventBus
+	expStoreFactory expstorage.IssueExpStoreFactory
 }
 
 // NewCloudTryjobStore creates a new instance of TryjobStore based on cloud datastore.
-func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (TryjobStore, error) {
+func NewCloudTryjobStore(client *datastore.Client, expStoreFactory expstorage.IssueExpStoreFactory, eventBus eventbus.EventBus) (TryjobStore, error) {
 	if client == nil {
 		return nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}
@@ -141,8 +129,9 @@ func NewCloudTryjobStore(client *datastore.Client, eventBus eventbus.EventBus) (
 	}
 
 	return &cloudTryjobStore{
-		client:   client,
-		eventBus: eventBus,
+		client:          client,
+		eventBus:        eventBus,
+		expStoreFactory: expStoreFactory,
 	}, nil
 }
 
@@ -256,9 +245,9 @@ func (c *cloudTryjobStore) DeleteIssue(issueID int64) error {
 		return c.deleteTryjobsForIssue(issueID)
 	})
 
+	// Remove the expectations for this issue.
 	egroup.Go(func() error {
-		// Delete all expectations for this issue.
-		return c.deleteExpectationsForIssue(issueID)
+		return c.expStoreFactory(issueID).Clear()
 	})
 
 	// Make sure all dependents are deleted.
@@ -392,140 +381,6 @@ func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobR
 	return nil
 }
 
-// AddChange implements the TryjobStore interface.
-func (c *cloudTryjobStore) AddChange(issueID int64, changes map[string]types.TestClassification, userID string) (err error) {
-	// Write the change record.
-	ctx := context.Background()
-	expChange := &ExpChange{
-		IssueID:   issueID,
-		UserID:    userID,
-		TimeStamp: util.TimeStamp(time.Millisecond),
-	}
-
-	var changeKey *datastore.Key
-	if changeKey, err = c.client.Put(ctx, ds.NewKey(ds.TRYJOB_EXP_CHANGE), expChange); err != nil {
-		return err
-	}
-
-	// If we have an error later make sure to delete change record.
-	defer func() {
-		if err != nil {
-			go func() {
-				if err := c.deleteExpChanges([]*datastore.Key{changeKey}); err != nil {
-					sklog.Errorf("Error deleting expectation change %s: %s", changeKey.String(), err)
-				}
-			}()
-		}
-	}()
-
-	// Insert all the expectation changes.
-	testChanges := make([]*TestDigestExp, 0, len(changes))
-	for testName, classification := range changes {
-		for digest, label := range classification {
-			testChanges = append(testChanges, &TestDigestExp{
-				Name:   testName,
-				Digest: digest,
-				Label:  label.String(),
-			})
-		}
-	}
-
-	tdeKeys := make([]*datastore.Key, len(testChanges), len(testChanges))
-	for idx := range testChanges {
-		key := ds.NewKey(ds.TEST_DIGEST_EXP)
-		key.Parent = changeKey
-		tdeKeys[idx] = key
-	}
-
-	if _, err = c.client.PutMulti(ctx, tdeKeys, testChanges); err != nil {
-		return err
-	}
-
-	// Mark the expectation change as valid.
-	expChange.OK = true
-	if _, err = c.client.Put(ctx, changeKey, expChange); err != nil {
-		return err
-	}
-
-	if c.eventBus != nil {
-		c.eventBus.Publish(EV_TRYJOB_EXP_CHANGED, &IssueExpChange{IssueID: issueID}, false)
-	}
-
-	return nil
-}
-
-// GetExpectations implements the TryjobStore interface.
-func (c *cloudTryjobStore) GetExpectations(issueID int64) (exp *expstorage.Expectations, err error) {
-	// Get all expectation changes and iterate over them updating the result.
-	expChangeKeys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
-	if err != nil {
-		return nil, err
-	}
-
-	testChanges := make([][]*TestDigestExp, len(expChangeKeys), len(expChangeKeys))
-	// Iterate over the expectations build the expectations.
-	var egroup errgroup.Group
-	for idx, key := range expChangeKeys {
-		func(idx int, key *datastore.Key) {
-			egroup.Go(func() error {
-				_, testChanges[idx], err = c.getTestDigestExps(key, false)
-				return err
-			})
-		}(idx, key)
-	}
-
-	if err := egroup.Wait(); err != nil {
-		return nil, err
-	}
-
-	ret := expstorage.NewExpectations()
-	for _, expByChange := range testChanges {
-		if len(expByChange) > 0 {
-			for _, oneChange := range expByChange {
-				ret.SetTestExpectation(oneChange.Name, oneChange.Digest, types.LabelFromString(oneChange.Label))
-			}
-		}
-	}
-
-	return ret, nil
-}
-
-// TODO(stephana): Implement the UndoChange and QueryLog methods once the corresponding
-// endpoints in skiacorrectness exist.
-
-// UndoChange implements the TryjobStore interface.
-func (c *cloudTryjobStore) UndoChange(issueID int64, changeID int64, userID string) (map[string]types.TestClassification, error) {
-	return nil, nil
-}
-
-// QueryLog implements the TryjobStore interface.
-func (c *cloudTryjobStore) QueryLog(issueID int64, offset, size int, details bool) ([]*expstorage.TriageLogEntry, int, error) {
-	// TODO(stephana): Optimize this so we don't make the first request just to obtain the total.
-	allKeys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
-	if err != nil {
-		return nil, 0, sklog.FmtErrorf("Error retrieving keys for expectation changes: %s", err)
-	}
-
-	_, expChanges, err := c.getExpChangesForIssue(issueID, offset, size, false)
-	if err != nil {
-		return nil, 0, sklog.FmtErrorf("Error retrieving expectation changes: %s", err)
-	}
-
-	ret := make([]*expstorage.TriageLogEntry, 0, len(expChanges))
-	for _, change := range expChanges {
-		ret = append(ret, &expstorage.TriageLogEntry{
-			ID:           jsonutils.Number(change.ChangeID.ID),
-			Name:         change.UserID,
-			TS:           change.TimeStamp,
-			ChangeCount:  int(change.Count),
-			Details:      nil,
-			UndoChangeID: change.UndoChangeID,
-		})
-	}
-
-	return ret, len(allKeys), nil
-}
-
 // deleteTryjobsForIssue deletes all tryjob information for the given issue.
 func (c *cloudTryjobStore) deleteTryjobsForIssue(issueID int64) error {
 	// Get all the tryjob keys.
@@ -605,79 +460,6 @@ func (c *cloudTryjobStore) deleteExpChanges(keys []*datastore.Key) error {
 	return c.client.DeleteMulti(context.Background(), keys)
 }
 
-// deleteExpectationsForIssue deletes all expectations for the given issue.
-func (c *cloudTryjobStore) deleteExpectationsForIssue(issueID int64) error {
-	keys, _, err := c.getExpChangesForIssue(issueID, -1, -1, true)
-	if err != nil {
-		return err
-	}
-
-	// Delete all expectation entries and the expectation changes.
-	var egroup errgroup.Group
-	for _, expChangeKey := range keys {
-		func(expChangeKey *datastore.Key) {
-			egroup.Go(func() error {
-				testDigestKeys, _, err := c.getTestDigestExps(expChangeKey, true)
-				if err != nil {
-					return err
-				}
-				if err := c.client.DeleteMulti(context.Background(), testDigestKeys); err != nil {
-					return err
-				}
-				return nil
-			})
-		}(expChangeKey)
-	}
-
-	egroup.Go(func() error {
-		return c.deleteExpChanges(keys)
-	})
-
-	return egroup.Wait()
-}
-
-// getExpChangesForIssue returns all the expectation changes for the given issue
-// in revers chronological order. offset and size pick a subset of the result.
-// Both are only considered if they are larger than 0. keysOnly indicates that we
-// want keys only.
-func (c *cloudTryjobStore) getExpChangesForIssue(issueID int64, offset, size int, keysOnly bool) ([]*datastore.Key, []*ExpChange, error) {
-	q := ds.NewQuery(ds.TRYJOB_EXP_CHANGE).
-		Filter("IssueID =", issueID).
-		Filter("OK =", true).
-		Order("TimeStamp")
-
-	if keysOnly {
-		q = q.KeysOnly()
-	}
-
-	if offset > 0 {
-		q = q.Offset(offset)
-	}
-
-	if size > 0 {
-		q = q.Limit(size)
-	}
-
-	var expChanges []*ExpChange
-	keys, err := c.client.GetAll(context.Background(), q, &expChanges)
-	return keys, expChanges, err
-}
-
-// getTestDigestExpectations gets all expectations for the given change.
-func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly bool) ([]*datastore.Key, []*TestDigestExp, error) {
-	q := ds.NewQuery(ds.TEST_DIGEST_EXP).Ancestor(changeKey)
-	if keysOnly {
-		q = q.KeysOnly()
-	}
-
-	var exps []*TestDigestExp
-	expsKeys, err := c.client.GetAll(context.Background(), q, &exps)
-	if err != nil {
-		return nil, nil, err
-	}
-	return expsKeys, exps, nil
-}
-
 // getTryjobsForIssue is a utility function that retrieves the Tryjobs for a given
 // issue and list of patchsets. If keysOnly is true only the keys of the Tryjobs will
 // be returned. If filterDup is true duplicate Tryjobs will be filtered out for
@@ -685,6 +467,10 @@ func (c *cloudTryjobStore) getTestDigestExps(changeKey *datastore.Key, keysOnly 
 // The first return value is the unordered slice of keys of the Tryjobs.
 // The second return value groups the tryjobs for each patchset as a map[patch_set_id][]*Tryjob.
 func (c *cloudTryjobStore) getTryjobsForIssue(issueID int64, patchsetIDs []int64, keysOnly bool, filterDup bool) ([]*datastore.Key, map[int64][]*Tryjob, error) {
+	if keysOnly && filterDup {
+		return nil, nil, sklog.FmtErrorf("filterDup cannot be true when keysOnly is true, since Tryjob is necessary for filtering")
+	}
+
 	if len(patchsetIDs) == 0 {
 		patchsetIDs = []int64{-1}
 	} else {
