@@ -94,7 +94,7 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 // getGerritMsg returns the message that should be added as a comment to the Gerrit CL.
 func (t *TryjobMonitor) getGerritMsg(issueID int64) string {
 	const (
-		goldMessageTmpl = "Gold results for tryjobs are being ingested. See image differences at: %s"
+		goldMessageTmpl = "Gold results for tryjobs are being ingested.\nSee image differences at: %s"
 		urlTmpl         = "%s/search?issue=%d"
 	)
 	url := fmt.Sprintf(urlTmpl, t.siteURL, issueID)

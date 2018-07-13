@@ -49,10 +49,10 @@ func init() {
 // goldTryjobProcessor implements the ingestion.Processor interface to ingest
 // tryjob results.
 type goldTryjobProcessor struct {
-	issueBuildFetcher bbstate.IssueBuildFetcher
-	tryjobStore       tryjobstore.TryjobStore
-	vcs               vcsinfo.VCS
-	cfgFile           string
+	buildIssueSync bbstate.BuildIssueSync
+	tryjobStore    tryjobstore.TryjobStore
+	vcs            vcsinfo.VCS
+	cfgFile        string
 }
 
 // newGoldTryjobProcessor implements the ingestion.Constructor function.
@@ -125,10 +125,10 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	}
 
 	ret := &goldTryjobProcessor{
-		issueBuildFetcher: bbGerritClient,
-		tryjobStore:       tryjobStore,
-		vcs:               vcs,
-		cfgFile:           cfgFile,
+		buildIssueSync: bbGerritClient,
+		tryjobStore:    tryjobStore,
+		vcs:            vcs,
+		cfgFile:        cfgFile,
 	}
 	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.tryjobUpdatedHandler)
 
@@ -174,7 +174,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	// Gerrit and Buildbucket. This should be the exception since tryjobs should
 	// be picket up by BuildBucketState as they are added.
 	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
-		if issue, tryjob, err = g.issueBuildFetcher.FetchIssueAndTryjob(issueID, dmResults.BuildBucketID); err != nil {
+		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
 			sklog.Errorf("Error fetching the issue and tryjob informaton: %s", err)
 			return ingestion.IgnoreResultsFileErr
 		}

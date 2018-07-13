@@ -39,8 +39,8 @@
       GerritCodeReviewURL: "https://chromium-review.googlesource.com",
       BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
       BuildBucketName: "master.tryserver.chromium.linux",
-      BuildBucketPollInterval: "10m",
-      BuildBucketTimeWindow: "5d",
+      BuildBucketPollInterval: "10s",
+      BuildBucketTimeWindow: "5h",
       BuilderRegEx: "linux_chromium_rel_ng",
     }
   }

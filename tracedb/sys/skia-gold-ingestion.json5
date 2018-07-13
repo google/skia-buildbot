@@ -49,8 +49,8 @@
         GerritCodeReviewURL: "https://skia-review.googlesource.com",
         BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
         BuildBucketName: "skia.primary",
-        BuildBucketPollInterval: "10m",
-        BuildBucketTimeWindow: "5d",
+        BuildBucketPollInterval: "10s",
+        BuildBucketTimeWindow: "5h",
         JobConfigFile: "infra/bots/cfg.json",
       }
     }

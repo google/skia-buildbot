@@ -80,6 +80,10 @@ type TryjobStore interface {
 	// first return value.
 	GetTryjobs(issueID int64, patchsetIDs []int64, filterDup bool, loadResults bool) ([]*Tryjob, [][]*TryjobResult, error)
 
+	// RunningTryjobs returns a list of tryjobs that are considered running by
+	// the datastore (their status is less than TRYJOB_COMPLETE)
+	RunningTryjobs() ([]*Tryjob, error)
+
 	// GetTryjob returns the Tryjob instance defined by issueID and buildBucketID.
 	GetTryjob(issueID, buildBucketID int64) (*Tryjob, error)
 
@@ -329,6 +333,19 @@ func (c *cloudTryjobStore) GetTryjobs(issueID int64, patchsetIDs []int64, filter
 	}
 
 	return tryjobs, results, nil
+}
+
+// RunningTryjobs implements the TryjobStore interface.
+func (c *cloudTryjobStore) RunningTryjobs() ([]*Tryjob, error) {
+	query := ds.NewQuery(ds.TRYJOB).
+		Filter("Status <", int(TRYJOB_COMPLETE))
+
+	tryjobs := []*Tryjob{}
+	_, err := c.client.GetAll(context.Background(), query, &tryjobs)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Error making GetAll call: %s", err)
+	}
+	return tryjobs, nil
 }
 
 // GetTryjobResults implements the TryjobStore interface.
