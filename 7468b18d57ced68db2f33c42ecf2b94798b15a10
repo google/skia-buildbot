@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be03b3fb_76d452e3",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 519,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-13T19:23:27Z",
+      "side": 1,
+      "message": "I don\u0027t think this is correct.\nhttps://play.golang.org/p/HQy2my93mwI",
+      "range": {
+        "startLine": 519,
+        "startChar": 14,
+        "endLine": 519,
+        "endChar": 31
+      },
+      "revId": "7468b18d57ced68db2f33c42ecf2b94798b15a10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da983a5d_eacdd055",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 591,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-13T19:23:27Z",
+      "side": 1,
+      "message": "The params.Encode() below will escape repo.",
+      "range": {
+        "startLine": 591,
+        "startChar": 21,
+        "endLine": 591,
+        "endChar": 37
+      },
+      "revId": "7468b18d57ced68db2f33c42ecf2b94798b15a10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23e07928_e1f23de5",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-13T19:23:27Z",
+      "side": 1,
+      "message": "typo of?",
+      "range": {
+        "startLine": 126,
+        "startChar": 60,
+        "endLine": 126,
+        "endChar": 62
+      },
+      "revId": "7468b18d57ced68db2f33c42ecf2b94798b15a10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
