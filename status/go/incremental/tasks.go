@@ -56,11 +56,16 @@ func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 		return nil, false, err
 	}
 	c.queryId = queryId
-	tasks, err := c.db.GetTasksFromDateRange(w.EarliestStart(), time.Now())
-	if err != nil {
-		c.db.StopTrackingModifiedTasks(c.queryId)
-		c.queryId = ""
-		return nil, false, err
+	tasks := make([]*db.Task, 0, 1024)
+	end := time.Now()
+	for repo, start := range w.StartTimesByRepo() {
+		t, err := c.db.GetTasksFromDateRange(start, end, repo)
+		if err != nil {
+			c.db.StopTrackingModifiedTasks(c.queryId)
+			c.queryId = ""
+			return nil, false, err
+		}
+		tasks = append(tasks, t...)
 	}
 	return mapTasks(tasks), true, nil
 }

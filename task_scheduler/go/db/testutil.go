@@ -101,13 +101,13 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 	t1Before := t1.Created
 	t1After := t1Before.Add(1 * time.Nanosecond)
 	timeEnd := now.Add(2 * time.Nanosecond)
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
-	tasks, err = db.GetTasksFromDateRange(t1Before, t1After)
+	tasks, err = db.GetTasksFromDateRange(t1Before, t1After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1}, tasks)
-	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
@@ -151,55 +151,55 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 
 	timeEnd = now.Add(3 * time.Nanosecond)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1After)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t1After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t2After)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t2After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t3After)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t3After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{}, tasks)
 }
@@ -310,7 +310,7 @@ func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -361,7 +361,7 @@ func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -387,7 +387,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -410,7 +410,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -441,7 +441,7 @@ func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 0, len(tasks))
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -474,7 +474,7 @@ func testUpdateTaskWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the TaskDB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -511,7 +511,7 @@ func testUpdateTaskWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -545,7 +545,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -584,7 +584,7 @@ func testUpdateTaskWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -610,7 +610,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 0, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
