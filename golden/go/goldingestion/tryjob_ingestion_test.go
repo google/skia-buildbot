@@ -109,10 +109,10 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	// Instantiate the processor and add a channel to capture the callback.
 	callbackCh := make(chan interface{}, 20)
 	processor := &goldTryjobProcessor{
-		issueBuildFetcher: mockedIBF,
-		tryjobStore:       tryjobStore,
-		vcs:               mockVCS,
-		cfgFile:           cfgFile,
+		buildIssueSync: mockedIBF,
+		tryjobStore:    tryjobStore,
+		vcs:            mockVCS,
+		cfgFile:        cfgFile,
 	}
 	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, func(data interface{}) {
 		processor.tryjobUpdatedHandler(data)
@@ -160,7 +160,7 @@ type mockIBF struct {
 	tryjobStore tryjobstore.TryjobStore
 }
 
-func (m *mockIBF) FetchIssueAndTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
+func (m *mockIBF) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
 	if issueID != m.issue.ID {
 		return nil, nil, fmt.Errorf("Unknown issued.")
 	}
