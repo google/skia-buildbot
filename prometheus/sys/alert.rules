@@ -203,30 +203,6 @@ ALERT CQWatcherTrybotsCount
   }
 
 # Perf
-ALERT PerfUntriagedClusters
-  IF perf_clustering_untriaged{instance="skia-perf:20000"} > 0
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    summary = "One or more untriaged clusters.",
-    description = "At least one untriaged perf cluster has been found. Please visit https://perf.skia.org/t/ to triage."
-  }
-
-ALERT AndroidPerfUntriagedClusters
-  IF perf_clustering_untriaged{instance=~"skia-android-perf:20000"} > 0
-  LABELS { category = "general", severity = "warning", specialroute = "android" }
-  ANNOTATIONS {
-    summary = "One or more untriaged clusters.",
-    description = "At least one untriaged perf cluster has been found. Please visit https://{{ $labels.subdomain }}.skia.org/t/ to triage."
-  }
-
-ALERT AndroidMasterPerfUntriagedClusters
-  IF perf_clustering_untriaged{instance=~"skia-android-master-perf:20000"} > 0
-  LABELS { category = "general", severity = "warning", specialroute = "android-master" }
-  ANNOTATIONS {
-    summary = "One or more untriaged clusters.",
-    description = "At least one untriaged perf cluster has been found. Please visit https://{{ $labels.subdomain }}.skia.org/t/ to triage."
-  }
-
 ALERT AndroidIngestFailures
   IF rate(process_failures[1h]) > 0
   LABELS { category = "infra", severity = "critical" }
@@ -380,36 +356,6 @@ ALERT IssueTrackerLiveness
 
 # Autoroller
 
-ALERT SkiaAutoRoll
-  IF autoroll_last_roll_result{instance="skia-autoroll:20000"} == 0
-  FOR 10m
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    description = "The last DEPS roll attempt for Skia failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed"
-  }
-
-ALERT SkiaAutoRoll24H
-  IF liveness_last_autoroll_landed_s{instance="skia-autoroll:20000"}/60/60 > 24
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    description = "The last-landed AutoRoll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"
-  }
-
-ALERT Google3AutoRoll
-  IF autoroll_last_roll_result{instance="google3-autoroll:20000"} == 0
-  FOR 10m
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    description = "The last Google3 roll attempt for Skia failed. https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller"
-  }
-
-ALERT Google3AutoRoll24H
-  IF liveness_last_autoroll_landed_s{instance="google3-autoroll:20000"}/60/60 > 24
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    description = "The last-landed Google3 roll for Skia was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"
-  }
-
 ALERT InternalAutoRoll
   IF autoroll_last_roll_result{instance="skia-internal-autoroll:20000"} == 0
   FOR 10m
@@ -457,20 +403,6 @@ ALERT AutoRollLastTransition
   }
 
 # Gold
-
-ALERT GoldUntriaged
-  IF gold_status_by_corpus{type="untriaged",instance="skia-gold-prod:20001"} > 0
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    description = "At least one untriaged GM has been found. Please visit https://gold.skia.org/ to triage.",
-  }
-
-ALERT GoldExpiredIgnores
-  IF gold_num_expired_ignore_rules{instance="skia-gold-prod:20001"} > 0
-  LABELS { category = "general", severity = "warning" }
-  ANNOTATIONS {
-    description = "At least one expired ignore rule has been found. Please visit https://gold.skia.org/ignores to delete or extend.",
-  }
 
 ALERT GoldIgnoreMonitoring
   IF liveness_gold_expired_ignore_rules_monitoring_s{instance="skia-gold-prod:20001"} > 200
