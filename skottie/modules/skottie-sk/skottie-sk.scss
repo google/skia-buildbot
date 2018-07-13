@@ -1,3 +1,5 @@
+@import '~infra-sk/modules/colors';
+
 skottie-sk {
   display: block;
 
@@ -66,5 +68,15 @@ skottie-sk {
   .figures {
     display: flex;
     flex-flow: row wrap;
+  }
+
+  .download,
+  .download a {
+    display: inline-block;
+    color: $blue;
+  }
+
+  .download a {
+    margin-left: 0.6em;
   }
 }

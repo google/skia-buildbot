@@ -242,12 +242,19 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Write JSON file.
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
-	wr := srv.bucket.Object(path).NewWriter(ctx)
-	defer util.Close(wr)
+	obj := srv.bucket.Object(path)
+	wr := obj.NewWriter(ctx)
 	wr.ObjectAttrs.ContentEncoding = "application/json"
 	if _, err := wr.Write(b); err != nil {
 		httputils.ReportError(w, r, err, "Failed writing JSON to GCS.")
 		return
+	}
+	if err := wr.Close(); err != nil {
+		httputils.ReportError(w, r, err, "Failed writing JSON to GCS on close.")
+		return
+	}
+	if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		sklog.Errorf("Failed to make JSON public: %s", err)
 	}
 
 	// Write webm file.
