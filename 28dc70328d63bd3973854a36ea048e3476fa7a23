@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fa40b6b_0d6810b8",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-07-14T15:13:42Z",
+      "side": 1,
+      "message": "Is there a way that someone could use this to save arbitrary data into our bucket and have it be linkable?  Maybe we should add a size max, just in case?",
+      "revId": "28dc70328d63bd3973854a36ea048e3476fa7a23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
