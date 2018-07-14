@@ -16,6 +16,24 @@
       "revId": "28dc70328d63bd3973854a36ea048e3476fa7a23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16a26c68_7fa01370",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-14T15:38:44Z",
+      "side": 1,
+      "message": "It won\u0027t get stored unless is parses as valid JSON and renders as valid lottie, so I think the risk is minimal.",
+      "parentUuid": "2fa40b6b_0d6810b8",
+      "revId": "28dc70328d63bd3973854a36ea048e3476fa7a23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
