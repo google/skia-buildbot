@@ -118,3 +118,10 @@ func (a *AllowedFromChromeInfraAuth) Member(email string) bool {
 
 	return a.allowed.Member(email)
 }
+
+func (a *AllowedFromChromeInfraAuth) Emails() []string {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+
+	return a.allowed.Emails()
+}
