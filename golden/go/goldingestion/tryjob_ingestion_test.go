@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -28,7 +29,7 @@ const (
 // Tests the processor in conjunction with the vcs.
 func TestTryjobGoldProcessor(t *testing.T) {
 	testutils.LargeTest(t)
-	t.Skip()
+	// t.Skip()
 
 	cleanup := testutil.InitDatastore(t,
 		ds.ISSUE,
@@ -71,8 +72,11 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		Updated:       time.Unix(1512655545, 180550*int64(time.Microsecond)),
 	}
 
+	// Set up the TryjobStore.
 	eventBus := eventbus.New()
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
+	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, eventBus)
+	assert.NoError(t, err)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	assert.NoError(t, err)
 
 	// Map the path of the file to it's content
@@ -126,6 +130,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 
 	foundIssue, err := tryjobStore.GetIssue(testIssue.ID, false)
 	assert.NoError(t, err)
+	foundIssue.Updated = testIssue.Updated
 	assert.Equal(t, testIssue, foundIssue)
 
 	foundTryjob, err := tryjobStore.GetTryjob(testIssue.ID, testTryjob.BuildBucketID)
@@ -133,6 +138,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 
 	// At this point the tryjob should be marked ingested.
 	testTryjob.Status = tryjobstore.TRYJOB_INGESTED
+	foundTryjob.Key = nil
 	assert.Equal(t, testTryjob, foundTryjob)
 
 	// Write a tryjob result that doesn't upload and make sure the status is
