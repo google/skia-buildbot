@@ -307,6 +307,10 @@ func (c *CloudExpStore) UndoChange(changeID int64, userID string) (map[string]ty
 	return changes, err
 }
 
+func (c *CloudExpStore) Clear() error {
+	return nil
+}
+
 // PutExpectations writes the expectations directly to the datastore
 func (c *CloudExpStore) PutExpectations(exps map[string]types.TestClassification) error {
 	return c.updateCurrentExpectations(nil, exps, true, nil)

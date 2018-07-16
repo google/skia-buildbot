@@ -140,20 +140,15 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 }
 
 // CommitIssueBaseline commits the expectations for the given issue to the master baseline.
-func CommitIssueBaseline(issueID int64, user string, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
-	issueExp, err := tryjobStore.GetExpectations(issueID)
-	if err != nil {
-		return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
-	}
-
-	if len(issueExp.Tests) == 0 {
+func CommitIssueBaseline(issueID int64, user string, issueChanges map[string]types.TestClassification, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
+	if len(issueChanges) == 0 {
 		return nil
 	}
 
 	syntheticUser := fmt.Sprintf("%s:%d", user, issueID)
 
 	commitFn := func() error {
-		if err := expStore.AddChange(issueExp.Tests, syntheticUser); err != nil {
+		if err := expStore.AddChange(issueChanges, syntheticUser); err != nil {
 			return sklog.FmtErrorf("Unable to add expectations for issue %d: %s", issueID, err)
 		}
 		return nil
