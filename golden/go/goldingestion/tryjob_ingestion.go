@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/golden/go/expstorage"
+
 	"github.com/golang/glog"
 	gstorage "google.golang.org/api/storage/v1"
 
@@ -64,7 +66,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 	// Get the config options.
 	svcAccountFile := config.ExtraParams[CONFIG_SERVICE_ACCOUNT_FILE]
-	sklog.Infof("Got service accoutn file '%s'", svcAccountFile)
+	sklog.Infof("Got service account file '%s'", svcAccountFile)
 
 	pollInterval, err := parseDuration(config.ExtraParams[CONFIG_BUILD_BUCKET_POLL_INTERVAL], bbstate.DefaultPollInterval)
 	if err != nil {
@@ -91,8 +93,13 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	// bot uploads results. Currently only applies to the Skia repo.
 	cfgFile := config.ExtraParams[CONFIG_JOB_CFG_FILE]
 
+	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, eventBus)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Unable to create cloud expecations store: %s", err)
+	}
+
 	// Create the cloud tryjob store.
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, eventBus)
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
@@ -175,7 +182,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	// be picket up by BuildBucketState as they are added.
 	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
 		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
-			sklog.Errorf("Error fetching the issue and tryjob informaton: %s", err)
+			sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
 			return ingestion.IgnoreResultsFileErr
 		}
 	}
@@ -221,7 +228,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 
 // setTryjobToState is a utility function that updates the status of a tryjob
 // to the new status if the new status is a logical successor to the current status.
-// If tryjob is nil, issuID and tryjobID will be used to fetch the tryjob record.
+// If tryjob is nil, issueID and tryjobID will be used to fetch the tryjob record.
 func (g *goldTryjobProcessor) setTryjobToStatus(tryjob *tryjobstore.Tryjob, minStatus tryjobstore.TryjobStatus, newStatus tryjobstore.TryjobStatus) error {
 	return g.tryjobStore.UpdateTryjob(tryjob.BuildBucketID, nil, func(curr interface{}) interface{} {
 		tryjob := curr.(*tryjobstore.Tryjob)

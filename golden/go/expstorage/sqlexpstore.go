@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sklog"
@@ -170,7 +168,6 @@ func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) err
 
 // removeChange, see ExpectationsStore interface.
 func (s *SQLExpectationsStore) removeChange(changedDigests map[string]types.TestClassification) (retErr error) {
-	sklog.Infof("Removing: %s", spew.Sdump(changedDigests))
 	defer timer.New("removing exp change").Stop()
 
 	const markRemovedStmt = `UPDATE exp_test_change
@@ -379,6 +376,10 @@ func (s *SQLExpectationsStore) UndoChange(changeID int64, userID string) (map[st
 	return changes, s.AddChangeWithTimeStamp(changes, userID, changeID, util.TimeStampMs())
 }
 
+func (s *SQLExpectationsStore) Clear() error {
+	return nil
+}
+
 // Loads a single change entry with all details from the DB.
 func (s *SQLExpectationsStore) loadChangeEntry(changeID int64) (*TriageLogEntry, error) {
 	changeInfo, _, err := s.queryChanges(0, 5, changeID, true)
@@ -507,4 +508,8 @@ func (c *CachingExpectationStore) UndoChange(changeID int64, userID string) (map
 	// Fire an event that will trigger the addition to the cache.
 	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
 	return changedTests, nil
+}
+
+func (c *CachingExpectationStore) Clear() error {
+	return nil
 }
