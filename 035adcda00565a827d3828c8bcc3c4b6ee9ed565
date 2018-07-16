@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c383531_10327c1e",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T17:25:16Z",
+      "side": 1,
+      "message": ":(  We could maybe do something like have tasks derive their priority from the priorities of all the jobs which need them, rather than explicitly listing it.  I think that\u0027d be one way to accomplish https://bugs.chromium.org/p/skia/issues/detail?id\u003d8145",
+      "range": {
+        "startLine": 141,
+        "startChar": 1,
+        "endLine": 141,
+        "endChar": 26
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6275c971_c45afa70",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1373,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T17:25:16Z",
+      "side": 1,
+      "message": "Nit: 2.0*0.8 for clarity?",
+      "range": {
+        "startLine": 1373,
+        "startChar": 19,
+        "endLine": 1373,
+        "endChar": 22
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fc5304b_cc25d5f1",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1440,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T17:25:16Z",
+      "side": 1,
+      "message": "And here, and below?",
+      "range": {
+        "startLine": 1440,
+        "startChar": 17,
+        "endLine": 1440,
+        "endChar": 20
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a979009e_1c5e4a63",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T17:25:16Z",
+      "side": 1,
+      "message": "Thanks for figuring this out.  I might argue that in both cases it\u0027d be more intuitive if the second task had a priority of 0.5 - it would be nice if we could massage the math to make that the case.",
+      "range": {
+        "startLine": 222,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 72
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
