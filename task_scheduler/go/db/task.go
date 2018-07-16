@@ -33,7 +33,6 @@ const (
 	SWARMING_TAG_NAME             = "sk_name"
 	SWARMING_TAG_PARENT_TASK_ID   = "sk_parent_task_id"
 	SWARMING_TAG_PATCHSET         = "sk_patchset"
-	SWARMING_TAG_PRIORITY         = "sk_priority"
 	SWARMING_TAG_REPO             = "sk_repo"
 	SWARMING_TAG_RETRY_OF         = "sk_retry_of"
 	SWARMING_TAG_REVISION         = "sk_revision"
@@ -621,7 +620,7 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string, extraTags map[string]string) []string {
+func TagsForTask(name, id string, attempt int, rs RepoState, retryOf string, dimensions map[string]string, forcedJobId string, parentTaskIds []string, extraTags map[string]string) []string {
 	tags := util.CopyStringMap(extraTags)
 	if tags == nil {
 		tags = make(map[string]string, 16)
@@ -632,7 +631,6 @@ func TagsForTask(name, id string, attempt int, priority float64, rs RepoState, r
 	tags[SWARMING_TAG_ID] = id
 	tags[SWARMING_TAG_LUCI_PROJECT] = common.REPO_PROJECT_MAPPING[rs.Repo]
 	tags[SWARMING_TAG_MILO_HOST] = MILO_HOST
-	tags[SWARMING_TAG_PRIORITY] = fmt.Sprintf("%f", priority)
 	tags[SWARMING_TAG_REPO] = rs.Repo
 	tags[SWARMING_TAG_RETRY_OF] = retryOf
 	tags[SWARMING_TAG_REVISION] = rs.Revision

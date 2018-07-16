@@ -45,6 +45,9 @@ const (
 	// lower than tryjob tasks that haven't run yet.
 	CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER = 0.75
 
+	// If no job specifies a Priority, use this as the default.
+	CANDIDATE_SCORE_DEFAULT_PRIORITY = 0.5
+
 	// MAX_BLAMELIST_COMMITS is the maximum number of commits which are
 	// allowed in a task blamelist before we stop tracing commit history.
 	MAX_BLAMELIST_COMMITS = 500
@@ -431,19 +434,13 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
 					BuildbucketBuildId: j.BuildbucketBuildId,
-					JobCreated:         j.Created,
-					Jobs:               []string{},
+					Jobs:               jobSet(),
 					TaskKey:            key,
 					TaskSpec:           spec,
 				}
 				candidates[key] = c
 			}
-			c.Jobs = util.InsertStringSorted(c.Jobs, j.Id)
-			// Use the earliest JobCreated time, which will
-			// maximize priority for older try jobs.
-			if c.JobCreated.After(j.Created) {
-				c.JobCreated = j.Created
-			}
+			c.Jobs[j] = struct{}{}
 		}
 	}
 	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
@@ -546,12 +543,35 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
+	if len(c.Jobs) == 0 {
+		return fmt.Errorf("taskCandidate has no Jobs: %#v", c)
+	}
+
+	invPriorityProd := 1.0
+	for j := range c.Jobs {
+		if j.Priority <= 1 && j.Priority > 0 {
+			invPriorityProd *= 1 - j.Priority
+		} else {
+			invPriorityProd *= 1 - CANDIDATE_SCORE_DEFAULT_PRIORITY
+		}
+	}
+	priority := 1 - invPriorityProd
+
+	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
+	var earliestJob *db.Job
+	for j := range c.Jobs {
+		if earliestJob == nil || earliestJob.Created.After(j.Created) {
+			earliestJob = j
+		}
+	}
+
 	if c.IsTryJob() {
-		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
+		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(earliestJob.Created).Hours()
 		// Proritize each subsequent attempt lower than the previous attempt.
 		for i := 0; i < c.Attempt; i++ {
 			c.Score *= CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER
 		}
+		c.Score *= priority
 		return nil
 	}
 
@@ -586,7 +606,8 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	}
 
 	if c.IsForceRun() {
-		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(c.JobCreated).Hours()
+		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(earliestJob.Created).Hours()
+		c.Score *= priority
 		return nil
 	}
 
@@ -612,6 +633,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		return err
 	}
 	score *= decay
+	score *= priority
 
 	c.Score = score
 	return nil
