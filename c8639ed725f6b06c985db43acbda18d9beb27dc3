@@ -22,6 +22,30 @@
       "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3deef91d_499913c3",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-16T13:40:13Z",
+      "side": 1,
+      "message": "If we delete every time it reaches 0, we will never see 0 on Grafana, which is a little confusing.",
+      "parentUuid": "cf658a84_cd79c434",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 19
+      },
+      "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
