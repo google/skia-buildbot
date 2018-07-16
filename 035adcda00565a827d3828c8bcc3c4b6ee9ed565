@@ -91,6 +91,30 @@
       "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80ed7550_aeac851a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-16T17:58:14Z",
+      "side": 1,
+      "message": "The only way I can see to achieve that is to multiply the blamelist length by the priority before passing it to e.g. testedness, in which case we would have a floating-point blamelist length. If that sounds OK, I can make those changes.",
+      "parentUuid": "a979009e_1c5e4a63",
+      "range": {
+        "startLine": 222,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 72
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
