@@ -94,6 +94,30 @@
       "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7484847_b4a9d730",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T14:22:16Z",
+      "side": 1,
+      "message": "We just need to be aware that we will leak metrics as bot dimensions change.  I don\u0027t expect that to be a problem since the server restarts frequently enough.",
+      "parentUuid": "e25b6cfd_d1589750",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 19
+      },
+      "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
