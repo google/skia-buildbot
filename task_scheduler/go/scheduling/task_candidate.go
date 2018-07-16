@@ -267,7 +267,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
-		Priority:       int64(100.0 * c.TaskSpec.Priority),
+		Priority:       swarming.RECOMMENDED_PRIORITY,
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
 			Caches:               caches,
 			CipdInput:            cipdInput,
@@ -289,7 +289,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		PubsubUserdata: id,
 		ServiceAccount: c.TaskSpec.ServiceAccount,
-		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
+		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
 		User:           "skiabot@google.com",
 	}, nil
 }

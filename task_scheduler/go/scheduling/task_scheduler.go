@@ -546,12 +546,17 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
+	priority := c.TaskSpec.Priority
+	if priority <= 0 || priority > 1 {
+		priority = 1
+	}
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
 		// Proritize each subsequent attempt lower than the previous attempt.
 		for i := 0; i < c.Attempt; i++ {
 			c.Score *= CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER
 		}
+		c.Score *= priority
 		return nil
 	}
 
@@ -587,6 +592,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 
 	if c.IsForceRun() {
 		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(c.JobCreated).Hours()
+		c.Score *= priority
 		return nil
 	}
 
@@ -612,6 +618,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		return err
 	}
 	score *= decay
+	score *= priority
 
 	c.Score = score
 	return nil

@@ -138,7 +138,7 @@ type Job struct {
 	// should never change for a given Job instance.
 	Name string `json:"name"`
 
-	// Priority is an indicator of the relative priority of this Job.
+	// This field is ignored.
 	Priority float64 `json:"priority"`
 
 	// RepoState is the current state of the repository for this Job.
