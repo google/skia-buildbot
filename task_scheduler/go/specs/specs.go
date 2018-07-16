@@ -219,7 +219,7 @@ type TaskSpec struct {
 	// these is missing.
 	Outputs []string `json:"outputs,omitempty"`
 
-	// Priority indicates the relative priority of the task, with 0 < p <= 1
+	// This field is ignored.
 	Priority float64 `json:"priority"`
 
 	// ServiceAccount indicates the Swarming service account to use for the
@@ -324,6 +324,17 @@ type CipdPackage struct {
 // JobSpec is a struct which describes a set of TaskSpecs to run as part of a
 // larger effort.
 type JobSpec struct {
+	// Priority indicates the relative priority of the job, with 0 < p <= 1,
+	// where higher values result in scheduling the job's tasks sooner.
+	// Each task derives its priority from the set of jobs that depend upon
+	// it. A task's priority is
+	//   1 - (1-<job1 priority>)(1-<job2 priority>)...(1-<jobN priority>)
+	// A task at HEAD with a priority of 1 and a blamelist of 1 commit has
+	// approximately the same score as a task at HEAD with a priority of 0.57
+	// and a blamelist of 2 commits.
+	// A backfill task with a priority of 1 that bisects a blamelist of 2
+	// commits has the same score as another backfill task at the same
+	// commit with a priority of 0.4 that bisects a blamelist of 4 commits.
 	Priority  float64  `json:"priority"`
 	TaskSpecs []string `json:"tasks"`
 	Trigger   string   `json:"trigger,omitempty"`

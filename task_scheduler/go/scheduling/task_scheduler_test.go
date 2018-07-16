@@ -39,6 +39,8 @@ import (
 
 const (
 	fakeGerritUrl = "https://fake-skia-review.googlesource.com"
+
+	scoreDelta = 0.000001
 )
 
 var (
@@ -317,8 +319,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs1.Copy(),
 	}
 	tc1 := &taskCandidate{
-		JobCreated: now,
-		Jobs:       []string{j1.Id},
+		Jobs: jobSet(j1),
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      specs_testutils.BuildTask,
@@ -326,8 +327,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: ts[rs1][specs_testutils.BuildTask].Copy(),
 	}
 	tc2 := &taskCandidate{
-		JobCreated: now,
-		Jobs:       []string{j1.Id},
+		Jobs: jobSet(j1),
 		TaskKey: db.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      specs_testutils.TestTask,
@@ -359,8 +359,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs2,
 	}
 	tc3 := &taskCandidate{
-		JobCreated: now,
-		Jobs:       []string{"job2id", "job3id"},
+		Jobs: jobSet(j2, j3),
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.BuildTask,
@@ -368,8 +367,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: ts[rs2][specs_testutils.BuildTask].Copy(),
 	}
 	tc4 := &taskCandidate{
-		JobCreated: now,
-		Jobs:       []string{"job2id"},
+		Jobs: jobSet(j2),
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.TestTask,
@@ -377,8 +375,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: ts[rs2][specs_testutils.TestTask].Copy(),
 	}
 	tc5 := &taskCandidate{
-		JobCreated: now,
-		Jobs:       []string{"job3id"},
+		Jobs: jobSet(j3),
 		TaskKey: db.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      specs_testutils.PerfTask,
@@ -398,7 +395,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	delete(allCandidates, j3.MakeTaskKey(specs_testutils.PerfTask))
 	// This is hacky, but findTaskCandidatesForJobs accepts an already-
 	// filtered list of jobs, so we have to pretend it never existed.
-	tc3.Jobs = []string{j2.Id}
+	delete(tc3.Jobs, j3)
 	test([]*db.Job{j1, j2}, allCandidates)
 }
 
@@ -618,67 +615,80 @@ func TestProcessTaskCandidate(t *testing.T) {
 	now := time.Unix(0, 1470674884000000)
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 
-	// Try job candidates have a specific score and no blamelist.
+	tryjobRs := db.RepoState{
+		Patch: db.Patch{
+			Server:   "my-server",
+			Issue:    "my-issue",
+			Patchset: "my-patchset",
+		},
+		Repo:     gb.RepoUrl(),
+		Revision: c1,
+	}
+	tryjob := &db.Job{
+		Id:        "tryjobId",
+		Created:   now.Add(-1 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: tryjobRs,
+	}
 	c := &taskCandidate{
-		JobCreated: now.Add(-1 * time.Hour),
+		Jobs: jobSet(tryjob),
 		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
-				Patch: db.Patch{
-					Server:   "my-server",
-					Issue:    "my-issue",
-					Patchset: "my-patchset",
-				},
-				Repo:     gb.RepoUrl(),
-				Revision: c1,
-			},
+			RepoState: tryjobRs,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, CANDIDATE_SCORE_TRY_JOB+1.0, c.Score)
+	// Try job candidates have a specific score and no blamelist.
+	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
 
 	// Retries are scored lower.
 	c = &taskCandidate{
-		Attempt:    1,
-		JobCreated: now.Add(-1 * time.Hour),
+		Attempt: 1,
+		Jobs:    jobSet(tryjob),
 		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
-				Patch: db.Patch{
-					Server:   "my-server",
-					Issue:    "my-issue",
-					Patchset: "my-patchset",
-				},
-				Repo:     gb.RepoUrl(),
-				Revision: c1,
-			},
+			RepoState: tryjobRs,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score)
+	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
 
+	rs2 := db.RepoState{
+		Repo:     gb.RepoUrl(),
+		Revision: c2,
+	}
+	forcedJob := &db.Job{
+		Id:        "forcedJobId",
+		Created:   now.Add(-2 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: rs2,
+	}
 	// Manually forced candidates have a blamelist and a specific score.
 	c = &taskCandidate{
-		JobCreated: now.Add(-2 * time.Hour),
+		Jobs: jobSet(forcedJob),
 		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
-				Repo:     gb.RepoUrl(),
-				Revision: c2,
-			},
-			ForcedJobId: "my-job",
+			RepoState:   rs2,
+			ForcedJobId: forcedJob.Id,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, CANDIDATE_SCORE_FORCE_RUN+2.0, c.Score)
+	assert.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.5, c.Score, scoreDelta)
 	assert.Equal(t, 2, len(c.Commits))
 
 	// All other candidates have a blamelist and a time-decayed score.
+	regularJob := &db.Job{
+		Id:        "regularJobId",
+		Created:   now.Add(-1 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: rs2,
+	}
 	c = &taskCandidate{
+		Jobs: jobSet(regularJob),
 		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
-				Repo:     gb.RepoUrl(),
-				Revision: c2,
-			},
+			RepoState: rs2,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
@@ -692,11 +702,9 @@ func TestProcessTaskCandidate(t *testing.T) {
 	s.window, err = window.New(time.Nanosecond, 0, nil)
 	assert.NoError(t, err)
 	c = &taskCandidate{
+		Jobs: jobSet(regularJob),
 		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
-				Repo:     gb.RepoUrl(),
-				Revision: c2,
-			},
+			RepoState: rs2,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
@@ -714,36 +722,83 @@ func TestProcessTaskCandidates(t *testing.T) {
 
 	// Processing of individual candidates is already tested; just verify
 	// that if we pass in a bunch of candidates they all get processed.
+	// The JobSpecs do not specify priority, so they use the default of 0.5.
 	assertProcessed := func(c *taskCandidate) {
 		if c.IsTryJob() {
-			assert.True(t, c.Score > CANDIDATE_SCORE_TRY_JOB)
+			assert.True(t, c.Score > CANDIDATE_SCORE_TRY_JOB*0.5)
 			assert.Nil(t, c.Commits)
 		} else if c.IsForceRun() {
-			assert.True(t, c.Score > CANDIDATE_SCORE_FORCE_RUN)
+			assert.True(t, c.Score > CANDIDATE_SCORE_FORCE_RUN*0.5)
 			assert.Equal(t, 2, len(c.Commits))
 		} else if c.Revision == rs2.Revision {
 			if c.Name == specs_testutils.PerfTask {
-				assert.Equal(t, 2.0, c.Score)
+				assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 				assert.Equal(t, 1, len(c.Commits))
 			} else if c.Name == specs_testutils.BuildTask {
-				// Already covered by the forced job, but we don't steal scores.
-				assert.Equal(t, 3.5, c.Score)
+				// Already covered by the forced job, but we don't steal scores. There
+				// are two jobs that depend on the Build task, so priority is 1-0.5^2.
+				assert.InDelta(t, 3.5*0.75, c.Score, scoreDelta)
 				assert.Equal(t, 2, len(c.Commits))
 			} else {
-				assert.Equal(t, 3.5, c.Score)
+				assert.InDelta(t, 3.5*0.5, c.Score, scoreDelta)
 				assert.Equal(t, 2, len(c.Commits))
 			}
 		} else {
-			assert.Equal(t, 0.5, c.Score) // These will be backfills.
+			assert.InDelta(t, 0.5*0.5, c.Score, scoreDelta) // These will be backfills.
 			assert.Equal(t, 1, len(c.Commits))
 		}
+	}
+
+	testJob1 := &db.Job{
+		Id:        "testJob1",
+		Created:   ts,
+		Name:      specs_testutils.TestTask,
+		Priority:  0.5,
+		RepoState: rs1,
+	}
+	testJob2 := &db.Job{
+		Id:        "testJob2",
+		Created:   ts,
+		Name:      specs_testutils.TestTask,
+		Priority:  0.5,
+		RepoState: rs2,
+	}
+	perfJob2 := &db.Job{
+		Id:        "perfJob2",
+		Created:   ts,
+		Name:      specs_testutils.PerfTask,
+		Priority:  0.5,
+		RepoState: rs2,
+	}
+	forcedBuildJob2 := &db.Job{
+		Id:        "forcedBuildJob2",
+		Created:   ts,
+		Name:      specs_testutils.BuildTask,
+		Priority:  0.5,
+		RepoState: rs2,
+	}
+	tryjobRs := db.RepoState{
+		Patch: db.Patch{
+			Server:   "my-server",
+			Issue:    "my-issue",
+			Patchset: "my-patchset",
+		},
+		Repo:     gb.RepoUrl(),
+		Revision: rs1.Revision,
+	}
+	perfTryjob2 := &db.Job{
+		Id:        "perfJob2",
+		Created:   ts,
+		Name:      specs_testutils.PerfTask,
+		Priority:  0.5,
+		RepoState: tryjobRs,
 	}
 
 	candidates := map[string]map[string][]*taskCandidate{
 		gb.RepoUrl(): {
 			specs_testutils.BuildTask: {
 				{
-					JobCreated: ts,
+					Jobs: jobSet(testJob1),
 					TaskKey: db.TaskKey{
 						RepoState: rs1,
 						Name:      specs_testutils.BuildTask,
@@ -751,7 +806,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					JobCreated: ts,
+					Jobs: jobSet(testJob2, perfJob2),
 					TaskKey: db.TaskKey{
 						RepoState: rs2,
 						Name:      specs_testutils.BuildTask,
@@ -759,18 +814,18 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					JobCreated: ts,
+					Jobs: jobSet(forcedBuildJob2),
 					TaskKey: db.TaskKey{
 						RepoState:   rs2,
 						Name:        specs_testutils.BuildTask,
-						ForcedJobId: "my-job",
+						ForcedJobId: forcedBuildJob2.Id,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
 			},
 			specs_testutils.TestTask: {
 				{
-					JobCreated: ts,
+					Jobs: jobSet(testJob1),
 					TaskKey: db.TaskKey{
 						RepoState: rs1,
 						Name:      specs_testutils.TestTask,
@@ -778,7 +833,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					JobCreated: ts,
+					Jobs: jobSet(testJob2),
 					TaskKey: db.TaskKey{
 						RepoState: rs2,
 						Name:      specs_testutils.TestTask,
@@ -788,7 +843,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 			},
 			specs_testutils.PerfTask: {
 				{
-					JobCreated: ts,
+					Jobs: jobSet(perfJob2),
 					TaskKey: db.TaskKey{
 						RepoState: rs2,
 						Name:      specs_testutils.PerfTask,
@@ -796,18 +851,10 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					JobCreated: ts,
+					Jobs: jobSet(perfTryjob2),
 					TaskKey: db.TaskKey{
-						RepoState: db.RepoState{
-							Patch: db.Patch{
-								Server:   "my-server",
-								Issue:    "my-issue",
-								Patchset: "my-patchset",
-							},
-							Repo:     gb.RepoUrl(),
-							Revision: rs1.Revision,
-						},
-						Name: specs_testutils.PerfTask,
+						RepoState: tryjobRs,
+						Name:      specs_testutils.PerfTask,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
@@ -1332,15 +1379,18 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	testSort()
 
 	// Since we haven't run any task yet, we should have the two Build
-	// tasks. The one at HEAD should have a two-commit blamelist and a
-	// score of 3.5. The other should have one commit in its blamelist and
-	// a score of 0.5.
+	// tasks.
+	// The one at HEAD should have a two-commit blamelist and a
+	// score of 3.5, scaled by a priority of 0.875 due to three jobs
+	// depending on it (1 - 0.5^3).
 	assert.Equal(t, specs_testutils.BuildTask, queue[0].Name)
 	assert.Equal(t, []string{c2, c1}, queue[0].Commits)
-	assert.Equal(t, 3.5, queue[0].Score)
+	assert.InDelta(t, 3.5*0.875, queue[0].Score, scoreDelta)
+	// The other should have one commit in its blamelist and
+	// a score of 0.5, scaled by a priority of 0.75 due to two jobs.
 	assert.Equal(t, specs_testutils.BuildTask, queue[1].Name)
 	assert.Equal(t, []string{c1}, queue[1].Commits)
-	assert.Equal(t, 0.5, queue[1].Score)
+	assert.InDelta(t, 0.5*0.75, queue[1].Score, scoreDelta)
 
 	// Insert the task at c1, even though it scored lower.
 	t1 := makeTask(queue[1].Name, queue[1].Repo, queue[1].Revision)
@@ -1360,11 +1410,11 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	testSort()
 	for _, c := range queue {
 		if c.Name == specs_testutils.TestTask {
-			assert.Equal(t, 2.0, c.Score)
+			assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 			assert.Equal(t, 1, len(c.Commits))
 		} else {
 			assert.Equal(t, c.Name, specs_testutils.BuildTask)
-			assert.Equal(t, 2.0, c.Score)
+			assert.InDelta(t, 2.0*0.875, c.Score, scoreDelta)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		}
 	}
@@ -1397,15 +1447,15 @@ func TestRegenerateTaskQueue(t *testing.T) {
 		if c.Name == specs_testutils.PerfTask {
 			perfIdx = i
 			assert.Equal(t, c2, c.Revision)
-			assert.Equal(t, 2.0, c.Score)
+			assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		} else {
 			assert.Equal(t, c.Name, specs_testutils.TestTask)
 			if c.Revision == c2 {
-				assert.Equal(t, 3.5, c.Score)
+				assert.InDelta(t, 3.5*0.5, c.Score, scoreDelta)
 				assert.Equal(t, []string{c2, c1}, c.Commits)
 			} else {
-				assert.Equal(t, 0.5, c.Score)
+				assert.InDelta(t, 0.5*0.5, c.Score, scoreDelta)
 				assert.Equal(t, []string{c.Revision}, c.Commits)
 			}
 		}
@@ -1425,15 +1475,16 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
-	// Test task is a backfill, and should have a score of 0.5.
+	// Test task is a backfill, and should have a score of 0.5, scaled by
+	// the priority of 0.5.
 	assert.Equal(t, 2, len(queue))
 	testSort()
 	// First candidate should be the perf task.
 	assert.Equal(t, specs_testutils.PerfTask, queue[0].Name)
-	assert.Equal(t, 2.0, queue[0].Score)
+	assert.InDelta(t, 2.0*0.5, queue[0].Score, scoreDelta)
 	// The test task is next, a backfill.
 	assert.Equal(t, specs_testutils.TestTask, queue[1].Name)
-	assert.Equal(t, 0.5, queue[1].Score)
+	assert.InDelta(t, 0.5*0.5, queue[1].Score, scoreDelta)
 }
 
 func makeTaskCandidate(name string, dims []string) *taskCandidate {
@@ -3470,7 +3521,6 @@ func TestTriggerTaskFailed(t *testing.T) {
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
 			"sk_name:dummytask",
-			"sk_priority:1.000000",
 		}
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})

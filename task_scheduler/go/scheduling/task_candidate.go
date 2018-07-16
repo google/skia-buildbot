@@ -6,9 +6,9 @@ import (
 	"encoding/gob"
 	"fmt"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
@@ -19,36 +19,46 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
+func jobSet(jobs ...*db.Job) map[*db.Job]struct{} {
+	rv := make(map[*db.Job]struct{}, len(jobs))
+	for _, j := range jobs {
+		rv[j] = struct{}{}
+	}
+	return rv
+}
+
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Attempt int `json:"attempt"`
 	// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 	// could be inherited from any matching Job. Therefore, this should be
 	// used for non-critical, informational purposes only.
-	BuildbucketBuildId int64     `json:"buildbucketBuildId"`
-	Commits            []string  `json:"commits"`
-	IsolatedInput      string    `json:"isolatedInput"`
-	IsolatedHashes     []string  `json:"isolatedHashes"`
-	JobCreated         time.Time `json:"jobCreated"`
-	Jobs               []string  `json:"jobs"`
-	ParentTaskIds      []string  `json:"parentTaskIds"`
-	RetryOf            string    `json:"retryOf"`
-	Score              float64   `json:"score"`
-	StealingFromId     string    `json:"stealingFromId"`
+	BuildbucketBuildId int64                `json:"buildbucketBuildId"`
+	Commits            []string             `json:"commits"`
+	IsolatedInput      string               `json:"isolatedInput"`
+	IsolatedHashes     []string             `json:"isolatedHashes"`
+	Jobs               map[*db.Job]struct{} `json:"jobs"`
+	ParentTaskIds      []string             `json:"parentTaskIds"`
+	RetryOf            string               `json:"retryOf"`
+	Score              float64              `json:"score"`
+	StealingFromId     string               `json:"stealingFromId"`
 	db.TaskKey
 	TaskSpec *specs.TaskSpec `json:"taskSpec"`
 }
 
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
+	jobs := make(map[*db.Job]struct{}, len(c.Jobs))
+	for j, _ := range c.Jobs {
+		jobs[j] = struct{}{}
+	}
 	return &taskCandidate{
 		Attempt:            c.Attempt,
 		BuildbucketBuildId: c.BuildbucketBuildId,
 		Commits:            util.CopyStringSlice(c.Commits),
 		IsolatedInput:      c.IsolatedInput,
 		IsolatedHashes:     util.CopyStringSlice(c.IsolatedHashes),
-		JobCreated:         c.JobCreated,
-		Jobs:               util.CopyStringSlice(c.Jobs),
+		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,
 		Score:              c.Score,
@@ -92,8 +102,11 @@ func parseId(id string) (db.TaskKey, error) {
 func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
-	jobs := make([]string, len(c.Jobs))
-	copy(jobs, c.Jobs)
+	jobs := make([]string, 0, len(c.Jobs))
+	for j := range c.Jobs {
+		jobs = append(jobs, j.Id)
+	}
+	sort.Strings(jobs)
 	parentTaskIds := make([]string, len(c.ParentTaskIds))
 	copy(parentTaskIds, c.ParentTaskIds)
 	maxAttempts := c.TaskSpec.MaxAttempts
@@ -267,7 +280,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: expirationSecs,
 		Name:           c.Name,
-		Priority:       int64(100.0 * c.TaskSpec.Priority),
+		Priority:       swarming.RECOMMENDED_PRIORITY,
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
 			Caches:               caches,
 			CipdInput:            cipdInput,
@@ -289,7 +302,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		PubsubUserdata: id,
 		ServiceAccount: c.TaskSpec.ServiceAccount,
-		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.TaskSpec.Priority, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
+		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
 		User:           "skiabot@google.com",
 	}, nil
 }
