@@ -70,6 +70,30 @@
       "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e25b6cfd_d1589750",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-16T14:14:52Z",
+      "side": 1,
+      "message": "Yeah, AFAICT, we never query for all bots in task scheduler. We do in datahopper, but the point of this metric is \"Which bots does task scheduler think are available?\" so I don\u0027t think metrics in datahopper would be as useful.",
+      "parentUuid": "0db6344a_4baeb502",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 19
+      },
+      "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
