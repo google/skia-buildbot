@@ -46,6 +46,30 @@
       "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0db6344a_4baeb502",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T13:42:45Z",
+      "side": 1,
+      "message": "Oh, I wasn\u0027t thinking about the fact that we\u0027re only seeing the free bots here.  If we had all of them, it would make sense to delete dimension sets for which we no longer have bots.  But as it is, we can\u0027t tell the difference between \"no bots exist for this dimension set\" and \"no bots are free with this dimension set\".",
+      "parentUuid": "3deef91d_499913c3",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 19
+      },
+      "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
