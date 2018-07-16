@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9321c59b_90480181",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-16T19:31:05Z",
+      "side": 1,
+      "message": "Working on this in another CL.",
+      "parentUuid": "4c383531_10327c1e",
+      "range": {
+        "startLine": 141,
+        "startChar": 1,
+        "endLine": 141,
+        "endChar": 26
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6275c971_c45afa70",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "b1d6a5b5_e38f644f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1373,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-16T19:31:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6275c971_c45afa70",
+      "range": {
+        "startLine": 1373,
+        "startChar": 19,
+        "endLine": 1373,
+        "endChar": 22
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3fc5304b_cc25d5f1",
         "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
         "patchSetId": 2
@@ -68,6 +116,30 @@
       "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dda8d80_71ef40e9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1440,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-16T19:31:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3fc5304b_cc25d5f1",
+      "range": {
+        "startLine": 1440,
+        "startChar": 17,
+        "endLine": 1440,
+        "endChar": 20
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
