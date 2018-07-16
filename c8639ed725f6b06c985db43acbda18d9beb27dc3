@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf658a84_cd79c434",
+        "filename": "task_scheduler/go/scheduling/busy_bots.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-16T12:37:04Z",
+      "side": 1,
+      "message": "Nit: Why not delete?",
+      "range": {
+        "startLine": 113,
+        "startChar": 3,
+        "endLine": 113,
+        "endChar": 19
+      },
+      "revId": "c8639ed725f6b06c985db43acbda18d9beb27dc3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
