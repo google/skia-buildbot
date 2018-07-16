@@ -39,6 +39,8 @@ import (
 
 const (
 	fakeGerritUrl = "https://fake-skia-review.googlesource.com"
+
+	scoreDelta = 0.000001
 )
 
 var (
@@ -632,9 +634,12 @@ func TestProcessTaskCandidate(t *testing.T) {
 				Revision: c1,
 			},
 		},
+		TaskSpec: &specs.TaskSpec{
+			Priority: 0.25,
+		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, CANDIDATE_SCORE_TRY_JOB+1.0, c.Score)
+	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.25, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
 
 	// Retries are scored lower.
@@ -652,9 +657,12 @@ func TestProcessTaskCandidate(t *testing.T) {
 				Revision: c1,
 			},
 		},
+		TaskSpec: &specs.TaskSpec{
+			Priority: 0.25,
+		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score)
+	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER*0.25, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
 
 	// Manually forced candidates have a blamelist and a specific score.
@@ -667,9 +675,12 @@ func TestProcessTaskCandidate(t *testing.T) {
 			},
 			ForcedJobId: "my-job",
 		},
+		TaskSpec: &specs.TaskSpec{
+			Priority: 0.25,
+		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
-	assert.Equal(t, CANDIDATE_SCORE_FORCE_RUN+2.0, c.Score)
+	assert.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.25, c.Score, scoreDelta)
 	assert.Equal(t, 2, len(c.Commits))
 
 	// All other candidates have a blamelist and a time-decayed score.
@@ -679,6 +690,9 @@ func TestProcessTaskCandidate(t *testing.T) {
 				Repo:     gb.RepoUrl(),
 				Revision: c2,
 			},
+		},
+		TaskSpec: &specs.TaskSpec{
+			Priority: 0.25,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
@@ -697,6 +711,9 @@ func TestProcessTaskCandidate(t *testing.T) {
 				Repo:     gb.RepoUrl(),
 				Revision: c2,
 			},
+		},
+		TaskSpec: &specs.TaskSpec{
+			Priority: 0.25,
 		},
 	}
 	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
@@ -723,18 +740,18 @@ func TestProcessTaskCandidates(t *testing.T) {
 			assert.Equal(t, 2, len(c.Commits))
 		} else if c.Revision == rs2.Revision {
 			if c.Name == specs_testutils.PerfTask {
-				assert.Equal(t, 2.0, c.Score)
+				assert.InDelta(t, 2.0, c.Score, scoreDelta)
 				assert.Equal(t, 1, len(c.Commits))
 			} else if c.Name == specs_testutils.BuildTask {
 				// Already covered by the forced job, but we don't steal scores.
-				assert.Equal(t, 3.5, c.Score)
+				assert.InDelta(t, 3.5, c.Score, scoreDelta)
 				assert.Equal(t, 2, len(c.Commits))
 			} else {
-				assert.Equal(t, 3.5, c.Score)
+				assert.InDelta(t, 3.5, c.Score, scoreDelta)
 				assert.Equal(t, 2, len(c.Commits))
 			}
 		} else {
-			assert.Equal(t, 0.5, c.Score) // These will be backfills.
+			assert.InDelta(t, 0.5, c.Score, scoreDelta) // These will be backfills.
 			assert.Equal(t, 1, len(c.Commits))
 		}
 	}
@@ -1334,13 +1351,13 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// Since we haven't run any task yet, we should have the two Build
 	// tasks. The one at HEAD should have a two-commit blamelist and a
 	// score of 3.5. The other should have one commit in its blamelist and
-	// a score of 0.5.
+	// a score of 0.5. Both scores are scaled by the priority, 0.8.
 	assert.Equal(t, specs_testutils.BuildTask, queue[0].Name)
 	assert.Equal(t, []string{c2, c1}, queue[0].Commits)
-	assert.Equal(t, 3.5, queue[0].Score)
+	assert.InDelta(t, 3.5*0.8, queue[0].Score, scoreDelta)
 	assert.Equal(t, specs_testutils.BuildTask, queue[1].Name)
 	assert.Equal(t, []string{c1}, queue[1].Commits)
-	assert.Equal(t, 0.5, queue[1].Score)
+	assert.InDelta(t, 0.5*0.8, queue[1].Score, scoreDelta)
 
 	// Insert the task at c1, even though it scored lower.
 	t1 := makeTask(queue[1].Name, queue[1].Repo, queue[1].Revision)
@@ -1360,11 +1377,11 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	testSort()
 	for _, c := range queue {
 		if c.Name == specs_testutils.TestTask {
-			assert.Equal(t, 2.0, c.Score)
+			assert.InDelta(t, 2.0*0.8, c.Score, scoreDelta)
 			assert.Equal(t, 1, len(c.Commits))
 		} else {
 			assert.Equal(t, c.Name, specs_testutils.BuildTask)
-			assert.Equal(t, 2.0, c.Score)
+			assert.InDelta(t, 2.0*0.8, c.Score, scoreDelta)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		}
 	}
@@ -1397,15 +1414,15 @@ func TestRegenerateTaskQueue(t *testing.T) {
 		if c.Name == specs_testutils.PerfTask {
 			perfIdx = i
 			assert.Equal(t, c2, c.Revision)
-			assert.Equal(t, 2.0, c.Score)
+			assert.InDelta(t, 2.0*0.8, c.Score, scoreDelta)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		} else {
 			assert.Equal(t, c.Name, specs_testutils.TestTask)
 			if c.Revision == c2 {
-				assert.Equal(t, 3.5, c.Score)
+				assert.InDelta(t, 3.5*0.8, c.Score, scoreDelta)
 				assert.Equal(t, []string{c2, c1}, c.Commits)
 			} else {
-				assert.Equal(t, 0.5, c.Score)
+				assert.InDelta(t, 0.5*0.8, c.Score, scoreDelta)
 				assert.Equal(t, []string{c.Revision}, c.Commits)
 			}
 		}
@@ -1425,15 +1442,16 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
-	// Test task is a backfill, and should have a score of 0.5.
+	// Test task is a backfill, and should have a score of 0.5, scaled by
+	// the priority of 0.8.
 	assert.Equal(t, 2, len(queue))
 	testSort()
 	// First candidate should be the perf task.
 	assert.Equal(t, specs_testutils.PerfTask, queue[0].Name)
-	assert.Equal(t, 2.0, queue[0].Score)
+	assert.InDelta(t, 2.0*0.8, queue[0].Score, scoreDelta)
 	// The test task is next, a backfill.
 	assert.Equal(t, specs_testutils.TestTask, queue[1].Name)
-	assert.Equal(t, 0.5, queue[1].Score)
+	assert.InDelta(t, 0.5*0.8, queue[1].Score, scoreDelta)
 }
 
 func makeTaskCandidate(name string, dims []string) *taskCandidate {
@@ -3470,7 +3488,6 @@ func TestTriggerTaskFailed(t *testing.T) {
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
 			"sk_name:dummytask",
-			"sk_priority:1.000000",
 		}
 	}
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
