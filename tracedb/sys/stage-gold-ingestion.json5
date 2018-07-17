@@ -1,6 +1,7 @@
 {
   GitRepoDir: "/mnt/pd0/stage-gold-ingestion/repo", // Directory location for the Skia repo.
   GitRepoURL: "https://skia.googlesource.com/skia", // URL location for the repo.
+  EventTopic: "gold-stage-eventbus",
 
   Ingesters: {
     // Gold Tryjob Ingester for gold-stage.

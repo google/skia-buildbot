@@ -4,6 +4,7 @@
   SecondaryRepoURL: "https://skia.googlesource.com/internal_test",
   SecondaryRepoDir: "/mnt/pd0/skia-gold-ingestion/internal_test_repo",
   SecondaryRegEx: "^.*'skia_revision'.*:.*'([0-9a-f]+)'.*$",
+  EventTopic: "gold-prod-eventbus",
 
   Ingesters: {
     // Gold ingester

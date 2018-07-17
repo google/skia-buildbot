@@ -15,7 +15,7 @@ ExecStart=/usr/local/bin/skiacorrectness-stage  \
     --diff_server_grpc=skia-diffserver-stage:8000 \
     --diff_server_http=skia-diffserver-stage:8001 \
     --ds_namespace=gold-skia-stage \
-    --event_topic=testing-gold-stage-eventbus \
+    --event_topic=gold-stage-eventbus \
     --force_login \
     --git_repo_dir=${DATA_DIR}/gold/skia \
     --hashes_gs_path=skia-infra-gm/hash_files/gold-stage-hashes.txt \
