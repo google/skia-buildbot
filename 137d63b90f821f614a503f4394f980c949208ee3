@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1fc572f2_6e0f7ff1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T14:08:49Z",
+      "side": 1,
+      "message": "Nit: I think we can save some space if we add \"omitempty\" here and remove task priorities from our repos.",
+      "range": {
+        "startLine": 226,
+        "startChar": 0,
+        "endLine": 226,
+        "endChar": 35
+      },
+      "revId": "137d63b90f821f614a503f4394f980c949208ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e9c98e0b_f1725ef6",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 3
@@ -13,6 +36,30 @@
       "writtenOn": "2018-07-17T14:00:30Z",
       "side": 1,
       "message": "Added doc in PS3.",
+      "range": {
+        "startLine": 343,
+        "startChar": 0,
+        "endLine": 346,
+        "endChar": 42
+      },
+      "revId": "137d63b90f821f614a503f4394f980c949208ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2e414e8_fcdd943b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T14:08:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e9c98e0b_f1725ef6",
       "range": {
         "startLine": 343,
         "startChar": 0,

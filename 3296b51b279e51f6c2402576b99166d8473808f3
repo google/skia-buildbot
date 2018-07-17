@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e6ff37bb_0e2017dc",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T14:08:49Z",
+      "side": 0,
+      "message": "I don\u0027t think we actually want this, but it strikes me that we currently have no way to determine what the priority of a task was when it was triggered.  It might be useful to leave this around temporarily for debugging.  Or we can add it back if we think we need it.",
+      "range": {
+        "startLine": 635,
+        "startChar": 1,
+        "endLine": 635,
+        "endChar": 58
+      },
+      "revId": "3296b51b279e51f6c2402576b99166d8473808f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
