@@ -161,7 +161,7 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range rm.PreUploadSteps() {
+	for _, s := range rm.preUploadSteps {
 		if err := s(ctx, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}

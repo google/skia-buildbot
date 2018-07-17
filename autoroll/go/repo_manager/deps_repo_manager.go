@@ -281,7 +281,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Run the pre-upload steps.
-	for _, s := range dr.PreUploadSteps() {
+	for _, s := range dr.preUploadSteps {
 		if err := s(ctx, dr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}

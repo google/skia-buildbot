@@ -170,7 +170,6 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Nil(t, rm.PreUploadSteps())
 	assert.Equal(t, 0, rm.CommitsNotRolled())
 
 	// There's a new version.

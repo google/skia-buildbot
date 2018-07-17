@@ -180,11 +180,6 @@ func (rm *afdoRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 }
 
 // See documentation for RepoManager interface.
-func (rm *afdoRepoManager) PreUploadSteps() []PreUploadStep {
-	return nil
-}
-
-// See documentation for RepoManager interface.
 func (rm *afdoRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	rm.repoMtx.Lock()

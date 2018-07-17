@@ -58,10 +58,6 @@ type RepoManager interface {
 	// Return the next child revision to be rolled.
 	NextRollRev() string
 
-	// PreUploadSteps returns a slice of functions which should be run after the
-	// roll is performed but before a CL is uploaded for it.
-	PreUploadSteps() []PreUploadStep
-
 	// Return true iff the roller has rolled up through or past the given
 	// commit.
 	RolledPast(context.Context, string) (bool, error)
@@ -237,11 +233,6 @@ func (r *commonRepoManager) NextRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
 	return r.nextRollRev
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
-	return r.preUploadSteps
 }
 
 // See documentation for RepoManager interface.

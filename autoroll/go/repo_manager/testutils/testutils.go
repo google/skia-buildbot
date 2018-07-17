@@ -253,10 +253,6 @@ func (r *MockRepoManager) User() string {
 	return "test_user"
 }
 
-func (r *MockRepoManager) PreUploadSteps() []repo_manager.PreUploadStep {
-	return nil
-}
-
 func (r *MockRepoManager) CommitsNotRolled() int {
 	return -1
 }

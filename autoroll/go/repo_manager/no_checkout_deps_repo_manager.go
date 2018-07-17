@@ -76,7 +76,7 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 		return errors.New("ParentRepo is required.")
 	}
 	for _, s := range c.PreUploadSteps {
-		if _, err := GetPreUploadStep(s); err != nil {
+		if _, err := GetNoCheckoutPreUploadStep(s); err != nil {
 			return err
 		}
 	}
@@ -84,32 +84,32 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 }
 
 type noCheckoutDEPSRepoManager struct {
-	baseCommit          string
-	childBranch         string
-	childPath           string
-	childRepo           *gitiles.Repo
-	childRepoUrl        string
-	commitsNotRolled    int
-	depotTools          string
-	g                   gerrit.GerritInterface
-	gclient             string
-	gerritProject       string
-	includeBugs         bool
-	includeLog          bool
-	infoMtx             sync.RWMutex
-	lastRollRev         string
-	nextRollCommits     []*vcsinfo.LongCommit
-	nextRollDEPSContent []byte
-	nextRollRev         string
-	parentBranch        string
-	parentRepo          *gitiles.Repo
-	parentRepoUrl       string
-	preUploadSteps      []PreUploadStep
-	serverURL           string
-	strategy            strategy.NextRollStrategy
-	strategyMtx         sync.RWMutex
-	user                string
-	workdir             string
+	baseCommit       string
+	childBranch      string
+	childPath        string
+	childRepo        *gitiles.Repo
+	childRepoUrl     string
+	commitsNotRolled int
+	depotTools       string
+	g                gerrit.GerritInterface
+	gclient          string
+	gerritProject    string
+	includeBugs      bool
+	includeLog       bool
+	infoMtx          sync.RWMutex
+	lastRollRev      string
+	nextRollCommits  []*vcsinfo.LongCommit
+	nextRollContents map[string]string
+	nextRollRev      string
+	parentBranch     string
+	parentRepo       *gitiles.Repo
+	parentRepoUrl    string
+	preUploadSteps   []NoCheckoutPreUploadStep
+	serverURL        string
+	strategy         strategy.NextRollStrategy
+	strategyMtx      sync.RWMutex
+	user             string
+	workdir          string
 }
 
 // newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
@@ -122,7 +122,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
+	preUploadSteps, err := GetNoCheckoutPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
 		return nil, err
 	}
@@ -207,8 +207,10 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 
 	// Create the change.
 	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		if err := g.EditFile(ci, "DEPS", string(rm.nextRollDEPSContent)); err != nil {
-			return fmt.Errorf("Failed to edit DEPS file: %s", err)
+		for filepath, contents := range rm.nextRollContents {
+			if err := g.EditFile(ci, filepath, contents); err != nil {
+				return fmt.Errorf("Failed to edit %s file: %s", filepath, err)
+			}
 		}
 		return nil
 	})
@@ -258,11 +260,6 @@ func (rm *noCheckoutDEPSRepoManager) NextRollRev() string {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 	return rm.nextRollRev
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) PreUploadSteps() []PreUploadStep {
-	return rm.preUploadSteps
 }
 
 // See documentation for RepoManager interface.
@@ -382,6 +379,20 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	nextRollContents := map[string]string{
+		"DEPS": string(newDEPSContent),
+	}
+	for _, fn := range rm.preUploadSteps {
+		// TODO(borenet): It's possible that some of these may interfere
+		// with each other.
+		changes, err := fn(ctx, rm.childRepo, nextRollRev, rm.parentRepo, baseCommit.Hash)
+		if err != nil {
+			return fmt.Errorf("Failed pre-upload step: %s", err)
+		}
+		for filepath, contents := range changes {
+			nextRollContents[filepath] = contents
+		}
+	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
@@ -390,7 +401,7 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	rm.nextRollRev = nextRollRev
 	rm.commitsNotRolled = notRolledCount
 	rm.nextRollCommits = nextRollCommits
-	rm.nextRollDEPSContent = newDEPSContent
+	rm.nextRollContents = nextRollContents
 	return nil
 }
 

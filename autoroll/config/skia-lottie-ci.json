@@ -19,6 +19,7 @@
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+    "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
+    "preUploadSteps": ["RollRecipes"]
   }
 }

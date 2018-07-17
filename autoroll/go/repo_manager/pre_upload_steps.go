@@ -5,7 +5,9 @@ package repo_manager
 */
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -13,8 +15,14 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/go_install"
 	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	recipesCfgPath = "infra/config/recipes.cfg"
+	recipesPyPath  = "infra/bots/recipes.py"
 )
 
 // PreUploadStep is a function to be run after the roll is performed but before
@@ -154,4 +162,121 @@ func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 
 	sklog.Info("Done running flutter license scripts.")
 	return nil
+}
+
+// NoCheckoutPreUploadStep is a function to be run to modify the roll,
+// specifically designed for rollers which do not use local checkouts.
+//
+// Arguments are:
+//   - Context
+//   - gitiles.Repo instance for the child repo.
+//   - Child repo commit we're rolling to.
+//   - gitiles.Repo instance for the parent repo.
+//   - Current parent repo commit.
+// Return value is a map of file path to new file content.
+type NoCheckoutPreUploadStep func(context.Context, *gitiles.Repo, string, *gitiles.Repo, string) (map[string]string, error)
+
+// Return the NoCheckoutPreUploadStep with the given name.
+func GetNoCheckoutPreUploadStep(s string) (NoCheckoutPreUploadStep, error) {
+	rv, ok := map[string]NoCheckoutPreUploadStep{
+		"RollRecipes": RollRecipes,
+	}[s]
+	if !ok {
+		return nil, fmt.Errorf("No such pre-upload step: %s", s)
+	}
+	return rv, nil
+}
+
+// Return the NoCheckoutPreUploadSteps with the given names.
+func GetNoCheckoutPreUploadSteps(steps []string) ([]NoCheckoutPreUploadStep, error) {
+	rv := make([]NoCheckoutPreUploadStep, 0, len(steps))
+	for _, s := range steps {
+		step, err := GetNoCheckoutPreUploadStep(s)
+		if err != nil {
+			return nil, err
+		}
+		rv = append(rv, step)
+	}
+	return rv, nil
+}
+
+// TODO(borenet): Is there an upstream from which we could obtain this format?
+type recipesCfg struct {
+	ApiVersion            int                   `json:"api_version"`
+	AutorollRecipeOptions autorollRecipeOptions `json:"autoroll_recipe_options"`
+	Deps                  map[string]*recipeDep `json:"deps"`
+	ProjectId             string                `json:"project_id"`
+	RecipesPath           string                `json:"recipes_path"`
+}
+
+type autorollRecipeOptions struct {
+	Nontrivial autorollRecipeOption `json:"nontrivial"`
+	Trivial    autorollRecipeOption `json:"trivial"`
+}
+
+type autorollRecipeOption struct {
+	AutomaticCommit       *bool    `json:"automatic_commit,omitempty"`
+	AutomaticCommitDryRun *bool    `json:"automatic_commit_dry_run,omitempty"`
+	TbrEmails             []string `json:"tbr_emails,omitempty"`
+}
+
+type recipeDep struct {
+	Branch   string `json:"branch"`
+	Revision string `json:"revision"`
+	Url      string `json:"url"`
+}
+
+// Parse the recipes.cfg file content and return a map of dependency URL to
+// commit hash.
+func getRecipesCfg(repo *gitiles.Repo, ref string) (*recipesCfg, error) {
+	var buf bytes.Buffer
+	if err := repo.ReadFileAtRef(recipesCfgPath, ref, &buf); err != nil {
+		return nil, err
+	}
+	cfg := new(recipesCfg)
+	if err := json.NewDecoder(&buf).Decode(cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// RollRecipes rolls recipe dependencies to make the parent repo deps match the
+// child's.
+func RollRecipes(_ context.Context, childRepo *gitiles.Repo, childCommit string, parentRepo *gitiles.Repo, parentCommit string) (map[string]string, error) {
+	parentRecipesCfg, err := getRecipesCfg(parentRepo, parentCommit)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load recipes.cfg from parent: %s", err)
+	}
+	childRecipesCfg, err := getRecipesCfg(childRepo, childCommit)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load recipes.cfg from child: %s", err)
+	}
+	// Overwrite parent DEPS with those from the child.
+	for name, dep := range childRecipesCfg.Deps {
+		parentRecipesCfg.Deps[name] = dep
+	}
+	// Special case: if the child repo is in the dependency list, update its
+	// revision to match the next roll rev.
+	for name, dep := range parentRecipesCfg.Deps {
+		if dep.Url == childRepo.URL {
+			dep.Revision = childCommit
+			break
+		}
+	}
+	newRecipesCfgContents, err := json.MarshalIndent(parentRecipesCfg, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("Failed to write recipes.cfg JSON: %s", err)
+	}
+
+	// Also copy recipes.py.
+	var buf bytes.Buffer
+	if err := childRepo.ReadFileAtRef(recipesPyPath, childCommit, &buf); err != nil {
+		return nil, fmt.Errorf("Failed to read recipes.py: %s", err)
+	}
+	newRecipesPyContents := buf.String()
+
+	return map[string]string{
+		recipesCfgPath: string(newRecipesCfgContents),
+		recipesPyPath:  string(newRecipesPyContents),
+	}, nil
 }

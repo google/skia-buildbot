@@ -115,7 +115,6 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, fuchsiaSDKRevBase)
 	assert.NoError(t, err)
 	assert.True(t, rolledPast)
-	assert.Empty(t, rm.PreUploadSteps())
 	assert.Equal(t, 0, rm.CommitsNotRolled())
 
 	// There's a new version.
