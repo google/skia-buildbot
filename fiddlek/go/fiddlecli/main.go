@@ -30,12 +30,13 @@ const (
 
 // flags
 var (
-	domain = flag.String("domain", "https://fiddle.skia.org", "Where to send the JSON request.")
-	input  = flag.String("input", "", "The name of the file to read the JSON from.")
-	output = flag.String("output", "", "The name of the file to write the JSON results to.")
-	procs  = flag.Int("procs", 4, "The number of parallel requests to make to the fiddle server.")
-	quiet  = flag.Bool("quiet", false, "Run without a progress bar.")
-	force  = flag.Bool("force", false, "Force a compile and run for each fiddle, don't take the fast path.")
+	domain   = flag.String("domain", "https://fiddle.skia.org", "Where to send the JSON request.")
+	failFast = flag.Bool("fail_fast", false, "If true then exit with error on first send failure.")
+	force    = flag.Bool("force", false, "Force a compile and run for each fiddle, don't take the fast path.")
+	input    = flag.String("input", "", "The name of the file to read the JSON from.")
+	output   = flag.String("output", "", "The name of the file to write the JSON results to.")
+	procs    = flag.Int("procs", 4, "The number of parallel requests to make to the fiddle server.")
+	quiet    = flag.Bool("quiet", false, "Run without a progress bar.")
 )
 
 // chanRequest is sent to each worker in the pool.
@@ -55,6 +56,9 @@ func singleRequest(c *http.Client, body []byte, domain string) (*types.RunResult
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
+		if *failFast {
+			sklog.Fatalf("Send failed, with fail_fast set: %s", resp.Status)
+		}
 		sklog.Infof("Send failed: %s", resp.Status)
 		time.Sleep(sleep)
 		return nil, false
