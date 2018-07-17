@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9c98e0b_f1725ef6",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-17T14:00:30Z",
+      "side": 1,
+      "message": "Added doc in PS3.",
+      "range": {
+        "startLine": 343,
+        "startChar": 0,
+        "endLine": 346,
+        "endChar": 42
+      },
+      "revId": "137d63b90f821f614a503f4394f980c949208ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
