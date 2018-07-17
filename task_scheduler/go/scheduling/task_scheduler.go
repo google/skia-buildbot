@@ -431,19 +431,13 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
 					BuildbucketBuildId: j.BuildbucketBuildId,
-					JobCreated:         j.Created,
-					Jobs:               []string{},
+					Jobs:               jobSet(),
 					TaskKey:            key,
 					TaskSpec:           spec,
 				}
 				candidates[key] = c
 			}
-			c.Jobs = util.InsertStringSorted(c.Jobs, j.Id)
-			// Use the earliest JobCreated time, which will
-			// maximize priority for older try jobs.
-			if c.JobCreated.After(j.Created) {
-				c.JobCreated = j.Created
-			}
+			c.Jobs[j] = struct{}{}
 		}
 	}
 	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
@@ -546,12 +540,39 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
+	if len(c.Jobs) == 0 {
+		// Log an error and return to allow scheduling other tasks.
+		sklog.Errorf("taskCandidate has no Jobs: %#v", c)
+		c.Score = 0
+		return nil
+	}
+
+	// Formula for priority is 1 - (1-<job1 priority>)(1-<job2 priority>)...(1-<jobN priority>).
+	inversePriorityProduct := 1.0
+	for j := range c.Jobs {
+		jobPriority := specs.DEFAULT_JOB_SPEC_PRIORITY
+		if j.Priority <= 1 && j.Priority > 0 {
+			jobPriority = j.Priority
+		}
+		inversePriorityProduct *= 1 - jobPriority
+	}
+	priority := 1 - inversePriorityProduct
+
+	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
+	var earliestJob *db.Job
+	for j := range c.Jobs {
+		if earliestJob == nil || earliestJob.Created.After(j.Created) {
+			earliestJob = j
+		}
+	}
+
 	if c.IsTryJob() {
-		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(c.JobCreated).Hours()
+		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(earliestJob.Created).Hours()
 		// Proritize each subsequent attempt lower than the previous attempt.
 		for i := 0; i < c.Attempt; i++ {
 			c.Score *= CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER
 		}
+		c.Score *= priority
 		return nil
 	}
 
@@ -586,7 +607,8 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	}
 
 	if c.IsForceRun() {
-		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(c.JobCreated).Hours()
+		c.Score = CANDIDATE_SCORE_FORCE_RUN + now.Sub(earliestJob.Created).Hours()
+		c.Score *= priority
 		return nil
 	}
 
@@ -612,6 +634,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		return err
 	}
 	score *= decay
+	score *= priority
 
 	c.Score = score
 	return nil
