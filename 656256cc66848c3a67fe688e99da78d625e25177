@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "db673c3c_36097172",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1492,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-17T13:52:53Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b89eb06e_0fadbfe5",
+      "range": {
+        "startLine": 1490,
+        "startChar": 0,
+        "endLine": 1492,
+        "endChar": 61
+      },
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f486f36_84f28163",
         "filename": "task_scheduler/go/window/window.go",
         "patchSetId": 6
@@ -128,6 +152,30 @@
       "revId": "656256cc66848c3a67fe688e99da78d625e25177",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8934bf57_9730a5a9",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-17T13:52:53Z",
+      "side": 1,
+      "message": "No worries, I was just curious.",
+      "parentUuid": "5f869404_cd5259a7",
+      "range": {
+        "startLine": 120,
+        "startChar": 17,
+        "endLine": 120,
+        "endChar": 31
+      },
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
