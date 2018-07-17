@@ -419,7 +419,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	deepequal.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
 
 	// Check that nothing was updated in the DB.
-	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now())
+	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now(), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasksInDb))
 	for _, task := range tasksInDb {
@@ -624,6 +624,22 @@ func TestLocalDBTaskDBUpdateTasksWithRetries(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 	db.TestUpdateTasksWithRetries(t, d)
+}
+
+func TestLocalDBTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
+	testutils.MediumTest(t)
+	d, tmpdir := makeDB(t, "TestLocalDBTaskDBGetTasksFromDateRangeByRepo")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+	db.TestTaskDBGetTasksFromDateRangeByRepo(t, d)
+}
+
+func TestLocalDBTaskDBGetTasksFromWindow(t *testing.T) {
+	testutils.LargeTest(t)
+	d, tmpdir := makeDB(t, "TestLocalDBTaskDBGetTasksFromWindow")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+	db.TestTaskDBGetTasksFromWindow(t, d)
 }
 
 func TestLocalDBJobDB(t *testing.T) {
