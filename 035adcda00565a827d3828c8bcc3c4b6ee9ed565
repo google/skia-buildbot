@@ -235,6 +235,30 @@
       "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ad608a2_2a7bc168",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T18:35:35Z",
+      "side": 1,
+      "message": "I tried to play around with the math yesterday to see if there was some transformation we could apply to the scores, but I didn\u0027t get very far.  If we can make it happen easily, then I think it\u0027s worth doing, but as long as we have these equivalencies documented, I don\u0027t think it\u0027s super high priority.",
+      "parentUuid": "b7a9f1b7_8434ef1b",
+      "range": {
+        "startLine": 222,
+        "startChar": 0,
+        "endLine": 229,
+        "endChar": 72
+      },
+      "revId": "035adcda00565a827d3828c8bcc3c4b6ee9ed565",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
