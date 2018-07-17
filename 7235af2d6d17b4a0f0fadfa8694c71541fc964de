@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b6a3263_f8074f67",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T12:43:19Z",
+      "side": 1,
+      "message": "Does it make sense to have a default job priority instead?  We already enforce that a task must belong to at least one job, so setting the default job priority to 0.5 makes sense to me.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 0
+      },
+      "revId": "7235af2d6d17b4a0f0fadfa8694c71541fc964de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71056d2d_77852ce3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T12:43:19Z",
+      "side": 1,
+      "message": "We shouldn\u0027t ever get here, but we\u0027ll get stuck if we do.  Can we instead log an error, set c.Score \u003d 0, and return?",
+      "range": {
+        "startLine": 547,
+        "startChar": 2,
+        "endLine": 547,
+        "endChar": 56
+      },
+      "revId": "7235af2d6d17b4a0f0fadfa8694c71541fc964de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa243d84_2602bc6d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T12:43:19Z",
+      "side": 1,
+      "message": "This usage is really a default job priority.",
+      "range": {
+        "startLine": 556,
+        "startChar": 3,
+        "endLine": 556,
+        "endChar": 65
+      },
+      "revId": "7235af2d6d17b4a0f0fadfa8694c71541fc964de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2652514_d54f3f7c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T12:43:19Z",
+      "side": 1,
+      "message": "Nit: Maybe note that the default priority is CANDIDATE_SCORE_DEFAULT_PRIORITY (or maybe rename to DEFAULT_JOB_PRIORITY and move it to this file).",
+      "range": {
+        "startLine": 327,
+        "startChar": 0,
+        "endLine": 337,
+        "endChar": 72
+      },
+      "revId": "7235af2d6d17b4a0f0fadfa8694c71541fc964de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
