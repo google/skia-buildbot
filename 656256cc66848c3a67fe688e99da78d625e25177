@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5945414_ade9d40b",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1442,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-17T13:07:16Z",
+      "side": 1,
+      "message": "nit: maybe assert sorted",
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bc6f96d_1b34ecad",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1492,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-17T13:07:16Z",
+      "side": 1,
+      "message": "Any reason not to test GetTasksFromWindow directly?",
+      "range": {
+        "startLine": 1490,
+        "startChar": 0,
+        "endLine": 1492,
+        "endChar": 61
+      },
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f486f36_84f28163",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-17T13:07:16Z",
+      "side": 1,
+      "message": "Still used?",
+      "range": {
+        "startLine": 120,
+        "startChar": 17,
+        "endLine": 120,
+        "endChar": 31
+      },
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
