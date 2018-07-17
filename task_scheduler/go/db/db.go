@@ -4,10 +4,12 @@ import (
 	"errors"
 	"io"
 	"regexp"
+	"sort"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
@@ -65,8 +67,10 @@ type TaskReader interface {
 	GetTaskById(string) (*Task, error)
 
 	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
-	// The returned tasks are sorted by Created timestamp.
-	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
+	// The returned tasks are sorted by Created timestamp. The string field is
+	// an optional repository; if provided, only return tasks associated with
+	// that repo.
+	GetTasksFromDateRange(time.Time, time.Time, string) ([]*Task, error)
 
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
 	// the current caller. Returns a unique ID which can be used by the caller
@@ -389,7 +393,7 @@ func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*Task, error) {
 		p.TimeEnd = time.Now()
 		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
 	}
-	tasks, err := db.GetTasksFromDateRange(p.TimeStart, p.TimeEnd)
+	tasks, err := db.GetTasksFromDateRange(p.TimeStart, p.TimeEnd, p.Repo)
 	if err != nil {
 		return nil, err
 	}
@@ -447,4 +451,26 @@ type BackupDBCloser interface {
 	// SetIncrementalBackupTime. Any incremental backups taken after the returned
 	// time should be reapplied to the DB.
 	GetIncrementalBackupTime() (time.Time, error)
+}
+
+// GetTasksFromWindow returns all tasks matching the given Window from the
+// TaskReader.
+func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*Task, error) {
+	startTimesByRepo := w.StartTimesByRepo()
+	if len(startTimesByRepo) == 0 {
+		// If the timeWindow has no associated repos, default to loading
+		// tasks for all repos from the beginning of the timeWindow.
+		startTimesByRepo[""] = w.EarliestStart()
+	}
+	tasks := make([]*Task, 0, 1024)
+	for repo, start := range startTimesByRepo {
+		sklog.Infof("Reading Tasks from %s to %s.", start, now)
+		t, err := db.GetTasksFromDateRange(start, now, repo)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t...)
+	}
+	sort.Sort(TaskSlice(tasks))
+	return tasks, nil
 }

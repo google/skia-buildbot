@@ -33,6 +33,16 @@ func TestInMemoryTaskDBUpdateTasksWithRetries(t *testing.T) {
 	TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
 }
 
+func TestInMemoryTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
+	testutils.SmallTest(t)
+	TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
+}
+
+func TestInMemoryTaskDBGetTasksFromWindow(t *testing.T) {
+	testutils.LargeTest(t)
+	TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
+}
+
 func TestInMemoryJobDB(t *testing.T) {
 	testutils.SmallTest(t)
 	TestJobDB(t, NewInMemoryJobDB())

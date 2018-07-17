@@ -38,7 +38,7 @@ func (db *inMemoryTaskDB) GetTaskById(id string) (*Task, error) {
 }
 
 // See docs for TaskDB interface.
-func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, error) {
+func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*Task, error) {
 	db.tasksMtx.RLock()
 	defer db.tasksMtx.RUnlock()
 
@@ -46,7 +46,9 @@ func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, 
 	// TODO(borenet): Binary search.
 	for _, b := range db.tasks {
 		if (b.Created.Equal(start) || b.Created.After(start)) && b.Created.Before(end) {
-			rv = append(rv, b.Copy())
+			if repo == "" || b.Repo == repo {
+				rv = append(rv, b.Copy())
+			}
 		}
 	}
 	sort.Sort(TaskSlice(rv))

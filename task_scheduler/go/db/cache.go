@@ -389,10 +389,7 @@ func (c *taskCache) reset() error {
 	if err != nil {
 		return err
 	}
-	start := c.timeWindow.EarliestStart()
-	now := time.Now()
-	sklog.Infof("Reading Tasks from %s to %s.", start, now)
-	tasks, err := c.db.GetTasksFromDateRange(start, now)
+	tasks, err := GetTasksFromWindow(c.db, c.timeWindow, time.Now())
 	if err != nil {
 		c.db.StopTrackingModifiedTasks(queryId)
 		return err

@@ -45,7 +45,7 @@ func main() {
 	end := begin.Add(*period)
 
 	sklog.Infof("Reading tasks from %s to %s...", begin, end)
-	tasks, err := d.GetTasksFromDateRange(begin, end)
+	tasks, err := d.GetTasksFromDateRange(begin, end, "")
 	if err != nil {
 		sklog.Fatal(err)
 	}

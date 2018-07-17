@@ -1,13 +1,22 @@
 package db
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
 	"net/url"
+	"sort"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/git/repograph"
+	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const DEFAULT_TEST_REPO = "go-on-now.git"
@@ -101,13 +110,13 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 	t1Before := t1.Created
 	t1After := t1Before.Add(1 * time.Nanosecond)
 	timeEnd := now.Add(2 * time.Nanosecond)
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
-	tasks, err = db.GetTasksFromDateRange(t1Before, t1After)
+	tasks, err = db.GetTasksFromDateRange(t1Before, t1After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1}, tasks)
-	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
@@ -151,55 +160,55 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 
 	timeEnd = now.Add(3 * time.Nanosecond)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t1After)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t1After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t2After)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t2After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, t3After)
+	tasks, err = db.GetTasksFromDateRange(timeStart, t3After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{t3}, tasks)
 
-	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd)
+	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*Task{}, tasks)
 }
@@ -310,7 +319,7 @@ func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -361,7 +370,7 @@ func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -387,7 +396,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -410,7 +419,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -441,7 +450,7 @@ func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 0, len(tasks))
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -474,7 +483,7 @@ func testUpdateTaskWithRetriesSimple(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the TaskDB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -511,7 +520,7 @@ func testUpdateTaskWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -545,7 +554,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -584,7 +593,7 @@ func testUpdateTaskWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -610,7 +619,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t assert.TestingT, db TaskDB) {
 	assert.Equal(t, 0, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -1413,4 +1422,127 @@ func TestCommentDB(t assert.TestingT, db CommentDB) {
 
 func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
 	return func(string, string) (time.Time, error) { return ts, nil }
+}
+
+func TestTaskDBGetTasksFromDateRangeByRepo(t assert.TestingT, db TaskDB) {
+	r1 := common.REPO_SKIA
+	r2 := common.REPO_SKIA_INFRA
+	r3 := common.REPO_CHROMIUM
+	repos := []string{r1, r2, r3}
+	start := time.Now().Add(-50 * time.Nanosecond)
+	end := start
+	for _, repo := range repos {
+		for i := 0; i < 10; i++ {
+			task := MakeTestTask(end, []string{"c"})
+			task.Repo = repo
+			assert.NoError(t, db.PutTask(task))
+			end = end.Add(time.Nanosecond)
+		}
+	}
+	tasks, err := db.GetTasksFromDateRange(start, end, "")
+	assert.NoError(t, err)
+	assert.Equal(t, 30, len(tasks))
+	assert.True(t, sort.IsSorted(TaskSlice(tasks)))
+	for _, repo := range repos {
+		tasks, err := db.GetTasksFromDateRange(start, end, repo)
+		assert.NoError(t, err)
+		assert.Equal(t, 10, len(tasks))
+		assert.True(t, sort.IsSorted(TaskSlice(tasks)))
+		for _, task := range tasks {
+			assert.Equal(t, repo, task.Repo)
+		}
+	}
+}
+
+func TestTaskDBGetTasksFromWindow(t assert.TestingT, db TaskDB) {
+	now := time.Now()
+	timeWindow := 24 * time.Hour
+	// Offset commit timestamps for different repos to ensure that we get
+	// a consistent sorting order.
+	repoOffset := time.Minute
+	curOffset := repoOffset
+	f := "somefile"
+	setup := func(numCommits int) (string, *repograph.Graph, func()) {
+		ctx := context.Background()
+		gb := git_testutils.GitInit(t, ctx)
+		repoUrl := gb.RepoUrl()
+		t0 := now.Add(-timeWindow).Add(curOffset)
+		for i := 0; i < numCommits; i++ {
+			ts := t0.Add(time.Duration(i) * timeWindow / time.Duration(numCommits))
+			gb.AddGen(ctx, f)
+			hash := gb.CommitMsgAt(ctx, fmt.Sprintf("Commit %d", i), ts)
+			task := MakeTestTask(ts, []string{hash})
+			task.Repo = repoUrl
+			assert.NoError(t, db.PutTask(task))
+		}
+		tmp, err := ioutil.TempDir("", "")
+		assert.NoError(t, err)
+		repo, err := repograph.NewGraph(ctx, gb.Dir(), tmp)
+		assert.NoError(t, err)
+		assert.NoError(t, repo.Update(ctx))
+		curOffset += repoOffset
+		return repoUrl, repo, func() {
+			gb.Cleanup()
+			testutils.RemoveAll(t, tmp)
+		}
+	}
+	url1, r1, cleanup1 := setup(5)
+	defer cleanup1()
+	url2, r2, cleanup2 := setup(10)
+	defer cleanup2()
+	url3, r3, cleanup3 := setup(20)
+	defer cleanup3()
+
+	test := func(windowSize time.Duration, numCommits int, repos repograph.Map, expectTasks int) {
+		w, err := window.New(windowSize, numCommits, repos)
+		assert.NoError(t, err)
+		tasks, err := GetTasksFromWindow(db, w, now)
+		assert.NoError(t, err)
+		assert.Equal(t, expectTasks, len(tasks))
+		assert.True(t, sort.IsSorted(TaskSlice(tasks)))
+
+		// Verify that TaskCache behaves correctly too.
+		cache, err := NewTaskCache(db, w)
+		assert.NoError(t, err)
+		tasks2, err := cache.GetTasksFromDateRange(time.Time{}, now)
+		assert.NoError(t, err)
+		assert.Equal(t, expectTasks, len(tasks2))
+		assert.True(t, sort.IsSorted(TaskSlice(tasks2)))
+		deepequal.AssertDeepEqual(t, tasks, tasks2)
+	}
+
+	// Test 1: No repos in window. Only the timeWindow matters in this case,
+	// and since tasks from all repos have been inserted into the DB, the
+	// cache will return tasks from all repos within the time window, even
+	// though the window.Window instance doesn't know anything about the
+	// repos.
+	repos := repograph.Map{}
+	test(timeWindow, 0, repos, 35)
+	test(time.Duration(0), 5, repos, 0)
+	test(timeWindow, 100, repos, 35)
+
+	// Test 2: One repo in window. Now, the greater of the timeWindow or the
+	// window containing the last numCommits wins. Note that with at least
+	// one repo specified to the window, we now exclude tasks which are not
+	// in that repo from the TaskCache.
+	repos[url1] = r1
+	test(timeWindow, 5, repos, 5)
+	test(time.Duration(0), 5, repos, 5)
+	test(timeWindow, 2, repos, 5)
+
+	// Test 3: Two repos. This is the same as #2 in that the greater of
+	// timeWindow or the window containing the last numCommits wins, for
+	// each repo. When timeWindow is sufficiently small, we get the last
+	// numCommits from each repo, even that implies different time windows
+	// for each.
+	repos[url2] = r2
+	test(timeWindow, 5, repos, 15)
+	test(time.Duration(0), 5, repos, 10)
+	test(time.Duration(0), 20, repos, 15)
+
+	// Test 4: Three repos.
+	repos[url3] = r3
+	test(timeWindow, 0, repos, 35)
+	test(time.Duration(0), 100, repos, 35)
+	test(time.Duration(0), 3, repos, 9)
 }

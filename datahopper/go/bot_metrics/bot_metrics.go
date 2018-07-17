@@ -229,7 +229,7 @@ func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *sp
 		}
 
 		sklog.Infof("Loading data for %s - %s", periodStart, periodEnd)
-		tasks, err := taskDb.GetTasksFromDateRange(periodStart, periodEnd)
+		tasks, err := taskDb.GetTasksFromDateRange(periodStart, periodEnd, "")
 		if err != nil {
 			return err
 		}
