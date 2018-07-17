@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "517d6637_e7627a83",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1442,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T13:39:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5945414_ade9d40b",
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bc6f96d_1b34ecad",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 6
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "b89eb06e_0fadbfe5",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1492,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T13:39:59Z",
+      "side": 1,
+      "message": "When I started writing this, I hadn\u0027t yet refactored into GetTasksFromWindow.  I changed to test both GetTasksFromWindow AND the cache.",
+      "parentUuid": "6bc6f96d_1b34ecad",
+      "range": {
+        "startLine": 1490,
+        "startChar": 0,
+        "endLine": 1492,
+        "endChar": 61
+      },
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3f486f36_84f28163",
         "filename": "task_scheduler/go/window/window.go",
         "patchSetId": 6
@@ -53,6 +95,30 @@
       "writtenOn": "2018-07-17T13:07:16Z",
       "side": 1,
       "message": "Still used?",
+      "range": {
+        "startLine": 120,
+        "startChar": 17,
+        "endLine": 120,
+        "endChar": 31
+      },
+      "revId": "656256cc66848c3a67fe688e99da78d625e25177",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f869404_cd5259a7",
+        "filename": "task_scheduler/go/window/window.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T13:39:59Z",
+      "side": 1,
+      "message": "Yes:\n- Status incremental cache uses it to retrieve all still-relevant comments from the DB. We could make a similar change for db.GetCommentsForRepos so that the start time for each repo is used instead, but it doesn\u0027t seem important.\n\n- jobCache and tryJobCache use it. These have no users outside of Task Scheduler, so it\u0027s not a big problem, but it may be worthwhile to make a similar change there as well.\n\n- GetTasksFromWindow uses it as a fallback when there are no repos in the Window. I guess we could add Window.TimeRangeStart or some such and use that instead.",
+      "parentUuid": "3f486f36_84f28163",
       "range": {
         "startLine": 120,
         "startChar": 17,
