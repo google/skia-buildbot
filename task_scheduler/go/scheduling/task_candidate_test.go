@@ -2,7 +2,6 @@ package scheduling
 
 import (
 	"testing"
-	"time"
 
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
@@ -20,12 +19,13 @@ func TestCopyTaskCandidate(t *testing.T) {
 		Commits:            []string{"a", "b"},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
-		JobCreated:         time.Now(),
-		Jobs:               []string{"123abc", "456def"},
-		ParentTaskIds:      []string{"38", "39", "40"},
-		RetryOf:            "41",
-		Score:              99,
-		StealingFromId:     "rich",
+		Jobs: jobSet(&db.Job{
+			Id: "dummy",
+		}),
+		ParentTaskIds:  []string{"38", "39", "40"},
+		RetryOf:        "41",
+		Score:          99,
+		StealingFromId: "rich",
 		TaskKey: db.TaskKey{
 			RepoState: db.RepoState{
 				Repo:     "nou.git",
