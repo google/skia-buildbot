@@ -276,7 +276,15 @@ func main() {
 					sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
 				}
 			}
-			msg, err := checkout.Git(ctx, "commit", "-m", *message)
+			msg, err := checkout.Git(ctx, "diff", "--name-only")
+			if err != nil {
+				sklog.Fatalf("Failed to diff :%s: %q", err, msg)
+			}
+			if msg == "" {
+				sklog.Infof("Not pushing since no files changed.")
+				return
+			}
+			msg, err = checkout.Git(ctx, "commit", "-m", *message)
 			if err != nil {
 				sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
 			}
