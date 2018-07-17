@@ -46,6 +46,30 @@
       "revId": "3296b51b279e51f6c2402576b99166d8473808f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f0de989_203d1a68",
+        "filename": "task_scheduler/go/db/task.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-17T14:23:10Z",
+      "side": 0,
+      "message": "Yeah, maybe. But as soon as we start digging into scores we\u0027re going to start caring about the breakdown: base sore, priority, time decay, etc.  I don\u0027t think we want to waste space in our main DB with all that information, and Swarming tags aren\u0027t the right place for it either. It seems like the right move is to start building a big diagnostic component where we can look into all of this stuff.",
+      "parentUuid": "57d4f171_f866ddcf",
+      "range": {
+        "startLine": 635,
+        "startChar": 1,
+        "endLine": 635,
+        "endChar": 58
+      },
+      "revId": "3296b51b279e51f6c2402576b99166d8473808f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
