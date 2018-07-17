@@ -122,3 +122,15 @@ func (w *Window) EarliestStart() time.Time {
 	defer w.mtx.RUnlock()
 	return w.earliestStart
 }
+
+// StartTimesByRepo returns a map of repo URL to start time of that repo's
+// window.
+func (w *Window) StartTimesByRepo() map[string]time.Time {
+	w.mtx.RLock()
+	defer w.mtx.RUnlock()
+	rv := make(map[string]time.Time, len(w.repos))
+	for k, v := range w.start {
+		rv[k] = v
+	}
+	return rv
+}

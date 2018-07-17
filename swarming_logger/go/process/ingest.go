@@ -60,7 +60,7 @@ func ingestLog(gs *storage.Client, s swarming.ApiClient, t *db.Task) error {
 
 // Ingest logs for all completed tasks within the given time chunk.
 func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiClient, start, end time.Time, ingested *syncmap.Map) (map[string]error, error) {
-	tasks, err := taskDb.GetTasksFromDateRange(start, end)
+	tasks, err := taskDb.GetTasksFromDateRange(start, end, "")
 	if err != nil {
 		return nil, err
 	}
