@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
@@ -18,7 +17,7 @@ import (
 
 type CleanupFunc func()
 
-func cleanup(t *testing.T, kinds ...ds.Kind) {
+func cleanup(t assert.TestingT, kinds ...ds.Kind) {
 	for _, kind := range kinds {
 		q := ds.NewQuery(kind).KeysOnly()
 		it := ds.DS.Run(context.TODO(), q)
@@ -27,7 +26,8 @@ func cleanup(t *testing.T, kinds ...ds.Kind) {
 			if err == iterator.Done {
 				break
 			} else if err != nil {
-				t.Fatalf("Failed to clean database: %s", err)
+				t.Errorf("Failed to clean database: %s", err)
+				t.FailNow()
 			}
 			err = ds.DS.Delete(context.Background(), k)
 			assert.NoError(t, err)
@@ -35,10 +35,10 @@ func cleanup(t *testing.T, kinds ...ds.Kind) {
 	}
 }
 
-// InitDatastore is a common utitity function used in tests. It sets up the
+// InitDatastore is a common utility function used in tests. It sets up the
 // datastore to connect to the emulator and also clears out all instances of
 // the given 'kinds' from the datastore.
-func InitDatastore(t *testing.T, kinds ...ds.Kind) CleanupFunc {
+func InitDatastore(t assert.TestingT, kinds ...ds.Kind) CleanupFunc {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
 	if emulatorHost == "" {
