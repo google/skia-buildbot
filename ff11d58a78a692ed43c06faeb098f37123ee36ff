@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dddbab57_5b092998",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-18T11:41:59Z",
+      "side": 1,
+      "message": "Nit: I assume that this must work, but it seems safer to trim the whitespace from msg first, in case the output is a single newline or something.",
+      "range": {
+        "startLine": 283,
+        "startChar": 5,
+        "endLine": 283,
+        "endChar": 15
+      },
+      "revId": "ff11d58a78a692ed43c06faeb098f37123ee36ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
