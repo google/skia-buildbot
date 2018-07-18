@@ -35,7 +35,7 @@ func TestWriteGoldLinkToGerrit(t *testing.T) {
 	buildBucketID := int64(7654321)
 	eventBus := eventbus.New()
 	mockGerrit := &MyGerritMock{MockedGerrit: &gerrit.MockedGerrit{IssueID: issueID}}
-	tjStore, err := tryjobstore.NewCloudTryjobStore(client, eventBus)
+	tjStore, err := tryjobstore.NewCloudTryjobStore(client, nil, eventBus)
 	assert.NoError(t, err)
 
 	siteURL := "https://gold.skia.org"
