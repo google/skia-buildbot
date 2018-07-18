@@ -455,6 +455,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		// Reject blacklisted tasks.
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
 			sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			c.Filtering = &taskCandidateFilteringDiagnostics{BlacklistedByRule: rule}
 			continue
 		}
 
@@ -463,6 +464,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 			if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
 				return nil, err
 			} else if !in {
+				c.Filtering = &taskCandidateFilteringDiagnostics{RevisionTooOld: true}
 				continue
 			}
 		}
@@ -480,9 +482,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		}
 		if previous != nil {
 			if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+				c.Filtering = &taskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
 				continue
 			}
 			if previous.Success() {
+				c.Filtering = &taskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
 				continue
 			}
 			// The attempt counts are only valid if the previous
@@ -501,6 +505,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 				previousAttempt = 1
 			}
 			if previousAttempt >= maxAttempts-1 {
+				previousIds := make([]string, 0, len(prevTasks))
+				for _, t := range prevTasks {
+					previousIds = append(previousIds, t.Id)
+				}
+				c.Filtering = &taskCandidateFilteringDiagnostics{PreviousAttempts: previousIds}
 				continue
 			}
 			c.Attempt = previousAttempt + 1
@@ -513,6 +522,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 			return nil, err
 		}
 		if !depsMet {
+			// c.Filtering set in allDepsMet.
 			continue
 		}
 		hashes := make([]string, 0, len(idsToHashes))
@@ -540,6 +550,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
+	c.Scoring = &taskCandidateScoringDiagnostics{}
 	if len(c.Jobs) == 0 {
 		// Log an error and return to allow scheduling other tasks.
 		sklog.Errorf("taskCandidate has no Jobs: %#v", c)
@@ -557,6 +568,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		inversePriorityProduct *= 1 - jobPriority
 	}
 	priority := 1 - inversePriorityProduct
+	c.Scoring.Priority = priority
 
 	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
 	var earliestJob *db.Job
@@ -565,6 +577,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 			earliestJob = j
 		}
 	}
+	c.Scoring.JobCreatedHours = now.Sub(earliestJob.Created).Hours()
 
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(earliestJob.Created).Hours()
@@ -626,13 +639,16 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 			stoleFromCommits = len(stealingFrom.Commits)
 		}
 	}
+	c.Scoring.StoleFromCommits = stoleFromCommits
 	score := testednessIncrease(len(c.Commits), stoleFromCommits)
+	c.Scoring.TestednessIncrease = score
 
 	// Scale the score by other factors, eg. time decay.
 	decay, err := s.timeDecayForCommit(now, revision)
 	if err != nil {
 		return err
 	}
+	c.Scoring.TimeDecay = decay
 	score *= decay
 	score *= priority
 
@@ -851,12 +867,18 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			for _, val := range dim.Value {
 				d := fmt.Sprintf("%s:%s", dim.Key, val)
 				if _, ok := botsByDim[d]; !ok {
-					botsByDim[d] = util.StringSet{}
+					botsByDim[d] = map[string]bool{}
 				}
 				botsByDim[d][b.BotId] = true
 			}
 		}
 	}
+	// BotIds that have been used by previous candidates.
+	usedBots := util.StringSet{}
+	// Map BotId to the candidates that could have used that bot. In the
+	// case that no bots are available for a candidate, map concatenated
+	// dimensions to candidates.
+	botToCandidates := map[string][]*taskCandidate{}
 
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
@@ -864,14 +886,16 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	// bots which they don't actually need.
 	rv := make([]*taskCandidate, 0, len(bots))
 	for _, c := range tasks {
+		c.Scheduling = &taskCandidateSchedulingDiagnostics{}
 		// TODO(borenet): Make this threshold configurable.
 		if c.Score <= 0.0 {
 			sklog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
+			c.Scheduling.ScoreBelowThreshold = true
 			continue
 		}
 
 		// For each dimension of the task, find the set of bots which matches.
-		matches := util.StringSet{}
+		matches := map[string]bool{}
 		for i, d := range c.TaskSpec.Dimensions {
 			if i == 0 {
 				matches = matches.Union(botsByDim[d])
@@ -879,31 +903,51 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 				matches = matches.Intersect(botsByDim[d])
 			}
 		}
-		if len(matches) > 0 {
-			// We're going to run this task. Choose a bot. Sort the
-			// bots by ID so that the choice is deterministic.
-			choices := make([]string, 0, len(matches))
-			for botId := range matches {
-				choices = append(choices, botId)
+		// Collect the available bots.
+		var availBots []string
+		// Set of candidates that could have used the same bots.
+		similarCandidates := map[*taskCandidate]struct{}{}
+		var lowestScoreSimilarCandidate *taskCandidate
+		addCandidates := func(key string) {
+			candidates := botToCandidates[key]
+			for _, candidate := range candidates {
+				similarCandidates[candidate] = struct{}{}
 			}
-			sort.Strings(choices)
-			bot := choices[0]
+			if len(candidates) > 0 && (lowestScoreSimilarCandidate == nil || lowestScoreSimilarCandidate.Score > candidates[len(candidates)-1].Score) {
+				lowestScoreSimilarCandidate = candidate
+			}
+			botToCandidates[key] = append(candidates, c)
+		}
 
-			// Remove the bot from consideration.
-			for dim, subset := range botsByDim {
-				delete(subset, bot)
-				if len(subset) == 0 {
-					delete(botsByDim, dim)
+		if len(matches) > 0 {
+			c.Scheduling.MatchingBots = matches.Strings()
+			for botId := range matches {
+				if !usedBots[botId] {
+					availBots = append(availBots, botId)
 				}
+				addCandidates(botId)
 			}
+		} else {
+			c.Scheduling.MatchingBots = nil
+			// Use sorted concatenated dimensions instead of botId as the key.
+			dims := util.CopyStringSlice(c.TaskSpec.Dimensions)
+			sort.Strings(dims)
+			addCandidates(strings.Join(dims, ","))
+		}
+		c.Scheduling.NumHigherScoreSimilarCandidates = len(similarCandidates)
+		if lowestScoreSimilarCandidate != nil {
+			c.Scheduling.LastSimilarCandidate = &lowestScoreSimilarCandidate.TaskKey
+		}
+
+		if len(availBots) > 0 {
+			// We're going to run this task.
+			c.Scheduling.Selected = true
+			// It doesn't matter which bot we mark as used.
+			bot := availBots[0]
+			usedBots[bot] = true
 
 			// Add the task to the scheduling list.
 			rv = append(rv, c)
-
-			// If we've exhausted the bot list, stop here.
-			if len(botsByDim) == 0 {
-				break
-			}
 		}
 	}
 	sort.Sort(taskCandidateSlice(rv))
