@@ -8,7 +8,6 @@ Environment=DATA_DIR=/mnt/pd0/data  \
   RESOURCE_DIR=/usr/local/share/skiacorrectness  \
 
 ExecStart=/usr/local/bin/skiacorrectness-prod  \
-    --authoritative \
     --port=:8001  \
     --logtostderr \
     --trace_service=skia-tracedb:9090 \
