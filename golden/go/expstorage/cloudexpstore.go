@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"sync"
 
 	"cloud.google.com/go/datastore"
@@ -11,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/dsutil"
@@ -192,7 +192,7 @@ func (c *CloudExpStore) QueryLog(offset, size int, details bool) ([]*TriageLogEn
 
 	for _, change := range expChanges {
 		ret = append(ret, &TriageLogEntry{
-			ID:           jsonutils.Number(change.ChangeID.ID),
+			ID:           strconv.FormatInt(change.ChangeID.ID, 10),
 			Name:         change.UserID,
 			TS:           change.TimeStamp,
 			ChangeCount:  int(change.Count),
@@ -307,6 +307,10 @@ func (c *CloudExpStore) UndoChange(changeID int64, userID string) (map[string]ty
 	return changes, err
 }
 
+func (c *CloudExpStore) Clear() error {
+	return nil
+}
+
 // PutExpectations writes the expectations directly to the datastore
 func (c *CloudExpStore) PutExpectations(exps map[string]types.TestClassification) error {
 	return c.updateCurrentExpectations(nil, exps, true, nil)
@@ -386,6 +390,12 @@ func (c *CloudExpStore) removeChange(changes map[string]types.TestClassification
 func (c *CloudExpStore) makeChange(changes map[string]types.TestClassification, userId string, timeStampMs int64, undoChangeID int64, transactional bool) (changeKey *datastore.Key, err error) {
 	ctx := context.TODO()
 
+	// Get the total count of changes.
+	count := 0
+	for _, digests := range changes {
+		count += len(digests)
+	}
+
 	// Write the expectation changes.
 	blobKey, err := c.blobStore.Save(changes)
 	if err != nil {
@@ -413,6 +423,7 @@ func (c *CloudExpStore) makeChange(changes map[string]types.TestClassification, 
 		TimeStamp:        timeStampMs,
 		OK:               false,
 		ExpectationsBlob: blobKey,
+		Count:            int64(count),
 	}
 	if changeKey, err = c.client.Put(ctx, changeKey, expChange); err != nil {
 		return nil, sklog.FmtErrorf("Error writing change record: %s", err)
@@ -464,7 +475,7 @@ func (c *CloudExpStore) makeChange(changes map[string]types.TestClassification, 
 // We continuously keep track of that sum as new change records are added.
 func (c *CloudExpStore) updateCurrentExpectations(tx *datastore.Transaction, changes map[string]types.TestClassification, overwrite bool, actions *dsutil.TxActions) (err error) {
 	currentExp, expState, err := c.loadCurrentExpectations(tx)
-	if err != nil && err != datastore.ErrNoSuchEntity {
+	if err != nil {
 		return sklog.FmtErrorf("Error loading current expectations: %s", err)
 	}
 	oldExpsBlob := expState.ExpectationsBlob
@@ -584,18 +595,20 @@ func (c *CloudExpStore) getExpChangeKeys(beforeID int64) ([]*datastore.Key, erro
 	return ret, nil
 }
 
+// loadCurrentExpectations loads the current expectations for this expectation
+// store (either for the master branch or for a Gerrit issue)
 func (c *CloudExpStore) loadCurrentExpectations(tx *datastore.Transaction) (map[string]types.TestClassification, *expectationsState, error) {
 	getFn := dsutil.GetFn(c.client, tx)
 	ret := map[string]types.TestClassification{}
 	expState := &expectationsState{}
-	if err := getFn(c.expectationsKey, expState); err != nil {
-		return nil, expState, err
+	if err := getFn(c.expectationsKey, expState); err != nil && err != datastore.ErrNoSuchEntity {
+		return nil, nil, err
 	}
 
 	var err error
 	if expState.ExpectationsBlob != nil {
 		if err = c.blobStore.Load(expState.ExpectationsBlob, &ret); err != nil {
-			return nil, expState, err
+			return nil, nil, err
 		}
 	}
 	return ret, expState, err
