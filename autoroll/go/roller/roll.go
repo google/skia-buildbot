@@ -372,7 +372,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
-	} else if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
+	} else if !a.CommitQueueDryRun && len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
 		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
@@ -477,7 +477,7 @@ func (r *githubRoll) IsSuccess() bool {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunFinished() bool {
-	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsSucceeded()
+	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
 }
 
 // See documentation for state_machine.RollCLImpl interface.
