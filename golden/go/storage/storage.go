@@ -33,18 +33,19 @@ import (
 // Storage is a container struct for the various storage objects we are using.
 // It is intended to reduce parameter lists as we pass around storage objects.
 type Storage struct {
-	DiffStore         diff.DiffStore
-	ExpectationsStore expstorage.ExpectationsStore
-	IgnoreStore       ignore.IgnoreStore
-	MasterTileBuilder tracedb.MasterTileBuilder
-	DigestStore       digeststore.DigestStore
-	EventBus          eventbus.EventBus
-	TryjobStore       tryjobstore.TryjobStore
-	TryjobMonitor     *tryjobs.TryjobMonitor
-	GerritAPI         *gerrit.Gerrit
-	GStorageClient    *GStorageClient
-	Git               *gitinfo.GitInfo
-	WhiteListQuery    paramtools.ParamSet
+	DiffStore            diff.DiffStore
+	ExpectationsStore    expstorage.ExpectationsStore
+	IssueExpStoreFactory expstorage.IssueExpStoreFactory
+	IgnoreStore          ignore.IgnoreStore
+	MasterTileBuilder    tracedb.MasterTileBuilder
+	DigestStore          digeststore.DigestStore
+	EventBus             eventbus.EventBus
+	TryjobStore          tryjobstore.TryjobStore
+	TryjobMonitor        *tryjobs.TryjobMonitor
+	GerritAPI            *gerrit.Gerrit
+	GStorageClient       *GStorageClient
+	Git                  *gitinfo.GitInfo
+	WhiteListQuery       paramtools.ParamSet
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
@@ -99,7 +100,8 @@ func (s *Storage) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *t
 		return sklog.FmtErrorf("Trying to write baseline while GCS path is not configured.")
 	}
 
-	exp, err := s.TryjobStore.GetExpectations(issueID)
+	issueExpStore := s.IssueExpStoreFactory(issueID)
+	exp, err := issueExpStore.Get()
 	if err != nil {
 		return sklog.FmtErrorf("Unable to get issue expecations: %s", err)
 	}
@@ -153,7 +155,7 @@ func (s *Storage) FetchBaseline(issueID int64) (*baseline.CommitableBaseLine, er
 }
 
 // LoadWhiteList loads the given JSON5 file that defines that query to
-// whitelist traces. If the given path is emtpy or the file cannot be parsed
+// whitelist traces. If the given path is empty or the file cannot be parsed
 // an error will be returned.
 func (s *Storage) LoadWhiteList(fName string) error {
 	if fName == "" {
@@ -239,7 +241,7 @@ Loop:
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
 func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
-	// Retieve the most recent tile.
+	// Retrieve the most recent tile.
 	tile := s.getWhiteListedTile(s.MasterTileBuilder.GetTile())
 
 	s.mutex.Lock()
@@ -390,7 +392,13 @@ func (s *Storage) checkCommitableIssues(tile *tiling.Tile) {
 						return sklog.FmtErrorf("Unable to extract gerrit issue from commit %s. Got error: %s", commit.Hash, err)
 					}
 
-					if err := baseline.CommitIssueBaseline(issueID, longCommit.Author, s.TryjobStore, s.ExpectationsStore); err != nil {
+					issueExpStore := s.IssueExpStoreFactory(issueID)
+					issueExps, err := issueExpStore.Get()
+					if err != nil {
+						return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
+					}
+
+					if err := baseline.CommitIssueBaseline(issueID, longCommit.Author, issueExps.Tests, s.TryjobStore, s.ExpectationsStore); err != nil {
 						return sklog.FmtErrorf("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
 					}
 					return nil

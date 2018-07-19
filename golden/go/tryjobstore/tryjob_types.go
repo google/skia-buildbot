@@ -35,7 +35,7 @@ var statusStringRepr = []string{
 	"unknown",
 }
 
-// statusStringMap maps from status strings to instances of TyjobStatus
+// statusStringMap maps from status strings to instances of TryjobStatus
 var statusStringMap = map[string]TryjobStatus{}
 
 func init() {
@@ -266,27 +266,27 @@ func interfaceToStrSlice(inArr []interface{}) []string {
 	return ret
 }
 
-// ExpChange is used to store an expectation change in the database. Each
-// expectation change is an atomic change to expectations for an issue.
-// The actually expecations are captured in instances of TestDigestExp.
-type ExpChange struct {
-	ChangeID     *datastore.Key `datastore:"__key__"`
-	IssueID      int64
-	UserID       string
-	TimeStamp    int64
-	Count        int64
-	UndoChangeID int64
-	OK           bool
-}
+// // ExpChange is used to store an expectation change in the database. Each
+// // expectation change is an atomic change to expectations for an issue.
+// // The actually expecations are captured in instances of TestDigestExp.
+// type ExpChange struct {
+// 	ChangeID     *datastore.Key `datastore:"__key__"`
+// 	IssueID      int64
+// 	UserID       string
+// 	TimeStamp    int64
+// 	Count        int64
+// 	UndoChangeID int64
+// 	OK           bool
+// }
 
-// TestDigestExp is used to store expectations for an issue in the database.
-// Each entity is a child of instance of ExpChange. It captures the expectation
-// of one Test/Digest pair.
-type TestDigestExp struct {
-	Name   string
-	Digest string
-	Label  string
-}
+// // TestDigestExp is used to store expectations for an issue in the database.
+// // Each entity is a child of instance of ExpChange. It captures the expectation
+// // of one Test/Digest pair.
+// type TestDigestExp struct {
+// 	Name   string
+// 	Digest string
+// 	Label  string
+// }
 
 // IssueExpChange is used as the event type when tryjob related information changes
 // and an event is sent to notify client.
