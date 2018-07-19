@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sort"
+	"strconv"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -31,6 +32,7 @@ func TestMySQLExpectationsStore(t *testing.T) {
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
 	testExpectationStore(t, sqlStore, nil, 0, EV_EXPSTORAGE_CHANGED)
+	assert.NoError(t, sqlStore.Clear())
 
 	// Test the caching version of the MySQL store.
 	eventBus := eventbus.New()
@@ -148,6 +150,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 100, true)
 	assert.NoError(t, err)
 	initialLogRecsLen := len(initialLogRecs)
+
+	// Request expectations and make sure they are emtpy.
+	emptyExp, err := store.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(emptyExp.Tests))
 
 	// If we have an event bus then keep gathering events.
 	callbackCh := make(chan []string, 3)
@@ -301,11 +308,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	assert.Equal(t, 0, len(logEntries))
 
 	// Undo the latest version and make sure the corresponding record is correct.
-	changes, err := store.UndoChange(int64(lastRec.ID), "user-1")
+	changes, err := store.UndoChange(parseID(t, lastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
-	changes, err = store.UndoChange(int64(secondToLastRec.ID), "user-1")
+	changes, err = store.UndoChange(parseID(t, secondToLastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
@@ -331,7 +338,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	logEntries, _, err = store.QueryLog(0, 1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
-	_, err = store.UndoChange(int64(logEntries[0].ID), "user-1")
+	_, err = store.UndoChange(parseID(t, logEntries[0].ID), "user-1")
 	assert.NotNil(t, err)
 
 	// Make sure getExpectationsAt works correctly.
@@ -349,6 +356,12 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 		checkExpectationsAt(t, sqlStore, secondAdd, "second")
 		checkExpectationsAt(t, sqlStore, secondUndo, "third")
 	}
+}
+
+func parseID(t *testing.T, idStr string) int64 {
+	ret, err := strconv.ParseInt(idStr, 10, 64)
+	assert.NoError(t, err)
+	return ret
 }
 
 func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInfo *TriageLogEntry, name string) {
