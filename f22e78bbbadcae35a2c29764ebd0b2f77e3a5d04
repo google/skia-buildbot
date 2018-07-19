@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "613ad6be_18c7d850",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-19T17:32:40Z",
+      "side": 1,
+      "message": "The state machine expects that CQ does not close dry runs.  Should we leave the pull request open for consistency?  Then the state machine can close it when appropriate (ie. new commits have landed) or land it if switched to normal mode.",
+      "range": {
+        "startLine": 377,
+        "startChar": 3,
+        "endLine": 380,
+        "endChar": 4
+      },
+      "revId": "f22e78bbbadcae35a2c29764ebd0b2f77e3a5d04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
