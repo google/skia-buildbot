@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c02fb6e_71d7c611",
+        "filename": "golden/cmd/sampler/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-19T19:03:04Z",
+      "side": 1,
+      "message": "Does this want expstorage.NewCachingExpectationStore?",
+      "range": {
+        "startLine": 184,
+        "startChar": 21,
+        "endLine": 184,
+        "endChar": 69
+      },
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3b37eda_716dfad6",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-19T19:03:04Z",
+      "side": 1,
+      "message": "nit: I suggest using the same colors as Status or Task Scheduler:\nhttps://skia.googlesource.com/buildbot/+/8bf02b96a6f86a5d0a7cca2a4e8fe90bd32b8ab1/res/imp/styles-sk.html#62\nhttps://skia.googlesource.com/buildbot/+/0c39f53f97587191efc0e0b90667f71f01b7af9c/task_scheduler/res/imp/task-sk.html#101",
+      "range": {
+        "startLine": 49,
+        "startChar": 26,
+        "endLine": 49,
+        "endChar": 33
+      },
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5bd0136_09f2f4a2",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-19T19:03:04Z",
+      "side": 1,
+      "message": "nit: Presumably this would only be called from tests. Maybe name it ClearForTestingOnly?",
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "658d1658_dfd71774",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-19T19:03:04Z",
+      "side": 1,
+      "message": "typo missing t\n\nalso next line",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 567,
+        "endChar": 23
+      },
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d1ad3be_848630a5",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 1021,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-19T19:03:04Z",
+      "side": 1,
+      "message": "nit: I would have expected more exclamation points.",
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
