@@ -9,7 +9,6 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 
 ExecStart=/usr/local/bin/skiacorrectness-chromevr  \
     --app_title="Chrome VR Gold" \
-    --authoritative \
     --baseline_gs_path=skia-chromevr-gm/hash_files/gold-chromevr-baselines \
     --cache_size=20 \
     --db_host=173.194.104.24  \
