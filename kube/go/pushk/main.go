@@ -276,7 +276,7 @@ func main() {
 					sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)
 				}
 			}
-			msg, err := checkout.Git(ctx, "diff", "--name-only")
+			msg, err := checkout.Git(ctx, "diff", "--cached", "--name-only")
 			if err != nil {
 				sklog.Fatalf("Failed to diff :%s: %q", err, msg)
 			}
