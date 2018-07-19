@@ -373,10 +373,17 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 	} else if len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
-		// Github and travisci do not have a "commit queue". So changes must be
-		// merged via the API after travisci successfully completes.
-		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
-			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
+		if a.CommitQueueDryRun {
+			// The dry run succeeded. Close the PR.
+			if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
+				return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
+			}
+		} else {
+			// Github and travisci do not have a "commit queue". So changes must be
+			// merged via the API after travisci successfully completes.
+			if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
+				return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
+			}
 		}
 	}
 
@@ -477,7 +484,7 @@ func (r *githubRoll) IsSuccess() bool {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunFinished() bool {
-	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsSucceeded()
+	return r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
 }
 
 // See documentation for state_machine.RollCLImpl interface.
