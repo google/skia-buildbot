@@ -1,6 +1,6 @@
 package main
 
-// skia_ingestion is the server process that runs an arbitary number of
+// skia_ingestion is the server process that runs an arbitrary number of
 // ingesters and stores them in traceDB backends.
 
 import (

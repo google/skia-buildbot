@@ -331,6 +331,14 @@ func (t *TxActions) Run(err error) {
 	}
 }
 
+func Batch(keySlice []*datastore.Key, size int) [][]*datastore.Key {
+	ret := make([][]*datastore.Key, 0, len(keySlice)/size+1)
+	for start := 0; start < len(keySlice); start += size {
+		ret = append(ret, keySlice[start:util.MinInt(start+size, len(keySlice))])
+	}
+	return ret
+}
+
 // AddCommitFn adds a function that should be run if the related transaction succeeds
 func (t *TxActions) AddCommitFn(fn TxActionFn) {
 	t.commitActions = append(t.commitActions, fn)
