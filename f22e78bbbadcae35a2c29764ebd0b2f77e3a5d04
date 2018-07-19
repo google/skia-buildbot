@@ -22,6 +22,30 @@
       "revId": "f22e78bbbadcae35a2c29764ebd0b2f77e3a5d04",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b76ed4aa_f41fd6e8",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-19T17:54:23Z",
+      "side": 1,
+      "message": "I think I closed it as an indication to when dry run finished. Changed it to instead check for tryjobs finishing. Will see if it works in testing.",
+      "parentUuid": "613ad6be_18c7d850",
+      "range": {
+        "startLine": 377,
+        "startChar": 3,
+        "endLine": 380,
+        "endChar": 4
+      },
+      "revId": "f22e78bbbadcae35a2c29764ebd0b2f77e3a5d04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
