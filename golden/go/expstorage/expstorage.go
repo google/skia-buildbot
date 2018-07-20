@@ -3,8 +3,6 @@ package expstorage
 import (
 	"sync"
 
-	"go.skia.org/infra/go/jsonutils"
-
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/sklog"
@@ -159,6 +157,11 @@ type ExpectationsStore interface {
 	// undone.
 	UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error)
 
+	// Clear deletes all expectations in this ExpectationsStore. This is mostly
+	// used for testing, but also to delete the expectations for a Gerrit issue.
+	// See the tryjobstore package.
+	Clear() error
+
 	// removeChange removes the given digests from the expectations store.
 	// The key in changes is the test name which maps to a list of digests
 	// to remove. Used for testing only.
@@ -175,12 +178,14 @@ type TriageDetail struct {
 
 // TriageLogEntry represents one change in the expectation store.
 type TriageLogEntry struct {
-	ID           jsonutils.Number `json:"id"`
-	Name         string           `json:"name"`
-	TS           int64            `json:"ts"`
-	ChangeCount  int              `json:"changeCount"`
-	Details      []*TriageDetail  `json:"details"`
-	UndoChangeID int64            `json:"undoChangeId"`
+	// Note: The ID is a string because an int64 cannot be passed back and
+	// forth to the JS frontend.
+	ID           string          `json:"id"`
+	Name         string          `json:"name"`
+	TS           int64           `json:"ts"`
+	ChangeCount  int             `json:"changeCount"`
+	Details      []*TriageDetail `json:"details"`
+	UndoChangeID int64           `json:"undoChangeId"`
 }
 
 func (t *TriageLogEntry) GetChanges() map[string]types.TestClassification {
@@ -208,11 +213,11 @@ type MemExpectationsStore struct {
 
 // New instance of memory backed expectation storage.
 func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
-	return &MemExpectationsStore{
-		expectations: NewExpectations(),
-		readCopy:     NewExpectations(),
-		eventBus:     eventBus,
+	ret := &MemExpectationsStore{
+		eventBus: eventBus,
 	}
+	_ = ret.Clear()
+	return ret
 }
 
 // ------------- In-memory implementation
@@ -278,4 +283,13 @@ func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
+}
+
+// See  ExpectationsStore interface.
+func (m *MemExpectationsStore) Clear() error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.expectations = NewExpectations()
+	m.readCopy = NewExpectations()
+	return nil
 }

@@ -11,17 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/golden/go/status"
-	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tryjobstore"
-
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/issues"
-	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -30,7 +26,10 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/status"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
 )
@@ -565,17 +564,17 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 		tc[test] = labeledDigests
 	}
 
-	// If it's an issue set the expectations for the given issue.
+	// Use the expectations store for the master branch, unless an issue was given
+	// in the request, then get the expectations store for the issue.
+	expStore := wh.Storages.ExpectationsStore
 	if req.Issue > 0 {
-		if err := wh.Storages.TryjobStore.AddChange(req.Issue, tc, user); err != nil {
-			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
-			return
-		}
-	} else {
-		if err := wh.Storages.ExpectationsStore.AddChange(tc, user); err != nil {
-			httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
-			return
-		}
+		expStore = wh.Storages.IssueExpStoreFactory(req.Issue)
+	}
+
+	// Add the change.
+	if err := expStore.AddChange(tc, user); err != nil {
+		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -880,11 +879,12 @@ func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Reque
 		}
 
 		details := q.Get("details") == "true"
+		expStore := wh.Storages.ExpectationsStore
 		if issue > 0 {
-			logEntries, total, err = wh.Storages.TryjobStore.QueryLog(issue, offset, size, details)
-		} else {
-			logEntries, total, err = wh.Storages.ExpectationsStore.QueryLog(offset, size, details)
+			expStore = wh.Storages.IssueExpStoreFactory(issue)
 		}
+
+		logEntries, total, err = expStore.QueryLog(offset, size, details)
 	}
 
 	if err != nil {

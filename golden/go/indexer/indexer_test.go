@@ -9,16 +9,16 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/ds"
+	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
-	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
@@ -53,7 +53,7 @@ const (
 )
 
 // Flags used by benchmarks. Everything else uses reasonable assumptions based
-// on a local setup of tracdb and skiaingestion.
+// on a local setup of tracedb and skia_ingestion.
 var (
 	traceService = flag.String("trace_service", "localhost:9001", "The address of the traceservice endpoint.")
 	dbName       = flag.String("db_name", "gold_skiacorrectness", "The name of the databased to use. User 'readwrite' and local test settings are assumed.")
@@ -163,17 +163,18 @@ func BenchmarkIndexer(b *testing.B) {
 func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
 	flag.Parse()
 
-	// Set up the database configuration.
-	dbConf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
-	dbConf.User = DB_USER
-	dbConf.Name = *dbName
-
 	// Set up the diff store, the event bus and the DB connection.
 	diffStore := mocks.NewMockDiffStore()
 	evt := eventbus.New()
-	vdb, err := dbConf.NewVersionedDB()
+
+	// Set up the cloud datasstore and initialize the expectations store.
+	cleanup := ds_testutil.InitDatastore(t, ds.KindsToBackup[ds.GOLD_SKIA_PROD_NS]...)
+	defer cleanup()
+
+	cloudExpStore, _, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
 	assert.NoError(t, err)
-	expStore := expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt)
+
+	expStore := expstorage.NewCachingExpectationStore(cloudExpStore, evt)
 
 	git, err := gitinfo.CloneOrUpdate(context.Background(), REPO_URL, REPO_DIR, false)
 	assert.NoError(t, err)
@@ -193,7 +194,8 @@ func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, ex
 		EventBus:          evt,
 	}
 
-	ret.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, ret.ExpectationsStore, ret.GetTileStreamNow(time.Minute))
+	ret.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, expStore, ret.GetTileStreamNow(time.Minute))
+	assert.NoError(t, err)
 
 	tilePair, err := ret.GetLastTileTrimmed()
 	assert.NoError(t, err)

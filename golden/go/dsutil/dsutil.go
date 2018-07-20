@@ -331,6 +331,18 @@ func (t *TxActions) Run(err error) {
 	}
 }
 
+// Batch breaks the given slice of keys int batches of the given size.
+// It's main purpose is to deal with calls to datastore that have a limitation
+// on the number of keys that can be handled at once, e.g. only 500 keys at a
+// can be deleted by DeleteMulti.
+func Batch(keySlice []*datastore.Key, size int) [][]*datastore.Key {
+	ret := make([][]*datastore.Key, 0, len(keySlice)/size+1)
+	for start := 0; start < len(keySlice); start += size {
+		ret = append(ret, keySlice[start:util.MinInt(start+size, len(keySlice))])
+	}
+	return ret
+}
+
 // AddCommitFn adds a function that should be run if the related transaction succeeds
 func (t *TxActions) AddCommitFn(fn TxActionFn) {
 	t.commitActions = append(t.commitActions, fn)
