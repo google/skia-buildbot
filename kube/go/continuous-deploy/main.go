@@ -117,6 +117,8 @@ func main() {
 		pushk = "pushk"
 	}
 	shortImageNames := flag.Args()
+
+	pushk_liveness := metrics2.NewLiveness("ci_successful_push", nil)
 	for {
 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
@@ -157,6 +159,7 @@ func main() {
 			} else {
 				sklog.Info(output)
 			}
+			pushk_liveness.Reset()
 			sklog.Info("Finished push")
 		})
 		if err != nil {
