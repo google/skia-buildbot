@@ -25,6 +25,14 @@ skottie-sk {
     padding: 1em;
   }
 
+  header span {
+    padding: 0.3em;
+  }
+
+  header span a {
+    color: white;
+  }
+
   spinner-sk[active] {
     display: inline-block;
   }
