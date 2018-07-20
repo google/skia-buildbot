@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6a000bc3_8d9c1943",
+        "filename": "golden/cmd/sampler/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-20T09:42:51Z",
+      "side": 1,
+      "message": "No, the caching store is a write-through cache that boosts performance in production with many reads. I this case we only read the expectations once to take a snapshot of the current state of the system, usually for testing or benchmarking.",
+      "parentUuid": "1c02fb6e_71d7c611",
+      "range": {
+        "startLine": 184,
+        "startChar": 21,
+        "endLine": 184,
+        "endChar": 69
+      },
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e3b37eda_716dfad6",
         "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
         "patchSetId": 18
@@ -36,6 +60,30 @@
       "writtenOn": "2018-07-19T19:03:04Z",
       "side": 1,
       "message": "nit: I suggest using the same colors as Status or Task Scheduler:\nhttps://skia.googlesource.com/buildbot/+/8bf02b96a6f86a5d0a7cca2a4e8fe90bd32b8ab1/res/imp/styles-sk.html#62\nhttps://skia.googlesource.com/buildbot/+/0c39f53f97587191efc0e0b90667f71f01b7af9c/task_scheduler/res/imp/task-sk.html#101",
+      "range": {
+        "startLine": 49,
+        "startChar": 26,
+        "endLine": 49,
+        "endChar": 33
+      },
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0dc120e_d4b1a4ab",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-20T09:42:51Z",
+      "side": 1,
+      "message": "I took the color from Gerrit, it\u0027s the grey for scheduled jobs that haven\u0027t started yet.\nThe task scheduler I think uses white for this, which doesn\u0027t work well on the white background.",
+      "parentUuid": "e3b37eda_716dfad6",
       "range": {
         "startLine": 49,
         "startChar": 26,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "c5e07f44_e92cf469",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-20T09:42:51Z",
+      "side": 1,
+      "message": "I added documentation that this is mostly used for testing. But it is called in the function to delete an Issue in the tryjobstore package. I am expecting that will have to add some sort of cleanup routine, to archive/delete tryjob results after a while, just to keep the database manageable.",
+      "parentUuid": "d5bd0136_09f2f4a2",
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "658d1658_dfd71774",
         "filename": "golden/go/web/web.go",
         "patchSetId": 18
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "14c6eae2_54cf4177",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 567,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-20T09:42:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "658d1658_dfd71774",
+      "range": {
+        "startLine": 567,
+        "startChar": 12,
+        "endLine": 567,
+        "endChar": 23
+      },
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d1ad3be_848630a5",
         "filename": "golden/go/web/web.go",
         "patchSetId": 18
@@ -102,6 +192,24 @@
       "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2b846ea_7939afa9",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 1021,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-07-20T09:42:51Z",
+      "side": 1,
+      "message": "Done\nLOL, removed.",
+      "parentUuid": "8d1ad3be_848630a5",
+      "revId": "6d47043d3fbfd55b3a69aa80b5a2f79c37ad5348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
