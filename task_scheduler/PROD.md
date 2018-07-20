@@ -118,6 +118,16 @@ it might be due to killing the process without gracefully closing the DB or due
 to large read transactions concurrent with write transactions.
 
 
+too_many_candidates
+-------------------
+
+The number of task candidates for a given dimension set is very high. This may
+not actually indicate that anything is wrong with the Task Scheduler. Instead,
+it may just mean that demand has exceeded bot capacity for one or more types of
+bots for an extended period. If possible, increase the bot capacity by adding
+more bots or by fixing offline or quarantined bots.
+
+
 trigger_nightly
 ---------------
 
