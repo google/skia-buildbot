@@ -138,10 +138,10 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 }
 
 func (c *CTAutoscaler) logRunningGCEInstances() error {
-	instances, err := c.a.GetRunningInstances()
-	if err != nil {
+	if err := c.a.Update(); err != nil {
 		return err
 	}
+	instances := c.a.GetRunningInstances()
 	sklog.Debugf("Running CT GCE instances: %s", instances)
 	return nil
 }

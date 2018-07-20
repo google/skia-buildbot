@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/autoscaler"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -77,6 +78,7 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
+	autoScaler          *autoscaler.Autoscaler
 	bl                  *blacklist.Blacklist
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
@@ -1313,6 +1315,18 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return err
 	}
 
+	// Once we have the queue, trigger an autoscale.
+	var wg3 sync.WaitGroup
+	var autoScaleErr error
+	go func() {
+		defer wg3.Done()
+		candidateDimensions := make([][]string, 0, len(queue))
+		for _, c := range queue {
+			candidateDimensions = append(candidateDimensions, c.TaskSpec.Dimensions)
+		}
+		autoScaleErr = s.autoScaler.Autoscale(candidateDimensions)
+	}()
+
 	wg1.Wait()
 	if e1 != nil {
 		return e1
@@ -1326,7 +1340,8 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
-	return nil
+	wg3.Wait()
+	return autoScaleErr
 }
 
 // updateRepos syncs the scheduler's repos.
