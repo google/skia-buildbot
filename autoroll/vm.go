@@ -197,6 +197,10 @@ func Skia_LottieCI() *gce.Instance {
 		"borenet@google.com",
 	}
 	vm.ServiceAccount = "skia-lottie-ci-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Dir(filename)
+	// This is not an internal roller, but it needs the same setup.
+	vm.SetupScript = path.Join(dir, "setup-script-internal.sh")
 	return vm
 }
 

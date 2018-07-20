@@ -1,7 +1,7 @@
 {
   "childName": "Skia",
   "cqExtraTrybots": [
-    "Housekeeper-PerCommit-InfraTests"
+    "skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
   "gerritURL": "https://skia-review.googlesource.com",
   "maxRollFrequency": "0m",
