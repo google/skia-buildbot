@@ -117,6 +117,8 @@ func main() {
 		pushk = "pushk"
 	}
 	shortImageNames := flag.Args()
+
+	pubSubReceive := metrics2.NewLiveness("ci_pubsub_receive", nil)
 	for {
 		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 			msg.Ack()
@@ -151,12 +153,16 @@ func main() {
 			cmd := fmt.Sprintf("%s --logtostderr %s", pushk, strings.Join(imageNames, " "))
 			sklog.Infof("About to execute: %q", cmd)
 			output, err := exec.RunSimple(ctx, cmd)
+			pushFailure := metrics2.GetCounter("ci_push_failure", map[string]string{"trigger": buildInfo.Source.RepoSource.RepoName})
 			if err != nil {
 				sklog.Errorf("Failed to run pushk: %s: %s", output, err)
+				pushFailure.Inc(1)
 				return
 			} else {
 				sklog.Info(output)
 			}
+			pushFailure.Reset()
+			pubSubReceive.Reset()
 			sklog.Info("Finished push")
 		})
 		if err != nil {
