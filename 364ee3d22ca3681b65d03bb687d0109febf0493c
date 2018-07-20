@@ -22,6 +22,30 @@
       "revId": "364ee3d22ca3681b65d03bb687d0109febf0493c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba6b1834_1e05ec46",
+        "filename": "promk/prometheus/alert_rules.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-20T15:45:08Z",
+      "side": 1,
+      "message": "Between rollers and commits to both skia and skia infra I really doubt we\u0027d get beyond 24 hours, but we can up the time limit if we trigger this too often.",
+      "parentUuid": "ba9247c7_b4f8784a",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 101
+      },
+      "revId": "364ee3d22ca3681b65d03bb687d0109febf0493c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
