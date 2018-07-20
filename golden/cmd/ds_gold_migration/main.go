@@ -129,7 +129,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 				lastTS = entry.TS
 			}
 			if entry.TS > lastTS {
-				sklog.Fatalf("TS not decrease monotonically. Change %d has time stamp %d following %d", entry.ID, entry.TS, lastTS)
+				sklog.Fatalf("TS does not decrease monotonically. Change %s has time stamp %d following %d", entry.ID, entry.TS, lastTS)
 			}
 
 			lastTS = entry.TS

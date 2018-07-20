@@ -16,9 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/golden/go/tryjobs"
-	"go.skia.org/infra/golden/go/web"
-
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
@@ -26,7 +23,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
@@ -41,7 +37,6 @@ import (
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/digeststore"
@@ -51,8 +46,10 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web"
 )
 
 const (
@@ -113,9 +110,6 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	mainTimer := timer.New("main init")
-	// Setup DB flags. But don't specify a default host or default database
-	// to avoid accidental writes.
-	dbConf := database.ConfigFromFlags("", db.PROD_DB_PORT, database.USER_RW, "", db.MigrationSteps())
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
@@ -237,22 +231,6 @@ func main() {
 		}
 		sklog.Infof("DiffStore: MemDiffStore initiated.")
 	}
-
-	// Set up databases and tile builders.
-	if !*local {
-		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			sklog.Fatal(err)
-		}
-	}
-	vdb, err := dbConf.NewVersionedDB()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
-	if !vdb.IsLatestVersion() {
-		sklog.Fatal("Wrong DB version. Please updated to latest version.")
-	}
-
 	digestStore, err := digeststore.New(*storageDir)
 	if err != nil {
 		sklog.Fatal(err)
@@ -313,7 +291,12 @@ func main() {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
 	}
 
-	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, evt)
+	cloudExpStore, issueExpStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, evt)
+	if err != nil {
+		sklog.Fatalf("Unable to configure cloud expectations store: %s", err)
+	}
+
+	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 	}
@@ -325,17 +308,18 @@ func main() {
 	}
 
 	storages := &storage.Storage{
-		DiffStore:         diffStore,
-		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
-		MasterTileBuilder: masterTileBuilder,
-		DigestStore:       digestStore,
-		NCommits:          *nCommits,
-		EventBus:          evt,
-		TryjobStore:       tryjobStore,
-		TryjobMonitor:     tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt, *authoritative),
-		GerritAPI:         gerritAPI,
-		GStorageClient:    gsClient,
-		Git:               git,
+		DiffStore:            diffStore,
+		ExpectationsStore:    expstorage.NewCachingExpectationStore(cloudExpStore, evt),
+		IssueExpStoreFactory: issueExpStoreFactory,
+		MasterTileBuilder:    masterTileBuilder,
+		DigestStore:          digestStore,
+		NCommits:             *nCommits,
+		EventBus:             evt,
+		TryjobStore:          tryjobStore,
+		TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt, *authoritative),
+		GerritAPI:            gerritAPI,
+		GStorageClient:       gsClient,
+		Git:                  git,
 	}
 
 	// Load the whitelist if there is one and disable querying for issues.
@@ -354,7 +338,9 @@ func main() {
 	openSite := (*pubWhiteList == WHITELIST_ALL) || *forceLogin
 
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
-	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
+	if storages.IgnoreStore, err = ignore.NewCloudIgnoreStore(ds.DS, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute)); err != nil {
+		sklog.Fatalf("Unable to create ignorestore: %s", err)
+	}
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}

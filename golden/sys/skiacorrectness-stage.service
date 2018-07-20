@@ -8,10 +8,9 @@ Environment=DATA_DIR=/mnt/pd0/data  \
   RESOURCE_DIR=/usr/local/share/skiacorrectness/frontend
 
 ExecStart=/usr/local/bin/skiacorrectness-stage  \
-    --baseline_gs_path=skia-infra-gm/baselines/gold-stage \
+    --app_title="Stage Gold" \
+    --baseline_gs_path=skia-infra-gm/hash_files/gold-stage-baselines \
     --cache_size=20 \
-    --db_host=173.194.106.53 \
-    --db_name=skiacorrectness_stage  \
     --diff_server_grpc=skia-diffserver-stage:8000 \
     --diff_server_http=skia-diffserver-stage:8001 \
     --ds_namespace=gold-skia-stage \

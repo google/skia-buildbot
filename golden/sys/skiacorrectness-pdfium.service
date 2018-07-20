@@ -5,14 +5,12 @@ After=network-online.target
 
 [Service]
 Environment=DATA_DIR=/mnt/pd0/data  \
-  RESOURCE_DIR=/usr/local/share/skiacorrectness  \
+  RESOURCE_DIR=/usr/local/share/skiacorrectness/frontend  \
 
 ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --app_title="Pdfium Gold" \
     --baseline_gs_path=skia-infra-gm/hash_files/gold-pdfium-baselines \
     --cache_size=20 \
-    --db_host=173.194.104.24  \
-    --db_name=skiacorrectness_pdfium  \
     --default_corpus=corpus \
     --ds_namespace=gold-pdfium \
     --event_topic=gold-pdfium-eventbus \
@@ -30,7 +28,6 @@ ExecStart=/usr/local/bin/skiacorrectness-pdfium  \
     --public_whitelist=all \
     --redirect_url=https://pdfium-gold.skia.org/oauth2callback/  \
     --resources_dir=${RESOURCE_DIR}  \
-    --resources_dir=/usr/local/share/skiacorrectness/frontend \
     --show_bot_progress=false \
     --storage_dir=${DATA_DIR}/datastore  \
     --trace_service=skia-tracedb:9091

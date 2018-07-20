@@ -3,9 +3,10 @@ package expstorage
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
@@ -170,7 +171,6 @@ func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) err
 
 // removeChange, see ExpectationsStore interface.
 func (s *SQLExpectationsStore) removeChange(changedDigests map[string]types.TestClassification) (retErr error) {
-	sklog.Infof("Removing: %s", spew.Sdump(changedDigests))
 	defer timer.New("removing exp change").Stop()
 
 	const markRemovedStmt = `UPDATE exp_test_change
@@ -312,7 +312,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size int, changeID int64, de
 		placeHolders = make([]string, 0, size)
 	}
 
-	idToIdxMap := map[int64]int{}
+	idToIdxMap := map[string]int{}
 	result := make([]*TriageLogEntry, 0, size)
 	for rows.Next() {
 		entry := &TriageLogEntry{}
@@ -322,7 +322,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size int, changeID int64, de
 
 		result = append(result, entry)
 		if details {
-			idToIdxMap[int64(entry.ID)] = len(result) - 1
+			idToIdxMap[entry.ID] = len(result) - 1
 			ids = append(ids, entry.ID)
 			placeHolders = append(placeHolders, "?")
 		}
@@ -342,7 +342,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size int, changeID int64, de
 				return nil, 0, err
 			}
 
-			idx := idToIdxMap[recID]
+			idx := idToIdxMap[strconv.FormatInt(recID, 10)]
 			if result[idx].Details == nil {
 				result[idx].Details = make([]*TriageDetail, 0, result[idx].ChangeCount)
 			}
@@ -379,6 +379,25 @@ func (s *SQLExpectationsStore) UndoChange(changeID int64, userID string) (map[st
 	return changes, s.AddChangeWithTimeStamp(changes, userID, changeID, util.TimeStampMs())
 }
 
+// Clear implements the ExpectationsStore interface.
+func (s *SQLExpectationsStore) Clear() error {
+	const stmt_ec = `DELETE FROM exp_change`
+	const stmt_etc = `DELETE FROM exp_test_change`
+
+	var egroup errgroup.Group
+	egroup.Go(func() error {
+		_, err := s.vdb.DB.Exec(stmt_ec)
+		return err
+	})
+
+	egroup.Go(func() error {
+		_, err := s.vdb.DB.Exec(stmt_etc)
+		return err
+	})
+
+	return egroup.Wait()
+}
+
 // Loads a single change entry with all details from the DB.
 func (s *SQLExpectationsStore) loadChangeEntry(changeID int64) (*TriageLogEntry, error) {
 	changeInfo, _, err := s.queryChanges(0, 5, changeID, true)
@@ -409,6 +428,12 @@ func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.Event
 		eventBus: eventBus,
 		refresh:  true,
 	}
+
+	// Prime the cache upon creation.
+	// We ignore any error returned here for a simplified function signature and
+	// also because any ExpectationsStore implementation (i.e. CloudExpectationsStore)
+	// will do some connection checks before being passed to this instance.
+	_, _ = ret.Get()
 
 	// Register the events to update the cache.
 	ret.eventBus.SubscribeAsync(EV_EXPSTORAGE_CHANGED, ret.addChangeToCache)
@@ -507,4 +532,12 @@ func (c *CachingExpectationStore) UndoChange(changeID int64, userID string) (map
 	// Fire an event that will trigger the addition to the cache.
 	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
 	return changedTests, nil
+}
+
+// Clear implements the ExpectationsStore interface.
+func (c *CachingExpectationStore) Clear() error {
+	if err := c.store.Clear(); err != nil {
+		return err
+	}
+	return c.cache.Clear()
 }

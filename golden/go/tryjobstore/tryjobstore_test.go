@@ -21,7 +21,6 @@ import (
 
 func TestCloudTryjobStore(t *testing.T) {
 	testutils.LargeTest(t)
-	t.Skip()
 
 	// Otherwise try and connect to a locally running emulator.
 	cleanup := testutil.InitDatastore(t,
@@ -33,13 +32,14 @@ func TestCloudTryjobStore(t *testing.T) {
 	defer cleanup()
 
 	eventBus := eventbus.New()
-	store, err := NewCloudTryjobStore(ds.DS, eventBus)
+	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, eventBus)
+	store, err := NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	assert.NoError(t, err)
 
-	testTryjobStore(t, store)
+	testTryjobStore(t, store, expStoreFactory)
 }
 
-func testTryjobStore(t *testing.T, store TryjobStore) {
+func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage.IssueExpStoreFactory) {
 	// Add the issue and two tryjobs to the store.
 	issueID := int64(99)
 	patchsetID := int64(1099)
@@ -93,10 +93,6 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	}
 	assert.NoError(t, store.UpdateIssue(issue, nil))
 
-	expChangeKeys, _, err := store.(*cloudTryjobStore).getExpChangesForIssue(issueID, -1, -1, true)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(expChangeKeys))
-
 	// Insert the tryjobs into the datastore.
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_1, nil))
 	found, err := store.GetTryjob(issueID, buildBucketID)
@@ -149,7 +145,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		tryjobResults[idx] = results
 	}
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	foundTJs, foundTJResults, err := store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, true)
 	assert.NoError(t, err)
@@ -162,8 +158,10 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		assert.Equal(t, tryjobResults[idx], tjr)
 	}
 
-	// Add a redundant Tryjob make sure it's filtered out.
+	// Add a redundant Tryjob make sure it's not filtered out.
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_3, nil))
+	time.Sleep(3 * time.Second)
+
 	foundTJs, _, err = store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, false)
 	assert.NoError(t, err)
 	assert.Equal(t, len(allTryjobs)+1, len(foundTJs))
@@ -181,6 +179,7 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 	allChanges := expstorage.NewExpectations()
 	expLogEntries := []*expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
+	expStore := expStoreFactory(issueID)
 	for i := 0; i < 5; i++ {
 		triageDetails := []*expstorage.TriageDetail{}
 		changes := expstorage.NewExpectations()
@@ -195,20 +194,20 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 				})
 			}
 		}
-		assert.NoError(t, store.AddChange(issueID, changes.Tests, userName))
+		assert.NoError(t, expStore.AddChange(changes.Tests, userName))
 		allChanges.AddDigests(changes.Tests)
 		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
 			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
 		})
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 
-	time.Sleep(30 * time.Second)
-	foundExp, err := store.GetExpectations(issueID)
+	time.Sleep(10 * time.Second)
+	foundExp, err := expStore.Get()
 	assert.NoError(t, err)
 	assert.Equal(t, allChanges, foundExp)
 
-	logEntries, total, err := store.QueryLog(issueID, 0, -1, false)
+	logEntries, total, err := expStore.QueryLog(0, -1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, total)
 	assert.Equal(t, 5, len(logEntries))
@@ -220,11 +219,15 @@ func testTryjobStore(t *testing.T, store TryjobStore) {
 		}
 	}
 
-	assert.NoError(t, store.AddChange(issueID, foundExp.Tests, userName))
-	time.Sleep(5 * time.Second)
-	untriagedExp, err := store.GetExpectations(issueID)
+	assert.NoError(t, expStore.AddChange(foundExp.Tests, userName))
+	time.Sleep(3 * time.Second)
+	untriagedExp, err := expStore.Get()
 	assert.NoError(t, err)
-	assert.Equal(t, foundExp, untriagedExp)
+	for testName, digests := range foundExp.Tests {
+		for digest, label := range digests {
+			assert.Equal(t, label, untriagedExp.Tests[testName][digest])
+		}
+	}
 
 	// Test commiting where the commit fails.
 	assert.Error(t, store.CommitIssueExp(issueID, func() error {

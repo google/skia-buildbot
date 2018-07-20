@@ -1,14 +1,17 @@
 package expstorage
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"sort"
+	"strconv"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/database/testutil"
 
+	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
@@ -17,6 +20,15 @@ import (
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
 )
+
+var testKinds = []ds.Kind{
+	ds.MASTER_EXP_CHANGE,
+	ds.TRYJOB_EXP_CHANGE,
+	ds.TRYJOB_TEST_DIGEST_EXP,
+	ds.HELPER_RECENT_KEYS,
+	ds.EXPECTATIONS_BLOB_ROOT,
+	ds.EXPECTATIONS_BLOB,
+}
 
 func TestMySQLExpectationsStore(t *testing.T) {
 	testutils.LargeTest(t)
@@ -31,6 +43,7 @@ func TestMySQLExpectationsStore(t *testing.T) {
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
 	testExpectationStore(t, sqlStore, nil, 0, EV_EXPSTORAGE_CHANGED)
+	assert.NoError(t, sqlStore.Clear())
 
 	// Test the caching version of the MySQL store.
 	eventBus := eventbus.New()
@@ -49,6 +62,22 @@ func TestMasterCloudExpectationsStore(t *testing.T) {
 	cloudStore, _, err := NewCloudExpectationsStore(ds.DS, masterEventBus)
 	assert.NoError(t, err)
 	testExpectationStore(t, cloudStore, masterEventBus, 0, EV_EXPSTORAGE_CHANGED)
+	testCloudExpstoreClear(t, cloudStore)
+}
+
+func testCloudExpstoreClear(t *testing.T, cloudStore ExpectationsStore) {
+	// Make sure the clear works.
+	assert.NoError(t, cloudStore.Clear())
+	assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
+		for _, kind := range testKinds {
+			count, err := ds.DS.Count(context.TODO(), ds.NewQuery(kind).KeysOnly())
+			assert.NoError(t, err)
+			if count > 0 {
+				return testutils.TryAgainErr
+			}
+		}
+		return nil
+	}))
 }
 
 func TestCachingCloudExpectationsStore(t *testing.T) {
@@ -63,6 +92,7 @@ func TestCachingCloudExpectationsStore(t *testing.T) {
 	assert.NoError(t, err)
 	cachingStore := NewCachingExpectationStore(cloudStore, cachingEventBus)
 	testExpectationStore(t, cachingStore, cachingEventBus, 0, EV_EXPSTORAGE_CHANGED)
+	testCloudExpstoreClear(t, cachingStore)
 }
 
 func TestIssueCloudExpectationsStore(t *testing.T) {
@@ -78,19 +108,15 @@ func TestIssueCloudExpectationsStore(t *testing.T) {
 	issueID := int64(1234567)
 	issueStore := issueStoreFactory(issueID)
 	testExpectationStore(t, issueStore, masterEventBus, issueID, EV_TRYJOB_EXP_CHANGED)
+	testCloudExpstoreClear(t, issueStore)
 }
 
 // initDS initializes the datastore for testing.
 func initDS(t *testing.T, kinds ...ds.Kind) func() {
-	kinds = append([]ds.Kind{
-		ds.MASTER_EXP_CHANGE,
-		ds.TRYJOB_EXP_CHANGE,
-		ds.TRYJOB_TEST_DIGEST_EXP,
-		ds.HELPER_RECENT_KEYS,
-		ds.EXPECTATIONS_BLOB_ROOT,
-		ds.EXPECTATIONS_BLOB,
-	}, kinds...)
-	return ds_testutil.InitDatastore(t, kinds...)
+	initKinds := []ds.Kind{}
+	initKinds = append(initKinds, testKinds...)
+	initKinds = append(initKinds, kinds...)
+	return ds_testutil.InitDatastore(t, initKinds...)
 }
 
 const hexLetters = "0123456789abcdef"
@@ -148,6 +174,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 100, true)
 	assert.NoError(t, err)
 	initialLogRecsLen := len(initialLogRecs)
+
+	// Request expectations and make sure they are empty.
+	emptyExp, err := store.Get()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(emptyExp.Tests))
 
 	// If we have an event bus then keep gathering events.
 	callbackCh := make(chan []string, 3)
@@ -301,11 +332,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	assert.Equal(t, 0, len(logEntries))
 
 	// Undo the latest version and make sure the corresponding record is correct.
-	changes, err := store.UndoChange(int64(lastRec.ID), "user-1")
+	changes, err := store.UndoChange(parseID(t, lastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
-	changes, err = store.UndoChange(int64(secondToLastRec.ID), "user-1")
+	changes, err = store.UndoChange(parseID(t, secondToLastRec.ID), "user-1")
 	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
@@ -331,7 +362,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	logEntries, _, err = store.QueryLog(0, 1, false)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
-	_, err = store.UndoChange(int64(logEntries[0].ID), "user-1")
+	_, err = store.UndoChange(parseID(t, logEntries[0].ID), "user-1")
 	assert.NotNil(t, err)
 
 	// Make sure getExpectationsAt works correctly.
@@ -349,6 +380,12 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 		checkExpectationsAt(t, sqlStore, secondAdd, "second")
 		checkExpectationsAt(t, sqlStore, secondUndo, "third")
 	}
+}
+
+func parseID(t *testing.T, idStr string) int64 {
+	ret, err := strconv.ParseInt(idStr, 10, 64)
+	assert.NoError(t, err)
+	return ret
 }
 
 func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInfo *TriageLogEntry, name string) {
