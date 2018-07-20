@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "fa174f7c_27d183b3",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-20T18:40:21Z",
+      "side": 1,
+      "message": "To clarify, if I call Start on the same instance twice, what happens?",
+      "parentUuid": "df9f425c_78828931",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 287,
+        "endChar": 2
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d2616286_472142ee",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -174,6 +198,30 @@
       "writtenOn": "2018-07-20T18:28:00Z",
       "side": 1,
       "message": "In the case of Task Scheduler, I don\u0027t think (recent) past performance is a good indicator of future results. If we\u0027ve had 0 tasks to run for the last 30 minutes, it doesn\u0027t really matter at all if 31 minutes ago we were running 500 tasks.\n\nI\u0027m thinking something like this:\n - to bootstrap, let targetBase :\u003d scaler.NumRunning(); targetTime :\u003d time.Now()\n - on each call to Autoscale:\n   - determine target :\u003d targetBase * math.Pow(0.5, time.Now().Sub(targetTime).Hours()/HALF_LIFE_HOURS)\n   - if candidates \u003e target, targetBase \u003d candidates; targetTime \u003d time.Now()\n   - if scaler.NumRunning() \u003c target, add more bots (this is assuming NumRunning includes bots that we requested to start but are not running yet and does not include bots that we requested to stop but are still running)\n   - if scaler.NumRunning() \u003e target, stop some bots",
+      "range": {
+        "startLine": 101,
+        "startChar": 6,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fc45518_d1158755",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-20T18:40:21Z",
+      "side": 1,
+      "message": "Sorry, s/candidates/candidates + len(scaler.Busy())/",
+      "parentUuid": "bcbd0c1b_347a8b9b",
       "range": {
         "startLine": 101,
         "startChar": 6,
