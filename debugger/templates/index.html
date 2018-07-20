@@ -29,6 +29,14 @@
         display: inline-block;
       }
 
+      header span {
+        padding: 0.3em;
+      }
+
+      header span a {
+        color: white;
+      }
+
       header h2 {
         margin: 0;
       }
@@ -41,6 +49,9 @@
 <body>
   <header>
     <h2>Skia Debugger</h2>
+    <span>
+      <a href='https://skia.googlesource.com/skia/+/{{.Version}}'>{{.VersionShort}}</a>
+    </span>
   </header>
   <main>
     <h2>The Skia Debugger allows you to interactively debug an SKP file.</h1>
