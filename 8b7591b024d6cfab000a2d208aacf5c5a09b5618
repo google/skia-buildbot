@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "15129a6f_435f9c9e",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-20T18:19:47Z",
+      "side": 1,
+      "message": "Return error instead because the caller is doing sklog.Fatalf anyway?",
+      "revId": "8b7591b024d6cfab000a2d208aacf5c5a09b5618",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
