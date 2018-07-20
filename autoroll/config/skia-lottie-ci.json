@@ -1,6 +1,8 @@
 {
   "childName": "Skia",
-  "cqExtraTrybots": [],
+  "cqExtraTrybots": [
+    "Housekeeper-PerCommit-InfraTests"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "maxRollFrequency": "0m",
   "parentName": "Lottie CI",
@@ -11,14 +13,13 @@
   },
   "serverURL": "",
   "sheriff": ["borenet@google.com"],
-  "noCheckoutDepsRepoManager": {
+  "depsRepoManager": {
     "childBranch": "master",
     "childPath": "skia",
-    "childRepo": "https://skia.googlesource.com/skia.git",
-    "gerritProject": "lottie-ci",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+    "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
+    "preUploadSteps": ["TrainInfra"]
   }
 }
