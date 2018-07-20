@@ -98,6 +98,31 @@ groups:
     annotations:
       abbr: 'Container Builder Failed'
       description: 'The build with trigger name {{ $labels.trigger}} has failed when rebuilding.'
+  # Continuous Deploy
+  - alert: ContinuousDeployLiveness
+    expr: liveness_ci_pubsub_receive_s > 60 * 60 * 24
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} has failed to recieve a pubsub event in the last 24 hours.
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+        '
+  - alert: ContinuousDeployFailures
+    expr: ci_push_failure > 2
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} has failed to successfully push two or more times in a row.
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+        '
   # Fiddle
   - alert: FiddlerPodsTooLow
     expr: avg_over_time(pods_idle[2m]) < 5
