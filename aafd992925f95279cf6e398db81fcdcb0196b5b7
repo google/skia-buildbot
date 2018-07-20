@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40f0af69_71ffd666",
+        "filename": "kube/go/continuous-deploy/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T14:42:31Z",
+      "side": 1,
+      "message": "It strikes me that the alert will always fire if we haven\u0027t built new packages to push within a 24 hour window.  Would it make more sense to add a ci_push_failure metric and alert on that instead?",
+      "range": {
+        "startLine": 121,
+        "startChar": 1,
+        "endLine": 121,
+        "endChar": 66
+      },
+      "revId": "aafd992925f95279cf6e398db81fcdcb0196b5b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
