@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba9247c7_b4f8784a",
+        "filename": "promk/prometheus/alert_rules.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T15:41:09Z",
+      "side": 1,
+      "message": "I think I have the same comment here, which is that we may still correctly receive no pubsub notifications during a 24 hour period, right?",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 101
+      },
+      "revId": "364ee3d22ca3681b65d03bb687d0109febf0493c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
