@@ -115,11 +115,14 @@ func main() {
 				if !*quiet {
 					fmt.Print(".")
 				}
+				fiddleHash, err := req.req.Options.ComputeHash(req.req.Code)
+				if err != nil {
+					sklog.Fatalf("Failed to calculate fiddleHash: %s", err)
+				}
 				if *force {
 					req.req.Fast = false
 				} else if lastWritten != nil {
-					fiddleHash, err := req.req.Options.ComputeHash(req.req.Code)
-					if err == nil {
+					if fiddleHash != "" {
 						if lastWritten[req.id] != nil {
 							if lastWritten[req.id].FiddleHash == fiddleHash {
 								mutex.Lock()
@@ -140,7 +143,10 @@ func main() {
 				var runResults *types.RunResults
 				for tries := 0; tries < RETRIES; tries++ {
 					runResults, success = singleRequest(c, b, *domain)
-					if success {
+					if success && fiddleHash == runResults.FiddleHash {
+						if fiddleHash != runResults.FiddleHash {
+							sklog.Warningf("Got mismatched hashes: %q != %q", fiddleHash, runResults.FiddleHash)
+						}
 						break
 					}
 				}
