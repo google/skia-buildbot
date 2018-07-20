@@ -41,6 +41,7 @@ var (
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	skottieTool  = flag.String("skottie_tool", "", "Absolute path to the skottie_tool executable.")
+	versionFile  = flag.String("version_file", "/etc/skia-prod/VERSION", "The full path of the Skia VERSION file.")
 )
 
 var (
@@ -51,6 +52,7 @@ var (
 type Server struct {
 	bucket    *storage.BucketHandle
 	templates *template.Template
+	version   string
 }
 
 func New() (*Server, error) {
@@ -69,8 +71,15 @@ func New() (*Server, error) {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)
 	}
 
+	b, err := ioutil.ReadFile(*versionFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read Skia version: %s", err)
+	}
+	version := strings.TrimSpace(string(b))
+
 	srv := &Server{
-		bucket: storageClient.Bucket(BUCKET),
+		bucket:  storageClient.Bucket(BUCKET),
+		version: version,
 	}
 	srv.loadTemplates()
 	return srv, nil
@@ -113,7 +122,10 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		srv.loadTemplates()
 	}
-	if err := srv.templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+	context := map[string]string{
+		"Version": srv.version,
+	}
+	if err := srv.templates.ExecuteTemplate(w, "index.html", context); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }

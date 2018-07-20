@@ -63,7 +63,7 @@ const pick = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <h2>Skottie</h2>
+  <h2>Skottie</h2><span><a href='https://skia.googlesource.com/skia/+/${ele.version}'>${ele.version.slice(0, 7)}</a></span>
 </header>
 <main>
   ${pick(ele)}
@@ -101,6 +101,18 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListener('skottie-selected', this)
     this.removeEventListener('cancelled', this)
+  }
+
+  static get observedAttributes() {
+    return ['version'];
+  }
+
+  /** @prop version {string} The version of Skia. */
+  get version() { return this.getAttribute('version'); }
+  set version(val) { this.setAttribute('version', val); }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    this._render();
   }
 
   _reflectFromURL() {
