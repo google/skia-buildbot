@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "34674afc_8da5b752",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "Yep, eg. one for Windows, one for big Linux instances, small Linux instances, etc.",
+      "parentUuid": "29e1bd8f_de6be67a",
+      "range": {
+        "startLine": 36,
+        "startChar": 3,
+        "endLine": 36,
+        "endChar": 48
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f58ae508_b3e11225",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "8f4d5995_99dc3fa3",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "Agreed, this is confusing.  I think I like dead/alive best personally.",
+      "parentUuid": "f58ae508_b3e11225",
+      "range": {
+        "startLine": 173,
+        "startChar": 21,
+        "endLine": 173,
+        "endChar": 34
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "816d229c_fe837b13",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2018-07-20T18:28:00Z",
       "side": 1,
       "message": "My opinion: I think it will be easier to deal with \"starting\" and \"stopping\" statuses rather than waiting for the status to change. I think it will be easier to have alerts on \"instance X has been in \u0027starting\u0027 state for 15 minutes\" rather than dealing with errors returned by waitForStatus/Start/Stop.\n\nOTOH, I\u0027m not sure how we would identify that an instance is in starting or stopping state based on info from Swarming and/or GCE.\n\nI\u0027m also thinking about how we would avoid getting stuck when the process is restarted and we keep trying to call Start on an instance that is starting or Stop on an instance that is stopping. Or even without the process restarting, how to deal with an instance that has failed partway through Start or Stop, where calling the function again fails because it\u0027s not in the expected state.\n\nIt\u0027s possible that the user of Autoscaler doesn\u0027t care about the difference between \"starting\" and \"started\" or between \"stopping\" and \"stopped\". If so, then the in-between states would only be interesting internally. But right now it seems we\u0027re treating \"starting\" and \"stopped\" as the same, which doesn\u0027t seem quite right.",
+      "range": {
+        "startLine": 257,
+        "startChar": 21,
+        "endLine": 257,
+        "endChar": 34
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a25d75e0_37d1857b",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "Yeah, I wanted this to be simple for the user: request N instances in the pool and when the scaler says it\u0027s done, there are N instances connected to Swarming.  But I guess this should probably be done asynchronously, and, as you say, change bot status to have multiple states, eg. \"offline\", \"starting\", \"online\", and \"stopping\".  Maybe just poll every 5 minutes or so and update statuses.  With some debouncing on the user\u0027s part, we probably don\u0027t need to wait for all of the requested instances to go online/offline.",
+      "parentUuid": "816d229c_fe837b13",
       "range": {
         "startLine": 257,
         "startChar": 21,
@@ -118,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "4dca2928_3c1ca52f",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "At the moment, there\u0027s no protection against trying to start an already-running instance.  I\u0027m guessing that the API call to GCloud would fail, but we should probably check and return an error if any requested instance is already in the given state, or in an intermediate state.",
+      "parentUuid": "fa174f7c_27d183b3",
+      "range": {
+        "startLine": 283,
+        "startChar": 0,
+        "endLine": 287,
+        "endChar": 2
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d2616286_472142ee",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -129,6 +225,30 @@
       "writtenOn": "2018-07-20T18:28:00Z",
       "side": 1,
       "message": "Should we choose idle bots first?",
+      "range": {
+        "startLine": 332,
+        "startChar": 0,
+        "endLine": 335,
+        "endChar": 2
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9f31384_01d1a3f9",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "Yep.",
+      "parentUuid": "d2616286_472142ee",
       "range": {
         "startLine": 332,
         "startChar": 0,
@@ -164,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "9fd2bfe0_131c0a35",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "Either SGTM.  Probably not something to worry much about in the first iteration.",
+      "parentUuid": "a4f7c3a9_b4723c83",
+      "range": {
+        "startLine": 337,
+        "startChar": 17,
+        "endLine": 337,
+        "endChar": 43
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "68e9af07_8c88239d",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -175,6 +319,30 @@
       "writtenOn": "2018-07-20T18:28:00Z",
       "side": 1,
       "message": "Why require zero candidates?",
+      "range": {
+        "startLine": 98,
+        "startChar": 9,
+        "endLine": 98,
+        "endChar": 27
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acdad7df_764496a2",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "Arbitrary.  I didn\u0027t know what the right logic was yet, so I wrote the first thing that came to mind.",
+      "parentUuid": "68e9af07_8c88239d",
       "range": {
         "startLine": 98,
         "startChar": 9,
@@ -234,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "0605a446_c0523481",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "All of this SGTM.",
+      "parentUuid": "2fc45518_d1158755",
+      "range": {
+        "startLine": 101,
+        "startChar": 6,
+        "endLine": 101,
+        "endChar": 26
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e741c7b9_7cf6c76a",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -245,6 +437,30 @@
       "writtenOn": "2018-07-20T18:28:00Z",
       "side": 1,
       "message": "I think we should use StopN and not worry about which bots are idle here. We will do a graceful shutdown, which means we\u0027ll wait for whatever tasks are running to finish. If our utilization indicates we need fewer bots, it doesn\u0027t really matter if those bots are running a 2-hour task, we still want them to stop after the task completes.",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 53
+      },
+      "revId": "07fc71e329fc6ed27f6da47700ff17faf5543be9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14a2deb2_8e6c1ad6",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-20T19:43:34Z",
+      "side": 1,
+      "message": "SGTM, as you suggested in the swarming autoscaler, we can prioritize shutting down the idle bots as an implementation detail.",
+      "parentUuid": "e741c7b9_7cf6c76a",
       "range": {
         "startLine": 103,
         "startChar": 0,
