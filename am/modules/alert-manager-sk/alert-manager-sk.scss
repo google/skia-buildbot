@@ -1,0 +1,100 @@
+@import '~common-sk/modules/colors';
+
+alert-manager-sk {
+  button.fab {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  spinner-sk[active] {
+    visibility: initial;
+  }
+
+  spinner-sk {
+    visibility: hidden;
+    display: inline-block;
+    position: fixed;
+    top: 4em;
+    left: 34em;
+  }
+
+  header {
+    color: #ddd;
+    background: #050505;
+    margin: 0;
+    padding: 0.4em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-size: 110%;
+    font-weight: normal;
+    margin: 0;
+  }
+
+  button {
+    text-transform: none;
+    height: initial;
+    padding: 0.2em;
+  }
+
+  button:focus,
+  button {
+    background: #333;
+    color: white;
+  }
+
+  button:focus {
+    background: #222;
+    color: yellow;
+  }
+
+  button:hover {
+    background: #222;
+  }
+
+  section {
+    display: grid;
+  }
+
+  h2 {
+    color: $red;
+    padding: 0.2em 0.6em;
+    margin: 0;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  h2.assigned {
+    color: $orange;
+  }
+
+  h2.inactive {
+    color: $gray;
+  }
+
+  h2.selected {
+    background: linear-gradient(#000, #222);
+  }
+
+  .incidents {
+    grid-area: incidents;
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+  .edit {
+    grid-area: edit;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "incidents edit"
+  }
+}
