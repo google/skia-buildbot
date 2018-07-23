@@ -309,7 +309,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get pull request for %d: %s", issueNum, err)
 	}
-	a, err := autoroll.FromGitHubPullRequest(pullRequest, func(h string) (string, error) {
+	a, err := autoroll.FromGitHubPullRequest(pullRequest, g, func(h string) (string, error) {
 		return rm.FullChildHash(ctx, h)
 	})
 	if err != nil {
@@ -492,12 +492,16 @@ func (r *githubRoll) RollingTo() string {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToDryRun(ctx context.Context) error {
-	return nil
+	return r.withModify(ctx, "switch the CL to dry run", func() error {
+		return r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.COMMIT_LABEL, github.DRYRUN_LABEL)
+	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
-	return nil
+	return r.withModify(ctx, "switch the CL out of dry run", func() error {
+		return r.g.ReplaceLabel(r.pullRequest.GetNumber(), github.DRYRUN_LABEL, github.COMMIT_LABEL)
+	})
 }
 
 // See documentation for state_machine.RollCLImpl interface.

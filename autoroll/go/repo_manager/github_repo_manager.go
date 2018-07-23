@@ -249,6 +249,15 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 
+	// Add appropriate label to the pull request.
+	label := github.COMMIT_LABEL
+	if dryRun {
+		label = github.DRYRUN_LABEL
+	}
+	if err := rm.githubClient.AddLabel(pr.GetNumber(), label); err != nil {
+		return 0, err
+	}
+
 	// Mention the sheriffs on the pull request so that they are automatically
 	// subscribed to it.
 	mentions := []string{}

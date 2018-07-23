@@ -109,6 +109,19 @@ func setupFakeGithub(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock) {
 	assert.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
 
+	// Mock /issues endpoint for get and patch requests.
+	serializedIssue, err := json.Marshal(&github_api.Issue{
+		Labels: []github_api.Label{},
+	})
+	assert.NoError(t, err)
+	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", mockhttpclient.MockGetDialogue(serializedIssue))
+	patchRespBody := []byte(testutils.MarshalJSON(t, &github_api.PullRequest{}))
+	patchReqType := "application/json"
+	patchReqBody := []byte(`{"labels":["autoroller: commit"]}
+`)
+	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
+	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)
+
 	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client(), "")
 	assert.NoError(t, err)
 	return g, urlMock
