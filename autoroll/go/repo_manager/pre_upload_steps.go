@@ -146,12 +146,6 @@ func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 		}
 	}
 
-	// Step8: Revert any change to pubspec.lock. This should be a temporary step
-	// as described in https://bugs.chromium.org/p/skia/issues/detail?id=7730#c9
-	if _, err := git.GitDir(licenseToolsDir).Git(ctx, "checkout", "--", "pubspec.lock"); err != nil {
-		return err
-	}
-
 	sklog.Info("Done running flutter license scripts.")
 	return nil
 }
