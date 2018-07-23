@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b30bd95_af1fd292",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-23T18:33:35Z",
+      "side": 1,
+      "message": "I don\u0027t have a good workaround, but this is a possible case where we might leak CLs/pull requests if AddLabel fails consistently after CreatePullRequest succeeds.",
+      "range": {
+        "startLine": 257,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 2
+      },
+      "revId": "937f3f8c951a83c5bc7c650faa5a0365f13d2daa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
