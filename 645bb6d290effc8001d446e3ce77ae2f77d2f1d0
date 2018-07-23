@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95f2995f_d0c517e3",
+        "filename": "go/github/github.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-23T13:03:35Z",
+      "side": 1,
+      "message": "Nit: Maybe remove duplicates?",
+      "range": {
+        "startLine": 203,
+        "startChar": 1,
+        "endLine": 203,
+        "endChar": 38
+      },
+      "revId": "645bb6d290effc8001d446e3ce77ae2f77d2f1d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
