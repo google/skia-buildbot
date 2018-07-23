@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf325b5f_c31769de",
+        "filename": "fiddlek/go/fiddlecli/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-23T14:19:54Z",
+      "side": 1,
+      "message": "Nit: Remove?",
+      "revId": "bc4cb0bac2bd1b6cd907f9d1f793ddf1a4588f56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
