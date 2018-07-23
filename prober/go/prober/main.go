@@ -278,7 +278,6 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"probeserver",
 		common.PrometheusOpt(promPort),

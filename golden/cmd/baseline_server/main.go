@@ -30,7 +30,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 
 	// Set up logging.
 	_, appName := filepath.Split(os.Args[0])

@@ -272,7 +272,6 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
 	flag.Parse()
 	common.InitWithMust(
 		"pulld",

@@ -38,7 +38,6 @@ func printResult(desc string, result []*analysis.Flake) {
 
 func main() {
 	common.Init()
-	defer common.LogPanic()
 
 	// Setup.
 	ctx := context.Background()

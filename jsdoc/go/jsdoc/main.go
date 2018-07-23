@@ -97,7 +97,6 @@ func periodic() {
 }
 
 func main() {
-	defer common.LogPanic()
 	flag.Parse()
 	opts := []common.Opt{
 		common.PrometheusOpt(promPort),

@@ -38,7 +38,6 @@ func logErr(str string, args ...interface{}) {
 
 func main() {
 	common.Init()
-	defer common.LogPanic()
 
 	// Get the absolute workdir.
 	wdAbs, err := filepath.Abs(*workdir)

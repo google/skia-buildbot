@@ -108,7 +108,6 @@ func publicWebhookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
 
 	common.InitWithMust(
 		"webhook_proxy",

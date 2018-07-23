@@ -268,7 +268,6 @@ func loadTemplates() {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		filepath.Base(os.Args[0]),
 		common.PrometheusOpt(promPort),

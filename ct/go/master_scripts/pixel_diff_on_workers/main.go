@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
@@ -101,7 +100,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("pixel_diff")
 
 	ctx := context.Background()

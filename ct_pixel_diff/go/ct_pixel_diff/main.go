@@ -61,7 +61,6 @@ const (
 )
 
 func main() {
-	defer common.LogPanic()
 
 	// Parse the options, so we can configure logging.
 	flag.Parse()
