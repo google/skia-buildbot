@@ -247,7 +247,16 @@ func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *sp
 
 			c, repoUrl, _, err := repos.FindCommit(t.Revision)
 			if err != nil {
-				return err
+				if strings.Contains(err.Error(), "Unable to find commit") {
+					// Assume this means that the git commit
+					// history was changed, in which case
+					// we'll never be able to process this
+					// task. Just drop it.
+					sklog.Errorf("Failed to process task %s: %s; did git history change? Ignoring.", t.Id, err)
+					continue
+				} else {
+					return fmt.Errorf("Failed to process task %s: %s", t.Id, err)
+				}
 			}
 			if repoUrl != t.Repo {
 				return fmt.Errorf("Got wrong repo for commit %s in %s (got %s)", t.Revision, t.Repo, repoUrl)
