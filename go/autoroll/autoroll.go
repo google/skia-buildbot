@@ -164,10 +164,20 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 
 // FromGitHubPullRequest returns an AutoRollIssue instance based on the given
 // PullRequest.
-func FromGitHubPullRequest(pullRequest *github_api.PullRequest, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
-	// No such thing as dry run for GitHub rolls right now.
-	cq := true
+func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+	labels, err := g.GetLabels(pullRequest.GetNumber())
+	if err != nil {
+		return nil, err
+	}
+	cq := false
 	dryRun := false
+	// If for some reason both COMMIT and DRYRUN labels are on the PR then
+	// give precedence to DRYRUN.
+	if util.In(github.DRYRUN_LABEL, labels) {
+		dryRun = true
+	} else if util.In(github.COMMIT_LABEL, labels) {
+		cq = true
+	}
 
 	ps := make([]int64, 0, *pullRequest.Commits)
 	for i := 1; i <= *pullRequest.Commits; i++ {
