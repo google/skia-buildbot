@@ -16,6 +16,24 @@
       "revId": "bc4cb0bac2bd1b6cd907f9d1f793ddf1a4588f56",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b683516_60829df6",
+        "filename": "fiddlek/go/fiddlecli/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-23T14:30:55Z",
+      "side": 1,
+      "message": "This mirrors the fmt.Print(\".\") above.",
+      "parentUuid": "cf325b5f_c31769de",
+      "revId": "bc4cb0bac2bd1b6cd907f9d1f793ddf1a4588f56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
