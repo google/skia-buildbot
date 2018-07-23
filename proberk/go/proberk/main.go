@@ -239,7 +239,6 @@ func getHash() (string, error) {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"probeserver",
 		common.PrometheusOpt(promPort),

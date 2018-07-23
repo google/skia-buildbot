@@ -22,7 +22,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 
 	common.InitWithMust(
 		"cloudlogger",

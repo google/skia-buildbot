@@ -101,7 +101,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("pixel_diff")
 
 	ctx := context.Background()

@@ -58,7 +58,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("build_chromium")
 
 	ctx := context.Background()

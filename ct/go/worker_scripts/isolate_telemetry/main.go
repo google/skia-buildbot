@@ -29,7 +29,6 @@ var (
 )
 
 func buildRepo() error {
-	defer common.LogPanic()
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Isolating Telemetry")
 	defer sklog.Flush()

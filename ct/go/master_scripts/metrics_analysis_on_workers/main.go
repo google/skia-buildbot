@@ -102,7 +102,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("run_metrics_analysis")
 
 	ctx := context.Background()

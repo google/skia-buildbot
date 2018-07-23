@@ -42,7 +42,6 @@ var (
 
 func main() {
 	flag.Parse()
-	defer common.LogPanic()
 
 	if *local {
 		common.InitWithMust(

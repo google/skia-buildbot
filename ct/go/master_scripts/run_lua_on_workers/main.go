@@ -89,7 +89,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("run_lua")
 
 	ctx := context.Background()

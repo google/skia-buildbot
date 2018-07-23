@@ -259,7 +259,6 @@ func resultsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
 
 	ctfeutil.PreExecuteTemplateHook = func() {
 		// Don't use cached templates in local mode.

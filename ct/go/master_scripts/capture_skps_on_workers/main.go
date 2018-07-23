@@ -68,7 +68,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("capture_skps")
 
 	ctx := context.Background()

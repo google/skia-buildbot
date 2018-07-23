@@ -112,7 +112,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("run_chromium_analysis")
 
 	ctx := context.Background()

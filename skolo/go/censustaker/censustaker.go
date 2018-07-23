@@ -55,7 +55,6 @@ func enumerateBots(ctx context.Context, names BotNameGetter, ports BotPortGetter
 }
 
 func main() {
-	defer common.LogPanic()
 	flag.Parse()
 
 	if *scriptDir == "" || *switchAddress == "" {

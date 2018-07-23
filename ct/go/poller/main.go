@@ -528,7 +528,6 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
 	autoscaler, err := ct_autoscaler.NewCTAutoscaler()

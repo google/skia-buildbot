@@ -53,7 +53,6 @@ var (
 )
 
 func runChromiumAnalysis() error {
-	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()

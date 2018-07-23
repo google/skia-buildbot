@@ -63,7 +63,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("create_pagesets")
 
 	ctx := context.Background()

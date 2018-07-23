@@ -31,7 +31,6 @@ var (
 )
 
 func buildRepo() error {
-	defer common.LogPanic()
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer sklog.Flush()

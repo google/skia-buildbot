@@ -62,7 +62,6 @@ func updateWebappTask() {
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.Init("capture_archives")
 
 	ctx := context.Background()
