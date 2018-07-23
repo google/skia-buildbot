@@ -743,6 +743,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		query.Set("source", "master")
 		http.Redirect(w, r, fmt.Sprintf("/c/?%s", query.Encode()), http.StatusFound)
 	} else if dest == "t" {
+		query.Set("subset", "all")
 		http.Redirect(w, r, fmt.Sprintf("/t/?%s", query.Encode()), http.StatusFound)
 	}
 }
