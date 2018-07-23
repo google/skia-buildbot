@@ -128,7 +128,7 @@ func TestGetLabelsRequest(t *testing.T) {
 	assert.Equal(t, []string{label1Name, label2Name}, labels)
 }
 
-func TestAddLabelsRequest(t *testing.T) {
+func TestAddLabelRequest(t *testing.T) {
 	testutils.SmallTest(t)
 	label1Name := "test1"
 	label2Name := "test2"
@@ -150,6 +150,32 @@ func TestAddLabelsRequest(t *testing.T) {
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
 	assert.NoError(t, err)
-	addLabelsErr := githubClient.AddLabels(1234, []string{"test3"})
-	assert.NoError(t, addLabelsErr)
+	addLabelErr := githubClient.AddLabel(1234, "test3")
+	assert.NoError(t, addLabelErr)
+}
+
+func TestReplaceLabelRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	label1Name := "test1"
+	label2Name := "test2"
+	label1 := github.Label{Name: &label1Name}
+	label2 := github.Label{Name: &label2Name}
+	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Labels: []*github.Label{&label1, &label2}}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
+
+	patchRespBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{}))
+	patchReqType := "application/json"
+	patchReqBody := []byte(`{"labels":["test2","test3"]}
+`)
+	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
+	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/issues/1234").Handler(patchMd)
+
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	assert.NoError(t, err)
+	removeLabelErr := githubClient.ReplaceLabel(1234, "test1", "test3")
+	assert.NoError(t, removeLabelErr)
 }

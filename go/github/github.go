@@ -41,6 +41,9 @@ const (
 	MERGEABLE_STATE_CLEAN    = "clean"    // No conflicts.
 	MERGEABLE_STATE_UNKNOWN  = "unknown"  // Mergeablility was not checked yet.
 	MERGEABLE_STATE_UNSTABLE = "unstable" // Failing or pending commit status.
+
+	COMMIT_LABEL = "autoroller: commit"
+	DRYRUN_LABEL = "autoroller: dyrun"
 )
 
 var (
@@ -193,17 +196,49 @@ func (g *GitHub) GetLabels(pullRequestNum int) ([]string, error) {
 
 // See https://developer.github.com/v3/issues/#edit-an-issue
 // for the API documentation.
-func (g *GitHub) AddLabels(pullRequestNum int, newLabels []string) error {
+func (g *GitHub) AddLabel(pullRequestNum int, newLabel string) error {
 	// Get all existing labels on the PR.
 	labels, err := g.GetLabels(pullRequestNum)
 	if err != nil {
 		return fmt.Errorf("Error when getting labels for %d: %s", pullRequestNum, err)
 	}
 	// Add the new labels.
-	labels = append(labels, newLabels...)
+	labels = append(labels, newLabel)
 
 	req := &github.IssueRequest{
 		Labels: &labels,
+	}
+	_, resp, err := g.client.Issues.Edit(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, req)
+	if err != nil {
+		return fmt.Errorf("Failed doing issues.edit: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from issues.edit.", resp.StatusCode)
+	}
+	return nil
+}
+
+// See https://developer.github.com/v3/issues/#edit-an-issue
+// for the API documentation.
+// Note: This adds the newLabel even if the oldLabel is not found.
+func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) error {
+	// Get all existing labels on the PR.
+	existingLabels, err := g.GetLabels(pullRequestNum)
+	if err != nil {
+		return fmt.Errorf("Error when getting labels for %d: %s", pullRequestNum, err)
+	}
+	// Remove the specified label.
+	newLabels := []string{}
+	for _, l := range existingLabels {
+		if l != oldLabel {
+			newLabels = append(newLabels, l)
+		}
+	}
+	// Add the new label.
+	newLabels = append(newLabels, newLabel)
+
+	req := &github.IssueRequest{
+		Labels: &newLabels,
 	}
 	_, resp, err := g.client.Issues.Edit(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, req)
 	if err != nil {
