@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	RETRIES = 5
+	RETRIES = 10
 )
 
 // flags
@@ -110,7 +110,6 @@ func main() {
 	// Spin up workers.
 	for i := 0; i < *procs; i++ {
 		g.Go(func() error {
-			c := httputils.NewTimeoutClient()
 			for req := range requestsCh {
 				if !*quiet {
 					fmt.Print(".")
@@ -121,34 +120,31 @@ func main() {
 				}
 				if *force {
 					req.req.Fast = false
-				} else if lastWritten != nil {
-					if fiddleHash != "" {
-						if lastWritten[req.id] != nil {
-							if lastWritten[req.id].FiddleHash == fiddleHash {
-								mutex.Lock()
-								response[req.id] = lastWritten[req.id]
-								mutex.Unlock()
-								continue
-							}
-						}
-					}
-				}
-				// POST to fiddle.
-				b, err = json.Marshal(req.req)
-				if err != nil {
-					sklog.Errorf("Failed to encode an individual request: %s", err)
+				} else if lastWritten != nil && fiddleHash != "" && lastWritten[req.id] != nil && lastWritten[req.id].FiddleHash == fiddleHash {
+					mutex.Lock()
+					response[req.id] = lastWritten[req.id]
+					mutex.Unlock()
 					continue
 				}
 				success := false
 				var runResults *types.RunResults
 				for tries := 0; tries < RETRIES; tries++ {
-					runResults, success = singleRequest(c, b, *domain)
-					if success && fiddleHash == runResults.FiddleHash {
-						if fiddleHash != runResults.FiddleHash {
-							sklog.Warningf("Got mismatched hashes: %q != %q", fiddleHash, runResults.FiddleHash)
-						}
+					c := httputils.NewTimeoutClient()
+					// POST to fiddle.
+					b, err = json.Marshal(req.req)
+					if err != nil {
+						sklog.Errorf("Failed to encode an individual request: %s", err)
 						break
 					}
+					runResults, success = singleRequest(c, b, *domain)
+					if success {
+						if fiddleHash != runResults.FiddleHash {
+							sklog.Warningf("Got mismatched hashes for %s: Want %q != Got %q", req.id, fiddleHash, runResults.FiddleHash)
+						} else {
+							break
+						}
+					}
+					fmt.Print("x")
 				}
 				if !success {
 					sklog.Errorf("Failed to make request after %d tries", RETRIES)
@@ -175,6 +171,14 @@ func main() {
 	// Wait for the workers to finish.
 	if err := g.Wait(); err != nil {
 		log.Fatalf("Failed to complete all requests: %s", err)
+	}
+
+	// Validate the output.
+	for k, v := range requests {
+		hash, _ := v.Options.ComputeHash(v.Code)
+		if hash != response[k].FiddleHash {
+			sklog.Fatalf("For %q want %q but got %q", k, hash, response[k].FiddleHash)
+		}
 	}
 
 	if !*quiet {
