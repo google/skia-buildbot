@@ -74,8 +74,6 @@ func TestFlutterLicenseScripts(t *testing.T) {
 
 	pubErr = error(nil)
 	dartErr = error(nil)
-	gitErr = errors.New("git error")
 	err = FlutterLicenseScripts(ctx, "testing/dir")
-	assert.Error(t, err)
-	assert.Equal(t, "git error; Stdout+Stderr:\n", err.Error())
+	assert.NoError(t, err)
 }
