@@ -143,6 +143,8 @@ func main() {
 						} else {
 							break
 						}
+					} else {
+						sklog.Warningf("Send failed for: %s", req.id)
 					}
 					fmt.Print("x")
 				}
@@ -176,7 +178,10 @@ func main() {
 	// Validate the output.
 	for k, v := range requests {
 		hash, _ := v.Options.ComputeHash(v.Code)
-		if hash != response[k].FiddleHash {
+		resp, ok := response[k]
+		if !ok {
+			sklog.Fatalf("Failed to get any response for %q", k)
+		} else if hash != resp.FiddleHash {
 			sklog.Fatalf("For %q want %q but got %q", k, hash, response[k].FiddleHash)
 		}
 	}
