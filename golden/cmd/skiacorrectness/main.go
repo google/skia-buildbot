@@ -105,7 +105,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 	var err error
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.

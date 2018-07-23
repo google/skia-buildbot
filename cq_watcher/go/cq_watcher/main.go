@@ -120,7 +120,6 @@ func refreshCQTryBots(cqClient *cq.Client) {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort), common.CloudLoggingOpt())
 
 	httpClient := httputils.NewTimeoutClient()

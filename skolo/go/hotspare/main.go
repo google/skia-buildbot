@@ -213,7 +213,6 @@ func startServing(ctx context.Context) {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"hotspare",
 		common.PrometheusOpt(promPort),

@@ -17,7 +17,6 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
-	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -31,7 +30,6 @@ var (
 )
 
 func runLua() error {
-	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()

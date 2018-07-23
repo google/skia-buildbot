@@ -131,7 +131,6 @@ func reloadTemplates() {
 }
 
 func main() {
-	defer common.LogPanic()
 	flag.Parse()
 	if *local {
 		common.InitWithMust(

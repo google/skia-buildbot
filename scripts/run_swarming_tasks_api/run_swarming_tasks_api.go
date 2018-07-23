@@ -52,7 +52,6 @@ var (
 
 func main() {
 	// Setup, parse args.
-	defer common.LogPanic()
 	common.Init()
 
 	if _, ok := supportedCmds[*cmd]; !ok {

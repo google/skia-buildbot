@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -51,7 +50,6 @@ var (
 )
 
 func runChromiumPerf() error {
-	defer common.LogPanic()
 	worker_common.Init()
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()

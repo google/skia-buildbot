@@ -65,7 +65,6 @@ func Server20170928(name string) *gce.Instance {
 //  Only the instance specified by the --instance flag will be created.
 func Main(zone string, instances map[string]*gce.Instance) {
 	common.Init()
-	defer common.LogPanic()
 
 	if *listContacts {
 		for instance, vm := range instances {

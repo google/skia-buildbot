@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -55,7 +54,6 @@ func enumerateBots(ctx context.Context, names BotNameGetter, ports BotPortGetter
 }
 
 func main() {
-	defer common.LogPanic()
 	flag.Parse()
 
 	if *scriptDir == "" || *switchAddress == "" {

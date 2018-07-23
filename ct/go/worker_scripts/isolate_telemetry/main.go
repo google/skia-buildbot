@@ -15,7 +15,6 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
@@ -29,7 +28,6 @@ var (
 )
 
 func buildRepo() error {
-	defer common.LogPanic()
 	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Isolating Telemetry")
 	defer sklog.Flush()

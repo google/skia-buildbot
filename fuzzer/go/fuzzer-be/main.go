@@ -76,7 +76,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 	flag.Parse()
 	// Reset this because flag.Parse() will be called again with common.Init*
 	fuzzesToRun.Reset()
