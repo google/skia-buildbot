@@ -129,6 +129,10 @@ func main() {
 				sklog.Errorf("Failed to decode: %s: %q", err, string(msg.Data))
 				return
 			}
+			repoName := "--unknown--"
+			if buildInfo.Source != nil && buildInfo.Source.RepoSource != nil {
+				repoName = buildInfo.Source.RepoSource.RepoName
+			}
 
 			// Record build failures so we can alert on them.
 			if util.In(msg.Attributes["status"], []string{"FAILURE", "SUCCESS"}) {
@@ -136,7 +140,7 @@ func main() {
 				if msg.Attributes["status"] == "FAILURE" {
 					failure = 1
 				}
-				metrics2.GetInt64Metric("ci_build_failure", map[string]string{"trigger": buildInfo.Source.RepoSource.RepoName}).Update(int64(failure))
+				metrics2.GetInt64Metric("ci_build_failure", map[string]string{"trigger": repoName}).Update(int64(failure))
 			}
 			if msg.Attributes["status"] != "SUCCESS" {
 				return
@@ -153,7 +157,7 @@ func main() {
 			cmd := fmt.Sprintf("%s --logtostderr %s", pushk, strings.Join(imageNames, " "))
 			sklog.Infof("About to execute: %q", cmd)
 			output, err := exec.RunSimple(ctx, cmd)
-			pushFailure := metrics2.GetCounter("ci_push_failure", map[string]string{"trigger": buildInfo.Source.RepoSource.RepoName})
+			pushFailure := metrics2.GetCounter("ci_push_failure", map[string]string{"trigger": repoName})
 			if err != nil {
 				sklog.Errorf("Failed to run pushk: %s: %s", output, err)
 				pushFailure.Inc(1)
