@@ -169,3 +169,48 @@ func (g *GitHub) ClosePullRequest(pullRequestNum int) (*github.PullRequest, erro
 	}
 	return edittedPullRequest, nil
 }
+
+func getLabelNames(labels []github.Label) []string {
+	labelNames := []string{}
+	for _, l := range labels {
+		labelNames = append(labelNames, l.GetName())
+	}
+	return labelNames
+}
+
+// See https://developer.github.com/v3/issues/#get-a-single-issue
+// for the API documentation.
+func (g *GitHub) GetLabels(pullRequestNum int) ([]string, error) {
+	pullRequest, resp, err := g.client.Issues.Get(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing issues.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from issues.get.", resp.StatusCode)
+	}
+	return getLabelNames(pullRequest.Labels), nil
+}
+
+// See https://developer.github.com/v3/issues/#edit-an-issue
+// for the API documentation.
+func (g *GitHub) AddLabels(pullRequestNum int, newLabels []string) error {
+	// Get all existing labels on the PR.
+	labels, err := g.GetLabels(pullRequestNum)
+	if err != nil {
+		return fmt.Errorf("Error when getting labels for %d: %s", pullRequestNum, err)
+	}
+	// Add the new labels.
+	labels = append(labels, newLabels...)
+
+	req := &github.IssueRequest{
+		Labels: &labels,
+	}
+	_, resp, err := g.client.Issues.Edit(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, req)
+	if err != nil {
+		return fmt.Errorf("Failed doing issues.edit: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from issues.edit.", resp.StatusCode)
+	}
+	return nil
+}

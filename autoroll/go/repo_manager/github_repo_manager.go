@@ -249,6 +249,8 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 
+	// Use the dryrun label here to put on the PR.
+
 	// Mention the sheriffs on the pull request so that they are automatically
 	// subscribed to it.
 	mentions := []string{}

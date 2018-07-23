@@ -477,11 +477,19 @@ func (r *githubRoll) IsSuccess() bool {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunFinished() bool {
+	sklog.Info("IN DRY RUN FINISHED")
+	sklog.Info(len(r.issue.TryResults) > 0 && r.issue.AllTrybotsFinished())
+	sklog.Info(r.pullRequest.GetState() == github.CLOSED_STATE)
+	sklog.Info(!r.issue.CommitQueueDryRun)
 	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunSuccess() bool {
+	sklog.Info("IN DRY RUN SUCCESS")
+	sklog.Info(len(r.issue.TryResults) > 0 && r.issue.AllTrybotsSucceeded())
+	sklog.Info(len(r.issue.TryResults) > 0)
+	sklog.Info(r.issue.AllTrybotsSucceeded())
 	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsSucceeded()
 }
 
