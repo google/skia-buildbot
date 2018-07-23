@@ -20,7 +20,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 	// Set up flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 

@@ -122,7 +122,6 @@ func startWorkers(targets <-chan Target, latencies chan<- float64, wg *sync.Wait
 }
 
 func main() {
-	defer common.LogPanic()
 	common.Init()
 
 	var err error

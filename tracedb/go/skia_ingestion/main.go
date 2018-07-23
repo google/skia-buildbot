@@ -45,7 +45,6 @@ func main() {
 	// Parse the options. So we can configure logging.
 	flag.Parse()
 
-	defer common.LogPanic()
 	_, appName := filepath.Split(os.Args[0])
 
 	// Set up the logging options.

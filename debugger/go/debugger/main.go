@@ -186,7 +186,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"debugger",
 		common.PrometheusOpt(promPort),

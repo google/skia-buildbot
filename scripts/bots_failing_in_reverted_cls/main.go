@@ -49,7 +49,6 @@ func failingTasksAtACommit(swarmApi swarming.ApiClient, hash string) map[string]
 }
 
 func main() {
-	defer common.LogPanic()
 	common.Init()
 
 	gd := git.GitDir(*repo)

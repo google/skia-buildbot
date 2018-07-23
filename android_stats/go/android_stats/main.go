@@ -98,7 +98,6 @@ func generateStats(ctx context.Context) error {
 }
 
 func main() {
-	defer common.LogPanic()
 	common.InitWithMust(
 		"android_stats",
 		common.PrometheusOpt(promPort),

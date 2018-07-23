@@ -209,7 +209,6 @@ func getWindowsScripts(ctx context.Context, workdir string) (string, string, str
 
 func main() {
 	common.Init()
-	defer common.LogPanic()
 
 	// Validation.
 	if *create == *delete {

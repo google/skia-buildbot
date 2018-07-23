@@ -349,7 +349,6 @@ func (t *test) Duration() map[string]time.Duration {
 
 // Find and run tests.
 func main() {
-	defer common.LogPanic()
 	common.Init()
 
 	// Ensure that we're actually going to run something.

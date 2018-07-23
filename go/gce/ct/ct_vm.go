@@ -30,7 +30,6 @@ var (
 
 func main() {
 	common.Init()
-	defer common.LogPanic()
 
 	// Validation.
 	if *create == *delete {

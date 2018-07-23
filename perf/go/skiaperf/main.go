@@ -1301,7 +1301,6 @@ func internalOnlyHandler(h http.Handler) http.Handler {
 }
 
 func main() {
-	defer common.LogPanic()
 
 	common.InitWithMust(
 		"skiaperf",

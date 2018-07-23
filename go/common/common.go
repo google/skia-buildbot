@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
@@ -145,15 +144,6 @@ func Defer() {
 	}
 	cleanup.Cleanup()
 	sklog.Flush()
-}
-
-// LogPanic, when deferred from main, logs any panics and flush the log to local disk using glog.
-// Defer this function before any other defers.
-func LogPanic() {
-	if r := recover(); r != nil {
-		glog.Fatal(r)
-	}
-	glog.Flush()
 }
 
 // MultiString implements flag.Value, allowing it to be used as

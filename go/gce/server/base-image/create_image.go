@@ -51,7 +51,6 @@ func BaseConfig() *gce.Instance {
 
 func main() {
 	common.Init()
-	defer common.LogPanic()
 
 	// Get the absolute workdir.
 	wdAbs, err := filepath.Abs(*workdir)

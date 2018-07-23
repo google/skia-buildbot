@@ -34,7 +34,6 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	ctutil "go.skia.org/infra/ct/go/util"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metrics2"
 	skutil "go.skia.org/infra/go/util"
@@ -528,7 +527,6 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 }
 
 func main() {
-	defer common.LogPanic()
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
 	autoscaler, err := ct_autoscaler.NewCTAutoscaler()

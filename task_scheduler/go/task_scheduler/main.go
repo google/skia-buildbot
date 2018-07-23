@@ -601,7 +601,6 @@ func runDbServer(taskDb db.RemoteDB) {
 }
 
 func main() {
-	defer common.LogPanic()
 
 	// Global init.
 	common.InitWithMust(

@@ -32,7 +32,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 	common.Init()
 
 	args := flag.Args()

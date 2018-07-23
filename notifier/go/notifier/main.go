@@ -105,7 +105,6 @@ type Installed struct {
 }
 
 func main() {
-	defer common.LogPanic()
 
 	common.InitWithMust(
 		"alertmanager-webhooks",

@@ -19,7 +19,6 @@ var (
 
 func main() {
 	common.Init()
-	defer common.LogPanic()
 
 	b, err := ioutil.ReadFile(*cfgFile)
 	if err != nil {

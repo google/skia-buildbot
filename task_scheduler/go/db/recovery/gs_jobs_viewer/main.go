@@ -29,7 +29,6 @@ var (
 )
 
 func main() {
-	defer common.LogPanic()
 
 	// Global init.
 	common.Init()

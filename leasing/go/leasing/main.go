@@ -459,7 +459,6 @@ func runServer() {
 
 func main() {
 	flag.Parse()
-	defer common.LogPanic()
 
 	if *local {
 		// Dont log to cloud or use cached templates in local mode.
