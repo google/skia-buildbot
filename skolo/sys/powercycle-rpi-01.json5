@@ -11,7 +11,6 @@
         "skia-rpi-053-device": 5,
         "skia-rpi-054-device": 6,
         "skia-rpi-055-device": 7,
-        "skia-rpi-i-127-device": 8
       }
     }
   },
@@ -46,18 +45,7 @@
       address: "http://192.168.1.45",
       base_url: "/arduino/reboot/",
       ports: {
-        "skia-rpi-057-device": 0,
-        "skia-rpi-058-device": 1,
-        // port 2 has a janky signal connection due to the pins
-        // being clipped too short. port 8 isn't much better
-        // we skip to 9 for this device so as to ensure a good
-        // connection.
-        "skia-rpi-059-device": 9,
-        "skia-rpi-060-device": 3,
-        "skia-rpi-061-device": 4,
-        "skia-rpi-062-device": 5,
-        // "skia-rpi-063-device": 6,  This is now a Pixel2 XL and cannot be remotely powercycled.
-        "skia-rpi-064-device": 7,
+        // PixelCs have been removed from the rack. Seeeduino is still there.
         "seeeduino-test": 16
       }
     }
