@@ -7,13 +7,13 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
-	"go.skia.org/infra/go/vcsinfo"
-
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
@@ -119,8 +119,8 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		cfgFile:        cfgFile,
 	}
 	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, func(data interface{}) {
-		processor.tryjobUpdatedHandler(data)
 		callbackCh <- data
+		processor.tryjobUpdatedHandler(data)
 	})
 
 	// Call process for the input file.
@@ -145,16 +145,29 @@ func TestTryjobGoldProcessor(t *testing.T) {
 	// updated correct upon completion.
 	assert.NoError(t, tryjobStore.UpdateTryjob(0, noUploadTryjob, nil))
 
-	// Just give the events enough time to write the channel before we close it.
-	time.Sleep(1 * time.Second)
-	close(callbackCh)
-
 	calledBack := false
-	for data := range callbackCh {
+	eventsFound := 0
+	testutils.EventuallyConsistent(10*time.Second, func() error {
+		data := <-callbackCh
 		tryjob := data.(*tryjobstore.Tryjob)
 		calledBack = calledBack || (tryjob.Builder == noUploadTryjob.Builder)
-	}
+
+		// At this point we should have gathered 5 events.
+		// Two for each ingested tryjob and one for the UpdateTryjob call above.
+		eventsFound++
+		if eventsFound == 5 {
+			return nil
+		}
+		return testutils.TryAgainErr
+	})
+
 	assert.True(t, calledBack)
+	assert.Equal(t, 0, len(callbackCh))
+
+	// Closing the channel in an earlier version caused a data race. Close it
+	// to make sure that is resolved.
+	close(callbackCh)
+
 	foundTryjob, err = tryjobStore.GetTryjob(testIssue.ID, noUploadTryjob.BuildBucketID)
 	assert.NoError(t, err)
 	assert.Equal(t, tryjobstore.TRYJOB_INGESTED, foundTryjob.Status)
