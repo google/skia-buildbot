@@ -41,6 +41,10 @@ const (
 	MAX_ELAPSED_TIME     = 5 * time.Minute
 
 	MAX_BYTES_IN_RESPONSE_BODY = 10 * 1024 //10 KB
+
+	// SCHEME_AT_LOAD_BALANCER_HEADER is the header, added by the load balancer,
+	// the has the scheme [http|https] that the original request was made under.
+	SCHEME_AT_LOAD_BALANCER_HEADER = "x-forwarded-proto"
 )
 
 // HealthCheckHandler returns 200 OK with an empty body, appropriate
@@ -482,4 +486,37 @@ func GetBaseURL(urlStr string) (string, error) {
 		Host:   parsedURL.Host,
 	}
 	return rv.String(), nil
+}
+
+// Force traffic to go over HTTPS and also handles healthchecks.
+// See: https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
+//
+// h - The http.Handler to wrap.
+//
+// Example:
+//    if !*local {
+//      h := httputils.ForceHTTPS(h)
+//    }
+//    http.Handle("/", h)
+//
+func ForceHTTPS(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if "http" == r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) {
+			u := *r.URL
+			u.Host = r.Host
+			u.Scheme = "https"
+			http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
+		} else {
+			// We are running in Kubernetes as a Service so the requesting IP address
+			// isn't available, the only indicators that this is a healthcheck is the
+			// User-Agent, the request path, and that SCHEME_AT_LOAD_BALANCER_HEADER
+			// isn't set.
+			if r.URL.Path == "/" && r.Header.Get("User-Agent") == "GoogleHC/1.0" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			h.ServeHTTP(w, r)
+		}
+	}
+	return http.HandlerFunc(s)
 }
