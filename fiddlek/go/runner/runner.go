@@ -171,14 +171,14 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		return nil, alreadyRunningFiddleErr
 	}
 	_, err = io.Copy(limitwriter.New(&output, types.MAX_JSON_SIZE), resp.Body)
-	sklog.Infof("Got response: %q", output.String())
+	sklog.Infof("Got response: %q", output.String()[:20])
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response: %s", err)
 	}
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
-		sklog.Errorf("Received erroneous output: %q", output.String())
+		sklog.Errorf("Received erroneous output: %q", output.String()[:20])
 		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String())
 	}
 	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
@@ -270,13 +270,6 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 					if err == alreadyRunningFiddleErr || err == failedToSendErr {
 						continue
 					} else {
-						// Kill the pod once we have a result.
-						if err := r.clientset.CoreV1().Pods("default").Delete(p.Name, &metav1.DeleteOptions{}); err != nil {
-							sklog.Warningf("Delete Pod returned: %s", err)
-						}
-						if err != nil {
-							runFailures.Inc(1)
-						}
 						return ret, err
 					}
 				}
