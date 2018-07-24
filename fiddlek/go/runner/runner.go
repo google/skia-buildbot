@@ -170,7 +170,10 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return nil, alreadyRunningFiddleErr
 	}
-	_, err = io.Copy(limitwriter.New(&output, types.MAX_JSON_SIZE), resp.Body)
+	n, err := io.Copy(limitwriter.New(&output, types.MAX_JSON_SIZE), resp.Body)
+	if n == types.MAX_JSON_SIZE {
+		return nil, fmt.Errorf("Response too large, truncated at %d bytes.", n)
+	}
 	sklog.Infof("Got response: %q", output.String()[:20])
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response: %s", err)
@@ -179,7 +182,7 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
 		sklog.Errorf("Received erroneous output: %q", output.String()[:20])
-		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String())
+		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String()[:20])
 	}
 	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
 		return nil, failedToSendErr

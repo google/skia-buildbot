@@ -334,9 +334,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := runImpl(context.Background(), req)
+	resp, err, msg := runImpl(context.Background(), req)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to run the fiddle.")
+		httputils.ReportError(w, r, err, msg)
 		return
 	}
 
@@ -348,13 +348,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, error) {
+func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, error, string) {
 	resp := &types.RunResults{
 		CompileErrors: []types.CompileError{},
 		FiddleHash:    "",
 	}
 	if err := run.ValidateOptions(&req.Options); err != nil {
-		return resp, fmt.Errorf("Invalid Options: %s", err)
+		return resp, fmt.Errorf("Invalid Options: %s", err), "Invalid options."
 	}
 	sklog.Infof("Request: %#v", *req)
 
@@ -369,10 +369,10 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 						sklog.Infof("Failed to get text: %s", err)
 					} else {
 						resp.Text = string(b)
-						return resp, nil
+						return resp, nil, ""
 					}
 				} else {
-					return resp, nil
+					return resp, nil, ""
 				}
 			} else {
 				sklog.Infof("Failed to match hash: %s", err)
@@ -384,7 +384,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 
 	res, err := run.Run(*local, req)
 	if err != nil {
-		return resp, fmt.Errorf("Failed to run the fiddle: %s", err)
+		return resp, fmt.Errorf("Failed to run the fiddle: %s", err), "Failed to run the fiddle."
 	}
 	maybeSecViolation := false
 	if res.Execute.Errors != "" {
@@ -439,7 +439,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 	if !(res == nil && req.Fast) {
 		fiddleHash, err = fiddleStore.Put(req.Code, req.Options, res)
 		if err != nil {
-			return resp, fmt.Errorf("Failed to store the fiddle: %s", err)
+			return resp, fmt.Errorf("Failed to store the fiddle: %s", err), "Failed to store the fiddle."
 		}
 	}
 	if maybeSecViolation {
@@ -453,12 +453,12 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 		// decode
 		decodedText, err := base64.StdEncoding.DecodeString(res.Execute.Output.Text)
 		if err != nil {
-			return resp, fmt.Errorf("Text wasn't properly encoded base64: %s", err)
+			return resp, fmt.Errorf("Text wasn't properly encoded base64: %s", err), "Failed to base64 decode text result."
 		}
 		resp.Text = string(decodedText)
 	}
 
-	return resp, nil
+	return resp, nil, ""
 }
 
 func templateHandler(name string) http.HandlerFunc {
