@@ -102,7 +102,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		// Fail out of the container after a single run.
 		<-time.Tick(*apoptosis)
-		os.Exit(1)
+		os.Exit(0)
 	}()
 	var request types.FiddleContext
 
@@ -241,6 +241,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 		serializeOutput(w, res)
 	}
+
+	go func() {
+		// Fail out of the container after the results have been sent.
+		<-time.Tick(3 * time.Second)
+		os.Exit(0)
+	}()
 }
 
 // encodeWebm encodes the webm as base64 and adds it to the results.
