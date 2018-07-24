@@ -182,6 +182,13 @@ type Tryjob struct {
 	MasterCommit  string         `json:"masterCommit"`
 }
 
+// clone returns a shallow copy of the Tryjob instance
+func (t *Tryjob) clone() *Tryjob {
+	ret := &Tryjob{}
+	*ret = *t
+	return ret
+}
+
 type TimeJsonMs time.Time
 
 func (j TimeJsonMs) MarshalJSON() ([]byte, error) {

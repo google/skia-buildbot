@@ -160,7 +160,14 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 
 	// Add a redundant Tryjob make sure it's not filtered out.
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_3, nil))
-	time.Sleep(3 * time.Second)
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		foundTJs, _, err := store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, false)
+		assert.NoError(t, err)
+		if len(foundTJs) == len(allTryjobs)+1 {
+			return nil
+		}
+		return testutils.TryAgainErr
+	}))
 
 	foundTJs, _, err = store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, false)
 	assert.NoError(t, err)
