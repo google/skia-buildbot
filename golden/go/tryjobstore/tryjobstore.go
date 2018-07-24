@@ -291,7 +291,7 @@ func (c *cloudTryjobStore) UpdateTryjob(buildBucketID int64, tryjob *Tryjob, new
 	if err != nil {
 		return err
 	}
-	c.eventBus.Publish(EV_TRYJOB_UPDATED, newTryjob, true)
+	c.eventBus.Publish(EV_TRYJOB_UPDATED, newTryjob.(*Tryjob).clone(), true)
 	return nil
 }
 
