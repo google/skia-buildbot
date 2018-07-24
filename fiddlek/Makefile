@@ -44,7 +44,7 @@ testgo:
 
 .PHONY: run_local_fiddle
 run_local_fiddle:
-	fiddle --local --logtostderr --port=:8080
+	fiddle --local --logtostderr --port=:8080 --source_image_dir=/etc/fiddle/source
 
 .PHONY: run_local_fiddler
 run_local_fiddler:
