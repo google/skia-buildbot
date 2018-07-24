@@ -165,8 +165,7 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		EnvPrefixes: map[string][]string{
 			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
 		},
-		Isolate:  "infrabots.isolate",
-		Priority: 0.7,
+		Isolate: "infrabots.isolate",
 	})
 	return BUNDLE_RECIPES_NAME
 }
@@ -235,7 +234,6 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 		},
 		Isolate:        isolate,
 		Outputs:        outputs,
-		Priority:       0.8,
 		ServiceAccount: serviceAccount,
 	}
 }
@@ -316,6 +314,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
+	var priority float64 // Leave as default for most jobs.
 	deps := []string{}
 
 	// Infra tests.
@@ -324,6 +323,7 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	}
 	// Presubmit.
 	if strings.Contains(name, "Presubmit") {
+		priority = 1
 		deps = append(deps, presubmit(b, name))
 	}
 
@@ -333,7 +333,7 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		trigger = specs.TRIGGER_ON_DEMAND
 	}
 	b.MustAddJob(name, &specs.JobSpec{
-		Priority:  0.8,
+		Priority:  priority,
 		TaskSpecs: deps,
 		Trigger:   trigger,
 	})

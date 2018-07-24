@@ -1,32 +1,28 @@
 {
   "jobs": {
     "Housekeeper-OnDemand-Presubmit": {
-      "priority": 0.8,
+      "priority": 1,
       "tasks": [
         "Housekeeper-OnDemand-Presubmit"
       ],
       "trigger": "on demand"
     },
     "Infra-PerCommit-Large": {
-      "priority": 0.8,
       "tasks": [
         "Infra-PerCommit-Large"
       ]
     },
     "Infra-PerCommit-Medium": {
-      "priority": 0.8,
       "tasks": [
         "Infra-PerCommit-Medium"
       ]
     },
     "Infra-PerCommit-Race": {
-      "priority": 0.8,
       "tasks": [
         "Infra-PerCommit-Race"
       ]
     },
     "Infra-PerCommit-Small": {
-      "priority": 0.8,
       "tasks": [
         "Infra-PerCommit-Small"
       ]
@@ -153,7 +149,6 @@
         "log_location": "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       },
       "isolate": "empty.isolate",
-      "priority": 0.8,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-PerCommit-BundleRecipes": {
@@ -202,8 +197,7 @@
           "cipd_bin_packages/bin"
         ]
       },
-      "isolate": "infrabots.isolate",
-      "priority": 0.7
+      "isolate": "infrabots.isolate"
     },
     "Infra-PerCommit-Large": {
       "caches": [
@@ -342,7 +336,6 @@
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
-      "priority": 0.8,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Medium": {
@@ -472,7 +465,6 @@
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
-      "priority": 0.8,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Race": {
@@ -608,7 +600,6 @@
       "io_timeout_ns": 3600000000000,
       "isolate": "infrabots.isolate",
       "max_attempts": 1,
-      "priority": 0.8,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Small": {
@@ -738,7 +729,6 @@
       },
       "isolate": "infrabots.isolate",
       "max_attempts": 2,
-      "priority": 0.8,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     }
   }
