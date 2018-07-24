@@ -176,32 +176,6 @@ ALERT AndroidCompileInfraFailure
     description = "Infra failure in Android compile bot. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#infra_failure"
   }
 
-# CQ Watcher
-ALERT CQWatcherCLsCount
-  IF cq_watcher_in_flight_waiting_in_cq{instance="skia-cq-watcher:20000",job="cq_watcher"} >= 10
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    summary = "Too many CLs in CQ.",
-    description = "There are 10 CLs or more in Skia's CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls"
-  }
-
-ALERT CQWatcherTrybotDuration
-  IF max_over_time(cq_watcher_in_flight_trybot_duration{instance="skia-cq-watcher:20000",job="cq_watcher"}[20m]) > 2700
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    summary = "CQ trybot running for too long.",
-    description = "{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-cq-watcher&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fcq_watcher&filters=text:CQTrybotDurationError"
-  }
-
-ALERT CQWatcherTrybotsCount
-  IF max_over_time(cq_watcher_in_flight_trybot_num{instance="skia-cq-watcher:20000",job="cq_watcher"}[20m]) > 35
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    summary = "Too many CQ trybots triggered by CL.",
-    description = "There are more than 35 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-cq-watcher&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fcq_watcher&filters=text:CQCLsCountError"
-  }
-
 # Perf
 ALERT AndroidIngestFailures
   IF rate(process_failures[1h]) > 0
