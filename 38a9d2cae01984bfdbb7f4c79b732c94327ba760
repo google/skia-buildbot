@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "621236aa_b1673ab6",
+        "filename": "tracedb/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-24T19:28:23Z",
+      "side": 1,
+      "message": "Please add to .gitignore.",
+      "range": {
+        "startLine": 25,
+        "startChar": 10,
+        "endLine": 25,
+        "endChar": 17
+      },
+      "revId": "38a9d2cae01984bfdbb7f4c79b732c94327ba760",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c8acc00_aa0efba2",
+        "filename": "tracedb/go/traceserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-24T19:28:23Z",
+      "side": 1,
+      "message": "Wrong doc.",
+      "range": {
+        "startLine": 26,
+        "startChar": 49,
+        "endLine": 26,
+        "endChar": 88
+      },
+      "revId": "38a9d2cae01984bfdbb7f4c79b732c94327ba760",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bda73697_7bbaa130",
+        "filename": "tracedb/go/traceserver/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-24T19:28:23Z",
+      "side": 1,
+      "message": "Seems like you need this option in your k8s config.",
+      "range": {
+        "startLine": 30,
+        "startChar": 25,
+        "endLine": 30,
+        "endChar": 37
+      },
+      "revId": "38a9d2cae01984bfdbb7f4c79b732c94327ba760",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "938dc24f_11de696b",
+        "filename": "tracedb/k8s_build_traceserver",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-24T19:28:23Z",
+      "side": 1,
+      "message": "copy/pasta",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 54
+      },
+      "revId": "38a9d2cae01984bfdbb7f4c79b732c94327ba760",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
