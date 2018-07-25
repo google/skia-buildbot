@@ -109,7 +109,7 @@ func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 		return fmt.Errorf("Error when running dart license script: %s", err)
 	}
 
-	licensesThirdPartyFileName := "licenses_third_party"
+	licensesThirdPartyFileName := "licenses_skia"
 	// Step4: Check to see if licenses_third_party was created in the out dir.
 	//        It will be created if the third_party hash changes.
 	if _, err := os.Stat(filepath.Join(licensesOutDir, licensesThirdPartyFileName)); err == nil {
