@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "50246fbb_2e80b467",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-25T18:19:06Z",
+      "side": 1,
+      "message": "Is this a drive-by fix or is it related to the CL description?",
+      "range": {
+        "startLine": 433,
+        "startChar": 36,
+        "endLine": 433,
+        "endChar": 49
+      },
+      "revId": "720ab2088709f6ce2e126efd1e5384559e95b2d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
