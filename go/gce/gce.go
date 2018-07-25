@@ -109,6 +109,7 @@ const (
 )
 
 var (
+	AUTH_SCOPES = []string{compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope}
 	VALID_OS    = []string{OS_LINUX, OS_WINDOWS}
 	VALID_ZONES = []string{ZONE_CENTRAL1_B, ZONE_CENTRAL1_C, ZONE_EAST1_D}
 )
@@ -117,37 +118,36 @@ var (
 type GCloud struct {
 	project string
 	service *compute.Service
-	workdir string
 	zone    string
 }
 
-// NewGCloud returns a GCloud instance with a default http client. The
-// default client expects a local gcloud_token.data and client_secret.json.
-func NewGCloud(project, zone, workdir string) (*GCloud, error) {
-	tokenSource, err := auth.NewDefaultTokenSource(true, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+// NewLocalGCloud returns a GCloud instance with a default http client for local
+// use. The default client expects a local gcloud_token.data and
+// client_secret.json.
+func NewLocalGCloud(project, zone string) (*GCloud, error) {
+	tokenSource, err := auth.NewDefaultTokenSource(true, AUTH_SCOPES...)
 	if err != nil {
 		return nil, err
 	}
 	httpClient := auth.ClientFromTokenSource(tokenSource)
-	return NewGCloudWithClient(project, zone, workdir, httpClient)
+	return NewGCloud(project, zone, httpClient)
 }
 
-// NewGCloudWithClient returns a GCloud instance with the specified http client.
-func NewGCloudWithClient(project, zone, workdir string, httpClient *http.Client) (*GCloud, error) {
+// NewGCloud returns a GCloud instance with the specified http client.
+func NewGCloud(project, zone string, httpClient *http.Client) (*GCloud, error) {
 	s, err := compute.New(httpClient)
 	if err != nil {
 		return nil, err
 	}
 
 	// Verify that we're set up for SSH.
-	if _, err := sshArgs(); err != nil {
+	/*if _, err := sshArgs(); err != nil {
 		return nil, err
-	}
+	}*/
 
 	return &GCloud{
 		project: project,
 		service: s,
-		workdir: workdir,
 		zone:    zone,
 	}, nil
 }
@@ -450,22 +450,20 @@ type Instance struct {
 	Scopes []string
 
 	// Path to a setup script for the instance, optional. Should be either
-	// absolute or relative to the parent GCloud instance's workdir. The
-	// setup script runs once after the instance is created. For Windows,
-	// this is assumed to be a PowerShell script and runs during sysprep.
-	// For Linux, the script needs to be executable via the shell (ie. use
-	// a shebang for Python scripts).
+	// absolute or relative to CWD. The setup script runs once after the
+	// instance is created. For Windows, this is assumed to be a PowerShell
+	// script and runs during sysprep. For Linux, the script needs to be
+	// executable via the shell (ie. use a shebang for Python scripts).
 	SetupScript string
 
 	// The service account to use for this instance. Required.
 	ServiceAccount string
 
 	// Path to a startup script for the instance, optional. Should be either
-	// absolute or relative to the parent GCloud instance's workdir. The
-	// startup script runs as root every time the instance starts up. For
-	// Windows, this is assumed to be a PowerShell script. For Linux, the
-	// script needs to be executable via the shell (ie. use a shebang for
-	// Python scripts).
+	// absolute or relative to CWD. The startup script runs as root every
+	// time the instance starts up. For Windows, this is assumed to be a
+	// PowerShell script. For Linux, the script needs to be executable via
+	// the shell (ie. use a shebang for Python scripts).
 	StartupScript string
 
 	// Tags for the instance.
@@ -717,30 +715,45 @@ func (g *GCloud) DeleteInstance(name string, ignoreNotExists bool) error {
 }
 
 // IsInstanceRunning returns whether the instance is in running state.
-func (g *GCloud) IsInstanceRunning(name string) bool {
-	return g.getInstanceStatus(name) == instanceStatusRunning
+func (g *GCloud) IsInstanceRunning(name string) (bool, error) {
+	status, err := g.getInstanceStatus(name)
+	if err != nil {
+		return false, err
+	}
+	return status == instanceStatusRunning, nil
 }
 
 // getInstanceStatus returns the current status of the instance.
-func (g *GCloud) getInstanceStatus(name string) string {
+func (g *GCloud) getInstanceStatus(name string) (string, error) {
 	i, err := g.service.Instances.Get(g.project, g.zone, name).Do()
 	if err != nil {
-		return instanceStatusError
+		return "", err
 	}
-	return i.Status
+	return i.Status, nil
 }
 
 // waitForInstance waits until the instance has the given status.
 func (g *GCloud) waitForInstance(name, status string, timeout time.Duration) error {
 	start := time.Now()
-	for st := g.getInstanceStatus(name); st != status; st = g.getInstanceStatus(name) {
+	for {
+		st, err := g.getInstanceStatus(name)
+		if err == nil && st == status {
+			return nil
+		} else if err != nil {
+			if st == instanceStatusError {
+				// Assume that the error means that the instance no
+				// longer exists.
+				return nil
+			} else {
+				return err
+			}
+		}
 		if time.Now().Sub(start) > timeout {
 			return fmt.Errorf("Instance did not have status %q within timeout of %s", status, timeout)
 		}
 		sklog.Infof("Waiting for instance %q (status %s)", name, st)
 		time.Sleep(5 * time.Second)
 	}
-	return nil
 }
 
 // GetIpAddress obtains the IP address for the Instance.
