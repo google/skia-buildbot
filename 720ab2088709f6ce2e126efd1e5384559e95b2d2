@@ -22,6 +22,30 @@
       "revId": "720ab2088709f6ce2e126efd1e5384559e95b2d2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f58a24d_e2caa7fc",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-25T18:24:27Z",
+      "side": 1,
+      "message": "It prevents gclient from messing with the root checkout, which was not a big deal in the other invocation but is something we don\u0027t want while we\u0027re modifying the checkout to create a CL.",
+      "parentUuid": "50246fbb_2e80b467",
+      "range": {
+        "startLine": 433,
+        "startChar": 36,
+        "endLine": 433,
+        "endChar": 49
+      },
+      "revId": "720ab2088709f6ce2e126efd1e5384559e95b2d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
