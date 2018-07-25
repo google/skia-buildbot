@@ -274,6 +274,16 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, err
 	}
 
+	// Run "gclient sync" to get the DEPS to the correct new revisions.
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Dir:  r.workdir,
+		Env:  depot_tools.Env(r.depotTools),
+		Name: "python",
+		Args: []string{r.gclient, "sync", "--nohooks"},
+	}); err != nil {
+		return err
+	}
+
 	// Build the commit message.
 	commitMsg, err := dr.buildCommitMsg(ctx, from, to, cqExtraTrybots, bugs)
 	if err != nil {

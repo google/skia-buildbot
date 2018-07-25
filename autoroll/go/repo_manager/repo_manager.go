@@ -430,7 +430,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	if r.gclientSpec != "" {
 		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
 	} else {
-		args = append(args, r.parentRepo)
+		args = append(args, r.parentRepo, "--unmanaged")
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
