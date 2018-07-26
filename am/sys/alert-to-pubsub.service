@@ -1,0 +1,18 @@
+[Unit]
+Description=Alert to PubSub
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/alert-to-pubsub \
+    --logtostderr \
+    --port=:9000 \
+    --location=google.com:skia-buildbots \
+    --prom_port=:20007
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
