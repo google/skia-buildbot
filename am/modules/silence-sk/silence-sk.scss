@@ -1,0 +1,74 @@
+@import '~common-sk/modules/colors';
+
+silence-sk {
+  table {
+    border-collapse: collapse;
+    margin: 1em;
+  }
+
+  td, th {
+    padding: 0.3em;
+    border: solid 1px gray;
+  }
+
+  th {
+    text-align: right;
+  }
+
+  td {
+    text-align: left;
+  }
+
+  .notes,
+  .addNote {
+    margin: 1em;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .date {
+    margin: 0 1em;
+    color: $orange;
+  }
+
+  .author {
+    color: $green;
+  }
+
+  delete-icon-sk {
+    fill: $gray;
+    cursor: pointer;
+    border: solid transparent 1px;
+  }
+
+  delete-icon-sk:hover {
+    border: solid $gray 1px;
+  }
+
+  section.notes,
+  section.addNotes {
+    max-width: 40em;
+    margin: 0.6em;
+  }
+
+  section.addNotes button {
+    display: block;
+  }
+
+  .actions {
+    margin: 0.4em;
+  }
+
+  p {
+    background: #eee;
+    padding: 0.5em;
+    display: block;
+    border-radius: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+}
