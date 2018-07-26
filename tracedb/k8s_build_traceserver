@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -x -e
+
+# Builds and uploads a container image for traceserver.
+
+APPNAME="gold-traceserver"
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+
+${INSTALL} --mode=644 -T ./dockerfiles/Dockerfile_traceserver   ${ROOT}/Dockerfile
+${INSTALL}  --mode=755 -T ./build/traceserver_k8s               ${ROOT}/usr/local/bin/gold-traceserver
+}
+
+source ../bash/docker_build.sh

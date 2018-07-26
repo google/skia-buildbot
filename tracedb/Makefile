@@ -1,3 +1,5 @@
+KGO := CGO_ENABLED=0 GOOS=linux go build
+
 default:
 	go install -v ./go/traceserver
 	go install -v ./go/tracetool
@@ -17,3 +19,10 @@ default:
 	mv $(GOPATH)/bin/chromevr_gold_ingestion $(GOPATH)/bin/chromevr_gold_ingestion_old
 	cp $(GOPATH)/bin/skia_ingestion $(GOPATH)/bin/chromevr_gold_ingestion
 	rm $(GOPATH)/bin/chromevr_gold_ingestion_old
+
+.PHONY: k8s-binaries
+k8s-binaries:
+	mkdir -p ./build
+	rm -f ./build/*
+	$(KGO) -o build/traceserver_k8s  -a ./go/traceserver/main.go
+	$(KGO) -o build/skia_ingestion_k8s  -a ./go/skia_ingestion/main.go
