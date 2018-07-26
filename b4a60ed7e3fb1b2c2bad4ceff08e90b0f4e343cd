@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be37e4ba_69ca1228",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-26T21:50:51Z",
+      "side": 1,
+      "message": "nit: copy/pasted in Start and Stop",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 151,
+        "endChar": 2
+      },
+      "revId": "b4a60ed7e3fb1b2c2bad4ceff08e90b0f4e343cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cd0b2af_faf24c05",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-26T21:50:51Z",
+      "side": 1,
+      "message": "I think this is incorrect.",
+      "range": {
+        "startLine": 125,
+        "startChar": 8,
+        "endLine": 126,
+        "endChar": 22
+      },
+      "revId": "b4a60ed7e3fb1b2c2bad4ceff08e90b0f4e343cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac1ded9e_4d5b5dd5",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-26T21:50:51Z",
+      "side": 1,
+      "message": "nit: uncomment or remove (or move to caller)",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 147,
+        "endChar": 0
+      },
+      "revId": "b4a60ed7e3fb1b2c2bad4ceff08e90b0f4e343cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e401b77_15dc481f",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 736,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-26T21:50:51Z",
+      "side": 1,
+      "message": "nit: maybe rename s/status/want/g and s/st/status/g",
+      "range": {
+        "startLine": 736,
+        "startChar": 39,
+        "endLine": 736,
+        "endChar": 45
+      },
+      "revId": "b4a60ed7e3fb1b2c2bad4ceff08e90b0f4e343cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d71ddd27_91a1f9c1",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 743,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-26T21:50:51Z",
+      "side": 1,
+      "message": "I think you meant \u0027status\u0027 (or \u0027want\u0027) here, although the comment below doesn\u0027t really make sense for instanceStatusError.",
+      "range": {
+        "startLine": 743,
+        "startChar": 6,
+        "endLine": 743,
+        "endChar": 8
+      },
+      "revId": "b4a60ed7e3fb1b2c2bad4ceff08e90b0f4e343cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
