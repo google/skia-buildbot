@@ -2,7 +2,6 @@ package autoscaler
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -25,6 +24,7 @@ const (
 	testProject        = "fake-project"
 	testZone           = "fake-zone"
 	testSwarmingServer = "fake-swarming"
+	testAutoscalerName = "fake-autoscaler"
 )
 
 var (
@@ -45,7 +45,7 @@ func Setup(t assert.TestingT) (*Autoscaler, *mockhttpclient.URLMock, []*gce.Inst
 	urlMock := mockhttpclient.NewURLMock()
 	instances := autoscaler.GetInstanceRange(1, 100, getInstance)
 	MockAllOnline(t, urlMock, instances)
-	as, err := NewAutoscaler(testProject, testZone, testSwarmingServer, urlMock.Client(), instances)
+	as, err := NewAutoscaler(testProject, testZone, testSwarmingServer, testAutoscalerName, urlMock.Client(), instances)
 	assert.NoError(t, err)
 	assert.True(t, urlMock.Empty())
 	return as, urlMock, instances
@@ -70,18 +70,15 @@ func mockGCEInstanceStatus(t assert.TestingT, urlMock *mockhttpclient.URLMock, n
 	urlMock.MockOnce(fmt.Sprintf("https://www.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s?alt=json", testProject, testZone, name), mockhttpclient.MockGetDialogue([]byte(js)))
 }
 
-// Mock an API call to retrieve a Swarming bot's status.
-func mockSwarmingStatus(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string, online, busy bool, offlineType string) {
-	// We need to test for correct behavior for various response
-	// states from Swarming:
-	// - Deleted: The bot has connected before but was disconnected
-	//       and deleted correctly.
-	// - Error: Assume the bot has never connected to Swarming and
-	//       is offline. This is not an error.
-	// - Dead: This shouldn't occur, but it's possible that the bot
-	//       was requested to be shut down but we didn't
-	//       successfully finish the process, so it wasn't deleted
-	//       in Swarming.
+// FakeSwarmingStatus represents a Swarming bot status. It is used by the below
+// helper functions to mock API results from Swarming.
+type FakeSwarmingStatus struct {
+	Online bool
+	Busy   bool
+}
+
+// Mock results for one bots.list call.
+func MockSwarmingStatuses(t assert.TestingT, urlMock *mockhttpclient.URLMock, statuses map[string]*FakeSwarmingStatus) {
 	dimensions := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(dims))
 	for dim, _ := range dims {
 		split := strings.Split(dim, ":")
@@ -90,56 +87,72 @@ func mockSwarmingStatus(t assert.TestingT, urlMock *mockhttpclient.URLMock, name
 			Value: []string{split[1]},
 		})
 	}
-	rv := &swarming_api.SwarmingRpcsBotInfo{
-		BotId:      name,
-		Dimensions: dimensions,
-	}
-	if busy {
-		rv.TaskId = fmt.Sprintf("task-%s", name)
-	}
-	if !online {
-		if offlineType == offlineDeleted {
-			rv.Deleted = true
-		} else if offlineType == offlineDead {
-			rv.IsDead = true
-		} else if offlineType == offlineError {
-			urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bot/%s/get?alt=json", testSwarmingServer, name), mockhttpclient.MockGetError(fmt.Sprintf("%s not found", name), http.StatusNotFound))
-			return
+	items := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(statuses))
+	for name, status := range statuses {
+		bot := &swarming_api.SwarmingRpcsBotInfo{
+			BotId:      name,
+			Dimensions: dimensions,
 		}
+		// TODO(borenet): Presumably long-dead or deleted bots, or those
+		// which have never connected to the Swarming server will simply
+		// not appear in the search results.
+		if !status.Online {
+			bot.IsDead = true
+		}
+		if status.Busy {
+			bot.TaskId = fmt.Sprintf("task-%s", name)
+		}
+		items = append(items, bot)
+	}
+	rv := &swarming_api.SwarmingRpcsBotList{
+		Items: items,
 	}
 	js := testutils.MarshalJSON(t, rv)
-	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bot/%s/get?alt=json", testSwarmingServer, name), mockhttpclient.MockGetDialogue([]byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bots/list?alt=json&dimensions=%s%%3A%s", testSwarmingServer, AUTOSCALER_DIMENSION, testAutoscalerName), mockhttpclient.MockGetDialogue([]byte(js)))
 }
 
 // Mock API calls indicating that a bot is online.
-func MockOnline(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string) {
+func MockOnline(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string) *FakeSwarmingStatus {
 	mockGCEInstanceStatus(t, urlMock, name, "RUNNING")
-	mockSwarmingStatus(t, urlMock, name, true, false, offlineDeleted)
+	return &FakeSwarmingStatus{
+		Online: true,
+		Busy:   false,
+	}
 }
 
-func MockOnlineAndBusy(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string) {
+func MockOnlineAndBusy(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string) *FakeSwarmingStatus {
 	mockGCEInstanceStatus(t, urlMock, name, "RUNNING")
-	mockSwarmingStatus(t, urlMock, name, true, true, offlineDeleted)
+	return &FakeSwarmingStatus{
+		Online: true,
+		Busy:   true,
+	}
 }
 
 // Mock API calls indicating that a bot is offline.
-func MockOffline(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string) {
+func MockOffline(t assert.TestingT, urlMock *mockhttpclient.URLMock, name string) *FakeSwarmingStatus {
 	mockGCEInstanceStatus(t, urlMock, name, "TERMINATED")
-	mockSwarmingStatus(t, urlMock, name, false, false, offlineDeleted)
+	return &FakeSwarmingStatus{
+		Online: false,
+		Busy:   false,
+	}
 }
 
 // Mock API calls indicating that the given bots are online.
 func MockAllOnline(t assert.TestingT, urlMock *mockhttpclient.URLMock, instances []*gce.Instance) {
+	status := make(map[string]*FakeSwarmingStatus, len(instances))
 	for _, instance := range instances {
-		MockOnline(t, urlMock, instance.Name)
+		status[instance.Name] = MockOnline(t, urlMock, instance.Name)
 	}
+	MockSwarmingStatuses(t, urlMock, status)
 }
 
 // Mock API calls indicating that the given bots are offline.
 func MockAllOffline(t assert.TestingT, urlMock *mockhttpclient.URLMock, instances []*gce.Instance) {
+	status := make(map[string]*FakeSwarmingStatus, len(instances))
 	for _, instance := range instances {
-		MockOffline(t, urlMock, instance.Name)
+		status[instance.Name] = MockOffline(t, urlMock, instance.Name)
 	}
+	MockSwarmingStatuses(t, urlMock, status)
 }
 
 // Mock the API calls to stop an instance.

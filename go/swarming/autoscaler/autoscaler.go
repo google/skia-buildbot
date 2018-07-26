@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -20,9 +19,7 @@ import (
 )
 
 const (
-	MAX_POLL_ATTEMPTS       = 30
-	POLL_WAIT_TIME          = 10 * time.Second
-	UTILIZATION_TIME_PERIOD = time.Hour
+	AUTOSCALER_DIMENSION = "skia_autoscaler"
 
 	BOT_STATE_ONLINE   BotState = "ONLINE"
 	BOT_STATE_OFFLINE  BotState = "OFFLINE"
@@ -43,12 +40,13 @@ type Autoscaler struct {
 	gceScaler  *autoscaler.Autoscaler
 	instances  []string
 	mtx        sync.RWMutex
+	name       string
 	states     map[string]BotState
 	swarming   swarming.ApiClient
 }
 
 // NewAutoscaler returns an Autoscaler instance.
-func NewAutoscaler(projectId, zone, swarmingServer string, client *http.Client, instances []*gce.Instance) (*Autoscaler, error) {
+func NewAutoscaler(projectId, zone, swarmingServer, name string, client *http.Client, instances []*gce.Instance) (*Autoscaler, error) {
 	s, err := swarming.NewApiClient(client, swarmingServer)
 	if err != nil {
 		return nil, err
@@ -60,6 +58,7 @@ func NewAutoscaler(projectId, zone, swarmingServer string, client *http.Client, 
 	rv := &Autoscaler{
 		gceScaler: gceScaler,
 		instances: gceScaler.GetNamesOfManagedInstances(),
+		name:      name,
 		swarming:  s,
 	}
 	if err := rv.Update(); err != nil {
@@ -80,56 +79,44 @@ func (a *Autoscaler) Update() error {
 // updateInstanceStatuses queries Swarming to determine whether the given
 // instances are running. Saves the connection statuses for the instances.
 func (a *Autoscaler) updateInstanceStatuses() error {
-	// TODO(borenet): There must be a more efficient way to do this than to
-	// issue one request for each bot.
 	busy := make(map[string]bool, len(a.instances))
 	var dimensions util.StringSet
 	states := make(map[string]BotState, len(a.instances))
-	var mtx sync.Mutex
-	group := util.NewNamedErrGroup()
-	for _, instance := range a.instances {
-		instance := instance // https://golang.org/doc/faq#closures_and_goroutines
-		// Get the current bot status.
-		group.Go(instance, func() error {
-			dims := util.StringSet{}
-			state := BOT_STATE_ONLINE
-			botInfo, err := a.swarming.SwarmingService().Bot.Get(instance).Do()
-			if err != nil {
-				if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-					// Assume this means that the bot is
-					// offline and has never connected to
-					// Swarming.
-					state = BOT_STATE_OFFLINE
-				} else {
-					return err
-				}
-			} else {
-				if botInfo.Deleted {
-					state = BOT_STATE_OFFLINE
-				} else if botInfo.IsDead {
-					state = BOT_STATE_OFFLINE
-				}
-				for _, d := range botInfo.Dimensions {
-					for _, val := range d.Value {
-						dims[fmt.Sprintf("%s:%s", d.Key, val)] = true
-					}
-				}
-			}
-			mtx.Lock()
-			defer mtx.Unlock()
-			busy[instance] = state == BOT_STATE_ONLINE && botInfo.TaskId != ""
-			states[instance] = state
-			if len(dims) > 0 && dimensions == nil {
-				dimensions = dims
-			}
-			return nil
-		})
-	}
-	if err := group.Wait(); err != nil {
+	results, err := a.swarming.ListBots(map[string]string{
+		AUTOSCALER_DIMENSION: a.name,
+	})
+	if err != nil {
 		return err
+	}
+	for _, botInfo := range results {
+		state := BOT_STATE_ONLINE
+		if botInfo.Deleted {
+			state = BOT_STATE_OFFLINE
+		} else if botInfo.IsDead {
+			state = BOT_STATE_OFFLINE
+		}
+		dims := util.NewStringSet()
+		for _, d := range botInfo.Dimensions {
+			for _, val := range d.Value {
+				dims[fmt.Sprintf("%s:%s", d.Key, val)] = true
+			}
+		}
+		busy[botInfo.BotId] = state == BOT_STATE_ONLINE && botInfo.TaskId != ""
+		states[botInfo.BotId] = state
+		if len(dims) > 0 && dimensions == nil {
+			dimensions = dims
+		}
 	}
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
+	for _, instance := range a.instances {
+		if _, ok := states[instance]; !ok {
+			// If the bot didn't show up in the search, assume that
+			// it's offline and has been deleted or has never
+			// connected to Swarming.
+			states[instance] = BOT_STATE_OFFLINE
+		}
+	}
 	a.busy = busy
 	for id, state := range states {
 		oldState := a.states[id]
