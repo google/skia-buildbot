@@ -1,0 +1,90 @@
+@import '../colors.scss';
+
+alert-manager-sk {
+  button.fab {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+  }
+
+  spinner-sk[active] {
+    visibility: initial;
+  }
+
+  spinner-sk {
+    visibility: hidden;
+    display: inline-block;
+    position: fixed;
+    top: 4em;
+    left: 34em;
+  }
+
+  button {
+    text-transform: none;
+    height: initial;
+    padding: 0.2em;
+  }
+
+  h2 {
+    color: $red;
+    padding: 0.2em 0.6em;
+    margin: 0;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  h2.assigned {
+    color: $orange;
+  }
+
+  h2.inactive {
+    color: $gray;
+  }
+
+  h2.selected {
+    background: #eee;
+  }
+
+  h2.silenced {
+    color: $green;
+  }
+
+  footer {
+    grid-area: footer;
+  }
+
+  .incidents {
+    display: grid;
+    grid-area: incidents;
+    overflow-y: auto;
+    height: 80vh;
+
+    checkbox-sk {
+      display: inline-block;
+    }
+  }
+
+  .silences {
+    grid-area: silences;
+    overflow-y: auto;
+    height: 20vh;
+
+    h2 {
+      overflow-x: hidden;
+      padding: 0.4em 1em;
+      color: $blue;
+    }
+  }
+
+  .edit {
+    grid-area: edit;
+  }
+
+  display: grid;
+  grid-template-columns: 20em 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+  "incidents edit"
+  "silences edit"
+  "footer footer";
+}
