@@ -93,13 +93,15 @@ func TestAutoscaler(t *testing.T) {
 	assert.Equal(t, startN, s1.NumStarting())
 
 	// Now they're online, but they're busy and we have more candidates.
+	statuses := make(map[string]*autoscaler.FakeSwarmingStatus, len(instances))
 	for idx, instance := range instances {
 		if idx < startN {
-			autoscaler.MockOnlineAndBusy(t, urlMock, instance.Name)
+			statuses[instance.Name] = autoscaler.MockOnlineAndBusy(t, urlMock, instance.Name)
 		} else {
-			autoscaler.MockOffline(t, urlMock, instance.Name)
+			statuses[instance.Name] = autoscaler.MockOffline(t, urlMock, instance.Name)
 		}
 	}
+	autoscaler.MockSwarmingStatuses(t, urlMock, statuses)
 	assert.NoError(t, as.Update())
 	assert.True(t, urlMock.Empty())
 	assert.Equal(t, startN, s1.NumOnline())

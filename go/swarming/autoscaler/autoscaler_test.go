@@ -43,12 +43,18 @@ func TestAutoscaler(t *testing.T) {
 	assert.EqualError(t, as.Stop([]string{vm1.Name}), "Bot skia-gce-001 cannot be stopped because it is in \"STARTING\" state.")
 
 	// Now the instance is online.
-	MockOnline(t, urlMock, vm1.Name)
+	statuses := make(map[string]*FakeSwarmingStatus, len(instances))
+	statuses[vm1.Name] = MockOnline(t, urlMock, vm1.Name)
 	for _, instance := range instances[1:] {
-		MockOffline(t, urlMock, instance.Name)
+		statuses[instance.Name] = MockOffline(t, urlMock, instance.Name)
 	}
+	MockSwarmingStatuses(t, urlMock, statuses)
 	assert.NoError(t, as.Update())
 	assert.True(t, urlMock.Empty())
+	assert.Equal(t, 1, as.NumOnline())
+	assert.Equal(t, 99, as.NumOffline())
+	assert.Equal(t, 0, as.NumStarting())
+	assert.Equal(t, 0, as.NumStopping())
 
 	// Stop the instance.
 	MockStop(t, urlMock, vm1.Name)
@@ -79,13 +85,15 @@ func TestAutoscaler(t *testing.T) {
 	assert.Equal(t, 90, as.NumOffline())
 	assert.Equal(t, 10, as.NumStarting())
 	assert.Equal(t, 0, as.NumStopping())
+	statuses = make(map[string]*FakeSwarmingStatus, len(instances))
 	for idx, instance := range instances {
 		if idx < n {
-			MockOnline(t, urlMock, instance.Name)
+			statuses[instance.Name] = MockOnline(t, urlMock, instance.Name)
 		} else {
-			MockOffline(t, urlMock, instance.Name)
+			statuses[instance.Name] = MockOffline(t, urlMock, instance.Name)
 		}
 	}
+	MockSwarmingStatuses(t, urlMock, statuses)
 	assert.NoError(t, as.Update())
 	assert.Equal(t, 10, as.NumOnline())
 	assert.Equal(t, 90, as.NumOffline())
@@ -93,17 +101,19 @@ func TestAutoscaler(t *testing.T) {
 	assert.Equal(t, 0, as.NumStopping())
 
 	// Now, most of the bots are busy.
+	statuses = make(map[string]*FakeSwarmingStatus, len(instances))
 	for idx, instance := range instances {
 		if idx < n {
 			if (idx+1)%3 == 0 {
-				MockOnline(t, urlMock, instance.Name)
+				statuses[instance.Name] = MockOnline(t, urlMock, instance.Name)
 			} else {
-				MockOnlineAndBusy(t, urlMock, instance.Name)
+				statuses[instance.Name] = MockOnlineAndBusy(t, urlMock, instance.Name)
 			}
 		} else {
-			MockOffline(t, urlMock, instance.Name)
+			statuses[instance.Name] = MockOffline(t, urlMock, instance.Name)
 		}
 	}
+	MockSwarmingStatuses(t, urlMock, statuses)
 	assert.NoError(t, as.Update())
 	assert.Equal(t, 10, as.NumOnline())
 	assert.Equal(t, 90, as.NumOffline())
@@ -140,18 +150,10 @@ func TestAutoscaler(t *testing.T) {
 	WaitForStop(urlMock)
 
 	// Test offline status.
+	statuses = map[string]*FakeSwarmingStatus{}
+	MockSwarmingStatuses(t, urlMock, statuses)
 	for _, instance := range instances {
 		mockGCEInstanceStatus(t, urlMock, instance.Name, "TERMINATED")
-		mockSwarmingStatus(t, urlMock, instance.Name, false, false, offlineDead)
-	}
-	assert.NoError(t, as.Update())
-	assert.Equal(t, 0, as.NumOnline())
-	assert.Equal(t, 100, as.NumOffline())
-	assert.Equal(t, 0, as.NumStarting())
-	assert.Equal(t, 0, as.NumStopping())
-	for _, instance := range instances {
-		mockGCEInstanceStatus(t, urlMock, instance.Name, "TERMINATED")
-		mockSwarmingStatus(t, urlMock, instance.Name, false, false, offlineError)
 	}
 	assert.NoError(t, as.Update())
 	assert.Equal(t, 0, as.NumOnline())

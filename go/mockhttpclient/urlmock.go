@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 
 	"go.skia.org/infra/go/util"
@@ -244,7 +245,7 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	}
 	m.mtx.Unlock()
 	if md == nil {
-		return nil, fmt.Errorf("Unknown URL %q", url)
+		return nil, fmt.Errorf("Unknown URL %q; have:\n%s", url, strings.Join(m.List(), "\n"))
 	}
 	return md.GetResponse(r)
 }
