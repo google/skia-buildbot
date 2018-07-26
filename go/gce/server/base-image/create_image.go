@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"flag"
 	"path"
-	"path/filepath"
 	"runtime"
 
 	"go.skia.org/infra/go/common"
@@ -17,11 +15,6 @@ const (
 	IMAGE_FAMILY      = "skia-pushable-base"
 	INSTANCE_NAME     = "skia-pushable-base-maker"
 	SETUP_SCRIPT      = "~/setup_script.sh"
-)
-
-var (
-	// Flags.
-	workdir = flag.String("workdir", ".", "Working directory.")
 )
 
 func BaseConfig() *gce.Instance {
@@ -52,14 +45,8 @@ func BaseConfig() *gce.Instance {
 func main() {
 	common.Init()
 
-	// Get the absolute workdir.
-	wdAbs, err := filepath.Abs(*workdir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.PROJECT_ID_SERVER, gce.ZONE_DEFAULT, wdAbs)
+	g, err := gce.NewLocalGCloud(gce.PROJECT_ID_SERVER, gce.ZONE_DEFAULT)
 	if err != nil {
 		sklog.Fatal(err)
 	}
