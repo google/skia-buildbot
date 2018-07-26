@@ -104,3 +104,4 @@ promk/tmp
 # kube
 **/chat_config.txt
 .vscode
+tracedb/build
