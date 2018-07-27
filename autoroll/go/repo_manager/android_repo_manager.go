@@ -461,7 +461,8 @@ func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRe
 	if head == lastRollRev {
 		return []*vcsinfo.LongCommit{}, nil
 	}
-	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	// Only consider commits on the "main" branch as roll candidates.
+	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", lastRollRev, head))
 	if err != nil {
 		return nil, err
 	}
