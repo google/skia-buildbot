@@ -19,11 +19,12 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -31,12 +32,14 @@ import (
 
 const (
 	// BUCKET is the Cloud Storage bucket we store files in.
-	BUCKET = "skottie-renderer"
+	BUCKET          = "skottie-renderer"
+	BUCKET_INTERNAL = "skottie-renderer-internal"
 )
 
 // flags
 var (
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	lockedDown   = flag.Bool("locked_down", false, "Restricted to only @google.com accounts.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -77,8 +80,18 @@ func New() (*Server, error) {
 	}
 	version := strings.TrimSpace(string(b))
 
+	if *lockedDown {
+		allow := allowed.NewAllowedFromList([]string{"google.com"})
+		login.InitWithAllow(*port, *local, nil, nil, allow)
+	}
+
+	bucket := BUCKET
+	if *lockedDown {
+		bucket = BUCKET_INTERNAL
+	}
+
 	srv := &Server{
-		bucket:  storageClient.Bucket(BUCKET),
+		bucket:  storageClient.Bucket(bucket),
 		version: version,
 	}
 	srv.loadTemplates()
@@ -265,8 +278,10 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed writing JSON to GCS on close.")
 		return
 	}
-	if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
-		sklog.Errorf("Failed to make JSON public: %s", err)
+	if !*lockedDown {
+		if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+			sklog.Errorf("Failed to make JSON public: %s", err)
+		}
 	}
 
 	// Write webm file.
@@ -299,6 +314,10 @@ func main() {
 		common.PrometheusOpt(promPort),
 	)
 
+	if *lockedDown && *local {
+		sklog.Fatalf("Can't be run as both --locked_down and --local.")
+	}
+
 	if *skottieTool == "" {
 		sklog.Fatal("The --skottie_tool flag is required.")
 	}
@@ -320,7 +339,11 @@ func main() {
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
-		h = iap.None(h)
+		if *lockedDown {
+			h = login.RestrictViewer(h)
+			h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+		}
+		h = httputils.ForceHTTPS(h)
 	}
 
 	http.Handle("/", h)

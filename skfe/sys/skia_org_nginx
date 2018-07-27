@@ -1772,6 +1772,26 @@ server {
     server_name skottie.skia.org;
     return 301 https://skottie.skia.org$request_uri;
 }
+#####   skottie-internal.skia.org   ###########################
+server {
+    listen      443;
+    server_name skottie-internal.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/skottie-internal.access.log;
+    error_log /var/log/nginx/skottie-internal.error.log error;
+
+    location / {
+        proxy_pass https://35.201.76.220;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name skottie-internal.skia.org;
+    return 301 https://skottie-internal.skia.org$request_uri;
+}
 #####   status2.skia.org   ###########################
 server {
     listen      443;
@@ -1811,4 +1831,21 @@ server {
     listen      80;
     server_name named-fiddles.skia.org;
     return 301 https://named-fiddles.skia.org$request_uri;
+}
+#####   am.skia.org   ###########################
+server {
+    listen      443;
+    server_name am.skia.org;
+    ssl on;
+    access_log /var/log/nginx/am.access.log;
+    error_log /var/log/nginx/am.error.log error;
+    location / {
+        proxy_pass https://35.201.76.220;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name am.skia.org;
+    return 301 https://am.skia.org$request_uri;
 }
