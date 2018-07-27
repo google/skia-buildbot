@@ -126,7 +126,9 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     }
     this._ui = LOADING_MODE;
     this._render();
-    fetch(`/_/j/${this._hash}`).then(jsonOrThrow).then(json => {
+    fetch(`/_/j/${this._hash}`, {
+      credentials: 'include',
+    }).then(jsonOrThrow).then(json => {
       this._state = json;
       this._ui = LOADED_MODE;
       this._render();
@@ -149,6 +151,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._hash = '';
     this._render();
     fetch("/_/upload", {
+      credentials: 'include',
       body: JSON.stringify(this._state),
       headers: {
         'content-type': 'application/json'
