@@ -179,3 +179,57 @@ func TestReplaceLabelRequest(t *testing.T) {
 	removeLabelErr := githubClient.ReplaceLabel(1234, "test1", "test3")
 	assert.NoError(t, removeLabelErr)
 }
+
+func TestGetChecksRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	statusID1 := int64(100)
+	statusID2 := int64(200)
+	repoStatus1 := github.RepoStatus{ID: &statusID1}
+	repoStatus2 := github.RepoStatus{ID: &statusID2}
+	respBody := []byte(testutils.MarshalJSON(t, &github.CombinedStatus{Statuses: []github.RepoStatus{repoStatus1, repoStatus2}}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/status").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	assert.NoError(t, err)
+	checks, getChecksErr := githubClient.GetChecks("abcd")
+	assert.NoError(t, getChecksErr)
+	assert.Equal(t, 2, len(checks))
+	assert.Equal(t, statusID1, *checks[0].ID)
+	assert.Equal(t, statusID2, *checks[1].ID)
+}
+
+func TestReadRawFileRequest(t *testing.T) {
+	testutils.SmallTest(t)
+	respBody := []byte(`abcd`)
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("raw.githubusercontent.com").Methods("GET").Path("/kryptonians/krypton/master/dummy/path/to/this.txt").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	assert.NoError(t, err)
+	contents, readRawErr := githubClient.ReadRawFile("master", "/dummy/path/to/this.txt")
+	assert.NoError(t, readRawErr)
+	assert.Equal(t, "abcd", contents)
+}
+
+func TestGetFullHistoryUrl(t *testing.T) {
+	testutils.SmallTest(t)
+	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	assert.NoError(t, err)
+	fullHistoryUrl := githubClient.GetFullHistoryUrl("superman@krypton.com")
+	assert.Equal(t, "https://github.com/kryptonians/krypton/pulls/superman", fullHistoryUrl)
+}
+
+func TestGetIssueUrlBase(t *testing.T) {
+	testutils.SmallTest(t)
+	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	assert.NoError(t, err)
+	issueUrlBase := githubClient.GetIssueUrlBase()
+	assert.Equal(t, "https://github.com/kryptonians/krypton/pull/", issueUrlBase)
+}
