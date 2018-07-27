@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba84e53f_99959fef",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-27T19:08:24Z",
+      "side": 1,
+      "message": "Nit: should this be ROLLER_TYPE_GITHUB_DEPS for consistency with all of the other names?",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 24
+      },
+      "revId": "d9386d73ef4b7422a79dc580166e7ee63a38f078",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
