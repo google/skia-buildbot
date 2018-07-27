@@ -341,7 +341,8 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Find the not-yet-rolled child repo commits.
-	notRolled, err := rm.childRepo.Log(lastRollRev, rm.childBranch)
+	// Only consider commits on the "main" branch as roll candidates.
+	notRolled, err := rm.childRepo.LogLinear(lastRollRev, rm.childBranch)
 	if err != nil {
 		return err
 	}

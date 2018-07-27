@@ -205,3 +205,65 @@ func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
 	}
 	return rv, nil
 }
+
+// LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
+// ie. it only returns commits which are on the direct path from A to B, and
+// only on the "main" branch. This is as opposed to "git log from..to" which
+// returns all commits which are ancestors of 'to' but not 'from'.
+func (r *Repo) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
+	// Retrieve the normal "git log".
+	commits, err := r.Log(from, to)
+	if err != nil {
+		return nil, err
+	}
+	if len(commits) == 0 {
+		return commits, nil
+	}
+
+	// Now filter to only those commits which are on the direct path.
+	commitsMap := make(map[string]*vcsinfo.LongCommit, len(commits))
+	for _, commit := range commits {
+		commitsMap[commit.Hash] = commit
+	}
+	isDescendant := make(map[string]bool, len(commits))
+	var search func(string) bool
+	search = func(hash string) bool {
+		// Shortcut if we've already searched this commit.
+		if rv, ok := isDescendant[hash]; ok {
+			return rv
+		}
+		// If the commit isn't in our list, we can't include it.
+		commit, ok := commitsMap[hash]
+		if !ok {
+			isDescendant[hash] = false
+			return false
+		}
+
+		// The commit is on the ancestry path if it is reachable from
+		// "to" and a descendant of "from". The former case is handled
+		// by vanilla "git log", so we just need to find the commits
+		// which have "from" as an ancestor.
+
+		// If "from" is a parent of this commit, it's on the ancestry
+		// path.
+		if util.In(from, commit.Parents) {
+			isDescendant[hash] = true
+			return true
+		}
+		// If the first parent of this commit is on the direct line,
+		// then this commit is as well.
+		if search(commit.Parents[0]) {
+			isDescendant[hash] = true
+			return true
+		}
+		return false
+	}
+	search(commits[0].Hash)
+	rv := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, commit := range commits {
+		if isDescendant[commit.Hash] {
+			rv = append(rv, commit)
+		}
+	}
+	return rv, nil
+}
