@@ -44,6 +44,11 @@ const (
 
 	COMMIT_LABEL = "autoroller: commit"
 	DRYRUN_LABEL = "autoroller: dyrun"
+
+	CHECK_STATE_PENDING = "pending"
+	CHECK_STATE_SUCCESS = "success"
+	CHECK_STATE_ERROR   = "error"
+	CHECK_STATE_FAILURE = "failure"
 )
 
 var (
@@ -249,3 +254,120 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 	}
 	return nil
 }
+
+// CREATE A TEST AND GET THIS WORKING BEFORE YOU DO ANYTHING ELSE!!!!!!
+
+// See https://developer.github.com/v3/checks/runs/#list-check-runs-for-a-specific-ref
+// for the API documentation.
+func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
+	// https://api.github.com/repos/flutter/flutter/commits/f5b5ac1c8115dfca50c4ca143f288383f569e623/statuses
+	// target_url is unique I think, will have to dedupall this
+	combinedStatus, resp, err := g.client.Repositories.GetCombinedStatus(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing repos.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
+	}
+
+	/*
+			tryResults := []*autoroll.TryResult{}
+		for _, travisBuild := range travisBuilds {
+			if travisBuild.Id != 0 {
+				testStatus := autoroll.TRYBOT_STATUS_STARTED
+				testResult := ""
+				switch travisBuild.State {
+				case travisci.BUILD_STATE_CREATED:
+					// Build is not completely ready yet. It will not have a
+					// startedAt yet.
+					continue
+				case travisci.BUILD_STATE_FAILED:
+					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+					testResult = autoroll.TRYBOT_RESULT_FAILURE
+				case travisci.BUILD_STATE_PASSED:
+					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+					testResult = autoroll.TRYBOT_RESULT_SUCCESS
+				}
+				buildStartedAt, err := time.Parse(time.RFC3339, travisBuild.StartedAt)
+				if err != nil {
+					return nil, nil, fmt.Errorf("Failed to parse %s: %s", travisBuild.StartedAt, err)
+				}
+				tryResults = append(tryResults,
+					&autoroll.TryResult{
+						Builder:  fmt.Sprintf("TravisCI Build #%d", travisBuild.Id),
+						Category: autoroll.TRYBOT_CATEGORY_CQ,
+						Created:  buildStartedAt,
+						Result:   testResult,
+						Status:   testStatus,
+						Url:      t.GetBuildURL(travisBuild.Id),
+					})
+			}
+		}
+	*/
+
+	fmt.Println("-----------------------------")
+	fmt.Println(combinedStatus.GetTotalCount())
+	fmt.Println(combinedStatus.Statuses)
+	return combinedStatus.Statuses, nil
+	//for _, check := range combinedStatus.Statuses {
+	//	check.ID
+	//	check.State
+	//	check.GetCreatedAt()
+	//	if check.ID != 0 {
+	//		testStatus := autoroll.TRYBOT_STATUS_STARTED
+	//		testResult := ""
+	//		switch check.State {
+	//		case CHECK_STATE_PENDING:
+	//			// Build is till pending. Should still have a created?
+	//			fmt.Println("PENDING PENDING")
+	//			fmt.Println("Not exactly sure what to do here.. still add it if everything is there?")
+	//			fmt.Println(check.GetCreatedAt())
+	//			continue
+	//		case CHECK_STATE_FAILURE:
+	//			testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+	//			testResult = autoroll.TRYBOT_RESULT_FAILURE
+	//		case CHECK_STATE_ERROR:
+	//			testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+	//			testResult = autoroll.TRYBOT_RESULT_FAILURE
+	//		case CHECK_STATE_SUCCESS:
+	//			testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+	//			testResult = autoroll.TRYBOT_RESULT_SUCCESS
+	//		}
+	//		fmt.Println("Createdat is same as build started at ????")
+	//		fmt.Println(check.GetCreatedAt())
+	//		buildStartedAt := check.GetCreatedAt()
+	//		// Need two things here!
+	//		// Builder name
+	//		// Builder URL
+	//		tryResults = append(tryResults,
+	//			&autoroll.TryResult{
+	//				Builder:  fmt.Sprintf("%s #%d", check.Context, check.ID),
+	//				Category: autoroll.TRYBOT_CATEGORY_CQ,
+	//				Created:  buildStartedAt,
+	//				Result:   testResult,
+	//				Status:   testStatus,
+	//				Url:      check.TargetURL,
+	//			})
+	//	}
+	//}
+}
+
+/*
+[github.RepoStatus{ID:5267670598, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623",
+State:"success",
+TargetURL:"https://github.com/apps/wip",
+Description:"ready for review",
+Context:"WIP",
+CreatedAt:time.Time{wall:, ext:},
+UpdatedAt:time.Time{wall:, ext:}}
+
+github.RepoStatus{ID:5267670835, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"success", Description:"All necessary CLAs are signed", Context:"cla/google", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}}
+
+
+github.RepoStatus{ID:5267673892, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623",
+State:"success",
+Context:"flutter-build",
+CreatedAt:time.Time{wall:, ext:},
+UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267678909,
+URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"failure", TargetURL:"https://cirrus-ci.com/task/5725433001672704", Context:"docs", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267681214, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"failure", TargetURL:"https://cirrus-ci.com/task/5162483048251392", Context:"analyze", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267681227, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"failure", TargetURL:"https://cirrus-ci.com/task/4881008071540736", Context:"tool_tests-linux", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267681253, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"pending", TargetURL:"https://cirrus-ci.com/task/6006907978383360", Context:"tests-windows", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267681276, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"pending", TargetURL:"https://cirrus-ci.com/task/5443958024962048", Context:"tool_tests-windows", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267690974, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"failure", TargetURL:"https://cirrus-ci.com/task/4740270583185408", Context:"tool_tests-macos", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267694814, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"failure", TargetURL:"https://cirrus-ci.com/task/6288382955094016", Context:"tests-linux", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267695567, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"error", TargetURL:"https://travis-ci.org/flutter/flutter/builds/408635945?utm_source=github_status&utm_medium=notification", Description:"The Travis CI build could not complete due to an error", Context:"continuous-integration/travis-ci/pr", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}} github.RepoStatus{ID:5267699873, URL:"https://api.github.com/repos/flutter/flutter/statuses/f5b5ac1c8115dfca50c4ca143f288383f569e623", State:"failure", TargetURL:"https://cirrus-ci.com/task/6569857931804672", Context:"tests-macos", CreatedAt:time.Time{wall:, ext:}, UpdatedAt:time.Time{wall:, ext:}}]
+*/
