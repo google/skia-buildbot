@@ -179,6 +179,9 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 		cq = true
 	}
 
+	// TODO(rmistry): Remove before pushing to production.
+	cq = true
+
 	ps := make([]int64, 0, *pullRequest.Commits)
 	for i := 1; i <= *pullRequest.Commits; i++ {
 		ps = append(ps, int64(i))
@@ -320,6 +323,28 @@ func (a *AutoRollIssue) AllTrybotsFinished() bool {
 	return true
 }
 
+// AtleastOneTrybotFailure returns true iff there is atleast one trybot that has
+// failed for the given issue.
+func (a *AutoRollIssue) AtleastOneTrybotFailure() bool {
+	// For each trybot, find the most recent result.
+	bots := map[string]*TryResult{}
+	for _, t := range a.TryResults {
+		if prev, ok := bots[t.Builder]; !ok || prev.Created.Before(t.Created) {
+			bots[t.Builder] = t
+		}
+	}
+	for _, t := range bots {
+		sklog.Infof("  %s: %s (%s)", t.Builder, t.Result, t.Category)
+		if t.Category != TRYBOT_CATEGORY_CQ {
+			continue
+		}
+		if t.Failed() {
+			return true
+		}
+	}
+	return false
+}
+
 // AllTrybotsSucceeded returns true iff all CQ trybots have succeeded for the
 // given issue. Note that some trybots may fail and be retried, in which case a
 // successful retry counts as a success.
@@ -405,6 +430,11 @@ func TryResultsFromBuildbucket(tries []*buildbucket.Build) ([]*TryResult, error)
 // Finished returns true iff the trybot is done running.
 func (t TryResult) Finished() bool {
 	return t.Status == TRYBOT_STATUS_COMPLETED
+}
+
+// Failed returns true iff the trybot completed and failed.
+func (t TryResult) Failed() bool {
+	return t.Finished() && t.Result == TRYBOT_RESULT_FAILURE
 }
 
 // Succeeded returns true iff the trybot completed successfully.
