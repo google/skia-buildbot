@@ -165,6 +165,7 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 // FromGitHubPullRequest returns an AutoRollIssue instance based on the given
 // PullRequest.
 func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+	fmt.Println("IIIIIIIIIIIIIIIII 1")
 	labels, err := g.GetLabels(pullRequest.GetNumber())
 	if err != nil {
 		return nil, err
@@ -178,6 +179,9 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 	} else if util.In(github.COMMIT_LABEL, labels) {
 		cq = true
 	}
+
+	// TODO(rmistry): Just for testing! REMOVE AFTER LABELS ARE DONE!!!!!!!!!!!
+	cq = true
 
 	ps := make([]int64, 0, *pullRequest.Commits)
 	for i := 1; i <= *pullRequest.Commits; i++ {
@@ -201,6 +205,7 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 	}
 	roll.RollingFrom = from
 	roll.RollingTo = to
+	fmt.Println("IIIIIIIIIIIIIIIII 2")
 	return roll, nil
 }
 
