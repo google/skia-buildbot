@@ -16,6 +16,24 @@
       "revId": "4dd61d815ebb0239b54318df210a425d8a874018",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d46a7614_9d235475",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 1
+      },
+      "lineNbr": 1835,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-27T17:39:25Z",
+      "side": 1,
+      "message": "Yes, otherwise there\u0027s a risk of someone else pushing skfe and am.skia.org becoming unavailable.",
+      "parentUuid": "0195fe59_d6737b90",
+      "revId": "4dd61d815ebb0239b54318df210a425d8a874018",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
