@@ -2,12 +2,14 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
@@ -178,4 +180,14 @@ func TestReplaceLabelRequest(t *testing.T) {
 	assert.NoError(t, err)
 	removeLabelErr := githubClient.ReplaceLabel(1234, "test1", "test3")
 	assert.NoError(t, removeLabelErr)
+}
+
+func TestGetChecksRequest(t *testing.T) {
+	httpClient := httputils.NewTimeoutClient()
+	githubClient, err := NewGitHub(context.Background(), "flutter", "flutter", httpClient, "")
+	assert.NoError(t, err)
+	somethin, err := githubClient.GetChecks("f5b5ac1c8115dfca50c4ca143f288383f569e623")
+	assert.NoError(t, err)
+	fmt.Println("______")
+	fmt.Println(somethin)
 }

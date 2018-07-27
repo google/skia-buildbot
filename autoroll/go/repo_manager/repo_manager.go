@@ -189,7 +189,7 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		return nil, err
 	}
 	user := ""
-	if g.Initialized() {
+	if g != nil && g.Initialized() {
 		user, err = g.GetUserEmail()
 		if err != nil {
 			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
@@ -451,7 +451,30 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	return nil
 }
 
-func (r *depotToolsRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
+//func (r *depotToolsRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
+//	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
+//	if err != nil {
+//		return nil, err
+//	}
+//	if head == lastRollRev {
+//		return []*vcsinfo.LongCommit{}, nil
+//	}
+//	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+//	if err != nil {
+//		return nil, err
+//	}
+//	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+//	for _, c := range commits {
+//		detail, err := r.childRepo.Details(ctx, c)
+//		if err != nil {
+//			return nil, err
+//		}
+//		notRolled = append(notRolled, detail)
+//	}
+//	return notRolled, nil
+//}
+
+func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
 	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
 	if err != nil {
 		return nil, err
