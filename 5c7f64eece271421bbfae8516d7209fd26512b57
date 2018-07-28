@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3b2e2a78_0461356a",
+        "filename": "chromeextensions/skia-trooper/background.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-28T12:33:13Z",
+      "side": 1,
+      "message": "console.error(\"Error talking to alertserver\", e);",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 48
+      },
+      "revId": "5c7f64eece271421bbfae8516d7209fd26512b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3528c326_988fc75b",
+        "filename": "chromeextensions/skia-trooper/background.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-07-28T12:33:13Z",
+      "side": 1,
+      "message": "You don\u0027t have to change it, but:\n\nPromise.all([\n  sk.get(\"https://promalerts.skia.org/api/v1/alerts/groups\"),\n  sk.get(\"https://alerts2.skia.org/api/v1/alerts/groups\"),\n]).then(values \u003d\u003e {\n  updateIcon(values.map(getActiveInfraAlerts).reduce((sum, n) \u003d\u003e sum+n));\n}).catch(logAlertServerErrors);",
+      "revId": "5c7f64eece271421bbfae8516d7209fd26512b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
