@@ -107,7 +107,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.instance }}'
-      description: '{{ $labels.instance }} has failed to recieve a pubsub event in the last 24 hours.
+      description: '{{ $labels.instance }} has failed to receive a pubsub event in the last 24 hours.
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '

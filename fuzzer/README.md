@@ -3,7 +3,7 @@ Fuzzer
 
 When the instance is created, afl-fuzz is downloaded from `gs://skia-fuzzer/afl-mirror/afl-[version].tgz`
 To update afl-versions, download the .tgz file from [http://lcamtuf.coredump.cx/afl/releases/?O=D],
-upload it to that location and make it publically shared.
+upload it to that location and make it publicly shared.
 
 AFL-fuzz requires that core dumps be handled normally and not notify external entities.  As such, this may need to be run as root (sudo su):
 `echo core >/proc/sys/kernel/core_pattern`

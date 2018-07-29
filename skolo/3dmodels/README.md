@@ -37,7 +37,7 @@ raspirack_*.stl : Contains different versions of a rack to hold
                   Should work with any device up to a Nexus 10.
 
 raspirack_*_extended.stl : A variant of the rack that has a larger "payload"
-                           to accomodate bigger devices (e.g. NVIDIA Shield).
+                           to accommodate bigger devices (e.g. NVIDIA Shield).
                            The payload width is 25mm, compared to 11mm on the
                            standard rack.
 
