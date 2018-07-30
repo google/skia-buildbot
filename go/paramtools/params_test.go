@@ -244,3 +244,62 @@ func TestMatching(t *testing.T) {
 	}
 	assert.True(t, ParamMatcher{testRule}.MatchAny(testVal))
 }
+
+func TestMatch(t *testing.T) {
+	testCases := []struct {
+		paramSet ParamSet
+		params   Params
+		expected bool
+		message  string
+	}{
+		{
+			paramSet: ParamSet{},
+			params:   Params{},
+			expected: true,
+			message:  "empty",
+		},
+		{
+			paramSet: ParamSet{
+				"foo": []string{"1", "2"},
+				"bar": []string{"a", "b"},
+			},
+			params: Params{
+				"foo": "1",
+				"bar": "b",
+				"qux": "12",
+			},
+			expected: true,
+			message:  "simple true",
+		},
+		{
+			paramSet: ParamSet{
+				"foo": []string{"1", "2"},
+				"bar": []string{"a", "b"},
+			},
+			params: Params{
+				"foo": "not a match",
+				"bar": "b",
+				"qux": "12",
+			},
+			expected: false,
+			message:  "simple false",
+		},
+		{
+			paramSet: ParamSet{
+				"foo": []string{"1", "2"},
+				"bar": []string{"a", "b"},
+			},
+			params: Params{
+				"foo": "1",
+			},
+			expected: false,
+			message:  "missing",
+		},
+	}
+
+	for _, tc := range testCases {
+		if got, want := tc.paramSet.Match(tc.params), tc.expected; got != want {
+			t.Errorf("Failed case Got %v Want %v: %s", got, want, tc.message)
+		}
+	}
+}
