@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f86c494f_e717ba95",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-30T15:27:54Z",
+      "side": 1,
+      "message": "Nit: delete",
+      "range": {
+        "startLine": 42,
+        "startChar": 1,
+        "endLine": 42,
+        "endChar": 5
+      },
+      "revId": "cd458c4981d15d4f0847e52fb234cbff89357bef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f13481b1_04331f81",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-30T15:27:54Z",
+      "side": 1,
+      "message": "You want git.NewCheckout()",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 0
+      },
+      "revId": "cd458c4981d15d4f0847e52fb234cbff89357bef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4526cd86_5a4f35d7",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-30T15:27:54Z",
+      "side": 1,
+      "message": "Why not store the parent repo on the githubRepoManager?",
+      "range": {
+        "startLine": 123,
+        "startChar": 20,
+        "endLine": 123,
+        "endChar": 66
+      },
+      "revId": "cd458c4981d15d4f0847e52fb234cbff89357bef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4daced8_d8510d57",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-30T15:27:54Z",
+      "side": 1,
+      "message": "Errcheck will probably complain about this.",
+      "range": {
+        "startLine": 189,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 55
+      },
+      "revId": "cd458c4981d15d4f0847e52fb234cbff89357bef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
