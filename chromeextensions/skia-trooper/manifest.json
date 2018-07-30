@@ -1,14 +1,18 @@
 {
    "name": "Alerts for Skia Troopers",
-   "version": "3.2",
+   "version": "3.3",
    "description": "Alerts for Skia Troopers.",
    "permissions": [
      "cookies",
      "*://skia.org/*",
-     "*://promalerts.skia.org/*"
+     "*://promalerts.skia.org/*",
+     "*://alerts2.skia.org/*"
    ],
    "background": {
-     "scripts": ["background.js"]
+     "scripts": [
+       "node_modules/skia-common-js/common.js",
+       "background.js"
+     ]
    },
    "browser_action": {
      "name": "Display all active alerts.",
