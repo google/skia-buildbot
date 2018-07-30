@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/human"
@@ -64,7 +65,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, gcsPrefix string) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, err
@@ -182,7 +183,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		strategyHistory: sh,
 		successThrottle: successThrottle,
 	}
-	sm, err := state_machine.New(arb, workdir, n)
+	sm, err := state_machine.New(ctx, arb, n, gcsClient, gcsPrefix)
 	if err != nil {
 		return nil, err
 	}
