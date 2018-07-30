@@ -316,25 +316,17 @@ func main() {
 			g.TurnOnAuthenticatedGets()
 		} else {
 			gToken := ""
-			tToken := ""
 			if *local {
 				gBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.GITHUB_TOKEN_LOCAL_FILENAME))
 				if err != nil {
 					sklog.Fatalf("Couldn't find githubToken in the local file %s: %s.", github.GITHUB_TOKEN_LOCAL_FILENAME, err)
 				}
 				gToken = strings.TrimSpace(string(gBody))
-
-				tBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.TRAVISCI_TOKEN_LOCAL_FILENAME))
-				if err != nil {
-					sklog.Fatalf("Couldn't find travisciToken in the local file %s: %s.", github.TRAVISCI_TOKEN_LOCAL_FILENAME, err)
-				}
-				tToken = strings.TrimSpace(string(tBody))
 			} else {
 				gToken = metadata.Must(metadata.Get(github.GITHUB_TOKEN_METADATA_KEY))
-				tToken = metadata.Must(metadata.Get(github.TRAVISCI_TOKEN_METADATA_KEY))
 			}
 			githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
-			githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient, tToken)
+			githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient)
 			if err != nil {
 				sklog.Fatalf("Could not create Github client: %s", err)
 			}

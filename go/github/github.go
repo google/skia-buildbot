@@ -12,8 +12,6 @@
 // We would rather use service accounts but Github only supports service
 // accounts in Github apps:
 // https://developer.github.com/apps/differences-between-apps/
-//
-// For information on the travis access token see the travisci package.
 
 package github
 
@@ -25,16 +23,11 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
-
-	"go.skia.org/infra/go/travisci"
 )
 
 const (
 	GITHUB_TOKEN_METADATA_KEY   = "github_token"
-	TRAVISCI_TOKEN_METADATA_KEY = "travisci_token"
-
-	GITHUB_TOKEN_LOCAL_FILENAME   = "github_token"
-	TRAVISCI_TOKEN_LOCAL_FILENAME = "travisci_token"
+	GITHUB_TOKEN_LOCAL_FILENAME = "github_token"
 
 	MERGE_METHOD_SQUASH = "squash"
 	MERGE_METHOD_REBASE = "rebase"
@@ -61,7 +54,6 @@ var (
 type GitHub struct {
 	RepoOwner string
 	RepoName  string
-	TravisCi  *travisci.TravisCI
 
 	client     *github.Client
 	httpClient *http.Client
@@ -69,17 +61,11 @@ type GitHub struct {
 }
 
 // NewGitHub returns a new GitHub instance.
-func NewGitHub(ctx context.Context, repoOwner, repoName string, httpClient *http.Client, travisAccessToken string) (*GitHub, error) {
-	travisCi, err := travisci.NewTravisCI(ctx, repoOwner, repoName, travisAccessToken)
-	if err != nil {
-		return nil, err
-	}
-
+func NewGitHub(ctx context.Context, repoOwner, repoName string, httpClient *http.Client) (*GitHub, error) {
 	client := github.NewClient(httpClient)
 	return &GitHub{
 		RepoOwner:  repoOwner,
 		RepoName:   repoName,
-		TravisCi:   travisCi,
 		client:     client,
 		httpClient: httpClient,
 		ctx:        ctx,
