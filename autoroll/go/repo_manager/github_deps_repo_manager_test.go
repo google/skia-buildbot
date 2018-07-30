@@ -122,7 +122,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)
 
-	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client(), "")
+	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client())
 	assert.NoError(t, err)
 	return g, urlMock
 }
