@@ -84,7 +84,7 @@ type AutoRollerI interface {
 	// Return minimal status information for the bot.
 	GetMiniStatus() *roller.AutoRollMiniStatus
 	// Forcibly unthrottle the roller.
-	Unthrottle() error
+	Unthrottle(ctx context.Context) error
 }
 
 func reloadTemplates() {
@@ -187,7 +187,7 @@ func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
 		return
 	}
-	if err := arb.Unthrottle(); err != nil {
+	if err := arb.Unthrottle(context.Background()); err != nil {
 		httputils.ReportError(w, r, err, "Failed to unthrottle.")
 		return
 	}

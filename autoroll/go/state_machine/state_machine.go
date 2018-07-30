@@ -9,11 +9,11 @@ import (
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/counters"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/state_machine"
-	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -153,19 +153,19 @@ type AutoRollStateMachine struct {
 
 // Throttler determines whether we should be throttled.
 type Throttler struct {
-	c         *util.PersistentAutoDecrementCounter
+	c         *counters.PersistentAutoDecrementCounter
 	period    time.Duration
 	threshold int64
 }
 
 // NewThrottler returns a Throttler instance.
-func NewThrottler(filename string, period time.Duration, attempts int64) (*Throttler, error) {
+func NewThrottler(ctx context.Context, gcsClient gcs.GCSClient, gcsPath string, period time.Duration, attempts int64) (*Throttler, error) {
 	rv := &Throttler{
 		period:    period,
 		threshold: attempts,
 	}
 	if period > time.Duration(0) && attempts > 0 {
-		c, err := util.NewPersistentAutoDecrementCounter(filename, period)
+		c, err := counters.NewPersistentAutoDecrementCounter(ctx, gcsClient, gcsPath, period)
 		if err != nil {
 			return nil, err
 		}
@@ -175,11 +175,11 @@ func NewThrottler(filename string, period time.Duration, attempts int64) (*Throt
 }
 
 // Inc increments the Throttler's counter.
-func (t *Throttler) Inc() error {
+func (t *Throttler) Inc(ctx context.Context) error {
 	if t.c == nil {
 		return nil
 	}
-	return t.c.Inc()
+	return t.c.Inc(ctx)
 }
 
 // IsThrottled returns true iff we should be throttled.
@@ -191,11 +191,11 @@ func (t *Throttler) IsThrottled() bool {
 }
 
 // Reset forcibly unthrottles the Throttler.
-func (t *Throttler) Reset() error {
+func (t *Throttler) Reset(ctx context.Context) error {
 	if t.c == nil {
 		return nil
 	}
-	return t.c.Reset()
+	return t.c.Reset(ctx)
 }
 
 // ThrottledUntil returns the approximate time when the Throttler will no longer
@@ -230,7 +230,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return s.a.UpdateRepos(ctx)
 	})
 	b.F(F_UPLOAD_ROLL, func(ctx context.Context) error {
-		if err := s.a.SafetyThrottle().Inc(); err != nil {
+		if err := s.a.SafetyThrottle().Inc(ctx); err != nil {
 			return err
 		}
 		if err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), false); err != nil {
@@ -241,7 +241,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		return nil
 	})
 	b.F(F_UPLOAD_DRY_RUN, func(ctx context.Context) error {
-		if err := s.a.SafetyThrottle().Inc(); err != nil {
+		if err := s.a.SafetyThrottle().Inc(ctx); err != nil {
 			return err
 		}
 		if err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), true); err != nil {
@@ -443,7 +443,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 }
 
 // Get the next state.
-func (s *AutoRollStateMachine) GetNext() (string, error) {
+func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	desiredMode := s.a.GetMode()
 	switch state := s.s.Current(); state {
 	case S_STOPPED:
@@ -500,7 +500,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		}
 	case S_NORMAL_SUCCESS:
 		throttle := s.a.SuccessThrottle()
-		if err := throttle.Inc(); err != nil {
+		if err := throttle.Inc(ctx); err != nil {
 			return "", err
 		}
 		if throttle.IsThrottled() {
@@ -518,7 +518,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE:
 		throttle := s.a.FailureThrottle()
-		if err := throttle.Inc(); err != nil {
+		if err := throttle.Inc(ctx); err != nil {
 			return "", err
 		}
 		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
@@ -608,7 +608,7 @@ func (s *AutoRollStateMachine) GetNext() (string, error) {
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE:
-		if err := s.a.FailureThrottle().Inc(); err != nil {
+		if err := s.a.FailureThrottle().Inc(ctx); err != nil {
 			return "", err
 		}
 		if s.a.GetNextRollRev() == s.a.GetActiveRoll().RollingTo() {
@@ -654,7 +654,7 @@ func (s *AutoRollStateMachine) Transition(ctx context.Context, dest string) erro
 
 // Attempt to perform the next state transition.
 func (s *AutoRollStateMachine) NextTransition(ctx context.Context) error {
-	next, err := s.GetNext()
+	next, err := s.GetNext(ctx)
 	if err != nil {
 		return err
 	}
@@ -671,7 +671,7 @@ func (s *AutoRollStateMachine) NextTransitionSequence(ctx context.Context) error
 	// a no-op, or until we've performed a maximum number of transitions, to
 	// keep us from accidentally looping extremely quickly.
 	for i := 0; i < MAX_NOOP_TRANSITIONS; i++ {
-		next, err := s.GetNext()
+		next, err := s.GetNext(ctx)
 		if err != nil {
 			return err
 		}

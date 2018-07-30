@@ -1,13 +1,13 @@
-package util
+package counters
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
-	"path"
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
@@ -80,6 +80,9 @@ func (t *mockTime) Elapsed() time.Duration {
 func TestPersistentAutoDecrementCounter(t *testing.T) {
 	testutils.MediumTest(t)
 
+	ctx := context.Background()
+	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
+
 	mt := newMockTime()
 	timeAfterFunc = mt.AfterFunc
 	timeNowFunc = mt.Now
@@ -93,7 +96,7 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, w)
 
-	f := path.Join(w, "counter")
+	f := "test_counter"
 	d := 200 * time.Millisecond
 
 	newCounter := func() *PersistentAutoDecrementCounter {
@@ -102,11 +105,11 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 			// Copy the backing file from the first counter, rather
 			// than reusing it, to prevent contention.
 			firstCounterFile := fmt.Sprintf("%s_%d", f, 0)
-			contents, err := ioutil.ReadFile(firstCounterFile)
+			contents, err := gcsClient.GetFileContents(ctx, firstCounterFile)
 			assert.NoError(t, err)
-			assert.NoError(t, ioutil.WriteFile(backingFile, contents, os.ModePerm))
+			assert.NoError(t, gcsClient.SetFileContents(ctx, backingFile, gcs.FILE_WRITE_OPTS_TEXT, contents))
 		}
-		rv, err := NewPersistentAutoDecrementCounter(backingFile, d)
+		rv, err := NewPersistentAutoDecrementCounter(ctx, gcsClient, backingFile, d)
 		assert.NoError(t, err)
 		counters = append(counters, rv)
 		return rv
@@ -114,12 +117,12 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 
 	c := newCounter()
 	assert.Equal(t, int64(0), c.Get())
-	assert.NoError(t, c.Inc())
+	assert.NoError(t, c.Inc(ctx))
 	assert.Equal(t, int64(1), c.Get())
 
 	mt.Sleep(time.Duration(0.5 * float64(d)))
 
-	assert.NoError(t, c.Inc())
+	assert.NoError(t, c.Inc(ctx))
 	assert.Equal(t, int64(2), c.Get())
 
 	c2 := newCounter()
@@ -139,7 +142,7 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	i := 0
 	mt.Tick(time.Duration(float64(d)/float64(4)), func() bool {
 		assert.Equal(t, int64(i), c.Get())
-		assert.NoError(t, c.Inc())
+		assert.NoError(t, c.Inc(ctx))
 		if i == 2 {
 			return false
 		}
@@ -161,11 +164,11 @@ func TestPersistentAutoDecrementCounter(t *testing.T) {
 	})
 
 	// Test the Reset() functionality.
-	assert.NoError(t, c.Inc())
+	assert.NoError(t, c.Inc(ctx))
 	assert.Equal(t, int64(1), c.Get())
 	c2 = newCounter()
 	assert.Equal(t, int64(1), c2.Get())
-	assert.NoError(t, c.Reset())
+	assert.NoError(t, c.Reset(ctx))
 	assert.Equal(t, int64(0), c.Get())
 	c2 = newCounter()
 	assert.Equal(t, int64(0), c2.Get())

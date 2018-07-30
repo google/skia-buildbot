@@ -3,9 +3,6 @@ package state_machine
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -181,12 +178,12 @@ type TestAutoRollerImpl struct {
 }
 
 // Return a TestAutoRollerImpl instance.
-func NewTestAutoRollerImpl(t *testing.T) *TestAutoRollerImpl {
-	failureThrottle, err := NewThrottler("", time.Duration(0), 0)
+func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSClient) *TestAutoRollerImpl {
+	failureThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
 	assert.NoError(t, err)
-	safetyThrottle, err := NewThrottler("", time.Duration(0), 0)
+	safetyThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
 	assert.NoError(t, err)
-	successThrottle, err := NewThrottler("", time.Duration(0), 0)
+	successThrottle, err := NewThrottler(ctx, gcsClient, "", time.Duration(0), 0)
 	assert.NoError(t, err)
 	return &TestAutoRollerImpl{
 		t:               t,
@@ -315,26 +312,22 @@ func checkNextState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
 }
 
 // Shared setup.
-func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRollerImpl, string, gcs.GCSClient, func()) {
+func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRollerImpl, gcs.GCSClient, func()) {
 	testutils.MediumTest(t)
 
 	ctx := context.Background()
-	rollerImpl := NewTestAutoRollerImpl(t)
-	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
 	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
+	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
 	sm, err := New(ctx, rollerImpl, notifier.New("fake", "fake", nil), gcsClient, "test-roller")
 	assert.NoError(t, err)
-	return ctx, sm, rollerImpl, workdir, gcsClient, func() {
-		testutils.RemoveAll(t, workdir)
-	}
+	return ctx, sm, rollerImpl, gcsClient, func() {}
 }
 
 func TestNormal(t *testing.T) {
-	ctx, sm, r, workdir, _, cleanup := setup(t)
+	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
 
-	failureThrottle, err := NewThrottler(path.Join(workdir, "fail_counter"), time.Hour, 1)
+	failureThrottle, err := NewThrottler(ctx, gcsClient, "fail_counter", time.Hour, 1)
 	assert.NoError(t, err)
 	r.failureThrottle = failureThrottle
 
@@ -388,9 +381,9 @@ func TestNormal(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
 	// Hack the timer to fake that the throttling has expired, then ensure
 	// that we retry the CQ.
-	counterFile := path.Join(workdir, "fail_counter")
-	assert.NoError(t, os.Remove(counterFile))
-	failureThrottle, err = NewThrottler(counterFile, time.Minute, 1)
+	counterFile := "fail_counter"
+	assert.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+	failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
 	assert.NoError(t, err)
 	r.failureThrottle = failureThrottle
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
@@ -436,10 +429,10 @@ func TestNormal(t *testing.T) {
 }
 
 func TestDryRun(t *testing.T) {
-	ctx, sm, r, workdir, _, cleanup := setup(t)
+	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
 
-	failureThrottle, err := NewThrottler(path.Join(workdir, "fail_counter"), time.Hour, 1)
+	failureThrottle, err := NewThrottler(ctx, gcsClient, "fail_counter", time.Hour, 1)
 	assert.NoError(t, err)
 	r.failureThrottle = failureThrottle
 
@@ -491,9 +484,9 @@ func TestDryRun(t *testing.T) {
 	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
 	// Hack the timer to fake that the throttling has expired, then ensure
 	// that we retry the CQ.
-	counterFile := path.Join(workdir, "fail_counter")
-	assert.NoError(t, os.Remove(counterFile))
-	failureThrottle, err = NewThrottler(counterFile, time.Minute, 1)
+	counterFile := "fail_counter"
+	assert.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+	failureThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
 	assert.NoError(t, err)
 	r.failureThrottle = failureThrottle
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
@@ -527,7 +520,7 @@ func TestDryRun(t *testing.T) {
 }
 
 func TestNormalToDryRun(t *testing.T) {
-	ctx, sm, r, _, _, cleanup := setup(t)
+	ctx, sm, r, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Upload a roll and switch it in and out of dry run mode.
@@ -545,7 +538,7 @@ func TestNormalToDryRun(t *testing.T) {
 }
 
 func TestStopped(t *testing.T) {
-	ctx, sm, r, _, _, cleanup := setup(t)
+	ctx, sm, r, _, cleanup := setup(t)
 	defer cleanup()
 
 	// Switch in and out of stopped mode.
@@ -576,10 +569,10 @@ func TestStopped(t *testing.T) {
 }
 
 func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period time.Duration) {
-	ctx, sm, r, workdir, _, cleanup := setup(t)
+	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
 
-	safetyThrottle, err := NewThrottler(path.Join(workdir, "attempt_counter"), period, attemptCount)
+	safetyThrottle, err := NewThrottler(ctx, gcsClient, "attempt_counter", period, attemptCount)
 	assert.NoError(t, err)
 	r.safetyThrottle = safetyThrottle
 
@@ -622,7 +615,7 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 	// Rather than waiting for the time window to pass, create a new
 	// Throttler to fake it, assuming that the counter works as
 	// it should.
-	safetyThrottle, err = NewThrottler(path.Join(workdir, "attempt_counter2"), period, attemptCount)
+	safetyThrottle, err = NewThrottler(ctx, gcsClient, "attempt_counter2", period, attemptCount)
 	assert.NoError(t, err)
 	r.safetyThrottle = safetyThrottle
 	assert.Equal(t, throttled, sm.Current())
@@ -642,7 +635,7 @@ func TestSafetyThrottleDryRun(t *testing.T) {
 }
 
 func TestPersistence(t *testing.T) {
-	ctx, sm, r, _, gcsClient, cleanup := setup(t)
+	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
 
 	check := func() {
@@ -669,11 +662,11 @@ func TestPersistence(t *testing.T) {
 }
 
 func TestSuccessThrottle(t *testing.T) {
-	ctx, sm, r, workdir, _, cleanup := setup(t)
+	ctx, sm, r, gcsClient, cleanup := setup(t)
 	defer cleanup()
 
-	counterFile := path.Join(workdir, "success_counter")
-	successThrottle, err := NewThrottler(counterFile, 30*time.Minute, 1)
+	counterFile := "success_counter"
+	successThrottle, err := NewThrottler(ctx, gcsClient, counterFile, 30*time.Minute, 1)
 	assert.NoError(t, err)
 	r.successThrottle = successThrottle
 
@@ -704,8 +697,8 @@ func TestSuccessThrottle(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// This would continue for the next 30 minutes... Instead, we'll hack
 	// the counter to pretend it timed out.
-	assert.NoError(t, os.Remove(counterFile))
-	successThrottle, err = NewThrottler(counterFile, time.Minute, 1)
+	assert.NoError(t, gcsClient.DeleteFile(ctx, counterFile))
+	successThrottle, err = NewThrottler(ctx, gcsClient, counterFile, time.Minute, 1)
 	assert.NoError(t, err)
 	r.successThrottle = successThrottle
 	checkNextState(t, sm, S_NORMAL_IDLE)
