@@ -65,7 +65,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, gcsPrefix string) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, rollerName string) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
-	mh, err := modes.NewModeHistory(path.Join(workdir, "autoroll_modes.db"))
+	mh, err := modes.NewModeHistory(ctx, rollerName)
 	if err != nil {
 		return nil, err
 	}
@@ -134,12 +134,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if c.SafetyThrottle == nil {
 		c.SafetyThrottle = SAFETY_THROTTLE_CONFIG_DEFAULT
 	}
-	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, gcsPrefix+"/attempt_counter", c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
+	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
 	if err != nil {
 		return nil, err
 	}
 
-	failureThrottle, err := state_machine.NewThrottler(ctx, gcsClient, gcsPrefix+"/fail_counter", time.Hour, 1)
+	failureThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/fail_counter", time.Hour, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, err
 	}
-	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, gcsPrefix+"/success_counter", maxRollFreq, 1)
+	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", maxRollFreq, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		strategyHistory: sh,
 		successThrottle: successThrottle,
 	}
-	sm, err := state_machine.New(ctx, arb, n, gcsClient, gcsPrefix)
+	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +250,6 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 		}
 	}, func() {
 		util.LogErr(r.recent.Close())
-		util.LogErr(r.modeHistory.Close())
 	})
 
 	// Update the current sheriff in a loop.
@@ -287,7 +286,7 @@ func (r *AutoRoller) GetMode() string {
 
 // SetMode sets the desired mode of the bot.
 func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) error {
-	if err := r.modeHistory.Add(mode, user, message); err != nil {
+	if err := r.modeHistory.Add(ctx, mode, user, message); err != nil {
 		return err
 	}
 	r.notifier.SendModeChange(ctx, user, mode, message)

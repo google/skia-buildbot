@@ -1,62 +1,66 @@
 package modes
 
 import (
-	"io/ioutil"
-	"path"
+	"context"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
 )
 
 // TestModeHistory verifies that we correctly track mode history.
 func TestModeHistory(t *testing.T) {
 	testutils.MediumTest(t)
+	ctx := context.Background()
+	testutil.InitDatastore(t, ds.KIND_AUTOROLL_MODE)
 
 	// Create the ModeHistory.
-	tmpDir, err := ioutil.TempDir("", "test_autoroll_mode_")
+	rollerName := "test-roller"
+	mh, err := NewModeHistory(ctx, rollerName)
 	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmpDir)
-	mh, err := NewModeHistory(path.Join(tmpDir, "test.db"))
-	assert.NoError(t, err)
-	defer func() {
-		assert.NoError(t, mh.Close())
-	}()
 
 	// Use this function for checking expectations.
-	check := func(expect, actual []*ModeChange) {
+	check := func(e, a *ModeChange) {
+		assert.Equal(t, e.Mode, a.Mode)
+		assert.Equal(t, e.Message, a.Message)
+		assert.Equal(t, e.Roller, a.Roller)
+		assert.Equal(t, e.User, a.User)
+	}
+	checkSlice := func(expect, actual []*ModeChange) {
 		assert.Equal(t, len(expect), len(actual))
 		for i, e := range expect {
-			assert.Equal(t, e.Mode, actual[i].Mode)
-			assert.Equal(t, e.Message, actual[i].Message)
-			assert.Equal(t, e.User, actual[i].User)
+			check(e, actual[i])
 		}
-
 	}
 
 	// Initial mode, set automatically.
 	mc0 := &ModeChange{
 		Message: "Setting initial mode.",
 		Mode:    MODE_RUNNING,
+		Roller:  rollerName,
 		User:    "AutoRoll Bot",
 	}
 
 	expect := []*ModeChange{mc0}
-	setModeAndCheck := func(mc *ModeChange) {
-		assert.NoError(t, mh.Add(mc.Mode, mc.User, mc.Message))
-		assert.Equal(t, mc.Mode, mh.CurrentMode().Mode)
-		expect = append([]*ModeChange{mc}, expect...)
-		check(expect, mh.GetHistory())
-	}
 
 	// Ensure that we set our initial state properly.
-	assert.Equal(t, mc0.Mode, mh.CurrentMode().Mode)
-	check(expect, mh.GetHistory())
+	check(mc0, mh.CurrentMode())
+	checkSlice(expect, mh.GetHistory())
+
+	setModeAndCheck := func(mc *ModeChange) {
+		assert.NoError(t, mh.Add(ctx, mc.Mode, mc.User, mc.Message))
+		assert.Equal(t, mc.Mode, mh.CurrentMode().Mode)
+		expect = append([]*ModeChange{mc}, expect...)
+		checkSlice(expect, mh.GetHistory())
+	}
 
 	// Change the mode.
 	setModeAndCheck(&ModeChange{
 		Message: "Stop the presses!",
 		Mode:    MODE_STOPPED,
+		Roller:  rollerName,
 		User:    "test@google.com",
 	})
 
@@ -64,6 +68,7 @@ func TestModeHistory(t *testing.T) {
 	setModeAndCheck(&ModeChange{
 		Message: "Resume!",
 		Mode:    MODE_RUNNING,
+		Roller:  rollerName,
 		User:    "test@google.com",
 	})
 }
