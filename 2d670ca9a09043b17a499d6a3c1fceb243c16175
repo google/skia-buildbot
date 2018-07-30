@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a6999ef_6b2694c4",
+        "filename": "autoroll/go/state_machine/state_machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-30T14:45:06Z",
+      "side": 1,
+      "message": "nit: Could instead send in gcsPrefix here to Build and let go/state_machine/state_machine.go figure out what to call the file? because I think that library deals with constructing file names eg: \".transitioning\"",
+      "range": {
+        "startLine": 437,
+        "startChar": 36,
+        "endLine": 437,
+        "endChar": 62
+      },
+      "revId": "2d670ca9a09043b17a499d6a3c1fceb243c16175",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a066fc79_a32a8da4",
+        "filename": "go/state_machine/state_machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-30T14:45:06Z",
+      "side": 1,
+      "message": "nit: Do you need this as part of the struct? i.e. it should always be FILE_WRITE_OPTS_TEXT for the state machine gs file?",
+      "revId": "2d670ca9a09043b17a499d6a3c1fceb243c16175",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
