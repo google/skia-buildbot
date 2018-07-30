@@ -7,17 +7,11 @@ package state_machine
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
 	"sync"
 
+	"cloud.google.com/go/storage"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
-)
-
-const (
-	backingFile = "state_machine"
-	busyFile    = "state_machine_transitioning"
 )
 
 // TransitionFn is a function to run when attempting to transition from one
@@ -68,7 +62,7 @@ func (b *Builder) SetInitial(s string) {
 }
 
 // Build and return a StateMachine instance.
-func (b *Builder) Build(workdir string) (*StateMachine, error) {
+func (b *Builder) Build(ctx context.Context, gcsClient gcs.GCSClient, gsPath string) (*StateMachine, error) {
 	// Build and validate.
 	transitions := map[string]map[string]string{}
 	states := make(map[string]bool, len(b.transitions))
@@ -90,12 +84,11 @@ func (b *Builder) Build(workdir string) (*StateMachine, error) {
 	}
 
 	// Get the previous state (if any) from the file.
-	file := path.Join(workdir, backingFile)
 	cachedState := b.initialState
-	contents, err := ioutil.ReadFile(file)
+	contents, err := gcsClient.GetFileContents(ctx, gsPath)
 	if err == nil {
 		cachedState = string(contents)
-	} else if !os.IsNotExist(err) {
+	} else if err != storage.ErrObjectNotExist {
 		return nil, fmt.Errorf("Unable to read file for persistentStateMachine: %s", err)
 	}
 	if _, ok := states[b.initialState]; !ok {
@@ -123,19 +116,20 @@ func (b *Builder) Build(workdir string) (*StateMachine, error) {
 	// Create and return the StateMachine.
 	sm := &StateMachine{
 		current:     cachedState,
+		gcs:         gcsClient,
 		funcs:       b.funcs,
 		transitions: transitions,
-		file:        file,
-		busyFile:    path.Join(workdir, busyFile),
+		file:        gsPath,
+		busyFile:    gsPath + ".transitioning",
 	}
 
 	// Check that we didn't interrupt a previous transition.
-	if err := sm.checkBusy(); err != nil {
+	if err := sm.checkBusy(ctx); err != nil {
 		return nil, err
 	}
 
-	// Write initial state back to file, in case it wasn't there before.
-	if err := ioutil.WriteFile(file, []byte(sm.Current()), os.ModePerm); err != nil {
+	// Write initial state back to GCS, in case it wasn't there before.
+	if err := sm.gcs.SetFileContents(ctx, sm.file, gcs.FILE_WRITE_OPTS_TEXT, []byte(sm.Current())); err != nil {
 		return nil, err
 	}
 	return sm, nil
@@ -145,6 +139,7 @@ func (b *Builder) Build(workdir string) (*StateMachine, error) {
 // current state to a file.
 type StateMachine struct {
 	current     string
+	gcs         gcs.GCSClient
 	funcs       map[string]TransitionFn
 	transitions map[string]map[string]string
 	file        string
@@ -161,8 +156,8 @@ func (sm *StateMachine) Current() string {
 
 // checkBusy returns an error if the "transitioning" file exists, indicating
 // that a previous transition was interrupted.
-func (sm *StateMachine) checkBusy() error {
-	contents, err := ioutil.ReadFile(sm.busyFile)
+func (sm *StateMachine) checkBusy(ctx context.Context) error {
+	contents, err := sm.gcs.GetFileContents(ctx, sm.busyFile)
 	if err == nil {
 		return fmt.Errorf("Transition to %q already in progress; did a previous transition get interrupted?", string(contents))
 	}
@@ -187,14 +182,14 @@ func (sm *StateMachine) Transition(ctx context.Context, dest string) error {
 	}
 
 	// Write the busy file.
-	if err := sm.checkBusy(); err != nil {
+	if err := sm.checkBusy(ctx); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(sm.busyFile, []byte(dest), os.ModePerm); err != nil {
+	if err := sm.gcs.SetFileContents(ctx, sm.busyFile, gcs.FILE_WRITE_OPTS_TEXT, []byte(dest)); err != nil {
 		return err
 	}
 	defer func() {
-		if err := os.Remove(sm.busyFile); err != nil {
+		if err := sm.gcs.DeleteFile(ctx, sm.busyFile); err != nil {
 			sklog.Errorf("Failed to remove busy file: %s", err)
 		}
 	}()
@@ -203,7 +198,7 @@ func (sm *StateMachine) Transition(ctx context.Context, dest string) error {
 		return fmt.Errorf("Failed to transition from %q to %q: %s", sm.current, dest, err)
 	}
 	sm.current = dest
-	return ioutil.WriteFile(sm.file, []byte(sm.current), os.ModePerm)
+	return sm.gcs.SetFileContents(ctx, sm.file, gcs.FILE_WRITE_OPTS_TEXT, []byte(sm.current))
 }
 
 // Return the name of the transition function from the current state to the

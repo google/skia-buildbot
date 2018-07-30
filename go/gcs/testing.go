@@ -2,10 +2,12 @@ package gcs
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +15,7 @@ import (
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 )
 
@@ -122,4 +125,98 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 	}
 
 	return nil
+}
+
+// MemoryGCSClient is a struct used for testing. Instead of writing to GCS, it
+// stores data in memory. Not thread-safe.
+type MemoryGCSClient struct {
+	bucket string
+	data   map[string][]byte
+}
+
+// Return a MemoryGCSClient instance.
+func NewMemoryGCSClient(bucket string) *MemoryGCSClient {
+	return &MemoryGCSClient{
+		bucket: bucket,
+		data:   map[string][]byte{},
+	}
+}
+
+// See documentationn for GCSClient interface.
+func (c *MemoryGCSClient) FileReader(ctx context.Context, path string) (io.ReadCloser, error) {
+	contents, ok := c.data[path]
+	if !ok {
+		return nil, storage.ErrObjectNotExist
+	}
+	return ioutil.NopCloser(bytes.NewReader(contents)), nil
+}
+
+// io.WriteCloser implementation used by MemoryGCSClient.
+type memoryWriter struct {
+	buf    *bytes.Buffer
+	client *MemoryGCSClient
+	path   string
+}
+
+// See documentation for io.Writer.
+func (w *memoryWriter) Write(p []byte) (int, error) {
+	return w.buf.Write(p)
+}
+
+// See documentation for io.Closer.
+func (w *memoryWriter) Close() error {
+	w.client.data[w.path] = w.buf.Bytes()
+	return nil
+}
+
+// See documentation for GCSClient interface.
+func (c *MemoryGCSClient) FileWriter(ctx context.Context, path string, opts FileWriteOptions) io.WriteCloser {
+	return &memoryWriter{
+		buf:    bytes.NewBuffer(nil),
+		client: c,
+		path:   path,
+	}
+}
+
+// See documentation for GCSClient interface.
+func (c *MemoryGCSClient) GetFileContents(ctx context.Context, path string) ([]byte, error) {
+	r, err := c.FileReader(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(r)
+}
+
+// See documentation for GCSClient interface.
+func (c *MemoryGCSClient) SetFileContents(ctx context.Context, path string, opts FileWriteOptions, contents []byte) error {
+	w := c.FileWriter(ctx, path, opts)
+	defer util.Close(w)
+	_, err := w.Write(contents)
+	return err
+}
+
+// See documentation for GCSClient interface.
+func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
+	for key, data := range c.data {
+		if strings.HasPrefix(key, prefix) {
+			item := &storage.ObjectAttrs{
+				Bucket: c.bucket,
+				Name:   key,
+				Size:   int64(len(data)),
+			}
+			callback(item)
+		}
+	}
+	return nil
+}
+
+// See documentation for GCSClient interface.
+func (c *MemoryGCSClient) DeleteFile(ctx context.Context, path string) error {
+	delete(c.data, path)
+	return nil
+}
+
+// See documentation for GCSClient interface.
+func (c *MemoryGCSClient) Bucket() string {
+	return c.bucket
 }

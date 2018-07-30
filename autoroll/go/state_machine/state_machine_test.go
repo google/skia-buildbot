@@ -12,9 +12,14 @@ import (
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 
 	assert "github.com/stretchr/testify/require"
+)
+
+const (
+	gcsPrefix = "test-roller"
 )
 
 // A completely mocked implementation of RollCLImpl.
@@ -310,28 +315,24 @@ func checkNextState(t *testing.T, sm *AutoRollStateMachine, wanted string) {
 }
 
 // Shared setup.
-func setup(t *testing.T) (*AutoRollStateMachine, *TestAutoRollerImpl, func()) {
+func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRollerImpl, string, gcs.GCSClient, func()) {
 	testutils.MediumTest(t)
 
+	ctx := context.Background()
 	rollerImpl := NewTestAutoRollerImpl(t)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	sm, err := New(rollerImpl, workdir, notifier.New("fake", "fake", nil))
+	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
+	sm, err := New(ctx, rollerImpl, notifier.New("fake", "fake", nil), gcsClient, "test-roller")
 	assert.NoError(t, err)
-	return sm, rollerImpl, func() {
+	return ctx, sm, rollerImpl, workdir, gcsClient, func() {
 		testutils.RemoveAll(t, workdir)
 	}
 }
 
 func TestNormal(t *testing.T) {
-	testutils.MediumTest(t)
-	r := NewTestAutoRollerImpl(t)
-	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
-	sm, err := New(r, workdir, notifier.New("fake", "fake", nil))
-	assert.NoError(t, err)
-	ctx := context.Background()
+	ctx, sm, r, workdir, _, cleanup := setup(t)
+	defer cleanup()
 
 	failureThrottle, err := NewThrottler(path.Join(workdir, "fail_counter"), time.Hour, 1)
 	assert.NoError(t, err)
@@ -435,14 +436,8 @@ func TestNormal(t *testing.T) {
 }
 
 func TestDryRun(t *testing.T) {
-	testutils.MediumTest(t)
-	r := NewTestAutoRollerImpl(t)
-	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
-	sm, err := New(r, workdir, notifier.New("fake", "fake", nil))
-	assert.NoError(t, err)
-	ctx := context.Background()
+	ctx, sm, r, workdir, _, cleanup := setup(t)
+	defer cleanup()
 
 	failureThrottle, err := NewThrottler(path.Join(workdir, "fail_counter"), time.Hour, 1)
 	assert.NoError(t, err)
@@ -532,10 +527,8 @@ func TestDryRun(t *testing.T) {
 }
 
 func TestNormalToDryRun(t *testing.T) {
-	sm, r, cleanup := setup(t)
+	ctx, sm, r, _, _, cleanup := setup(t)
 	defer cleanup()
-
-	ctx := context.Background()
 
 	// Upload a roll and switch it in and out of dry run mode.
 	checkState(t, sm, S_NORMAL_IDLE)
@@ -552,10 +545,8 @@ func TestNormalToDryRun(t *testing.T) {
 }
 
 func TestStopped(t *testing.T) {
-	sm, r, cleanup := setup(t)
+	ctx, sm, r, _, _, cleanup := setup(t)
 	defer cleanup()
-
-	ctx := context.Background()
 
 	// Switch in and out of stopped mode.
 	checkState(t, sm, S_NORMAL_IDLE)
@@ -585,19 +576,12 @@ func TestStopped(t *testing.T) {
 }
 
 func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period time.Duration) {
-	testutils.MediumTest(t)
-	r := NewTestAutoRollerImpl(t)
-	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
-	sm, err := New(r, workdir, notifier.New("fake", "fake", nil))
-	assert.NoError(t, err)
+	ctx, sm, r, workdir, _, cleanup := setup(t)
+	defer cleanup()
 
 	safetyThrottle, err := NewThrottler(path.Join(workdir, "attempt_counter"), period, attemptCount)
 	assert.NoError(t, err)
 	r.safetyThrottle = safetyThrottle
-
-	ctx := context.Background()
 
 	// Upload a bunch of CLs, fail fast until we're throttled.
 	checkState(t, sm, S_NORMAL_IDLE)
@@ -658,17 +642,11 @@ func TestSafetyThrottleDryRun(t *testing.T) {
 }
 
 func TestPersistence(t *testing.T) {
-	testutils.MediumTest(t)
-
-	r := NewTestAutoRollerImpl(t)
-	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	sm, err := New(r, workdir, notifier.New("fake", "fake", nil))
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
+	ctx, sm, r, _, gcsClient, cleanup := setup(t)
+	defer cleanup()
 
 	check := func() {
-		sm2, err := New(r, workdir, notifier.New("fake", "fake", nil))
+		sm2, err := New(ctx, r, notifier.New("fake", "fake", nil), gcsClient, gcsPrefix)
 		assert.NoError(t, err)
 		assert.Equal(t, sm.Current(), sm2.Current())
 	}
@@ -691,18 +669,13 @@ func TestPersistence(t *testing.T) {
 }
 
 func TestSuccessThrottle(t *testing.T) {
-	testutils.MediumTest(t)
-	r := NewTestAutoRollerImpl(t)
-	workdir, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
+	ctx, sm, r, workdir, _, cleanup := setup(t)
+	defer cleanup()
+
 	counterFile := path.Join(workdir, "success_counter")
 	successThrottle, err := NewThrottler(counterFile, 30*time.Minute, 1)
 	assert.NoError(t, err)
 	r.successThrottle = successThrottle
-	sm, err := New(r, workdir, notifier.New("fake", "fake", nil))
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, workdir)
-	ctx := context.Background()
 
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	r.SetNextRollRev("HEAD+1")
