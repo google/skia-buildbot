@@ -279,11 +279,10 @@ func (rm *githubDEPSRepoManager) User() string {
 
 // See documentation for RepoManager interface.
 func (rm *githubDEPSRepoManager) GetFullHistoryUrl() string {
-	user := strings.Split(rm.user, "@")[0]
-	return fmt.Sprintf("https://github.com/%s/%s/pulls/%s", rm.githubClient.RepoOwner, rm.githubClient.RepoName, user)
+	return rm.githubClient.GetFullHistoryUrl(rm.user)
 }
 
 // See documentation for RepoManager interface.
 func (rm *githubDEPSRepoManager) GetIssueUrlBase() string {
-	return fmt.Sprintf("https://github.com/%s/%s/pull/", rm.githubClient.RepoOwner, rm.githubClient.RepoName)
+	return rm.githubClient.GetIssueUrlBase()
 }

@@ -20,7 +20,9 @@ package github
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-github/github"
 
@@ -44,6 +46,11 @@ const (
 
 	COMMIT_LABEL = "autoroller: commit"
 	DRYRUN_LABEL = "autoroller: dyrun"
+
+	CHECK_STATE_PENDING = "pending"
+	CHECK_STATE_SUCCESS = "success"
+	CHECK_STATE_ERROR   = "error"
+	CHECK_STATE_FAILURE = "failure"
 )
 
 var (
@@ -56,8 +63,9 @@ type GitHub struct {
 	RepoName  string
 	TravisCi  *travisci.TravisCI
 
-	client *github.Client
-	ctx    context.Context
+	client     *github.Client
+	httpClient *http.Client
+	ctx        context.Context
 }
 
 // NewGitHub returns a new GitHub instance.
@@ -69,11 +77,12 @@ func NewGitHub(ctx context.Context, repoOwner, repoName string, httpClient *http
 
 	client := github.NewClient(httpClient)
 	return &GitHub{
-		RepoOwner: repoOwner,
-		RepoName:  repoName,
-		TravisCi:  travisCi,
-		client:    client,
-		ctx:       ctx,
+		RepoOwner:  repoOwner,
+		RepoName:   repoName,
+		TravisCi:   travisCi,
+		client:     client,
+		httpClient: httpClient,
+		ctx:        ctx,
 	}, nil
 }
 
@@ -248,4 +257,42 @@ func (g *GitHub) ReplaceLabel(pullRequestNum int, oldLabel, newLabel string) err
 		return fmt.Errorf("Unexpected status code %d from issues.edit.", resp.StatusCode)
 	}
 	return nil
+}
+
+// See https://developer.github.com/v3/repos/commits/#get-a-single-commit
+// for the API documentation.
+func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
+	combinedStatus, resp, err := g.client.Repositories.GetCombinedStatus(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Failed doing repos.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
+	}
+	return combinedStatus.Statuses, nil
+}
+
+func (g *GitHub) ReadRawFile(branch, filePath string) (string, error) {
+	githubContentURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.RepoOwner, g.RepoName, branch, filePath)
+	resp, err := g.httpClient.Get(githubContentURL)
+	if err != nil {
+		return "", fmt.Errorf("Error when hitting %s: %s", githubContentURL, err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Unexpected status code %d from %s", resp.StatusCode, githubContentURL)
+	}
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Could not read from %s: %s", githubContentURL, err)
+	}
+	return string(bodyBytes), nil
+}
+
+func (g *GitHub) GetFullHistoryUrl(userEmail string) string {
+	user := strings.Split(userEmail, "@")[0]
+	return fmt.Sprintf("https://github.com/%s/%s/pulls/%s", g.RepoOwner, g.RepoName, user)
+}
+
+func (g *GitHub) GetIssueUrlBase() string {
+	return fmt.Sprintf("https://github.com/%s/%s/pull/", g.RepoOwner, g.RepoName)
 }
