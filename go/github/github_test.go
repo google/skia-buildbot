@@ -22,7 +22,7 @@ func TestAddComment(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/issues/1234/comments").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	addCommentErr := githubClient.AddComment(1234, "test msg")
 	assert.NoError(t, addCommentErr)
@@ -35,7 +35,7 @@ func TestGetAuthenticatedUser(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/user").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	_, getUserErr := githubClient.GetAuthenticatedUser()
 	assert.NoError(t, getUserErr)
@@ -49,7 +49,7 @@ func TestGetPullRequest(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/pulls/1234").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	pr, getPullErr := githubClient.GetPullRequest(1234)
 	assert.NoError(t, getPullErr)
@@ -68,7 +68,7 @@ func TestCreatePullRequest(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/pulls").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	pullRequest, createPullErr := githubClient.CreatePullRequest("title", "baseBranch", "headBranch", "testBody")
 	assert.NoError(t, createPullErr)
@@ -85,7 +85,7 @@ func TestMergePullRequest(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("PUT").Path("/repos/kryptonians/krypton/pulls/1234/merge").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	mergePullErr := githubClient.MergePullRequest(1234, "test comment", "squash")
 	assert.NoError(t, mergePullErr)
@@ -102,7 +102,7 @@ func TestClosePullRequest(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("PATCH").Path("/repos/kryptonians/krypton/pulls/1234").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	pr, closePullErr := githubClient.ClosePullRequest(1234)
 	assert.NoError(t, closePullErr)
@@ -121,7 +121,7 @@ func TestGetLabelsRequest(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/1234").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	labels, getLabelsErr := githubClient.GetLabels(1234)
 	assert.NoError(t, getLabelsErr)
@@ -148,7 +148,7 @@ func TestAddLabelRequest(t *testing.T) {
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	addLabelErr := githubClient.AddLabel(1234, "test3")
 	assert.NoError(t, addLabelErr)
@@ -174,7 +174,7 @@ func TestReplaceLabelRequest(t *testing.T) {
 
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	removeLabelErr := githubClient.ReplaceLabel(1234, "test1", "test3")
 	assert.NoError(t, removeLabelErr)
@@ -192,7 +192,7 @@ func TestGetChecksRequest(t *testing.T) {
 	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/commits/abcd/status").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	checks, getChecksErr := githubClient.GetChecks("abcd")
 	assert.NoError(t, getChecksErr)
@@ -209,7 +209,7 @@ func TestReadRawFileRequest(t *testing.T) {
 	r.Schemes("https").Host("raw.githubusercontent.com").Methods("GET").Path("/kryptonians/krypton/master/dummy/path/to/this.txt").Handler(md)
 	httpClient := mockhttpclient.NewMuxClient(r)
 
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	contents, readRawErr := githubClient.ReadRawFile("master", "/dummy/path/to/this.txt")
 	assert.NoError(t, readRawErr)
@@ -219,7 +219,7 @@ func TestReadRawFileRequest(t *testing.T) {
 func TestGetFullHistoryUrl(t *testing.T) {
 	testutils.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	fullHistoryUrl := githubClient.GetFullHistoryUrl("superman@krypton.com")
 	assert.Equal(t, "https://github.com/kryptonians/krypton/pulls/superman", fullHistoryUrl)
@@ -228,7 +228,7 @@ func TestGetFullHistoryUrl(t *testing.T) {
 func TestGetIssueUrlBase(t *testing.T) {
 	testutils.SmallTest(t)
 	httpClient := mockhttpclient.NewMuxClient(mux.NewRouter())
-	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient, "")
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	assert.NoError(t, err)
 	issueUrlBase := githubClient.GetIssueUrlBase()
 	assert.Equal(t, "https://github.com/kryptonians/krypton/pull/", issueUrlBase)

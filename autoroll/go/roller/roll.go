@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	github_api "github.com/google/go-github/github"
 
@@ -296,13 +295,7 @@ type githubRoll struct {
 	t                *travisci.TravisCI
 }
 
-func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisci.TravisCI, rm repo_manager.RepoManager, issueNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-
-	// Retrieve travis build if it exists.
-	travisBuilds, err := t.GetPullRequestBuilds(int(issueNum), rm.User())
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not retrieve travis build details: %s", err)
-	}
+func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
@@ -316,36 +309,39 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 
+	checks, err := g.GetChecks(pullRequest.Head.GetSHA())
+	if err != nil {
+		return nil, nil, err
+	}
 	tryResults := []*autoroll.TryResult{}
-	for _, travisBuild := range travisBuilds {
-		if travisBuild.Id != 0 {
+	for _, check := range checks {
+		if *check.ID != 0 {
 			testStatus := autoroll.TRYBOT_STATUS_STARTED
 			testResult := ""
-			switch travisBuild.State {
-			case travisci.BUILD_STATE_CREATED:
-				// Build is not completely ready yet. It will not have a
-				// startedAt yet.
-				continue
-			case travisci.BUILD_STATE_FAILED:
+			switch *check.State {
+			case github.CHECK_STATE_PENDING:
+				// Still pending.
+			case github.CHECK_STATE_FAILURE:
 				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
 				testResult = autoroll.TRYBOT_RESULT_FAILURE
-			case travisci.BUILD_STATE_PASSED:
+			case github.CHECK_STATE_ERROR:
+				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+				testResult = autoroll.TRYBOT_RESULT_FAILURE
+			case github.CHECK_STATE_SUCCESS:
 				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
 				testResult = autoroll.TRYBOT_RESULT_SUCCESS
 			}
-			buildStartedAt, err := time.Parse(time.RFC3339, travisBuild.StartedAt)
-			if err != nil {
-				return nil, nil, fmt.Errorf("Failed to parse %s: %s", travisBuild.StartedAt, err)
+			tryResult := &autoroll.TryResult{
+				Builder:  fmt.Sprintf("%s #%d", *check.Context, check.ID),
+				Category: autoroll.TRYBOT_CATEGORY_CQ,
+				Created:  check.GetCreatedAt(),
+				Result:   testResult,
+				Status:   testStatus,
 			}
-			tryResults = append(tryResults,
-				&autoroll.TryResult{
-					Builder:  fmt.Sprintf("TravisCI Build #%d", travisBuild.Id),
-					Category: autoroll.TRYBOT_CATEGORY_CQ,
-					Created:  buildStartedAt,
-					Result:   testResult,
-					Status:   testStatus,
-					Url:      t.GetBuildURL(travisBuild.Id),
-				})
+			if check.TargetURL != nil {
+				tryResult.Url = *check.TargetURL
+			}
+			tryResults = append(tryResults, tryResult)
 		}
 	}
 	a.TryResults = tryResults
@@ -359,13 +355,15 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
-	} else if len(a.TryResults) > 0 && a.AllTrybotsFinished() && !a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE {
-		// TravisCI failed. Close the roll.
-		linkToTryjobs := []string{}
+	} else if len(a.TryResults) > 0 && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE {
+		// Atleast one trybot failed. Close the roll.
+		linkToFailedJobs := []string{}
 		for _, tryJob := range a.TryResults {
-			linkToTryjobs = append(linkToTryjobs, tryJob.Url)
+			if tryJob.Finished() && !tryJob.Succeeded() {
+				linkToFailedJobs = append(linkToFailedJobs, tryJob.Url)
+			}
 		}
-		failureComment := fmt.Sprintf("TravisCI builds failed. These were the builds: %s", strings.Join(linkToTryjobs, " "))
+		failureComment := fmt.Sprintf("Trybots failed. These were the failed builds: %s", strings.Join(linkToFailedJobs, " , "))
 		if err := g.AddComment(int(issueNum), failureComment); err != nil {
 			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
 		}
@@ -385,7 +383,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, t *travisc
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
 func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, g.TravisCi, rm, pullRequestNum)
+	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum)
 	if err != nil {
 		return nil, err
 	}
@@ -393,10 +391,9 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoMa
 		pullRequest: pullRequest,
 		issue:       issue,
 		g:           g,
-		t:           g.TravisCi,
 		recent:      recent,
 		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-			return retrieveGithubPullRequest(ctx, g, g.TravisCi, rm, pullRequestNum)
+			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum)
 		},
 		rm: rm,
 	}, nil
