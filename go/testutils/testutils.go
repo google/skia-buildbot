@@ -217,7 +217,7 @@ func TempDir(t assert.TestingT) (string, func()) {
 }
 
 // MarshalJSON encodes the given interface to a JSON string.
-func MarshalJSON(t *testing.T, i interface{}) string {
+func MarshalJSON(t assert.TestingT, i interface{}) string {
 	b, err := json.Marshal(i)
 	assert.NoError(t, err)
 	return string(b)

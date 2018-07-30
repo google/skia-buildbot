@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"path"
-	"path/filepath"
 	"runtime"
 
 	"go.skia.org/infra/go/common"
@@ -22,7 +21,6 @@ const (
 var (
 	// Flags.
 	internal = flag.Bool("internal", false, "Whether to create an image for internal bots.")
-	workdir  = flag.String("workdir", ".", "Working directory.")
 )
 
 func BaseConfig(serviceAccount string) *gce.Instance {
@@ -52,12 +50,6 @@ func BaseConfig(serviceAccount string) *gce.Instance {
 func main() {
 	common.Init()
 
-	// Get the absolute workdir.
-	wdAbs, err := filepath.Abs(*workdir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Create the GCloud object.
 	project := gce.PROJECT_ID_SWARMING
 	serviceAccount := gce.SERVICE_ACCOUNT_CHROMIUM_SWARM
@@ -65,8 +57,11 @@ func main() {
 		project = gce.PROJECT_ID_SERVER
 		serviceAccount = gce.SERVICE_ACCOUNT_DEFAULT
 	}
-	g, err := gce.NewGCloud(project, gce.ZONE_DEFAULT, wdAbs)
+	g, err := gce.NewLocalGCloud(project, gce.ZONE_DEFAULT)
 	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := g.CheckSsh(); err != nil {
 		sklog.Fatal(err)
 	}
 
