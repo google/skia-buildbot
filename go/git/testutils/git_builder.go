@@ -30,9 +30,16 @@ func GitInit(t assert.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
+	return GitInitWithDir(t, ctx, tmp)
+}
+
+// GitInit creates a new git repo in the specified directory and returns a
+// GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
+// current branch will be master.
+func GitInitWithDir(t assert.TestingT, ctx context.Context, dir string) *GitBuilder {
 	g := &GitBuilder{
 		t:      t,
-		dir:    tmp,
+		dir:    dir,
 		branch: "master",
 	}
 
