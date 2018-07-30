@@ -11,10 +11,6 @@
       width: 500px;
     }
 
-    .alerts-link {
-      text-align: center;
-    }
-
     a {
       text-decoration: underline;
       color: #444;
@@ -25,11 +21,11 @@
       cursor: pointer;
     }
 
-    #extra-info {
+    .extra-info {
       margin-left: auto;
       margin-right: auto;
     }
-    #extra-info td {
+    .extra-info td {
       padding: 0px 10px;
       width: 33%;
       text-align: center;
@@ -60,11 +56,8 @@
   </style>
 
   <body>
-    <div class="alerts-link">
-      <a href="https://promalerts.skia.org/#/alerts" target="_blank">Go to Alerts Page</a>
-    </div>
-    <br/>
-    <table id="extra-info">
+    <hr/>
+    <table class="extra-info">
       <tr>
         <td>
           Trooper: <span id="current-trooper"></span>
@@ -72,13 +65,35 @@
         <td>
           Sheriff: <span id="current-sheriff"></span>
         </td>
+      </tr>
+    </table>
+    <hr/>
+    <table class="extra-info">
+      <tr>
         <td>
-          Silenced Alerts: <a href="https://promalerts.skia.org/#/silences" target="_blank"><span id="silenced-alerts"></span></a>
+          Alert Server: <a href="https://promalerts.skia.org/#/alerts">promalerts</a>
+        </td>
+        <td>
+          Silenced Alerts: <a href="https://promalerts.skia.org/#/silences" target="_blank"><span id="silenced-alerts1"></span>
         </td>
       </tr>
     </table>
-    <table id="alerts-table"></table>
+    <table id="alerts-table1"></table>
+    <hr/>
+    <table class="extra-info">
+      <tr>
+        <td>
+          Alert Server: <a href="https://alerts2.skia.org/#/alerts">alerts2</a>
+        </td>
+        <td>
+          Silenced Alerts: <a href="https://alerts2.skia.org/#/silences" target="_blank"><span id="silenced-alerts2"></span>
+        </td>
+      </tr>
+    </table>
+    <table id="alerts-table2"></table>
+    <hr/>
     <div id="errors"></div>
+    <script src="node_modules/skia-common-js/common.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>
