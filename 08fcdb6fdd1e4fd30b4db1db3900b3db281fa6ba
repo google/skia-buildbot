@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "93fe7ff0_22f55879",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "Please improve docs in this file.",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a76590bd_7a419848",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "We may want to add more logging and metrics to improve debugability.",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b578f91_98d5c2d9",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "This is probably too goofy to worry about, but the bot name could contain \"404\" e.g. skia-gce-404.",
+      "range": {
+        "startLine": 98,
+        "startChar": 38,
+        "endLine": 98,
+        "endChar": 41
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "961abc5f_1afcb38d",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "What happens if the program terminates during this function, or one of the steps fails?",
+      "range": {
+        "startLine": 299,
+        "startChar": 2,
+        "endLine": 299,
+        "endChar": 32
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "498c8178_04d125a4",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: not necessary to check this",
+      "range": {
+        "startLine": 356,
+        "startChar": 3,
+        "endLine": 356,
+        "endChar": 23
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "258ccaa6_fc6ecef0",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: I think URLMock is good for unit testing code that directly calls those URLs. When mocking calls several layers down, it can be difficult to debug the tests and difficult to maintain (e.g. if the API changes). If there is a convenient place to use an interface and mock the interface, I think that would make the tests easier to maintain.",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30c63bcc_d0fa8b2f",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "very optional nit:\ndimMap, err :\u003d swarming.ParseDimensions(dims)\nassert.NoError(t, err)\ndimensions :\u003d swarming.StringMapToBotDimensions(dimMap) (or just inline below)",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 2
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62c239a6_73931f04",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: seems like online and offlineType could be a single param",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 100,
+        "endChar": 11
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

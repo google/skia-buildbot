@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f096e192_28cb51f8",
+        "filename": "go/swarming/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: add something like this:\nMockAllOffline(t, urlMock, instances)\nassert.NoError(t, as.Update())\nassert.True(t, urlMock.Empty())\nassert.Equal(t, 99, as.NumOffline())\nassert.Equal(t, 1, as.NumStarting())",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 31
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db3b754a_1aeee2bf",
+        "filename": "go/swarming/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: similar to above, something like:\nfor idx, instance :\u003d range instances {\n  if idx \u003c\u003d 8 {\n    MockOnlineAndBusy(t, urlMock, instance.Name)\n  } else {\n    MockOffline(t, urlMock, instance.Name)\n  }\n}\nassert.NoError(t, as.Update())\nassert.True(t, urlMock.Empty())\nassert.Equal(t, 92, as.NumOffline())\nassert.Equal(t, 4, as.NumStopping())\nassert.Equal(t, 4, as.NumBusy())",
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8fc7ccd_f18f37e1",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "Also may want to add metrics and logging here.",
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "882658c7_f2e6591c",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: Seems like it\u0027s not possible for this method to be called by more than one goroutine, given the inProgress \"mutex\".",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 21
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b185e04_413a75b0",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "Do we need to ensure that at least one bot is online before calling this?",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89d25578_c0896135",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "This almost certainly doesn\u0027t matter, but...\n\nIf a candidate could be run by the bots of two different scalers, we will be double-counting that candidate. I believe this can happen with our current skcms tasks, which do not specify a machine_type. https://skia.googlesource.com/skcms/+/4642d9fe69e1ace1bb565a39f38fea9f776d8adb/infra/bots/tasks.json#52",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 16
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cead5272_e21971cf",
+        "filename": "task_scheduler/go/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "nit: Add now as parameter of New?",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 2
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41cfede1_6d2ae040",
+        "filename": "task_scheduler/go/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "Can we also test the case when there are more candidates than bots? Maybe also when some bots are in the process of stopping and then we see more candidates and try to start more bots?",
+      "range": {
+        "startLine": 144,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 1
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96ac6acf_5a026d4f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1329,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-30T20:10:44Z",
+      "side": 1,
+      "message": "Seems to be missing a call to Update.",
+      "range": {
+        "startLine": 1329,
+        "startChar": 22,
+        "endLine": 1329,
+        "endChar": 31
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
