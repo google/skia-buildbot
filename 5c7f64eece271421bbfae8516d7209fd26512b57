@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ba3a576e_c68162a7",
+        "filename": "chromeextensions/skia-trooper/background.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-30T12:18:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b2e2a78_0461356a",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 48
+      },
+      "revId": "5c7f64eece271421bbfae8516d7209fd26512b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3528c326_988fc75b",
         "filename": "chromeextensions/skia-trooper/background.js",
         "patchSetId": 6
@@ -39,6 +63,24 @@
       "revId": "5c7f64eece271421bbfae8516d7209fd26512b57",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d71f3217_4de74b0c",
+        "filename": "chromeextensions/skia-trooper/background.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-30T12:18:12Z",
+      "side": 1,
+      "message": "That is so much better. Done.",
+      "parentUuid": "3528c326_988fc75b",
+      "revId": "5c7f64eece271421bbfae8516d7209fd26512b57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
