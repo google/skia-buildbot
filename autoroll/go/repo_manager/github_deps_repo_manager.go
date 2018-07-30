@@ -21,13 +21,13 @@ const (
 )
 
 var (
-	// Use this function to instantiate a NewGithubRepoManager. This is able to be
+	// Use this function to instantiate a NewGithubDEPSRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string) (RepoManager, error) = newGithubRepoManager
+	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string) (RepoManager, error) = newGithubDEPSRepoManager
 )
 
-// GithubRepoManagerConfig provides configuration for the Github RepoManager.
-type GithubRepoManagerConfig struct {
+// GithubDEPSRepoManagerConfig provides configuration for the Github RepoManager.
+type GithubDEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
 	// Optional config to use if parent path is different than
 	// workdir + parent repo.
@@ -35,19 +35,19 @@ type GithubRepoManagerConfig struct {
 }
 
 // Validate the config.
-func (c *GithubRepoManagerConfig) Validate() error {
+func (c *GithubDEPSRepoManagerConfig) Validate() error {
 	return c.DepotToolsRepoManagerConfig.Validate()
 }
 
-// githubRepoManager is a struct used by the autoroller for managing checkouts.
-type githubRepoManager struct {
+// githubDEPSRepoManager is a struct used by the autoroller for managing checkouts.
+type githubDEPSRepoManager struct {
 	*depsRepoManager
 	githubClient *github.GitHub
 }
 
-// newGithubRepoManager returns a RepoManager instance which operates in the given
+// newGithubDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string) (RepoManager, error) {
+func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		return nil, err
 	}
 	dr.user = *user.Login
-	gr := &githubRepoManager{
+	gr := &githubDEPSRepoManager{
 		depsRepoManager: dr,
 		githubClient:    githubClient,
 	}
@@ -76,7 +76,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) Update(ctx context.Context) error {
+func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 	// Sync the projects.
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
@@ -158,7 +158,7 @@ func (rm *githubRepoManager) Update(ctx context.Context) error {
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	rm.repoMtx.Lock()
 	defer rm.repoMtx.Unlock()
 
@@ -273,17 +273,17 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) User() string {
+func (rm *githubDEPSRepoManager) User() string {
 	return rm.user
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) GetFullHistoryUrl() string {
+func (rm *githubDEPSRepoManager) GetFullHistoryUrl() string {
 	user := strings.Split(rm.user, "@")[0]
 	return fmt.Sprintf("https://github.com/%s/%s/pulls/%s", rm.githubClient.RepoOwner, rm.githubClient.RepoName, user)
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubRepoManager) GetIssueUrlBase() string {
+func (rm *githubDEPSRepoManager) GetIssueUrlBase() string {
 	return fmt.Sprintf("https://github.com/%s/%s/pull/", rm.githubClient.RepoOwner, rm.githubClient.RepoName)
 }

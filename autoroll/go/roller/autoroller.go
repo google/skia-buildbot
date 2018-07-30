@@ -91,8 +91,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL)
 	} else if c.FuchsiaSDKRepoManager != nil {
 		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, recipesCfgFile, serverURL, nil)
-	} else if c.GithubRepoManager != nil {
-		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL)
+	} else if c.GithubDEPSRepoManager != nil {
+		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, githubClient, recipesCfgFile, serverURL)
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
 			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, arb.rollFinished)
 		}
