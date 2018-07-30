@@ -13,7 +13,7 @@
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export var Login = fetch('/loginstatus/', {
+export var Login = fetch('https://skia.org/loginstatus/', {
   credentials: 'include',
 }).then(res => {
   if (res.ok) {

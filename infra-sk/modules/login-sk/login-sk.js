@@ -21,7 +21,7 @@ window.customElements.define('login-sk', class extends HTMLElement {
           logInOut.href = status.LoginURL;
           logInOut.textContent = 'Login';
       } else {
-          logInOut.href = '/logout/?redirect=' + encodeURIComponent(document.location);
+          logInOut.href = 'https://skia.org/logout/?redirect=' + encodeURIComponent(document.location);
           logInOut.textContent = 'Logout';
       }
     }).catch(errorMessage);
