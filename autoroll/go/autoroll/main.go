@@ -21,6 +21,7 @@ import (
 	"text/template"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
@@ -31,6 +32,7 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
@@ -45,6 +47,7 @@ import (
 
 const (
 	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
+	GS_BUCKET_AUTOROLLERS  = "skia-autoroll"
 )
 
 var (
@@ -304,6 +307,13 @@ func main() {
 	if cfg.RollerType() == roller.ROLLER_TYPE_GOOGLE3 {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master")
 	} else {
+		s, err := storage.NewClient(ctx)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		gcsClient := gcs.NewGCSClient(s, GS_BUCKET_AUTOROLLERS)
+		gcsPrefix := *host
+
 		if cfg.GerritURL != "" {
 			// Create the code review API client.
 			if cfg.RollerType() == roller.ROLLER_TYPE_ANDROID {
@@ -335,7 +345,7 @@ func main() {
 		if *recipesCfgFile == "" {
 			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 		}
-		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath)
+		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, gcsPrefix)
 	}
 	if err != nil {
 		sklog.Fatal(err)

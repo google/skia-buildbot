@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/state_machine"
 	"go.skia.org/infra/go/util"
@@ -215,7 +216,7 @@ func (t *Throttler) ThrottledUntil() time.Time {
 }
 
 // New returns a StateMachine for the autoroller.
-func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*AutoRollStateMachine, error) {
+func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier, gcsClient gcs.GCSClient, gcsPrefix string) (*AutoRollStateMachine, error) {
 	s := &AutoRollStateMachine{
 		a: impl,
 		s: nil, // Filled in later.
@@ -433,7 +434,7 @@ func New(impl AutoRollerImpl, workdir string, n *notifier.AutoRollNotifier) (*Au
 
 	// Build the state machine.
 	b.SetInitial(S_NORMAL_IDLE)
-	sm, err := b.Build(workdir)
+	sm, err := b.Build(ctx, gcsClient, gcsPrefix+"/state_machine")
 	if err != nil {
 		return nil, err
 	}
