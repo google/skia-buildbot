@@ -6,7 +6,7 @@
     "parentName": "Flutter",
     "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
     "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-    "githubRepoManager": {
+    "githubDEPSRepoManager": {
       "childBranch": "master",
       "childPath": "src/third_party/skia",
       "githubParentPath": "src/flutter",
