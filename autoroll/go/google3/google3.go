@@ -406,6 +406,6 @@ func (a *AutoRoller) SetStrategy(context.Context, string, string, string) error 
 }
 
 // Forcibly unthrottle the roller.
-func (a *AutoRoller) Unthrottle() error {
+func (a *AutoRoller) Unthrottle(context.Context) error {
 	return errors.New("Not implemented for Google3 roller.")
 }

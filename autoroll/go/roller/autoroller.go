@@ -134,12 +134,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if c.SafetyThrottle == nil {
 		c.SafetyThrottle = SAFETY_THROTTLE_CONFIG_DEFAULT
 	}
-	safetyThrottle, err := state_machine.NewThrottler(path.Join(workdir, "attempt_counter"), c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
+	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, gcsPrefix+"/attempt_counter", c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
 	if err != nil {
 		return nil, err
 	}
 
-	failureThrottle, err := state_machine.NewThrottler(path.Join(workdir, "fail_counter"), time.Hour, 1)
+	failureThrottle, err := state_machine.NewThrottler(ctx, gcsClient, gcsPrefix+"/fail_counter", time.Hour, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, err
 	}
-	successThrottle, err := state_machine.NewThrottler(path.Join(workdir, "success_counter"), maxRollFreq, 1)
+	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, gcsPrefix+"/success_counter", maxRollFreq, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -330,14 +330,14 @@ func (r *AutoRoller) GetUser() string {
 }
 
 // Reset all of the roller's throttle timers.
-func (r *AutoRoller) Unthrottle() error {
-	if err := r.failureThrottle.Reset(); err != nil {
+func (r *AutoRoller) Unthrottle(ctx context.Context) error {
+	if err := r.failureThrottle.Reset(ctx); err != nil {
 		return err
 	}
-	if err := r.safetyThrottle.Reset(); err != nil {
+	if err := r.safetyThrottle.Reset(ctx); err != nil {
 		return err
 	}
-	if err := r.successThrottle.Reset(); err != nil {
+	if err := r.successThrottle.Reset(ctx); err != nil {
 		return err
 	}
 	return nil
