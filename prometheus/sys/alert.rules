@@ -546,7 +546,7 @@ ALERT TaskSchedulerTooManyCandidates
   IF task_candidate_count > 1500
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    summary = "There are a lot of task candidates on {{ $labels.instance }}."
+    summary = "There are a lot of task candidates on {{ $labels.instance }}.",
     description = "There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_candidates"
   }
 
