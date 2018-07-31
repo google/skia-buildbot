@@ -73,6 +73,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 			IsDead:      e.isDead,
 			Quarantined: e.quarantined,
 			FirstSeenTs: now.Add(-24 * time.Hour).Format("2006-01-02T15:04:05"),
+			State:       "{}",
 		})
 	}
 
@@ -87,9 +88,10 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 	for _, e := range ex {
 		tags := map[string]string{
-			"bot":      e.botID,
-			"pool":     MOCK_POOL,
-			"swarming": MOCK_SERVER,
+			"bot":          e.botID,
+			"pool":         MOCK_POOL,
+			"swarming":     MOCK_SERVER,
+			"device_state": "<none>",
 		}
 		// even though this is a (really big) int, JSON notation returns scientific notation
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
@@ -189,7 +191,8 @@ func TestBotTemperatureMetrics(t *testing.T) {
 								"tsens_tz_sensor2": 412,
 								"max77621-gpu": 100,
 								"dram": 2
-							}
+							},
+							"state": "too_hot"
 						}
 					}
 				}`,
@@ -215,10 +218,11 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 	for z, v := range expected {
 		tags := map[string]string{
-			"bot":       "my-bot-no-device",
-			"pool":      MOCK_POOL,
-			"swarming":  MOCK_SERVER,
-			"temp_zone": z,
+			"bot":          "my-bot-no-device",
+			"pool":         MOCK_POOL,
+			"swarming":     MOCK_SERVER,
+			"device_state": "<none>",
+			"temp_zone":    z,
 		}
 		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
 		assert.NoError(t, err)
@@ -236,10 +240,11 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 	for z, v := range expected {
 		tags := map[string]string{
-			"bot":       "my-bot-device",
-			"pool":      MOCK_POOL,
-			"swarming":  MOCK_SERVER,
-			"temp_zone": z,
+			"bot":          "my-bot-device",
+			"pool":         MOCK_POOL,
+			"swarming":     MOCK_SERVER,
+			"device_state": "too_hot",
+			"temp_zone":    z,
 		}
 		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
 		assert.NoError(t, err)
