@@ -179,6 +179,9 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 		cq = true
 	}
 
+	// TODO(rmistry): Remove before pushing to production.
+	cq = true
+
 	ps := make([]int64, 0, *pullRequest.Commits)
 	for i := 1; i <= *pullRequest.Commits; i++ {
 		ps = append(ps, int64(i))
