@@ -189,7 +189,7 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		return nil, err
 	}
 	user := ""
-	if g.Initialized() {
+	if g != nil && g.Initialized() {
 		user, err = g.GetUserEmail()
 		if err != nil {
 			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
@@ -301,6 +301,29 @@ func (r *commonRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcs
 		nextRollRev = lastRollRev
 	}
 	return nextRollRev, nil
+}
+
+func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
+	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
+	if err != nil {
+		return nil, err
+	}
+	if head == lastRollRev {
+		return []*vcsinfo.LongCommit{}, nil
+	}
+	commits, err := r.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", lastRollRev, head))
+	if err != nil {
+		return nil, err
+	}
+	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		detail, err := r.childRepo.Details(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+		notRolled = append(notRolled, detail)
+	}
+	return notRolled, nil
 }
 
 // See documentation for RepoManager interface.
@@ -449,28 +472,4 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 		return err
 	}
 	return nil
-}
-
-func (r *depotToolsRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {
-	head, err := r.childRepo.FullHash(ctx, fmt.Sprintf("origin/%s", r.childBranch))
-	if err != nil {
-		return nil, err
-	}
-	if head == lastRollRev {
-		return []*vcsinfo.LongCommit{}, nil
-	}
-	// Only consider commits on the "main" branch as roll candidates.
-	commits, err := r.childRepo.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", lastRollRev, head))
-	if err != nil {
-		return nil, err
-	}
-	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		detail, err := r.childRepo.Details(ctx, c)
-		if err != nil {
-			return nil, err
-		}
-		notRolled = append(notRolled, detail)
-	}
-	return notRolled, nil
 }

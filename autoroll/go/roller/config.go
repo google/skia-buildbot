@@ -111,6 +111,7 @@ type AutoRollerConfig struct {
 	CopyRepoManager           *repo_manager.CopyRepoManagerConfig           `json:"copyRepoManager"`
 	DEPSRepoManager           *repo_manager.DEPSRepoManagerConfig           `json:"depsRepoManager"`
 	FuchsiaSDKRepoManager     *repo_manager.FuchsiaSDKRepoManagerConfig     `json:"fuchsiaSDKRepoManager"`
+	GithubRepoManager         *repo_manager.GithubRepoManagerConfig         `json:"githubRepoManager"`
 	GithubDEPSRepoManager     *repo_manager.GithubDEPSRepoManagerConfig     `json:"githubDEPSRepoManager"`
 	Google3RepoManager        *google3FakeRepoManagerConfig                 `json:"google3"`
 	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager"`
@@ -167,6 +168,9 @@ func (c *AutoRollerConfig) Validate() error {
 	if c.FuchsiaSDKRepoManager != nil {
 		rm = append(rm, c.FuchsiaSDKRepoManager)
 	}
+	if c.GithubRepoManager != nil {
+		rm = append(rm, c.GithubRepoManager)
+	}
 	if c.GithubDEPSRepoManager != nil {
 		rm = append(rm, c.GithubDEPSRepoManager)
 	}
@@ -209,6 +213,8 @@ func (c *AutoRollerConfig) RollerType() string {
 			c.rollerType = ROLLER_TYPE_DEPS
 		} else if c.FuchsiaSDKRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_FUCHSIA_SDK
+		} else if c.GithubRepoManager != nil {
+			c.rollerType = ROLLER_TYPE_GITHUB
 		} else if c.GithubDEPSRepoManager != nil {
 			c.rollerType = ROLLER_TYPE_GITHUB_DEPS
 		} else if c.Google3RepoManager != nil {
