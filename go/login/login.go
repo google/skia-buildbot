@@ -34,6 +34,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -547,6 +548,26 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		IsEditor:   IsEditor(r),
 		IsViewer:   IsViewer(r),
 	}
+
+	sklog.Infof("Origin: %s", r.Header.Get("Origin"))
+	if origin := r.Header.Get("Origin"); origin != "" {
+		u, err := url.Parse(origin)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Invalid Origin")
+			return
+		}
+		if strings.HasSuffix(u.Host, ".skia.org") {
+			w.Header().Add("Access-Control-Allow-Origin", "https://"+u.Host)
+			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			w.Header().Add("Access-Control-Allow-Credentials", "true")
+			w.Header().Add("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		}
+	}
+
+	if r.Method == "OPTIONS" {
+		return
+	}
+
 	if err := enc.Encode(body); err != nil {
 		sklog.Errorf("Failed to encode Login status to JSON: %s", err)
 	}
