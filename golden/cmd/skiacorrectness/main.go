@@ -71,6 +71,7 @@ var (
 	authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
 	authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
+	clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
@@ -186,7 +187,7 @@ func main() {
 		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	}
 	authWhiteList := metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, login.DEFAULT_DOMAIN_WHITELIST)
-	if err := login.Init(useRedirectURL, authWhiteList); err != nil {
+	if err := login.Init(useRedirectURL, authWhiteList, *clientSecretFile); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
