@@ -1,10 +1,13 @@
 package strategy
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
 
+	"cloud.google.com/go/datastore"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -13,12 +16,22 @@ const (
 	STRATEGY_HISTORY_LENGTH = 25
 )
 
+// Fake ancestor we supply for all ModeChanges, to force consistency.
+// We lose some performance this way but it keeps our tests from
+// flaking.
+func fakeAncestor() *datastore.Key {
+	rv := ds.NewKey(ds.KIND_AUTOROLL_STRATEGY_ANCESTOR)
+	rv.ID = 13 // Bogus ID.
+	return rv
+}
+
 // StrategyChange is a struct used for describing a change in the AutoRoll strategy.
 type StrategyChange struct {
-	Message  string    `json:"message"`
-	Strategy string    `json:"strategy"`
-	Time     time.Time `json:"time"`
-	User     string    `json:"user"`
+	Message  string    `datastore:"message",json:"message"`
+	Strategy string    `datastore:"strategy",json:"strategy"`
+	Roller   string    `datastore:"roller",json:"-"`
+	Time     time.Time `datastore:"time",json:"time"`
+	User     string    `datastore:"user",json:"user"`
 }
 
 // Copy returns a copy of the StrategyChange.
@@ -26,6 +39,7 @@ func (c *StrategyChange) Copy() *StrategyChange {
 	return &StrategyChange{
 		Message:  c.Message,
 		Strategy: c.Strategy,
+		Roller:   c.Roller,
 		Time:     c.Time,
 		User:     c.User,
 	}
@@ -33,55 +47,50 @@ func (c *StrategyChange) Copy() *StrategyChange {
 
 // StrategyHistory is a struct used for storing and retrieving strategy change history.
 type StrategyHistory struct {
-	db              *db
 	defaultStrategy string
 	history         []*StrategyChange
 	mtx             sync.RWMutex
+	roller          string
 	validStrategies []string
 }
 
 // NewStrategyHistory returns a StrategyHistory instance.
-func NewStrategyHistory(dbFile, defaultStrategy string, validStrategies []string) (*StrategyHistory, error) {
-	d, err := openDB(dbFile)
-	if err != nil {
-		return nil, err
-	}
+func NewStrategyHistory(ctx context.Context, roller, defaultStrategy string, validStrategies []string) (*StrategyHistory, error) {
 	sh := &StrategyHistory{
-		db:              d,
 		defaultStrategy: defaultStrategy,
+		roller:          roller,
 		validStrategies: validStrategies,
 	}
-	if err := sh.refreshHistory(); err != nil {
+	if err := sh.refreshHistory(ctx); err != nil {
 		return nil, err
 	}
 	return sh, nil
 }
 
-// Close closes the database held by the StrategyHistory.
-func (sh *StrategyHistory) Close() error {
-	return sh.db.Close()
-}
-
 // Add inserts a new StrategyChange.
-func (sh *StrategyHistory) Add(s, user, message string) error {
-	sh.mtx.Lock()
-	defer sh.mtx.Unlock()
-
+func (sh *StrategyHistory) Add(ctx context.Context, s, user, message string) error {
 	if !util.In(s, sh.validStrategies) {
 		return fmt.Errorf("Invalid strategy: %s; valid strategies: %v", s, sh.validStrategies)
 	}
-
 	strategyChange := &StrategyChange{
 		Message:  message,
 		Strategy: s,
+		Roller:   sh.roller,
 		Time:     time.Now(),
 		User:     user,
 	}
-
-	if err := sh.db.SetStrategy(strategyChange); err != nil {
+	if err := sh.put(ctx, strategyChange); err != nil {
 		return err
 	}
-	return sh.refreshHistory()
+	return sh.refreshHistory(ctx)
+}
+
+// put inserts the StrategyChange into the database.
+func (sh *StrategyHistory) put(ctx context.Context, s *StrategyChange) error {
+	key := ds.NewKey(ds.KIND_AUTOROLL_STRATEGY)
+	key.Parent = fakeAncestor()
+	_, err := ds.DS.Put(ctx, key, s)
+	return err
 }
 
 // CurrentStrategy returns the current strategy, which is the most recently added
@@ -94,9 +103,11 @@ func (sh *StrategyHistory) CurrentStrategy() *StrategyChange {
 	} else {
 		sklog.Errorf("Strategy history is empty even after initialization!")
 		return &StrategyChange{
-			Message: "Strategy history is empty!",
-			Time:    time.Now(),
-			User:    "autoroller",
+			Message:  "Strategy history is empty!",
+			Roller:   sh.roller,
+			Strategy: sh.defaultStrategy,
+			Time:     time.Now(),
+			User:     "autoroller",
 		}
 	}
 }
@@ -114,30 +125,47 @@ func (sh *StrategyHistory) GetHistory() []*StrategyChange {
 	return rv
 }
 
+// getHistory retrieves recent strategy changes from the DB.
+func (sh *StrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_STRATEGY).Ancestor(fakeAncestor()).Filter("roller =", sh.roller).Order("-time").Limit(STRATEGY_HISTORY_LENGTH)
+	sklog.Infof("getHistory query: %+v", query)
+	var history []*StrategyChange
+	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
+		return nil, err
+	}
+	sklog.Infof("getHistory returned %d items", len(history))
+	return history, nil
+}
+
 // refreshHistory refreshes the strategy history from the database. Assumes that the
 // caller holds a write lock.
-func (sh *StrategyHistory) refreshHistory() error {
-	history, err := sh.db.GetStrategyHistory(STRATEGY_HISTORY_LENGTH)
+func (sh *StrategyHistory) refreshHistory(ctx context.Context) error {
+	history, err := sh.getHistory(ctx)
 	if err != nil {
 		return err
 	}
 
 	// If there's no history, set the initial strategy.
 	if len(history) == 0 {
-		if err := sh.db.SetStrategy(&StrategyChange{
+		sklog.Infof("Setting initial strategy.")
+		if err := sh.put(ctx, &StrategyChange{
 			Message:  "Setting initial strategy.",
 			Strategy: sh.defaultStrategy,
+			Roller:   sh.roller,
 			Time:     time.Now(),
 			User:     "AutoRoll Bot",
 		}); err != nil {
 			return err
 		}
-		history, err = sh.db.GetStrategyHistory(STRATEGY_HISTORY_LENGTH)
+		history, err = sh.getHistory(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
+	sh.mtx.Lock()
+	defer sh.mtx.Unlock()
 	sh.history = history
+	sklog.Infof("History of %d items", len(sh.history))
 	return nil
 }
