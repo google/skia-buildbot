@@ -1,11 +1,13 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 alerting:
   alertmanagers:
     - static_configs:
       - targets:
         - localhost:8001
+        - localhost:9000
 
 rule_files:
   - "alert.rules"
@@ -145,6 +147,10 @@ scrape_configs:
   - job_name: 'datastore_backup'
     static_configs:
       - targets: ['skia-monitoring:20005']
+
+  - job_name: 'alert-to-pubsub'
+    static_configs:
+      - targets: ['skia-prom:20007']
 
   - job_name: 'push'
     static_configs:
