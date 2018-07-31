@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/common"
@@ -20,8 +19,7 @@ import (
 
 var (
 	// Flags.
-	workdir = flag.String("workdir", ".", "Working directory.")
-	zone    = flag.String("zone", gce.ZONE_DEFAULT, "Which GCE zone to use.")
+	zone = flag.String("zone", gce.ZONE_DEFAULT, "Which GCE zone to use.")
 )
 
 func log(str string, args ...interface{}) {
@@ -39,14 +37,8 @@ func logErr(str string, args ...interface{}) {
 func main() {
 	common.Init()
 
-	// Get the absolute workdir.
-	wdAbs, err := filepath.Abs(*workdir)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.PROJECT_ID_SERVER, *zone, wdAbs)
+	g, err := gce.NewLocalGCloud(gce.PROJECT_ID_SERVER, *zone)
 	if err != nil {
 		sklog.Fatal(err)
 	}
