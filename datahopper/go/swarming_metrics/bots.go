@@ -26,6 +26,8 @@ var batteryBlacklist = []*regexp.Regexp{
 	regexp.MustCompile("dram"),
 }
 
+var device_state_guages = []string{"too_hot", "low_battery", "available", "<none>"}
+
 // cleanupOldMetrics deletes old metrics, replace with new ones. This fixes the case where
 // bots are removed but their metrics hang around, or where dimensions
 // change resulting in duplicate metrics with the same bot ID.
@@ -64,6 +66,8 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			"swarming": server,
 		}
 
+		currDeviceState := "<none>"
+
 		if bot.State != "" {
 			st := botState{}
 			if err := json.Unmarshal([]byte(bot.State), &st); err != nil {
@@ -77,11 +81,12 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			// This should always be length 0 or 1 because Skia infra is set up for
 			// one host to one device. If that device is missing (or there are none),
 			// device_states may be length 0, otherwise it should be length 1.
-			if len(deviceStates) == 0 {
-				tags["device_state"] = "<none>"
-			} else {
+			if len(deviceStates) > 0 {
 				// Some common values include "available", "too_hot", "low_battery"
-				tags["device_state"] = strings.Join(deviceStates, "|")
+				currDeviceState = deviceStates[0]
+			}
+			if currDeviceState == "" {
+				currDeviceState = "<none>"
 			}
 		}
 
@@ -90,15 +95,24 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		m1.Update(int64(now.Sub(last)))
 		newMetrics = append(newMetrics, m1)
 
-		// Bot quarantined status.
-		quarantined := int64(0)
+		for _, reason := range device_state_guages {
+			// Bot quarantined status.  So we can differentiate the cause (e.g. if it's a
+			// low_batery or too_hot), write everything else to 0.
+			quarantinedTags := map[string]string{
+				"bot":         bot.BotId,
+				"pool":        pool,
+				"swarming":    server,
+				"deviceState": reason,
+			}
 
-		if bot.Quarantined {
-			quarantined = int64(1)
+			quarantined := int64(0)
+			if bot.Quarantined && reason == currDeviceState {
+				quarantined = int64(1)
+			}
+			m2 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, quarantinedTags)
+			m2.Update(quarantined)
+			newMetrics = append(newMetrics, m2)
 		}
-		m2 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
-		m2.Update(quarantined)
-		newMetrics = append(newMetrics, m2)
 
 		// Last task performed <duration> ago
 		lastTasks, err := client.ListBotTasks(bot.BotId, 1)
