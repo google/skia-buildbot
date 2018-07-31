@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/autoroll/go/google3"
@@ -311,8 +312,17 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		gcsClient := gcs.NewGCSClient(s, GS_BUCKET_AUTOROLLERS)
-		gcsPrefix := *host
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatalf("Could not get hostname: %s", err)
+		}
+		bucket := GS_BUCKET_AUTOROLLERS
+		gcsPrefix := hostname
+		if *local {
+			bucket = gcs.TEST_DATA_BUCKET
+			gcsPrefix = fmt.Sprintf("autoroll_%s_%s", hostname, uuid.New())
+		}
+		gcsClient := gcs.NewGCSClient(s, bucket)
 
 		if cfg.GerritURL != "" {
 			// Create the code review API client.
