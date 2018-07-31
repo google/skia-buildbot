@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6a8719cd_ba9641e0",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-31T12:00:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc0e6cc8_55e839a1",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 2
+      },
+      "revId": "1919848d453f87c38278c8991118110508cc9443",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa56744e_0230080a",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "1919848d453f87c38278c8991118110508cc9443",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "945c77a5_072b6cfb",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-31T12:00:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa56744e_0230080a",
+      "range": {
+        "startLine": 118,
+        "startChar": 11,
+        "endLine": 118,
+        "endChar": 38
+      },
+      "revId": "1919848d453f87c38278c8991118110508cc9443",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
