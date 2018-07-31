@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e468c3f1_68fd07e1",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Can you be more specific about what you\u0027d like to see?  Each of the methods is documented and seemed sufficient to me.",
+      "parentUuid": "93fe7ff0_22f55879",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a76590bd_7a419848",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9c0d47f7_2830b499",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Added metrics for number of bots in each state.  I think the task scheduler scaler will be more interesting for debugging/metrics.",
+      "parentUuid": "a76590bd_7a419848",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7b578f91_98d5c2d9",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 5
@@ -47,6 +83,30 @@
       "writtenOn": "2018-07-30T20:10:44Z",
       "side": 1,
       "message": "This is probably too goofy to worry about, but the bot name could contain \"404\" e.g. skia-gce-404.",
+      "range": {
+        "startLine": 98,
+        "startChar": 38,
+        "endLine": 98,
+        "endChar": 41
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9452eec9_2e0384f8",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Tweaked a bit.",
+      "parentUuid": "7b578f91_98d5c2d9",
       "range": {
         "startLine": 98,
         "startChar": 38,
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "463271c5_3d9d0d04",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "The bot will probably be stuck in an intermediate state.  I don\u0027t know that there\u0027s any way around that.  I don\u0027t think we want to block this function until all of the gce instances are successfully stopped.",
+      "parentUuid": "961abc5f_1afcb38d",
+      "range": {
+        "startLine": 299,
+        "startChar": 2,
+        "endLine": 299,
+        "endChar": 32
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "498c8178_04d125a4",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 5
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "eac3d894_6a25a258",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "498c8178_04d125a4",
+      "range": {
+        "startLine": 356,
+        "startChar": 3,
+        "endLine": 356,
+        "endChar": 23
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "258ccaa6_fc6ecef0",
         "filename": "go/swarming/autoscaler/testutils.go",
         "patchSetId": 5
@@ -116,6 +224,24 @@
       "writtenOn": "2018-07-30T20:10:44Z",
       "side": 1,
       "message": "nit: I think URLMock is good for unit testing code that directly calls those URLs. When mocking calls several layers down, it can be difficult to debug the tests and difficult to maintain (e.g. if the API changes). If there is a convenient place to use an interface and mock the interface, I think that would make the tests easier to maintain.",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf574d9f_c93537a2",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "I agree that it\u0027s more straightforward to mock out interfaces for testing but in most cases I prefer to test the whole stack by mocking at the HTTP request level.  It gives you more realistic behavior and better control over mocking actual API behavior, rather than just assuming everything below the interface will behave like the test expects.",
+      "parentUuid": "258ccaa6_fc6ecef0",
       "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -145,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "69918bb1_80a28b6f",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "30c63bcc_d0fa8b2f",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 92,
+        "endChar": 2
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62c239a6_73931f04",
         "filename": "go/swarming/autoscaler/testutils.go",
         "patchSetId": 5
@@ -165,6 +315,30 @@
       "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea86fc58_86857b4c",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62c239a6_73931f04",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 100,
+        "endChar": 11
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

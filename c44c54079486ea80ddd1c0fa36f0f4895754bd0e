@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "417e9ab1_ed603c8e",
+        "filename": "go/swarming/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f096e192_28cb51f8",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 31
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db3b754a_1aeee2bf",
         "filename": "go/swarming/autoscaler/autoscaler_test.go",
         "patchSetId": 6
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "a70c5df0_f3b2df47",
+        "filename": "go/swarming/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db3b754a_1aeee2bf",
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a8fc7ccd_f18f37e1",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 6
@@ -53,6 +95,24 @@
       "writtenOn": "2018-07-30T20:10:44Z",
       "side": 1,
       "message": "Also may want to add metrics and logging here.",
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6aa9de0f_207d828b",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Added some metrics. Let me know if there is anything more specific you\u0027d like to see.",
+      "parentUuid": "a8fc7ccd_f18f37e1",
       "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "30472dd7_717b0a8f",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "882658c7_f2e6591c",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 21
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b185e04_413a75b0",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 6
@@ -93,6 +177,30 @@
       "writtenOn": "2018-07-30T20:10:44Z",
       "side": 1,
       "message": "Do we need to ensure that at least one bot is online before calling this?",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65cc195c_d44b7858",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Yeah, I\u0027m struggling with how to do this correctly without hard-coding dimensions for each scaler, but I really want to remove the requirement that at least one bot is online in order to know the scaler\u0027s dimensions.  One thing that is not included in this autoscaler is to always keep a minimum number of bots online, which we may want.  That would work around this issue, and also ensure that we go from completely idle/offline to running tasks a little quicker.  Thoughts?",
+      "parentUuid": "5b185e04_413a75b0",
       "range": {
         "startLine": 94,
         "startChar": 13,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "47c52327_c23ca15a",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "We have problems related to this in a couple of places, eg. triggering tasks, where we should really pair less-picky tasks with bots which are in lower demand.  I guess the current workaround is to use very specific dimensions in our task requests so that we don\u0027t usually overlap.  In this case, double-counting will result in our being more conservative with autoscaling, so I think it\u0027s okay (maybe a good thing initially).",
+      "parentUuid": "89d25578_c0896135",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 16
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cead5272_e21971cf",
         "filename": "task_scheduler/go/autoscaler/autoscaler_test.go",
         "patchSetId": 6
@@ -148,6 +280,30 @@
       "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ab641c2_fe01eed5",
+        "filename": "task_scheduler/go/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cead5272_e21971cf",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 2
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "a65a6a4c_8db9cca9",
+        "filename": "task_scheduler/go/autoscaler/autoscaler_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41cfede1_6d2ae040",
+      "range": {
+        "startLine": 144,
+        "startChar": 0,
+        "endLine": 144,
+        "endChar": 1
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "96ac6acf_5a026d4f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 6
@@ -185,6 +365,30 @@
       "writtenOn": "2018-07-30T20:10:44Z",
       "side": 1,
       "message": "Seems to be missing a call to Update.",
+      "range": {
+        "startLine": 1329,
+        "startChar": 22,
+        "endLine": 1329,
+        "endChar": 31
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16dddaef_bdff0524",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1329,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-07-31T19:07:56Z",
+      "side": 1,
+      "message": "Added a new goroutine to perform the update in parallel with the other previous work.",
+      "parentUuid": "96ac6acf_5a026d4f",
       "range": {
         "startLine": 1329,
         "startChar": 22,
