@@ -22,6 +22,30 @@
       "revId": "b53eb7ff594ca487635dd1db7c3a4ca44667ab4d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "605685a9_580a49e2",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-07-31T20:05:33Z",
+      "side": 1,
+      "message": "After discussion with Eric, moved back to average while zeroing out the data where appropriate",
+      "parentUuid": "04ec7ecc_b6022d67",
+      "range": {
+        "startLine": 310,
+        "startChar": 5,
+        "endLine": 310,
+        "endChar": 20
+      },
+      "revId": "b53eb7ff594ca487635dd1db7c3a4ca44667ab4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
