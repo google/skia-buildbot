@@ -7,11 +7,17 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/storage"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
 	"go.skia.org/infra/go/sklog"
@@ -75,6 +81,57 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 		Env:  envSlice,
 	}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// Add docs with links
+func CheckForEngineArtifacts(ctx context.Context, parentRepoDir string) error {
+	// 1. Get the engine hash.
+	// 2. Check if the engine hash exists in the bucket.
+	// 3. If it does not check again and again till number of times expires.
+	// Q: How long to keep checking? how long does a build normally take?
+	// https://build.chromium.org/p/client.flutter/builders/Linux%20Engine
+	// less than 30 mins I think.
+
+	sklog.Info("[Flutter pre-upload step] Starting check for flutter engine artifacts.")
+	flutterInfraBucket := "flutter_infra"
+	engineHashBytes, err := ioutil.ReadFile(path.Join(parentRepoDir, "bin/internal/engine.version"))
+	if err != nil {
+		return err
+	}
+	engineHash := strings.TrimRight(string(engineHashBytes), "\n")
+	gsPath := fmt.Sprintf("flutter/%s", engineHash)
+	gsPathWithBucket := fmt.Sprintf("gs://%s/%s", flutterInfraBucket, engineHash)
+
+	s, err := storage.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+	gcsClient := gcs.NewGCSClient(s, flutterInfraBucket)
+
+	// TODO(rmistry): CHANGE TO SOMETHING ELSE JUST FOR TESTING
+	sleepBetweenAttempts := 10 * time.Second
+	maxAttempts := 6
+
+	foundFile := false
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		_, err := gcsClient.GetFileContents(ctx, gsPath)
+		if err == nil {
+			sklog.Infof("[Flutter pre-upload step] Found %s", gsPathWithBucket)
+			break
+		} else if err != storage.ErrObjectNotExist {
+			sklog.Errorf("[Flutter pre-upload step] %s", err)
+			return err
+		}
+		sklog.Infof("[Flutter pre-upload step] Attempt #%d: Could not find %s. Trying again after %s.", attempt, gsPathWithBucket, sleepBetweenAttempts)
+		time.Sleep(sleepBetweenAttempts)
+	}
+
+	if !foundFile {
+		errMsg := fmt.Sprintf("Could not find %s in the bucket %s within %d minutes", gsPath, flutterInfraBucket, int(sleepBetweenAttempts.Minutes())*maxAttempts)
+		sklog.Errorf("[Flutter pre-upload step] %s", errMsg)
+		return fmt.Errorf(errMsg)
 	}
 	return nil
 }

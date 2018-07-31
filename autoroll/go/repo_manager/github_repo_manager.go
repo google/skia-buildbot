@@ -238,6 +238,8 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		}
 	}
 
+	sklog.Fatal("WHAT HAPPENED ABOVE???")
+
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
 	githubCompareUrl := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from[:12], to[:12])
