@@ -1,0 +1,385 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9b349ca_b317d93b",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: mention something like \"all bots have the same dimensions\"\nnit: mention that it sends graceful shutdown requests and deletes bots to play nice with Swarming.\nnit: give a usage example",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f24bccb7_f21f225b",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: doc these constants, e.g. what is being polled?",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "556cc69d_85a4cf0d",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: unused?",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b84c21ac_b820bdf9",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: \"Autoscaler manages a set of Swarming bots backed by GCE instances, providing summary information about the current state of the bots and methods for correctly starting and stopping bots.\"",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cefbb165_4e2e333b",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: \"busy maps instance name to whether the bot was running a Swarming task at last Update\"",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9bb9385_c948d971",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: \"instances caches the names of the instances managed by gceScaler.\"\nnit: consider removing this field",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f9308e2_0f6df259",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: mtx protects busy, dimensions, and states",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ebcda59_b263e58c",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: states maps instance name to last known state",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c60baaaf_b9131f8f",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: client must be authenticated for all AUTH_SCOPES. All instances must have the same dimensions.",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b5da7f8_8c3eaf58",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: \"Other methods will operate based on the bot state as of the most recent Update.\"",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a6adf3d_b09f5820",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe log dimensions at debug level",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdedfc98_de289cfe",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: IMO, it wouldn\u0027t hurt to have metrics tracking what the Autoscaler thinks each bot\u0027s state and busy status is.",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d7284f4_4924e43f",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: We have 3 packages called autoscaler, so we should disambiguate.",
+      "range": {
+        "startLine": 160,
+        "startChar": 27,
+        "endLine": 160,
+        "endChar": 37
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "766b287c_e7b9b7aa",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe log the instances being started at debug level",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c13870f7_71be9e7b",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe log the instances being stopped at debug level",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f19845a4_35f71243",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe something like:\ncompleted :\u003d false\ndefer func() {\n  if !completed {\n    sklog.Warningf(\"Did not complete Stop for bot %s\", name)\n  }\n}\n\n...\n\ncompleted \u003d true",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ec428e6_680df569",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe mention bots are selected based on name",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8af0f8b0_01cc64ce",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe mention that idle bots are selected first. maybe mention bots are selected in reverse by name",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fd25863_cc7b82f4",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: We should probably cap target at scaler.Total(), otherwise our metrics will seem weird. Not sure if it should be here or below before calculating delta. (The difference would be the exponential decay behavior. After the candidate count spikes, should target decay from the total number of bots or the peak candidate count?)",
+      "range": {
+        "startLine": 115,
+        "startChar": 3,
+        "endLine": 115,
+        "endChar": 9
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49d55d7d_59d8a047",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "nit: maybe add tags for first instance name and last instance name, which might be easier to understand for humans.",
+      "range": {
+        "startLine": 127,
+        "startChar": 38,
+        "endLine": 127,
+        "endChar": 41
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce0e3848_0969909b",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "ditto -- disambiguate",
+      "range": {
+        "startLine": 129,
+        "startChar": 27,
+        "endLine": 129,
+        "endChar": 37
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

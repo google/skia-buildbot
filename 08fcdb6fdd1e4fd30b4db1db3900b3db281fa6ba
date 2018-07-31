@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "bef8c722_55ce08be",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e468c3f1_68fd07e1",
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a76590bd_7a419848",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 5
@@ -154,6 +172,30 @@
       "side": 1,
       "message": "The bot will probably be stuck in an intermediate state.  I don\u0027t know that there\u0027s any way around that.  I don\u0027t think we want to block this function until all of the gce instances are successfully stopped.",
       "parentUuid": "961abc5f_1afcb38d",
+      "range": {
+        "startLine": 299,
+        "startChar": 2,
+        "endLine": 299,
+        "endChar": 32
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f56def3d_0e266214",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "Is there a way to detect this in Update? Report it in metrics and alert on it?",
+      "parentUuid": "463271c5_3d9d0d04",
       "range": {
         "startLine": 299,
         "startChar": 2,

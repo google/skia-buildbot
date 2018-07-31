@@ -119,6 +119,24 @@
     },
     {
       "key": {
+        "uuid": "878df6a5_c0e416fa",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6aa9de0f_207d828b",
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "882658c7_f2e6591c",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 6
@@ -213,6 +231,30 @@
     },
     {
       "key": {
+        "uuid": "18ad672f_72e257e9",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "The only thing I can think of that will be workable is to fire alerts when dimensions is empty.\n\nBTW, how will we manage upgrades or other dimension changes with the Autoscaler?",
+      "parentUuid": "65cc195c_d44b7858",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "89d25578_c0896135",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 6
@@ -257,6 +299,30 @@
       "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a344253_e2e00d68",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "47c52327_c23ca15a",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 16
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -398,6 +464,30 @@
       "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "434f1f9c_94e45f54",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1329,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-07-31T21:09:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16dddaef_bdff0524",
+      "range": {
+        "startLine": 1329,
+        "startChar": 22,
+        "endLine": 1329,
+        "endChar": 31
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
