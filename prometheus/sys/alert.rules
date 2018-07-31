@@ -306,8 +306,8 @@ ALERT BotQuarantined
     description = "Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
 
-ALERT BotQuarantinedDeviceUnhealthy
-  IF avg_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)"}[1h]) >= 1
+ALERT DeviceUnhealthy
+  IF count_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)"}[1h]) >= 50
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
