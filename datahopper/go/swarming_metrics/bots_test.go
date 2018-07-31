@@ -73,7 +73,6 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 			IsDead:      e.isDead,
 			Quarantined: e.quarantined,
 			FirstSeenTs: now.Add(-24 * time.Hour).Format("2006-01-02T15:04:05"),
-			State:       "{}",
 		})
 	}
 
@@ -84,14 +83,13 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 9, "3 bots * 3 metrics each = 9 expected metrics")
+	assert.Len(t, newMetrics, 18, "3 bots * 6 metrics each = 18 expected metrics")
 
 	for _, e := range ex {
 		tags := map[string]string{
-			"bot":          e.botID,
-			"pool":         MOCK_POOL,
-			"swarming":     MOCK_SERVER,
-			"device_state": "<none>",
+			"bot":      e.botID,
+			"pool":     MOCK_POOL,
+			"swarming": MOCK_SERVER,
 		}
 		// even though this is a (really big) int, JSON notation returns scientific notation
 		// for large enough ints, which means we need to ParseFloat, the only parser we have
@@ -100,13 +98,18 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equalf(t, int64(e.lastSeenDelta), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN)
 
-		actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_quarantined", tags), 64)
-		assert.NoError(t, err)
-		expected := 0
-		if e.quarantined {
-			expected = 1
+		toCheck := []string{"too_hot", "low_battery", "available", "<none>"}
+		for _, extraTag := range toCheck {
+			tags["deviceState"] = extraTag
+			actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_quarantined", tags), 64)
+			assert.NoError(t, err)
+			expected := 0
+			if e.quarantined && extraTag == "<none>" {
+				expected = 1
+			}
+			assert.Equalf(t, int64(expected), int64(actual), "Wrong is quarantined for metric %s + tag %s", MEASUREMENT_SWARM_BOTS_QUARANTINED, extraTag)
 		}
-		assert.Equalf(t, int64(expected), int64(actual), "Wrong last seen time for metric %s", MEASUREMENT_SWARM_BOTS_QUARANTINED)
+
 	}
 }
 
@@ -137,7 +140,7 @@ func TestLastTaskBotMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 3, "1 bot * 3 metrics = 3 expected metrics")
+	assert.Len(t, newMetrics, 6, "1 bot * 6 metrics = 6 expected metrics")
 
 	tags := map[string]string{
 		"bot":      "my-bot",
@@ -209,7 +212,7 @@ func TestBotTemperatureMetrics(t *testing.T) {
 
 	newMetrics, err := reportBotMetrics(now, ms, pc, MOCK_POOL, MOCK_SERVER)
 	assert.NoError(t, err)
-	assert.Len(t, newMetrics, 19, "9 bot metrics + 10 temp metrics = 19 expected metrics")
+	assert.Len(t, newMetrics, 28, "18 bot metrics + 10 temp metrics = 28 expected metrics")
 
 	expected := map[string]int64{
 		"thermal_zone0": 28,
@@ -218,11 +221,10 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 	for z, v := range expected {
 		tags := map[string]string{
-			"bot":          "my-bot-no-device",
-			"pool":         MOCK_POOL,
-			"swarming":     MOCK_SERVER,
-			"device_state": "<none>",
-			"temp_zone":    z,
+			"bot":       "my-bot-no-device",
+			"pool":      MOCK_POOL,
+			"swarming":  MOCK_SERVER,
+			"temp_zone": z,
 		}
 		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
 		assert.NoError(t, err)
@@ -240,11 +242,10 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	}
 	for z, v := range expected {
 		tags := map[string]string{
-			"bot":          "my-bot-device",
-			"pool":         MOCK_POOL,
-			"swarming":     MOCK_SERVER,
-			"device_state": "too_hot",
-			"temp_zone":    z,
+			"bot":       "my-bot-device",
+			"pool":      MOCK_POOL,
+			"swarming":  MOCK_SERVER,
+			"temp_zone": z,
 		}
 		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
 		assert.NoError(t, err)
