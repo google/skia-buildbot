@@ -64,6 +64,28 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			"swarming": server,
 		}
 
+		if bot.State != "" {
+			st := botState{}
+			err := json.Unmarshal([]byte(bot.State), &st)
+			if err != nil {
+				sklog.Errorf("Malformed bot state %q: %s", bot.State, err)
+				continue
+			}
+			deviceStates := []string{}
+			for _, device := range st.DeviceMap {
+				deviceStates = append(deviceStates, device.State)
+			}
+			// This should always be length 0 or 1 because Skia infra is set up for
+			// one host to one device. If that device is missing (or there are none),
+			// deviceStates may be length 0, otherwise it should be length 1.
+			if len(deviceStates) == 0 {
+				tags["deviceState"] = "<none>"
+			} else {
+				// Some common values include "available", "too_hot", "low_battery"
+				tags["deviceState"] = strings.Join(deviceStates, "|")
+			}
+		}
+
 		// Bot last seen <duration> ago.
 		m1 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
 		m1.Update(int64(now.Sub(last)))
@@ -71,6 +93,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 
 		// Bot quarantined status.
 		quarantined := int64(0)
+
 		if bot.Quarantined {
 			quarantined = int64(1)
 		}
@@ -170,6 +193,7 @@ type androidDevice struct {
 	// do a type assertion above.
 	BatteryMap        map[string]interface{} `json:"battery"`
 	DevTemperatureMap map[string]float32     `json:"temp"`
+	State             string                 `json:"state"`
 }
 
 // StartSwarmingBotMetrics spins up several go routines to begin reporting
