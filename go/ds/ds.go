@@ -64,6 +64,14 @@ const (
 	RECREATE_PAGESETS_TASKS         Kind = "RecreatePageSetsTasks"
 	RECREATE_WEBPAGE_ARCHIVES_TASKS Kind = "RecreateWebpageArchivesTasks"
 	CLUSTER_TELEMETRY_IDS           Kind = "ClusterTelemetryIDs"
+
+	// Autoroll
+	KIND_AUTOROLL_MODE              Kind = "AutorollMode"
+	KIND_AUTOROLL_MODE_ANCESTOR     Kind = "AutorollModeAncestor"
+	KIND_AUTOROLL_ROLL              Kind = "AutorollRoll"
+	KIND_AUTOROLL_STATUS            Kind = "AutorollStatus"
+	KIND_AUTOROLL_STRATEGY          Kind = "AutorollStrategy"
+	KIND_AUTOROLL_STRATEGY_ANCESTOR Kind = "AutorollStrategyAncestor"
 )
 
 // Namespaces that are used in production, and thus might be backed up.
@@ -84,6 +92,9 @@ const (
 
 	// CT
 	CT_NS = "cluster-telemetry"
+
+	// Autoroll
+	AUTOROLL_NS = "autoroll"
 )
 
 var (
