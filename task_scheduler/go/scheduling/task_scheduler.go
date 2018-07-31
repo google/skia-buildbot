@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/autoscaler"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -77,6 +78,7 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
+	autoscaler          *autoscaler.Autoscaler
 	bl                  *blacklist.Blacklist
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
@@ -106,7 +108,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, as *autoscaler.Autoscaler) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
@@ -143,6 +145,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 	}
 
 	s := &TaskScheduler{
+		autoscaler:       as,
 		bl:               bl,
 		busyBots:         newBusyBots(),
 		candidateMetrics: map[string]metrics2.Int64Metric{},
@@ -1253,8 +1256,8 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 
 	sklog.Infof("Task Scheduler updating...")
 
-	var e1, e2 error
-	var wg1, wg2 sync.WaitGroup
+	var e1, e2, e3 error
+	var wg1, wg2, wg3 sync.WaitGroup
 
 	var bots []*swarming_api.SwarmingRpcsBotInfo
 	wg1.Add(1)
@@ -1275,6 +1278,15 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		defer wg2.Done()
 		if err := s.updateRepos(ctx); err != nil {
 			e2 = err
+			return
+		}
+	}()
+
+	wg3.Add(1)
+	go func() {
+		defer wg3.Done()
+		if err := s.autoscaler.Update(); err != nil {
+			e3 = err
 			return
 		}
 	}()
@@ -1313,6 +1325,33 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return err
 	}
 
+	wg3.Wait()
+	if e3 != nil {
+		return e3
+	}
+
+	// Once we have the queue, trigger an autoscale.
+	var wg4 sync.WaitGroup
+	wg4.Add(1)
+	var autoScaleErr error
+	go func() {
+		defer wg4.Done()
+		candidateDimensions := make([][]string, 0, len(queue))
+		for _, c := range queue {
+			candidateDimensions = append(candidateDimensions, c.TaskSpec.Dimensions)
+		}
+		err := s.autoscaler.Autoscale(candidateDimensions, now)
+		if err != nil {
+			if err == autoscaler.ERR_AUTOSCALE_IN_PROGRESS {
+				// Ignore this error, since autoscaling might take
+				// longer than a full scheduling cycle.
+				sklog.Infof("Autoscaler is busy; will try again on the next cycle.")
+			} else {
+				autoScaleErr = err
+			}
+		}
+	}()
+
 	wg1.Wait()
 	if e1 != nil {
 		return e1
@@ -1326,7 +1365,8 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
-	return nil
+	wg4.Wait()
+	return autoScaleErr
 }
 
 // updateRepos syncs the scheduler's repos.
