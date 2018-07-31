@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "77d4923e_249545bb",
+        "filename": "go/login/login.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-07-31T13:19:27Z",
+      "side": 1,
+      "message": "May want to log what the Invalid Origin is, for debugging purposes.",
+      "revId": "a66e89ba05c8c44fb68e959e7c931533f5038d57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b66a7896_e97d6d33",
+        "filename": "go/login/login.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 559,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-07-31T13:19:27Z",
+      "side": 1,
+      "message": "Do we also want/need u.Host \u003d\u003d \"skia.org\" ?",
+      "range": {
+        "startLine": 559,
+        "startChar": 5,
+        "endLine": 559,
+        "endChar": 43
+      },
+      "revId": "a66e89ba05c8c44fb68e959e7c931533f5038d57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c85868b9_f09fa2be",
+        "filename": "go/login/login.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-07-31T13:19:27Z",
+      "side": 1,
+      "message": "I\u0027d add a comment explaining the somewhat disappointing fact that we can\u0027t do Access-Control-Allow-Origin *.skia.org and so the \"best\" practice is to re-write the header for each individual page if the page is on the whitelist of *.skia.org.\n\nand link to\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin",
+      "revId": "a66e89ba05c8c44fb68e959e7c931533f5038d57",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
