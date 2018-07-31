@@ -7,11 +7,17 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
+	"time"
+
+	"cloud.google.com/go/storage"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
 	"go.skia.org/infra/go/sklog"
@@ -25,8 +31,9 @@ type PreUploadStep func(context.Context, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
-		"TrainInfra":            TrainInfra,
-		"FlutterLicenseScripts": FlutterLicenseScripts,
+		"TrainInfra":              TrainInfra,
+		"CheckForEngineArtifacts": CheckForEngineArtifacts,
+		"FlutterLicenseScripts":   FlutterLicenseScripts,
 	}[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
@@ -75,6 +82,56 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 		Env:  envSlice,
 	}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// Add docs with links
+func CheckForEngineArtifacts(ctx context.Context, parentRepoDir string) error {
+	// 1. Get the engine hash.
+	// 2. Check if the engine hash exists in the bucket.
+	// 3. If it does not check again and again till number of times expires.
+	// Q: How long to keep checking? how long does a build normally take?
+	// https://build.chromium.org/p/client.flutter/builders/Linux%20Engine
+	// less than 30 mins I think.
+
+	sklog.Info("[Flutter pre-upload step] Starting check for flutter engine artifacts.")
+	flutterInfraBucket := "flutter_infra"
+	engineHashBytes, err := ioutil.ReadFile(path.Join(parentRepoDir, "bin/internal/engine.version"))
+	if err != nil {
+		return err
+	}
+	engineHash := strings.TrimRight(string(engineHashBytes), "\n")
+	gsPath := fmt.Sprintf("flutter/%s/sky_engine.zip111", engineHash) // REMOVE THE 111
+	gsPathWithBucket := fmt.Sprintf("gs://%s/%s", flutterInfraBucket, gsPath)
+
+	s, err := storage.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+	gcsClient := gcs.NewGCSClient(s, flutterInfraBucket)
+
+	sleepBetweenAttempts := 5 * time.Minute
+	maxAttempts := 6
+
+	foundFile := false
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		_, err := gcsClient.GetFileContents(ctx, gsPath)
+		if err == nil {
+			sklog.Infof("[Flutter pre-upload step] Found %s", gsPathWithBucket)
+			break
+		} else if err != storage.ErrObjectNotExist {
+			sklog.Errorf("[Flutter pre-upload step] %s", err)
+			return err
+		}
+		if attempt < maxAttempts {
+			sklog.Infof("[Flutter pre-upload step] Attempt #%d: Could not find %s. Trying again after %s.", attempt, gsPathWithBucket, sleepBetweenAttempts)
+			time.Sleep(sleepBetweenAttempts)
+		}
+	}
+
+	if !foundFile {
+		return fmt.Errorf("[Flutter pre-upload step] Could not find %s within %d minutes", gsPathWithBucket, int(sleepBetweenAttempts.Minutes())*maxAttempts)
 	}
 	return nil
 }
