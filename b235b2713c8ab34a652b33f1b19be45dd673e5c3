@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b82dd7e_9775f341",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-31T20:17:07Z",
+      "side": 1,
+      "message": "This will create a new bucket everytime the autoroller is run. It would be nice to reconnect to the same state sometimes for local testing.\nIf this was hostname and we log it, then we could manually clear it out if we need to for some local runs.",
+      "revId": "b235b2713c8ab34a652b33f1b19be45dd673e5c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14265d18_6b2f3cb9",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-07-31T20:17:07Z",
+      "side": 1,
+      "message": "Do we log somewhere what the bucket and gcsPrefix is? that would be useful for debugging",
+      "revId": "b235b2713c8ab34a652b33f1b19be45dd673e5c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
