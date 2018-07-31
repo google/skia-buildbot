@@ -1,0 +1,18 @@
+{
+    "githubRepoOwner": "flutter",
+    "githubRepoName": "flutter",
+    "childName": "Engine",
+    "maxRollFrequency": "3h",
+    "parentName": "Flutter",
+    "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+    "sheriff": ["rmistry@google.com"],
+    "githubRepoManager": {
+      "childBranch": "master",
+      "childPath": "engine",
+      "parentBranch": "master",
+      "parentRepoURL": "git@github.com:flutter/flutter.git",
+      "childRepoURL": "git@github.com:flutter/engine.git",
+      "revisionFile": "bin/internal/engine.version",
+      "preUploadSteps": ["CheckForEngineArtifacts"]
+    }
+}
