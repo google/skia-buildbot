@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "d30c15c5_8d86e6d2",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T18:10:32Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "3dd5f991_e5f3b527",
+      "range": {
+        "startLine": 356,
+        "startChar": 36,
+        "endLine": 356,
+        "endChar": 123
+      },
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d0e13d18_42beff60",
         "filename": "autoroll/go/strategy/strategies.go",
         "patchSetId": 3
@@ -83,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "c7bef155_925998a2",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T18:10:32Z",
+      "side": 1,
+      "message": "Done (using a space not _ to match \"remote batch\").",
+      "parentUuid": "d0e13d18_42beff60",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 44
+      },
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a76327d0_2a74d630",
         "filename": "autoroll/go/strategy/strategies.go",
         "patchSetId": 3
@@ -103,6 +151,30 @@
       "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "894716b3_1fcd9091",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T18:10:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a76327d0_2a74d630",
+      "range": {
+        "startLine": 129,
+        "startChar": 13,
+        "endLine": 129,
+        "endChar": 47
+      },
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
