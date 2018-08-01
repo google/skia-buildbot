@@ -66,10 +66,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-coverage:20000']
 
-  - job_name: 'cq_watcher'
-    static_configs:
-      - targets: ['skia-cq-watcher:20000']
-
   - job_name: 'ct_pixel_diff'
     static_configs:
       - targets: ['skia-ct-pixel-diff:20000']
