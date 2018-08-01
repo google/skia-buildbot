@@ -255,6 +255,30 @@
     },
     {
       "key": {
+        "uuid": "2c1d852c_944a19df",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "I changed to make Update() fail when a.dimensions is empty.  This will cause the server to die on startup if there are no connected bots.  I added MIN_BOTS in the task_scheduler scaler to always leave 5 bots alive.  It\u0027s not a good solution, but maybe better than failing to match dimensions indefinitely.",
+      "parentUuid": "18ad672f_72e257e9",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "89d25578_c0896135",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 6

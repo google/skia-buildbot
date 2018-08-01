@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "2e647c2a_a10b42a5",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "They\u0027re all unused, so I removed them.",
+      "parentUuid": "f24bccb7_f21f225b",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "556cc69d_85a4cf0d",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -50,6 +68,24 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0b505e4_8fb8f198",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "556cc69d_85a4cf0d",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "1f317d15_9d2dc51a",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b84c21ac_b820bdf9",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cefbb165_4e2e333b",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -84,6 +138,24 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3af68b90_320eb1c5",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cefbb165_4e2e333b",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -104,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "e49478a6_56d58444",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9bb9385_c948d971",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f9308e2_0f6df259",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -118,6 +208,24 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49642152_ee52162c",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f9308e2_0f6df259",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -138,6 +246,24 @@
     },
     {
       "key": {
+        "uuid": "fd264248_d90e1d69",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ebcda59_b263e58c",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c60baaaf_b9131f8f",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -152,6 +278,24 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21edb448_ba47e8f2",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c60baaaf_b9131f8f",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -172,6 +316,24 @@
     },
     {
       "key": {
+        "uuid": "3b3f945f_ea6c6e38",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b5da7f8_8c3eaf58",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a6adf3d_b09f5820",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -189,6 +351,24 @@
     },
     {
       "key": {
+        "uuid": "5f50c008_4312d733",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a6adf3d_b09f5820",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bdedfc98_de289cfe",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -203,6 +383,24 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "125269f3_5da7aa6f",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done. Because of how gauges work, this is actually 4 traces per bot.",
+      "parentUuid": "bdedfc98_de289cfe",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -229,6 +427,30 @@
     },
     {
       "key": {
+        "uuid": "057f629d_f918b0ec",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d7284f4_4924e43f",
+      "range": {
+        "startLine": 160,
+        "startChar": 27,
+        "endLine": 160,
+        "endChar": 37
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "766b287c_e7b9b7aa",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -243,6 +465,24 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8831422b_4710baf9",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "766b287c_e7b9b7aa",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -263,6 +503,24 @@
     },
     {
       "key": {
+        "uuid": "ef2e1b6c_25200ce4",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c13870f7_71be9e7b",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f19845a4_35f71243",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -274,6 +532,24 @@
       "writtenOn": "2018-07-31T21:09:13Z",
       "side": 1,
       "message": "nit: maybe something like:\ncompleted :\u003d false\ndefer func() {\n  if !completed {\n    sklog.Warningf(\"Did not complete Stop for bot %s\", name)\n  }\n}\n\n...\n\ncompleted \u003d true",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5cc527d_3edcfcb4",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "We already log errors for all of the failure cases here, so I\u0027m not sure how much value this adds.  I moved the contents of the goroutine into a separate function so that we have a single function call and log any error it returns.  That\u0027ll prevent us from forgetting to log an error if one occurs.",
+      "parentUuid": "f19845a4_35f71243",
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -297,6 +573,24 @@
     },
     {
       "key": {
+        "uuid": "fa36856b_ccbb7543",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ec428e6_680df569",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8af0f8b0_01cc64ce",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -314,6 +608,24 @@
     },
     {
       "key": {
+        "uuid": "c72d4c9c_25bb8a5a",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8af0f8b0_01cc64ce",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6fd25863_cc7b82f4",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -325,6 +637,30 @@
       "writtenOn": "2018-07-31T21:09:13Z",
       "side": 1,
       "message": "nit: We should probably cap target at scaler.Total(), otherwise our metrics will seem weird. Not sure if it should be here or below before calculating delta. (The difference would be the exponential decay behavior. After the candidate count spikes, should target decay from the total number of bots or the peak candidate count?)",
+      "range": {
+        "startLine": 115,
+        "startChar": 3,
+        "endLine": 115,
+        "endChar": 9
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12891ef7_4c69373c",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Changed to decay from the total number of bots.  The latter doesn\u0027t make much sense to me, as we\u0027d essentially keep bots around for an extra hour for no reason.",
+      "parentUuid": "6fd25863_cc7b82f4",
       "range": {
         "startLine": 115,
         "startChar": 3,
@@ -360,6 +696,30 @@
     },
     {
       "key": {
+        "uuid": "bd41f7ca_14af495d",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49d55d7d_59d8a047",
+      "range": {
+        "startLine": 127,
+        "startChar": 38,
+        "endLine": 127,
+        "endChar": 41
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce0e3848_0969909b",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -380,6 +740,30 @@
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dea7aa1_1c58a437",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce0e3848_0969909b",
+      "range": {
+        "startLine": 129,
+        "startChar": 27,
+        "endLine": 129,
+        "endChar": 37
+      },
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

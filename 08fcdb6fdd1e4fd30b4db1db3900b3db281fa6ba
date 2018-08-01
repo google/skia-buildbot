@@ -208,6 +208,30 @@
     },
     {
       "key": {
+        "uuid": "8d92668d_1c9aff3c",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:45:59Z",
+      "side": 1,
+      "message": "I thought about adding BOT_STATE_ERROR. If the goroutine fails, it would inherit that state.  That doesn\u0027t solve the problem of the process being interrupted though.  I guess any STARTING/STOPPING bots which haven\u0027t fully connected or disconnected when the process starts could get the error state, although that\u0027d probably give us false positives.  It\u0027s also unclear when the bot should come out of the error state, ie. is it enough for it to connect or disappear from Swarming?\n\nMaybe the better thing is to have one (or more) metrics trace per bot, which is 0 when in ONLINE or OFFLINE states and 1 when STARTING or STOPPING.  Then we could alert when any bot has been in a transitional state for longer than eg. 10 minutes.  In order for that to work with process interruption we\u0027d need to persist the bot states to disk or GCS.\n\nWDYT?",
+      "parentUuid": "f56def3d_0e266214",
+      "range": {
+        "startLine": 299,
+        "startChar": 2,
+        "endLine": 299,
+        "endChar": 32
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "498c8178_04d125a4",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 5
