@@ -99,10 +99,10 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			// Bot quarantined status.  So we can differentiate the cause (e.g. if it's a
 			// low_batery or too_hot), write everything else to 0.
 			quarantinedTags := map[string]string{
-				"bot":         bot.BotId,
-				"pool":        pool,
-				"swarming":    server,
-				"deviceState": reason,
+				"bot":          bot.BotId,
+				"pool":         pool,
+				"swarming":     server,
+				"device_state": reason,
 			}
 
 			quarantined := int64(0)

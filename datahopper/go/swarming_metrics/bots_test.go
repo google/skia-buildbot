@@ -100,7 +100,7 @@ func TestDeadQuarantinedBotMetrics(t *testing.T) {
 
 		toCheck := []string{"too_hot", "low_battery", "available", "<none>"}
 		for _, extraTag := range toCheck {
-			tags["deviceState"] = extraTag
+			tags["device_state"] = extraTag
 			actual, err = strconv.ParseFloat(metrics_util.GetRecordedMetric(t, "swarming_bots_quarantined", tags), 64)
 			assert.NoError(t, err)
 			expected := 0
