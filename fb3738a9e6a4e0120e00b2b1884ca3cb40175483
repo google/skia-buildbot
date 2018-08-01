@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "306fd041_c134e758",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T20:54:48Z",
+      "side": 0,
+      "message": "Why was this removed?",
+      "revId": "fb3738a9e6a4e0120e00b2b1884ca3cb40175483",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd1018fb_d6b3cab6",
+        "filename": "autoroll/go/strategy/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T20:54:48Z",
+      "side": 0,
+      "message": "Why was this changed?",
+      "revId": "fb3738a9e6a4e0120e00b2b1884ca3cb40175483",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
