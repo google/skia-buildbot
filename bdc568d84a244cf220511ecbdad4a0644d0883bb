@@ -16,6 +16,93 @@
       "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1607b477_80d87a6d",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:55:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "17730d19_0eb564c0",
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3dd5f991_e5f3b527",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:55:22Z",
+      "side": 1,
+      "message": "Unfortunate that there are so many parameters to this function now.  Maybe next time we add a new strategy we should think about how to refactor and make each strategy know how to initialize itself, rather than passing every possible bit of information into this function.",
+      "range": {
+        "startLine": 356,
+        "startChar": 36,
+        "endLine": 356,
+        "endChar": 123
+      },
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0e13d18_42beff60",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:55:22Z",
+      "side": 1,
+      "message": "Nit: Can we be a little more specific and do:\nROLL_STRATEGY_GCS_FILE \u003d \"gcs_file\"\n?",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 44
+      },
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a76327d0_2a74d630",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T14:55:22Z",
+      "side": 1,
+      "message": "Nit: can we use https://godoc.org/cloud.google.com/go/storage#ObjectHandle.Attrs instead?  That way we don\u0027t have to download the whole file.",
+      "range": {
+        "startLine": 129,
+        "startChar": 13,
+        "endLine": 129,
+        "endChar": 47
+      },
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
