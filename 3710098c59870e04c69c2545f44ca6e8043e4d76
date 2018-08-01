@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9afa8ec7_73d1a964",
+        "filename": "go/login/login.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 701,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-01T17:12:56Z",
+      "side": 0,
+      "message": "Intentionally removed?",
+      "range": {
+        "startLine": 701,
+        "startChar": 2,
+        "endLine": 701,
+        "endChar": 82
+      },
+      "revId": "3710098c59870e04c69c2545f44ca6e8043e4d76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
