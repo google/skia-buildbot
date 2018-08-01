@@ -266,7 +266,7 @@ func (rm *afdoRepoManager) CommitsNotRolled() int {
 
 // See documentation for RepoManager interface.
 func (r *afdoRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.childRepo, r.authClient)
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, "", "", r.childRepo, r.authClient)
 }
 
 // See documentation for RepoManager interface.

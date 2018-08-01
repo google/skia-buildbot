@@ -266,7 +266,7 @@ func (r *commonRepoManager) CommitsNotRolled() int {
 
 // See documentation for RepoManger interface.
 func (r *commonRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.childRepo, nil)
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, "", "", r.childRepo, nil)
 }
 
 // See documentation for RepoManager interface.
