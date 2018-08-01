@@ -20,7 +20,7 @@ trybot_duration_beyond_threshold
 --------------------------------
 
 The specified trybot has been running beyond the threshold. Look for which CLs
-this happened in from the [cloud logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-cq-watcher&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fcq_watcher&filters=text:CQTrybotDurationError).
+this happened in from the [cloud logs](https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQTrybotDurationError%22).
 Try to determine why it took so long: Was it in pending state? is it a one-off
 event? is this the new norm and the threshold needs to be increased?
 
@@ -28,7 +28,7 @@ too_many_trybots_triggered
 --------------------------
 
 The number of triggered CQ trybots by atleast one CL is beyond the threshold.
-Look for which CLs this happened in from the [cloud logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-cq-watcher&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fcq_watcher&filters=text:CQCLsCountError).
+Look for which CLs this happened in from the [cloud logs](https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQCLsCountError%22).
 This alert has been created to detect problems like
 [crbug/656756](https://bugs.chromium.org/p/chromium/issues/detail?id=656756).
 

@@ -1,7 +1,9 @@
 default:
 	go install -v ./go/...
 
+release: default
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/cq_watcher
+	./build_docker_release
+
 push: default
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli cq-watcherd skia-cq-watcher
+	pushk cq_watcher
