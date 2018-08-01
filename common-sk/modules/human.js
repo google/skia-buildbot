@@ -70,6 +70,23 @@ export function strDuration(seconds) {
 };
 
 /**
+ * Returns the parsed duration in seconds.
+ *
+ * @param {string} d - The duration, e.g. "2h" or "4d".
+ * @returns {number} The duration in seconds.
+ */
+export function parseDuration(d) {
+  let units = d.slice(-1);
+  let scalar = +d.slice(0, -1);
+  TIME_DELTAS.forEach(o => {
+    if (o.units === units) {
+      return o.delta * scalar;
+    }
+  });
+  return 0
+}
+
+/**
  * Returns the difference between the current time and 's' as a string in a
  * human friendly format. If 's' is a number it is assumed to contain the time
  * in milliseconds otherwise it is assumed to contain a time string parsable
