@@ -96,7 +96,7 @@ skia_flutter_release: autoroll
 skia_internal_release: autoroll
 	./build_skia_internal_release "$(MESSAGE)"
 
-skia_lottie_ci_relase: autoroll
+skia_lottie_ci_release: autoroll
 	./build_skia_lottie_ci_release "$(MESSAGE)"
 
 src_internal_chromium_release: autoroll
