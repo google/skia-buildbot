@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3a6684d3_5d0c3815",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T11:38:28Z",
+      "side": 1,
+      "message": "SGTM, done.",
+      "parentUuid": "7b82dd7e_9775f341",
+      "revId": "b235b2713c8ab34a652b33f1b19be45dd673e5c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14265d18_6b2f3cb9",
         "filename": "autoroll/go/autoroll/main.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "b235b2713c8ab34a652b33f1b19be45dd673e5c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9000bf8_a0119cf0",
+        "filename": "autoroll/go/autoroll/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-01T11:38:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "14265d18_6b2f3cb9",
+      "revId": "b235b2713c8ab34a652b33f1b19be45dd673e5c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
