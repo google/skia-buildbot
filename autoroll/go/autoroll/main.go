@@ -311,8 +311,18 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		gcsClient := gcs.NewGCSClient(s, GS_BUCKET_AUTOROLLERS)
-		gcsPrefix := *host
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatalf("Could not get hostname: %s", err)
+		}
+		bucket := GS_BUCKET_AUTOROLLERS
+		gcsPrefix := hostname
+		if *local {
+			bucket = gcs.TEST_DATA_BUCKET
+			gcsPrefix = fmt.Sprintf("autoroll_%s", hostname)
+		}
+		sklog.Infof("Writing persistent data to gs://%s/%s", bucket, gcsPrefix)
+		gcsClient := gcs.NewGCSClient(s, bucket)
 
 		if cfg.GerritURL != "" {
 			// Create the code review API client.
