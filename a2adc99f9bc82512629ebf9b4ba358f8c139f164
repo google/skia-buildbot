@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "edbfc79f_482b2595",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T18:51:56Z",
+      "side": 0,
+      "message": "Is there an equivalent I need to add to promk/prometheus/prometheus.yml ?",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 42
+      },
+      "revId": "a2adc99f9bc82512629ebf9b4ba358f8c139f164",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
