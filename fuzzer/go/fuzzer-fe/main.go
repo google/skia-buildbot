@@ -223,7 +223,7 @@ func setupOAuth(ctx context.Context) error {
 	if !*local {
 		useRedirectURL = *redirectURL
 	}
-	if err := login.Init(useRedirectURL, *authWhiteList); err != nil {
+	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
 		return fmt.Errorf("Problem setting up server OAuth: %s", err)
 	}
 
