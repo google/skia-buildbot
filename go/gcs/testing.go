@@ -179,6 +179,15 @@ func (c *MemoryGCSClient) FileWriter(ctx context.Context, path string, opts File
 }
 
 // See documentation for GCSClient interface.
+func (c *MemoryGCSClient) DoesFileExist(ctx context.Context, path string) (bool, error) {
+	_, err := c.FileReader(ctx, path)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// See documentation for GCSClient interface.
 func (c *MemoryGCSClient) GetFileContents(ctx context.Context, path string) ([]byte, error) {
 	r, err := c.FileReader(ctx, path)
 	if err != nil {

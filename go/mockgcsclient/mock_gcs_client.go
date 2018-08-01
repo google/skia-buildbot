@@ -32,6 +32,11 @@ func (m *MockGCSClient) FileWriter(ctx context.Context, path string, opts gcs.Fi
 	return args.Get(0).(io.WriteCloser)
 }
 
+func (m *MockGCSClient) DoesFileExist(ctx context.Context, path string) (bool, error) {
+	args := m.Called(ctx, path)
+	return args.Get(0).(bool), args.Error(1)
+}
+
 func (m *MockGCSClient) GetFileContents(ctx context.Context, path string) ([]byte, error) {
 	args := m.Called(ctx, path)
 	return args.Get(0).([]byte), args.Error(1)
