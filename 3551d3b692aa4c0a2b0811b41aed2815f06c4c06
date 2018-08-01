@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0b1121b1_1ef597f4",
+        "filename": "cq_watcher/Dockerfile",
+        "patchSetId": 11
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-01T15:40:41Z",
+      "side": 1,
+      "message": "Use cr.io/skia-public/basealpine:3.7 as your base.\n\nSee notifier as an example:\n\nhttps://github.com/google/skia-buildbot/blob/b7d1694346ba4b65c569430e75ba3b2aa838e60d/notifier/notifier/Dockerfile",
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf5535ab_44f67028",
+        "filename": "cq_watcher/README.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-01T15:40:41Z",
+      "side": 1,
+      "message": "If you just built locally then \n\n   docker run gcr.io/skia-public/cq_watcher\n\nwill run the latest.",
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c24bf39d_f7436a61",
+        "filename": "cq_watcher/build_docker_release",
+        "patchSetId": 11
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-01T15:40:41Z",
+      "side": 1,
+      "message": "stray comment",
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b844257_a00ede44",
+        "filename": "cq_watcher/build_docker_release",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-01T15:40:41Z",
+      "side": 1,
+      "message": "vertically align ${ROOT}\u0027s",
+      "range": {
+        "startLine": 11,
+        "startChar": 38,
+        "endLine": 11,
+        "endChar": 47
+      },
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
