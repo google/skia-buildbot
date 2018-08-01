@@ -11,9 +11,9 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
-	"go.skia.org/infra/ct/go/util"
 )
 
 const (
@@ -43,16 +43,20 @@ type CTAutoscaler struct {
 
 // NewCTAutoscaler returns a CT Autoscaler instance.
 func NewCTAutoscaler() (*CTAutoscaler, error) {
-	a, err := autoscaler.NewAutoscaler(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT, util.StorageDir, MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
+	// Authenticated HTTP client.
+	scopes := append(util.CopyStringSlice(gce.AUTH_SCOPES), swarming.AUTH_SCOPE)
+	httpClient, err := auth.NewClient(*master_common.Local, "google_storage_token.data", scopes...)
+	if err != nil {
+		return nil, err
+	}
+	// Instantiate the GCE scaler.
+	// TODO(borenet): Can we use go/swarming/autoscaler.Autoscaler?
+	instances := autoscaler.GetInstanceRange(MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
+	a, err := autoscaler.NewAutoscaler(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT, httpClient, instances)
 	if err != nil {
 		return nil, fmt.Errorf("Could not instantiate Autoscaler: %s", err)
 	}
 
-	// Authenticated HTTP client.
-	httpClient, err := auth.NewClient(*master_common.Local, "google_storage_token.data", swarming.AUTH_SCOPE)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create an authenticated HTTP client: %s", err)
-	}
 	// Instantiate the swarming client.
 	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {
@@ -138,10 +142,10 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 }
 
 func (c *CTAutoscaler) logRunningGCEInstances() error {
-	instances, err := c.a.GetRunningInstances()
-	if err != nil {
+	if err := c.a.Update(); err != nil {
 		return err
 	}
+	instances := c.a.GetOnlineInstances()
 	sklog.Debugf("Running CT GCE instances: %s", instances)
 	return nil
 }
