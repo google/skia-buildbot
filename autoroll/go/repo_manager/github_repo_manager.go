@@ -10,6 +10,7 @@ import (
 	"path"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
@@ -45,16 +46,24 @@ type GithubRepoManagerConfig struct {
 	ChildRepoURL string `json:"childRepoURL"`
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
+	// The default strategy to use.
+	DefaultStrategy string `json:"defaultStrategy"`
+	// GS Bucket and template to use if strategy.ROLL_STRATEGY_STORAGE_FILE is used.
+	StorageBucket       string `json:"storageBucket"`
+	StoragePathTemplate string `json:"storagePathTemplate"`
 }
 
 // githubRepoManager is a struct used by the autoroller for managing checkouts.
 type githubRepoManager struct {
 	*commonRepoManager
-	githubClient  *github.GitHub
-	parentRepo    *git.Checkout
-	parentRepoURL string
-	childRepoURL  string
-	revisionFile  string
+	githubClient    *github.GitHub
+	parentRepo      *git.Checkout
+	parentRepoURL   string
+	childRepoURL    string
+	revisionFile    string
+	defaultStrategy string
+	gsBucket        string
+	gsPathTemplate  string
 }
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
@@ -108,6 +117,9 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		parentRepoURL:     c.ParentRepoURL,
 		childRepoURL:      c.ChildRepoURL,
 		revisionFile:      c.RevisionFile,
+		defaultStrategy:   c.DefaultStrategy,
+		gsBucket:          c.StorageBucket,
+		gsPathTemplate:    c.StoragePathTemplate,
 	}
 
 	return gr, nil
@@ -337,4 +349,23 @@ func (rm *githubRepoManager) GetFullHistoryUrl() string {
 // See documentation for RepoManager interface.
 func (rm *githubRepoManager) GetIssueUrlBase() string {
 	return rm.githubClient.GetIssueUrlBase()
+}
+
+// See documentation for RepoManager interface.
+func (r *githubRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.gsBucket, r.gsPathTemplate, r.childRepo, nil)
+}
+
+// See documentation for RepoManager interface.
+func (r *githubRepoManager) DefaultStrategy() string {
+	return r.defaultStrategy
+}
+
+// See documentation for RepoManager interface.
+func (r *githubRepoManager) ValidStrategies() []string {
+	return []string{
+		strategy.ROLL_STRATEGY_GCS_FILE,
+		strategy.ROLL_STRATEGY_SINGLE,
+		strategy.ROLL_STRATEGY_BATCH,
+	}
 }

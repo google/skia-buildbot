@@ -31,6 +31,12 @@ type GCSClient interface {
 	// Otherwise, the existing file will be overwritten. The caller must call Close on
 	// the returned Writer to flush the writes.
 	FileWriter(ctx context.Context, path string, opts FileWriteOptions) io.WriteCloser
+	// DoesFileExist returns true if the specified path exists and false if it does not.
+	// This is a convenience wrapper around
+	// https://godoc.org/cloud.google.com/go/storage#ObjectHandle.Attrs
+	// If any error, other than storage.ErrObjectNotExist, is encountered then it will be
+	// returned.
+	DoesFileExist(ctx context.Context, path string) (bool, error)
 	// GetFileContents returns the []byte represented by the GCS file at path. This is a
 	// convenience wrapper around FileReader. storage.ErrObjectNotExist will be returned
 	// if the file is not found.
@@ -89,6 +95,17 @@ func (g *gcsclient) FileWriter(ctx context.Context, path string, opts FileWriteO
 	w.ObjectAttrs.Metadata = opts.Metadata
 
 	return w
+}
+
+// See the GCSClient interface for more information about DoesFileExist.
+func (g *gcsclient) DoesFileExist(ctx context.Context, path string) (bool, error) {
+	if _, err := g.client.Bucket(g.bucket).Object(path).Attrs(ctx); err != nil {
+		if err == storage.ErrObjectNotExist {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
 }
 
 // See the GCSClient interface for more information about GetFileContents.
