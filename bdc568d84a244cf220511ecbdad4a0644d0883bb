@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17730d19_0eb564c0",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T14:07:28Z",
+      "side": 1,
+      "message": "Instead of making a whole new flutter repo manager to use the new strategy I figure making it configurable in the config file would be better.",
+      "revId": "bdc568d84a244cf220511ecbdad4a0644d0883bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
