@@ -1,5 +1,7 @@
 package modes
 
+// TODO(borenet): Remove this file once all rollers have been upgraded.
+
 import (
 	"encoding/json"
 	"time"
@@ -59,7 +61,7 @@ func (d *db) SetMode(m *ModeChange) error {
 
 // ModeHistory returns the last N mode changes.
 func (d *db) GetModeHistory(N int) ([]*ModeChange, error) {
-	history := make([]*ModeChange, 0, N)
+	history := []*ModeChange{}
 	if err := d.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(BUCKET_MODE_HISTORY)
 		c := b.Cursor()
