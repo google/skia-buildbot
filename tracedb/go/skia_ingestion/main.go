@@ -7,6 +7,8 @@ import (
 	"context"
 	"flag"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime/pprof"
@@ -33,6 +35,7 @@ import (
 var (
 	configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
 	dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+	httpPort           = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
@@ -128,6 +131,10 @@ func main() {
 		cleanup.AtExit(writeProfileFn)
 	}
 
-	// Run the ingesters forever.
-	select {}
+	// Set up the http handler to indicate ready-ness and start serving.
+	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		_, err := w.Write([]byte("ready"))
+		util.LogErr(err)
+	})
+	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }
