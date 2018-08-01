@@ -232,6 +232,30 @@
     },
     {
       "key": {
+        "uuid": "fc3cedb1_ba549b12",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-01T15:30:51Z",
+      "side": 1,
+      "message": "I think saving state is a bit problematic because we\u0027ll probably be messing with the bot manually, causing unexpected transitions.\n\nIf we can detect \"GCE instance is online but Swarming bot is not connected\" and translate that into starting/stopping state, then we can at least get alerts for \"bot has been in starting state for 15 minutes.\"\n\nIf we can\u0027t get that, we won\u0027t notice stuck bots until we next try to start them. Maybe that\u0027s OK.\n\nIt\u0027s possible that we\u0027ll want a BOT_STATE_ERROR state anyway, so that we aren\u0027t 100% reliant on someone responding to alerts in a timely manner. Currently, if a bot fails to start, it will stay in BOT_STATE_STARTING, which we treat like BOT_STATE_ONLINE in our calculations. That means we\u0027ll be permanently down 1 bot (or however many bots get stuck) until a human intervenes. IMO we should see how things go without BOT_STATE_ERROR and revisit later.",
+      "parentUuid": "8d92668d_1c9aff3c",
+      "range": {
+        "startLine": 299,
+        "startChar": 2,
+        "endLine": 299,
+        "endChar": 32
+      },
+      "revId": "08fcdb6fdd1e4fd30b4db1db3900b3db281fa6ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "498c8178_04d125a4",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 5

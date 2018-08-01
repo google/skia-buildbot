@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0605e711_642c2692",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-01T15:30:51Z",
+      "side": 1,
+      "message": "states[id] (or set state above)",
+      "range": {
+        "startLine": 214,
+        "startChar": 6,
+        "endLine": 214,
+        "endChar": 11
+      },
+      "revId": "13b3aca9068ecf0aae68f931c9042bb2c49afb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

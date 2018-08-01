@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e3ea8798_4138125c",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-01T15:30:51Z",
+      "side": 1,
+      "message": "Awesome, thanks!",
+      "parentUuid": "d9b349ca_b317d93b",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f24bccb7_f21f225b",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
@@ -550,6 +568,24 @@
       "side": 1,
       "message": "We already log errors for all of the failure cases here, so I\u0027m not sure how much value this adds.  I moved the contents of the goroutine into a separate function so that we have a single function call and log any error it returns.  That\u0027ll prevent us from forgetting to log an error if one occurs.",
       "parentUuid": "f19845a4_35f71243",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a67e694_8160b07f",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-01T15:30:51Z",
+      "side": 1,
+      "message": "There won\u0027t be a failure when the process is terminated, but if it\u0027s a graceful termination, IIUC the defers are still supposed to run.",
+      "parentUuid": "c5cc527d_3edcfcb4",
       "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
