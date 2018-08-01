@@ -120,7 +120,7 @@ func refreshCQTryBots(cqClient *cq.Client) {
 }
 
 func main() {
-	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort), common.CloudLoggingOpt())
+	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort))
 
 	httpClient := httputils.NewTimeoutClient()
 	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
