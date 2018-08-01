@@ -16,6 +16,24 @@
       "revId": "5e2066f531b71d45f2b9f5775aeea5731513eb36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80ee5490_305cbf82",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T20:20:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd3df9a9_d2dbb249",
+      "revId": "5e2066f531b71d45f2b9f5775aeea5731513eb36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
