@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "10c830db_73041871",
+        "filename": "cq_watcher/Dockerfile",
+        "patchSetId": 11
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T17:19:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b1121b1_1ef597f4",
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf5535ab_44f67028",
         "filename": "cq_watcher/README.md",
         "patchSetId": 11
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9a1c5403_eeb33c04",
+        "filename": "cq_watcher/README.md",
+        "patchSetId": 11
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T17:19:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bf5535ab_44f67028",
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c24bf39d_f7436a61",
         "filename": "cq_watcher/build_docker_release",
         "patchSetId": 11
@@ -50,6 +86,24 @@
       "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a48e234a_a032c354",
+        "filename": "cq_watcher/build_docker_release",
+        "patchSetId": 11
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T17:19:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c24bf39d_f7436a61",
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -73,6 +127,30 @@
       "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1e4b9f0_b0d32d47",
+        "filename": "cq_watcher/build_docker_release",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-01T17:19:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b844257_a00ede44",
+      "range": {
+        "startLine": 11,
+        "startChar": 38,
+        "endLine": 11,
+        "endChar": 47
+      },
+      "revId": "3551d3b692aa4c0a2b0811b41aed2815f06c4c06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
