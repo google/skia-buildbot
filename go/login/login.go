@@ -67,6 +67,9 @@ const (
 
 	// LOGIN_CONFIG_FILE is the location of the login config when running in kubernetes.
 	LOGIN_CONFIG_FILE = "/etc/skia.org/login.json"
+
+	// DEFAULT_CLIENT_SECRET_FILE is the default path to the file used for OAuth2 login.
+	DEFAULT_CLIENT_SECRET_FILE = "client_secret.json"
 )
 
 var (
@@ -125,7 +128,7 @@ func SimpleInitMust(port string, local bool) {
 	if !local {
 		redirectURL = DEFAULT_REDIRECT_URL
 	}
-	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST); err != nil {
+	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 }
@@ -151,10 +154,14 @@ func InitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
 //
 // The authWhiteList is the space separated list of domains and email addresses
 // that are allowed to log in.
-func Init(redirectURL string, authWhiteList string) error {
+func Init(redirectURL string, authWhiteList string, clientSecretFile string) error {
 	cookieSalt, clientID, clientSecret := tryLoadingFromKnownLocations()
 	if clientID == "" {
-		b, err := ioutil.ReadFile("client_secret.json")
+		if clientSecretFile == "" {
+			clientSecretFile = DEFAULT_CLIENT_SECRET_FILE
+		}
+
+		b, err := ioutil.ReadFile(clientSecretFile)
 		if err != nil {
 			return fmt.Errorf("Failed to read from metadata and from client_secret.json file: %s", err)
 		}
@@ -698,10 +705,11 @@ func tryLoadingFromKnownLocations() (string, string, string) {
 		return nil
 	})
 	if err == nil {
-		sklog.Infof("Successfully loaded login secrets from file %s", LOGIN_CONFIG_FILE)
+		sklog.Infof("Successfully loaded login secrets from file %s.", LOGIN_CONFIG_FILE)
+		sklog.Infof("LOGIN: '%s'    '%s'    '%s'", cookieSalt, clientID, clientSecret)
 		return cookieSalt, clientID, clientSecret
 	} else {
-		sklog.Infof("Failed to load login secrets from file %s", LOGIN_CONFIG_FILE)
+		sklog.Infof("Failed to load login secrets from file %s. Got error: %s", LOGIN_CONFIG_FILE, err)
 	}
 	cookieSalt, err = metadata.ProjectGet(metadata.COOKIESALT)
 	if err != nil {

@@ -270,7 +270,7 @@ func main() {
 	if !*local {
 		useRedirectURL = *redirectURL
 	}
-	if err := login.Init(useRedirectURL, *authWhiteList); err != nil {
+	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
 		sklog.Fatal(fmt.Errorf("Problem setting up server OAuth: %s", err))
 	}
 

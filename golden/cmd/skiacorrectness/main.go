@@ -71,6 +71,7 @@ var (
 	authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
 	authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
+	clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
@@ -84,24 +85,24 @@ var (
 	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
 	internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
-	issueTrackerKey     = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
-	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
-	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", WHITELIST_ALL))
-	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-	storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
-	gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-	serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
-	showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
-	traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+	// 	issueTrackerKey     = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
+	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
+	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	pubWhiteList       = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", WHITELIST_ALL))
+	redirectURL        = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	gerritURL          = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
+	storageDir         = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+	gitRepoDir         = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	showBotProgress    = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
+	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
 )
 
 func main() {
@@ -186,7 +187,7 @@ func main() {
 		useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	}
 	authWhiteList := metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, login.DEFAULT_DOMAIN_WHITELIST)
-	if err := login.Init(useRedirectURL, authWhiteList); err != nil {
+	if err := login.Init(useRedirectURL, authWhiteList, *clientSecretFile); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
@@ -250,7 +251,7 @@ func main() {
 	// depending whether an PubSub topic was defined.
 	var evt eventbus.EventBus = nil
 	if *eventTopic != "" {
-		evt, err = gevent.New(common.PROJECT_ID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
+		evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
 		if err != nil {
 			sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 		}
@@ -259,11 +260,16 @@ func main() {
 		evt = eventbus.New()
 	}
 
-	// Set up an authenticated Gerrit client.
-	gitcookiesPath := gerrit.DefaultGitCookiesPath()
-	if !*local {
-		if gitcookiesPath, err = gerrit.GitCookieAuthDaemonPath(); err != nil {
-			sklog.Fatalf("Error retrieving git_cookie_authdaemon path: %s", err)
+	// If this is an authoritative instance we need an authenticated Gerrit client
+	// because it needs to write.
+	gitcookiesPath := ""
+	if *authoritative {
+		// Set up an authenticated Gerrit client.
+		gitcookiesPath = gerrit.DefaultGitCookiesPath()
+		if !*local {
+			if gitcookiesPath, err = gerrit.GitCookieAuthDaemonPath(); err != nil {
+				sklog.Fatalf("Error retrieving git_cookie_authdaemon path: %s", err)
+			}
 		}
 	}
 	gerritAPI, err := gerrit.NewGerrit(*gerritURL, gitcookiesPath, nil)
@@ -392,9 +398,9 @@ func main() {
 		sklog.Fatalf("Failed to create instance of search API: %s", err)
 	}
 
-	if !*local {
-		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
-	}
+	// if !*local {
+	// 	*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
+	// }
 
 	issueTracker := issues.NewMonorailIssueTracker(client)
 

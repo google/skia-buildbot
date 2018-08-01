@@ -1,0 +1,75 @@
+ID == name of instances, i.e. skottie / lottie
+
+traceserver:
+    pdfium_gold_traceserver
+    --db_file=/mnt/pd0/pdfium_gold/traceserver/pdfium_gold_traces.db \
+    --port=:9091 \
+    --prom_port=:20003 \
+    --logtostderr
+
+Ingestion:
+    pdfium-gold-ingestion \
+    --config_filename=/etc/pdfium-gold-ingestion/config.json5 \
+    --ds_namespace=gold-pdfium \
+    --logtostderr \
+    --prom_port=:20001
+
+    {
+    GitRepoDir: "/mnt/pd0/pdfium-gold-ingestion/repo",     // Directory location for the Skia repo.
+    GitRepoURL: "https://pdfium.googlesource.com/pdfium",  // URL location for the repo.
+    EventTopic: "gold-pdfium-eventbus",
+
+    Ingesters: {
+        // Pdfium Gold ingester
+        gold: {
+        RunEvery: "5m",
+        NCommits: 75,
+        MinDays: 20,
+        StatusDir: "/mnt/pd0/pdfium-gold-ingestion/ingest_status",
+        MetricName: "pdfium-gold-ingest",
+        Sources: [
+            {
+            Bucket: "skia-pdfium-gm",
+            Dir: "dm-json-v1"
+            }
+        ],
+        ExtraParams: {
+            TraceService: "skia-tracedb:9091"
+        }
+        },
+
+        // Pdfium Gold trybot ingester
+        "gold-tryjob": {
+        RunEvery: "5m",
+        NCommits: 10,
+        MinDays: 20,
+        StatusDir: "/mnt/pd0/pdfium-gold-ingestion/tryjobs/ingest_status",
+        MetricName: "pdfium-gold-ingest-trybot",
+        Sources: [
+            {
+            Bucket: "skia-pdfium-gm",
+            Dir: "trybot/dm-json-v1"
+            }
+        ],
+        ExtraParams: {
+            GerritCodeReviewURL: "https://pdfium-review.googlesource.com",
+            BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+            BuildBucketName: "master.tryserver.client.pdfium",
+            BuildBucketPollInterval: "10s",
+            BuildBucketTimeWindow: "5h",
+            BuilderRegEx: ".*",
+        }
+        },
+    }
+    }
+
+
+
+
+
+Gold:
+
+Databases:
+
+Volumes:
+

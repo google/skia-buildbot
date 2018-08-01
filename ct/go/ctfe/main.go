@@ -285,7 +285,7 @@ func main() {
 	}
 
 	redirectURL := serverURL + ctfeutil.OAUTH2_CALLBACK_PATH
-	if err := login.Init(redirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " ")); err != nil {
+	if err := login.Init(redirectURL, strings.Join(ctfeutil.DomainsWithViewAccess, " "), ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
