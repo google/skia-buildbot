@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "b66a2289_af102dd1",
+        "filename": "golden/k8s_build_skiacorrectness",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-02T16:32:49Z",
+      "side": 1,
+      "message": "Fixed in https://skia-review.googlesource.com/c/buildbot/+/145101",
+      "parentUuid": "b767b875_e8102587",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6678aeb7_d555024f",
         "filename": "golden/k8s_build_skiacorrectness",
         "patchSetId": 5
@@ -166,6 +190,30 @@
       "side": 1,
       "message": "Ack",
       "parentUuid": "2942fa70_c7aec638",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 17
+      },
+      "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0363bd57_639e23d8",
+        "filename": "tracedb/k8s_build_ingestion",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-02T16:32:49Z",
+      "side": 1,
+      "message": "You may want to apply https://skia-review.googlesource.com/c/buildbot/+/145101/3/golden/Makefile here also.",
+      "parentUuid": "70815cb2_726b287e",
       "range": {
         "startLine": 5,
         "startChar": 0,
