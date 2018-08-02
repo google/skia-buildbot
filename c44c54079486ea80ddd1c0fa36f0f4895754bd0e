@@ -303,6 +303,30 @@
     },
     {
       "key": {
+        "uuid": "2276d09b_ee1b664f",
+        "filename": "task_scheduler/go/autoscaler/autoscaler.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:03:45Z",
+      "side": 1,
+      "message": "Agreed, my solution would cause us to be without a task scheduler in that (hopefully very unlikely) case.",
+      "parentUuid": "50edeac4_21efe368",
+      "range": {
+        "startLine": 94,
+        "startChar": 13,
+        "endLine": 94,
+        "endChar": 32
+      },
+      "revId": "c44c54079486ea80ddd1c0fa36f0f4895754bd0e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "89d25578_c0896135",
         "filename": "task_scheduler/go/autoscaler/autoscaler.go",
         "patchSetId": 6

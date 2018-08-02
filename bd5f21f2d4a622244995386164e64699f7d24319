@@ -592,6 +592,24 @@
     },
     {
       "key": {
+        "uuid": "ffbc8834_008cda6b",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:03:45Z",
+      "side": 1,
+      "message": "Did as you suggested.  Do you have a source for defers not being interrupted on SIGINT?  Not doubting you, just curious to read more.",
+      "parentUuid": "7a67e694_8160b07f",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7ec428e6_680df569",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
