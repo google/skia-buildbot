@@ -1,7 +1,7 @@
 KGO := CGO_ENABLED=0 GOOS=linux go build
 
-.PHONY: all
-all: frontend allgo
+.PHONY: default
+default: frontend allgo
 
 include ../go/skiaversion/skiaversion.mk
 
@@ -33,15 +33,14 @@ frontend:
 allgo: skiaversion
 	go install -v ./cmd/...
 
-.PHONY: k8s
-k8s: k8s-binaries frontend
+.PHONY: k8s-release-skiacorrectness
+k8s-release-skiacorrectness: k8s-skiacorrectness frontend
+	./k8s_build_skiacorrectness
 
-.PHONY: k8s-binaries
-k8s-binaries: skiaversion
+.PHONY: k8s-skiacorrectness
+k8s-skiacorrectness: skiaversion
 	mkdir -p ./build
-	rm -f ./build/*
+	rm -f ./build/skiacorrectness_k8s
 	$(KGO) -o build/skiacorrectness_k8s  -a ./cmd/skiacorrectness/main.go
-	$(KGO) -o build/baseline_server_k8s  -a ./cmd/baseline_server/main.go
-	$(KGO) -o build/skia_diff_server_k8s -a ./cmd/skia_diff_server/main.go
 
 include ../webtools/webtools.mk

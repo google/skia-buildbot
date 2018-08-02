@@ -14,6 +14,8 @@ import (
 	"runtime/pprof"
 	"time"
 
+	"go.skia.org/infra/go/httputils"
+
 	"google.golang.org/api/option"
 	storage "google.golang.org/api/storage/v1"
 
@@ -132,9 +134,6 @@ func main() {
 	}
 
 	// Set up the http handler to indicate ready-ness and start serving.
-	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte("ready"))
-		util.LogErr(err)
-	})
+	http.HandleFunc("/ready", httputils.ReadyHandleFunc)
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }
