@@ -160,6 +160,18 @@ func (p ParamSet) Normalize() {
 	}
 }
 
+// Match returns true if the params in 'p' match the Params given in 'right'.
+// For every key in 'right' there has to be a matching key in 'p' and
+// the value for that key must appear in 'p'.
+func (p ParamSet) Match(right Params) bool {
+	for key, values := range p {
+		if !util.In(right[key], values) {
+			return false
+		}
+	}
+	return true
+}
+
 // Matches returns true if the params in 'p' match the sets given in 'right'.
 // For every key in 'p' there has to be a matching key in 'right' and
 // the intersection of their values must be not empty.
