@@ -4,6 +4,7 @@ import (
 	"path"
 	"runtime"
 
+	"cloud.google.com/go/datastore"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
@@ -19,6 +20,7 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "rmistry"
+	vm.Scopes = append(vm.Scopes, datastore.ScopeDatastore)
 	return vm
 }
 
