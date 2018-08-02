@@ -641,6 +641,27 @@ server {
     return 301 https://depot-tools-chromium-roll.skia.org$request_uri;
 }
 
+#####   flutter-engine-flutter-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name flutter-engine-flutter-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/flutter-engine-flutter-roll.access.log;
+    error_log /var/log/nginx/flutter-engine-flutter-roll.error.log error;
+
+    location / {
+        proxy_pass http://flutter-engine-flutter-autoroll:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name flutter-engine-flutter-roll.skia.org;
+    return 301 https://flutter-engine-flutter-roll.skia.org$request_uri;
+}
+
 #####   google3-roll.skia.org   ###########################
 server {
     listen      443;
