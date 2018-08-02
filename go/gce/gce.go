@@ -948,6 +948,7 @@ func (g *GCloud) WaitForLogMessage(vm *Instance, logText string, timeout time.Du
 // DownloadFile downloads the given file from Google Cloud Storage to the
 // instance.
 func (g *GCloud) DownloadFile(ctx context.Context, vm *Instance, f *GSDownload) error {
+	// TODO(rmistry): RUN THIS ON LOCAL MACHINE NOT ON THE INSTANCE. HOW DO I DO THAT? NEED TO TRY SOME THINGS!!
 	if _, err := g.Ssh(ctx, vm, "gsutil", "cp", f.Source, f.Dest); err != nil {
 		return err
 	}
@@ -1275,6 +1276,29 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 		return fmt.Errorf("Failed to delete disk %q: %s", vm.BootDisk.Name, err)
 	}
 	sklog.Infof("Successfully captured image %q", imageName)
+	return nil
+}
+
+// CaptureImage captures an image from the instance's boot disk. The instance
+// has to be deleted in order to capture the image, and we delete the boot disk
+// after capture for cleanliness.
+// rmistry
+// dest will be ~/.gitcookies ?
+// what about the .ssh thingy?
+func (vm *Instance) AddGSDownload(source, dest, mode string) error {
+	// fmt.Sprintf(GS_URL_GITCOOKIES_TMPL, gitUser),
+
+	//&gce.GSDownload{
+	//	Source: GS_URL_NETRC_READONLY_INTERNAL,
+	//	Dest:   "~/.netrc",
+	//	Mode:   "600",
+	//}
+
+	vm.GSDownloads = append(vm.GSDownloads, &GSDownload{
+		Source: source,
+		Dest:   dest,
+		Mode:   mode,
+	})
 	return nil
 }
 
