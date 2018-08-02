@@ -46,6 +46,30 @@
       "revId": "56e72a06ac67a44ac83183fdc383988a04bc9694",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2c3e9f1_2e7397c0",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-02T14:50:17Z",
+      "side": 1,
+      "message": "My worry was that the datastore_backup would fail if something does not exist, but I have no idea, it\u0027s probably fine.",
+      "parentUuid": "7f6aac11_f212bd57",
+      "range": {
+        "startLine": 102,
+        "startChar": 53,
+        "endLine": 102,
+        "endChar": 80
+      },
+      "revId": "56e72a06ac67a44ac83183fdc383988a04bc9694",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
