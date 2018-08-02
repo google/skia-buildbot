@@ -47,6 +47,7 @@ var (
 	workdir     = flag.String("workdir", os.TempDir(), "Working directory. Optional, but recommended not to use CWD.")
 	includeBots = common.NewMultiStringFlag("include_bot", nil, "If specified, treated as a white list of bots which will be affected, calculated AFTER the dimensions is computed. Can be simple strings or regexes")
 	internal    = flag.Bool("internal", false, "Run against internal swarming and isolate instances.")
+	justOne     = flag.Bool("just_one", false, "Run only one one of the bots that matches the dimensions")
 )
 
 func main() {
@@ -102,6 +103,10 @@ func main() {
 	bots, err := swarmApi.ListBots(dims)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+
+	if *justOne && len(bots) > 1 {
+		bots = bots[:1]
 	}
 
 	swarmClient, err := swarming.NewSwarmingClient(ctx, *workdir, swarmingServer, isolateServer)
