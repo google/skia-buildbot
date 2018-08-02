@@ -7,7 +7,6 @@ package main
 import (
 	"context"
 	"flag"
-	"path/filepath"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
@@ -25,7 +24,6 @@ var (
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
-	workdir        = flag.String("workdir", ".", "Working directory.")
 )
 
 func main() {
@@ -53,15 +51,12 @@ func main() {
 	}
 	sklog.Infof("%s instances: %v", verb, instanceNums)
 
-	// Get the absolute workdir.
-	wdAbs, err := filepath.Abs(*workdir)
+	// Create the GCloud object.
+	g, err := gce.NewLocalGCloud(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-
-	// Create the GCloud object.
-	g, err := gce.NewGCloud(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT, wdAbs)
-	if err != nil {
+	if err := g.CheckSsh(); err != nil {
 		sklog.Fatal(err)
 	}
 
