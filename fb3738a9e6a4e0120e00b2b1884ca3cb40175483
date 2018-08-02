@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "84d06848_bfb80209",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 0,
+      "message": "ModeHistory.Close() was removed since we no longer use a BoltDB and datastore doesn\u0027t need to be closed when finished.",
+      "parentUuid": "306fd041_c134e758",
+      "revId": "fb3738a9e6a4e0120e00b2b1884ca3cb40175483",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bd1018fb_d6b3cab6",
         "filename": "autoroll/go/strategy/db.go",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2018-08-01T20:54:48Z",
       "side": 0,
       "message": "Why was this changed?",
+      "revId": "fb3738a9e6a4e0120e00b2b1884ca3cb40175483",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d507273_8dc4f8a2",
+        "filename": "autoroll/go/strategy/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 0,
+      "message": "The transition code uses math.MaxInt32 for N, just to ensure that we pick up all (or a sufficient number) of the entries without having to write a new function.  Allocating that much memory here is slow and unnecessary.",
+      "parentUuid": "bd1018fb_d6b3cab6",
       "revId": "fb3738a9e6a4e0120e00b2b1884ca3cb40175483",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a1712a0d_0627f712",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c263db5e_c7c6e0ce",
+      "range": {
+        "startLine": 80,
+        "startChar": 61,
+        "endLine": 80,
+        "endChar": 63
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fe9c4244_94b08034",
         "filename": "autoroll/go/modes/modes.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23aa45d3_15fa262b",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "I\u0027m sensing a theme here :P",
+      "parentUuid": "fe9c4244_94b08034",
+      "range": {
+        "startLine": 93,
+        "startChar": 78,
+        "endLine": 93,
+        "endChar": 80
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +188,30 @@
     },
     {
       "key": {
+        "uuid": "06540744_16b73772",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Whoops, no longer true.",
+      "parentUuid": "fbe6cee3_fbdaa654",
+      "range": {
+        "startLine": 172,
+        "startChar": 64,
+        "endLine": 173,
+        "endChar": 28
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49802f52_c9cba30e",
         "filename": "autoroll/go/modes/modes.go",
         "patchSetId": 7
@@ -163,6 +235,30 @@
     },
     {
       "key": {
+        "uuid": "b79be75d_405c1060",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49802f52_c9cba30e",
+      "range": {
+        "startLine": 182,
+        "startChar": 8,
+        "endLine": 182,
+        "endChar": 13
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10ec71ee_2aa80bd6",
         "filename": "autoroll/go/modes/modes.go",
         "patchSetId": 7
@@ -174,6 +270,30 @@
       "writtenOn": "2018-08-01T20:54:48Z",
       "side": 1,
       "message": "Should this be moved to the top because of mh.getHistory?",
+      "range": {
+        "startLine": 198,
+        "startChar": 1,
+        "endLine": 199,
+        "endChar": 22
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c43edf62_74d55bee",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "No, mh.mtx protects mh.history, not the datastore itself.",
+      "parentUuid": "10ec71ee_2aa80bd6",
       "range": {
         "startLine": 198,
         "startChar": 1,
@@ -209,6 +329,30 @@
     },
     {
       "key": {
+        "uuid": "c59270a9_e5c6f23d",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e5f4368_2476f688",
+      "range": {
+        "startLine": 72,
+        "startChar": 65,
+        "endLine": 72,
+        "endChar": 67
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d9c9d69_9c045885",
         "filename": "autoroll/go/strategy/strategy.go",
         "patchSetId": 7
@@ -229,6 +373,30 @@
       "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dde75453_18fb4743",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d9c9d69_9c045885",
+      "range": {
+        "startLine": 85,
+        "startChar": 82,
+        "endLine": 85,
+        "endChar": 84
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +423,30 @@
     },
     {
       "key": {
+        "uuid": "67bb1c98_ee780f82",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4801977_82db0167",
+      "range": {
+        "startLine": 114,
+        "startChar": 43,
+        "endLine": 114,
+        "endChar": 51
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a213275_6702087e",
         "filename": "autoroll/go/strategy/strategy.go",
         "patchSetId": 7
@@ -275,6 +467,30 @@
       "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f74cb18_e30bd8a2",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0a213275_6702087e",
+      "range": {
+        "startLine": 154,
+        "startChar": 57,
+        "endLine": 154,
+        "endChar": 59
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +517,30 @@
     },
     {
       "key": {
+        "uuid": "2edcba6f_8af6d140",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Yes, this is no longer accurate. Removed.",
+      "parentUuid": "8e5e2082_7dd35758",
+      "range": {
+        "startLine": 164,
+        "startChar": 68,
+        "endLine": 165,
+        "endChar": 28
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "be46425b_594b2f95",
         "filename": "autoroll/go/strategy/strategy.go",
         "patchSetId": 7
@@ -324,6 +564,30 @@
     },
     {
       "key": {
+        "uuid": "3a791d4f_844ad700",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be46425b_594b2f95",
+      "range": {
+        "startLine": 174,
+        "startChar": 8,
+        "endLine": 174,
+        "endChar": 13
+      },
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e62a9b5f_0b4dd748",
         "filename": "autoroll/go/strategy/strategy.go",
         "patchSetId": 7
@@ -335,6 +599,24 @@
       "writtenOn": "2018-08-01T20:54:48Z",
       "side": 1,
       "message": "Should the locking and unlocking be moved to the top of the method because of the getHistory call?",
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8f70cb5_1b665b1c",
+        "filename": "autoroll/go/strategy/strategy.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Nope, see other comment.",
+      "parentUuid": "e62a9b5f_0b4dd748",
       "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -358,6 +640,24 @@
     },
     {
       "key": {
+        "uuid": "e6e55a32_dda69cf2",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cb819a6_21f44d90",
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "637c04b9_99d9d787",
         "filename": "go/ds/ds.go",
         "patchSetId": 7
@@ -372,6 +672,24 @@
       "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d54360f_59392dd9",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T14:16:13Z",
+      "side": 1,
+      "message": "Done, but removed the currently-unused Kinds.",
+      "parentUuid": "637c04b9_99d9d787",
+      "revId": "04aac3a48e2d6d530e6244c22aee0b1010b805f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
