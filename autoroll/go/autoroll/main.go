@@ -25,12 +25,15 @@ import (
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
@@ -241,6 +244,14 @@ func main() {
 	Init()
 	skiaversion.MustLogVersion()
 
+	ts, err := auth.NewDefaultTokenSource(*local)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
+		sklog.Fatal(err)
+	}
+
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
 		return json5.NewDecoder(f).Decode(&cfg)
 	}); err != nil {
@@ -306,6 +317,9 @@ func main() {
 	var githubClient *github.GitHub
 	if cfg.RollerType() == roller.ROLLER_TYPE_GOOGLE3 {
 		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master")
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	} else {
 		s, err := storage.NewClient(ctx)
 		if err != nil {
@@ -356,6 +370,9 @@ func main() {
 			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 		}
 		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, gcsPrefix)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 	if err != nil {
 		sklog.Fatal(err)

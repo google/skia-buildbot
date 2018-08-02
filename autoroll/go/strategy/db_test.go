@@ -1,5 +1,7 @@
 package strategy
 
+// TODO(borenet): Remove this file once all rollers have been upgraded.
+
 import (
 	"io/ioutil"
 	"os"

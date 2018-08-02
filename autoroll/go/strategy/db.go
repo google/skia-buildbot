@@ -1,5 +1,7 @@
 package strategy
 
+// TODO(borenet): Remove this file once all rollers have been upgraded.
+
 import (
 	"encoding/json"
 	"time"
@@ -59,7 +61,7 @@ func (d *db) SetStrategy(m *StrategyChange) error {
 
 // GetStrategyHistory returns the last N strategy changes.
 func (d *db) GetStrategyHistory(N int) ([]*StrategyChange, error) {
-	history := make([]*StrategyChange, 0, N)
+	history := []*StrategyChange{}
 	if err := d.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(BUCKET_STRATEGY_HISTORY)
 		c := b.Cursor()

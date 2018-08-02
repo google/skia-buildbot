@@ -1,10 +1,14 @@
 package modes
 
 import (
+	"context"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 
+	"cloud.google.com/go/datastore"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -25,12 +29,22 @@ var (
 	}
 )
 
+// Fake ancestor we supply for all ModeChanges, to force consistency.
+// We lose some performance this way but it keeps our tests from
+// flaking.
+func fakeAncestor() *datastore.Key {
+	rv := ds.NewKey(ds.KIND_AUTOROLL_MODE_ANCESTOR)
+	rv.ID = 13 // Bogus ID.
+	return rv
+}
+
 // ModeChange is a struct used for describing a change in the AutoRoll mode.
 type ModeChange struct {
-	Message string    `json:"message"`
-	Mode    string    `json:"mode"`
-	Time    time.Time `json:"time"`
-	User    string    `json:"user"`
+	Message string    `datastore:"message" json:"message"`
+	Mode    string    `datastore:"mode" json:"mode"`
+	Roller  string    `datastore:"roller" json:"-"`
+	Time    time.Time `datastore:"time" json:"time"`
+	User    string    `datastore:"user" json:"user"`
 }
 
 // Copy returns a copy of the ModeChange.
@@ -38,6 +52,7 @@ func (c *ModeChange) Copy() *ModeChange {
 	return &ModeChange{
 		Message: c.Message,
 		Mode:    c.Mode,
+		Roller:  c.Roller,
 		Time:    c.Time,
 		User:    c.User,
 	}
@@ -45,50 +60,71 @@ func (c *ModeChange) Copy() *ModeChange {
 
 // ModeHistory is a struct used for storing and retrieving mode change history.
 type ModeHistory struct {
-	db      *db
 	history []*ModeChange
 	mtx     sync.RWMutex
+	roller  string
 }
 
 // NewModeHistory returns a ModeHistory instance.
-func NewModeHistory(dbFile string) (*ModeHistory, error) {
-	d, err := openDB(dbFile)
-	if err != nil {
-		return nil, err
-	}
+func NewModeHistory(ctx context.Context, roller, dbFile string) (*ModeHistory, error) {
 	mh := &ModeHistory{
-		db: d,
+		roller: roller,
 	}
-	if err := mh.refreshHistory(); err != nil {
+
+	// Temporary: Check whether we've ingested the old data into the new
+	// datastore. If not, do it now.
+	// TODO(borenet): Remove this after all rollers have been upgraded.
+	if history, err := mh.getHistory(ctx); err != nil {
+		return nil, err
+	} else if len(history) == 0 {
+		sklog.Warningf("Ingesting all mode change history into new datastore from %s", dbFile)
+		d, err := openDB(dbFile)
+		if err != nil {
+			return nil, err
+		}
+		defer util.Close(d)
+		allEntries, err := d.GetModeHistory(math.MaxInt32)
+		if err != nil {
+			return nil, err
+		}
+		for _, mc := range allEntries {
+			mc.Roller = roller
+			if err := mh.put(ctx, mc); err != nil {
+				return nil, fmt.Errorf("Failed to ingest old mode change history into new datastore: %s", err)
+			}
+		}
+	}
+
+	if err := mh.refreshHistory(ctx); err != nil {
 		return nil, err
 	}
 	return mh, nil
 }
 
-// Close closes the database held by the ModeHistory.
-func (mh *ModeHistory) Close() error {
-	return mh.db.Close()
-}
-
 // Add inserts a new ModeChange.
-func (mh *ModeHistory) Add(m, user, message string) error {
-	if !util.In(m, VALID_MODES) {
-		return fmt.Errorf("Invalid mode: %s", m)
+func (mh *ModeHistory) Add(ctx context.Context, mode, user, message string) error {
+	if !util.In(mode, VALID_MODES) {
+		return fmt.Errorf("Invalid mode: %s", mode)
 	}
-
 	modeChange := &ModeChange{
 		Message: message,
-		Mode:    m,
+		Mode:    mode,
+		Roller:  mh.roller,
 		Time:    time.Now(),
 		User:    user,
 	}
-
-	mh.mtx.Lock()
-	defer mh.mtx.Unlock()
-	if err := mh.db.SetMode(modeChange); err != nil {
+	if err := mh.put(ctx, modeChange); err != nil {
 		return err
 	}
-	return mh.refreshHistory()
+	return mh.refreshHistory(ctx)
+}
+
+// put inserts the ModeChange into the datastore.
+func (mh *ModeHistory) put(ctx context.Context, m *ModeChange) error {
+	key := ds.NewKey(ds.KIND_AUTOROLL_MODE)
+	key.Parent = fakeAncestor()
+	_, err := ds.DS.Put(ctx, key, m)
+	return err
 }
 
 // CurrentMode returns the current mode, which is the most recently added
@@ -103,6 +139,7 @@ func (mh *ModeHistory) CurrentMode() *ModeChange {
 		return &ModeChange{
 			Message: "Mode history is empty!",
 			Mode:    MODE_STOPPED,
+			Roller:  mh.roller,
 			Time:    time.Now(),
 			User:    "autoroller",
 		}
@@ -122,30 +159,43 @@ func (mh *ModeHistory) GetHistory() []*ModeChange {
 	return rv
 }
 
-// refreshHistory refreshes the mode history from the database. Assumes that the
-// caller holds a write lock.
-func (mh *ModeHistory) refreshHistory() error {
-	history, err := mh.db.GetModeHistory(MODE_HISTORY_LENGTH)
+// getHistory retrieves recent mode changes from the datastore.
+func (mh *ModeHistory) getHistory(ctx context.Context) ([]*ModeChange, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_MODE).Ancestor(fakeAncestor()).Filter("roller =", mh.roller).Order("-time").Limit(MODE_HISTORY_LENGTH)
+	var history []*ModeChange
+	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
+		return nil, err
+	}
+	return history, nil
+}
+
+// refreshHistory refreshes the mode history from the datastore.
+func (mh *ModeHistory) refreshHistory(ctx context.Context) error {
+	history, err := mh.getHistory(ctx)
 	if err != nil {
 		return err
 	}
 
 	// If there's no history, set the initial mode.
 	if len(history) == 0 {
-		if err := mh.db.SetMode(&ModeChange{
+		sklog.Info("Setting initial mode.")
+		if err := mh.put(ctx, &ModeChange{
 			Message: "Setting initial mode.",
 			Mode:    MODE_RUNNING,
+			Roller:  mh.roller,
 			Time:    time.Now(),
 			User:    "AutoRoll Bot",
 		}); err != nil {
 			return err
 		}
-		history, err = mh.db.GetModeHistory(MODE_HISTORY_LENGTH)
+		history, err = mh.getHistory(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
+	mh.mtx.Lock()
+	defer mh.mtx.Unlock()
 	mh.history = history
 	return nil
 }
