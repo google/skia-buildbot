@@ -1,0 +1,10 @@
+@import '~infra-sk/modules/colors';
+
+email-chooser-sk {
+  dialog-sk {
+    h2 {
+      color: $blue;
+      margin: 0;
+    }
+  }
+}
