@@ -108,6 +108,15 @@ func DepotTools_Chromium() *gce.Instance {
 	return vm
 }
 
+func FlutterEngine_Flutter() *gce.Instance {
+	vm := AutoRollBase("flutter-engine-flutter-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"rmistry@google.com",
+	}
+	vm.ServiceAccount = "engine-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func IosInternal_Chromium() *gce.Instance {
 	vm := AutoRollBase("ios-internal-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -288,31 +297,32 @@ func Google3() *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"afdo-chromium":         AFDOChromium(),
-		"android-master":        AndroidMaster(),
-		"android-next":          AndroidNext(),
-		"android-o":             AndroidO(),
-		"angle-chromium":        AngleChromium(),
-		"angle-skia":            AngleSkia(),
-		"catapult":              Catapult(),
-		"chromite-chromium":     Chromite_Chromium(),
-		"chromium-skia":         Chromium_Skia(),
-		"depot-tools-chromium":  DepotTools_Chromium(),
-		"fuchsia":               Fuchsia(),
-		"fuchsia-sdk-chromium":  FuchsiaSDK_Chromium(),
-		"google3":               Google3(),
-		"ios-internal-chromium": IosInternal_Chromium(),
-		"lottie-web-lottie-ci":  LottieWeb_LottieCI(),
-		"nacl":                  NaCl(),
-		"pdfium":                PDFium(),
-		"perfetto-chromium":     PerfettoChromium(),
-		"skcms-skia":            SkCMS_Skia(),
-		"skia":                  Skia(),
-		"skia-flutter":          Skia_Flutter(),
-		"skia-internal":         SkiaInternal(),
-		"skia-lottie-ci":        Skia_LottieCI(),
-		"src-internal-chromium": SrcInternal_Chromium(),
-		"swiftshader-skia":      SwiftShader_Skia(),
-		"webrtc-chromium":       WebRTC_Chromium(),
+		"afdo-chromium":          AFDOChromium(),
+		"android-master":         AndroidMaster(),
+		"android-next":           AndroidNext(),
+		"android-o":              AndroidO(),
+		"angle-chromium":         AngleChromium(),
+		"angle-skia":             AngleSkia(),
+		"catapult":               Catapult(),
+		"chromite-chromium":      Chromite_Chromium(),
+		"chromium-skia":          Chromium_Skia(),
+		"depot-tools-chromium":   DepotTools_Chromium(),
+		"flutter-engine-flutter": FlutterEngine_Flutter(),
+		"fuchsia":                Fuchsia(),
+		"fuchsia-sdk-chromium":   FuchsiaSDK_Chromium(),
+		"google3":                Google3(),
+		"ios-internal-chromium":  IosInternal_Chromium(),
+		"lottie-web-lottie-ci":   LottieWeb_LottieCI(),
+		"nacl":                   NaCl(),
+		"pdfium":                 PDFium(),
+		"perfetto-chromium":      PerfettoChromium(),
+		"skcms-skia":             SkCMS_Skia(),
+		"skia":                   Skia(),
+		"skia-flutter":           Skia_Flutter(),
+		"skia-internal":          SkiaInternal(),
+		"skia-lottie-ci":         Skia_LottieCI(),
+		"src-internal-chromium":  SrcInternal_Chromium(),
+		"swiftshader-skia":       SwiftShader_Skia(),
+		"webrtc-chromium":        WebRTC_Chromium(),
 	})
 }

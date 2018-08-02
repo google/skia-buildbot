@@ -1,0 +1,19 @@
+{
+    "githubRepoOwner": "flutter",
+    "githubRepoName": "flutter",
+    "childName": "Engine",
+    "parentName": "Flutter",
+    "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+    "sheriff": ["rmistry@google.com","liyuqian@google.com"],
+    "githubRepoManager": {
+      "childBranch": "master",
+      "childPath": "engine",
+      "parentBranch": "master",
+      "parentRepoURL": "git@github.com:flutter/flutter.git",
+      "childRepoURL": "git@github.com:flutter/engine.git",
+      "revisionFile": "bin/internal/engine.version",
+      "defaultStrategy": "gcs file",
+      "storageBucket": "flutter_infra",
+      "storagePathTemplate": "flutter/%s/android-javadoc.zip"
+    }
+}
