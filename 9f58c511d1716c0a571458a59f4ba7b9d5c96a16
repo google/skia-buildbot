@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "0a06c662_2f4471bb",
+        "filename": "scripts/run_on_swarming_bots/install_docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T18:33:07Z",
+      "side": 1,
+      "message": "SGTM, maybe add a comment indicating that it is supposed to be necessary but apparently is not, and you\u0027re leaving it there as documentation?  Just thinking about the next person maybe cleaning it up as dead code.",
+      "parentUuid": "908993e6_49b6ee31",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 54
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3fe5cb31_e293f54a",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 1
@@ -163,6 +187,30 @@
       "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c08cd453_024925c8",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T18:33:07Z",
+      "side": 1,
+      "message": "I don\u0027t feel strongly, although if the intention is to verify the list of dimensions, maybe a --dry-run or --list flag would be more appropriate, ie. just listing the matching bots but not doing anything with them.  Or, we could add an \"about to run on the following bots: ...  Press [y] to continue\" or some such.",
+      "parentUuid": "eac80d36_829456ce",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 103
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
