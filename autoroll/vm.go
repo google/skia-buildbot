@@ -106,6 +106,15 @@ func DepotTools_Chromium() *gce.Instance {
 	return vm
 }
 
+func Engine_Flutter() *gce.Instance {
+	vm := AutoRollBase("engine-flutter-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"rmistry@google.com",
+	}
+	vm.ServiceAccount = "engine-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func IosInternal_Chromium() *gce.Instance {
 	vm := AutoRollBase("ios-internal-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -296,6 +305,7 @@ func main() {
 		"chromite-chromium":     Chromite_Chromium(),
 		"chromium-skia":         Chromium_Skia(),
 		"depot-tools-chromium":  DepotTools_Chromium(),
+		"engine-flutter":        Engine_Flutter(),
 		"fuchsia":               Fuchsia(),
 		"fuchsia-sdk-chromium":  FuchsiaSDK_Chromium(),
 		"google3":               Google3(),
