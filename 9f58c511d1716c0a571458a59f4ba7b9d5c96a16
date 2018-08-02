@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "908993e6_49b6ee31",
+        "filename": "scripts/run_on_swarming_bots/install_docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-02T18:25:01Z",
+      "side": 1,
+      "message": "Yeah.  The docs say that this is necessary, but it appears the docker group is added at install.  I\u0027ll leave it in for documentation purposes, unless you say otherwise.",
+      "parentUuid": "75cab5d9_1ba78ba6",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 54
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3fe5cb31_e293f54a",
         "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
         "patchSetId": 1
@@ -91,6 +115,54 @@
       "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eac80d36_829456ce",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-02T18:25:01Z",
+      "side": 1,
+      "message": "It was helpful to me, to make sure I had the right dimensions.  I can remove it if you feel strongly.",
+      "parentUuid": "3fe5cb31_e293f54a",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 103
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5e6bccd_a78884e6",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-02T18:25:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "832039cf_36628939",
+      "range": {
+        "startLine": 50,
+        "startChar": 54,
+        "endLine": 50,
+        "endChar": 57
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
