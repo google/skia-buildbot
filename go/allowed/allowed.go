@@ -16,6 +16,7 @@ import (
 type Allow interface {
 	// Member returns true if the given email address has access.
 	Member(email string) bool
+	Emails() []string
 }
 
 // AllowedFromList controls access by checking an email address
@@ -69,6 +70,14 @@ func (a *AllowedFromList) Member(email string) bool {
 		return true
 	}
 	return false
+}
+
+func (a *AllowedFromList) Emails() []string {
+	ret := make([]string, 0, len(a.emails))
+	for k, _ := range a.emails {
+		ret = append(ret, k)
+	}
+	return ret
 }
 
 // AllowedFromFile implements Allow by reading the list of emails and domains
@@ -145,4 +154,11 @@ func (a *AllowedFromFile) Member(email string) bool {
 	defer a.mutex.RUnlock()
 
 	return a.allowed.Member(email)
+}
+
+func (a *AllowedFromFile) Emails() []string {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+
+	return a.allowed.Emails()
 }
