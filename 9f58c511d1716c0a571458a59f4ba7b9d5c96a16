@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c34b7ba_3c607034",
+        "filename": "scripts/run_on_swarming_bots/install_docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T17:46:55Z",
+      "side": 1,
+      "message": "I\u0027ve had to do this (and also clean the node cache) on several GCE instances in the past few weeks.  I wonder if we could do this periodically, eg. cron job or nightly swarming task...",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 51
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "75cab5d9_1ba78ba6",
+        "filename": "scripts/run_on_swarming_bots/install_docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T17:46:55Z",
+      "side": 1,
+      "message": "nit: Intentionally left?",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 54
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fe5cb31_e293f54a",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T17:46:55Z",
+      "side": 1,
+      "message": "Is this really needed?  Once can always specify a bot ID as a dimension.",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 103
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "832039cf_36628939",
+        "filename": "scripts/run_on_swarming_bots/run_on_swarming_bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-02T17:46:55Z",
+      "side": 1,
+      "message": "nit: \"Run only on one\"",
+      "range": {
+        "startLine": 50,
+        "startChar": 54,
+        "endLine": 50,
+        "endChar": 57
+      },
+      "revId": "9f58c511d1716c0a571458a59f4ba7b9d5c96a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
