@@ -483,3 +483,21 @@ indexes:
   - name: __key__
     direction: desc
 
+## AutoRoll ##
+
+# Mode change history.
+- kind: AutorollMode
+  ancestor: yes
+  properties:
+  - name: roller
+  - name: time
+    direction: desc
+
+# Strategy change history.
+- kind: AutorollStrategy
+  ancestor: yes
+  properties:
+  - name: roller
+  - name: time
+    direction: desc
+
