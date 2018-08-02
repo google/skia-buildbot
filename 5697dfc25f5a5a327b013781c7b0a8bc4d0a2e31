@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fc43709e_bdd822bf",
+        "filename": "golden/dockerfiles/Dockerfile_skiacorrectness",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-02T06:38:48Z",
+      "side": 1,
+      "message": "I don\u0027t feel strongly about this, but what I have here is equal or less clutter and I find it more intuitive. I\u0027d like to keep it this way for now, as everything moves to k8s we can standardize on a layout.",
+      "parentUuid": "d21305bc_ec287a1a",
+      "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "aac4b153_eef40c93",
         "filename": "golden/k8s_build_skiacorrectness",
         "patchSetId": 5
@@ -30,6 +48,30 @@
       "writtenOn": "2018-08-01T17:12:56Z",
       "side": 1,
       "message": "Joe should verify this is OK.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b767b875_e8102587",
+        "filename": "golden/k8s_build_skiacorrectness",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-02T06:38:48Z",
+      "side": 1,
+      "message": "what\u0027s wrong with it from your perspective ?",
+      "parentUuid": "aac4b153_eef40c93",
       "range": {
         "startLine": 5,
         "startChar": 0,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "0a278f42_e66ec57e",
+        "filename": "golden/k8s_build_skiacorrectness",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-02T06:38:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6678aeb7_d555024f",
+      "range": {
+        "startLine": 20,
+        "startChar": 9,
+        "endLine": 20,
+        "endChar": 23
+      },
+      "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2942fa70_c7aec638",
         "filename": "tracedb/k8s_build_ingestion",
         "patchSetId": 5
@@ -85,6 +151,30 @@
       "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70815cb2_726b287e",
+        "filename": "tracedb/k8s_build_ingestion",
+        "patchSetId": 5
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-02T06:38:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2942fa70_c7aec638",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 17
+      },
+      "revId": "5697dfc25f5a5a327b013781c7b0a8bc4d0a2e31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
