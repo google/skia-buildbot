@@ -1,6 +1,7 @@
 {
     "githubRepoOwner": "flutter",
     "githubRepoName": "flutter",
+    "maxRollFrequency": "0m",
     "childName": "Engine",
     "parentName": "Flutter",
     "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
