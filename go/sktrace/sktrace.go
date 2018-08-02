@@ -2,6 +2,9 @@
 // Subject to change.
 package sktrace
 
+/*
+	TODO(borenet): I commented out this whole package because opencensus is broken.
+
 import (
 	"net/http"
 
@@ -64,3 +67,5 @@ func (t *TraceClient) Trace(pattern string, handler func(http.ResponseWriter, *h
 		handler(w, r.WithContext(ctx))
 	}
 }
+
+*/
