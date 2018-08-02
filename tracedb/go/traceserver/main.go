@@ -10,12 +10,13 @@ import (
 	"path/filepath"
 	"runtime/pprof"
 
+	"go.skia.org/infra/go/httputils"
+
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/trace/service"
-	"go.skia.org/infra/go/util"
 	"google.golang.org/grpc"
 )
 
@@ -78,9 +79,6 @@ func main() {
 	}
 
 	// Set up the http handler to indicate ready-ness and start serving.
-	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte("ready"))
-		util.LogErr(err)
-	})
+	http.HandleFunc("/ready", httputils.ReadyHandleFunc)
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }
