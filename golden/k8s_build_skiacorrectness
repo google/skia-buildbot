@@ -2,9 +2,6 @@
 
 set -x -e
 
-# Build the binaries and frontend assets.
-make k8s
-
 # Create and upload a container image for skiacorrectness the main Gold process.
 APPNAME=gold-skiacorrectness
 
