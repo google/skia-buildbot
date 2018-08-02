@@ -610,6 +610,24 @@
     },
     {
       "key": {
+        "uuid": "354f00cf_ef5e2fef",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-02T15:14:11Z",
+      "side": 1,
+      "message": "Yeah, I don\u0027t see any documentation that answers this question definitively.\n\nAt any rate, since we install a signal handler for SIGINT (in https://skia.googlesource.com/buildbot/+/master/go/cleanup/cleanup.go), the normal handling of SIGINT is disabled.\n\nSo I told you to do something stupid. Sorry.",
+      "parentUuid": "ffbc8834_008cda6b",
+      "revId": "bd5f21f2d4a622244995386164e64699f7d24319",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ec428e6_680df569",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 8
