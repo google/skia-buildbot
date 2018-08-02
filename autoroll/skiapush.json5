@@ -70,6 +70,12 @@
         "pulld",
       ],
     },
+    "engine-flutter-autoroll": {
+      "AppNames": [
+        "engine-flutter-autorolld",
+        "pulld",
+      ],
+    },
     "fuchsia-autoroll": {
       "AppNames": [
         "fuchsia-autorolld",
