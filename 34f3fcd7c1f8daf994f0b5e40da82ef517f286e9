@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25b7e783_d6f85864",
+        "filename": "go/auditlog/auditlog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-03T20:45:54Z",
+      "side": 1,
+      "message": "Do we want to get any more information from the request?  Like URL, etc?",
+      "range": {
+        "startLine": 24,
+        "startChar": 9,
+        "endLine": 24,
+        "endChar": 10
+      },
+      "revId": "34f3fcd7c1f8daf994f0b5e40da82ef517f286e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b70b33a_3b370ca7",
+        "filename": "go/auditlog/auditlog.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-03T20:45:54Z",
+      "side": 1,
+      "message": "Can you add a comment that this is equivalent to sending it to CloudLogging because it\u0027s meant to only be run in GKE?",
+      "range": {
+        "startLine": 35,
+        "startChar": 1,
+        "endLine": 35,
+        "endChar": 23
+      },
+      "revId": "34f3fcd7c1f8daf994f0b5e40da82ef517f286e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
