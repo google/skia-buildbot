@@ -39,56 +39,6 @@ def git(api, *cmd, **kwargs):
       **kwargs)
 
 
-def git_checkout(api, url, dest, ref=None):
-  """Create a git checkout of the given repo in dest."""
-  if api.path.exists(dest.join('.git')):
-    # Already have a git checkout. Ensure that the correct remote is set.
-    with api.context(cwd=dest):
-      git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
-  else:
-    # Clone the repo
-    git(api, 'clone', INFRA_GIT_URL, dest)
-
-  # Ensure that the correct ref is checked out.
-  ref = ref or REF_ORIGIN_MASTER
-  if ref == REF_HEAD:
-    ref = REF_ORIGIN_MASTER
-  with api.context(cwd=dest):
-    git(api, 'fetch', 'origin')
-    git(api, 'clean', '-x', '-f')
-    git(api, 'checkout', 'master')
-    git(api, 'reset', '--hard', ref)
-
-  api.path['checkout'] = dest
-
-  # Run bot_update, just to apply patches.
-  cfg_kwargs = {}
-  gclient_cfg = api.gclient.make_config(**cfg_kwargs)
-  dirname = api.path['start_dir'].join('gopath', 'src', 'go.skia.org')
-  basename = 'infra'
-  sln = gclient_cfg.solutions.add()
-  sln.name = basename
-  sln.managed = False
-  sln.url = INFRA_GIT_URL
-  sln.revision = ref
-  gclient_cfg.got_revision_mapping[basename] = 'got_revision'
-
-  with api.context(cwd=dirname):
-    api.bot_update.ensure_checkout(gclient_config=gclient_cfg)
-
-  with api.context(cwd=dest):
-    # Fix the remote URL, since bot_update switches it to the cached repo.
-    git(api, 'remote', 'set-url', 'origin', INFRA_GIT_URL)
-
-    # Re-checkout master, since bot_update detaches us. We already set master
-    # to the correct commit, and any applied patch should not have been
-    # committed, so this should be safe.
-    git(api, 'checkout', 'master')
-
-    # "git status" just to sanity check.
-    git(api, 'status')
-
-
 def RunSteps(api):
   # The 'build' and 'depot_tools directories come from recipe DEPS and aren't
   # provided by default. We have to set them manually.
@@ -96,19 +46,27 @@ def RunSteps(api):
       api.path.c.base_paths['start_dir'] +
       ('recipe_bundle', 'depot_tools'))
 
-  go_dir = api.path['start_dir'].join('gopath')
+  go_dir = api.path['start_dir'].join('go_deps')
   go_src = go_dir.join('src')
   api.file.ensure_directory('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
   go_root = api.path['start_dir'].join('go', 'go')
   go_bin = go_root.join('bin')
 
-  # Check out the infra repo.
-  git_checkout(
-      api,
-      INFRA_GIT_URL,
-      dest=infra_dir,
-      ref=api.properties.get('revision', 'origin/master'))
+  # Run bot_update.
+  cfg_kwargs = {}
+  gclient_cfg = api.gclient.make_config(**cfg_kwargs)
+  dirname = go_dir.join('src', 'go.skia.org')
+  basename = 'infra'
+  sln = gclient_cfg.solutions.add()
+  sln.name = basename
+  sln.managed = False
+  sln.url = INFRA_GIT_URL
+  sln.revision = api.properties.get('revision', 'origin/master')
+  gclient_cfg.got_revision_mapping[basename] = 'got_revision'
+
+  with api.context(cwd=dirname):
+    api.bot_update.ensure_checkout(gclient_config=gclient_cfg)
 
   # Fetch Go dependencies.
   env = {
@@ -127,14 +85,6 @@ def RunSteps(api):
   }
   with api.context(cwd=infra_dir, env=env):
     api.step('which go', cmd=['which', 'go'])
-    api.step('update_deps', cmd=['go', 'get', '-u', '-t', './...'])
-
-  # Checkout AGAIN to undo whatever `go get -u` did to the infra repo.
-  git_checkout(
-      api,
-      INFRA_GIT_URL,
-      dest=infra_dir,
-      ref=api.properties.get('revision', 'origin/master'))
 
   # Set got_revision.
   test_data = lambda: api.raw_io.test_api.stream_output('abc123')

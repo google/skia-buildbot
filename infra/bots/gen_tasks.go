@@ -11,6 +11,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"path"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -23,6 +26,8 @@ const (
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.4"
+
+	ISOLATE_GO_DEPS_NAME = "Housekeeper-PerCommit-IsolateGoDeps"
 
 	// Small is a 2-core machine.
 	MACHINE_TYPE_SMALL = "n1-highmem-2"
@@ -48,6 +53,7 @@ var (
 	// Top-level list of all Jobs to run at each commit.
 	JOBS = []string{
 		"Housekeeper-OnDemand-Presubmit",
+		ISOLATE_GO_DEPS_NAME,
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -115,6 +121,17 @@ var (
 	LOGDOG_ANNOTATION_URL = fmt.Sprintf("logdog://logs.chromium.org/%s/%s/+/annotations", PROJECT, specs.PLACEHOLDER_TASK_ID)
 )
 
+// relpath returns the relative path to the given file from the config file.
+func relpath(f string) string {
+	_, filename, _, _ := runtime.Caller(0)
+	dir := path.Dir(filename)
+	rv, err := filepath.Rel(dir, path.Join(dir, f))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	return rv
+}
+
 // Dimensions for Linux GCE instances.
 func linuxGceDimensions(machineType string) []string {
 	return []string{
@@ -168,6 +185,32 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		Isolate: "infrabots.isolate",
 	})
 	return BUNDLE_RECIPES_NAME
+}
+
+type isolateAssetCfg struct {
+	cipdPkg string
+	path    string
+}
+
+var ISOLATE_ASSET_MAPPING = map[string]isolateAssetCfg{
+	ISOLATE_GO_DEPS_NAME: {
+		cipdPkg: "go_deps",
+		path:    "go_deps",
+	},
+}
+
+// isolateCIPDAsset generates a task to isolate the given CIPD asset.
+func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
+	asset := ISOLATE_ASSET_MAPPING[name]
+	b.MustAddTask(name, &specs.TaskSpec{
+		CipdPackages: []*specs.CipdPackage{
+			b.MustGetCipdPackageFromAsset(asset.cipdPkg),
+		},
+		Command:    []string{"/bin/cp", "-rL", asset.path, "${ISOLATED_OUTDIR}"},
+		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		Isolate:    relpath("empty.isolate"),
+	})
+	return name
 }
 
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
@@ -260,6 +303,8 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("gcloud_linux"))
 	}
 
+	task.Dependencies = append(task.Dependencies, isolateCIPDAsset(b, ISOLATE_GO_DEPS_NAME))
+
 	// Re-run failing bots but not when testing for race conditions.
 	task.MaxAttempts = 2
 	if strings.Contains(name, "Race") {
@@ -325,6 +370,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	if strings.Contains(name, "Presubmit") {
 		priority = 1
 		deps = append(deps, presubmit(b, name))
+	}
+	// Isolate CIPD assets.
+	if _, ok := ISOLATE_ASSET_MAPPING[name]; ok {
+		deps = append(deps, isolateCIPDAsset(b, name))
 	}
 
 	// Add the Job spec.
