@@ -85,6 +85,10 @@ build_repo:
 isolate_telemetry:
 	go install -v ./go/worker_scripts/isolate_telemetry/
 
+.PHONY: isolate_layout_tests
+isolate_layout_tests:
+	go install -v ./go/worker_scripts/isolate_layout_tests/
+
 .PHONY: capture_archives
 capture_archives:
 	go install -v ./go/worker_scripts/capture_archives/
@@ -137,7 +141,7 @@ master_scripts: build_chromium \
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
                 pixel_diff run_chromium_perf \
                 run_chromium_analysis build_repo metrics_analysis \
-                isolate_telemetry
+                isolate_telemetry isolate_layout_tests
 
 .PHONY: all
 all: master_scripts worker_scripts testgo

@@ -31,7 +31,7 @@ func Init() {
 		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+":/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
 		// Bring up Xvfb on workers (for GCE instances).
 		if _, _, err := exec.RunIndefinitely(&exec.Command{
-			Name:        "sudo",
+			Name:        "sudoss",
 			Args:        []string{"Xvfb", ":0", "-screen", "0", "1280x1024x24"},
 			Env:         []string{},
 			InheritPath: true,

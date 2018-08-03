@@ -543,7 +543,7 @@ func getServiceAccount(dimensions map[string]string) string {
 
 // GetPathToPyFiles returns the location of CT's python scripts.
 func GetPathToPyFiles(runOnSwarming bool) string {
-	if runOnSwarming {
+	if true {
 		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
 	} else {
 		_, currentFile, _, _ := runtime.Caller(0)
@@ -557,6 +557,15 @@ func GetPathToTelemetryBinaries(runOnSwarming bool) string {
 		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "tools", "perf")
 	} else {
 		return TelemetryBinariesDir
+	}
+}
+
+// GetPathToLayoutTestBinaries returns the location of Layout test binaries.
+func GetPathToLayoutTestBinaries(runOnSwarming bool) string {
+	if runOnSwarming {
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "third_party", "blink", "tools")
+	} else {
+		return LayoutTestBinariesDir
 	}
 }
 
