@@ -49,15 +49,14 @@ type AutoRoller struct {
 	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(ctx context.Context, workdir string, childRepoUrl string, childBranch string) (*AutoRoller, error) {
-	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.bdb"))
+func NewAutoRoller(ctx context.Context, workdir, childRepoUrl, childBranch, rollerName string) (*AutoRoller, error) {
+	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName, path.Join(workdir, "recent_rolls.bdb"))
 	if err != nil {
 		return nil, err
 	}
 
 	childRepo, err := git.NewRepo(ctx, childRepoUrl, workdir)
 	if err != nil {
-		util.LogErr(recent.Close())
 		return nil, err
 	}
 
@@ -70,7 +69,6 @@ func NewAutoRoller(ctx context.Context, workdir string, childRepoUrl string, chi
 	}
 
 	if err := a.UpdateStatus(ctx, "", true); err != nil {
-		util.LogErr(recent.Close())
 		return nil, err
 	}
 	return a, nil
@@ -80,9 +78,7 @@ func NewAutoRoller(ctx context.Context, workdir string, childRepoUrl string, chi
 func (a *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency time.Duration) {
 	go cleanup.Repeat(repoFrequency, func() {
 		util.LogErr(a.UpdateStatus(ctx, "", true))
-	}, func() {
-		util.LogErr(a.recent.Close())
-	})
+	}, nil)
 }
 
 func (a *AutoRoller) AddHandlers(r *mux.Router) {
@@ -194,7 +190,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 
 // AddOrUpdateIssue makes issue the current issue, handling any possible discrepancies due to
 // missing previous requests. On error, returns an error safe for HTTP response.
-func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method string) error {
+func (a *AutoRoller) AddOrUpdateIssue(ctx context.Context, issue *autoroll.AutoRollIssue, method string) error {
 	current := a.recent.CurrentRoll()
 
 	// If we don't get an update to close the previous roll, close it automatically to avoid the error
@@ -203,7 +199,7 @@ func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method stri
 		sklog.Warningf("Missing update to close %d. Closing automatically as failed.", current.Issue)
 		current.Closed = true
 		current.Result = autoroll.ROLL_RESULT_FAILURE
-		if err := a.recent.Update(current); err != nil {
+		if err := a.recent.Update(ctx, current); err != nil {
 			sklog.Errorf("Failed to close current roll: %s", err)
 			return errors.New("Failed to close current roll.")
 		}
@@ -219,7 +215,7 @@ func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method stri
 		addIssue.Closed = false
 		addIssue.Committed = false
 		addIssue.Result = autoroll.ROLL_RESULT_IN_PROGRESS
-		if err := a.recent.Add(addIssue); err != nil {
+		if err := a.recent.Add(ctx, addIssue); err != nil {
 			sklog.Errorf("Failed to automatically add roll: %s", err)
 			return errors.New("Failed to automatically add roll.")
 		}
@@ -230,7 +226,7 @@ func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method stri
 		if method != http.MethodPost {
 			sklog.Warningf("Got %s instead of POST to add %d.", method, issue.Issue)
 		}
-		if err := a.recent.Add(issue); err != nil {
+		if err := a.recent.Add(ctx, issue); err != nil {
 			sklog.Errorf("Failed to add roll: %s", err)
 			return errors.New("Failed to add roll.")
 		}
@@ -238,7 +234,7 @@ func (a *AutoRoller) AddOrUpdateIssue(issue *autoroll.AutoRollIssue, method stri
 		if method != http.MethodPut {
 			sklog.Warningf("Got %s instead of PUT to update %d.", method, issue.Issue)
 		}
-		if err := a.recent.Update(issue); err != nil {
+		if err := a.recent.Update(ctx, issue); err != nil {
 			sklog.Errorf("Failed to update roll: %s", err)
 			return errors.New("Failed to update roll.")
 		}
@@ -385,11 +381,12 @@ func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, err.Error())
 		return
 	}
-	if err := a.AddOrUpdateIssue(issue, r.Method); err != nil {
+	ctx := context.Background()
+	if err := a.AddOrUpdateIssue(ctx, issue, r.Method); err != nil {
 		httputils.ReportError(w, r, nil, err.Error())
 		return
 	}
-	if err := a.UpdateStatus(context.Background(), roll.ErrorMsg, false); err != nil {
+	if err := a.UpdateStatus(ctx, roll.ErrorMsg, false); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set new status.")
 		return
 	}

@@ -310,13 +310,24 @@ func main() {
 		serverURL = "http://" + *host + *port
 	}
 
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatalf("Could not get hostname: %s", err)
+	}
+	gcsBucket := GS_BUCKET_AUTOROLLERS
+	rollerName := hostname
+	if *local {
+		gcsBucket = gcs.TEST_DATA_BUCKET
+		rollerName = fmt.Sprintf("autoroll_%s", hostname)
+	}
+
 	// TODO(borenet/rmistry): Create a code review sub-config as described in
 	// https://skia-review.googlesource.com/c/buildbot/+/116980/6/autoroll/go/autoroll/main.go#261
 	// so that we can get rid of these vars and the various conditionals.
 	var g *gerrit.Gerrit
 	var githubClient *github.GitHub
 	if cfg.RollerType() == roller.ROLLER_TYPE_GOOGLE3 {
-		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master")
+		arb, err = google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master", rollerName)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -325,18 +336,8 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		hostname, err := os.Hostname()
-		if err != nil {
-			sklog.Fatalf("Could not get hostname: %s", err)
-		}
-		bucket := GS_BUCKET_AUTOROLLERS
-		gcsPrefix := hostname
-		if *local {
-			bucket = gcs.TEST_DATA_BUCKET
-			gcsPrefix = fmt.Sprintf("autoroll_%s", hostname)
-		}
-		sklog.Infof("Writing persistent data to gs://%s/%s", bucket, gcsPrefix)
-		gcsClient := gcs.NewGCSClient(s, bucket)
+		sklog.Infof("Writing persistent data to gs://%s/%s", gcsBucket, rollerName)
+		gcsClient := gcs.NewGCSClient(s, gcsBucket)
 
 		if cfg.GerritURL != "" {
 			// Create the code review API client.
@@ -369,7 +370,7 @@ func main() {
 		if *recipesCfgFile == "" {
 			*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 		}
-		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, gcsPrefix)
+		arb, err = roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, rollerName)
 		if err != nil {
 			sklog.Fatal(err)
 		}
