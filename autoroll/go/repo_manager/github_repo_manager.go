@@ -64,6 +64,7 @@ type githubRepoManager struct {
 	defaultStrategy string
 	gsBucket        string
 	gsPathTemplate  string
+	userEmail       string
 }
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
@@ -120,6 +121,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		defaultStrategy:   c.DefaultStrategy,
 		gsBucket:          c.StorageBucket,
 		gsPathTemplate:    c.StoragePathTemplate,
+		userEmail:         *user.Email,
 	}
 
 	return gr, nil
@@ -234,7 +236,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	if _, err := rm.parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
 		return 0, err
 	}
-	if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.user); err != nil {
+	if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.userEmail); err != nil {
 		return 0, err
 	}
 
@@ -258,6 +260,9 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 	logStr = strings.TrimSpace(logStr)
+
+	// Github autolinks PRs to be of the same repository instead. Fix this by
+	// linking to the child repo.
 
 	data := struct {
 		ChildPath           string
