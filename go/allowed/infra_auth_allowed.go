@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -103,6 +104,7 @@ func (a *AllowedFromChromeInfraAuth) reload() error {
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return err
 	}
+	sort.Strings(r.Group.Members)
 
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -117,4 +119,11 @@ func (a *AllowedFromChromeInfraAuth) Member(email string) bool {
 	defer a.mutex.RUnlock()
 
 	return a.allowed.Member(email)
+}
+
+func (a *AllowedFromChromeInfraAuth) Emails() []string {
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
+
+	return a.allowed.Emails()
 }
