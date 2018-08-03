@@ -10,6 +10,8 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ds/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/testutils"
@@ -18,9 +20,10 @@ import (
 func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilder, func()) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
+	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
 	gb := git_testutils.GitInit(t, ctx)
 	tmpDir, cleanup := testutils.TempDir(t)
-	a, err := NewAutoRoller(ctx, tmpDir, gb.RepoUrl(), "master")
+	a, err := NewAutoRoller(ctx, tmpDir, gb.RepoUrl(), "master", "test-roller")
 	assert.NoError(t, err)
 	a.Start(ctx, time.Second, time.Second)
 	return ctx, a, gb, func() {
@@ -76,9 +79,9 @@ func TestStatus(t *testing.T) {
 	commits := []string{gb.CommitGen(ctx, "a.txt")}
 
 	issue1 := makeIssue(1, commits[0])
-	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue1, http.MethodPost))
 	closeIssue(issue1, autoroll.ROLL_RESULT_SUCCESS)
-	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPut))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue1, http.MethodPut))
 
 	// Ensure that repo update occurs when updating status.
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
@@ -96,17 +99,17 @@ func TestStatus(t *testing.T) {
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
 
 	issue2 := makeIssue(2, commits[2])
-	assert.NoError(t, a.AddOrUpdateIssue(issue2, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPost))
 	closeIssue(issue2, autoroll.ROLL_RESULT_FAILURE)
-	assert.NoError(t, a.AddOrUpdateIssue(issue2, http.MethodPut))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPut))
 
 	issue3 := makeIssue(3, commits[2])
-	assert.NoError(t, a.AddOrUpdateIssue(issue3, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue3, http.MethodPost))
 	closeIssue(issue3, autoroll.ROLL_RESULT_FAILURE)
-	assert.NoError(t, a.AddOrUpdateIssue(issue3, http.MethodPut))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue3, http.MethodPut))
 
 	issue4 := makeIssue(4, commits[2])
-	assert.NoError(t, a.AddOrUpdateIssue(issue4, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
 
 	recent := []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}
 	assert.NoError(t, a.UpdateStatus(ctx, "error message", false))
@@ -147,22 +150,22 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	commits := []string{gb.CommitGen(ctx, "a.txt"), gb.CommitGen(ctx, "a.txt"), gb.CommitGen(ctx, "a.txt")}
 
 	issue1 := makeIssue(1, commits[0])
-	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue1, http.MethodPost))
 	closeIssue(issue1, autoroll.ROLL_RESULT_SUCCESS)
-	assert.NoError(t, a.AddOrUpdateIssue(issue1, http.MethodPut))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue1, http.MethodPut))
 
 	// Test adding an issue that is already closed.
 	issue2 := makeIssue(2, commits[1])
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
-	assert.NoError(t, a.AddOrUpdateIssue(issue2, http.MethodPut))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPut))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.GetStatus(true).Recent)
 
 	// Test adding a two issues without closing the first one.
 	issue3 := makeIssue(3, commits[2])
-	assert.NoError(t, a.AddOrUpdateIssue(issue3, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue3, http.MethodPost))
 	issue4 := makeIssue(4, commits[2])
-	assert.NoError(t, a.AddOrUpdateIssue(issue4, http.MethodPost))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
@@ -171,7 +174,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	// Test both situations at the same time.
 	issue5 := makeIssue(5, commits[2])
 	closeIssue(issue5, autoroll.ROLL_RESULT_SUCCESS)
-	assert.NoError(t, a.AddOrUpdateIssue(issue5, http.MethodPut))
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue5, http.MethodPut))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE
