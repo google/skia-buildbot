@@ -2,6 +2,14 @@
   "childName": "Perfetto",
   "gerritURL": "https://chromium-review.googlesource.com",
   "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": ["perfetto-bugs@google.com"]
+      }
+    }
+  ],
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "sheriff": ["perfetto-bugs@google.com"],
