@@ -125,7 +125,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, fmt.Errorf("Failed initial repo manager update: %s", err)
 	}
 
-	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.db"))
+	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName, path.Join(workdir, "recent_rolls.db"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create recent rolls DB: %s", err)
 	}
@@ -253,9 +253,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 		} else {
 			lv.Reset()
 		}
-	}, func() {
-		util.LogErr(r.recent.Close())
-	})
+	}, nil)
 
 	// Update the current sheriff in a loop.
 	cleanup.Repeat(30*time.Minute, func() {
@@ -357,7 +355,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 	if err != nil {
 		return err
 	}
-	if err := roll.InsertIntoDB(); err != nil {
+	if err := roll.InsertIntoDB(ctx); err != nil {
 		return err
 	}
 	r.currentRoll = roll
@@ -477,14 +475,14 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 }
 
 // Add a comment to the given roll CL.
-func (r *AutoRoller) AddComment(issueNum int64, message, user string, timestamp time.Time) error {
-	roll, err := r.recent.Get(issueNum)
+func (r *AutoRoller) AddComment(ctx context.Context, issueNum int64, message, user string, timestamp time.Time) error {
+	roll, err := r.recent.Get(ctx, issueNum)
 	if err != nil {
 		return fmt.Errorf("No such issue %d", issueNum)
 	}
 	id := fmt.Sprintf("%d_%d", issueNum, len(roll.Comments))
 	roll.Comments = append(roll.Comments, comment.New(id, message, user))
-	return r.recent.Update(roll)
+	return r.recent.Update(ctx, roll)
 }
 
 // Required for main.AutoRollerI. No specific HTTP handlers.

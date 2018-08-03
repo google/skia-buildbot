@@ -1,5 +1,7 @@
 package recent_rolls
 
+// TODO(borenet): Remove this file once all rollers have been upgraded.
+
 import (
 	"bytes"
 	"encoding/binary"
@@ -173,7 +175,7 @@ func (d *db) GetRoll(issue int64) (*autoroll.AutoRollIssue, error) {
 // GetRecentRolls retrieves the most recent rolls from the database, with a
 // minimum of N and enough rolls to include the most recent success.
 func (d *db) GetRecentRolls(N int) ([]*autoroll.AutoRollIssue, error) {
-	rv := make([]*autoroll.AutoRollIssue, 0, N)
+	rv := []*autoroll.AutoRollIssue{}
 	if err := d.db.View(func(tx *bolt.Tx) error {
 		// Retrieve the issue keys from the by-date bucket.
 		byDate := tx.Bucket(BUCKET_ROLLS_BY_DATE)
