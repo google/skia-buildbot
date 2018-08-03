@@ -72,6 +72,7 @@ func Swarming20180406(name, serviceAccount, sourceImage string) *gce.Instance {
 	return &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        name,
+			SizeGb:      15,
 			SourceImage: sourceImage,
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},

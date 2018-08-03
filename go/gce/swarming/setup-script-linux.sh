@@ -87,6 +87,15 @@ ls | grep --invert-match 'lost+found' | \
   xargs --no-run-if-empty sudo chown --recursive chrome-bot:chrome-bot
 popd
 
+# Install docker
+pushd /tmp
+  wget https://skia.googlesource.com/buildbot/+/master/scripts/run_on_swarming_bots/install_docker.py
+  # The script returns exit code 1 on success, because it's intended to reboot the swarming bot
+  set +e
+  python /tmp/install_docker.py
+  set -e
+popd
+
 # Get access token from metadata.
 TOKEN_URL="http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token"
 TOKEN="$(curl "${TOKEN_URL}" --header "Metadata-Flavor: Google" | \
