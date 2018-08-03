@@ -22,6 +22,30 @@
       "revId": "a4571465c8646bbc37856d1484dd9b9dc1dce4d0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38930c36_751837d8",
+        "filename": "scripts/run_on_swarming_bots/install_docker.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-03T19:37:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1fa5216e_a203d52f",
+      "range": {
+        "startLine": 37,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 5
+      },
+      "revId": "a4571465c8646bbc37856d1484dd9b9dc1dce4d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
