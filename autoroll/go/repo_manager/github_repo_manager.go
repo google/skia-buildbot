@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -35,6 +36,8 @@ var (
 	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string) (RepoManager, error) = newGithubRepoManager
 
 	githubCommitMsgTmpl = template.Must(template.New("githubCommitMsg").Parse(GITHUB_COMMIT_MSG_TMPL))
+
+	pullRequestInLogRE = regexp.MustCompile(`(?m) \((#[0-9]+)\)$`)
 )
 
 // GithubRepoManagerConfig provides configuration for the Github RepoManager.
@@ -64,6 +67,7 @@ type githubRepoManager struct {
 	defaultStrategy string
 	gsBucket        string
 	gsPathTemplate  string
+	userEmail       string
 }
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
@@ -120,6 +124,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		defaultStrategy:   c.DefaultStrategy,
 		gsBucket:          c.StorageBucket,
 		gsPathTemplate:    c.StoragePathTemplate,
+		userEmail:         *user.Email,
 	}
 
 	return gr, nil
@@ -234,7 +239,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	if _, err := rm.parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
 		return 0, err
 	}
-	if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.user); err != nil {
+	if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.userEmail); err != nil {
 		return 0, err
 	}
 
@@ -258,6 +263,9 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 	logStr = strings.TrimSpace(logStr)
+	// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
+	// explicitly adding the child repo to the PR number.
+	logStr = pullRequestInLogRE.ReplaceAllString(logStr, fmt.Sprintf(" (%s/%s$1)", user, repo))
 
 	data := struct {
 		ChildPath           string

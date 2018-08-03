@@ -98,6 +98,7 @@ func setupFakeGithub(t *testing.T, childCommits []string) (*github.GitHub, *mock
 	// Mock /user endpoint.
 	serializedUser, err := json.Marshal(&github_api.User{
 		Login: &mockGithubUser,
+		Email: &mockGithubUserEmail,
 	})
 	assert.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))

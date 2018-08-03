@@ -32,8 +32,9 @@ const (
 var (
 	githubEmails = []string{"reviewer@chromium.org"}
 
-	mockGithubUser = "superman"
-	testPullNumber = 12345
+	mockGithubUser      = "superman"
+	mockGithubUserEmail = "superman@krypton.com"
+	testPullNumber      = 12345
 )
 
 func githubDEPSCfg() *GithubDEPSRepoManagerConfig {
