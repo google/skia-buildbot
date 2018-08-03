@@ -640,8 +640,8 @@ func RestrictEditor(h http.Handler) http.Handler {
 	})
 }
 
-// RestrictViewer is middleware which enforces that the user is logged in as an
-// admin before the wrapped handler is called.
+// RestrictViewer is middleware which enforces that the user is logged in as a
+// viewer before the wrapped handler is called.
 func RestrictViewer(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !IsViewer(r) {
