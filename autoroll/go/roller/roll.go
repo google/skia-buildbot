@@ -21,7 +21,7 @@ type RollImpl interface {
 	state_machine.RollCLImpl
 
 	// Insert the roll into the DB.
-	InsertIntoDB() error
+	InsertIntoDB(ctx context.Context) error
 }
 
 func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
@@ -76,8 +76,8 @@ func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoMa
 }
 
 // See documentation for RollImpl interface.
-func (r *gerritRoll) InsertIntoDB() error {
-	return r.recent.Add(r.issue)
+func (r *gerritRoll) InsertIntoDB(ctx context.Context) error {
+	return r.recent.Add(ctx, r.issue)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -182,7 +182,7 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 		issue.Result = r.result
 	}
 	r.issue = issue
-	if err := r.recent.Update(r.issue); err != nil {
+	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
 	if r.IsFinished() && r.finishedCallback != nil {
@@ -400,8 +400,8 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoMa
 }
 
 // See documentation for state_machine.RollImpl interface.
-func (r *githubRoll) InsertIntoDB() error {
-	return r.recent.Add(r.issue)
+func (r *githubRoll) InsertIntoDB(ctx context.Context) error {
+	return r.recent.Add(ctx, r.issue)
 }
 
 // See documentation for state_machine.RollCLImpl interface.
@@ -453,7 +453,7 @@ func (r *githubRoll) Update(ctx context.Context) error {
 		issue.Result = r.result
 	}
 	r.issue = issue
-	if err := r.recent.Update(r.issue); err != nil {
+	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
 	if r.IsFinished() && r.finishedCallback != nil {
