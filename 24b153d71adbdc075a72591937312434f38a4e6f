@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ce6944e_310c32f5",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-03T14:00:49Z",
+      "side": 1,
+      "message": "In the next iteration of instances, we\u0027ll make this a bit bigger to avoid the low disk space on / ?",
+      "revId": "24b153d71adbdc075a72591937312434f38a4e6f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
