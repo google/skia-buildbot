@@ -63,7 +63,7 @@
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:ad60019cb66a75b59991d43b95a43f68e3fff81b"
+          "version": "git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc"
         },
         {
           "name": "infra/git/${platform}",
@@ -176,7 +176,7 @@
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:ad60019cb66a75b59991d43b95a43f68e3fff81b"
+          "version": "git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc"
         }
       ],
       "command": [
@@ -225,7 +225,7 @@
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:ad60019cb66a75b59991d43b95a43f68e3fff81b"
+          "version": "git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc"
         },
         {
           "name": "infra/git/${platform}",
@@ -364,7 +364,7 @@
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:ad60019cb66a75b59991d43b95a43f68e3fff81b"
+          "version": "git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc"
         },
         {
           "name": "infra/git/${platform}",
@@ -493,7 +493,7 @@
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:ad60019cb66a75b59991d43b95a43f68e3fff81b"
+          "version": "git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc"
         },
         {
           "name": "infra/git/${platform}",
@@ -628,7 +628,7 @@
         {
           "name": "infra/tools/luci/vpython/${platform}",
           "path": "cipd_bin_packages",
-          "version": "git_revision:ad60019cb66a75b59991d43b95a43f68e3fff81b"
+          "version": "git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc"
         },
         {
           "name": "infra/git/${platform}",
