@@ -1,0 +1,20 @@
+# Add to ../index.yaml
+indexes:
+- kind: IncidentAm
+  ancestor: no
+  properties:
+  - name: active
+  - name: last_seen
+    direction: desc
+- kind: SilenceAm
+  ancestor: yes
+  properties:
+  - name: active
+  - name: updated
+    direction: desc
+- kind: IncidentAm
+  ancestor: yes
+  properties:
+  - name: active
+  - name: last_seen
+    direction: desc
