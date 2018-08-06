@@ -102,7 +102,7 @@ func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 
 	// Step3: Run dart license script to create new licenses.
 	dartBinary := filepath.Join(binariesPath, "dart")
-	licensesGoldenDir := filepath.Join(parentRepoDir, "travis", "licenses_golden")
+	licensesGoldenDir := filepath.Join(parentRepoDir, "ci", "licenses_golden")
 	licenseCmd := []string{dartBinary, "lib/main.dart", "--src", "../../..", "--out", licensesOutDir, "--golden", licensesGoldenDir}
 	sklog.Infof("Running %s", licenseCmd)
 	if _, err := exec.RunCwd(ctx, licenseToolsDir, licenseCmd...); err != nil {

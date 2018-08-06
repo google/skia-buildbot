@@ -40,7 +40,7 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
 		pubCmd := "get"
-		dartCmd := "lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/travis/licenses_golden"
+		dartCmd := "lib/main.dart --src ../../.. --out testing/out/licenses --golden testing/dir/ci/licenses_golden"
 		if cmd.Name == "testing/third_party/dart/tools/sdks/linux/dart-sdk/bin/pub" && strings.Join(cmd.Args, " ") == pubCmd {
 			return pubErr
 		} else if cmd.Name == "testing/third_party/dart/tools/sdks/linux/dart-sdk/bin/dart" && strings.Join(cmd.Args, " ") == dartCmd {
