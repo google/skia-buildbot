@@ -1,0 +1,203 @@
+@import '../colors.scss';
+
+alert-manager-sk {
+  spinner-sk[active] {
+    visibility: initial;
+  }
+
+  spinner-sk {
+    visibility: hidden;
+    display: inline-block;
+    position: fixed;
+    top: 4em;
+    left: 34em;
+  }
+
+  button {
+    text-transform: none;
+    height: initial;
+  }
+
+  h2 {
+    align-items: center;
+    color: $red;
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  h2.assigned {
+    color: $orange;
+  }
+
+  h2.inactive {
+    color: $gray;
+  }
+
+  h2.selected {
+    background: #eee;
+  }
+
+  h2.silenced {
+    color: $green;
+  }
+
+  .silences h2.inactive {
+    color: gray;
+  }
+
+  footer {
+    grid-area: footer;
+  }
+
+  .nav {
+    grid-area: nav;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  tabs-panel-sk {
+    padding: 0;
+    overflow-y: auto;
+    border: none;
+    margin-top: 0.5em;
+  }
+
+  tabs-sk {
+    padding: 5px 0 0 5px;
+    border-bottom: solid $dark-blue 3px;
+
+    button {
+      border: none;
+      background: white;
+      color: #333;
+     }
+  }
+
+  .stats,
+  .incidents,
+  .mine,
+  .silences {
+    display: none;
+  }
+
+  .mine.selected,
+  .incidents.selected {
+    display: grid;
+  }
+
+  .stats.selected,
+  .silences.selected {
+    display: block;
+  }
+
+
+  .stats,
+  .mine,
+  .incidents {
+    overflow-y: auto;
+
+    checkbox-sk {
+      display: inline-block;
+    }
+
+    h2 {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  .stats,
+  .silences {
+    overflow-y: auto;
+    padding: 1em;
+
+    h2 {
+      color: $blue;
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  comment-icon-sk {
+    fill: $green;
+    padding: 0.2em 0.6em;
+  }
+
+  .inactive comment-icon-sk {
+    fill: gray;
+  }
+
+  person-icon-sk {
+    fill: $orange;
+  }
+
+  notifications-icon-sk {
+    padding: 0 0.6em;
+    fill: $blue;
+  }
+
+  .invisible {
+    visibility: hidden;
+  }
+
+  .edit {
+    grid-area: edit;
+    overflow-y: auto;
+  }
+
+  header {
+    grid-area: header;
+    color: $blue;
+    fill: $blue;
+    padding: 0.4em;
+    justify-content: flex-end;
+    display: flex;
+
+    login-sk .email,
+    login-sk .logInOut {
+      color: $blue;
+    }
+  }
+
+  header,
+  .edit,
+  footer {
+    border-left: solid 1px black;
+  }
+
+
+  display: grid;
+  height: 100vh;
+  grid-template-columns: 22em 1fr;
+  grid-template-rows: 36px 1fr 5px;
+  grid-template-areas:
+    "nav header"
+    "nav edit"
+    "nav footer";
+
+  @media (max-width: 40em) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 36px 1fr 1fr 5px;
+    grid-template-areas:
+      "header"
+      "nav"
+      "edit"
+      "footer";
+
+    header,
+    .edit,
+    footer {
+      border: none;
+    }
+
+    .edit {
+      border-top: solid 1px black;
+    }
+
+
+  }
+
+}
