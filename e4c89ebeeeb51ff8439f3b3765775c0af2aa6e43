@@ -1,0 +1,290 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3246a82c_ae200611",
+        "filename": "am/DESIGN.md",
+        "patchSetId": 177
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: Two alert-manager headings here",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c5aecda_e3dec1f0",
+        "filename": "am/README.md",
+        "patchSetId": 177
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "../ds/index-skia-public.yaml",
+      "range": {
+        "startLine": 20,
+        "startChar": 15,
+        "endLine": 20,
+        "endChar": 28
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d81755f_c9f1626d",
+        "filename": "am/README.md",
+        "patchSetId": 177
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "index-skia-public.yaml",
+      "range": {
+        "startLine": 23,
+        "startChar": 32,
+        "endLine": 23,
+        "endChar": 42
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c09a16b_04443ecf",
+        "filename": "am/alert-manager/Dockerfile",
+        "patchSetId": 177
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "Not sure what this should be changed to since it\u0027s for running locally",
+      "range": {
+        "startLine": 8,
+        "startChar": 57,
+        "endLine": 8,
+        "endChar": 80
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "966a626a_eb3ffeb5",
+        "filename": "am/create-skia-alert-manager-sa.sh",
+        "patchSetId": 177
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: this comment probably needs to be updated",
+      "range": {
+        "startLine": 14,
+        "startChar": 64,
+        "endLine": 14,
+        "endChar": 122
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5544444f_6feb19ff",
+        "filename": "am/create-skia-alert-to-pubsub-sa.sh",
+        "patchSetId": 177
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: this comment probably needs to be updated",
+      "range": {
+        "startLine": 14,
+        "startChar": 64,
+        "endLine": 14,
+        "endChar": 122
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5224bef_a1ba1fb3",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: can combine with above line if you want",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec00a0e0_0de3a224",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: can combine with above line if you want",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4b68fea_fcdb3a0d",
+        "filename": "am/go/alert-to-pubsub/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: not a flag (like the above comment says) so maybe put into another section with successCounter?",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13b1091e_7cf55566",
+        "filename": "am/go/alert-to-pubsub/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: prometheus",
+      "range": {
+        "startLine": 28,
+        "startChar": 78,
+        "endLine": 28,
+        "endChar": 87
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c056c2bf_fd907552",
+        "filename": "am/modules/email-chooser-sk/email-chooser-sk.js",
+        "patchSetId": 177
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "nit: typo",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 19
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7033467c_e0393162",
+        "filename": "am/package.json",
+        "patchSetId": 177
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "Update",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 24
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a77f9f20_47a897be",
+        "filename": "ds/index-skia-public.yaml",
+        "patchSetId": 177
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "Is this referenced in a MakeFile somewhere? (like index.yaml in ds/MakeFile).",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "840feeea_a48e331a",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-06T20:37:46Z",
+      "side": 1,
+      "message": "Add these to KindsToBackup below?",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
