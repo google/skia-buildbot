@@ -2,7 +2,8 @@
 # Install NVIDIA Graphics Driver; applies only to group "nvidia".
 - hosts: nvidia
   vars:
-    version: "391.01"
+    version: "398.82"
+    installer_exe: "C:\NVIDIA\DisplayDriver\{{ version }}\Win10_64\International\setup.exe"
   tasks:
   - name: Create Temp
     win_file:
@@ -17,9 +18,13 @@
   - name: Extract the NVIDIA driver EXE
     # -s means silently extract (discovered by guess-and-check).
     win_command: c:\Temp\nvidia_gfx.exe -s
+  - name: Wait for NVIDIA driver to be extracted
+    # The above command runs in the background. Wait for setup.exe to appear.
+    win_wait_for:
+      path: "{{ installer_exe }}"
   - name: Install NVIDIA Graphics Driver
     # http://nvidia.custhelp.com/app/answers/detail/a_id/2985/~/how-can-i-perform-a-silent-install-of-the-gpu-driver%3F
-    win_command: C:\NVIDIA\DisplayDriver\{{ version }}\Win10_64\International\setup.exe -s
+    win_command: "{{ installer_exe }} -s"
   - name: Cleanup NVIDIA
     win_file:
       path: c:\NVIDIA
