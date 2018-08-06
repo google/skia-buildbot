@@ -1,8 +1,6 @@
 ---
 # Install NVIDIA Graphics Driver; applies only to group "nvidia".
 - hosts: nvidia
-  vars:
-    version: "391.01"
   tasks:
   - name: Create Temp
     win_file:
@@ -11,15 +9,13 @@
   # The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
   - name: Copy the NVIDIA driver EXE to the host
     win_copy:
-      src: "{{ win_package_src }}/\
-        NVIDIA Graphics {{ version }}-desktop-win10-64bit-international-whql.exe"
+      src: "{{ win_package_src }}/NVIDIA Graphics 398.82-desktop-win10-64bit-international-whql.exe"
       dest: c:\Temp\nvidia_gfx.exe
-  - name: Extract the NVIDIA driver EXE
-    # -s means silently extract (discovered by guess-and-check).
-    win_command: c:\Temp\nvidia_gfx.exe -s
   - name: Install NVIDIA Graphics Driver
-    # http://nvidia.custhelp.com/app/answers/detail/a_id/2985/~/how-can-i-perform-a-silent-install-of-the-gpu-driver%3F
-    win_command: C:\NVIDIA\DisplayDriver\{{ version }}\Win10_64\International\setup.exe -s
+    # -s means silently install (discovered by guess-and-check).
+    # Note that in previous versions this would only extract the driver; see git history if this
+    # behavior reverts.
+    win_command: c:\Temp\nvidia_gfx.exe -s
   - name: Cleanup NVIDIA
     win_file:
       path: c:\NVIDIA
