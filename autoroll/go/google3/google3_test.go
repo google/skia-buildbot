@@ -20,7 +20,7 @@ import (
 func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilder, func()) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
-	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
+	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL, ds.KIND_AUTOROLL_STATUS)
 	gb := git_testutils.GitInit(t, ctx)
 	tmpDir, cleanup := testutils.TempDir(t)
 	a, err := NewAutoRoller(ctx, tmpDir, gb.RepoUrl(), "master", "test-roller")
