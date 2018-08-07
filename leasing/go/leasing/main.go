@@ -471,9 +471,11 @@ func main() {
 		common.InitWithMust(
 			"leasing",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
 		)
 	}
+
+	// TODO(rmistry): Need to restrict to googlers below or just keep in skia-corp.
+	// TODO(rmistry): How are email sent?
 
 	skiaversion.MustLogVersion()
 
