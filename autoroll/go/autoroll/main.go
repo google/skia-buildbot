@@ -28,8 +28,10 @@ import (
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/autoroll/go/google3"
+	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
+	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/cleanup"
@@ -55,7 +57,11 @@ const (
 )
 
 var (
-	arb AutoRollerI = nil
+	// Interactions with the roller through the DB.
+	arbMode     *modes.ModeHistory
+	arbStatus   *status.AutoRollStatusCache
+	arbStrategy *strategy.StrategyHistory
+
 	cfg roller.AutoRollerConfig
 
 	mainTemplate *template.Template = nil
@@ -79,14 +85,6 @@ type AutoRollerI interface {
 	Start(ctx context.Context, tickFrequency, repoFrequency time.Duration)
 	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
 	AddHandlers(r *mux.Router)
-	// SetMode sets the desired mode of the bot.
-	SetMode(ctx context.Context, m, user, message string) error
-	// SetStrategy sets the desired next-roll-rev strategy.
-	SetStrategy(ctx context.Context, strategy, user, message string) error
-	// Return the roll-up status of the bot.
-	GetStatus(isGoogler bool) *status.AutoRollStatus
-	// Return minimal status information for the bot.
-	GetMiniStatus() *status.AutoRollMiniStatus
 	// Forcibly unthrottle the roller.
 	Unthrottle(ctx context.Context) error
 }
@@ -125,7 +123,7 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := arb.SetMode(context.Background(), mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
+	if err := arbMode.Add(context.Background(), mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set AutoRoll mode.")
 		return
 	}
@@ -150,7 +148,7 @@ func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := arb.SetStrategy(context.Background(), strategy.Strategy, login.LoggedInAs(r), strategy.Message); err != nil {
+	if err := arbStrategy.Add(context.Background(), strategy.Strategy, login.LoggedInAs(r), strategy.Message); err != nil {
 		httputils.ReportError(w, r, err, "Failed to set AutoRoll strategy.")
 		return
 	}
@@ -167,8 +165,13 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 		*status.AutoRollStatus
 		ParentWaterfall string `json:"parentWaterfall"`
 	}
+	status := arbStatus.Get()
+	if !login.IsGoogler(r) {
+		status.Error = ""
+		// TODO(borenet): Some rollers need us to clean out roll info.
+	}
 	st := rollerStatus{
-		AutoRollStatus:  arb.GetStatus(login.IsGoogler(r)),
+		AutoRollStatus:  status,
 		ParentWaterfall: cfg.ParentWaterfall,
 	}
 	if err := json.NewEncoder(w).Encode(&st); err != nil {
@@ -179,7 +182,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	status := arb.GetMiniStatus()
+	status := arbStatus.GetMini()
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
 		httputils.ReportError(w, r, err, "Failed to obtain status.")
 		return
@@ -191,10 +194,11 @@ func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
 		return
 	}
-	if err := arb.Unthrottle(context.Background()); err != nil {
+	// TODO(borenet): How do we unthrottle?
+	/*if err := arb.Unthrottle(context.Background()); err != nil {
 		httputils.ReportError(w, r, err, "Failed to unthrottle.")
 		return
-	}
+	}*/
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +231,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	arb.AddHandlers(r)
 	sklog.AddLogsRedirect(r)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
@@ -252,6 +255,46 @@ func main() {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
 	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatalf("Could not get hostname: %s", err)
+	}
+	gcsBucket := GS_BUCKET_AUTOROLLERS
+	rollerName := hostname
+	if *local {
+		gcsBucket = gcs.TEST_DATA_BUCKET
+		rollerName = fmt.Sprintf("autoroll_%s", hostname)
+	}
+
+	ctx := context.Background()
+	arbMode, err = modes.NewModeHistory(ctx, rollerName, path.Join(*workdir, "autoroll_modes.db"))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	util.RepeatCtx(10*time.Second, ctx, func() {
+		if err := arbMode.Update(ctx); err != nil {
+			sklog.Error(err)
+		}
+	})
+	arbStatus, err = status.NewCache(ctx, rollerName)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	util.RepeatCtx(10*time.Second, ctx, func() {
+		if err := arbStatus.Update(ctx); err != nil {
+			sklog.Error(err)
+		}
+	})
+	arbStrategy, err = strategy.NewStrategyHistory(ctx, rollerName, "", nil, path.Join(*workdir, "autoroll_strategy.db"))
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	util.RepeatCtx(10*time.Second, ctx, func() {
+		if err := arbStrategy.Update(ctx); err != nil {
+			sklog.Error(err)
+		}
+	})
 
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
 		return json5.NewDecoder(f).Decode(&cfg)
@@ -304,27 +347,15 @@ func main() {
 		}
 	}
 
-	ctx := context.Background()
-
 	serverURL := "https://" + *host
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatalf("Could not get hostname: %s", err)
-	}
-	gcsBucket := GS_BUCKET_AUTOROLLERS
-	rollerName := hostname
-	if *local {
-		gcsBucket = gcs.TEST_DATA_BUCKET
-		rollerName = fmt.Sprintf("autoroll_%s", hostname)
-	}
-
 	// TODO(borenet/rmistry): Create a code review sub-config as described in
 	// https://skia-review.googlesource.com/c/buildbot/+/116980/6/autoroll/go/autoroll/main.go#261
 	// so that we can get rid of these vars and the various conditionals.
+	var arb AutoRollerI
 	var g *gerrit.Gerrit
 	var githubClient *github.GitHub
 	if cfg.RollerType() == roller.ROLLER_TYPE_GOOGLE3 {
@@ -385,7 +416,7 @@ func main() {
 
 	// Feed AutoRoll stats into metrics.
 	cleanup.Repeat(time.Minute, func() {
-		status := arb.GetStatus(false)
+		status := arbStatus.Get()
 		v := int64(0)
 		if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
 			v = int64(1)

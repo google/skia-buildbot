@@ -293,49 +293,6 @@ func (r *AutoRoller) GetMode() string {
 	return r.modeHistory.CurrentMode().Mode
 }
 
-// SetMode sets the desired mode of the bot.
-func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) error {
-	if err := r.modeHistory.Add(ctx, mode, user, message); err != nil {
-		return err
-	}
-	r.notifier.SendModeChange(ctx, user, mode, message)
-
-	// Update the status so that the mode change shows up on the UI.
-	return r.updateStatus(ctx, false, "")
-}
-
-// SetStrategy sets the desired next-roll-revision strategy for the roller.
-func (r *AutoRoller) SetStrategy(ctx context.Context, strategy, user, message string) error {
-	if err := repo_manager.SetStrategy(ctx, r.rm, strategy); err != nil {
-		return err
-	}
-	if err := r.strategyHistory.Add(ctx, strategy, user, message); err != nil {
-		return err
-	}
-	r.notifier.SendStrategyChange(ctx, user, strategy, message)
-
-	// Update the status so that the strategy change shows up on the UI.
-	return r.updateStatus(ctx, false, "")
-}
-
-// Return the roll-up status of the bot.
-func (r *AutoRoller) GetStatus(includeError bool) *status.AutoRollStatus {
-	r.statusMtx.RLock()
-	defer r.statusMtx.RUnlock()
-	status := r.status.Get()
-	if !includeError {
-		status.Error = ""
-	}
-	return status
-}
-
-// Return minimal status information for the bot.
-func (r *AutoRoller) GetMiniStatus() *status.AutoRollMiniStatus {
-	r.statusMtx.RLock()
-	defer r.statusMtx.RUnlock()
-	return r.status.GetMini()
-}
-
 // Return the AutoRoll user.
 func (r *AutoRoller) GetUser() string {
 	return r.rm.User()
@@ -470,6 +427,22 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	defer r.runningMtx.Unlock()
 
 	sklog.Infof("Running autoroller.")
+
+	// Update modes and strategies.
+	if err := r.modeHistory.Update(ctx); err != nil {
+		return err
+	}
+	oldStrategy := r.strategyHistory.CurrentStrategy().Strategy
+	if err := r.strategyHistory.Update(ctx); err != nil {
+		return err
+	}
+	newStrategy := r.strategyHistory.CurrentStrategy().Strategy
+	if oldStrategy != newStrategy {
+		if err := repo_manager.SetStrategy(ctx, r.rm, newStrategy); err != nil {
+			return err
+		}
+	}
+
 	// Run the state machine.
 	lastErr := r.sm.NextTransitionSequence(ctx)
 	lastErrStr := ""

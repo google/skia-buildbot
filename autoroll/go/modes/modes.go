@@ -95,7 +95,7 @@ func NewModeHistory(ctx context.Context, roller, dbFile string) (*ModeHistory, e
 		}
 	}
 
-	if err := mh.refreshHistory(ctx); err != nil {
+	if err := mh.Update(ctx); err != nil {
 		return nil, err
 	}
 	return mh, nil
@@ -116,7 +116,7 @@ func (mh *ModeHistory) Add(ctx context.Context, mode, user, message string) erro
 	if err := mh.put(ctx, modeChange); err != nil {
 		return err
 	}
-	return mh.refreshHistory(ctx)
+	return mh.Update(ctx)
 }
 
 // put inserts the ModeChange into the datastore.
@@ -169,8 +169,8 @@ func (mh *ModeHistory) getHistory(ctx context.Context) ([]*ModeChange, error) {
 	return history, nil
 }
 
-// refreshHistory refreshes the mode history from the datastore.
-func (mh *ModeHistory) refreshHistory(ctx context.Context) error {
+// Update refreshes the mode history from the datastore.
+func (mh *ModeHistory) Update(ctx context.Context) error {
 	history, err := mh.getHistory(ctx)
 	if err != nil {
 		return err
