@@ -55,6 +55,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 	newMetrics := []metrics2.Int64Metric{}
 	for _, bot := range bots {
 		last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
+		if strings.HasPrefix(bot.BotId, "skia-gce-24") {
+			sklog.Debugf("Bot %s said last seen TS was %s, we parsed it to %s", bot.BotId, bot.LastSeenTs, last)
+		}
 		if err != nil {
 			sklog.Errorf("Malformed last seen time in bot: %s", err)
 			continue
