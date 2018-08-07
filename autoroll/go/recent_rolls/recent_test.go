@@ -2,9 +2,6 @@ package recent_rolls
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -22,15 +19,8 @@ func TestRecentRolls(t *testing.T) {
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
 
-	// TODO(borenet): Remove after all rollers have been upgraded.
-	tmpDir, err := ioutil.TempDir("", "test_autoroll_recent_")
-	assert.NoError(t, err)
-	defer func() {
-		assert.NoError(t, os.RemoveAll(tmpDir))
-	}()
-
 	// Create the RecentRolls.
-	r, err := NewRecentRolls(ctx, "test-roller", path.Join(tmpDir, "test.db"))
+	r, err := NewRecentRolls(ctx, "test-roller")
 	assert.NoError(t, err)
 
 	// Use this function for checking expectations.
@@ -158,75 +148,4 @@ func TestRecentRolls(t *testing.T) {
 	assert.NoError(t, r.Add(ctx, ari4))
 	expect = []*autoroll.AutoRollIssue{ari4, ari3, ari2, ari1}
 	check(ari4, ari3, expect)
-}
-
-// TODO(borenet): Remove after all rollers have been upgraded.
-func TestRecentRollsUpgrade(t *testing.T) {
-	testutils.LargeTest(t)
-	ctx := context.Background()
-	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
-
-	rollerName := "test-roller"
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
-	dbFile := path.Join(wd, "bolt.db")
-	d, err := openDB(dbFile)
-	assert.NoError(t, err)
-
-	now := time.Now().UTC().Round(time.Millisecond)
-	oldData := []*autoroll.AutoRollIssue{
-		&autoroll.AutoRollIssue{
-			Closed:      false,
-			Committed:   false,
-			CommitQueue: true,
-			Created:     now,
-			Issue:       1010103,
-			Modified:    now,
-			Patchsets:   []int64{1},
-			Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-			Subject:     "FAKE DEPS ROLL 3",
-			TryResults:  []*autoroll.TryResult(nil),
-		},
-		&autoroll.AutoRollIssue{
-			Closed:      false,
-			Committed:   false,
-			CommitQueue: true,
-			Created:     now.Add(-time.Hour),
-			Issue:       1010102,
-			Modified:    now.Add(-time.Hour),
-			Patchsets:   []int64{1},
-			Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-			Subject:     "FAKE DEPS ROLL 2",
-			TryResults:  []*autoroll.TryResult(nil),
-		},
-		&autoroll.AutoRollIssue{
-			Closed:      false,
-			Committed:   false,
-			CommitQueue: true,
-			Created:     now.Add(-2 * time.Hour),
-			Issue:       1010101,
-			Modified:    now.Add(-2 * time.Hour),
-			Patchsets:   []int64{1},
-			Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
-			Subject:     "FAKE DEPS ROLL 1",
-			TryResults:  []*autoroll.TryResult(nil),
-		},
-	}
-	for _, roll := range oldData {
-		assert.NoError(t, d.InsertRoll(roll))
-	}
-	assert.NoError(t, d.Close())
-
-	// Verify that we port the old data over to the new DB when creating the
-	// RecentRolls.
-	r, err := NewRecentRolls(ctx, rollerName, dbFile)
-	assert.NoError(t, err)
-	newData := r.GetRecentRolls()
-	deepequal.AssertDeepEqual(t, oldData, newData)
-
-	// Verify that we don't try to port the data again.
-	r, err = NewRecentRolls(ctx, rollerName, dbFile)
-	assert.NoError(t, err)
-	assert.Equal(t, len(oldData), len(r.GetRecentRolls()))
 }
