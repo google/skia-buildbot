@@ -12,10 +12,10 @@
       src: "{{ win_package_src }}/NVIDIA Graphics 398.82-desktop-win10-64bit-international-whql.exe"
       dest: c:\Temp\nvidia_gfx.exe
   - name: Install NVIDIA Graphics Driver
-    # -s means silently install (discovered by guess-and-check).
-    # Note that in previous versions this would only extract the driver; see git history if this
-    # behavior reverts.
-    win_command: c:\Temp\nvidia_gfx.exe -s
+    # Command line options copied from here:
+    # https://devtalk.nvidia.com/default/topic/830929/cuda-setup-and-installation/quadro-348-07-driver-silent-installation-unable-to-generate-setup-iss-response-file/
+    # Note that in previous versions the options were different; see git history if this regresses.
+    win_command: c:\Temp\nvidia_gfx.exe -s -noreboot -clean
   - name: Cleanup NVIDIA
     win_file:
       path: c:\NVIDIA
