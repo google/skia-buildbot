@@ -29,6 +29,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/cleanup"
@@ -83,9 +84,9 @@ type AutoRollerI interface {
 	// SetStrategy sets the desired next-roll-rev strategy.
 	SetStrategy(ctx context.Context, strategy, user, message string) error
 	// Return the roll-up status of the bot.
-	GetStatus(isGoogler bool) *roller.AutoRollStatus
+	GetStatus(isGoogler bool) *status.AutoRollStatus
 	// Return minimal status information for the bot.
-	GetMiniStatus() *roller.AutoRollMiniStatus
+	GetMiniStatus() *status.AutoRollMiniStatus
 	// Forcibly unthrottle the roller.
 	Unthrottle(ctx context.Context) error
 }
@@ -162,11 +163,11 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Obtain the status info. Only display potentially sensitive info if the user is a logged-in
 	// Googler.
-	type status struct {
-		*roller.AutoRollStatus
+	type rollerStatus struct {
+		*status.AutoRollStatus
 		ParentWaterfall string `json:"parentWaterfall"`
 	}
-	st := status{
+	st := rollerStatus{
 		AutoRollStatus:  arb.GetStatus(login.IsGoogler(r)),
 		ParentWaterfall: cfg.ParentWaterfall,
 	}

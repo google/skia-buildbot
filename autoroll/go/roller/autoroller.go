@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
@@ -52,12 +53,13 @@ type AutoRoller struct {
 	recent          *recent_rolls.RecentRolls
 	retrieveRoll    func(context.Context, *AutoRoller, int64) (RollImpl, error)
 	rm              repo_manager.RepoManager
+	roller          string
 	runningMtx      sync.Mutex
 	safetyThrottle  *state_machine.Throttler
 	serverURL       string
 	sheriff         []string
 	sm              *state_machine.AutoRollStateMachine
-	status          *AutoRollStatusCache
+	status          *status.AutoRollStatusCache
 	statusMtx       sync.RWMutex
 	strategyHistory *strategy.StrategyHistory
 	successThrottle *state_machine.Throttler
@@ -167,7 +169,10 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err := n.Router().AddFromConfigs(ctx, c.Notifiers); err != nil {
 		return nil, err
 	}
-
+	statusCache, err := status.NewCache(ctx, rollerName)
+	if err != nil {
+		return nil, err
+	}
 	arb := &AutoRoller{
 		childName:       c.ChildName,
 		cqExtraTrybots:  c.CqExtraTrybots,
@@ -181,10 +186,11 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		recent:          recent,
 		retrieveRoll:    retrieveRoll,
 		rm:              rm,
+		roller:          rollerName,
 		safetyThrottle:  safetyThrottle,
 		serverURL:       serverURL,
 		sheriff:         c.Sheriff,
-		status:          &AutoRollStatusCache{},
+		status:          statusCache,
 		strategyHistory: sh,
 		successThrottle: successThrottle,
 	}
@@ -295,7 +301,7 @@ func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) er
 	r.notifier.SendModeChange(ctx, user, mode, message)
 
 	// Update the status so that the mode change shows up on the UI.
-	return r.updateStatus(false, "")
+	return r.updateStatus(ctx, false, "")
 }
 
 // SetStrategy sets the desired next-roll-revision strategy for the roller.
@@ -309,18 +315,22 @@ func (r *AutoRoller) SetStrategy(ctx context.Context, strategy, user, message st
 	r.notifier.SendStrategyChange(ctx, user, strategy, message)
 
 	// Update the status so that the strategy change shows up on the UI.
-	return r.updateStatus(false, "")
+	return r.updateStatus(ctx, false, "")
 }
 
 // Return the roll-up status of the bot.
-func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
+func (r *AutoRoller) GetStatus(includeError bool) *status.AutoRollStatus {
 	r.statusMtx.RLock()
 	defer r.statusMtx.RUnlock()
-	return r.status.Get(includeError, nil)
+	status := r.status.Get()
+	if !includeError {
+		status.Error = ""
+	}
+	return status
 }
 
 // Return minimal status information for the bot.
-func (r *AutoRoller) GetMiniStatus() *AutoRollMiniStatus {
+func (r *AutoRoller) GetMiniStatus() *status.AutoRollMiniStatus {
 	r.statusMtx.RLock()
 	defer r.statusMtx.RUnlock()
 	return r.status.GetMini()
@@ -401,7 +411,7 @@ func (r *AutoRoller) UpdateRepos(ctx context.Context) error {
 }
 
 // Update the status information of the roller.
-func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error {
+func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, lastError string) error {
 	r.statusMtx.Lock()
 	defer r.statusMtx.Unlock()
 
@@ -415,7 +425,7 @@ func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error
 		}
 	}
 	if !replaceLastError {
-		lastError = r.status.Get(true, nil).Error
+		lastError = r.status.Get().Error
 	}
 
 	failureThrottledUntil := r.failureThrottle.ThrottledUntil().Unix()
@@ -430,8 +440,8 @@ func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error
 	}
 
 	sklog.Infof("Updating status (%d)", r.rm.CommitsNotRolled())
-	return r.status.Set(&AutoRollStatus{
-		AutoRollMiniStatus: AutoRollMiniStatus{
+	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
+		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
@@ -446,8 +456,12 @@ func (r *AutoRoller) updateStatus(replaceLastError bool, lastError string) error
 		Status:          string(r.sm.Current()),
 		Strategy:        r.strategyHistory.CurrentStrategy(),
 		ThrottledUntil:  throttledUntil,
+		ValidModes:      modes.VALID_MODES,
 		ValidStrategies: r.rm.ValidStrategies(),
-	})
+	}); err != nil {
+		return err
+	}
+	return r.status.Update(ctx)
 }
 
 // Run one iteration of the roller.
@@ -464,7 +478,7 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	}
 
 	// Update the status information.
-	if err := r.updateStatus(true, lastErrStr); err != nil {
+	if err := r.updateStatus(ctx, true, lastErrStr); err != nil {
 		return err
 	}
 	sklog.Infof("Autoroller state %s", r.sm.Current())

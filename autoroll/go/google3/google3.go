@@ -20,8 +20,8 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
-	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/state_machine"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
@@ -42,11 +42,12 @@ const (
 // storage in RecentRolls. It also manages an AutoRollStatusCache for status handlers.
 type AutoRoller struct {
 	recent      *recent_rolls.RecentRolls
-	status      *roller.AutoRollStatusCache
+	status      *status.AutoRollStatusCache
 	childRepo   *git.Repo
 	childBranch string
 	mtx         sync.Mutex
 	liveness    metrics2.Liveness
+	roller      string
 }
 
 func NewAutoRoller(ctx context.Context, workdir, childRepoUrl, childBranch, rollerName string) (*AutoRoller, error) {
@@ -59,13 +60,17 @@ func NewAutoRoller(ctx context.Context, workdir, childRepoUrl, childBranch, roll
 	if err != nil {
 		return nil, err
 	}
-
+	cache, err := status.NewCache(ctx, rollerName)
+	if err != nil {
+		return nil, err
+	}
 	a := &AutoRoller{
 		recent:      recent,
-		status:      &roller.AutoRollStatusCache{},
+		status:      cache,
 		childRepo:   childRepo,
 		childBranch: childBranch,
 		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
+		roller:      rollerName,
 	}
 
 	if err := a.UpdateStatus(ctx, "", true); err != nil {
@@ -85,23 +90,28 @@ func (a *AutoRoller) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/json/roll", a.rollHandler).Methods(http.MethodPost, http.MethodPut)
 }
 
-func (a *AutoRoller) GetStatus(isGoogler bool) *roller.AutoRollStatus {
+func (a *AutoRoller) GetStatus(isGoogler bool) *status.AutoRollStatus {
 	cleanIssue := func(issue *autoroll.AutoRollIssue) {
 		// Clearing Issue and Subject out of an abundance of caution.
 		issue.Issue = 0
 		issue.Subject = ""
 		issue.TryResults = nil
 	}
-	if isGoogler {
-		cleanIssue = nil
+	status := a.status.Get()
+	if !isGoogler {
+		for _, issue := range status.Recent {
+			cleanIssue(issue)
+		}
+		cleanIssue(status.CurrentRoll)
+		cleanIssue(status.LastRoll)
+		status.Error = ""
 	}
-	status := a.status.Get(isGoogler, cleanIssue)
 	status.ValidModes = []string{modes.MODE_RUNNING} // modeJsonHandler is not implemented.
 	return status
 }
 
 // Return minimal status information for the bot.
-func (a *AutoRoller) GetMiniStatus() *roller.AutoRollMiniStatus {
+func (a *AutoRoller) GetMiniStatus() *status.AutoRollMiniStatus {
 	return a.status.GetMini()
 }
 
@@ -144,7 +154,10 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	lastRoll := a.recent.LastRoll()
 
 	if preserveLastError {
-		errorMsg = a.status.Get(true, nil).Error
+		lastStatus := a.status.Get()
+		if lastStatus != nil {
+			errorMsg = lastStatus.Error
+		}
 	} else if errorMsg != "" {
 		var lastRollIssue int64 = 0
 		if lastRoll != nil {
@@ -154,8 +167,8 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	}
 
 	sklog.Infof("Updating status (%d)", commitsNotRolled)
-	if err := a.status.Set(&roller.AutoRollStatus{
-		AutoRollMiniStatus: roller.AutoRollMiniStatus{
+	if err := status.Set(ctx, a.roller, &status.AutoRollStatus{
+		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
 		},
@@ -185,7 +198,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	if lastRoll != nil && util.In(lastRoll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, autoroll.ROLL_RESULT_SUCCESS}) {
 		a.liveness.ManualReset(lastRoll.Modified)
 	}
-	return nil
+	return a.status.Update(ctx)
 }
 
 // AddOrUpdateIssue makes issue the current issue, handling any possible discrepancies due to
