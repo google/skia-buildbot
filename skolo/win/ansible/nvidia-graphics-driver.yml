@@ -17,8 +17,18 @@
       src: c:\Temp\nvidia_gfx.zip
       dest: c:\Temp\NVIDIA
   - name: Install NVIDIA Graphics Driver
-    # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
-    win_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
+    # Sometimes setup.exe returns a non-zero exit code for unknown reason. We reboot and retry until
+    # it succeeds (by default limited to 3 retries).
+    block:
+      - name: Run NVIDIA Graphics setup.exe
+        # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
+        win_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
+        register: setup_result
+        ignore_errors: True
+      - when: setup_result is failed
+        name: Reboot after NVIDIA Graphics setup.exe failure
+        win_reboot:
+    until: setup_result is success
   - name: Cleanup
     win_file:
       path: c:\Temp\{{ item }}
