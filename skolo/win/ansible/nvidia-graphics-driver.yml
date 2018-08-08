@@ -6,21 +6,23 @@
     win_file:
       path: c:\Temp
       state: directory
-  # The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
-  - name: Copy the NVIDIA driver EXE to the host
+  # This zip was created by opening the self-extracting exe using Archive Manager on Debian and
+  # re-zipping the extracted files as a ZIP archive ("Save As").
+  - name: Copy the NVIDIA driver ZIP to the host
     win_copy:
-      src: "{{ win_package_src }}/NVIDIA Graphics 398.82-desktop-win10-64bit-international-whql.exe"
-      dest: c:\Temp\nvidia_gfx.exe
+      src: "{{ win_package_src }}/NVIDIA Graphics 398.82-desktop-win10-64bit-international-whql.zip"
+      dest: c:\Temp\nvidia_gfx.zip
+  - name: Extract the NVIDIA driver ZIP
+    win_unzip:
+      src: c:\Temp\nvidia_gfx.zip
+      dest: c:\Temp\NVIDIA
   - name: Install NVIDIA Graphics Driver
-    # -s means silently install (discovered by guess-and-check).
-    # Note that in previous versions this would only extract the driver; see git history if this
-    # behavior reverts.
-    win_command: c:\Temp\nvidia_gfx.exe -s
-  - name: Cleanup NVIDIA
+    # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
+    win_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
+  - name: Cleanup
     win_file:
-      path: c:\NVIDIA
+      path: c:\Temp\{{ item }}
       state: absent
-  - name: Cleanup EXE
-    win_file:
-      path: c:\Temp\nvidia_gfx.exe
-      state: absent
+    loop:
+      - NVIDIA
+      - nvidia_gfx.zip
