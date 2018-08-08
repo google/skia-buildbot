@@ -19,6 +19,10 @@
   - name: Install NVIDIA Graphics Driver
     # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
     win_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
+    # Sometimes setup.exe returns a non-zero exit code for unknown reason. We retry until it
+    # succeeds (by default limited to 3 retries).
+    register: setup_result
+    until: setup_result is success
   - name: Cleanup
     win_file:
       path: c:\Temp\{{ item }}
