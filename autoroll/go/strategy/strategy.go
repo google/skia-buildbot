@@ -3,7 +3,6 @@ package strategy
 import (
 	"context"
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
@@ -56,37 +55,12 @@ type StrategyHistory struct {
 }
 
 // NewStrategyHistory returns a StrategyHistory instance.
-func NewStrategyHistory(ctx context.Context, roller, defaultStrategy string, validStrategies []string, dbFile string) (*StrategyHistory, error) {
+func NewStrategyHistory(ctx context.Context, roller, defaultStrategy string, validStrategies []string) (*StrategyHistory, error) {
 	sh := &StrategyHistory{
 		defaultStrategy: defaultStrategy,
 		roller:          roller,
 		validStrategies: validStrategies,
 	}
-
-	// Temporary: Check whether we've ingested the old data into the new
-	// datastore. If not, do it now.
-	// TODO(borenet): Remove this after all rollers have been upgraded.
-	if history, err := sh.getHistory(ctx); err != nil {
-		return nil, fmt.Errorf("Failed to get history: %s", err)
-	} else if len(history) == 0 {
-		sklog.Warningf("Ingesting all strategy change history into new datastore.")
-		d, err := openDB(dbFile)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to open Bolt DB: %s", err)
-		}
-		defer util.Close(d)
-		allEntries, err := d.GetStrategyHistory(math.MaxInt32)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to read old strategy history: %s", err)
-		}
-		for _, sc := range allEntries {
-			sc.Roller = roller
-			if err := sh.put(ctx, sc); err != nil {
-				return nil, fmt.Errorf("Failed to ingest old strategy change history into new datastore: %s", err)
-			}
-		}
-	}
-
 	if err := sh.refreshHistory(ctx); err != nil {
 		return nil, fmt.Errorf("Failed to refresh history: %s", err)
 	}

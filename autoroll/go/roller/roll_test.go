@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"path"
 	"testing"
 	"time"
 
@@ -35,7 +34,7 @@ func TestGerritRoll(t *testing.T) {
 	g := gerrit_testutils.NewGerrit(t, tmp, false)
 	rm := repo_manager_testutils.NewRepoManager(t, false)
 	ctx := context.Background()
-	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller", path.Join(tmp, "recent.bdb"))
+	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
 	assert.NoError(t, err)
 
 	// Upload and retrieve the roll.
@@ -233,7 +232,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	rm := repo_manager_testutils.NewRepoManager(t, true)
 
 	ctx := context.Background()
-	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller", path.Join(tmp, "recent.bdb"))
+	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
 	assert.NoError(t, err)
 
 	// Upload and retrieve the roll.

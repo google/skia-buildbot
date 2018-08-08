@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"math"
 	"sync"
 
 	"cloud.google.com/go/datastore"
@@ -52,41 +51,16 @@ type dsRoll struct {
 
 // RecentRolls is a struct used for storing and retrieving recent DEPS rolls.
 type RecentRolls struct {
-	db     *db
 	recent []*autoroll.AutoRollIssue
 	roller string
 	mtx    sync.RWMutex
 }
 
 // NewRecentRolls returns a new RecentRolls instance.
-func NewRecentRolls(ctx context.Context, roller, dbFile string) (*RecentRolls, error) {
+func NewRecentRolls(ctx context.Context, roller string) (*RecentRolls, error) {
 	recentRolls := &RecentRolls{
 		roller: roller,
 	}
-
-	// Temporary: Check whether we've ingested the old data into the new
-	// datastore. If not, do it now.
-	// TODO(borenet): Remove this after all rollers have been upgraded.
-	if history, err := recentRolls.getHistory(ctx); err != nil {
-		return nil, err
-	} else if len(history) == 0 {
-		sklog.Warningf("Ingesting all roll history into new datastore from %s", dbFile)
-		d, err := openDB(dbFile)
-		if err != nil {
-			return nil, err
-		}
-		defer util.Close(d)
-		allEntries, err := d.GetRecentRolls(math.MaxInt32)
-		if err != nil {
-			return nil, err
-		}
-		for _, roll := range allEntries {
-			if err := recentRolls.put(ctx, roll); err != nil {
-				return nil, fmt.Errorf("Failed to ingest old roll history into new datastore: %s", err)
-			}
-		}
-	}
-
 	if err := recentRolls.refreshRecentRolls(ctx); err != nil {
 		return nil, err
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -115,7 +114,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
-	sh, err := strategy.NewStrategyHistory(ctx, rollerName, rm.DefaultStrategy(), rm.ValidStrategies(), path.Join(workdir, "autoroll_strategy.db"))
+	sh, err := strategy.NewStrategyHistory(ctx, rollerName, rm.DefaultStrategy(), rm.ValidStrategies())
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create strategy history: %s", err)
 	}
@@ -127,12 +126,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, fmt.Errorf("Failed initial repo manager update: %s", err)
 	}
 
-	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName, path.Join(workdir, "recent_rolls.db"))
+	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create recent rolls DB: %s", err)
 	}
 
-	mh, err := modes.NewModeHistory(ctx, rollerName, path.Join(workdir, "autoroll_modes.db"))
+	mh, err := modes.NewModeHistory(ctx, rollerName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create mode history: %s", err)
 	}

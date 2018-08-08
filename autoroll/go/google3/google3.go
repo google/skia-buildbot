@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"sync"
 	"time"
 
@@ -51,7 +50,7 @@ type AutoRoller struct {
 }
 
 func NewAutoRoller(ctx context.Context, workdir, childRepoUrl, childBranch, rollerName string) (*AutoRoller, error) {
-	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName, path.Join(workdir, "recent_rolls.bdb"))
+	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
 	if err != nil {
 		return nil, err
 	}
