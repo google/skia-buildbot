@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os/user"
 	"path"
 	"strings"
 
@@ -82,11 +81,16 @@ func SwarmingInit() error {
 	}
 
 	// Authenticated HTTP client.
-	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
-	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE)
 	if err != nil {
-		return fmt.Errorf("Failed to create authenticated HTTP client: %s", err)
+		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}
+	httpClient := auth.ClientFromTokenSource(ts)
+	//oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
+	//httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
+	//if err != nil {
+	//	return fmt.Errorf("Failed to create authenticated HTTP client: %s", err)
+	//}
 	// Public Swarming API client.
 	swarmingClientPublic, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
@@ -99,11 +103,7 @@ func SwarmingInit() error {
 	}
 
 	// Set path to the isolateserver.py script.
-	usr, err := user.Current()
-	if err != nil {
-		return fmt.Errorf("Failed to find the current user: %s", err)
-	}
-	isolateServerPath = path.Join(usr.HomeDir, "client-py", "isolateserver.py")
+	isolateServerPath = path.Join(*workdir, "client-py", "isolateserver.py")
 
 	return nil
 }
