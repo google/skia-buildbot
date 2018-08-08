@@ -101,8 +101,12 @@ func (a *AutoRoller) GetStatus(isGoogler bool) *status.AutoRollStatus {
 		for _, issue := range status.Recent {
 			cleanIssue(issue)
 		}
-		cleanIssue(status.CurrentRoll)
-		cleanIssue(status.LastRoll)
+		if status.CurrentRoll != nil {
+			cleanIssue(status.CurrentRoll)
+		}
+		if status.LastRoll != nil {
+			cleanIssue(status.LastRoll)
+		}
 		status.Error = ""
 	}
 	status.ValidModes = []string{modes.MODE_RUNNING} // modeJsonHandler is not implemented.
