@@ -60,6 +60,7 @@ func main() {
 	// For each instance, stop it, apply the scopes, and restart it.
 	group := util.NewNamedErrGroup()
 	for name, s := range scopesByInstance {
+		name := name
 		instanceScopes := s.Keys()
 		sort.Strings(instanceScopes)
 		group.Go(name, func() error {
