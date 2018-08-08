@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -65,6 +64,7 @@ var (
 	pollInterval          = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
+	emailCachedTokenFlag  = flag.String("gmail_cached_token", "", "GMail cached token.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
@@ -471,9 +471,11 @@ func main() {
 		common.InitWithMust(
 			"leasing",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
 		)
 	}
+
+	// TODO(rmistry): Need to restrict to googlers below or just keep in skia-corp.
+	// TODO(rmistry): How are email sent?
 
 	skiaversion.MustLogVersion()
 
@@ -484,21 +486,17 @@ func main() {
 	}
 
 	// Initialize mailing library.
-	usr, err := user.Current()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	tokenFile := filepath.Join(usr.HomeDir, "email.data")
+	tokenFile := filepath.Join(*workdir, "email.data")
 	emailClientId := *emailClientIdFlag
 	emailClientSecret := *emailClientSecretFlag
+	cachedGMailToken := *emailCachedTokenFlag
 	if !*local {
 		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
 		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
-		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
-		if err != nil {
-			sklog.Fatalf("Failed to cache token: %s", err)
-		}
+		cachedGMailToken = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
+	}
+	if err := ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm); err != nil {
+		sklog.Fatalf("Failed to cache token: %s", err)
 	}
 	if *local && (emailClientId == "" || emailClientSecret == "") {
 		sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
@@ -511,23 +509,35 @@ func main() {
 	if !*local {
 		useRedirectURL = *redirectURL
 	}
-	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
-		sklog.Fatal(fmt.Errorf("Problem setting up server OAuth: %s", err))
+
+	// Initialize debugger setup helper.
+	if err := DebuggerInit(); err != nil {
+		sklog.Fatalf("Failed to init debugger setup helper: %s", err)
 	}
 
-	// Initialize isolate and swarming.
-	if err := SwarmingInit(); err != nil {
-		sklog.Fatalf("Failed to init isolate and swarming: %s", err)
-	}
-
+	// Learn how to init cloud datastore from the am change.
 	// Initialize cloud datastore.
 	if err := DatastoreInit(*projectName, *namespace); err != nil {
 		sklog.Fatalf("Failed to init cloud datastore: %s", err)
 	}
 
-	// Initialize debugger setup helper.
-	if err := DebuggerInit(); err != nil {
-		sklog.Fatalf("Failed to init debugger setup helper: %s", err)
+	/*
+			                ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		                if err != nil {
+		                        sklog.Fatal(err)
+		                }
+		                c := auth.ClientFromTokenSource(ts)
+	*/
+
+	// THIS IS FAILING because of client_secrets.
+	// Initialize isolate and swarming.
+	if err := SwarmingInit(); err != nil {
+		sklog.Fatalf("Failed to init isolate and swarming: %s", err)
+	}
+
+	// THIS IS FAILING because of client_secrets.
+	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
+		sklog.Fatal(fmt.Errorf("Problem setting up server OAuth: %s", err))
 	}
 
 	healthyGauge := metrics2.GetInt64Metric("healthy")
