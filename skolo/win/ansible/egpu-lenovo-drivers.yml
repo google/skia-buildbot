@@ -1,0 +1,55 @@
+---
+# Install drivers needed for the Lenovo Thunderbolt 3 Graphics Dock (G0A10170UL); applies only to
+# group "egpu-lenovo".
+# TODO(dogben): In the future we will probably have eGPUs other than the Lenovo and possibly hosts
+# other than the NUC7i5BNK, at which point we should split this playbook appropriately.
+- hosts: egpu-lenovo
+  tasks:
+  - name: Create Temp
+    win_file:
+      path: c:\Temp
+      state: directory
+  - name: Copy the Intel NUC7i5BNK TB3 driver ZIP to the host
+    win_copy:
+      src: "{{ win_package_src }}/Intel NUC7i5BNK Thunderbolt 3 TBT_WIN10_64_17.2.71.250.zip"
+      dest: c:\Temp\intel_tb3.zip
+  - name: Extract the Intel NUC7i5BNK TB3 driver ZIP
+    win_unzip:
+      src: c:\Temp\intel_tb3.zip
+      dest: C:\Temp\Intel
+  - name: Install Intel NUC7i5BNK TB3 driver
+    win_package:
+      path: c:\Temp\Intel\setup.msi
+      # See docs for win_package here:
+      # http://docs.ansible.com/ansible/latest/win_package_module.html
+      # Unfortunately, the only way I have found to get this product_id is to install the software
+      # and dig through the registry. And even then it might not work (see
+      # nvidia-graphics-driver.yml). Hopefully future versions of win_package will make this better
+      # (or just make the product_id optional).
+      #product_id: '{DEE0B752-52D8-4615-9BEE-1EDA46628960}'
+      state: present
+  - name: Copy the Lenovo TB3 Graphics Dock Driver EXE to the host
+    win_copy:
+      src: "{{ win_package_src }}/lenovo_thunderbolt_3_graphics_dock_driver_v100044.exe"
+      dest: c:\Temp\lenovo_tb3.exe
+  - name: Create C:\Temp\Lenovo
+    win_file:
+      path: c:\Temp\Lenovo
+      state: directory
+  - name: Extract the Lenovo TB3 Graphics Dock Driver EXE
+    # Extract arg based on info from "lenovo_tb3.exe /?" and trial-and-error.
+    win_command: c:\Temp\lenovo_tb3.exe /extract:c:\Temp\Lenovo
+  - name: Install Lenovo TB3 Graphics Dock Driver
+    win_package:
+      # I have no idea what "A3E7EAB" means.
+      path: c:\Temp\Lenovo\A3E7EAB\Lenovo_Thunderbolt_3_Graphics_Dock_Driver_V100044.msi
+      state: present
+  - name: Cleanup
+    win_file:
+      path: c:\Temp\{{ item }}
+      state: absent
+    loop:
+      - intel_tb3.zip
+      - Intel
+      - lenovo_tb3.exe
+      - Lenovo
