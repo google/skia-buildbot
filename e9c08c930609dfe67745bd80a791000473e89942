@@ -16,6 +16,24 @@
       "revId": "e9c08c930609dfe67745bd80a791000473e89942",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1432901f_2aa4d973",
+        "filename": "scripts/add_gce_scopes/add_gce_scopes.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-08T15:53:44Z",
+      "side": 1,
+      "message": "Good idea, done.",
+      "parentUuid": "475fb5df_9c340fee",
+      "revId": "e9c08c930609dfe67745bd80a791000473e89942",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
