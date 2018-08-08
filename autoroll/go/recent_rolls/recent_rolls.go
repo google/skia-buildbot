@@ -130,7 +130,10 @@ func (r *RecentRolls) put(ctx context.Context, roll *autoroll.AutoRollIssue) err
 	key := ds.NewKey(ds.KIND_AUTOROLL_ROLL)
 	key.Name = obj.RollerIssue
 	key.Parent = fakeAncestor()
-	_, err := ds.DS.Put(ctx, key, obj)
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		_, err := tx.Put(key, obj)
+		return err
+	})
 	if err != nil {
 		return fmt.Errorf("Failed to insert roll: %s", err)
 	}
@@ -139,6 +142,9 @@ func (r *RecentRolls) put(ctx context.Context, roll *autoroll.AutoRollIssue) err
 
 // Update updates the given DEPS roll in the recent rolls list.
 func (r *RecentRolls) Update(ctx context.Context, roll *autoroll.AutoRollIssue) error {
+	// TODO(borenet): It would be better to pass in a function to perform
+	// the desired modifications on the AutoRollIssue inside of the
+	// transaction.
 	if err := roll.Validate(); err != nil {
 		return err
 	}

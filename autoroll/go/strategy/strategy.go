@@ -115,7 +115,10 @@ func (sh *StrategyHistory) Add(ctx context.Context, s, user, message string) err
 func (sh *StrategyHistory) put(ctx context.Context, s *StrategyChange) error {
 	key := ds.NewKey(ds.KIND_AUTOROLL_STRATEGY)
 	key.Parent = fakeAncestor()
-	_, err := ds.DS.Put(ctx, key, s)
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		_, err := tx.Put(key, s)
+		return err
+	})
 	return err
 }
 
