@@ -52,6 +52,10 @@ capture_archives_on_workers:
 run_lua_on_workers:
 	go install -v ./go/master_scripts/run_lua_on_workers/
 
+.PHONY: run_layout_tests_workers
+run_layout_tests_on_workers:
+	go install -v ./go/master_scripts/run_layout_tests_on_workers/
+
 .PHONY: capture_skps_on_workers
 capture_skps_on_workers:
 	go install -v ./go/master_scripts/capture_skps_on_workers/
@@ -85,13 +89,17 @@ build_repo:
 isolate_telemetry:
 	go install -v ./go/worker_scripts/isolate_telemetry/
 
+.PHONY: isolate_layout_tests
+isolate_layout_tests:
+	go install -v ./go/worker_scripts/isolate_layout_tests/
+
 .PHONY: capture_archives
 capture_archives:
 	go install -v ./go/worker_scripts/capture_archives/
 
-.PHONY: run_lua
-run_lua:
-	go install -v ./go/worker_scripts/run_lua/
+.PHONY: run_layout_tests
+run_layout_tests:
+	go install -v ./go/worker_scripts/run_layout_tests/
 
 .PHONY: capture_skps
 capture_skps:
@@ -131,13 +139,14 @@ master_scripts: build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
 	run_lua_on_workers capture_skps_on_workers \
         pixel_diff_on_workers run_chromium_perf_on_workers poller \
-        run_chromium_analysis_on_workers metrics_analysis_on_workers
+        run_chromium_analysis_on_workers metrics_analysis_on_workers \
+        run_layout_tests_on_workers
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
                 pixel_diff run_chromium_perf \
                 run_chromium_analysis build_repo metrics_analysis \
-                isolate_telemetry
+                isolate_telemetry isolate_layout_tests run_layout_tests
 
 .PHONY: all
 all: master_scripts worker_scripts testgo
