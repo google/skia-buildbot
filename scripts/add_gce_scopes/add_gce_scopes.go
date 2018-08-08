@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	instances = common.NewMultiStringFlag("instance", nil, "Instance(s) to add scopes.")
-	scopes    = common.NewMultiStringFlag("scope", nil, "Scope(s) to add.")
-	project   = flag.String("project", gce.PROJECT_ID_SERVER, "GCE project.")
-	zone      = flag.String("zone", gce.ZONE_DEFAULT, "GCE zone.")
-	workdir   = flag.String("workdir", "", "Working directory to use.")
+	instances      = common.NewMultiStringFlag("instance", nil, "Instance(s) to add scopes.")
+	scopes         = common.NewMultiStringFlag("scope", nil, "Scope(s) to add.")
+	serviceAccount = flag.String("service_account", "", "Override the existing service account on all instances with this one, if set.")
+	project        = flag.String("project", gce.PROJECT_ID_SERVER, "GCE project.")
+	zone           = flag.String("zone", gce.ZONE_DEFAULT, "GCE zone.")
+	workdir        = flag.String("workdir", "", "Working directory to use.")
 )
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 	sklog.Infof("Running on instances: %v", instances)
 
 	// Determine the set of scopes for each instance.
+	emailsByInstance := make(map[string]string, len(*instances))
 	scopesByInstance := make(map[string]util.StringSet, len(*instances))
 	for _, name := range *instances {
 		inst, err := is.Get(*project, *zone, name).Do()
@@ -48,6 +50,10 @@ func main() {
 		}
 		if len(inst.ServiceAccounts) != 1 {
 			sklog.Fatal("Instances must have exactly one service account but %s has %d", name, len(inst.ServiceAccounts))
+		}
+		emailsByInstance[name] = inst.ServiceAccounts[0].Email
+		if *serviceAccount != "" {
+			emailsByInstance[name] = *serviceAccount
 		}
 		s := util.NewStringSet(inst.ServiceAccounts[0].Scopes)
 		for _, scope := range *scopes {
@@ -60,6 +66,7 @@ func main() {
 	// For each instance, stop it, apply the scopes, and restart it.
 	group := util.NewNamedErrGroup()
 	for name, s := range scopesByInstance {
+		name := name
 		instanceScopes := s.Keys()
 		sort.Strings(instanceScopes)
 		group.Go(name, func() error {
@@ -67,6 +74,7 @@ func main() {
 				return fmt.Errorf("Failed to stop %s: %s", name, err)
 			}
 			req := &compute.InstancesSetServiceAccountRequest{
+				Email:  emailsByInstance[name],
 				Scopes: instanceScopes,
 			}
 			if err := gcloud.CheckOperation(is.SetServiceAccount(*project, *zone, name, req).Do()); err != nil {
