@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "bdf92cb0_ce097ee9",
+        "filename": "am/DESIGN.md",
+        "patchSetId": 177
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3246a82c_ae200611",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c5aecda_e3dec1f0",
         "filename": "am/README.md",
         "patchSetId": 177
@@ -39,6 +57,30 @@
       "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "536b4ad7_745a54f9",
+        "filename": "am/README.md",
+        "patchSetId": 177
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c5aecda_e3dec1f0",
+      "range": {
+        "startLine": 20,
+        "startChar": 15,
+        "endLine": 20,
+        "endChar": 28
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "cbbbfd60_869b51b3",
+        "filename": "am/README.md",
+        "patchSetId": 177
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d81755f_c9f1626d",
+      "range": {
+        "startLine": 23,
+        "startChar": 32,
+        "endLine": 23,
+        "endChar": 42
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c09a16b_04443ecf",
         "filename": "am/alert-manager/Dockerfile",
         "patchSetId": 177
@@ -76,6 +142,30 @@
       "writtenOn": "2018-08-06T20:37:46Z",
       "side": 1,
       "message": "Not sure what this should be changed to since it\u0027s for running locally",
+      "range": {
+        "startLine": 8,
+        "startChar": 57,
+        "endLine": 8,
+        "endChar": 80
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aadf7d18_f14ba1d3",
+        "filename": "am/alert-manager/Dockerfile",
+        "patchSetId": 177
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Me neither.",
+      "parentUuid": "1c09a16b_04443ecf",
       "range": {
         "startLine": 8,
         "startChar": 57,
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "c92821d7_22bb9841",
+        "filename": "am/create-skia-alert-manager-sa.sh",
+        "patchSetId": 177
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "966a626a_eb3ffeb5",
+      "range": {
+        "startLine": 14,
+        "startChar": 64,
+        "endLine": 14,
+        "endChar": 122
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5544444f_6feb19ff",
         "filename": "am/create-skia-alert-to-pubsub-sa.sh",
         "patchSetId": 177
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "55f22082_e1e2d139",
+        "filename": "am/create-skia-alert-to-pubsub-sa.sh",
+        "patchSetId": 177
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5544444f_6feb19ff",
+      "range": {
+        "startLine": 14,
+        "startChar": 64,
+        "endLine": 14,
+        "endChar": 122
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5224bef_a1ba1fb3",
         "filename": "am/go/alert-manager/main.go",
         "patchSetId": 177
@@ -148,6 +286,24 @@
       "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "472cf764_ef3fb24c",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5224bef_a1ba1fb3",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -168,6 +324,24 @@
     },
     {
       "key": {
+        "uuid": "edb7bc1f_0c203dba",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ec00a0e0_0de3a224",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4b68fea_fcdb3a0d",
         "filename": "am/go/alert-to-pubsub/main.go",
         "patchSetId": 177
@@ -182,6 +356,24 @@
       "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fcb2222_584461a2",
+        "filename": "am/go/alert-to-pubsub/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4b68fea_fcdb3a0d",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -208,6 +400,30 @@
     },
     {
       "key": {
+        "uuid": "ea87a0d5_ab8989a0",
+        "filename": "am/go/alert-to-pubsub/main.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13b1091e_7cf55566",
+      "range": {
+        "startLine": 28,
+        "startChar": 78,
+        "endLine": 28,
+        "endChar": 87
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c056c2bf_fd907552",
         "filename": "am/modules/email-chooser-sk/email-chooser-sk.js",
         "patchSetId": 177
@@ -228,6 +444,30 @@
       "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec06bb87_4c0af908",
+        "filename": "am/modules/email-chooser-sk/email-chooser-sk.js",
+        "patchSetId": 177
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c056c2bf_fd907552",
+      "range": {
+        "startLine": 47,
+        "startChar": 12,
+        "endLine": 47,
+        "endChar": 19
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -254,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "21a238cf_1ccc43f1",
+        "filename": "am/package.json",
+        "patchSetId": 177
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7033467c_e0393162",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 24
+      },
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a77f9f20_47a897be",
         "filename": "ds/index-skia-public.yaml",
         "patchSetId": 177
@@ -271,6 +535,24 @@
     },
     {
       "key": {
+        "uuid": "8dbbb340_92b25cd6",
+        "filename": "ds/index-skia-public.yaml",
+        "patchSetId": 177
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Not yet, I\u0027ll address when fix backups.",
+      "parentUuid": "a77f9f20_47a897be",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "840feeea_a48e331a",
         "filename": "go/ds/ds.go",
         "patchSetId": 177
@@ -282,6 +564,24 @@
       "writtenOn": "2018-08-06T20:37:46Z",
       "side": 1,
       "message": "Add these to KindsToBackup below?",
+      "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f020497_8bb72bb5",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 177
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-08T13:28:20Z",
+      "side": 1,
+      "message": "Backups are still TBD since this runs in a different project.",
+      "parentUuid": "840feeea_a48e331a",
       "revId": "e4c89ebeeeb51ff8439f3b3765775c0af2aa6e43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
