@@ -1,6 +1,9 @@
 ---
 # Install NVIDIA Graphics Driver; applies only to group "nvidia".
 - hosts: nvidia
+  vars:
+    # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
+    install_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
   tasks:
   - name: Create Temp
     win_file:
@@ -17,8 +20,17 @@
       src: c:\Temp\nvidia_gfx.zip
       dest: c:\Temp\NVIDIA
   - name: Install NVIDIA Graphics Driver
-    # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
-    win_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
+    win_command: "{{ install_command }}"
+    register: setup_result
+    ignore_errors: True
+  - when: setup_result is failed
+    # Sometimes setup.exe returns a non-zero exit code for unknown reason. We reboot and try the
+    # command again.
+    block:
+      - name: Reboot host after NVIDIA Graphics Driver failed
+        win_reboot:
+      - name: Retry install NVIDIA Graphics Driver
+        win_command: "{{ install_command }}"
   - name: Cleanup
     win_file:
       path: c:\Temp\{{ item }}
