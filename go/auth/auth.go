@@ -330,6 +330,9 @@ func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oa
 	var tok *oauth2.Token = nil
 	var err error
 
+	fmt.Println("xxxx")
+	fmt.Println(cacheFilePath)
+
 	if cacheFilePath == "" {
 		sklog.Warningf("cacheFilePath is empty. Not caching auth token.")
 	} else if _, err = os.Stat(cacheFilePath); err == nil {
