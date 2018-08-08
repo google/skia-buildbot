@@ -12,7 +12,7 @@ ExecStart=/usr/local/bin/diffserver-stage \
     --image_port=:8001 \
     --logtostderr \
     --prom_port=":20000" \
-    --gs_buckets=skia-infra-gm,chromium-skia-gm   \
+    --gs_buckets=skia-infra-gm,chromium-skia-gm,skia-infra-gm-internal \
     --cache_size=20
 
 Restart=always
