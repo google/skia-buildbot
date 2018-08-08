@@ -123,7 +123,10 @@ func (mh *ModeHistory) Add(ctx context.Context, mode, user, message string) erro
 func (mh *ModeHistory) put(ctx context.Context, m *ModeChange) error {
 	key := ds.NewKey(ds.KIND_AUTOROLL_MODE)
 	key.Parent = fakeAncestor()
-	_, err := ds.DS.Put(ctx, key, m)
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		_, err := tx.Put(key, m)
+		return err
+	})
 	return err
 }
 

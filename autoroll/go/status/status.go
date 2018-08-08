@@ -91,7 +91,10 @@ func Set(ctx context.Context, rollerName string, st *AutoRollStatus) error {
 		Data:   buf.Bytes(),
 		Roller: rollerName,
 	}
-	_, err := ds.DS.Put(ctx, key(rollerName), w)
+	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+		_, err := tx.Put(key(rollerName), w)
+		return err
+	})
 	return err
 }
 
