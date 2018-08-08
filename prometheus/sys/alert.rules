@@ -623,3 +623,13 @@ ALERT BackupNotDone
     description = "A backup of Cloud Datastore hasn't succeeded in the last 25 hours. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done"
   }
 
+
+# alert-to-pubsub
+
+ALERT AlertToPubSub
+  IF rate(pubsub_send_failure[5m]) > 0.003
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    abbr = "google.com:skia-buildbots",
+    description = "Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
+  }
