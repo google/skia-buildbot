@@ -474,6 +474,8 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	} else {
 		dimensions = GOLO_WORKER_DIMENSIONS
 	}
+	// HACK     rmistry
+	//dimensions["id"] = "ct-gce-408"
 
 	// The channel where batches of tasks to be triggered and collected will be sent to.
 	chTasks := make(chan map[string]string)
@@ -557,6 +559,16 @@ func GetPathToTelemetryBinaries(runOnSwarming bool) string {
 		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "tools", "perf")
 	} else {
 		return TelemetryBinariesDir
+	}
+}
+
+// GetPathToLayoutTestBinaries returns the location of Layout test binaries.
+func GetPathToLayoutTestBinaries(runOnSwarming bool) string {
+	// change to runOnSwarming ?
+	if runOnSwarming {
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "third_party", "blink", "tools")
+	} else {
+		return LayoutTestBinariesDir
 	}
 }
 
@@ -905,6 +917,69 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 		}
 	}
 	return nil
+}
+
+// TriggerIsolateLayoutTestsSwarmingTask creates a isolated.gen.json file using ISOLATE_LAYOUT_TESTS_ISOLATE,
+// archives it, and triggers its swarming task. The swarming task will run the isolate_layout_tests
+// worker script which will return the isolate hash.
+func TriggerIsolateLayoutTestsSwarmingTask(ctx context.Context, taskName, runID, chromiumHash string, hardTimeout, ioTimeout time.Duration) (string, error) {
+	// Instantiate the swarming client.
+	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+	if err != nil {
+		return "", fmt.Errorf("Could not get temp dir: %s", err)
+	}
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	if err != nil {
+		// Cleanup workdir.
+		if err := os.RemoveAll(workDir); err != nil {
+			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
+		}
+		return "", fmt.Errorf("Could not instantiate swarming client: %s", err)
+	}
+	defer s.Cleanup()
+
+	// Create isolated.gen.json.
+	// Get path to isolate files.
+	_, currentFile, _, _ := runtime.Caller(0)
+	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	isolateFile := path.Join(pathToIsolates, ISOLATE_LAYOUT_TESTS_ISOLATE)
+
+	isolateArgs := map[string]string{
+		"RUN_ID":        runID,
+		"CHROMIUM_HASH": chromiumHash,
+	}
+	genJSON, err := s.CreateIsolatedGenJSON(isolateFile, s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	if err != nil {
+		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+	}
+	// Batcharchive the task.
+	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	if err != nil {
+		return "", fmt.Errorf("Could not batch archive target: %s", err)
+	}
+	// Trigger swarming using the isolate hash.
+	// REMOVE THIS ID HACK
+	dims := GCE_LINUX_BUILDER_DIMENSIONS
+	//dims["id"] = "ct-linux-builder-007"
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dims, map[string]string{"runid": runID}, []string{}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(GCE_LINUX_BUILDER_DIMENSIONS))
+	if err != nil {
+		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
+	}
+	if len(tasks) != 1 {
+		return "", fmt.Errorf("Expected a single task instead got: %v", tasks)
+	}
+	// Collect all tasks and log the ones that fail.
+	task := tasks[0]
+	_, outputDir, err := task.Collect(ctx, s)
+	if err != nil {
+		return "", fmt.Errorf("task %s failed: %s", task.Title, err)
+	}
+	outputFile := filepath.Join(outputDir, ISOLATE_LAYOUT_TEST_FILENAME)
+	contents, err := ioutil.ReadFile(outputFile)
+	if err != nil {
+		return "", fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
+	}
+	return strings.Trim(string(contents), "\n"), nil
 }
 
 // TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
