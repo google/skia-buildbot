@@ -15,8 +15,10 @@
     # -s means silently install (discovered by guess-and-check).
     # Note that in previous versions this would only extract the driver; see git history if this
     # behavior reverts.
-    win_command: c:\Temp\nvidia_gfx.exe -s
-  - name: Cleanup NVIDIA
+    # Command-line args after -s are presumably passed to the extracted setup.exe. These args were
+    # copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
+    win_command: c:\Temp\nvidia_gfx.exe -s -noreboot -clean -noeula -nofinish -passive
+  - name: Cleanup
     win_file:
       path: c:\NVIDIA
       state: absent
