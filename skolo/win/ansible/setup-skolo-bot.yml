@@ -9,7 +9,9 @@
 # Install Python before drivers so we can detect hardware using PyWin32. (We don't do this now, but
 # hopefully we will in the future.)
 - import_playbook: python.yml
-# Install drivers.
+# For eGPUs, install TB3 drivers first.
+- import_playbook: egpu-lenovo-drivers.yml
+# Install graphics drivers.
 - import_playbook: intel-graphics-driver-broadwell.yml
 - import_playbook: intel-graphics-driver-skylake.yml
 - import_playbook: nvidia-graphics-driver.yml
