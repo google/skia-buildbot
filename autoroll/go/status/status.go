@@ -20,6 +20,7 @@ import (
 type AutoRollStatus struct {
 	AutoRollMiniStatus
 	ChildHead       string                    `json:"childHead"`
+	ChildName       string                    `json:"childName"`
 	CurrentRoll     *autoroll.AutoRollIssue   `json:"currentRoll"`
 	Error           string                    `json:"error"`
 	FullHistoryUrl  string                    `json:"fullHistoryUrl"`
@@ -27,6 +28,8 @@ type AutoRollStatus struct {
 	LastRoll        *autoroll.AutoRollIssue   `json:"lastRoll"`
 	LastRollRev     string                    `json:"lastRollRev"`
 	Mode            *modes.ModeChange         `json:"mode"`
+	ParentName      string                    `json:"parentName"`
+	ParentWaterfall string                    `json:"parentWaterfall"`
 	Recent          []*autoroll.AutoRollIssue `json:"recent"`
 	Status          string                    `json:"status"`
 	Strategy        *strategy.StrategyChange  `json:"strategy"`

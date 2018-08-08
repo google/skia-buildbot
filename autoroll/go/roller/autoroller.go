@@ -38,8 +38,8 @@ const (
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
+	cfg             AutoRollerConfig
 	childName       string
-	cqExtraTrybots  []string
 	currentRoll     RollImpl
 	emails          []string
 	emailsMtx       sync.RWMutex
@@ -56,7 +56,6 @@ type AutoRoller struct {
 	runningMtx      sync.Mutex
 	safetyThrottle  *state_machine.Throttler
 	serverURL       string
-	sheriff         []string
 	sm              *state_machine.AutoRollStateMachine
 	status          *status.AutoRollStatusCache
 	statusMtx       sync.RWMutex
@@ -173,22 +172,19 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 	arb := &AutoRoller{
-		childName:       c.ChildName,
-		cqExtraTrybots:  c.CqExtraTrybots,
+		cfg:             c,
 		emails:          emails,
 		failureThrottle: failureThrottle,
 		gerrit:          g,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName()}),
 		modeHistory:     mh,
 		notifier:        n,
-		parentName:      c.ParentName,
 		recent:          recent,
 		retrieveRoll:    retrieveRoll,
 		rm:              rm,
 		roller:          rollerName,
 		safetyThrottle:  safetyThrottle,
 		serverURL:       serverURL,
-		sheriff:         c.Sheriff,
 		status:          statusCache,
 		strategyHistory: sh,
 		successThrottle: successThrottle,
@@ -262,7 +258,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 
 	// Update the current sheriff in a loop.
 	cleanup.Repeat(30*time.Minute, func() {
-		emails, err := getSheriff(r.parentName, r.childName, r.sheriff)
+		emails, err := getSheriff(r.cfg.ParentName, r.cfg.ChildName, r.cfg.Sheriff)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
 		} else {
@@ -292,49 +288,6 @@ func (r *AutoRoller) GetMode() string {
 	return r.modeHistory.CurrentMode().Mode
 }
 
-// SetMode sets the desired mode of the bot.
-func (r *AutoRoller) SetMode(ctx context.Context, mode, user, message string) error {
-	if err := r.modeHistory.Add(ctx, mode, user, message); err != nil {
-		return err
-	}
-	r.notifier.SendModeChange(ctx, user, mode, message)
-
-	// Update the status so that the mode change shows up on the UI.
-	return r.updateStatus(ctx, false, "")
-}
-
-// SetStrategy sets the desired next-roll-revision strategy for the roller.
-func (r *AutoRoller) SetStrategy(ctx context.Context, strategy, user, message string) error {
-	if err := repo_manager.SetStrategy(ctx, r.rm, strategy); err != nil {
-		return err
-	}
-	if err := r.strategyHistory.Add(ctx, strategy, user, message); err != nil {
-		return err
-	}
-	r.notifier.SendStrategyChange(ctx, user, strategy, message)
-
-	// Update the status so that the strategy change shows up on the UI.
-	return r.updateStatus(ctx, false, "")
-}
-
-// Return the roll-up status of the bot.
-func (r *AutoRoller) GetStatus(includeError bool) *status.AutoRollStatus {
-	r.statusMtx.RLock()
-	defer r.statusMtx.RUnlock()
-	status := r.status.Get()
-	if !includeError {
-		status.Error = ""
-	}
-	return status
-}
-
-// Return minimal status information for the bot.
-func (r *AutoRoller) GetMiniStatus() *status.AutoRollMiniStatus {
-	r.statusMtx.RLock()
-	defer r.statusMtx.RUnlock()
-	return r.status.GetMini()
-}
-
 // Return the AutoRoll user.
 func (r *AutoRoller) GetUser() string {
 	return r.rm.User()
@@ -356,7 +309,7 @@ func (r *AutoRoller) Unthrottle(ctx context.Context) error {
 
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun bool) error {
-	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), strings.Join(r.cqExtraTrybots, ";"), dryRun)
+	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, r.GetEmails(), strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
 	if err != nil {
 		return err
 	}
@@ -444,6 +397,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
+		ChildName:       r.childName,
 		CurrentRoll:     r.recent.CurrentRoll(),
 		Error:           lastError,
 		FullHistoryUrl:  r.rm.GetFullHistoryUrl(),
@@ -469,6 +423,22 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	defer r.runningMtx.Unlock()
 
 	sklog.Infof("Running autoroller.")
+
+	// Update modes and strategies.
+	if err := r.modeHistory.Update(ctx); err != nil {
+		return err
+	}
+	oldStrategy := r.strategyHistory.CurrentStrategy().Strategy
+	if err := r.strategyHistory.Update(ctx); err != nil {
+		return err
+	}
+	newStrategy := r.strategyHistory.CurrentStrategy().Strategy
+	if oldStrategy != newStrategy {
+		if err := repo_manager.SetStrategy(ctx, r.rm, newStrategy); err != nil {
+			return err
+		}
+	}
+
 	// Run the state machine.
 	lastErr := r.sm.NextTransitionSequence(ctx)
 	lastErrStr := ""
@@ -519,6 +489,14 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished RollImpl) er
 	if currentRoll == nil {
 		return fmt.Errorf("Unable to find just-finished roll %q in recent list!", justFinished.IssueID())
 	}
+
+	// Feed AutoRoll stats into metrics.
+	v := int64(0)
+	if currentRoll.Closed && currentRoll.Committed {
+		v = int64(1)
+	}
+	metrics2.GetInt64Metric("autoroll_last_roll_result", map[string]string{"roller": r.cfg.RollerName()}).Update(v)
+
 	recent = recent[idx:]
 	var lastRoll *autoroll.AutoRollIssue
 	if len(recent) > 1 {
