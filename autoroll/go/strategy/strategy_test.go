@@ -2,12 +2,9 @@ package strategy
 
 import (
 	"context"
-	"path"
 	"testing"
-	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/testutils"
@@ -19,13 +16,9 @@ func TestStrategyHistory(t *testing.T) {
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_STRATEGY)
 
-	// TODO(borenet): Remove after all rollers have been upgraded.
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
 	// Create the StrategyHistory.
 	rollerName := "test-roller"
-	sh, err := NewStrategyHistory(ctx, rollerName, ROLL_STRATEGY_BATCH, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE}, path.Join(wd, "fake1.db"))
+	sh, err := NewStrategyHistory(ctx, rollerName, ROLL_STRATEGY_BATCH, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
 	assert.NoError(t, err)
 
 	// Use this function for checking expectations.
@@ -84,7 +77,7 @@ func TestStrategyHistory(t *testing.T) {
 	// Create a new StrategyHistory for a different roller. Ensure that we
 	// don't get the two mixed up.
 	rollerName2 := "test-roller-2"
-	sh2, err := NewStrategyHistory(ctx, rollerName2, ROLL_STRATEGY_SINGLE, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE}, path.Join(wd, "fake2.db"))
+	sh2, err := NewStrategyHistory(ctx, rollerName2, ROLL_STRATEGY_SINGLE, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
 	assert.NoError(t, err)
 
 	sc0_2 := &StrategyChange{
@@ -102,64 +95,4 @@ func TestStrategyHistory(t *testing.T) {
 
 	checkSlice(expect[rollerName], sh.GetHistory())
 	checkSlice(expect[rollerName2], sh2.GetHistory())
-}
-
-// TODO(borenet): Remove after all rollers have been upgraded.
-func TestStrategyHistoryUpgrade(t *testing.T) {
-	testutils.LargeTest(t)
-	ctx := context.Background()
-	testutil.InitDatastore(t, ds.KIND_AUTOROLL_STRATEGY)
-
-	rollerName := "test-roller"
-	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
-
-	dbFile := path.Join(wd, "bolt.db")
-	d, err := openDB(dbFile)
-	assert.NoError(t, err)
-
-	now := time.Now().Round(time.Millisecond)
-	oldData := []*StrategyChange{
-		&StrategyChange{
-			Message:  "msg1",
-			Strategy: ROLL_STRATEGY_BATCH,
-			Time:     now,
-			User:     "me",
-		},
-		&StrategyChange{
-			Message:  "msg2",
-			Strategy: ROLL_STRATEGY_SINGLE,
-			Time:     now.Add(-time.Hour),
-			User:     "you",
-		},
-		&StrategyChange{
-			Message:  "msg3",
-			Strategy: ROLL_STRATEGY_BATCH,
-			Time:     now.Add(-2 * time.Hour),
-			User:     "them",
-		},
-	}
-	for _, sc := range oldData {
-		assert.NoError(t, d.SetStrategy(sc))
-	}
-	assert.NoError(t, d.Close())
-
-	// Verify that we port the old data over to the new DB when creating the
-	// StrategyHistory.
-	sh, err := NewStrategyHistory(ctx, rollerName, ROLL_STRATEGY_SINGLE, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE}, dbFile)
-	assert.NoError(t, err)
-	newData := sh.GetHistory()
-	assert.Equal(t, len(oldData), len(newData))
-	for idx, actual := range newData {
-		expect := oldData[idx]
-		// Roller is intentionally not set above, to verify that the
-		// migration sets it.
-		expect.Roller = rollerName
-		deepequal.AssertDeepEqual(t, expect, actual)
-	}
-
-	// Verify that we don't try to port the data again.
-	sh, err = NewStrategyHistory(ctx, rollerName, ROLL_STRATEGY_SINGLE, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE}, dbFile)
-	assert.NoError(t, err)
-	assert.Equal(t, len(oldData), len(sh.GetHistory()))
 }

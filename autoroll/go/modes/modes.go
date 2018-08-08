@@ -3,7 +3,6 @@ package modes
 import (
 	"context"
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
@@ -66,35 +65,10 @@ type ModeHistory struct {
 }
 
 // NewModeHistory returns a ModeHistory instance.
-func NewModeHistory(ctx context.Context, roller, dbFile string) (*ModeHistory, error) {
+func NewModeHistory(ctx context.Context, roller string) (*ModeHistory, error) {
 	mh := &ModeHistory{
 		roller: roller,
 	}
-
-	// Temporary: Check whether we've ingested the old data into the new
-	// datastore. If not, do it now.
-	// TODO(borenet): Remove this after all rollers have been upgraded.
-	if history, err := mh.getHistory(ctx); err != nil {
-		return nil, err
-	} else if len(history) == 0 {
-		sklog.Warningf("Ingesting all mode change history into new datastore from %s", dbFile)
-		d, err := openDB(dbFile)
-		if err != nil {
-			return nil, err
-		}
-		defer util.Close(d)
-		allEntries, err := d.GetModeHistory(math.MaxInt32)
-		if err != nil {
-			return nil, err
-		}
-		for _, mc := range allEntries {
-			mc.Roller = roller
-			if err := mh.put(ctx, mc); err != nil {
-				return nil, fmt.Errorf("Failed to ingest old mode change history into new datastore: %s", err)
-			}
-		}
-	}
-
 	if err := mh.refreshHistory(ctx); err != nil {
 		return nil, err
 	}
