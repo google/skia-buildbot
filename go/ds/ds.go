@@ -74,6 +74,12 @@ const (
 	KIND_AUTOROLL_STATUS_ANCESTOR   Kind = "AutorollStatusAncestor" // Fake; used to force strong consistency for testing's sake.
 	KIND_AUTOROLL_STRATEGY          Kind = "AutorollStrategy"
 	KIND_AUTOROLL_STRATEGY_ANCESTOR Kind = "AutorollStrategyAncestor" // Fake; used to force strong consistency for testing's sake.
+
+	// AlertManager
+	INCIDENT_AM               Kind = "IncidentAm"
+	INCIDENT_ACTIVE_PARENT_AM Kind = "IncidentActiveParentAm"
+	SILENCE_ACTIVE_PARENT_AM  Kind = "SilenceActiveParentAm"
+	SILENCE_AM                Kind = "SilenceAm"
 )
 
 // Namespaces that are used in production, and thus might be backed up.
@@ -97,6 +103,9 @@ const (
 
 	// Autoroll
 	AUTOROLL_NS = "autoroll"
+
+	// AlertManager
+	ALERT_MANAGER_NS = "alert-manager"
 )
 
 var (

@@ -1,0 +1,98 @@
+@import '~infra-sk/modules/colors';
+
+incident-sk {
+  display: block;
+  padding: 0;
+  font-size: 90%;
+
+  h2 {
+    padding: 0.2em 0.6em;
+    margin: 0;
+    font-size: 18px;
+    cursor: pointer;
+  }
+
+  .note {
+    padding: 0.4em;
+  }
+
+  td {
+    text-align: left;
+  }
+
+  th {
+    text-align: right;
+  }
+
+  td {
+    padding: 0.1em 0.4em;
+  }
+
+  td a {
+    color: $blue;
+  }
+
+  textarea {
+    display: block;
+    margin: 0.6em 0.6em;
+  }
+
+  p {
+    background: #eee;
+    padding: 0.5em;
+    display: block;
+    border-radius: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+  section {
+    margin: 0.6em;
+  }
+
+  .date {
+    margin: 0 1em;
+    color: $orange;
+  }
+
+  .author {
+    color: $green;
+  }
+
+  delete-icon-sk {
+    fill: $gray;
+    cursor: pointer;
+    border: solid transparent 1px;
+  }
+
+  delete-icon-sk:hover {
+    border: solid $gray 1px;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .nosilences {
+    padding: 0 1em;
+    font-weight: bold;
+  }
+}
+
+incident-sk[minimized] .params,
+incident-sk[minimized] .addNote,
+incident-sk[minimized] .history,
+incident-sk[minimized] .matchingSilences {
+  display: none;
+}
+
+incident-sk[minimized][params] .params {
+  display: block;
+}
+
+
+incident-sk[minimized] {
+  margin: 1em;
+  background: #f8f8f8;
+}

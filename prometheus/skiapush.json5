@@ -6,6 +6,7 @@
         "prometheus-config",
         "sheriff-emails",
         "pulld",
+        "alert-to-pubsub",
       ],
     },
   }

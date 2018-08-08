@@ -1,0 +1,118 @@
+@import '~infra-sk/modules/colors';
+
+silence-sk {
+  display: block;
+  padding: 0.2em;
+
+  table {
+    border-collapse: collapse;
+    margin: 1em;
+  }
+
+  td, th {
+    padding: 0.3em;
+    border: solid 1px gray;
+  }
+
+  th {
+    text-align: right;
+  }
+
+  td {
+    text-align: left;
+  }
+
+  .notes,
+  .addNote {
+    margin: 1em;
+  }
+
+  .meta {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .date {
+    margin: 0 1em;
+    color: $orange;
+  }
+
+  .author {
+    color: $green;
+  }
+
+  delete-icon-sk {
+    fill: $gray;
+    cursor: pointer;
+    border: solid transparent 1px;
+  }
+
+  delete-icon-sk:hover {
+    border: solid $gray 1px;
+  }
+
+  section.notes,
+  section.addNote {
+    max-width: 40em;
+    margin: 1em;
+  }
+
+  section.addNote button {
+    display: block;
+  }
+
+  .actions {
+    margin: 0.4em;
+  }
+
+  .matches {
+    margin: 1em;
+
+    h1 {
+      margin: 0;
+      padding: 0;
+    }
+
+    h2 {
+      padding: 0.2em 1em;
+      color: $blue;
+    }
+  }
+
+  h2 {
+    align-items: center;
+    color: $red;
+    margin: 0;
+    padding: 0.2em 1em;
+    font-size: 14px;
+    cursor: pointer;
+    color: $blue;
+  }
+
+  h2.inactive {
+    color: $gray;
+  }
+
+  p {
+    background: #eee;
+    padding: 0.5em;
+    display: block;
+    border-radius: 0.5em;
+    margin-bottom: 0.5em;
+  }
+
+}
+
+silence-sk[collapsable][collapsed] .body {
+  display: none;
+}
+
+silence-sk[collapsable] .matches {
+  display: none;
+}
+
+silence-sk[collapsable] {
+  margin: 1em;
+  background: #f8f8f8;
+}
