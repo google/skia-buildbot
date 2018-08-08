@@ -205,7 +205,7 @@ func polylintTests() []*test {
 
 // goTest returns a test which runs `go test` in the given cwd.
 func goTest(cwd string, testType string, args ...string) *test {
-	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
+	cmd := []string{"go", "test", "-v", "./...", "-parallel", "1"}
 	if *race {
 		cmd = append(cmd, "-race")
 	}
@@ -390,6 +390,9 @@ func main() {
 	sklog.Info("Searching for tests.")
 	tests := []*test{goGenerate()}
 	gotests := []*test{}
+	gotests = append(gotests, goTestSmall(rootDir))
+	gotests = append(gotests, goTestMedium(rootDir))
+	gotests = append(gotests, goTestLarge(rootDir))
 
 	// Search for Python tests and Go dirs to test in the repo.
 	// These tests are blacklisted from running on our bots because they
@@ -412,12 +415,6 @@ func main() {
 				if p == path.Join(rootDir, skip) {
 					return filepath.SkipDir
 				}
-			}
-
-			if basename == "go" {
-				gotests = append(gotests, goTestSmall(path.Dir(p)))
-				gotests = append(gotests, goTestMedium(path.Dir(p)))
-				gotests = append(gotests, goTestLarge(path.Dir(p)))
 			}
 		}
 		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
