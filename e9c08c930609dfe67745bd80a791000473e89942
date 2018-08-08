@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "475fb5df_9c340fee",
+        "filename": "scripts/add_gce_scopes/add_gce_scopes.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-08T15:29:59Z",
+      "side": 1,
+      "message": "Optional: Might be useful to have an optional flag if we ever want to change the service account",
+      "revId": "e9c08c930609dfe67745bd80a791000473e89942",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
