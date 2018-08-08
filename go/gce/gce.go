@@ -218,9 +218,9 @@ func (g *GCloud) waitForOperation(s opService, id string, timeout time.Duration)
 	}
 }
 
-// checkOperation waits for the given operation to complete and returns any
+// CheckOperation waits for the given operation to complete and returns any
 // error. Convenience wrapper around waitForOperation.
-func (g *GCloud) checkOperation(op *compute.Operation, err error) error {
+func (g *GCloud) CheckOperation(op *compute.Operation, err error) error {
 	if err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 			d.SourceSnapshot = fmt.Sprintf("projects/%s/global/snapshots/%s", g.project, disk.SourceSnapshot)
 		}
 	}
-	err := g.checkOperation(g.service.Disks.Insert(g.project, g.zone, d).Do())
+	err := g.CheckOperation(g.service.Disks.Insert(g.project, g.zone, d).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errAlreadyExists) {
 			if ignoreExists {
@@ -313,7 +313,7 @@ func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 // DeleteDisk deletes the given disk.
 func (g *GCloud) DeleteDisk(name string, ignoreNotExists bool) error {
 	sklog.Infof("Deleting disk %q", name)
-	err := g.checkOperation(g.service.Disks.Delete(g.project, g.zone, name).Do())
+	err := g.CheckOperation(g.service.Disks.Delete(g.project, g.zone, name).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errNotFound) {
 			if ignoreNotExists {
@@ -662,7 +662,7 @@ func (g *GCloud) createInstance(ctx context.Context, vm *Instance, ignoreExists 
 			},
 		}
 	}
-	err := g.checkOperation(g.service.Instances.Insert(g.project, g.zone, i).Do())
+	err := g.CheckOperation(g.service.Instances.Insert(g.project, g.zone, i).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errAlreadyExists) {
 			if ignoreExists {
@@ -696,7 +696,7 @@ func (g *GCloud) createInstance(ctx context.Context, vm *Instance, ignoreExists 
 // DeleteInstance deletes the given GCE VM instance.
 func (g *GCloud) DeleteInstance(name string, ignoreNotExists bool) error {
 	sklog.Infof("Deleting instance %q", name)
-	err := g.checkOperation(g.service.Instances.Delete(g.project, g.zone, name).Do())
+	err := g.CheckOperation(g.service.Instances.Delete(g.project, g.zone, name).Do())
 	if err != nil {
 		if strings.Contains(err.Error(), errNotFound) {
 			if ignoreNotExists {
@@ -833,7 +833,7 @@ func (g *GCloud) Scp(ctx context.Context, vm *Instance, src, dst string) error {
 
 // Stop stops the instance and returns when the operation completes.
 func (g *GCloud) Stop(vm *Instance) error {
-	err := g.checkOperation(g.service.Instances.Stop(g.project, g.zone, vm.Name).Do())
+	err := g.CheckOperation(g.service.Instances.Stop(g.project, g.zone, vm.Name).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to stop instance: %s", err)
 	}
@@ -843,7 +843,7 @@ func (g *GCloud) Stop(vm *Instance) error {
 // StartWithoutReadyCheck starts the instance and returns when the instance is in RUNNING state.
 // Note: This method does not wait for the instance to be ready (ssh-able).
 func (g *GCloud) StartWithoutReadyCheck(vm *Instance) error {
-	err := g.checkOperation(g.service.Instances.Start(g.project, g.zone, vm.Name).Do())
+	err := g.CheckOperation(g.service.Instances.Start(g.project, g.zone, vm.Name).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to start instance: %s", err)
 	}
@@ -1014,7 +1014,7 @@ func (g *GCloud) SetMetadata(vm *Instance, md map[string]string) error {
 		m.Fingerprint = inst.Metadata.Fingerprint
 	}
 	// Set the metadata.
-	err = g.checkOperation(g.service.Instances.SetMetadata(g.project, g.zone, vm.Name, m).Do())
+	err = g.CheckOperation(g.service.Instances.SetMetadata(g.project, g.zone, vm.Name, m).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to set instance metadata: %s", err)
 	}
@@ -1195,7 +1195,7 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 	// Set auto-delete to off for the boot disk.
 	sklog.Infof("Turning off auto-delete for %q", vm.BootDisk.Name)
 	op, err := g.service.Instances.SetDiskAutoDelete(g.project, g.zone, vm.Name, false, vm.BootDisk.Name).Do()
-	if err := g.checkOperation(op, err); err != nil {
+	if err := g.CheckOperation(op, err); err != nil {
 		return fmt.Errorf("Failed to set auto-delete on disk %q: %s", vm.BootDisk.Name, err)
 	}
 	user := strings.Split(op.User, "@")[0]
@@ -1234,7 +1234,7 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 
 	// Capture the image.
 	sklog.Infof("Capturing disk image.")
-	err = g.checkOperation(g.service.Images.Insert(g.project, &compute.Image{
+	err = g.CheckOperation(g.service.Images.Insert(g.project, &compute.Image{
 		Description: description,
 		Family:      family,
 		Labels: map[string]string{
@@ -1270,7 +1270,7 @@ func (g *GCloud) CaptureImage(vm *Instance, family, description string) error {
 
 	// Delete the boot disk.
 	sklog.Infof("Deleting disk %q", vm.BootDisk.Name)
-	err = g.checkOperation(g.service.Disks.Delete(g.project, g.zone, vm.BootDisk.Name).Do())
+	err = g.CheckOperation(g.service.Disks.Delete(g.project, g.zone, vm.BootDisk.Name).Do())
 	if err != nil {
 		return fmt.Errorf("Failed to delete disk %q: %s", vm.BootDisk.Name, err)
 	}
