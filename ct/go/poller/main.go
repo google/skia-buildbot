@@ -21,7 +21,6 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 
-	"go.skia.org/infra/ct/go/ct_autoscaler"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
@@ -458,7 +457,7 @@ func updateWebappTaskSetFailed(task Task) error {
 // go routine. The function returns without waiting for the task to finish and the
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
-func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler, getPatchFunc GetPatchFunc) *sync.WaitGroup {
+func pollAndExecOnce(ctx context.Context, getPatchFunc GetPatchFunc) *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
 	var wg sync.WaitGroup
 	if err != nil {
@@ -481,21 +480,9 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 	pickedUpTasks[taskId] = "1"
 	tasksMtx.Unlock()
 
-	if task.RunsOnGCEWorkers() {
-		if err := autoscaler.RegisterGCETask(taskId); err != nil {
-			sklog.Errorf("Error when registering GCE task in CT autoscaler: %s", err)
-			return &wg
-		}
-	}
-
 	sklog.Infof("Preparing to execute task %s", taskId)
 	if err = updateAndBuild(ctx); err != nil {
 		sklog.Error(err)
-		if task.RunsOnGCEWorkers() {
-			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
-			}
-		}
 		return &wg
 	}
 	sklog.Infof("Executing task %s", taskId)
@@ -515,12 +502,6 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 		tasksMtx.Lock()
 		delete(pickedUpTasks, taskId)
 		tasksMtx.Unlock()
-
-		if task.RunsOnGCEWorkers() {
-			if err := autoscaler.UnregisterGCETask(taskId); err != nil {
-				sklog.Errorf("Error when unregistering GCE task in CT autoscaler: %s", err)
-			}
-		}
 	}()
 	// Return the WaitGroup to allow some callers to call wg.Wait()
 	return &wg
@@ -529,10 +510,6 @@ func pollAndExecOnce(ctx context.Context, autoscaler ct_autoscaler.ICTAutoscaler
 func main() {
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
-	autoscaler, err := ct_autoscaler.NewCTAutoscaler()
-	if err != nil {
-		sklog.Fatalf("Could not instantiate the CT autoscaler: %s", err)
-	}
 	healthyGauge := metrics2.GetInt64Metric("healthy")
 
 	// Terminate all tasks which were in running state when the poller was restarted.
@@ -543,10 +520,10 @@ func main() {
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	ctx := context.Background()
-	pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
+	pollAndExecOnce(ctx, ctutil.GetPatchFromStorage)
 	for range time.Tick(*pollInterval) {
 		healthyGauge.Update(1)
-		pollAndExecOnce(ctx, autoscaler, ctutil.GetPatchFromStorage)
+		pollAndExecOnce(ctx, ctutil.GetPatchFromStorage)
 		// Sleeping for a second to avoid the small probability of ending up
 		// with 2 tasks with the same runID. For context see
 		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96
