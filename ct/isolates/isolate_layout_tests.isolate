@@ -1,0 +1,25 @@
+# Copyright (c) 2018 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+{
+  'includes': [
+    'py.isolate',
+  ],
+  'conditions': [
+    ['OS=="linux"', {
+      'variables': {
+        'files': [
+          '../../../../../bin/isolate_layout_tests',
+        ],
+        'command': [
+          '../../../../../bin/isolate_layout_tests',
+          '-logtostderr',
+          '--run_id=<(RUN_ID)',
+          '--chromium_hash=<(CHROMIUM_HASH)',
+          '--out=${ISOLATED_OUTDIR}',
+        ],
+      },
+    }],
+  ]
+}
