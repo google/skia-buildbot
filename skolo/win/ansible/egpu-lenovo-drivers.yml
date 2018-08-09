@@ -1,6 +1,7 @@
 ---
 # Install drivers needed for the Lenovo Thunderbolt 3 Graphics Dock (G0A10170UL); applies only to
 # group "egpu-lenovo".
+# Requires Ansible 2.5 or later.
 # TODO(dogben): In the future we will probably have eGPUs other than the Lenovo and possibly hosts
 # other than the NUC7i5BNK, at which point we should split this playbook appropriately.
 - hosts: egpu-lenovo

@@ -1,17 +1,4 @@
-# This file is here mostly as an example. There is also a group_vars dir and a win_package_src dir
-# that I can't check in. The group_vars include these variable settings:
-#   ansible_user: chrome-bot
-#   ansible_password: <redacted>
-#   ansible_port: 5986
-#   ansible_connection: winrm
-#   ansible_winrm_transport: credssp
-#   ansible_winrm_server_cert_validation: ignore
-#   win_package_src: /home/chrome-bot/ansible/win_package_src/
-#
-# Contents of win_package_src are on GCS at gs://skia-buildbots/skolo/win/win_package_src
-#
-# Example command:
-#   ansible-playbook -i win-02-hosts setup-skolo-bot.yml
+# Hosts in win-02 subnet.
 all:
   vars:
     swarming_server: https://chromium-swarm.appspot.com
