@@ -84,7 +84,7 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
 	sklog.Info("Running flutter license scripts.")
-	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "linux", "dart-sdk", "bin")
+	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
 	// Step1: Run pub get.
 	licenseToolsDir := filepath.Join(parentRepoDir, "tools", "licenses")

@@ -25,6 +25,7 @@ const (
 	BINARIES_DIR_NAME                = "binaries"
 	LUA_TASKS_DIR_NAME               = "lua_runs"
 	BENCHMARK_TASKS_DIR_NAME         = "benchmark_runs"
+	LAYOUT_TEST_TASKS_DIR_NAME       = "layout_test_runs"
 	PIXEL_DIFF_TASKS_DIR_NAME        = "pixel_diff_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
 	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
@@ -147,21 +148,24 @@ const (
 	SWARMING_POOL                   = "CT"
 	BUILD_OUTPUT_FILENAME           = "build_remote_dirs.txt"
 	ISOLATE_TELEMETRY_FILENAME      = "isolate_telemetry_hash.txt"
+	ISOLATE_LAYOUT_TEST_FILENAME    = "isolate_layout_test.txt"
 	MAX_SWARMING_HARD_TIMEOUT_HOURS = 24
 	// Timeouts.
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
 	XVFB_TIMEOUT         = 5 * time.Minute
 	// Isolate files.
-	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
-	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
-	CAPTURE_SKPS_ISOLATE      = "capture_skps.isolate"
-	RUN_LUA_ISOLATE           = "run_lua.isolate"
-	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
-	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
-	PIXEL_DIFF_ISOLATE        = "pixel_diff.isolate"
-	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
-	BUILD_REPO_ISOLATE        = "build_repo.isolate"
-	ISOLATE_TELEMETRY_ISOLATE = "isolate_telemetry.isolate"
+	CREATE_PAGESETS_ISOLATE      = "create_pagesets.isolate"
+	CAPTURE_ARCHIVES_ISOLATE     = "capture_archives.isolate"
+	CAPTURE_SKPS_ISOLATE         = "capture_skps.isolate"
+	RUN_LUA_ISOLATE              = "run_lua.isolate"
+	CHROMIUM_ANALYSIS_ISOLATE    = "chromium_analysis.isolate"
+	CHROMIUM_PERF_ISOLATE        = "chromium_perf.isolate"
+	PIXEL_DIFF_ISOLATE           = "pixel_diff.isolate"
+	METRICS_ANALYSIS_ISOLATE     = "metrics_analysis.isolate"
+	LAYOUT_TESTS_ISOLATE         = "run_layout_tests.isolate"
+	BUILD_REPO_ISOLATE           = "build_repo.isolate"
+	ISOLATE_TELEMETRY_ISOLATE    = "isolate_telemetry.isolate"
+	ISOLATE_LAYOUT_TESTS_ISOLATE = "isolate_layout_tests.isolate"
 	// Swarming links and params.
 	// TODO(rmistry): The below link contains "st=1262304000000" which is from 2010. This is done so
 	// that swarming will not use today's timestamp as default. See if there is a better way to handle
@@ -203,6 +207,7 @@ var (
 	ChromiumBuildsDir      = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
 	ChromiumSrcDir         = filepath.Join(StorageDir, "chromium", "src")
 	TelemetryBinariesDir   = filepath.Join(ChromiumSrcDir, "tools", "perf")
+	LayoutTestBinariesDir  = filepath.Join(ChromiumSrcDir, "third_party", "blink", "tools")
 	TelemetrySrcDir        = filepath.Join(ChromiumSrcDir, "tools", "telemetry")
 	RelativeCatapultSrcDir = filepath.Join("third_party", "catapult")
 	CatapultSrcDir         = filepath.Join(ChromiumSrcDir, RelativeCatapultSrcDir)
@@ -221,6 +226,7 @@ var (
 	BinariesDir             = filepath.Join(BINARIES_DIR_NAME)
 	LuaRunsDir              = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir        = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	LayoutTestRunsDir       = filepath.Join(TASKS_DIR_NAME, LAYOUT_TEST_TASKS_DIR_NAME)
 	PixelDiffRunsDir        = filepath.Join(TASKS_DIR_NAME, PIXEL_DIFF_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir     = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	ChromiumAnalysisRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
