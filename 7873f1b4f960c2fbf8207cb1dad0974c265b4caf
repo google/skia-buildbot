@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75f2dc60_334119e8",
+        "filename": "skolo/win/ansible/nvidia-graphics-driver.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-09T19:30:11Z",
+      "side": 1,
+      "message": "Diff from https://skia-review.googlesource.com/c/buildbot/+/145427:\n\n\u003e git diff 3c7e4de..HEAD -- skolo/win/ansible/nvidia-graphics-driver.yml\ndiff --git a/skolo/win/ansible/nvidia-graphics-driver.yml b/skolo/win/ansible/nvidia-graphics-driver.yml\nindex 2742cb3c9e..eccd4c39b1 100644\n--- a/skolo/win/ansible/nvidia-graphics-driver.yml\n+++ b/skolo/win/ansible/nvidia-graphics-driver.yml\n@@ -16,6 +16,28 @@\n     # Note that in previous versions this would only extract the driver; see git history if this\n     # behavior reverts.\n     win_command: c:\\Temp\\nvidia_gfx.exe -s\n+    register: setup_result\n+    ignore_errors: True\n+  - when: setup_result is failed\n+    # Sometimes the NVIDIA installer returns a non-zero exit code for unknown reason. Sometimes it\n+    # reboots the machine (even when we use the -noreboot option mentioned here:\n+    # https://lazyadmin.nl/it/deploy-nvidia-drivers/).\n+    block:\n+      # In the case of a non-zero exit code, usually rebooting and retrying allows the installer to\n+      # succeed.\n+      - name: Reboot host after NVIDIA Graphics Driver failed\n+        win_reboot:\n+        # If the installer rebooted the machine, this will fail because Ansible isn\u0027t able to\n+        # connect.\n+        ignore_errors: True\n+      # If the NVIDIA installer rebooted the machine, we need to wait for it to come back before\n+      # continuing.\n+      - name: Wait for connection after NVIDIA Graphics Driver failed\n+        wait_for_connection:\n+          # Only wait for 3 minutes before failing. (Default is 10 min.)\n+          timeout: 180\n+      - name: Retry install NVIDIA Graphics Driver\n+        win_command: c:\\Temp\\nvidia_gfx.exe -s\n   - name: Cleanup NVIDIA\n     win_file:\n       path: c:\\NVIDIA",
+      "revId": "7873f1b4f960c2fbf8207cb1dad0974c265b4caf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
