@@ -1,40 +1,48 @@
 ---
 # Install NVIDIA Graphics Driver; applies only to group "nvidia".
 - hosts: nvidia
-  vars:
-    # Command-line args copied from https://lazyadmin.nl/it/deploy-nvidia-drivers/
-    install_command: C:\Temp\NVIDIA\setup.exe -noreboot -clean -noeula -nofinish -passive
   tasks:
   - name: Create Temp
     win_file:
       path: c:\Temp
       state: directory
-  # This zip was created by opening the self-extracting exe using Archive Manager on Debian and
-  # re-zipping the extracted files as a ZIP archive ("Save As").
-  - name: Copy the NVIDIA driver ZIP to the host
+  # The NVIDIA driver Uses the same product_id for multiple versions, so win_package doesn't work.
+  - name: Copy the NVIDIA driver EXE to the host
     win_copy:
-      src: "{{ win_package_src }}/NVIDIA Graphics 398.82-desktop-win10-64bit-international-whql.zip"
-      dest: c:\Temp\nvidia_gfx.zip
-  - name: Extract the NVIDIA driver ZIP
-    win_unzip:
-      src: c:\Temp\nvidia_gfx.zip
-      dest: c:\Temp\NVIDIA
+      src: "{{ win_package_src }}/NVIDIA Graphics 398.82-desktop-win10-64bit-international-whql.exe"
+      dest: c:\Temp\nvidia_gfx.exe
   - name: Install NVIDIA Graphics Driver
-    win_command: "{{ install_command }}"
+    # -s means silently install (discovered by guess-and-check).
+    # Note that in previous versions this would only extract the driver; see git history if this
+    # behavior reverts.
+    win_command: c:\Temp\nvidia_gfx.exe -s
     register: setup_result
     ignore_errors: True
   - when: setup_result is failed
-    # Sometimes setup.exe returns a non-zero exit code for unknown reason. We reboot and try the
-    # command again.
+    # Sometimes the NVIDIA installer returns a non-zero exit code for unknown reason. Sometimes it
+    # reboots the machine (even when we use the -noreboot option mentioned here:
+    # https://lazyadmin.nl/it/deploy-nvidia-drivers/).
     block:
+      # In the case of a non-zero exit code, usually rebooting and retrying allows the installer to
+      # succeed.
       - name: Reboot host after NVIDIA Graphics Driver failed
         win_reboot:
+        # If the installer rebooted the machine, this will fail because Ansible isn't able to
+        # connect.
+        ignore_errors: True
+      # If the NVIDIA installer rebooted the machine, we need to wait for it to come back before
+      # continuing.
+      - name: Wait for connection after NVIDIA Graphics Driver failed
+        wait_for_connection:
+          # Only wait for 3 minutes before failing. (Default is 10 min.)
+          timeout: 180
       - name: Retry install NVIDIA Graphics Driver
-        win_command: "{{ install_command }}"
-  - name: Cleanup
+        win_command: c:\Temp\nvidia_gfx.exe -s
+  - name: Cleanup NVIDIA
     win_file:
-      path: c:\Temp\{{ item }}
+      path: c:\NVIDIA
       state: absent
-    loop:
-      - NVIDIA
-      - nvidia_gfx.zip
+  - name: Cleanup EXE
+    win_file:
+      path: c:\Temp\nvidia_gfx.exe
+      state: absent
