@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
+	//"os"
 	"path/filepath"
 	"sync"
 
@@ -42,14 +43,23 @@ func DebuggerInit() error {
 		return fmt.Errorf("Failed to checkout %s: %s", common.REPO_SKIA, err)
 	}
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE)
 	if err != nil {
-		return fmt.Errorf("Problem setting up client OAuth: %s", err)
+		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}
-	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	storageClient, err := storage.NewClient(context.Background(), option.WithTokenSource(ts))
 	if err != nil {
 		return fmt.Errorf("Failed to create a Google Storage API client: %s", err)
 	}
+
+	//client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	//if err != nil {
+	//	return fmt.Errorf("Problem setting up client OAuth: %s", err)
+	//}
+	//storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
+	//if err != nil {
+	//	return fmt.Errorf("Failed to create a Google Storage API client: %s", err)
+	//}
 	bucketHandle = storageClient.Bucket(PUBLIC_BINARIES_BUCKET)
 
 	return nil

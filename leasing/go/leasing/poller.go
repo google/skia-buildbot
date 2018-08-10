@@ -35,6 +35,10 @@ func populateRunningTask(newState, botId string, k *datastore.Key, t *Task) erro
 		return fmt.Errorf("Error updating task in datastore: %v", err)
 	}
 
+	fmt.Println("SENDING START EMAIL!")
+	fmt.Println(t.Requester)
+	fmt.Println(t)
+
 	// Inform the requester that the task has been picked up
 	if err := SendStartEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.TaskIdForIsolates, t.SetupDebugger); err != nil {
 		return fmt.Errorf("Error sending start email: %s", err)

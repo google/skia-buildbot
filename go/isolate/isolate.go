@@ -43,11 +43,22 @@ var (
 
 // Client is a Skia-specific wrapper around the Isolate executable.
 type Client struct {
-	gcs           *gcs.DownloadHelper
-	isolate       string
-	isolateserver string
-	serverUrl     string
-	workdir       string
+	gcs                *gcs.DownloadHelper
+	isolate            string
+	isolateserver      string
+	serverUrl          string
+	workdir            string
+	serviceAccountJSON string
+}
+
+// NewClient returns a Client instance.
+func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
+	c, err := NewClient(workdir, server)
+	if err != nil {
+		return nil, err
+	}
+	c.serviceAccountJSON = serviceAccountJSON
+	return c, nil
 }
 
 // NewClient returns a Client instance.
@@ -270,6 +281,9 @@ func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, j
 		c.isolate, "batcharchive", "--verbose",
 		"--isolate-server", c.serverUrl,
 	}
+	if c.serviceAccountJSON != "" {
+		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
+	}
 	if jsonOutput != "" {
 		cmd = append(cmd, "--dump-json", jsonOutput)
 	}
@@ -299,7 +313,9 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
-	defer util.RemoveAll(tmpDir)
+	// defer util.RemoveAll(tmpDir)
+	fmt.Println("NOT GOING TO REMOVE")
+	fmt.Println(tmpDir)
 
 	// Write the .isolated.gen.json files.
 	genJsonFiles := make([]string, 0, len(tasks))
@@ -334,6 +350,9 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 	cmd := []string{
 		c.isolateserver, "archive", "--verbose",
 		"--isolate-server", c.serverUrl,
+	}
+	if c.serviceAccountJSON != "" {
+		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
 	}
 	for _, f := range isolatedFiles {
 		dirname, filename := path.Split(f)
