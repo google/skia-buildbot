@@ -13,7 +13,10 @@ sudo easy_install -U pip
 sudo pip install setuptools --no-binary --upgrade
 sudo pip install -U crcmod
 
-sudo apt-get -y --purge remove apache2*
+# Temporarily for skbug/8219
+sudo apt-get -y install apache2 php5-cgi libapache2-mod-php5
+# sudo apt-get -y --purge remove apache2*
+
 sudo sh -c "echo '* - nofile 500000' >> /etc/security/limits.conf"
 
 # Uninstall openjdk-7 and install openjdk-8. See skbug.com/6975 for context.
@@ -50,6 +53,10 @@ sudo /usr/local/lib/python2.7.11/bin/python -m ensurepip --upgrade
 sudo /usr/local/lib/python2.7.11/bin/pip install psutil httplib2
 # Remove /usr/bin/ninja it interferences with depot_tools sometimes.
 sudo rm /usr/bin/ninja
+
+# Disable collectd because it fills up disk space.
+sudo rm /etc/init.d/collectd
+sudo rm /var/log/collectd.log
 
 echo "Checking out depot_tools..."
 
