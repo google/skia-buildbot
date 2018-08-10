@@ -321,6 +321,8 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 			switch *check.State {
 			case github.CHECK_STATE_PENDING:
 				// Still pending.
+				fmt.Println("PENDING PENDING")
+				fmt.Println(*check.Context)
 			case github.CHECK_STATE_FAILURE:
 				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
 				testResult = autoroll.TRYBOT_RESULT_FAILURE
@@ -344,6 +346,8 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 			tryResults = append(tryResults, tryResult)
 		}
 	}
+	fmt.Println("TRYRESULTS CALCULATED ------------------------")
+	fmt.Println(tryResults)
 	a.TryResults = tryResults
 
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
@@ -373,7 +377,9 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 	} else if !a.CommitQueueDryRun && len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
+		sklog.Info("ALL CHECKS PASSED. GOING TO TRY TO COMMIT..")
 		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
+			sklog.Errorf("Could not merge pull request %d: %s", issueNum, err)
 			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
 		}
 	}
@@ -464,11 +470,17 @@ func (r *githubRoll) Update(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsFinished() bool {
+	fmt.Println("IS FINISHED --------------------------------------")
+	fmt.Println(r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || !r.issue.CommitQueue)
+	fmt.Println(r.pullRequest.GetState() == github.CLOSED_STATE)
+	fmt.Println(!r.issue.CommitQueue)
 	return r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || !r.issue.CommitQueue
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsSuccess() bool {
+	fmt.Println("IS SUCCESS!!!!")
+	fmt.Println(r.pullRequest.GetMerged())
 	return r.pullRequest.GetMerged()
 }
 

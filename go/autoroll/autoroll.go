@@ -179,6 +179,9 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 		cq = true
 	}
 
+	// HACK
+	cq = true
+
 	ps := make([]int64, 0, *pullRequest.Commits)
 	for i := 1; i <= *pullRequest.Commits; i++ {
 		ps = append(ps, int64(i))
@@ -330,12 +333,14 @@ func (a *AutoRollIssue) AtleastOneTrybotFailure() bool {
 			bots[t.Builder] = t
 		}
 	}
+	sklog.Infof("AtleastOneTrybotFailure? %d results.", len(bots))
 	for _, t := range bots {
 		sklog.Infof("  %s: %s (%s)", t.Builder, t.Result, t.Category)
 		if t.Category != TRYBOT_CATEGORY_CQ {
 			continue
 		}
 		if t.Failed() {
+			sklog.Infof("    ...failed")
 			return true
 		}
 	}
@@ -360,8 +365,11 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 			sklog.Infof("    ...skipping, not a CQ bot (category %q not %q)", t.Category, TRYBOT_CATEGORY_CQ)
 			continue
 		}
-		if !t.Succeeded() {
+		if t.Failed() {
 			sklog.Infof("    ...failed")
+			return false
+		} else if !t.Succeeded() {
+			sklog.Infof("    ...%s", a.Result)
 			return false
 		}
 	}
