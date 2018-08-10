@@ -52,8 +52,8 @@ type GithubRepoManagerConfig struct {
 	// The default strategy to use.
 	DefaultStrategy string `json:"defaultStrategy"`
 	// GS Bucket and template to use if strategy.ROLL_STRATEGY_STORAGE_FILE is used.
-	StorageBucket       string `json:"storageBucket"`
-	StoragePathTemplate string `json:"storagePathTemplate"`
+	StorageBucket        string   `json:"storageBucket"`
+	StoragePathTemplates []string `json:"storagePathTemplates"`
 }
 
 // githubRepoManager is a struct used by the autoroller for managing checkouts.
@@ -66,7 +66,7 @@ type githubRepoManager struct {
 	revisionFile    string
 	defaultStrategy string
 	gsBucket        string
-	gsPathTemplate  string
+	gsPathTemplates []string
 	userEmail       string
 }
 
@@ -123,7 +123,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		revisionFile:      c.RevisionFile,
 		defaultStrategy:   c.DefaultStrategy,
 		gsBucket:          c.StorageBucket,
-		gsPathTemplate:    c.StoragePathTemplate,
+		gsPathTemplates:   c.StoragePathTemplates,
 		userEmail:         *user.Email,
 	}
 
@@ -361,7 +361,7 @@ func (rm *githubRepoManager) GetIssueUrlBase() string {
 
 // See documentation for RepoManager interface.
 func (r *githubRepoManager) CreateNextRollStrategy(ctx context.Context, s string) (strategy.NextRollStrategy, error) {
-	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.gsBucket, r.gsPathTemplate, r.childRepo, nil)
+	return strategy.GetNextRollStrategy(ctx, s, r.childBranch, DEFAULT_REMOTE, r.gsBucket, r.gsPathTemplates, r.childRepo, nil)
 }
 
 // See documentation for RepoManager interface.

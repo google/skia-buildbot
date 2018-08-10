@@ -15,6 +15,6 @@
       "revisionFile": "bin/internal/engine.version",
       "defaultStrategy": "gcs file",
       "storageBucket": "flutter_infra",
-      "storagePathTemplate": "flutter/%s/android-javadoc.zip"
+      "storagePathTemplates": ["flutter/%s/android-javadoc.zip","flutter/%s/dart-sdk-linux-x64.zip","flutter/%s/dart-sdk-darwin-x64.zip","flutter/%s/dart-sdk-windows-x64.zip"]
     }
 }

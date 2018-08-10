@@ -34,7 +34,7 @@ type NextRollStrategy interface {
 }
 
 // Return the NextRollStrategy indicated by the given string.
-func GetNextRollStrategy(ctx context.Context, strategy, branch, upstreamRemote, gsBucket, gsPathTemplate string, repo *git.Checkout, authClient *http.Client) (NextRollStrategy, error) {
+func GetNextRollStrategy(ctx context.Context, strategy, branch, upstreamRemote, gsBucket string, gsPathTemplates []string, repo *git.Checkout, authClient *http.Client) (NextRollStrategy, error) {
 	switch strategy {
 	case ROLL_STRATEGY_AFDO:
 		storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
@@ -49,7 +49,7 @@ func GetNextRollStrategy(ctx context.Context, strategy, branch, upstreamRemote, 
 		if err != nil {
 			return nil, err
 		}
-		return StrategyGCSFile(gcs.NewGCSClient(storageClient, gsBucket), gsPathTemplate), nil
+		return StrategyGCSFile(gcs.NewGCSClient(storageClient, gsBucket), gsPathTemplates), nil
 	case ROLL_STRATEGY_BATCH:
 		return StrategyHead(branch), nil
 	case ROLL_STRATEGY_FUCHSIA_SDK:
@@ -113,10 +113,10 @@ func StrategyRemoteHead(branch, upstreamRemote string, repo *git.Checkout) NextR
 }
 
 // gcsFileStrategy is a NextRollStrategy which rolls to a hash that has an
-// entry in the provided google storage location.
+// entry in the provided google storage locations.
 type gcsFileStrategy struct {
-	gcs            gcs.GCSClient
-	gsPathTemplate string
+	gcs             gcs.GCSClient
+	gsPathTemplates []string
 }
 
 // See documentation for NextRollStrategy interface.
@@ -124,17 +124,27 @@ func (s *gcsFileStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsin
 	if len(notRolled) > 0 {
 		// Commits are listed in reverse chronological order.
 		for _, notRolledCommit := range notRolled {
-			// Check to see if this commit exists in the gsPath location.
-			gsPath := fmt.Sprintf(s.gsPathTemplate, notRolledCommit.Hash)
-			fileExists, err := s.gcs.DoesFileExist(ctx, gsPath)
-			if err != nil {
-				return "", err
+			// Check to see if this commit exists in the gsPath locations.
+			missingFile := false
+			for _, gsPathTemplate := range s.gsPathTemplates {
+				gsPath := fmt.Sprintf(gsPathTemplate, notRolledCommit.Hash)
+				fileExists, err := s.gcs.DoesFileExist(ctx, gsPath)
+				if err != nil {
+					return "", err
+				}
+				if fileExists {
+					sklog.Infof("[gcsFileStrategy] Found %s", gsPath)
+					continue
+				} else {
+					sklog.Infof("[gcsFileStrategy] Could not find %s", gsPath)
+					missingFile = true
+					break
+				}
 			}
-			if fileExists {
-				sklog.Infof("[gcsFileStrategy] Found %s", gsPath)
+			if !missingFile {
+				sklog.Infof("[gcsFileStrategy] Found all %s paths for %s", s.gsPathTemplates, notRolledCommit.Hash)
 				return notRolledCommit.Hash, nil
 			}
-			sklog.Infof("[gcsFileStrategy] Could not find %s", gsPath)
 		}
 		// Could not find any hash in Google Storage.
 		sklog.Info("[gcsFileStrategy] Could not find any notRolled hashes in storage.")
@@ -143,12 +153,12 @@ func (s *gcsFileStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsin
 	return "", nil
 }
 
-// StrategyGCSFile returns a NextRollStrategy which rolls to a hash that has an
-// entry in the provided google storage location.
-func StrategyGCSFile(gcs gcs.GCSClient, gsPathTemplate string) NextRollStrategy {
+// StrategyGCSFile returns a NextRollStrategy which rolls to a hash that has the
+// specified entries in the provided google storage location.
+func StrategyGCSFile(gcs gcs.GCSClient, gsPathTemplates []string) NextRollStrategy {
 	return &gcsFileStrategy{
-		gcs:            gcs,
-		gsPathTemplate: gsPathTemplate,
+		gcs:             gcs,
+		gsPathTemplates: gsPathTemplates,
 	}
 }
 
