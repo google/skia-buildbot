@@ -1,6 +1,7 @@
 {
     "githubRepoOwner": "flutter",
     "githubRepoName": "flutter",
+    "githubChecksNum": 11,
     "maxRollFrequency": "0m",
     "childName": "Engine",
     "parentName": "Flutter",

@@ -293,9 +293,10 @@ type githubRoll struct {
 	retrieveRoll     func(context.Context, int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error)
 	rm               repo_manager.RepoManager
 	t                *travisci.TravisCI
+	checksNum        int
 }
 
-func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
+func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
@@ -346,6 +347,10 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 	}
 	a.TryResults = tryResults
 
+	if len(tryResults) != checksNum {
+		sklog.Warningf("len(tryResults) != checksNum: %d != %d", len(tryResults), checksNum)
+	}
+
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
 		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
@@ -355,7 +360,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
 		a.Result = autoroll.ROLL_RESULT_FAILURE
-	} else if len(a.TryResults) > 0 && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE {
+	} else if len(a.TryResults) >= checksNum && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE {
 		// Atleast one trybot failed. Close the roll.
 		linkToFailedJobs := []string{}
 		for _, tryJob := range a.TryResults {
@@ -370,7 +375,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
-	} else if !a.CommitQueueDryRun && len(a.TryResults) > 0 && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
+	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
 		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
@@ -382,8 +387,8 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum)
+func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, checksNum int, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum)
 	if err != nil {
 		return nil, err
 	}
@@ -392,8 +397,9 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoMa
 		issue:       issue,
 		g:           g,
 		recent:      recent,
+		checksNum:   checksNum,
 		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum)
+			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum)
 		},
 		rm: rm,
 	}, nil
@@ -474,12 +480,12 @@ func (r *githubRoll) IsSuccess() bool {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunFinished() bool {
-	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
+	return len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsFinished() || r.pullRequest.GetState() == github.CLOSED_STATE || !r.issue.CommitQueueDryRun
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsDryRunSuccess() bool {
-	return len(r.issue.TryResults) > 0 && r.issue.AllTrybotsSucceeded()
+	return len(r.issue.TryResults) >= r.checksNum && r.issue.AllTrybotsSucceeded()
 }
 
 // See documentation for state_machine.RollCLImpl interface.
