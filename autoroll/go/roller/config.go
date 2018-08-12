@@ -104,6 +104,7 @@ type AutoRollerConfig struct {
 	// Github code review flags.
 	GithubRepoOwner string `json:"githubRepoOwner"`
 	GithubRepoName  string `json:"githubRepoName"`
+	GithubChecksNum int    `json:"githubChecksNum"`
 
 	// RepoManager configs. Exactly one must be provided.
 	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager"`
