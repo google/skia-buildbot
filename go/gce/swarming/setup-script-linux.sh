@@ -89,10 +89,11 @@ popd
 
 # Install docker
 pushd /tmp
-  wget https://skia.googlesource.com/buildbot/+/master/scripts/run_on_swarming_bots/install_docker.py
+  # gittiles makes it hard to download the raw file, so just download it from github.
+  wget https://raw.githubusercontent.com/google/skia-buildbot/master/scripts/run_on_swarming_bots/install_docker.py
   # The script returns exit code 1 on success, because it's intended to reboot the swarming bot
   set +e
-  python /tmp/install_docker.py
+  python -u /tmp/install_docker.py
   set -e
 popd
 
