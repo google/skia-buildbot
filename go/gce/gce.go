@@ -1057,11 +1057,11 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 		// creation. It holds the dpkg lock and it reboots the instance
 		// when finished, so we need to wait for it to complete before
 		// performing our own setup.
-		sklog.Infof("Waiting for setup on %s to complete.", vm.Name)
+		sklog.Infof("Waiting for gce initialization on %s to complete.", vm.Name)
 		if _, err := g.Ssh(ctx, vm, "sleep", "300"); err != nil {
-			sklog.Infof("Setup finished on %s", vm.Name)
+			sklog.Infof("gce initialization finished on %s", vm.Name)
 		} else {
-			sklog.Infof("Setup did not finish on %s within 5 minutes. Continuing anyway.", vm.Name)
+			sklog.Infof("gce initialization did not finish on %s within 5 minutes. Continuing anyway.", vm.Name)
 		}
 
 		// Instance IP address may change at reboot.
@@ -1104,9 +1104,11 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 	// setup script.
 	if vm.Os != OS_WINDOWS {
 		if vm.SetupScript != "" {
-			if _, err := g.Ssh(ctx, vm, "sudo", "chmod", "+x", SETUP_SCRIPT_PATH_LINUX, "&&", SETUP_SCRIPT_PATH_LINUX); err != nil {
+			if rv, err := g.Ssh(ctx, vm, "sudo", "chmod", "+x", SETUP_SCRIPT_PATH_LINUX, "&&", SETUP_SCRIPT_PATH_LINUX); err != nil {
+				sklog.Errorf("SSH (failed) Output:\n %s", rv)
 				return err
 			}
+			// one can log the variable rv here to debug if scripts aren't working.
 		}
 		if vm.StartupScript != "" {
 			if err := startupScriptToMetadata(vm); err != nil {
