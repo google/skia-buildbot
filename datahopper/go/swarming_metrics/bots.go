@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -84,12 +85,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 			// This should always be length 0 or 1 because Skia infra is set up for
 			// one host to one device. If that device is missing (or there are none),
 			// device_states may be length 0, otherwise it should be length 1.
-			if len(deviceStates) > 0 {
+			if len(deviceStates) > 0 && util.In(deviceStates[0], device_state_guages) {
 				// Some common values include "available", "too_hot", "low_battery"
 				currDeviceState = deviceStates[0]
-			}
-			if currDeviceState == "" {
-				currDeviceState = "<none>"
 			}
 		}
 
