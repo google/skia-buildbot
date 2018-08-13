@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "409b4b3a_110f68e7",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-13T14:44:32Z",
+      "side": 1,
+      "message": "Please revert. Too noisy.",
+      "range": {
+        "startLine": 1110,
+        "startChar": 0,
+        "endLine": 1111,
+        "endChar": 49
+      },
+      "revId": "826efa219582c30cbc046590bd652b5da99f033f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
