@@ -10,10 +10,9 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -23,10 +22,10 @@ import (
 	"github.com/gorilla/mux"
 	"google.golang.org/api/iterator"
 
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -63,8 +62,9 @@ var (
 	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
 	pollInterval          = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
-	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
-	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
+	emailClientSecretFile = flag.String("email_client_secret_file", "/etc/leasing-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "/etc/leasing-email-secrets/client_token.json", "OAuth token cache file for sending email.")
+	serviceAccountFile    = flag.String("service_account_file", "/var/secrets/google/key.json", "Service account JSON file.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "leasing-server", "The Cloud Datastore namespace, such as 'leasing-server'.")
@@ -72,7 +72,6 @@ var (
 
 	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
-	redirectURL   = flag.String("redirect_url", "https://leasing.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
@@ -457,23 +456,22 @@ func runServer() {
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+type ClientConfig struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+type Installed struct {
+	Installed ClientConfig `json:"installed"`
+}
+
 func main() {
 	flag.Parse()
 
-	if *local {
-		// Dont log to cloud or use cached templates in local mode.
-		common.InitWithMust(
-			"leasing",
-			common.PrometheusOpt(promPort),
-		)
-		reloadTemplates()
-	} else {
-		common.InitWithMust(
-			"leasing",
-			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
-		)
-	}
+	common.InitWithMust(
+		"leasing",
+		common.PrometheusOpt(promPort),
+	)
 
 	skiaversion.MustLogVersion()
 
@@ -484,39 +482,46 @@ func main() {
 	}
 
 	// Initialize mailing library.
-	usr, err := user.Current()
+	var cfg Installed
+	err := util.WithReadFile(*emailClientSecretFile, func(f io.Reader) error {
+		return json.NewDecoder(f).Decode(&cfg)
+	})
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to read client secrets from %q: %s", *emailClientSecretFile, err)
 	}
-	tokenFile := filepath.Join(usr.HomeDir, "email.data")
-	emailClientId := *emailClientIdFlag
-	emailClientSecret := *emailClientSecretFlag
+	// Create a copy of the token cache file since mounted secrets are read-only
+	// and the access token will need to be updated for the oauth2 flow.
 	if !*local {
-		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
-		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
+		fout, err := ioutil.TempFile("", "")
 		if err != nil {
-			sklog.Fatalf("Failed to cache token: %s", err)
+			sklog.Fatalf("Unable to create temp file %q: %s", fout.Name(), err)
 		}
+		err = util.WithReadFile(*emailTokenCacheFile, func(fin io.Reader) error {
+			_, err := io.Copy(fout, fin)
+			if err != nil {
+				err = fout.Close()
+			}
+			return err
+		})
+		if err != nil {
+			sklog.Fatalf("Failed to write token cache file from %q to %q: %s", *emailTokenCacheFile, fout.Name(), err)
+		}
+		*emailTokenCacheFile = fout.Name()
 	}
-	if *local && (emailClientId == "" || emailClientSecret == "") {
-		sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
-	}
-	if err := MailInit(emailClientId, emailClientSecret, tokenFile); err != nil {
+	if err := MailInit(cfg.Installed.ClientID, cfg.Installed.ClientSecret, *emailTokenCacheFile); err != nil {
 		sklog.Fatalf("Failed to init mail library: %s", err)
 	}
 
-	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	var allow allowed.Allow
 	if !*local {
-		useRedirectURL = *redirectURL
+		allow = allowed.NewAllowedFromList([]string{*authWhiteList})
+	} else {
+		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
-	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
-		sklog.Fatal(fmt.Errorf("Problem setting up server OAuth: %s", err))
-	}
+	login.InitWithAllow(*port, *local, nil, nil, allow)
 
 	// Initialize isolate and swarming.
-	if err := SwarmingInit(); err != nil {
+	if err := SwarmingInit(*serviceAccountFile); err != nil {
 		sklog.Fatalf("Failed to init isolate and swarming: %s", err)
 	}
 
