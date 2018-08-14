@@ -43,11 +43,24 @@ var (
 
 // Client is a Skia-specific wrapper around the Isolate executable.
 type Client struct {
-	gcs           *gcs.DownloadHelper
-	isolate       string
-	isolateserver string
-	serverUrl     string
-	workdir       string
+	gcs                *gcs.DownloadHelper
+	isolate            string
+	isolateserver      string
+	serverUrl          string
+	workdir            string
+	serviceAccountJSON string
+}
+
+// NewClient returns a Client instance that uses "--service-account-json" for
+// it's isolate binary calls. This is required for servers that are not ip
+// whitelisted in chrome-infra-auth/ip_whitelist.cfg.
+func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
+	c, err := NewClient(workdir, server)
+	if err != nil {
+		return nil, err
+	}
+	c.serviceAccountJSON = serviceAccountJSON
+	return c, nil
 }
 
 // NewClient returns a Client instance.
@@ -270,6 +283,9 @@ func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, j
 		c.isolate, "batcharchive", "--verbose",
 		"--isolate-server", c.serverUrl,
 	}
+	if c.serviceAccountJSON != "" {
+		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
+	}
 	if jsonOutput != "" {
 		cmd = append(cmd, "--dump-json", jsonOutput)
 	}
@@ -334,6 +350,9 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 	cmd := []string{
 		c.isolateserver, "archive", "--verbose",
 		"--isolate-server", c.serverUrl,
+	}
+	if c.serviceAccountJSON != "" {
+		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
 	}
 	for _, f := range isolatedFiles {
 		dirname, filename := path.Split(f)

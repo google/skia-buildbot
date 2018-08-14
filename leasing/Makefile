@@ -21,12 +21,11 @@ debug_leasing: clean_webtools debug_core_js debug_elements_html skiaversion
 leasing: clean_webtools elements_html
 	go install -v ./go/...
 
-.PHONY: leasing_release
-leasing_release: leasing
-	./build_release "`git log -n1 --format=%s`"
+.PHONY: release
+release: leasing
+	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/leasing
+	./build_docker_release
 
-.PHONY: leasing_push
-leasing_push: leasing
-	go install -v ../push/go/pushcli
-	./build_release "`git log -n1 --format=%s`"
-	pushcli leasingd skia-leasing
+.PHONY: push
+push: leasing
+	pushk leasing
