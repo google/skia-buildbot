@@ -205,7 +205,7 @@ func polylintTests() []*test {
 
 // goTest returns a test which runs `go test` in the given cwd.
 func goTest(cwd string, testType string, args ...string) *test {
-	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
+	cmd := []string{"go", "test", "-v", "./go/...", "-p", "1", "-parallel", "1"}
 	if *race {
 		cmd = append(cmd, "-race")
 	}
