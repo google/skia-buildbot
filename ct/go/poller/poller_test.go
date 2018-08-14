@@ -567,10 +567,8 @@ func TestPollAndExecOnce(t *testing.T) {
 	expect.Equal(t, 0, getPatchCalls)
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := mockExec.Commands()
-	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
+	assert.Len(t, commands, 1)
+	expect.Equal(t, "capture_archives_on_workers", commands[0].Name)
 	// No updates expected. (capture_archives_on_workers would send updates if it were
 	// executed.)
 	expect.Empty(t, mockServer.UpdateTaskReqs())
@@ -605,13 +603,9 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
 	// make all; run_chromium_perf_on_workers ...
 	commands := mockExec.Commands()
-	assert.Len(t, commands, 6)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
-	expect.Equal(t, "git pull", exec.DebugString(commands[3]))
-	expect.Equal(t, "make all", exec.DebugString(commands[4]))
-	expect.Equal(t, "run_chromium_perf_on_workers", commands[5].Name)
+	assert.Len(t, commands, 2)
+	expect.Equal(t, "capture_archives_on_workers", commands[0].Name)
+	expect.Equal(t, "run_chromium_perf_on_workers", commands[1].Name)
 	// No updates expected when commands succeed.
 	expect.Empty(t, mockServer.UpdateTaskReqs())
 	expect.Equal(t, 5, getPatchCalls)
@@ -640,10 +634,8 @@ func TestPollAndExecOnceError(t *testing.T) {
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
 	commands := commandCollector.Commands()
-	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
+	assert.Len(t, commands, 1)
+	expect.Equal(t, "capture_archives_on_workers", commands[0].Name)
 	// Expect an update marking task failed when command fails to execute.
 	assert.Len(t, mockServer.UpdateTaskReqs(), 1)
 	updateReq := mockServer.UpdateTaskReqs()[0]
