@@ -25,7 +25,7 @@ read -r -p "Press enter to continue..." key
 go install ./go/three_legged_flow
 cd /tmp/ramdisk
 three_legged_flow --scopes=https://mail.google.com/
-kubectl create secret generic notifier-${EMAIL}-secrets \
+kubectl create secret generic leasing-email-secrets \
   --from-file=./client_secret.json \
   --from-file=./client_token.json \
   --dry-run -o yaml | kubectl apply -f -
