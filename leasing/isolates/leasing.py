@@ -74,7 +74,9 @@ def main():
     print
     print ('Please cleanup after you are done debugging or when you get the '
            '15 min warning email!')
+    print 'SLEEPING FOR 5 mins'
     sys.stdout.flush()
+    time.sleep(300)
 
     while True:
       get_task_status_url = '%s/_/get_task_status?task=%s' % (
