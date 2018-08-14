@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d3a51935_872d30cc",
+        "filename": "leasing/Dockerfile",
+        "patchSetId": 13
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-14T17:31:42Z",
+      "side": 1,
+      "message": "Add a comment on why not from the skia image.  I think it was because the isolate binaries needed a lib the alpine image doesn\u0027t have?",
+      "range": {
+        "startLine": 1,
+        "startChar": 5,
+        "endLine": 1,
+        "endChar": 15
+      },
+      "revId": "4e217f7dcdd9663dc541c0f545a4066cb228e892",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "032854ae_08ccaa8b",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-14T17:31:42Z",
+      "side": 1,
+      "message": "Add comments explaining why we need to create a copy of the token.  It intuitively feels wrong to me, so I appreciate any explanation.",
+      "range": {
+        "startLine": 492,
+        "startChar": 3,
+        "endLine": 492,
+        "endChar": 36
+      },
+      "revId": "4e217f7dcdd9663dc541c0f545a4066cb228e892",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
