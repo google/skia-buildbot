@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3e6b50f_44a3b676",
+        "filename": "ct/build_ctmaster_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-14T18:43:59Z",
+      "side": 1,
+      "message": "Need to update ct/sys/ct-masterd.service?",
+      "range": {
+        "startLine": 17,
+        "startChar": 58,
+        "endLine": 17,
+        "endChar": 78
+      },
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd183e01_a8de0ab2",
+        "filename": "ct/build_ctmaster_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-14T18:43:59Z",
+      "side": 1,
+      "message": "Would it be better to just explicitly list the master scripts?\n\nSame for worker scripts.",
+      "range": {
+        "startLine": 23,
+        "startChar": 2,
+        "endLine": 23,
+        "endChar": 41
+      },
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a032e9fb_4475e75d",
+        "filename": "ct/go/poller/poller_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-14T18:43:59Z",
+      "side": 1,
+      "message": "nit: delete comment; many others in this file",
+      "range": {
+        "startLine": 568,
+        "startChar": 11,
+        "endLine": 568,
+        "endChar": 16
+      },
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e119c1c_a45bdba4",
+        "filename": "ct/setup-script-master.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-14T18:43:59Z",
+      "side": 1,
+      "message": "Are you planning to delete and recreate the CT master instance?",
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
