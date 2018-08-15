@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "74c577b5_f04a37f8",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-15T19:35:35Z",
+      "side": 1,
+      "message": "Added a TODO to explore expanding this into a more generic prober framework. But keeping this approach for now, especially since we have two copies of prober right now.",
+      "parentUuid": "c1042e96_16587438",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 25
+      },
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "146ac75a_f1eaff52",
         "filename": "proberk/go/proberk/main.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d751203_3c94ab1f",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-15T19:35:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "146ac75a_f1eaff52",
+      "range": {
+        "startLine": 248,
+        "startChar": 10,
+        "endLine": 248,
+        "endChar": 25
+      },
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "08a80673_6f5ab1f5",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-15T19:35:35Z",
+      "side": 1,
+      "message": "Done\nMuch better read :-)",
+      "parentUuid": "c464ac66_daa99c0e",
+      "range": {
+        "startLine": 273,
+        "startChar": 4,
+        "endLine": 273,
+        "endChar": 29
+      },
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8571cb4e_b48a0cea",
         "filename": "proberk/go/proberk/main_test.go",
         "patchSetId": 5
@@ -82,6 +154,24 @@
       "writtenOn": "2018-08-15T17:58:52Z",
       "side": 1,
       "message": "What is this IP address?",
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27d2b88d_151666d2",
+        "filename": "proberk/go/proberk/main_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-15T19:35:35Z",
+      "side": 1,
+      "message": "The K8s frontend/loadbalancer, it\u0027s referenced in skia_org_nginx",
+      "parentUuid": "8571cb4e_b48a0cea",
       "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
