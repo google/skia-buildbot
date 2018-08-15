@@ -4,8 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-Environment="GOPATH=/b/skia-repo/go/" "PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/b/skia-repo/go/bin"
-ExecStart=/b/skia-repo/go/bin/poller --logtostderr
+ExecStart=/usr/local/bin/poller --logtostderr
 Restart=always
 User=default
 Group=default

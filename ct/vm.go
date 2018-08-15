@@ -27,7 +27,8 @@ func CTFE() *gce.Instance {
 func CtMaster() *gce.Instance {
 	vm := CtBase("skia-ct-master", "130.211.125.233" /* Whitelisted in swarming and isolate servers */)
 	vm.DataDisks[0].SizeGb = 500
-	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
+	vm.DataDisks[0].MountPath = "/b"
+	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
 	vm.Scopes = append(vm.Scopes, auth.SCOPE_GERRIT)
 	vm.ServiceAccount = gce.SERVICE_ACCOUNT_COMPUTE
