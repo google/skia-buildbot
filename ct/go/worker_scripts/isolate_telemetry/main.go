@@ -60,7 +60,7 @@ func buildRepo() error {
 			}
 		}
 	}
-	pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
+	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
 	if err = util.CreateTelemetryIsolates(ctx, *runID, *chromiumHash, pathToPyFiles, applyPatches); err != nil {
 		return fmt.Errorf("Could not create telemetry isolates: %s", err)
 	}
