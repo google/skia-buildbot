@@ -5,13 +5,17 @@ package main
 
 import (
 	"crypto/md5"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	"go.skia.org/infra/go/human"
 
 	"github.com/flynn/json5"
 
@@ -46,9 +50,10 @@ var (
 )
 
 const (
-	DIAL_TIMEOUT         = time.Duration(5 * time.Second)
-	REQUEST_TIMEOUT      = time.Duration(30 * time.Second)
-	ISSUE_TRACKER_PERIOD = 15 * time.Minute
+	DIAL_TIMEOUT           = time.Duration(5 * time.Second)
+	REQUEST_TIMEOUT        = time.Duration(30 * time.Second)
+	ISSUE_TRACKER_PERIOD   = 15 * time.Minute
+	DEFAULT_SSL_VALID_DAYS = 10 * 24 * time.Hour
 )
 
 func readConfigFile(filename string) (types.Probes, error) {
@@ -187,6 +192,13 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 				resp, err = c.Head(url)
 			} else if probe.Method == "POST" {
 				resp, err = c.Post(url, probe.MimeType, strings.NewReader(probe.Body))
+			} else if probe.Method == "SSL" {
+				// SSL is a fictitious method that tests the SSL cert.
+				if err := probeSSL(probe, url); err != nil {
+					sklog.Errorf("While testing %s we got SSL error: %s", url, err)
+					probe.Failure[url].Update(1)
+					continue
+				}
 			} else {
 				sklog.Errorf("Error: unknown method: %s", probe.Method)
 				continue
@@ -221,6 +233,58 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 			probe.Failure[url].Update(0)
 		}
 	}
+}
+
+// probeSSL inspects the SSL cert for the given URL and checks whether
+// the time to expiration is below a certain number of days.
+func probeSSL(probe *types.Probe, URL string) error {
+	parsedURL, err := url.Parse(URL)
+	targetAddr := parsedURL.Host
+	if parsedURL.Port() == "" {
+		targetAddr += ":443"
+	}
+
+	// Don't verify the host
+	conf := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	conn, err := tls.Dial("tcp", targetAddr, conf)
+	if err != nil {
+		return sklog.FmtErrorf("Error dialing %s: %s", targetAddr, err)
+	}
+	defer util.Close(conn)
+
+	// Establish the connection.
+	if err := conn.Handshake(); err != nil {
+		return sklog.FmtErrorf("Handshake with %s failed: %s", targetAddr, err)
+	}
+
+	certs := conn.ConnectionState().PeerCertificates
+	if len(certs) == 0 {
+		return sklog.FmtErrorf("Unable to retrieve peer certificates for %s", targetAddr)
+	}
+
+	cert := certs[0]
+
+	// Make sure the cert is valid.
+	now := time.Now()
+	if cert.NotBefore.After(now) {
+		return sklog.FmtErrorf("Certificate for %s is not valid yet", targetAddr)
+	}
+
+	// Figure out how within what deltat the expiration time should be.
+	minExpirationDelta := DEFAULT_SSL_VALID_DAYS
+	if len(probe.Expected) > 0 {
+		minExpirationDelta = time.Duration(probe.Expected[0]) * 24 * time.Hour
+	}
+
+	delta := cert.NotAfter.Sub(now)
+	if delta < minExpirationDelta {
+		return sklog.FmtErrorf("Certificate for %s is expired or will expires in %s.", targetAddr, human.Duration(delta))
+	}
+
+	return nil
 }
 
 func getHash() (string, error) {
