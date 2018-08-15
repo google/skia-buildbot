@@ -26,7 +26,7 @@ func TestGetStartRange(t *testing.T) {
 func TestGetPathToPyFiles(t *testing.T) {
 	testutils.SmallTest(t)
 	swarmingPath := GetPathToPyFiles(true)
-	assert.True(t, strings.HasSuffix(swarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
+	assert.Equal(t, swarmingPath, filepath.Join("/", "usr", "local", "share", "ct-masterd", "py"))
 	nonSwarmingPath := GetPathToPyFiles(false)
 	assert.True(t, strings.HasSuffix(nonSwarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
 }

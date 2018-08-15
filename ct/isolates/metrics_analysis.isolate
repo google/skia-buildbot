@@ -9,10 +9,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/metrics_analysis',
+          '../../../bin/metrics_analysis',
         ],
         'command': [
-          '../../../../../bin/metrics_analysis',
+          '../../../bin/metrics_analysis',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',
