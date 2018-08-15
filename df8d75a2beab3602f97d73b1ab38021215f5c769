@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1042e96_16587438",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-15T17:58:52Z",
+      "side": 1,
+      "message": "We could refactor probe.Method to be probe.ProbeConfig or something.  Not essential, but a thought.",
+      "range": {
+        "startLine": 194,
+        "startChar": 13,
+        "endLine": 194,
+        "endChar": 25
+      },
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "146ac75a_f1eaff52",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-15T17:58:52Z",
+      "side": 1,
+      "message": "Why?  Is this because if the cert is expired, we still want this to work?  Can you add a comment?",
+      "range": {
+        "startLine": 248,
+        "startChar": 10,
+        "endLine": 248,
+        "endChar": 25
+      },
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c464ac66_daa99c0e",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-15T17:58:52Z",
+      "side": 1,
+      "message": "Does now.Before(cert.NotBefore) read better?",
+      "range": {
+        "startLine": 273,
+        "startChar": 4,
+        "endLine": 273,
+        "endChar": 29
+      },
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8571cb4e_b48a0cea",
+        "filename": "proberk/go/proberk/main_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-15T17:58:52Z",
+      "side": 1,
+      "message": "What is this IP address?",
+      "revId": "df8d75a2beab3602f97d73b1ab38021215f5c769",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
