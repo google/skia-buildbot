@@ -273,7 +273,7 @@ func main() {
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
 	noOutputSlaves := []string{}
-	pathToPyFiles := util.GetPathToPyFiles(false)
+	pathToPyFiles := util.GetPathToPyFiles(!*master_common.Local)
 	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
 		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 			if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {

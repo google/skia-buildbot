@@ -244,7 +244,7 @@ func main() {
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	noOutputSlaves := []string{}
-	pathToPyFiles := util.GetPathToPyFiles(false)
+	pathToPyFiles := util.GetPathToPyFiles(!*master_common.Local)
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)

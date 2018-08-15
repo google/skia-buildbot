@@ -416,8 +416,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	defer s.Cleanup()
 	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := GetPathToIsolates(true)
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
@@ -542,9 +541,24 @@ func getServiceAccount(dimensions map[string]string) string {
 }
 
 // GetPathToPyFiles returns the location of CT's python scripts.
+func GetPathToIsolates(runOnSwarming bool) string {
+	// TODO(rmistry): Update all callers to pass in local flag! (it wil lbe master_Common local???
+	if runOnSwarming {
+		// Do something as below?
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-masterd", "isolates")
+		//return filepath.Join("/", "usr", "local", "share", "ct-masterd", "isolates")
+	} else {
+		_, currentFile, _, _ := runtime.Caller(0)
+		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	}
+}
+
+// GetPathToPyFiles returns the location of CT's python scripts.
 func GetPathToPyFiles(runOnSwarming bool) string {
 	if runOnSwarming {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
+		// return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-masterd", "py")
+		//return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
 	} else {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
@@ -553,6 +567,7 @@ func GetPathToPyFiles(runOnSwarming bool) string {
 
 // GetPathToTelemetryBinaries returns the location of Telemetry binaries.
 func GetPathToTelemetryBinaries(runOnSwarming bool) string {
+	// THIS IS WRONG AND NEEDS TO BE UPDATED!!!
 	if runOnSwarming {
 		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "tools", "perf")
 	} else {
@@ -927,8 +942,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := GetPathToIsolates(true)
 	isolateArgs := map[string]string{
 		"RUN_ID":        runID,
 		"CHROMIUM_HASH": chromiumHash,
@@ -985,8 +999,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := GetPathToIsolates(true)
 	isolateArgs := map[string]string{
 		"RUN_ID":          runID,
 		"REPO_AND_TARGET": repoAndTarget,
