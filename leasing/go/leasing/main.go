@@ -440,18 +440,21 @@ func runServer() {
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc(MY_LEASES_URI, myLeasesHandler)
 	r.HandleFunc(ALL_LEASES_URI, allLeasesHandler)
-	r.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
 	r.HandleFunc(POOL_DETAILS_POST_URI, poolDetailsHandler).Methods("POST")
 	r.HandleFunc(ADD_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc(EXTEND_TASK_POST_URI, extendTaskHandler).Methods("POST")
 	r.HandleFunc(EXPIRE_TASK_POST_URI, expireTaskHandler).Methods("POST")
-
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	r.HandleFunc("/login/", loginHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+
+	h := httputils.LoggingGzipRequestResponse(r)
+	h = login.RestrictViewer(h)
+	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	h = httputils.ForceHTTPS(h)
+
+	http.Handle("/", h)
+	http.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
+
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
