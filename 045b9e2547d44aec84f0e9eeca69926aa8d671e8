@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a995a6c_03682046",
+        "filename": "ct/go/util/util_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T19:41:41Z",
+      "side": 1,
+      "message": "nit: var name is confusing",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 13
+      },
+      "revId": "045b9e2547d44aec84f0e9eeca69926aa8d671e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acf22a8a_8c808827",
+        "filename": "ct/go/util/util_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T19:41:41Z",
+      "side": 1,
+      "message": "duplicate of previous two lines?",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 50
+      },
+      "revId": "045b9e2547d44aec84f0e9eeca69926aa8d671e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cb73503_ba346fba",
+        "filename": "ct/go/util/util_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T19:41:41Z",
+      "side": 1,
+      "message": "duplicate of previous two lines?",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 76
+      },
+      "revId": "045b9e2547d44aec84f0e9eeca69926aa8d671e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
