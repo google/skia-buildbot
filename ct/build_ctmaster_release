@@ -12,7 +12,27 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=755 -T ${GOPATH}/bin/poller     ${ROOT}/b/skia-repo/go/bin/poller
+
+# Copy over the poller.
+${INSTALL} --mode=755 -T ${GOPATH}/bin/poller     ${ROOT}/usr/local/bin/poller
+
+# Copy over all master scripts.
+for master_script in ./go/master_scripts/*; do
+  master_script_name=$(basename "$master_script")
+  master_script_binary=${GOPATH}/bin/$master_script_name
+  if [ -e "$master_script_binary" ]; then
+    ${INSTALL} --mode=755 -T $master_script_binary ${ROOT}/usr/local/bin/$master_script_name
+  fi
+done
+
+# Copy over all worker scripts.
+for worker_script in ./go/worker_scripts/*; do
+  worker_script_name=$(basename "$worker_script")
+  worker_script_binary=${GOPATH}/bin/$worker_script_name
+  if [ -e "$worker_script_binary" ]; then
+    ${INSTALL} --mode=755 -T $worker_script_binary ${ROOT}/usr/local/bin/$worker_script_name
+  fi
+done
 }
 
 source ../bash/release.sh

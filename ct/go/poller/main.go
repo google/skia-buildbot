@@ -42,41 +42,11 @@ import (
 var (
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	pollInterval = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
-	// Mutex that controls updating and building of the local checkout.
-	repoMtx = sync.Mutex{}
 	// Map that holds all picked up tasks. Used to ensure same task is not picked up more than once.
 	pickedUpTasks = map[string]string{}
 	// Mutex that controls access to the above map.
 	tasksMtx = sync.Mutex{}
 )
-
-// Runs "git pull; make all".
-func updateAndBuild(ctx context.Context) error {
-	repoMtx.Lock()
-	defer repoMtx.Unlock()
-	makefilePath := ctutil.CtTreeDir
-
-	// TODO(benjaminwagner): Should this also do 'go get -u ...' and/or 'gclient sync'?
-	err := exec.Run(ctx, &exec.Command{
-		Name:      "git",
-		Args:      []string{"pull"},
-		Dir:       makefilePath,
-		Timeout:   ctutil.GIT_PULL_TIMEOUT,
-		LogStdout: true,
-		LogStderr: true,
-	})
-	if err != nil {
-		return err
-	}
-	return exec.Run(ctx, &exec.Command{
-		Name:      "make",
-		Args:      []string{"all"},
-		Dir:       makefilePath,
-		Timeout:   ctutil.MAKE_ALL_TIMEOUT,
-		LogStdout: true,
-		LogStderr: true,
-	})
-}
 
 type GetPatchFunc func(patchId string) (string, error)
 
@@ -480,11 +450,6 @@ func pollAndExecOnce(ctx context.Context, getPatchFunc GetPatchFunc) *sync.WaitG
 	pickedUpTasks[taskId] = "1"
 	tasksMtx.Unlock()
 
-	sklog.Infof("Preparing to execute task %s", taskId)
-	if err = updateAndBuild(ctx); err != nil {
-		sklog.Error(err)
-		return &wg
-	}
 	sklog.Infof("Executing task %s", taskId)
 	// Increment the WaitGroup counter.
 	wg.Add(1)
