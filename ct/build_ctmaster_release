@@ -9,12 +9,21 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
 
 # Copy over the poller.
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/poller     ${ROOT}/usr/local/bin/poller
+
+# Copy over the isolate files and python scripts.
+${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/isolates
+${INSTALL}     --mode=644 ./isolates/*               ${ROOT}/usr/local/share/${APPNAME}/isolates
+${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/py
+${INSTALL}     --mode=644 ./py/*.py                  ${ROOT}/usr/local/share/${APPNAME}/py
+${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/py/html-templates
+${INSTALL}     --mode=644 ./py/html-templates/*.html ${ROOT}/usr/local/share/${APPNAME}/py/html-templates
 
 # Copy over all master scripts.
 for master_script in ./go/master_scripts/*; do

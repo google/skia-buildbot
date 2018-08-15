@@ -9,10 +9,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/run_chromium_analysis',
+          '../../../bin/run_chromium_analysis',
         ],
         'command': [
-          '../../../../../bin/run_chromium_analysis',
+          '../../../bin/run_chromium_analysis',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',

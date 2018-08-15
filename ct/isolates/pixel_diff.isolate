@@ -9,10 +9,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/pixel_diff',
+          '../../../bin/pixel_diff',
         ],
         'command': [
-          '../../../../../bin/pixel_diff',
+          '../../../bin/pixel_diff',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',
