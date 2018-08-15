@@ -10,10 +10,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/create_pagesets',
+          '../../../bin/create_pagesets',
         ],
         'command': [
-          '../../../../../bin/create_pagesets',
+          '../../../bin/create_pagesets',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',

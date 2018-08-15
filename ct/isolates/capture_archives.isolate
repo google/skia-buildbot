@@ -9,10 +9,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/capture_archives',
+          '../../../bin/capture_archives',
         ],
         'command': [
-          '../../../../../bin/capture_archives',
+          '../../../bin/capture_archives',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',

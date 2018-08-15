@@ -13,8 +13,8 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
 
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/ctfe            ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/ctfe_migratedb  ${ROOT}/usr/local/bin/ctfe_migratedb

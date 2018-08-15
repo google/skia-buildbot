@@ -63,7 +63,7 @@ func captureArchives() error {
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
-	recordWprBinary := filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RECORD_WPR)
+	recordWprBinary := filepath.Join(util.GetPathToTelemetryBinaries(*worker_common.Local), util.BINARY_RECORD_WPR)
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureArchivesTimeoutSecs
 	// Loop through all pagesets.
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)

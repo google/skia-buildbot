@@ -120,7 +120,7 @@ func main() {
 			return fmt.Errorf("Could not get cipd package for clang_linux: %s", err)
 		}
 		remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, []string{}, []string{}, []string{cipdPackage}, true, 3*time.Hour, 1*time.Hour)
+			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming build skpinfo task: %s", err)
 		}
@@ -134,7 +134,7 @@ func main() {
 	group.Go("isolate telemetry", func() error {
 		tokens := strings.Split(*chromiumBuild, "-")
 		chromiumHash := tokens[0]
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, []string{}, 1*time.Hour, 1*time.Hour)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -157,7 +157,7 @@ func main() {
 		"RUN_ID":              *runID,
 		"SKPINFO_REMOTE_PATH": skpinfoRemotePath,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, isolateDeps); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

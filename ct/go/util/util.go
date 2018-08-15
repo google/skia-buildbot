@@ -399,7 +399,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE bool, repeatValue int, isolateDeps []string) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -416,8 +416,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	defer s.Cleanup()
 	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := GetPathToIsolates(local)
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
 	numTasks := int(math.Ceil(float64(numPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
@@ -541,22 +540,37 @@ func getServiceAccount(dimensions map[string]string) string {
 	return serviceAccount
 }
 
-// GetPathToPyFiles returns the location of CT's python scripts.
-func GetPathToPyFiles(runOnSwarming bool) string {
-	if runOnSwarming {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
+// GetPathToIsolates returns the location of CT's isolates.
+func GetPathToIsolates(local bool) string {
+	if local {
+		_, currentFile, _, _ := runtime.Caller(0)
+		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
 	} else {
+		return filepath.Join("/", "usr", "local", "share", "ct-masterd", "isolates")
+	}
+}
+
+// GetPathToPyFiles returns the location of CT's python scripts.
+// local should be set to true if we need the location of py files when debugging locally.
+// runOnMaster should be set if we need the location of py files on the ct-master.
+// If both are false then it is assumed that we are running on a swarming bot.
+func GetPathToPyFiles(local, runOnMaster bool) string {
+	if local {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
+	} else if runOnMaster {
+		return filepath.Join("/", "usr", "local", "share", "ct-masterd", "py")
+	} else {
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-masterd", "py")
 	}
 }
 
 // GetPathToTelemetryBinaries returns the location of Telemetry binaries.
-func GetPathToTelemetryBinaries(runOnSwarming bool) string {
-	if runOnSwarming {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "tools", "perf")
-	} else {
+func GetPathToTelemetryBinaries(local bool) string {
+	if local {
 		return TelemetryBinariesDir
+	} else {
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "tools", "perf")
 	}
 }
 
@@ -689,7 +703,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	}
 	sklog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
 	args := []string{
-		filepath.Join(GetPathToTelemetryBinaries(runOnSwarming), BINARY_RUN_BENCHMARK),
+		filepath.Join(GetPathToTelemetryBinaries(!runOnSwarming), BINARY_RUN_BENCHMARK),
 		benchmarkName,
 		"--also-run-disabled-tests",
 		"--user-agent=" + decodedPageset.UserAgent,
@@ -910,7 +924,7 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
 // archives it, and triggers its swarming task. The swarming task will run the isolate_telemetry
 // worker script which will return the isolate hash.
-func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash string, patches []string, hardTimeout, ioTimeout time.Duration) (string, error) {
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash string, patches []string, hardTimeout, ioTimeout time.Duration, local bool) (string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -927,8 +941,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := GetPathToIsolates(local)
 	isolateArgs := map[string]string{
 		"RUN_ID":        runID,
 		"CHROMIUM_HASH": chromiumHash,
@@ -968,7 +981,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform string, hashes, patches, cipdPackages []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform string, hashes, patches, cipdPackages []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -985,8 +998,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	defer s.Cleanup()
 	// Create isolated.gen.json.
 	// Get path to isolate files.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	pathToIsolates := GetPathToIsolates(local)
 	isolateArgs := map[string]string{
 		"RUN_ID":          runID,
 		"REPO_AND_TARGET": repoAndTarget,

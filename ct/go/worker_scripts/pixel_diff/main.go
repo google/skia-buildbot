@@ -273,7 +273,7 @@ func pixelDiff() error {
 func runScreenshotBenchmark(ctx context.Context, outputPath, chromiumBinary, pagesetName, pathToPagesets string, decodedPageset util.PagesetVars, timeoutSecs, rank int) {
 
 	args := []string{
-		filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RUN_BENCHMARK),
+		filepath.Join(util.GetPathToTelemetryBinaries(*worker_common.Local), util.BINARY_RUN_BENCHMARK),
 		util.BENCHMARK_SCREENSHOT,
 		"--also-run-disabled-tests",
 		"--png-outdir=" + filepath.Join(outputPath, strconv.Itoa(rank)),

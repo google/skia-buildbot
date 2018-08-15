@@ -10,10 +10,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/isolate_telemetry',
+          '../../../bin/isolate_telemetry',
         ],
         'command': [
-          '../../../../../bin/isolate_telemetry',
+          '../../../bin/isolate_telemetry',
           '-logtostderr',
           '--run_id=<(RUN_ID)',
           '--chromium_hash=<(CHROMIUM_HASH)',

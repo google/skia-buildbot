@@ -9,10 +9,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/run_lua',
+          '../../../bin/run_lua',
         ],
         'command': [
-          '../../../../../bin/run_lua',
+          '../../../bin/run_lua',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',

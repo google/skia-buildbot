@@ -10,10 +10,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/capture_skps',
+          '../../../bin/capture_skps',
         ],
         'command': [
-          '../../../../../bin/capture_skps',
+          '../../../bin/capture_skps',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',

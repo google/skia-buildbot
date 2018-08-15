@@ -166,7 +166,7 @@ func metricsAnalysis() error {
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		// Construct path to CT's python scripts.
-		pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
+		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
 		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */, false /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
@@ -178,7 +178,7 @@ func metricsAnalysis() error {
 // runMetricsAnalysisBenchmark runs the analysis_metrics_ct benchmark on the provided trace.
 func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrace, cloudTraceLink string) error {
 	args := []string{
-		filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RUN_BENCHMARK),
+		filepath.Join(util.GetPathToTelemetryBinaries(*worker_common.Local), util.BINARY_RUN_BENCHMARK),
 		util.BENCHMARK_METRICS_ANALYSIS,
 		"--local-trace-path", fmt.Sprintf("file://%s", downloadedTrace),
 		"--cloud-trace-link", cloudTraceLink,

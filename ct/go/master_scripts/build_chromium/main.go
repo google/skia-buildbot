@@ -91,7 +91,7 @@ func main() {
 	//       "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is empty.
 	//       Since builds created by this master script will be consumed only by the
 	//       capture_skps tasks (which require that flag) specify runID as empty here.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, []string{}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
