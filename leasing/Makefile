@@ -23,7 +23,7 @@ leasing: clean_webtools elements_html
 
 .PHONY: release
 release: leasing
-	CGO_ENABLED=0 GOOS=linux go install -a -installsuffix cgo ./go/leasing
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/leasing
 	./build_docker_release
 
 .PHONY: push
