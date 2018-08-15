@@ -25,10 +25,23 @@ func TestGetStartRange(t *testing.T) {
 
 func TestGetPathToPyFiles(t *testing.T) {
 	testutils.SmallTest(t)
-	swarmingPath := GetPathToPyFiles(true)
-	assert.True(t, strings.HasSuffix(swarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
-	nonSwarmingPath := GetPathToPyFiles(false)
-	assert.True(t, strings.HasSuffix(nonSwarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
+	expectedLocalPathSuffix := filepath.Join("src", "go.skia.org", "infra", "ct", "py")
+	expectedMasterPath := filepath.Join("/", "usr", "local", "share", "ct-masterd", "py")
+	expectedSwarmingPathSuffix := "py"
+
+	// Test local path.
+	pathToPyFiles := GetPathToPyFiles(true /* local */, false /* runOnMaster */)
+	assert.True(t, strings.HasSuffix(pathToPyFiles, expectedLocalPathSuffix))
+	pathToPyFiles = GetPathToPyFiles(true /* local */, true /* runOnMaster */)
+	assert.True(t, strings.HasSuffix(pathToPyFiles, expectedLocalPathSuffix))
+
+	// Test master path.
+	pathToPyFiles = GetPathToPyFiles(false /* local */, true /* runOnMaster */)
+	assert.Equal(t, pathToPyFiles, expectedMasterPath)
+
+	// Test swarming path.
+	pathToPyFiles = GetPathToPyFiles(false /* local */, false /* runOnMaster */)
+	assert.True(t, strings.HasSuffix(pathToPyFiles, expectedSwarmingPathSuffix))
 }
 
 func TestGetIntFlagValue(t *testing.T) {

@@ -144,7 +144,7 @@ func main() {
 		return
 	}
 	remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, []string{}, []string{}, []string{cipdPackage}, true, 3*time.Hour, 1*time.Hour)
+		ctx, "build_lua_pictures", *runID, "skiaLuaPictures", util.PLATFORM_LINUX, []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming build lua_pictures task: %s", err)
 		return
@@ -162,7 +162,7 @@ func main() {
 		"RUN_ID":                   *runID,
 		"LUA_PICTURES_REMOTE_PATH": luaPicturesRemotePath,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, 1, []string{} /* isolateDeps */); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "run_lua", util.RUN_LUA_ISOLATE, *runID, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

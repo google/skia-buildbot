@@ -124,7 +124,7 @@ func captureSkps() error {
 	defer skutil.RemoveAll(pathToSkps)
 
 	// Construct path to the ct_run_benchmark python script.
-	pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
+	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
 
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
@@ -171,7 +171,7 @@ func captureSkps() error {
 					continue
 				}
 				args := []string{
-					filepath.Join(util.GetPathToTelemetryBinaries(!*worker_common.Local), util.BINARY_RUN_BENCHMARK),
+					filepath.Join(util.GetPathToTelemetryBinaries(*worker_common.Local), util.BINARY_RUN_BENCHMARK),
 					util.BENCHMARK_SKPICTURE_PRINTER,
 					"--also-run-disabled-tests",
 					"--pageset-repeat=1", // Only need one run for SKPs.

@@ -9,10 +9,10 @@
     ['OS=="linux"', {
       'variables': {
         'files': [
-          '../../../../../bin/run_chromium_perf',
+          '../../../bin/run_chromium_perf',
         ],
         'command': [
-          '../../../../../bin/run_chromium_perf',
+          '../../../bin/run_chromium_perf',
           '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',
