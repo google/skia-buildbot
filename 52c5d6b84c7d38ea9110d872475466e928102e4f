@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "abcb1a12_a0646c74",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T20:17:32Z",
+      "side": 1,
+      "message": "nit: \"DAYS\" makes it sound like the value is # of days, but it\u0027s # of nanoseconds; maybe rename DEFAULT_SSL_VALID_DURATION.",
+      "range": {
+        "startLine": 55,
+        "startChar": 19,
+        "endLine": 55,
+        "endChar": 23
+      },
+      "revId": "52c5d6b84c7d38ea9110d872475466e928102e4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05ce5a72_92e3864a",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T20:17:32Z",
+      "side": 1,
+      "message": "Will there always be 1 cert? If not, should we look at all the certs?",
+      "range": {
+        "startLine": 276,
+        "startChar": 9,
+        "endLine": 276,
+        "endChar": 17
+      },
+      "revId": "52c5d6b84c7d38ea9110d872475466e928102e4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33cef06a_0997730c",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 284,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T20:17:32Z",
+      "side": 1,
+      "message": "not sure exactly what this means",
+      "range": {
+        "startLine": 284,
+        "startChar": 15,
+        "endLine": 284,
+        "endChar": 38
+      },
+      "revId": "52c5d6b84c7d38ea9110d872475466e928102e4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4538c35a_1205a5c2",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T20:17:32Z",
+      "side": 1,
+      "message": "typo expire",
+      "range": {
+        "startLine": 292,
+        "startChar": 64,
+        "endLine": 292,
+        "endChar": 71
+      },
+      "revId": "52c5d6b84c7d38ea9110d872475466e928102e4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9b6d0ab_9aba452e",
+        "filename": "proberk/go/proberk/main_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-15T20:17:32Z",
+      "side": 1,
+      "message": "Won\u0027t this test fail when the certs are nearing expiration?",
+      "revId": "52c5d6b84c7d38ea9110d872475466e928102e4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
