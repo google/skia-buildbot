@@ -62,7 +62,7 @@ func createPagesets() error {
 	endRange := skutil.MinInt(*startRange+*num-1, numPages)
 
 	// Construct path to the create_page_set.py python script.
-	pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
+	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
 	createPageSetScript := filepath.Join(pathToPyFiles, "create_page_set.py")
 
 	// Execute the create_page_set.py python script.
