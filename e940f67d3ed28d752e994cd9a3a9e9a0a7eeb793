@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "82da8a23_2fceca80",
+        "filename": "ct/build_ctmaster_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-15T12:37:58Z",
+      "side": 1,
+      "message": "Oops. Done.",
+      "parentUuid": "b3e6b50f_44a3b676",
+      "range": {
+        "startLine": 17,
+        "startChar": 58,
+        "endLine": 17,
+        "endChar": 78
+      },
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd183e01_a8de0ab2",
         "filename": "ct/build_ctmaster_release",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6393d9e5_5da22896",
+        "filename": "ct/build_ctmaster_release",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-15T12:37:58Z",
+      "side": 1,
+      "message": "I think this will be better. I know I would forget to update this whenever I add new master/worker scripts.",
+      "parentUuid": "fd183e01_a8de0ab2",
+      "range": {
+        "startLine": 23,
+        "startChar": 2,
+        "endLine": 23,
+        "endChar": 41
+      },
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "72ead2a1_0004f38d",
+        "filename": "ct/go/poller/poller_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-15T12:37:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a032e9fb_4475e75d",
+      "range": {
+        "startLine": 568,
+        "startChar": 11,
+        "endLine": 568,
+        "endChar": 16
+      },
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e119c1c_a45bdba4",
         "filename": "ct/setup-script-master.sh",
         "patchSetId": 4
@@ -82,6 +154,24 @@
       "writtenOn": "2018-08-14T18:43:59Z",
       "side": 1,
       "message": "Are you planning to delete and recreate the CT master instance?",
+      "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4ea87e1c_1619ea1c",
+        "filename": "ct/setup-script-master.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-15T12:37:58Z",
+      "side": 1,
+      "message": "Maybe. I mainly wanted to update this as an indication of what to do in k8s.",
+      "parentUuid": "4e119c1c_a45bdba4",
       "revId": "e940f67d3ed28d752e994cd9a3a9e9a0a7eeb793",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
