@@ -52,6 +52,10 @@ func metricsAnalysis() error {
 	defer util.TimeTrack(time.Now(), "Metrics Analysis")
 	defer sklog.Flush()
 
+	if *startRange == 1 || *startRange == 2 {
+		return errors.New("I need to be retried!")
+	}
+
 	// Validate required arguments.
 	if *runID == "" {
 		return errors.New("Must specify --run_id")

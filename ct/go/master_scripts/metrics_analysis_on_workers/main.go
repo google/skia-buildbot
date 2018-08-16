@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT = 50
+	//MAX_PAGES_PER_SWARMING_BOT = 50
+	MAX_PAGES_PER_SWARMING_BOT = 1
 )
 
 var (
@@ -119,11 +120,11 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&metrics_analysis.UpdateVars{}, *taskID, *runID))
+	//skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Metrics analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -175,18 +176,22 @@ func main() {
 		return
 	}
 
-	// Trigger task to return hash of telemetry isolates.
-	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
-	if err != nil {
-		sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
-		return
-	}
-	if telemetryHash == "" {
-		sklog.Error("Found empty telemetry hash!")
-		return
-	}
+	//// Trigger task to return hash of telemetry isolates.
+	//telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
+	//telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	//if err != nil {
+	//	sklog.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+	//	return
+	//}
+	//if telemetryHash == "" {
+	//	sklog.Error("Found empty telemetry hash!")
+	//	return
+	//}
+	telemetryHash := "c966dd9bd0d156b478758b34fb235bade864fd2c"
 	isolateDeps := []string{telemetryHash}
+	fmt.Println("XXXXXXXXXXXXXXXX")
+	fmt.Println(telemetryHash)
+	fmt.Println(chromiumHash)
 
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
