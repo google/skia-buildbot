@@ -163,12 +163,13 @@ func Init(redirectURL string, authWhiteList string, clientSecretFile string) err
 
 		b, err := ioutil.ReadFile(clientSecretFile)
 		if err != nil {
-			return fmt.Errorf("Failed to read from metadata and from client_secret.json file: %s", err)
+			return sklog.FmtErrorf("Failed to read from metadata and from %s. Got error: %s", clientSecretFile, err)
 		}
 		config, err := google.ConfigFromJSON(b)
 		if err != nil {
-			return fmt.Errorf("Failed to read from metadata and decode client_secret.json file: %s", err)
+			return sklog.FmtErrorf("Failed to read from metadata and decode %s. Got error: %s", clientSecretFile, err)
 		}
+		sklog.Infof("Successfully read client secret from %s", clientSecretFile)
 		clientID = config.ClientID
 		clientSecret = config.ClientSecret
 	}
@@ -704,11 +705,6 @@ func tryLoadingFromKnownLocations() (string, string, string) {
 		clientSecret = info.ClientSecret
 		return nil
 	})
-	if err != nil {
-		sklog.Infof("Failed to load login secrets from file %s. Got error: %s", LOGIN_CONFIG_FILE, err)
-	} else {
-		return cookieSalt, clientID, clientSecret
-	}
 
 	if err == nil {
 		sklog.Infof("Successfully loaded login secrets from file %s.", LOGIN_CONFIG_FILE)

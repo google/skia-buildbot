@@ -96,6 +96,7 @@ var (
 	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
+	siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
 	storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 	gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
@@ -338,11 +339,6 @@ func main() {
 	}
 
 	// Extract the site URL
-	siteURL, err := httputils.GetBaseURL(*redirectURL)
-	if err != nil {
-		sklog.Fatalf("Error getting base URL: %s", err)
-	}
-
 	storages := &storage.Storage{
 		DiffStore:            diffStore,
 		ExpectationsStore:    expstorage.NewCachingExpectationStore(expStore, evt),
@@ -352,7 +348,7 @@ func main() {
 		NCommits:             *nCommits,
 		EventBus:             evt,
 		TryjobStore:          tryjobStore,
-		TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, siteURL, evt, *authoritative),
+		TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, *siteURL, evt, *authoritative),
 		GerritAPI:            gerritAPI,
 		GStorageClient:       gsClient,
 		Git:                  git,
@@ -497,9 +493,10 @@ func main() {
 		}
 	})
 
-	// set up a router that logs for all URLs except the status endpoint.
+	// set up a router that logs for all URLs except the status and the health endpoints.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
+	appRouter.HandleFunc("/ready", httputils.ReadyHandleFunc)
 
 	// Wrap all other routes in in logging middleware.
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
