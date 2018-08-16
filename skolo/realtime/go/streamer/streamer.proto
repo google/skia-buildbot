@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package streamer;
+
+service MsgService {
+  // Ops execute bidirectional ops execution with asynchronous request response. 
+  rpc Ops(stream FuncMsg) returns (stream FuncMsg) {}
+
+  // Status relays the status from the client device to the server. 
+  rpc Status(stream StatusMsg) returns (stream StatusMsg) {}
+}
+
+message StatusMsg { 
+  int64 timeStamp = 1;
+}
+
+message FuncMsg {
+  string ID = 1;
+  string op = 2;
+  bytes payload = 3; 
+}
