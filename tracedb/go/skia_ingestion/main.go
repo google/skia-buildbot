@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -132,9 +133,6 @@ func main() {
 	}
 
 	// Set up the http handler to indicate ready-ness and start serving.
-	http.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		_, err := w.Write([]byte("ready"))
-		util.LogErr(err)
-	})
+	http.HandleFunc("/ready", httputils.ReadyHandleFunc)
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }

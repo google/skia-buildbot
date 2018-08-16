@@ -520,3 +520,10 @@ func ForceHTTPS(h http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(s)
 }
+
+// ReadyHandleFunc can be used to set up a ready-handler used to check
+// whether a service is ready. Simply returns 'ready'.
+func ReadyHandleFunc(w http.ResponseWriter, r *http.Request) {
+	_, err := w.Write([]byte("ready"))
+	util.LogErr(err)
+}
