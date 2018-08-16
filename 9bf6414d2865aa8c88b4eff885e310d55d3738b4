@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2439b235_55143ae4",
+        "filename": "proberk/go/proberk/main_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-16T15:19:19Z",
+      "side": 1,
+      "message": "Ok, I understand better. But still, do we want the test to fail when the certs are nearing expiration? That would cause tryjobs to fail and block CLs being submitted without bypassing CQ.\n\nMaybe we could pass in \"now\"?",
+      "revId": "9bf6414d2865aa8c88b4eff885e310d55d3738b4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
