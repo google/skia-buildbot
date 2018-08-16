@@ -1,0 +1,13 @@
+{
+   "wildcard-cert": {
+     "urls": [
+       "https://skia.org",
+       "https://gold.skia.org",
+       "https://35.201.76.220",
+     ],
+     "method": "SSL",
+
+     // expected contains the minimum number of days the cert needs to be valid.
+     "expected": [10],
+   },
+}
