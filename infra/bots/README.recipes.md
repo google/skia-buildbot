@@ -18,9 +18,9 @@
 
 Create a git checkout of the given repo in dest.
 
-[depot_tools/recipe_modules/bot_update]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/efb38bb3d729f9d5b27f5202c766d43186c0103a/recipes/README.recipes.md#recipe_modules-bot_update
-[depot_tools/recipe_modules/gclient]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/efb38bb3d729f9d5b27f5202c766d43186c0103a/recipes/README.recipes.md#recipe_modules-gclient
-[depot_tools/recipe_modules/infra_paths]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/efb38bb3d729f9d5b27f5202c766d43186c0103a/recipes/README.recipes.md#recipe_modules-infra_paths
+[depot_tools/recipe_modules/bot_update]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/95fb6dc810348da9dd261a4f7ac2d66c5743da86/recipes/README.recipes.md#recipe_modules-bot_update
+[depot_tools/recipe_modules/gclient]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/95fb6dc810348da9dd261a4f7ac2d66c5743da86/recipes/README.recipes.md#recipe_modules-gclient
+[depot_tools/recipe_modules/infra_paths]: https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/95fb6dc810348da9dd261a4f7ac2d66c5743da86/recipes/README.recipes.md#recipe_modules-infra_paths
 [recipe_engine/recipe_modules/context]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0534af39f0790915a8d13815d59784c8664c412d/README.recipes.md#recipe_modules-context
 [recipe_engine/recipe_modules/file]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0534af39f0790915a8d13815d59784c8664c412d/README.recipes.md#recipe_modules-file
 [recipe_engine/recipe_modules/path]: https://chromium.googlesource.com/infra/luci/recipes-py.git/+/0534af39f0790915a8d13815d59784c8664c412d/README.recipes.md#recipe_modules-path
