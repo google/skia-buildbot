@@ -481,6 +481,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		defer close(chTasks)
 		tmpMap := map[string]string{}
 		for task, hash := range tasksToHashes {
+			// Experiment with this as well.
 			if len(tmpMap) >= MAX_SIMULTANEOUS_SWARMING_TASKS_PER_RUN {
 				// Add the map to the channel.
 				chTasks <- tmpMap
@@ -494,36 +495,48 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 	// Trigger and collect swarming tasks.
 	for taskMap := range chTasks {
-		// Save all retried tasks so that we can collect them at the end.
-		retriedTasks := []*swarming.SwarmingTask{}
+
 		// Trigger swarming using the isolate hashes.
 		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
-		// Collect all tasks and retrigger the ones that fail.
+		// Collect all tasks and retrigger the ones that fail. Do this in a goroutine for
+		// each task so that it is done in parallel and retries are immediately triggered
+		// instead of at the end (see skbug.com/8191).
+		var wg sync.WaitGroup
 		for _, task := range tasks {
-			if _, _, err := task.Collect(ctx, s); err != nil {
-				sklog.Errorf("task %s failed: %s", task.Title, err)
-				sklog.Infof("Retrying task %s", task.Title)
-				t, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
-				if err != nil {
-					return numTasks, fmt.Errorf("Could not trigger retry of swarming tasks: %s", err)
-				}
-				retriedTasks = append(retriedTasks, t...)
-				continue
-			}
-		}
-
-		if len(retriedTasks) > 0 {
-			// Collect all retried tasks and log the ones that fail.
-			for _, task := range retriedTasks {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				// TODO(rmistry): REMOVE ALL fmt.Println.
+				fmt.Println("------------------")
+				fmt.Println("ABOUT TO COLLECT %s", task.Title)
 				if _, _, err := task.Collect(ctx, s); err != nil {
-					sklog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
-					continue
+					fmt.Println("FAILED TO COLLECT %s", task.Title)
+					fmt.Println("RETRYING %s", task.Title)
+
+					sklog.Errorf("task %s failed: %s", task.Title, err)
+					sklog.Infof("Retrying task %s", task.Title)
+					t, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					if err != nil {
+						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
+						return
+					}
+					// Collect the retried task.
+					if _, _, err := t[0].Collect(ctx, s); err != nil {
+						fmt.Println("FAILED TO COLLECT RETRY OF %s. What is %s", t[0].Title, task.Title)
+						sklog.Errorf("task %s failed inspite of a retry: %s", t[0].Title, err)
+						return
+					} else {
+						fmt.Println("SUCCEEDED IN COLLECTING RETRY %s", t[0].Title)
+					}
+				} else {
+					fmt.Println("SUCCEEDED IN COLLECTING %s", task.Title)
 				}
-			}
+			}()
 		}
+		wg.Wait()
 
 	}
 

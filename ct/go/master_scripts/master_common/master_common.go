@@ -33,7 +33,7 @@ func initRest() {
 		frontend.InitForTesting(*localFrontend)
 		util.SetVarsForLocal()
 	} else {
-		frontend.MustInit()
+		//frontend.MustInit()
 		util.MailInit(filepath.Join(util.StorageDir, "email.data"))
 	}
 }
