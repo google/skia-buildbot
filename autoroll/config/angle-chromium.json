@@ -10,7 +10,7 @@
   "maxRollFrequency": "1h",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
-  "sheriff": ["https://build.chromium.org/deprecated/chromium/sheriff_angle.json"],
+  "sheriff": ["geofflang@google.com"],
   "noCheckoutDepsRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/angle",
