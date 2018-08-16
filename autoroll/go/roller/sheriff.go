@@ -1,6 +1,7 @@
 package roller
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -48,37 +49,41 @@ func getSheriffJS(js string) []string {
 }
 
 // Helper for loading the sheriff list.
-func getSheriffHelper(sheriff string) ([]string, error) {
-	// If the passed-in sheriff doesn't look like a URL, it's probably an
+func getSheriffHelper(sheriffConfig string) ([]string, error) {
+	// If the passed-in sheriffConfig doesn't look like a URL, it's probably an
 	// email address. Use it directly.
-	if _, err := url.ParseRequestURI(sheriff); err != nil {
-		if strings.Count(sheriff, "@") == 1 {
-			return []string{sheriff}, nil
+	if _, err := url.ParseRequestURI(sheriffConfig); err != nil {
+		if strings.Count(sheriffConfig, "@") == 1 {
+			return []string{sheriffConfig}, nil
 		} else {
-			return nil, fmt.Errorf("Sheriff must be an email address or a valid URL; %q doesn't look like either.", sheriff)
+			return nil, fmt.Errorf("Sheriff must be an email address or a valid URL; %q doesn't look like either.", sheriffConfig)
 		}
 	}
 
 	// Hit the URL to get the email address. Expect JSON or a JS file which
 	// document.writes the Sheriff(s) in a comma-separated list.
 	client := httputils.NewTimeoutClient()
-	resp, err := client.Get(sheriff)
+	resp, err := client.Get(sheriffConfig)
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(resp.Body)
-	if strings.HasSuffix(sheriff, ".js") {
+	if strings.HasSuffix(sheriffConfig, ".js") {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
 		return getSheriffJS(string(body)), nil
 	} else {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
 		var sheriff struct {
 			Emails   []string `json:"emails"`
 			Username string   `json:"username"`
 		}
-		if err := json.NewDecoder(resp.Body).Decode(&sheriff); err != nil {
+		if err := json.NewDecoder(bytes.NewReader(body)).Decode(&sheriff); err != nil {
 			return nil, err
 		}
 		if sheriff.Emails != nil && len(sheriff.Emails) > 0 {
@@ -87,6 +92,6 @@ func getSheriffHelper(sheriff string) ([]string, error) {
 		if sheriff.Username != "" {
 			return []string{sheriff.Username}, nil
 		}
-		return nil, fmt.Errorf("Unable to parse sheriff email(s) from JSON.")
+		return nil, fmt.Errorf("Unable to parse sheriff email(s) from %q. JSON: %q", sheriffConfig, body)
 	}
 }
