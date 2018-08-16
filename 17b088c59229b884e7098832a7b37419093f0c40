@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "730c935f_029a0542",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 484,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-16T19:13:38Z",
+      "side": 1,
+      "message": "What was the reason for this? Does it still work as you intended when using goroutines below?",
+      "range": {
+        "startLine": 484,
+        "startChar": 21,
+        "endLine": 484,
+        "endChar": 60
+      },
+      "revId": "17b088c59229b884e7098832a7b37419093f0c40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8e99562_d2351673",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-16T19:13:38Z",
+      "side": 1,
+      "message": "nit: maybe name this retryTask instead of t",
+      "range": {
+        "startLine": 514,
+        "startChar": 5,
+        "endLine": 514,
+        "endChar": 6
+      },
+      "revId": "17b088c59229b884e7098832a7b37419093f0c40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
