@@ -5,10 +5,12 @@ package main
 
 import (
 	"crypto/md5"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -17,6 +19,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -46,9 +49,10 @@ var (
 )
 
 const (
-	DIAL_TIMEOUT         = time.Duration(5 * time.Second)
-	REQUEST_TIMEOUT      = time.Duration(30 * time.Second)
-	ISSUE_TRACKER_PERIOD = 15 * time.Minute
+	DIAL_TIMEOUT               = time.Duration(5 * time.Second)
+	REQUEST_TIMEOUT            = time.Duration(30 * time.Second)
+	ISSUE_TRACKER_PERIOD       = 15 * time.Minute
+	DEFAULT_SSL_VALID_DURATION = 10 * 24 * time.Hour // cert should be valid for at least 10 days
 )
 
 func readConfigFile(filename string) (types.Probes, error) {
@@ -187,6 +191,18 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 				resp, err = c.Head(url)
 			} else if probe.Method == "POST" {
 				resp, err = c.Post(url, probe.MimeType, strings.NewReader(probe.Body))
+			} else if probe.Method == "SSL" {
+				// SSL is a fictitious method that tests the SSL cert.
+				// TODO(stephana): We should consider refactoring the prober into a
+				// more generic prober beyond just HTTP related probes. SSL probing
+				// would fit cleaner into such a framework.
+				if err := probeSSL(probe, url); err != nil {
+					sklog.Errorf("While testing %s we got SSL error: %s", url, err)
+					probe.Failure[url].Update(1)
+				} else {
+					probe.Failure[url].Update(0)
+				}
+				continue
 			} else {
 				sklog.Errorf("Error: unknown method: %s", probe.Method)
 				continue
@@ -221,6 +237,66 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 			probe.Failure[url].Update(0)
 		}
 	}
+}
+
+// probeSSL inspects the SSL cert for the given URL and checks whether
+// the time to expiration is below a certain number of days.
+func probeSSL(probe *types.Probe, URL string) error {
+	parsedURL, err := url.Parse(URL)
+	targetAddr := parsedURL.Host
+	if parsedURL.Port() == "" {
+		targetAddr += ":443"
+	}
+
+	// TODO(stephana): Revisit whether we want to do host checking.
+
+	// Don't verify the host, since we also want to test IP addresses and
+	// this is not a generic SSL prober. We will catch a host mismatch during
+	// manual testing.
+	conf := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	conn, err := tls.Dial("tcp", targetAddr, conf)
+	if err != nil {
+		return sklog.FmtErrorf("Error dialing %s: %s", targetAddr, err)
+	}
+	defer util.Close(conn)
+
+	// Establish the connection.
+	if err := conn.Handshake(); err != nil {
+		return sklog.FmtErrorf("Handshake with %s failed: %s", targetAddr, err)
+	}
+
+	certs := conn.ConnectionState().PeerCertificates
+	if len(certs) == 0 {
+		return sklog.FmtErrorf("Unable to retrieve peer certificates for %s", targetAddr)
+	}
+
+	// Validate the certificate chain
+	now := time.Now()
+	for _, cert := range certs {
+		// Make sure the cert is valid.
+		if now.Before(cert.NotBefore) {
+			return sklog.FmtErrorf("Certificate for %s is not valid yet", targetAddr)
+		}
+
+		// If the 'expected' value of the probe configuration contains a positive
+		// integer we interpret it as the number of days in the future the cert
+		// should be valid.
+		minExpirationDelta := DEFAULT_SSL_VALID_DURATION
+		if len(probe.Expected) > 0 && probe.Expected[0] > 0 {
+			minExpirationDelta = time.Duration(probe.Expected[0]) * 24 * time.Hour
+		}
+
+		// Make sure the cert is not expired.
+		delta := cert.NotAfter.Sub(now)
+		if delta < minExpirationDelta {
+			return sklog.FmtErrorf("Certificate for %s is expired or will expire in %s.", targetAddr, human.Duration(delta))
+		}
+	}
+
+	return nil
 }
 
 func getHash() (string, error) {
