@@ -23,7 +23,7 @@ const (
 
 {{.ChildRepoCompareUrl}}
 
-git log {{.From}}..{{.To}} --date=short --no-merges --format='%%ad %%ae %%s'
+git log {{.From}}..{{.To}} --no-merges --oneline
 {{.LogStr}}
 
 {{.Footer}}
@@ -258,7 +258,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
 	githubCompareUrl := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from[:12], to[:12])
-	logStr, err := rm.childRepo.Git(ctx, "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format=%ad %ae %s")
+	logStr, err := rm.childRepo.Git(ctx, "log", fmt.Sprintf("%s..%s", from, to), "--no-merges", "--oneline")
 	if err != nil {
 		return 0, err
 	}
