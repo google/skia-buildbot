@@ -206,7 +206,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T) {
 %s/+log/%s..%s
 
 
-git log %s..%s --date=short --no-merges --format='%%ad %%ae %%s'
+git log %s..%s --no-merges --oneline
 %s
 
 Created with:

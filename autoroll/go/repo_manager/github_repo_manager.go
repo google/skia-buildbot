@@ -23,7 +23,7 @@ const (
 
 {{.ChildRepoCompareUrl}}
 
-git log {{.From}}..{{.To}} --date=short --no-merges --format='%%ad %%ae %%s'
+git log {{.From}}..{{.To}} --no-merges --oneline
 {{.LogStr}}
 
 {{.Footer}}
