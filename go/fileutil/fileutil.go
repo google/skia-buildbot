@@ -159,7 +159,7 @@ func ReadLines(path string) ([]string, error) {
 	return result, err
 }
 
-// CountLines opens the given path and counts the number of lines in the file.
+// CountLinks opens the given path and counts the number of lines in the file.
 // Returns -1 with a non-nil error if an error is encountered.
 func CountLines(path string) (int, error) {
 	file, err := os.Open(path)
