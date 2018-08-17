@@ -59,20 +59,20 @@ func TestBlobStore(t *testing.T) {
 	assert.True(t, nChangeFrags > 1)
 
 	// Make sure we get the right number of fragments
-	assert.NoError(t, testutils.EventuallyConsistent(30*time.Second, func() error {
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		nFragments, err := client.Count(ctx, ds.NewQuery(blobFragKind))
 		assert.NoError(t, err)
 		assert.True(t, nFragments <= nChangeFrags)
-		if nFragments < nChangeFrags {
+
+		// Make sure only have one blob in total in the store
+		nBlobs, err := client.Count(ctx, ds.NewQuery(blobKind))
+		assert.NoError(t, err)
+
+		if (nFragments < nChangeFrags) && (nBlobs != 1) {
 			return testutils.TryAgainErr
 		}
 		return nil
 	}))
-
-	// Make sure only have one blob in total in the store
-	nBlobs, err := client.Count(ctx, ds.NewQuery(blobKind))
-	assert.NoError(t, err)
-	assert.Equal(t, 1, nBlobs)
 
 	// Read the blob back and make sure it matches
 	foundChanges = nil
