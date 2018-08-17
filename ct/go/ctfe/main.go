@@ -54,6 +54,8 @@ var (
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir           = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tasksSchedulerWaitTime = flag.Duration("tasks_scheduler_wait_time", 5*time.Minute, "How often the repeated tasks scheduler should run.")
+	emailClientSecretFile  = flag.String("email_client_secret_file", "/etc/ctfe-email-secrets/client_secret.json", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile    = flag.String("email_token_cache_file", "/etc/ctfe-email-secrets/client_token.json", "OAuth token cache file for sending email.")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "cluster-telemetry", "The Cloud Datastore namespace, such as 'cluster-telemetry'.")
