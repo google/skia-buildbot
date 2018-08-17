@@ -158,3 +158,23 @@ func ReadLines(path string) ([]string, error) {
 	}
 	return result, err
 }
+
+// CountLines opens the given path and counts the number of lines in the file.
+// Returns -1 with a non-nil error if an error is encountered.
+func CountLines(path string) (int, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return -1, err
+	}
+	defer util.Close(file)
+
+	numLines := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		numLines++
+	}
+	if err := scanner.Err(); err != nil {
+		return -1, err
+	}
+	return numLines, err
+}
