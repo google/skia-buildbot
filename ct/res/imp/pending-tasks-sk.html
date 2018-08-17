@@ -61,12 +61,13 @@
         <td>Added</td>
         <td>Task Type</td>
         <td>User</td>
+        <td>Swarming Logs</td>
         <td>Request</td>
       </tr>
 
       <template is="dom-repeat" items="{{pendingTasks}}" as="pendingTask" index-as="index">
         <tr>
-          <!-- Queue Position col --> 
+          <!-- Queue Position col -->
           <td class="nowrap">
             <span>{{ incrementOne(index) }}</span>
             <paper-icon-button icon="delete" mini
@@ -78,7 +79,7 @@
             </paper-icon-button>
           </td>
 
-          <!-- Added col --> 
+          <!-- Added col -->
           <td>{{ formatTimestamp(pendingTask.TsAdded) }}
             <template is="dom-if" if="{{ pendingTask.FutureDate }}">
               <br/>
@@ -86,11 +87,18 @@
             </template>
           </td>
 
-          <!-- Task Type col --> 
+          <!-- Task Type col -->
           <td>{{pendingTask.TaskType}}</td>
 
-          <!-- User col --> 
+          <!-- User col -->
           <td>{{pendingTask.Username}}</td>
+
+          <!-- Swarming logs col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{ pendingTask.SwarmingLogs }}">
+              <a href="{{ pendingTask.SwarmingLogs }}" target="_blank">Swarming Logs</a>
+            </template>
+          </td>
 
           <!-- Request col -->
           <td class="nowrap">
@@ -147,7 +155,7 @@
 
      ready: function() {
        this.reload();
-      
+
        this.$.queue.addEventListener('click', function(e) {
          var anchor = sk.findParent(e.target, "A");
          if (anchor != null) {
