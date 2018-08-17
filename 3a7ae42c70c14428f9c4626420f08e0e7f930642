@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ea5a4bd_2e35d41a",
+        "filename": "go/fileutil/fileutil.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-17T13:38:21Z",
+      "side": 1,
+      "message": "wrong name",
+      "range": {
+        "startLine": 162,
+        "startChar": 3,
+        "endLine": 162,
+        "endChar": 13
+      },
+      "revId": "3a7ae42c70c14428f9c4626420f08e0e7f930642",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
