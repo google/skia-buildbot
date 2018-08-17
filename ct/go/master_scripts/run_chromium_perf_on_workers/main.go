@@ -289,6 +289,10 @@ func main() {
 		return
 	}
 
+	// Check the CSVs to see how big they are.
+	noPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch, runIDNoPatch+".output")
+	withPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch, runIDWithPatch+".output")
+
 	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
 	if err != nil {
 		sklog.Errorf("Error when calculating number of archives: %s", err)
@@ -297,8 +301,6 @@ func main() {
 
 	// Compare the resultant CSV files using csv_comparer.py
 	_, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
-	noPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch, runIDNoPatch+".output")
-	withPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch, runIDWithPatch+".output")
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
 	skutil.MkdirAll(htmlOutputDir, 0700)
 	htmlRemoteDir := filepath.Join(remoteOutputDir, "html")
