@@ -61,6 +61,7 @@
         <td>Added</td>
         <td>Task Type</td>
         <td>User</td>
+        <td>Swarming Logs</td>
         <td>Request</td>
       </tr>
 
@@ -91,6 +92,13 @@
 
           <!-- User col --> 
           <td>{{pendingTask.Username}}</td>
+
+          <!-- Swarming logs col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{ pendingTask.SwarmingLogs }}">
+              <a href="{{ pendingTask.SwarmingLogs }}" target="_blank">Swarming Logs</a>
+            </template>
+          </td>
 
           <!-- Request col -->
           <td class="nowrap">
