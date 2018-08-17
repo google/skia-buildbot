@@ -22,6 +22,30 @@
       "revId": "88ceb4078b98890deb3138daf7f103642cc3d754",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3410e69_1d48712a",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 878,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-17T13:58:12Z",
+      "side": 1,
+      "message": "I guess. I don\u0027t think it\u0027s going to be a big deal though. Added a TODO.",
+      "parentUuid": "da5edaee_cc74cfaf",
+      "range": {
+        "startLine": 878,
+        "startChar": 24,
+        "endLine": 878,
+        "endChar": 34
+      },
+      "revId": "88ceb4078b98890deb3138daf7f103642cc3d754",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
