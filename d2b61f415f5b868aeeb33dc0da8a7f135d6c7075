@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ccd852d5_a29dbaf7",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-17T19:36:14Z",
+      "side": 1,
+      "message": "Please revert. This is not used by engine-\u003eflutter roller and we do want to change the commit msg for the other 26 rollers.",
+      "revId": "d2b61f415f5b868aeeb33dc0da8a7f135d6c7075",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96775bdd_52bdd413",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-17T19:36:14Z",
+      "side": 1,
+      "message": "This file is the right place to update.",
+      "revId": "d2b61f415f5b868aeeb33dc0da8a7f135d6c7075",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b9467b70_f1945b2a",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-17T19:36:14Z",
+      "side": 1,
+      "message": "This line will need to be updated as well.",
+      "revId": "d2b61f415f5b868aeeb33dc0da8a7f135d6c7075",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
