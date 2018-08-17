@@ -24,6 +24,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
@@ -873,6 +874,17 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	if err != nil {
 		return fmt.Errorf("Error running csv_pivot_table_merger.py: %s", err)
 	}
+	// Check to see if the output CSV has more than just the header line.
+	// TODO(rmistry): Inefficient to count all the lines when we really only want to know if
+	// it's > or <= 1 line.
+	lines, err := fileutil.CountLines(filepath.Join(localOutputDir, outputFileName))
+	if err != nil {
+		return fmt.Errorf("Could not count lines from %s: %s", filepath.Join(localOutputDir, outputFileName), err)
+	}
+	if lines <= 1 {
+		return fmt.Errorf("%s has %d lines. More than 1 line is expected.", filepath.Join(localOutputDir, outputFileName), lines)
+	}
+
 	// Copy the output file to Google Storage.
 	remoteOutputDir := filepath.Join(remoteDir, strconv.Itoa(startRange), "outputs")
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
