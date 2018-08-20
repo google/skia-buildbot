@@ -23,7 +23,12 @@ ctfe_debug: res/css/ctfe.css debug skiaversion
 
 .PHONY: ctfe_release
 ctfe_release: ctfe
-	./build_ctfe_release "$(MESSAGE)"
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
+	./build_ctfe_release
+
+.PHONY: ctfe_push
+ctfe_push: ctfe
+	pushk ctfe
 
 .PHONY: ctmaster_release
 ctmaster_release: all

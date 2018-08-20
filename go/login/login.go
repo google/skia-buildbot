@@ -646,7 +646,7 @@ func RestrictEditor(h http.Handler) http.Handler {
 func RestrictViewer(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !IsViewer(r) {
-			sklog.Warning("User is not an viewer: %s", LoggedInAs(r))
+			sklog.Warningf("User is not an viewer: %s", LoggedInAs(r))
 			http.Error(w, "User is not an viewer.", 403)
 			return
 		}
