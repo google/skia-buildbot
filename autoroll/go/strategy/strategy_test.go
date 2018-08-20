@@ -90,8 +90,8 @@ func TestStrategyHistory(t *testing.T) {
 	expect[rollerName2] = []*StrategyChange{sc0_2}
 	checkSlice(expect[rollerName2], sh2.GetHistory())
 
-	assert.NoError(t, sh.refreshHistory(ctx))
-	assert.NoError(t, sh2.refreshHistory(ctx))
+	assert.NoError(t, sh.Update(ctx))
+	assert.NoError(t, sh2.Update(ctx))
 
 	checkSlice(expect[rollerName], sh.GetHistory())
 	checkSlice(expect[rollerName2], sh2.GetHistory())
