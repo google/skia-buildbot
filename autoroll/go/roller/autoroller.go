@@ -46,6 +46,7 @@ type AutoRoller struct {
 	failureThrottle *state_machine.Throttler
 	gerrit          *gerrit.Gerrit
 	liveness        metrics2.Liveness
+	metricsName     string
 	modeHistory     *modes.ModeHistory
 	notifier        *arb_notifier.AutoRollNotifier
 	parentName      string
@@ -57,6 +58,7 @@ type AutoRoller struct {
 	safetyThrottle  *state_machine.Throttler
 	serverURL       string
 	sheriff         []string
+	sheriffBackup   []string
 	sm              *state_machine.AutoRollStateMachine
 	status          *status.AutoRollStatusCache
 	statusMtx       sync.RWMutex
@@ -159,7 +161,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
-	emails, err := getSheriff(c.ParentName, c.ChildName, c.Sheriff)
+	metricsName := c.RollerName()
+	emails, err := getSheriff(c.ParentName, c.ChildName, metricsName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +181,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		emails:          emails,
 		failureThrottle: failureThrottle,
 		gerrit:          g,
-		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName()}),
+		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": metricsName}),
+		metricsName:     metricsName,
 		modeHistory:     mh,
 		notifier:        n,
 		parentName:      c.ParentName,
@@ -189,6 +193,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		safetyThrottle:  safetyThrottle,
 		serverURL:       serverURL,
 		sheriff:         c.Sheriff,
+		sheriffBackup:   c.SheriffBackup,
 		status:          statusCache,
 		strategyHistory: sh,
 		successThrottle: successThrottle,
@@ -262,7 +267,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 
 	// Update the current sheriff in a loop.
 	cleanup.Repeat(30*time.Minute, func() {
-		emails, err := getSheriff(r.parentName, r.childName, r.sheriff)
+		emails, err := getSheriff(r.parentName, r.childName, r.metricsName, r.sheriff, r.sheriffBackup)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
 		} else {
