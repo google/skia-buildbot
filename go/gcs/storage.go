@@ -119,9 +119,13 @@ func (g *gcsclient) GetFileContents(ctx context.Context, path string) ([]byte, e
 }
 
 // See the GCSClient interface for more information about SetFileContents.
-func (g *gcsclient) SetFileContents(ctx context.Context, path string, opts FileWriteOptions, contents []byte) error {
+func (g *gcsclient) SetFileContents(ctx context.Context, path string, opts FileWriteOptions, contents []byte) (rv error) {
 	w := g.FileWriter(ctx, path, opts)
-	defer util.Close(w)
+	defer func() {
+		if err := w.Close(); err != nil {
+			rv = err
+		}
+	}()
 	if n, err := w.Write(contents); err != nil {
 		return fmt.Errorf("There was a problem uploading %s.  Only uploaded %d bytes: %s", path, n, err)
 	}
