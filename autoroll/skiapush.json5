@@ -165,6 +165,20 @@
         "pulld",
       ],
     },
+    "spirv-headers-chromium-autoroll": {
+      "AppNames": [
+        "spirv-headers-chromium-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
+    "spirv-tools-chromium-autoroll": {
+      "AppNames": [
+        "spirv-tools-chromium-autorolld",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
     "src-internal-chromium-autoroll": {
       "AppNames": [
         "src-internal-chromium-autorolld",
