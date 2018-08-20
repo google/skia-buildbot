@@ -3,14 +3,9 @@ package util
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 
 	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/metadata"
-
-	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -19,14 +14,11 @@ var (
 	emailTokenPath    string
 )
 
-func MailInit(tokenPath string) {
+func MailInit(clientId, clientSecret, tokenPath string) error {
+	emailClientId = clientId
+	emailClientSecret = clientSecret
 	emailTokenPath = tokenPath
-	emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-	emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-	cachedGMailToken := metadata.Must(metadata.ProjectGet(GMAIL_CACHED_TOKEN))
-	if err := ioutil.WriteFile(emailTokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
-		sklog.Fatalf("Failed to cache token: %s", err)
-	}
+	return nil
 }
 
 // ParseEmails returns an array containing emails from the provided comma

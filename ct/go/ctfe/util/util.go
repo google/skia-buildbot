@@ -170,5 +170,14 @@ func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string,
 }
 
 func AddForceLoginHandler(r *mux.Router, path, httpMethod string, handlerFunc http.HandlerFunc) {
-	r.Handle(path, login.ForceAuth(handlerFunc, OAUTH2_CALLBACK_PATH)).Methods(httpMethod)
+	// THIS IS THE PBORLEM. But how do you fix it??
+	//r.Handle(path, login.ForceAuth(handlerFunc, OAUTH2_CALLBACK_PATH)).Methods(httpMethod)
+
+	r.HandleFunc(path, handlerFunc).Methods(httpMethod)
+	//h := httputils.LoggingGzipRequestResponse(r)
+	//h = login.RestrictViewer(h)
+	//h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	//h = httputils.ForceHTTPS(h)
+
+	//http.Handle(path, h)
 }
