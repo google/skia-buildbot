@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e74b4fc_24945794",
+        "filename": "autoroll/go/roller/sheriff.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-20T14:12:25Z",
+      "side": 1,
+      "message": "Remember to add an alert config also.",
+      "revId": "d74f544f66ffe22b47abf65d21cbb30562c5f8f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
