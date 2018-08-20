@@ -215,6 +215,24 @@ func Skia_LottieCI() *gce.Instance {
 	return vm
 }
 
+func SpirvHeaders_Chromium() *gce.Instance {
+	vm := AutoRollBase("spirv-headers-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"dsinclair@google.com",
+	}
+	vm.ServiceAccount = "spirv-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
+func SpirvTools_Chromium() *gce.Instance {
+	vm := AutoRollBase("spirv-tools-chromium-autoroll", "" /* Use ephemeral IP */)
+	vm.Contacts = []string{
+		"dsinclair@google.com",
+	}
+	vm.ServiceAccount = "spirv-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func SrcInternal_Chromium() *gce.Instance {
 	vm := AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -321,6 +339,8 @@ func main() {
 		"skia-flutter":           Skia_Flutter(),
 		"skia-internal":          SkiaInternal(),
 		"skia-lottie-ci":         Skia_LottieCI(),
+		"spirv-headers-chromium": SpirvHeaders_Chromium(),
+		"spirv-tools-chromium":   SpirvTools_Chromium(),
 		"src-internal-chromium":  SrcInternal_Chromium(),
 		"swiftshader-skia":       SwiftShader_Skia(),
 		"webrtc-chromium":        WebRTC_Chromium(),
