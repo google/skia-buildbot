@@ -97,9 +97,13 @@ type AutoRollerConfig struct {
 	ParentName string `json:"parentName"`
 	// URL of the waterfall/status display for the parent repo.
 	ParentWaterfall string `json:"parentWaterfall"`
-	// Email address to CC on rolls, or URL from which to obtain such an
-	// email address.
+	// Email addresses to CC on rolls, or URL from which to obtain those
+	// email addresses.
 	Sheriff []string `json:"sheriff"`
+	// Backup email addresses to CC on rolls, in case obtaining the email
+	// addresses from the URL fails.  Only required if a URL is specified
+	// for Sheriff.
+	SheriffBackup []string `json:"sheriffBackup"`
 
 	// Github code review flags.
 	GithubRepoOwner string `json:"githubRepoOwner"`

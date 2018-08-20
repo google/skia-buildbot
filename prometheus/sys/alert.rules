@@ -377,6 +377,14 @@ ALERT AutoRollLastTransition
     description = "Autoroll on {{ $labels.instance }} has failed to transition for more than 30 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll"
   }
 
+ALERT AutoRollGetSheriffFailed
+  IF autoroll_get_sheriff_status == 0
+  FOR 2h
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    description = "Autoroll on {{ $labels.instance }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll"
+  }
+
 # Gold
 
 ALERT GoldIgnoreMonitoring
