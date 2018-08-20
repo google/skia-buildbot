@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3319d14d_2944484f",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-20T12:31:29Z",
+      "side": 1,
+      "message": "Nit: It would be nice to specify that we require ALL of the files to exist in GS, ie. \"... has entries in all of the provided ...\"",
+      "range": {
+        "startLine": 116,
+        "startChar": 12,
+        "endLine": 116,
+        "endChar": 15
+      },
+      "revId": "319fdf2f9926d41a9add3ca4466180a8ccbe632a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f7c8686_46904a88",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-20T12:31:29Z",
+      "side": 1,
+      "message": "Nit: as above, \"in all of the\"",
+      "range": {
+        "startLine": 127,
+        "startChar": 41,
+        "endLine": 127,
+        "endChar": 47
+      },
+      "revId": "319fdf2f9926d41a9add3ca4466180a8ccbe632a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d399cbf6_d961446d",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-20T12:31:29Z",
+      "side": 1,
+      "message": "Nit: as above, \"has all of the\"",
+      "range": {
+        "startLine": 156,
+        "startChar": 73,
+        "endLine": 156,
+        "endChar": 80
+      },
+      "revId": "319fdf2f9926d41a9add3ca4466180a8ccbe632a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
