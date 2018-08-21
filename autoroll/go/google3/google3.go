@@ -89,35 +89,6 @@ func (a *AutoRoller) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/json/roll", a.rollHandler).Methods(http.MethodPost, http.MethodPut)
 }
 
-func (a *AutoRoller) GetStatus(isGoogler bool) *status.AutoRollStatus {
-	cleanIssue := func(issue *autoroll.AutoRollIssue) {
-		// Clearing Issue and Subject out of an abundance of caution.
-		issue.Issue = 0
-		issue.Subject = ""
-		issue.TryResults = nil
-	}
-	status := a.status.Get()
-	if !isGoogler {
-		for _, issue := range status.Recent {
-			cleanIssue(issue)
-		}
-		if status.CurrentRoll != nil {
-			cleanIssue(status.CurrentRoll)
-		}
-		if status.LastRoll != nil {
-			cleanIssue(status.LastRoll)
-		}
-		status.Error = ""
-	}
-	status.ValidModes = []string{modes.MODE_RUNNING} // modeJsonHandler is not implemented.
-	return status
-}
-
-// Return minimal status information for the bot.
-func (a *AutoRoller) GetMiniStatus() *status.AutoRollMiniStatus {
-	return a.status.GetMini()
-}
-
 // UpdateStatus based on RecentRolls. errorMsg will be set unless preserveLastError is true.
 func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserveLastError bool) error {
 	a.mtx.Lock()
@@ -175,6 +146,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
 		},
+		ChildName:      "Skia", // TODO(borenet): Use config file.
 		CurrentRoll:    a.recent.CurrentRoll(),
 		Error:          errorMsg,
 		FullHistoryUrl: "https://goto.google.com/skia-autoroll-history",
@@ -187,13 +159,16 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 			User:    "benjaminwagner@google.com",
 			Time:    time.Date(2015, time.October, 14, 17, 6, 27, 0, time.UTC),
 		},
-		Recent: recent,
-		Status: state_machine.S_NORMAL_ACTIVE,
+		ParentName:      "Google3",                                     // TODO(borenet): Use config file.
+		ParentWaterfall: "https://goto.google.com/skia-testing-status", // TODO(borenet): Use config file.
+		Recent:          recent,
+		Status:          state_machine.S_NORMAL_ACTIVE,
 		Strategy: &strategy.StrategyChange{
 			Message:  "Google3 roller strategy cannot be changed.",
 			Strategy: strategy.ROLL_STRATEGY_BATCH,
 			User:     "AutoRoller",
 		},
+		ValidModes:      []string{modes.MODE_RUNNING},
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}); err != nil {
 		return err
@@ -406,19 +381,4 @@ func (a *AutoRoller) rollHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to set new status.")
 		return
 	}
-}
-
-// SetMode is not implemented for Google3 roller.
-func (a *AutoRoller) SetMode(context.Context, string, string, string) error {
-	return errors.New("Not implemented for Google3 roller.")
-}
-
-// SetStrategy is not implemented for Google3 roller.
-func (a *AutoRoller) SetStrategy(context.Context, string, string, string) error {
-	return errors.New("Not implemented for Google3 roller.")
-}
-
-// Forcibly unthrottle the roller.
-func (a *AutoRoller) Unthrottle(context.Context) error {
-	return errors.New("Not implemented for Google3 roller.")
 }
