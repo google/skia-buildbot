@@ -729,8 +729,8 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AddHandlers(r *mux.Router) {
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, "POST", pageSetsHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CL_DATA_POST_URI, "POST", getCLHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, "POST", benchmarksPlatformsHandler)
+func AddHandlers(externalRouter, internalRouter *mux.Router) {
+	externalRouter.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
 }

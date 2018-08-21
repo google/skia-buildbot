@@ -548,7 +548,7 @@ func GetPathToIsolates(local bool) string {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
 	} else {
-		return filepath.Join("/", "usr", "local", "share", "ct-masterd", "isolates")
+		return filepath.Join("/", "usr", "local", "share", "ct-master", "isolates")
 	}
 }
 
@@ -561,9 +561,9 @@ func GetPathToPyFiles(local, runOnMaster bool) string {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
 	} else if runOnMaster {
-		return filepath.Join("/", "usr", "local", "share", "ct-masterd", "py")
+		return filepath.Join("/", "usr", "local", "share", "ct-master", "py")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-masterd", "py")
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-master", "py")
 	}
 }
 
