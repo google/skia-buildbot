@@ -63,10 +63,9 @@ func testIngester(t *testing.T, statusDir string) {
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:  config.Duration{Duration: 1 * time.Second},
-		NCommits:  totalCommits / 2,
-		MinDays:   3,
-		StatusDir: statusDir,
+		RunEvery: config.Duration{Duration: 1 * time.Second},
+		NCommits: totalCommits / 2,
+		MinDays:  3,
 	}
 
 	// Instantiate ingester and start it.
