@@ -1,0 +1,23 @@
+#!/bin/bash
+# Builds and uploads a debian package for autoroll.
+APPNAME=autoroll-frontend
+DESCRIPTION="AutoRoll frontend server"
+SYSTEMD=${APPNAME}.service
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/autoroll-fe ${ROOT}/usr/local/bin/autoroll-fe
+${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/autoroll/res/vul/elements.html
+${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/autoroll/res/js/core.js
+${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/autoroll/templates/header.html
+${INSTALL} --mode=644 -T ./templates/main.html     ${ROOT}/usr/local/share/autoroll/templates/main.html
+${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/autoroll_workdir
+}
+
+source ../bash/release.sh
