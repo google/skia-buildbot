@@ -90,8 +90,8 @@ func TestModeHistory(t *testing.T) {
 	expect[rollerName2] = []*ModeChange{mc0_2}
 	checkSlice(expect[rollerName2], mh2.GetHistory())
 
-	assert.NoError(t, mh.refreshHistory(ctx))
-	assert.NoError(t, mh2.refreshHistory(ctx))
+	assert.NoError(t, mh.Update(ctx))
+	assert.NoError(t, mh2.Update(ctx))
 
 	checkSlice(expect[rollerName], mh.GetHistory())
 	checkSlice(expect[rollerName2], mh2.GetHistory())

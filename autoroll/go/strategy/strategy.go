@@ -61,7 +61,7 @@ func NewStrategyHistory(ctx context.Context, roller, defaultStrategy string, val
 		roller:          roller,
 		validStrategies: validStrategies,
 	}
-	if err := sh.refreshHistory(ctx); err != nil {
+	if err := sh.Update(ctx); err != nil {
 		return nil, fmt.Errorf("Failed to refresh history: %s", err)
 	}
 	return sh, nil
@@ -82,7 +82,7 @@ func (sh *StrategyHistory) Add(ctx context.Context, s, user, message string) err
 	if err := sh.put(ctx, strategyChange); err != nil {
 		return err
 	}
-	return sh.refreshHistory(ctx)
+	return sh.Update(ctx)
 }
 
 // put inserts the StrategyChange into the datastore.
@@ -138,8 +138,8 @@ func (sh *StrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, e
 	return history, nil
 }
 
-// refreshHistory refreshes the strategy history from the datastore.
-func (sh *StrategyHistory) refreshHistory(ctx context.Context) error {
+// Update refreshes the strategy history from the datastore.
+func (sh *StrategyHistory) Update(ctx context.Context) error {
 	history, err := sh.getHistory(ctx)
 	if err != nil {
 		return err

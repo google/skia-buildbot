@@ -11,15 +11,11 @@ copy_release_files()
 {
 INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=755 -T ${GOPATH}/bin/autoroll   ${ROOT}/usr/local/bin/autoroll
-${INSTALL} --mode=644 -T ./res/vul/elements.html  ${ROOT}/usr/local/share/autoroll/res/vul/elements.html
-${INSTALL} --mode=644 -T ./res/js/core.js         ${ROOT}/usr/local/share/autoroll/res/js/core.js
-${INSTALL} --mode=644 -T ./templates/header.html  ${ROOT}/usr/local/share/autoroll/templates/header.html
-${INSTALL} --mode=644 -T ./templates/main.html    ${ROOT}/usr/local/share/autoroll/templates/main.html
-${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/autoroll_workdir
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service    ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/autoroll-be   ${ROOT}/usr/local/bin/autoroll-be
+${INSTALL_DIR} --mode=777                            ${ROOT}/mnt/pd0/autoroll_workdir
 ${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/mnt/pd0/autoroll_workdir/recipes.cfg
-${INSTALL} --mode=644 -T ./config/skia-fuchsia.json ${ROOT}/mnt/pd0/autoroll_workdir/autoroll-config.json
+${INSTALL} --mode=644 -T ./config/skia-fuchsia.json  ${ROOT}/mnt/pd0/autoroll_workdir/autoroll-config.json
 }
 
 source ../bash/release.sh

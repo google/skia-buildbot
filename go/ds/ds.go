@@ -66,14 +66,16 @@ const (
 	CLUSTER_TELEMETRY_IDS           Kind = "ClusterTelemetryIDs"
 
 	// Autoroll
-	KIND_AUTOROLL_MODE              Kind = "AutorollMode"
-	KIND_AUTOROLL_MODE_ANCESTOR     Kind = "AutorollModeAncestor" // Fake; used to force strong consistency for testing's sake.
-	KIND_AUTOROLL_ROLL              Kind = "AutorollRoll"
-	KIND_AUTOROLL_ROLL_ANCESTOR     Kind = "AutorollRollAncestor" // Fake; used to force strong consistency for testing's sake.
-	KIND_AUTOROLL_STATUS            Kind = "AutorollStatus"
-	KIND_AUTOROLL_STATUS_ANCESTOR   Kind = "AutorollStatusAncestor" // Fake; used to force strong consistency for testing's sake.
-	KIND_AUTOROLL_STRATEGY          Kind = "AutorollStrategy"
-	KIND_AUTOROLL_STRATEGY_ANCESTOR Kind = "AutorollStrategyAncestor" // Fake; used to force strong consistency for testing's sake.
+	KIND_AUTOROLL_MODE                Kind = "AutorollMode"
+	KIND_AUTOROLL_MODE_ANCESTOR       Kind = "AutorollModeAncestor" // Fake; used to force strong consistency for testing's sake.
+	KIND_AUTOROLL_ROLL                Kind = "AutorollRoll"
+	KIND_AUTOROLL_ROLL_ANCESTOR       Kind = "AutorollRollAncestor" // Fake; used to force strong consistency for testing's sake.
+	KIND_AUTOROLL_STATUS              Kind = "AutorollStatus"
+	KIND_AUTOROLL_STATUS_ANCESTOR     Kind = "AutorollStatusAncestor" // Fake; used to force strong consistency for testing's sake.
+	KIND_AUTOROLL_STRATEGY            Kind = "AutorollStrategy"
+	KIND_AUTOROLL_STRATEGY_ANCESTOR   Kind = "AutorollStrategyAncestor" // Fake; used to force strong consistency for testing's sake.
+	KIND_AUTOROLL_UNTHROTTLE          Kind = "AutorollUnthrottle"
+	KIND_AUTOROLL_UNTHROTTLE_ANCESTOR Kind = "AutorollUnthrottleAncestor" // Fake; used to force strong consistency for testing's sake.
 
 	// AlertManager
 	INCIDENT_AM               Kind = "IncidentAm"
@@ -112,7 +114,7 @@ var (
 	// KindsToBackup is a map from namespace to the list of Kinds to backup.
 	// If this value is changed then remember to push a new version of /ds/go/datastore_backup.
 	KindsToBackup = map[string][]Kind{
-		AUTOROLL_NS:            []Kind{KIND_AUTOROLL_MODE, KIND_AUTOROLL_MODE_ANCESTOR, KIND_AUTOROLL_ROLL, KIND_AUTOROLL_ROLL_ANCESTOR, KIND_AUTOROLL_STATUS, KIND_AUTOROLL_STATUS_ANCESTOR, KIND_AUTOROLL_STRATEGY, KIND_AUTOROLL_STRATEGY_ANCESTOR},
+		AUTOROLL_NS:            []Kind{KIND_AUTOROLL_MODE, KIND_AUTOROLL_MODE_ANCESTOR, KIND_AUTOROLL_ROLL, KIND_AUTOROLL_ROLL_ANCESTOR, KIND_AUTOROLL_STATUS, KIND_AUTOROLL_STATUS_ANCESTOR, KIND_AUTOROLL_STRATEGY, KIND_AUTOROLL_STRATEGY_ANCESTOR, KIND_AUTOROLL_UNTHROTTLE, KIND_AUTOROLL_UNTHROTTLE_ANCESTOR},
 		PERF_NS:                []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_NS:        []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_MASTER_NS: []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},

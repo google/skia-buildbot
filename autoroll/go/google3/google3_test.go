@@ -87,7 +87,7 @@ func TestStatus(t *testing.T) {
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
 
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
-	status := a.GetStatus(true)
+	status := a.status.Get()
 	assert.Equal(t, 0, status.NumFailedRolls)
 	assert.Equal(t, 1, status.NumNotRolledCommits)
 	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
@@ -113,7 +113,7 @@ func TestStatus(t *testing.T) {
 
 	recent := []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}
 	assert.NoError(t, a.UpdateStatus(ctx, "error message", false))
-	status = a.GetStatus(true)
+	status = a.status.Get()
 	assert.Equal(t, 2, status.NumFailedRolls)
 	assert.Equal(t, 2, status.NumNotRolledCommits)
 	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
@@ -124,23 +124,8 @@ func TestStatus(t *testing.T) {
 
 	// Test preserving error.
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
-	status = a.GetStatus(true)
+	status = a.status.Get()
 	assert.Equal(t, "error message", status.Error)
-
-	// Test that sensitive data is cleared.
-	for _, i := range recent {
-		i.Issue = 0
-		i.Subject = ""
-		i.TryResults = nil
-	}
-	status = a.GetStatus(false)
-	assert.Equal(t, 2, status.NumFailedRolls)
-	assert.Equal(t, 2, status.NumNotRolledCommits)
-	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
-	assert.Equal(t, "", status.Error)
-	deepequal.AssertDeepEqual(t, issue4, status.CurrentRoll)
-	deepequal.AssertDeepEqual(t, issue3, status.LastRoll)
-	deepequal.AssertDeepEqual(t, recent, status.Recent)
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
@@ -159,7 +144,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPut))
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.GetStatus(true).Recent)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.status.Get().Recent)
 
 	// Test adding a two issues without closing the first one.
 	issue3 := makeIssue(3, commits[2])
@@ -169,7 +154,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}, a.status.Get().Recent)
 
 	// Test both situations at the same time.
 	issue5 := makeIssue(5, commits[2])
@@ -178,7 +163,7 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE
-	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.GetStatus(true).Recent)
+	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue5, issue4, issue3, issue2, issue1}, a.status.Get().Recent)
 }
 
 func makeRoll(now time.Time) Roll {

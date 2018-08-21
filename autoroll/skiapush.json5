@@ -3,6 +3,7 @@
     "afdo-chromium-autoroll": {
       "AppNames": [
         "afdo-chromium-autorolld",
+        "autoroll-frontend",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -10,6 +11,7 @@
     "android-master-autoroll": {
       "AppNames": [
         "android-master-autorolld",
+        "autoroll-frontend",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -17,6 +19,7 @@
     "android-next-autoroll": {
       "AppNames": [
         "android-next-autorolld",
+        "autoroll-frontend",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -24,6 +27,7 @@
     "android-o-autoroll": {
       "AppNames": [
         "android-o-autorolld",
+        "autoroll-frontend",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -31,6 +35,7 @@
     "angle-chromium-autoroll": {
       "AppNames": [
         "angle-chromium-autorolld",
+        "autoroll-frontend",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -38,12 +43,14 @@
     "angle-skia-autoroll": {
       "AppNames": [
         "angle-skia-autorolld",
+        "autoroll-frontend",
         "git-cookie-authdaemon",
         "pulld",
       ],
     },
     "catapult-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "catapult-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -51,6 +58,7 @@
     },
     "chromite-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "chromite-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -58,6 +66,7 @@
     },
     "chromium-skia-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "chromium-skia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -65,6 +74,7 @@
     },
     "depot-tools-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "depot-tools-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -72,12 +82,14 @@
     },
     "flutter-engine-flutter-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "flutter-engine-flutter-autorolld",
         "pulld",
       ],
     },
     "fuchsia-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "fuchsia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -85,6 +97,7 @@
     },
     "fuchsia-sdk-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "fuchsia-sdk-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -92,12 +105,14 @@
     },
     "google3-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "google3-autorolld",
         "pulld",
       ],
     },
     "ios-internal-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "ios-internal-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -105,6 +120,7 @@
     },
     "lottie-web-lottie-ci-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "lottie-web-lottie-ci-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -112,6 +128,7 @@
     },
     "nacl-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "nacl-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -119,6 +136,7 @@
     },
     "pdfium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "pdfium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -126,6 +144,7 @@
     },
     "perfetto-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "perfetto-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -133,6 +152,7 @@
     },
     "skcms-skia-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "skcms-skia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -140,6 +160,7 @@
     },
     "skia-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "skia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -147,12 +168,14 @@
     },
     "skia-flutter-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "skia-flutter-autorolld",
         "pulld",
       ],
     },
     "skia-internal-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "skia-internal-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -160,6 +183,7 @@
     },
     "skia-lottie-ci-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "skia-lottie-ci-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -167,6 +191,7 @@
     },
     "spirv-headers-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "spirv-headers-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -174,6 +199,7 @@
     },
     "spirv-tools-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "spirv-tools-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -181,6 +207,7 @@
     },
     "src-internal-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "src-internal-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -188,6 +215,7 @@
     },
     "swiftshader-skia-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "swiftshader-skia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -195,6 +223,7 @@
     },
     "webrtc-chromium-autoroll": {
       "AppNames": [
+        "autoroll-frontend",
         "webrtc-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",

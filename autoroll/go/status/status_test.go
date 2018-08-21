@@ -34,6 +34,7 @@ func TestCopyStatus(t *testing.T) {
 			NumNotRolledCommits: 6,
 		},
 		ChildHead:      "abc123",
+		ChildName:      "child-repo",
 		CurrentRoll:    recent[0],
 		Error:          "some error!",
 		FullHistoryUrl: "http://history",
@@ -43,8 +44,10 @@ func TestCopyStatus(t *testing.T) {
 		Mode: &modes.ModeChange{
 			Mode: modes.MODE_RUNNING,
 		},
-		Recent: recent,
-		Status: "some-status",
+		ParentName:      "parent-repo",
+		ParentWaterfall: "https://parent.waterfall.com",
+		Recent:          recent,
+		Status:          "some-status",
 		Strategy: &strategy.StrategyChange{
 			Strategy: strategy.ROLL_STRATEGY_BATCH,
 		},
