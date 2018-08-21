@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd6b540f_9dcf0972",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-21T14:05:27Z",
+      "side": 1,
+      "message": "Nit: Call this release_all ? I can see accidentally typing release for just fe or be.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 7
+      },
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b2b88e46_443d134b",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-21T14:05:27Z",
+      "side": 1,
+      "message": "Call this something descriptive like frontendPort or fePort or something else?\nSame for host above.",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "081173c3_4a6cc02e",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-21T14:05:27Z",
+      "side": 1,
+      "message": "How does this work for the be/fe split now?",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2414eee0_8f904482",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-21T14:05:27Z",
+      "side": 1,
+      "message": "Update comment",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "263db30b_8e7abef4",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-21T14:05:27Z",
+      "side": 1,
+      "message": "autoroll-frontend?",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
