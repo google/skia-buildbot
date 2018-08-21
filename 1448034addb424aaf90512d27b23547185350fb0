@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c6eb148a_8526cb54",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T15:10:12Z",
+      "side": 1,
+      "message": "Sure, I could add that, though currently the frontend does not need the config file for the roller(s).  Adding that would force us to have a build_frontend_release_* for each roller, so I\u0027d prefer not to if possible.  The next CL will merge all frontends together, at which point we can package all of the config files as part of the build and add this field.",
+      "parentUuid": "d05c049f_44ba882c",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 22
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2b6c6ac0_774618ba",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "0eb48ed3_ae89e15a",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T15:10:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b6c6ac0_774618ba",
+      "range": {
+        "startLine": 86,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 75
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ada4c18e_b9af40c2",
         "filename": "autoroll/go/google3/google3.go",
         "patchSetId": 7
@@ -59,6 +107,30 @@
       "writtenOn": "2018-08-21T14:38:19Z",
       "side": 1,
       "message": "For all of these TODOs: Is there a reason you\u0027re not using the config file?\nhttps://skia.googlesource.com/buildbot/+/9da2bf94f767178c5ff6e3cad8a7b1591ee1ecf2/autoroll/config/skia-google3.json",
+      "range": {
+        "startLine": 149,
+        "startChar": 26,
+        "endLine": 149,
+        "endChar": 43
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f192beb3_34cfa22b",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T15:10:12Z",
+      "side": 1,
+      "message": "As mentioned in another comment, the frontend does not (currently) have access to the config file.",
+      "parentUuid": "ada4c18e_b9af40c2",
       "range": {
         "startLine": 149,
         "startChar": 26,

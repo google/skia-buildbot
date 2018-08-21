@@ -22,6 +22,30 @@
       "revId": "aa16e38ba0fbfd7ec48d0d000a4d4bbd963d77a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea69eef6_cdaa7c66",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T15:10:12Z",
+      "side": 0,
+      "message": "Done, in the section where we set the status.",
+      "parentUuid": "9c914b76_9d5e452e",
+      "range": {
+        "startLine": 112,
+        "startChar": 1,
+        "endLine": 112,
+        "endChar": 88
+      },
+      "revId": "aa16e38ba0fbfd7ec48d0d000a4d4bbd963d77a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
