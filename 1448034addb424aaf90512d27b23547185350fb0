@@ -164,6 +164,30 @@
       "revId": "1448034addb424aaf90512d27b23547185350fb0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec76dac2_3d6e9a77",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-21T15:20:58Z",
+      "side": 1,
+      "message": "Either way, could you copy the ParentWaterfall from the config file?",
+      "parentUuid": "71b6c93a_b0c35363",
+      "range": {
+        "startLine": 149,
+        "startChar": 26,
+        "endLine": 149,
+        "endChar": 43
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
