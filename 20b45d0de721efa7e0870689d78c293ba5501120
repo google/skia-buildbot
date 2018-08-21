@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e8f6d3d9_234b5cdb",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 6
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T14:14:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd6b540f_9dcf0972",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 7
+      },
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b2b88e46_443d134b",
         "filename": "autoroll/go/autoroll-be/main.go",
         "patchSetId": 6
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "b0e29f97_6cb4b83f",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T14:14:22Z",
+      "side": 1,
+      "message": "Done. Once we merge the frontends we should be able to remove some flags.",
+      "parentUuid": "b2b88e46_443d134b",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "081173c3_4a6cc02e",
         "filename": "autoroll/go/autoroll-be/main.go",
         "patchSetId": 6
@@ -53,6 +95,24 @@
       "writtenOn": "2018-08-21T14:05:27Z",
       "side": 1,
       "message": "How does this work for the be/fe split now?",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fce18a3d_bf779169",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T14:14:22Z",
+      "side": 1,
+      "message": "It\u0027s just so that we can use either a google3.AutoRoller or roller.AutoRoller.  It\u0027s not used by autoroll-fe, which only uses information from datastore.",
+      "parentUuid": "081173c3_4a6cc02e",
       "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -76,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "92e93da1_89c429ae",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T14:14:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2414eee0_8f904482",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "263db30b_8e7abef4",
         "filename": "autoroll/skiapush.json5",
         "patchSetId": 6
@@ -90,6 +168,24 @@
       "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd790b93_2f4ce8c5",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-21T14:14:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "263db30b_8e7abef4",
+      "revId": "20b45d0de721efa7e0870689d78c293ba5501120",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
