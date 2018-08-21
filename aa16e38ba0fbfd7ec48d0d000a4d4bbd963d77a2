@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c914b76_9d5e452e",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-21T14:38:19Z",
+      "side": 0,
+      "message": "nit: Changing modes on G3 roller is currently not implemented. Would be nice to keep this around so that the UI doesn\u0027t pretend to support it.",
+      "range": {
+        "startLine": 112,
+        "startChar": 1,
+        "endLine": 112,
+        "endChar": 88
+      },
+      "revId": "aa16e38ba0fbfd7ec48d0d000a4d4bbd963d77a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

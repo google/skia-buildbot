@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d05c049f_44ba882c",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-21T14:38:19Z",
+      "side": 1,
+      "message": "nit: Would be nice if this were a generic config param like \"Parent repo is internal-only.\"",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 22
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b6c6ac0_774618ba",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-21T14:38:19Z",
+      "side": 1,
+      "message": "nit: Maybe add the logged-in account to the error message. If not, I\u0027d just use nil here, since this doesn\u0027t add much info.\n\nCouple other instances in this file.",
+      "range": {
+        "startLine": 86,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 75
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ada4c18e_b9af40c2",
+        "filename": "autoroll/go/google3/google3.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-21T14:38:19Z",
+      "side": 1,
+      "message": "For all of these TODOs: Is there a reason you\u0027re not using the config file?\nhttps://skia.googlesource.com/buildbot/+/9da2bf94f767178c5ff6e3cad8a7b1591ee1ecf2/autoroll/config/skia-google3.json",
+      "range": {
+        "startLine": 149,
+        "startChar": 26,
+        "endLine": 149,
+        "endChar": 43
+      },
+      "revId": "1448034addb424aaf90512d27b23547185350fb0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
