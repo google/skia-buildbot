@@ -4,6 +4,7 @@
     "skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
   "gerritURL": "https://skia-review.googlesource.com",
+  "isInternal": true,
   "maxRollFrequency": "0m",
   "notifiers": [
     {

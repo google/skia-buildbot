@@ -1,6 +1,7 @@
 {
   "childName": "Skia",
   "gerritURL": "N/A",
+  "isInternal": true,
   "maxRollFrequency": "0m",
   "parentName": "Google3",
   "parentWaterfall": "https://goto.google.com/skia-testing-status",

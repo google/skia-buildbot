@@ -51,6 +51,7 @@ var (
 // flags
 var (
 	host         = flag.String("host", "localhost", "HTTP service host")
+	internal     = flag.Bool("internal", false, "If true, display the internal rollers.")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20001", "Metrics service address (e.g., ':10110')")
@@ -251,7 +252,11 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
+	namespace := ds.AUTOROLL_NS
+	if *internal {
+		namespace = ds.AUTOROLL_INTERNAL_NS
+	}
+	if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
 	}
 

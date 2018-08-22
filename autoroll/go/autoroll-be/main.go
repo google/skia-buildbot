@@ -68,11 +68,22 @@ func main() {
 
 	skiaversion.MustLogVersion()
 
+	var cfg roller.AutoRollerConfig
+	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
+		return json5.NewDecoder(f).Decode(&cfg)
+	}); err != nil {
+		sklog.Fatal(err)
+	}
+
 	ts, err := auth.NewDefaultTokenSource(*local)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
+	namespace := ds.AUTOROLL_NS
+	if cfg.IsInternal {
+		namespace = ds.AUTOROLL_INTERNAL_NS
+	}
+	if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -85,13 +96,6 @@ func main() {
 	if *local {
 		gcsBucket = gcs.TEST_DATA_BUCKET
 		rollerName = fmt.Sprintf("autoroll_%s", hostname)
-	}
-
-	var cfg roller.AutoRollerConfig
-	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
-		return json5.NewDecoder(f).Decode(&cfg)
-	}); err != nil {
-		sklog.Fatal(err)
 	}
 
 	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildName, cfg.ParentName))

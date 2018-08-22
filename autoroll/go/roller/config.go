@@ -93,6 +93,8 @@ type AutoRollerConfig struct {
 	ChildName string `json:"childName"`
 	// Gerrit URL the roller will be uploading issues to.
 	GerritURL string `json:"gerritURL"`
+	// If true, the roller is only visible to Googlers.
+	IsInternal bool `json:"isInternal"`
 	// User friendly name of the parent repo.
 	ParentName string `json:"parentName"`
 	// URL of the waterfall/status display for the parent repo.
