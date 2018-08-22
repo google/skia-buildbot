@@ -2,23 +2,24 @@
 package frontend
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 const (
-	WEBAPP_ROOT_V2 = "https://ct.skia.org/"
+	WEBAPP_ROOT_V2       = "https://ct.skia.org"
+	INTERNAL_WEBAPP_ROOT = "http://ctfe:8010"
 )
 
 var (
@@ -48,45 +49,48 @@ var (
 var httpClient = httputils.NewTimeoutClient()
 
 // Initializes *Webapp URLs above and sets up authentication credentials for UpdateWebappTaskV2.
-func MustInit() {
-	webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
-	initUrls(WEBAPP_ROOT_V2)
+func MustInit(webapp_root string) {
+	initUrls(webapp_root)
 }
+
+// REMOVE REMOVE REMOVE - Need to figure out how to test this after I get things working e2e.
 
 // Initializes *Webapp URLs above using webapp_root as the base URL (e.g. "http://localhost:8000/")
 // and sets up test authentication credentials for UpdateWebappTaskV2.
 func InitForTesting(webapp_root string) {
-	webhook.InitRequestSaltForTesting()
 	initUrls(webapp_root)
 }
 
 func initUrls(webapp_root string) {
 	WebappRoot = webapp_root
 	AdminTasksWebapp = webapp_root + ctfeutil.ADMIN_TASK_URI
-	UpdateAdminTasksWebapp = ""
-	UpdateRecreatePageSetsTasksWebapp = webapp_root + ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
-	UpdateRecreateWebpageArchivesTasksWebapp = webapp_root + ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
 	LuaTasksWebapp = webapp_root + ctfeutil.LUA_SCRIPT_URI
-	UpdateLuaTasksWebapp = webapp_root + ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
 	CaptureSKPsTasksWebapp = webapp_root + ctfeutil.CAPTURE_SKPS_URI
-	UpdateCaptureSKPsTasksWebapp = webapp_root + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
 	PixelDiffTasksWebapp = webapp_root + ctfeutil.PIXEL_DIFF_URI
-	UpdatePixelDiffTasksWebapp = webapp_root + ctfeutil.UPDATE_PIXEL_DIFF_TASK_POST_URI
 	MetricsAnalysisTasksWebapp = webapp_root + ctfeutil.METRICS_ANALYSIS_URI
-	UpdateMetricsAnalysisTasksWebapp = webapp_root + ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI
 	ChromiumPerfTasksWebapp = webapp_root + ctfeutil.CHROMIUM_PERF_URI
 	ChromiumAnalysisTasksWebapp = webapp_root + ctfeutil.CHROMIUM_ANALYSIS_URI
-	UpdateChromiumPerfTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
 	ChromiumBuildTasksWebapp = webapp_root + ctfeutil.CHROMIUM_BUILD_URI
-	UpdateChromiumBuildTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
-	GetOldestPendingTaskWebapp = webapp_root + ctfeutil.GET_OLDEST_PENDING_TASK_URI
-	TerminateRunningTasksWebapp = webapp_root + ctfeutil.TERMINATE_RUNNING_TASKS_URI
+
+	// URLs that are accessed through internal ports.
+	GetOldestPendingTaskWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.GET_OLDEST_PENDING_TASK_URI
+	TerminateRunningTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.TERMINATE_RUNNING_TASKS_URI
+	// NEEDED ???
+	UpdateAdminTasksWebapp = ""
+	UpdateRecreatePageSetsTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
+	UpdateRecreateWebpageArchivesTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
+	UpdatePixelDiffTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_PIXEL_DIFF_TASK_POST_URI
+	UpdateLuaTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
+	UpdateCaptureSKPsTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
+	UpdateMetricsAnalysisTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI
+	UpdateChromiumPerfTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
+	UpdateChromiumBuildTasksWebapp = INTERNAL_WEBAPP_ROOT + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
 }
 
 // Common functions
 
 func GetOldestPendingTaskV2() (task_common.Task, error) {
-	req, err := webhook.NewRequest("GET", GetOldestPendingTaskWebapp, []byte{})
+	req, err := http.NewRequest("GET", GetOldestPendingTaskWebapp, bytes.NewReader([]byte{}))
 	if err != nil {
 		return nil, fmt.Errorf("Could not create HTTP request: %s", err)
 	}
@@ -104,7 +108,7 @@ func GetOldestPendingTaskV2() (task_common.Task, error) {
 }
 
 func TerminateRunningTasks() error {
-	req, err := webhook.NewRequest("POST", TerminateRunningTasksWebapp, []byte{})
+	req, err := http.NewRequest("POST", TerminateRunningTasksWebapp, bytes.NewReader([]byte{}))
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)
 	}
@@ -129,7 +133,7 @@ func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
 	if err != nil {
 		return fmt.Errorf("Failed to marshal %v: %s", vars, err)
 	}
-	req, err := webhook.NewRequest("POST", postUrl, json)
+	req, err := http.NewRequest("POST", postUrl, bytes.NewReader(json))
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)
 	}

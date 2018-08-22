@@ -5,6 +5,7 @@ package frontend
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -14,7 +15,6 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 // UpdateTaskReq includes the URL of an update request, the unmarshaled body, and any error
@@ -84,7 +84,7 @@ func (ms *MockServer) HandleGetOldestPendingTask(w http.ResponseWriter, r *http.
 
 func (ms *MockServer) HandleUpdateTask(w http.ResponseWriter, r *http.Request) {
 	updateTaskReq := UpdateTaskReq{Url: r.URL.Path}
-	data, err := webhook.AuthenticateRequest(r)
+	data, err := ioutil.ReadAll(r.Body)
 	defer skutil.Close(r.Body)
 	if err != nil {
 		updateTaskReq.Error = err
