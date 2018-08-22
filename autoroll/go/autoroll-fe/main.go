@@ -74,8 +74,7 @@ func reloadTemplates() {
 }
 
 func isGoogle3Roller() bool {
-	// TODO(borenet): Is this correct?
-	return strings.Contains(rollerName, "Google3")
+	return strings.Contains(rollerName, "google3")
 }
 
 func Init() {
@@ -149,8 +148,12 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 			for _, issue := range status.Recent {
 				cleanIssue(issue)
 			}
-			cleanIssue(status.CurrentRoll)
-			cleanIssue(status.LastRoll)
+			if status.CurrentRoll != nil {
+				cleanIssue(status.CurrentRoll)
+			}
+			if status.LastRoll != nil {
+				cleanIssue(status.LastRoll)
+			}
 		}
 	}
 	// Overwrite the mode and strategy in the status object in case they
