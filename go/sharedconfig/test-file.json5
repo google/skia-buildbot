@@ -20,8 +20,6 @@
       // Mininum number of days to cover.
       MinDays: 21,
 
-      // Directory where the status of the ingester will be written.
-      StatusDir: "./ingest_status",
       MetricName: "gold-ingest",
       Sources: [
         {
@@ -41,7 +39,6 @@
       RunEvery: "15m",
       NCommits: 100,
       MinDays: 21,
-      StatusDir: "./ingest_status",
       MetricName: "gold-ingest-trybot",
       Sources: [
         {
@@ -56,7 +53,6 @@
       RunEvery: "15m",
       NCommits: 100,
       MinDays: 21,
-      StatusDir: "./ingest_status",
       MetricName: "nano-ingest",
       Sources: [
         {
@@ -72,7 +68,6 @@
       RunEvery: "15m",
       NCommits: 100,
       MinDays: 21,
-      StatusDir: "./ingest_status",
       MetricName: "pdf-raster",
       Sources: [
         {

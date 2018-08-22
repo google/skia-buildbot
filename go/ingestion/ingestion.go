@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/boltdb/bolt"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -20,6 +17,8 @@ import (
 
 // BoltDB bucket where MD5 hashes of processed files are stored.
 const PROCESSED_FILES_BUCKET = "processed_files"
+
+// See https://skia-review.googlesource.com/c/buildbot/+/99663
 
 // Tag names used to collect metrics.
 const (
@@ -85,16 +84,21 @@ type Processor interface {
 
 // Ingester is the main type that drives ingestion for a single type.
 type Ingester struct {
-	id             string
-	vcs            vcsinfo.VCS
-	nCommits       int
-	minDuration    time.Duration
-	runEvery       time.Duration
-	sources        []Source
-	processor      Processor
-	doneCh         chan bool
-	statusDB       *bolt.DB
-	resultFilesDir string
+	id          string
+	vcs         vcsinfo.VCS
+	nCommits    int
+	minDuration time.Duration
+	runEvery    time.Duration
+	sources     []Source
+	processor   Processor
+	doneCh      chan bool
+
+	currentFiles   *sync.Map
+	concurrentProc chan bool
+	db             IngestionDB
+
+	// statusDB       *bolt.DB
+	// resultFilesDir string
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -109,16 +113,21 @@ type Ingester struct {
 	processTimer metrics2.Timer
 }
 
+type IngestionDB interface {
+	AlreadyProcessed(result ResultFileLocation) bool
+	ProcessedBefore(resultMD5 string) bool
+}
+
 // NewIngester creates a new ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
 func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor) (*Ingester, error) {
-	statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
-	dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
-	statusDB, err := bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
-	}
-	resultFilesDir := filepath.Join(statusDir, fmt.Sprintf("%s-results-cache", ingesterID))
+	// statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
+	// dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
+	// statusDB, err := bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
+	// }
+	// resultFilesDir := filepath.Join(statusDir, fmt.Sprintf("%s-results-cache", ingesterID))
 
 	ret := &Ingester{
 		id:             ingesterID,
@@ -128,8 +137,11 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		runEvery:       ingesterConf.RunEvery.Duration,
 		sources:        sources,
 		processor:      processor,
-		statusDB:       statusDB,
-		resultFilesDir: resultFilesDir,
+		currentFiles:   &sync.Map{},
+		concurrentProc: make(chan bool, 200),
+
+		// statusDB:       statusDB,
+		// resultFilesDir: resultFilesDir,
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -159,6 +171,7 @@ func (i *Ingester) Start(ctx context.Context) {
 			case <-doneCh:
 				return
 			}
+
 			i.processResults(ctx, resultFiles, useMetrics)
 		}
 	}(i.doneCh)
@@ -228,42 +241,44 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 // already processed files.
 func (i *Ingester) inProcessedFiles(md5 string) bool {
 	ret := false
-	getFn := func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PROCESSED_FILES_BUCKET))
-		if bucket == nil {
-			return nil
-		}
+	// TODO: write to db
+	// getFn := func(tx *bolt.Tx) error {
+	// 	bucket := tx.Bucket([]byte(PROCESSED_FILES_BUCKET))
+	// 	if bucket == nil {
+	// 		return nil
+	// 	}
 
-		ret = bucket.Get([]byte(md5)) != nil
-		return nil
-	}
+	// 	ret = bucket.Get([]byte(md5)) != nil
+	// 	return nil
+	// }
 
-	if err := i.statusDB.View(getFn); err != nil {
-		sklog.Errorf("Error reading from bucket %s: %s", PROCESSED_FILES_BUCKET, err)
-	}
+	// if err := i.statusDB.View(getFn); err != nil {
+	// 	sklog.Errorf("Error reading from bucket %s: %s", PROCESSED_FILES_BUCKET, err)
+	// }
 	return ret
 }
 
 // addToProcessedFiles adds the given list of md5 hashes to the list of
 // file that have been already processed.
 func (i *Ingester) addToProcessedFiles(md5s []string) {
-	updateFn := func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(PROCESSED_FILES_BUCKET))
-		if err != nil {
-			return err
-		}
+	// TODO: add db code
+	// updateFn := func(tx *bolt.Tx) error {
+	// 	bucket, err := tx.CreateBucketIfNotExists([]byte(PROCESSED_FILES_BUCKET))
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		for _, md5 := range md5s {
-			if err := bucket.Put([]byte(md5), []byte{}); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+	// 	for _, md5 := range md5s {
+	// 		if err := bucket.Put([]byte(md5), []byte{}); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// 	return nil
+	// }
 
-	if err := i.statusDB.Update(updateFn); err != nil {
-		sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
-	}
+	// if err := i.statusDB.Update(updateFn); err != nil {
+	// 	sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
+	// }
 }
 
 // processResults ingests a set of result files.
@@ -277,18 +292,25 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 
 	// time how long the overall process takes.
 	i.processTimer.Start()
-	var wg sync.WaitGroup
 	for _, resultLocation := range resultFiles {
-		if i.inProcessedFiles(resultLocation.MD5()) {
+		resultMD5 := resultLocation.MD5()
+
+		// Check whether this file is currently being processed or was processed
+		// before. If not add it to the list of currently processed items.
+		if _, ok := i.currentFiles.LoadOrStore(resultMD5, nil); ok || i.db.ProcessedBefore(resultMD5) {
 			mutex.Lock()
 			ignoredCounter++
 			mutex.Unlock()
 			continue
 		}
-		wg.Add(1)
+
+		// Get the ticket for processing a file
+		i.concurrentProc <- true
+
 		go func(resultLocation ResultFileLocation) {
-			defer wg.Done()
+			defer func() { <-i.concurrentProc }()
 			defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
+
 			err := i.processor.Process(ctx, resultLocation)
 
 			mutex.Lock()
@@ -305,10 +327,13 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 			}
 
 			// Gather all successfully processed MD5s
-			processedCounter++
-			processedMD5s = append(processedMD5s, resultLocation.MD5())
+			// processedCounter++
+			// processedMD5s = append(processedMD5s, resultLocation.MD5())
+			db.
+
 		}(resultLocation)
 	}
+
 	wg.Wait()
 	targetMetrics.liveness.Reset()
 

@@ -76,6 +76,13 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 		return err
 	}
 
+	column := targetHash
+	row := dmResults.Builder
+	timeStamp := resultsFile.TimeStamp()
+	if if db.HasNewer(row, column, timeStamp) {
+		return ingestion.IgnoreResultsFileErr
+	}
+
 	if !commit.Branches["master"] {
 		sklog.Warningf("Commit %s is not in master branch. Got branches: %v", commit.Hash, commit.Branches)
 		return ingestion.IgnoreResultsFileErr
@@ -94,8 +101,10 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	}
 
 	// Write the result to the tracedb.
-	err = g.traceDB.Add(cid, entries)
-	return err
+	if err := g.traceDB.Add(cid, entries); err != nil {
+		return err
+	}
+	return db.Add(resultsFile.Name(), row, column, timeStamp)
 }
 
 // See ingestion.Processor interface.
