@@ -10,6 +10,7 @@
   "maxRollFrequency": "1h",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "angle-chromium-autoroll",
   "sheriff": ["https://build.chromium.org/deprecated/chromium/sheriff_angle.json"],
   "noCheckoutDepsRepoManager": {
     "childBranch": "master",

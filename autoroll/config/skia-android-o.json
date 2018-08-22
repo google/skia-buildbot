@@ -5,6 +5,7 @@
   "maxRollFrequency": "0m",
   "parentName": "Android (O branch)",
   "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_oc-mr1-dev/grid",
+  "rollerName": "android-o-autoroll",
   "sheriff": ["https://skia-tree-status.appspot.com/current-robocop"],
   "androidRepoManager": {
     "childBranch": "android/o-mr1-release",

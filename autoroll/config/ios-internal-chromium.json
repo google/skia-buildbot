@@ -5,6 +5,7 @@
   "maxRollFrequency": "0m",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "ios-internal-chromium-autoroll",
   "sheriff": [
     "https://build.chromium.org/deprecated/chromium/sheriff_ios_europe.js",
     "https://build.chromium.org/deprecated/chromium/sheriff_ios_us.js"
