@@ -162,7 +162,7 @@ func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient) (string, 
 
 // NewSwarmingClient returns an instance of Swarming populated with default
 // values.
-func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
+func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServer, serviceAccountJSON string) (*SwarmingClient, error) {
 	if _, err := os.Stat(workDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(workDir, 0700); err != nil {
 			return nil, fmt.Errorf("Could not create %s: %s", workDir, err)
@@ -180,7 +180,7 @@ func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServ
 	swarmingPy := path.Join(luciClient.Dir(), "swarming.py")
 
 	// Create an isolate client.
-	isolateClient, err := isolate.NewClient(workDir, isolateServer)
+	isolateClient, err := isolate.NewClientWithServiceAccount(workDir, isolateServer, serviceAccountJSON)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create isolate client: %s", err)
 	}
