@@ -194,6 +194,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 			Strategy: strategy.ROLL_STRATEGY_BATCH,
 			User:     "AutoRoller",
 		},
+		ValidModes:      []string{modes.MODE_RUNNING},
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}); err != nil {
 		return err
