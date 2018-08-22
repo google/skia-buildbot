@@ -1,6 +1,7 @@
 {
   "childName": "Skia",
   "gerritURL": "(none)",
+  "isInternal": true,
   "maxRollFrequency": "0m",
   "parentName": "Android (master)",
   "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_master/grid",

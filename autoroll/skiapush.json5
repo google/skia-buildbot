@@ -11,7 +11,7 @@
     "android-master-autoroll": {
       "AppNames": [
         "android-master-autorolld",
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -19,7 +19,7 @@
     "android-next-autoroll": {
       "AppNames": [
         "android-next-autorolld",
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -27,7 +27,7 @@
     "android-o-autoroll": {
       "AppNames": [
         "android-o-autorolld",
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -105,14 +105,14 @@
     },
     "google3-autoroll": {
       "AppNames": [
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "google3-autorolld",
         "pulld",
       ],
     },
     "ios-internal-chromium-autoroll": {
       "AppNames": [
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "ios-internal-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -175,7 +175,7 @@
     },
     "skia-internal-autoroll": {
       "AppNames": [
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "skia-internal-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -207,7 +207,7 @@
     },
     "src-internal-chromium-autoroll": {
       "AppNames": [
-        "autoroll-frontend",
+        "autoroll-frontend-internal",
         "src-internal-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
