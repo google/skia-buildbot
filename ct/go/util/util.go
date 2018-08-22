@@ -400,13 +400,13 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return 0, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
@@ -548,7 +548,7 @@ func GetPathToIsolates(local bool) string {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
 	} else {
-		return filepath.Join("/", "usr", "local", "share", "ct-masterd", "isolates")
+		return filepath.Join("/", "usr", "local", "share", "ct-master", "isolates")
 	}
 }
 
@@ -561,9 +561,9 @@ func GetPathToPyFiles(local, runOnMaster bool) string {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
 	} else if runOnMaster {
-		return filepath.Join("/", "usr", "local", "share", "ct-masterd", "py")
+		return filepath.Join("/", "usr", "local", "share", "ct-master", "py")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-masterd", "py")
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ct-master", "py")
 	}
 }
 
@@ -937,13 +937,13 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
 // archives it, and triggers its swarming task. The swarming task will run the isolate_telemetry
 // worker script which will return the isolate hash.
-func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash string, patches []string, hardTimeout, ioTimeout time.Duration, local bool) (string, error) {
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON string, patches []string, hardTimeout, ioTimeout time.Duration, local bool) (string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return "", fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
@@ -994,13 +994,13 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform string, hashes, patches, cipdPackages []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPackages []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
 		return nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
