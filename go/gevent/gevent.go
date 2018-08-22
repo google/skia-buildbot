@@ -2,11 +2,14 @@ package gevent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
 
 	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/storage"
+	"github.com/davecgh/go-spew/spew"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/eventbus"
@@ -23,14 +26,17 @@ func RegisterCodec(channel string, codec util.LRUCodec) {
 	codecMap.Store(channel, codec)
 }
 
-// DistEventBus implements the eventbus.EventBus interfase on top of Cloud PubSub.
-type distEventBus struct {
-	localEventBus eventbus.EventBus
-	client        *pubsub.Client
-	clientID      string
-	topic         *pubsub.Topic
-	sub           *pubsub.Subscription
-	wrapperCodec  util.LRUCodec
+// DistEventBus implements the eventbus.EventBus interface on top of Cloud PubSub.
+type DistEventBus struct {
+	localEventBus  eventbus.EventBus
+	client         *pubsub.Client
+	clientID       string
+	projectID      string
+	topicID        string
+	topic          *pubsub.Topic
+	sub            *pubsub.Subscription
+	wrapperCodec   util.LRUCodec
+	storageBuckets util.StringSet
 }
 
 // channelWrapper wraps each message to do channel multiplexing on top of a
@@ -53,20 +59,23 @@ type channelWrapper struct {
 //   event bus network.
 // - opts are the options used to create an authenticated PubSub client.
 func New(projectID, topicName, subscriberName string, opts ...option.ClientOption) (eventbus.EventBus, error) {
-	ret := &distEventBus{
+	ret := &DistEventBus{
 		localEventBus: eventbus.New(),
 		wrapperCodec:  util.JSONCodec(&channelWrapper{}),
+		projectID:     projectID,
+		topicID:       topicName,
 	}
 
 	// Create the client.
 	var err error
-	opts = append(opts, option.WithScopes(pubsub.ScopePubSub))
-	ret.client, err = pubsub.NewClient(context.Background(), projectID, opts...)
+	/// opts = append(opts, option.WithScopes(pubsub.ScopePubSub))
+	ret.client, err = pubsub.NewClient(context.Background(), projectID)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Error creating pubsub client: %s", err)
 	}
 
 	// Set up the pubsub client, topic and subscription.
+	sklog.Infof("AAAA")
 	if err := ret.setupTopicSub(topicName, subscriberName); err != nil {
 		return nil, err
 	}
@@ -77,7 +86,7 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 }
 
 // Publish implements the eventbus.EventBus interface.
-func (d *distEventBus) Publish(channel string, arg interface{}, globally bool) {
+func (d *DistEventBus) Publish(channel string, arg interface{}, globally bool) {
 	if globally {
 		// publish to pubsub in the background.
 		go func() {
@@ -105,21 +114,62 @@ func (d *distEventBus) Publish(channel string, arg interface{}, globally bool) {
 }
 
 // SubscribeAsync implements the eventbus.EventBus interface.
-func (d *distEventBus) SubscribeAsync(eventType string, callback eventbus.CallbackFn) {
+func (d *DistEventBus) SubscribeAsync(eventType string, callback eventbus.CallbackFn) {
 	d.localEventBus.SubscribeAsync(eventType, callback)
 }
 
+func (d *DistEventBus) RegisterStorageEvents(bucketName string, client *storage.Client) error {
+	ctx := context.TODO()
+	bucket := client.Bucket(bucketName)
+
+	notifications, err := bucket.Notifications(ctx)
+	if err != nil {
+		return err
+	}
+	sklog.Infof("Retrieved: %d notifications", len(notifications))
+
+	found := false
+	for _, notify := range notifications {
+		if notify.TopicID == d.topic.ID() {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		sklog.Infof("Adding notifications for %s %s %s", d.projectID, d.topic.ID(), bucketName)
+		bucket := client.Bucket(bucketName)
+		notifyID, err := bucket.AddNotification(ctx, &storage.Notification{
+			TopicProjectID: d.projectID,
+			TopicID:        d.topic.ID(),
+			EventTypes:     []string{storage.ObjectFinalizeEvent},
+			PayloadFormat:  storage.JSONPayload,
+		})
+		if err != nil {
+			return sklog.FmtErrorf("Error registering event: %s", err)
+		}
+		sklog.Infof("notify: %s", spew.Sdump(notifyID))
+	}
+
+	d.storageBuckets[bucketName] = true
+	return nil
+}
+
+func (d *DistEventBus) StorageEventType(bucketName string) string {
+	return "--storage-event-" + bucketName
+}
+
 // setupTopicSub sets up the topic and subscription.
-func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
+func (d *DistEventBus) setupTopicSub(topicName, subscriberName string) error {
 	ctx := context.Background()
 
 	// Create the topic if it doesn't exist yet.
 	d.topic = d.client.Topic(topicName)
 	if exists, err := d.topic.Exists(ctx); err != nil {
-		return err
+		return sklog.FmtErrorf("Error checking whether topic exits: %s", err)
 	} else if !exists {
 		if d.topic, err = d.client.CreateTopic(ctx, topicName); err != nil {
-			return fmt.Errorf("Error creating pubsub topic '%s': %s", topicName, err)
+			return sklog.FmtErrorf("Error creating pubsub topic '%s': %s", topicName, err)
 		}
 	}
 
@@ -127,13 +177,13 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 	subName := fmt.Sprintf("%s+%s", subscriberName, topicName)
 	d.sub = d.client.Subscription(subName)
 	if exists, err := d.sub.Exists(ctx); err != nil {
-		return fmt.Errorf("Error checking existence of pubsub subscription '%s': %s", subName, err)
+		return sklog.FmtErrorf("Error checking existence of pubsub subscription '%s': %s", subName, err)
 	} else if !exists {
 		d.sub, err = d.client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
 			Topic: d.topic,
 		})
 		if err != nil {
-			return fmt.Errorf("Error creating pubsub subscription '%s': %s", subName, err)
+			return sklog.FmtErrorf("Error creating pubsub subscription '%s': %s", subName, err)
 		}
 	}
 	// Make the subscription also the id of this client.
@@ -143,7 +193,7 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 
 // startReceiver start a goroutine that processes incoming pubsub messages
 // and fires events on this node.
-func (d *distEventBus) startReceiver() {
+func (d *DistEventBus) startReceiver() {
 	go func() {
 		ctx := context.Background()
 		for {
@@ -156,10 +206,10 @@ func (d *distEventBus) startReceiver() {
 	}()
 }
 
-// processReceivedMsg handles each pubsub message that arrives. It unwrapps the
+// processReceivedMsg handles each pubsub message that arrives. It unwraps the
 // enclosed channelWrapper and dispatches the event in this process unless the
 // received message was sent by this node.
-func (d *distEventBus) processReceivedMsg(ctx context.Context, msg *pubsub.Message) {
+func (d *DistEventBus) processReceivedMsg(ctx context.Context, msg *pubsub.Message) {
 	defer msg.Ack()
 	wrapper, data, err := d.decodeMsg(msg)
 	if err != nil {
@@ -174,9 +224,14 @@ func (d *distEventBus) processReceivedMsg(ctx context.Context, msg *pubsub.Messa
 
 // decodeMsg unwraps the channelWrapper instance contained in the pubsub message
 // and returns the deserialized payload as an instance of interface{}.
-func (d *distEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interface{}, error) {
+func (d *DistEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interface{}, error) {
+	// If this
+	wrapper, data, err := d.decodeStorageEvent(msg)
+	if wrapper != nil || err != nil {
+		return wrapper, data, err
+	}
+
 	// Unwrap the payload if this was wrapped in a channel wrapper.
-	var wrapper *channelWrapper = nil
 	payload := msg.Data
 	var codec util.LRUCodec = nil
 	if d.wrapperCodec != nil {
@@ -194,16 +249,35 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) (*channelWrapper, interfac
 	}
 
 	// Deserialize the payload.
-	data, err := codec.Decode(payload)
+	data, err = codec.Decode(payload)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Unable to decode payload of pubsub event: %s", err)
 	}
 	return wrapper, data, nil
 }
 
+func (d *DistEventBus) decodeStorageEvent(msg *pubsub.Message) (*channelWrapper, interface{}, error) {
+	// Test if this is a storage notification.
+	if msg.Attributes["notificationConfig"] == "" {
+		return nil, nil, nil
+	}
+
+	bucketName := msg.Attributes["bucketId"]
+	if !d.storageBuckets[bucketName] {
+		return nil, nil, sklog.FmtErrorf("Received event for unregistered storage bucket: %s", bucketName)
+	}
+
+	wrapper := &channelWrapper{Channel: d.StorageEventType(bucketName)}
+	data := &storage.ObjectAttrs{}
+	if err := json.Unmarshal([]byte(msg.Attributes[""]), &data); err != nil {
+		return nil, nil, err
+	}
+	return wrapper, data, nil
+}
+
 // encodeMsg wraps the given payload into an instance of channelWrapper and
 // creates the necessary pubsub message to send it to the cloud.
-func (d *distEventBus) encodeMsg(channel string, data interface{}, codec util.LRUCodec) (*pubsub.Message, error) {
+func (d *DistEventBus) encodeMsg(channel string, data interface{}, codec util.LRUCodec) (*pubsub.Message, error) {
 	payload, err := codec.Encode(data)
 	if err != nil {
 		return nil, err
