@@ -375,7 +375,7 @@
           this._selectedMode = "";
           return;
         }
-        var url = "/json/mode";
+        var url = window.location.pathname + "/json/mode";
         var body = JSON.stringify({
             "message": this.$.mode_change_msg.value,
             "mode": this._selectedMode,
@@ -397,7 +397,7 @@
         if (e.detail.canceled || !e.detail.confirmed) {
           return;
         }
-        var url = "/json/strategy";
+        var url = window.location.pathname + "/json/strategy";
         var body = JSON.stringify({
             "message": this.$.strategy_change_msg.value,
             "strategy": this._selectedStrategy,
@@ -468,7 +468,7 @@
       },
 
       _reload: function() {
-        var url = "/json/status";
+        var url = window.location.pathname + "/json/status";
         console.log("Loading status from " + url);
 
         sk.get(url).then(JSON.parse).then(function(json) {
@@ -543,7 +543,7 @@
       },
 
       _unthrottle: function() {
-        var url = "/json/unthrottle";
+        var url = window.location.pathname + "/json/unthrottle";
         console.log("Unthrottling: " + url);
 
         sk.post(url).then(function(json) {
