@@ -865,3 +865,23 @@ func TestWithGzipWriter(t *testing.T) {
 		return write(w, "hi")
 	}), "Failed to close gzip.Writer: nope")
 }
+
+func TestChunkIter(t *testing.T) {
+	testutils.SmallTest(t)
+
+	assert.Error(t, ChunkIter(10, -1, func(int, int) error { return nil }))
+	assert.Error(t, ChunkIter(10, 0, func(int, int) error { return nil }))
+
+	check := func(length, chunkSize int, expect [][]int) {
+		actual := [][]int{}
+		assert.NoError(t, ChunkIter(length, chunkSize, func(start, end int) error {
+			actual = append(actual, []int{start, end})
+			return nil
+		}))
+		deepequal.AssertDeepEqual(t, expect, actual)
+	}
+
+	check(10, 5, [][]int{{0, 5}, {5, 10}})
+	check(4, 1, [][]int{{0, 1}, {1, 2}, {2, 3}, {3, 4}})
+	check(7, 5, [][]int{{0, 5}, {5, 7}})
+}
