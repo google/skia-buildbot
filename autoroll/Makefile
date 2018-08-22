@@ -34,7 +34,7 @@ release-fe: autoroll-fe
 	./build_frontend_release "$(MESSAGE)"
 	./build_frontend_internal_release "$(MESSAGE)"
 
-release-be: autoroll-be afdo_chromium_release android_master_release android_next_release android_o_release angle_skia_release angle_chromium_release catapult_release chromite_chromium_release chromium_skia_release depot_tools_chromium_release flutter_engine_flutter_release fuchsia_sdk_chromium_release google3_release ios_internal_chromium_release lottie_web_lottie_ci_release nacl_release pdfium_release perfetto_chromium_release fuchsia_release skcms_skia_release skia_release skia_flutter_release skia_internal_release skia_lottie_ci_release spirv_headers_chromium_release spirv_tools_chromium_release src_internal_chromium_release swiftshader_skia_release webrtc_chromium_release
+release-be: autoroll-be afdo_chromium_release android_master_release android_next_release android_o_release angle_skia_release angle_chromium_release catapult_release chromite_chromium_release chromium_skia_release depot_tools_chromium_release flutter_engine_flutter_release fuchsia_sdk_chromium_release ios_internal_chromium_release lottie_web_lottie_ci_release nacl_release pdfium_release perfetto_chromium_release fuchsia_release skcms_skia_release skia_release skia_flutter_release skia_internal_release skia_lottie_ci_release spirv_headers_chromium_release spirv_tools_chromium_release src_internal_chromium_release swiftshader_skia_release webrtc_chromium_release
 
 release-all: release-fe release-be
 
@@ -73,10 +73,6 @@ flutter_engine_flutter_release: autoroll-be
 
 fuchsia_sdk_chromium_release: autoroll-be
 	./build_fuchsia_sdk_chromium_release "$(MESSAGE)"
-
-.PHONY: google3_release
-google3_release: autoroll-be
-	./build_google3_release "$(MESSAGE)"
 
 ios_internal_chromium_release: autoroll-be
 	./build_ios_internal_chromium_release "$(MESSAGE)"
