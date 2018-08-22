@@ -73,17 +73,21 @@ func NewStrategyHistory(ctx context.Context, roller, defaultStrategy string, val
 	}
 	if len(data) == 0 {
 		sklog.Warningf("Migrating data to new namespace.")
-		q := datastore.NewQuery(string(ds.KIND_AUTOROLL_STRATEGY)).Namespace(ds.AUTOROLL_NS)
+		q := datastore.NewQuery(string(ds.KIND_AUTOROLL_STRATEGY)).Namespace(ds.AUTOROLL_NS).Filter("roller =", sh.roller)
 		var data []*StrategyChange
 		keys, err := ds.DS.GetAll(ctx, q, &data)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to transition old data: %s", err)
+			return nil, fmt.Errorf("Failed to retrieve old data: %s", err)
 		}
 		for _, key := range keys {
 			key.Namespace = ds.AUTOROLL_INTERNAL_NS
+			key.Parent.Namespace = ds.AUTOROLL_INTERNAL_NS
 		}
-		if _, err := ds.DS.PutMulti(ctx, keys, data); err != nil {
-			return nil, fmt.Errorf("Failed to transition old data: %s", err)
+		if err := util.ChunkIter(len(keys), 500 /* Maximum number allowed to insert into DS */, func(start, end int) error {
+			_, err := ds.DS.PutMulti(ctx, keys[start:end], data[start:end])
+			return err
+		}); err != nil {
+			return nil, fmt.Errorf("Failed to insert old data: %s", err)
 		}
 		sklog.Warningf("Finished migrating data to new namespace.")
 	}

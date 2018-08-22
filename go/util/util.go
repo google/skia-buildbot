@@ -752,16 +752,29 @@ func MD5FromReader(r io.Reader, w io.Writer) ([]byte, error) {
 }
 
 // ChunkIter iterates over a slice in chunks of smaller slices.
-func ChunkIter(s []int, chunkSize int, fn func([]int) error) error {
+func ChunkIter(length, chunkSize int, fn func(int, int) error) error {
 	if chunkSize < 1 {
 		return fmt.Errorf("Chunk size may not be less than 1.")
 	}
-	for c, r := s[:MinInt(chunkSize, len(s))], s[MinInt(chunkSize, len(s)):]; len(c) > 0; c, r = r[:MinInt(chunkSize, len(r))], r[MinInt(chunkSize, len(r)):] {
-		if err := fn(c); err != nil {
+	chunkStart := 0
+	chunkEnd := MinInt(length, chunkSize)
+	for {
+		if err := fn(chunkStart, chunkEnd); err != nil {
 			return err
 		}
+		if chunkEnd == length {
+			return nil
+		}
+		chunkStart = chunkEnd
+		chunkEnd = MinInt(length, chunkEnd+chunkSize)
 	}
-	return nil
+}
+
+// ChunkIterInt iterates over a slice of ints in chunks of smaller slices.
+func ChunkIterInt(s []int, chunkSize int, fn func([]int) error) error {
+	return ChunkIter(len(s), chunkSize, func(start, end int) error {
+		return fn(s[start:end])
+	})
 }
 
 // BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
