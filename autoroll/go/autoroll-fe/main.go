@@ -74,8 +74,7 @@ func reloadTemplates() {
 }
 
 func isGoogle3Roller() bool {
-	// TODO(borenet): Is this correct?
-	return strings.Contains(rollerName, "Google3")
+	return strings.Contains(rollerName, "google3")
 }
 
 func Init() {
