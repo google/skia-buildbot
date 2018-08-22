@@ -61,37 +61,6 @@ func NewRecentRolls(ctx context.Context, roller string) (*RecentRolls, error) {
 	recentRolls := &RecentRolls{
 		roller: roller,
 	}
-
-	// Temporary measure to migrate internal rollers to new datastore
-	// namespace: If there is no data, copy any existing data from the old
-	// namespace to the new one.
-	// TODO(borenet): Remove this after it has run once on all internal
-	// rollers.
-	data, err := recentRolls.getHistory(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(data) == 0 {
-		sklog.Warningf("Migrating data to new namespace.")
-		q := datastore.NewQuery(string(ds.KIND_AUTOROLL_ROLL)).Namespace(ds.AUTOROLL_NS).Filter("roller =", recentRolls.roller)
-		var data []*dsRoll
-		keys, err := ds.DS.GetAll(ctx, q, &data)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve old data: %s", err)
-		}
-		for _, key := range keys {
-			key.Namespace = ds.AUTOROLL_INTERNAL_NS
-			key.Parent.Namespace = ds.AUTOROLL_INTERNAL_NS
-		}
-		if err := util.ChunkIter(len(keys), 500 /* Maximum number allowed to insert into DS */, func(start, end int) error {
-			_, err := ds.DS.PutMulti(ctx, keys[start:end], data[start:end])
-			return err
-		}); err != nil {
-			return nil, fmt.Errorf("Failed to insert old data: %s", err)
-		}
-		sklog.Warningf("Finished migrating data to new namespace.")
-	}
-
 	if err := recentRolls.refreshRecentRolls(ctx); err != nil {
 		return nil, err
 	}
