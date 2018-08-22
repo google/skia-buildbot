@@ -8,6 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
@@ -23,7 +24,15 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL, ds.KIND_AUTOROLL_STATUS)
 	gb := git_testutils.GitInit(t, ctx)
 	tmpDir, cleanup := testutils.TempDir(t)
-	a, err := NewAutoRoller(ctx, tmpDir, gb.RepoUrl(), "master", "test-roller")
+	a, err := NewAutoRoller(ctx, tmpDir, &roller.AutoRollerConfig{
+		ChildName: "test-child",
+		Google3RepoManager: &roller.Google3FakeRepoManagerConfig{
+			ChildBranch: "master",
+			ChildRepo:   gb.RepoUrl(),
+		},
+		ParentName: "test-parent",
+		RollerName: "test-roller",
+	})
 	assert.NoError(t, err)
 	a.Start(ctx, time.Second, time.Second)
 	return ctx, a, gb, func() {

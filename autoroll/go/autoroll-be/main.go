@@ -76,22 +76,22 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatalf("Could not get hostname: %s", err)
-	}
-	gcsBucket := GS_BUCKET_AUTOROLLERS
-	rollerName := hostname
-	if *local {
-		gcsBucket = gcs.TEST_DATA_BUCKET
-		rollerName = fmt.Sprintf("autoroll_%s", hostname)
-	}
-
 	var cfg roller.AutoRollerConfig
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
 		return json5.NewDecoder(f).Decode(&cfg)
 	}); err != nil {
 		sklog.Fatal(err)
+	}
+
+	gcsBucket := GS_BUCKET_AUTOROLLERS
+	rollerName := cfg.RollerName
+	if *local {
+		gcsBucket = gcs.TEST_DATA_BUCKET
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatalf("Could not get hostname: %s", err)
+		}
+		rollerName = fmt.Sprintf("autoroll_%s", hostname)
 	}
 
 	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildName, cfg.ParentName))

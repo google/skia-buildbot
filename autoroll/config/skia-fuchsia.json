@@ -4,6 +4,7 @@
   "maxRollFrequency": "3h",
   "parentName": "Fuchsia",
   "parentWaterfall": "https://fuchsia-dashboard.appspot.com/",
+  "rollerName": "fuchsia-autoroll",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
   "manifestRepoManager": {
     "childBranch": "master",
