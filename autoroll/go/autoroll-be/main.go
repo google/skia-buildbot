@@ -87,14 +87,14 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatalf("Could not get hostname: %s", err)
-	}
 	gcsBucket := GS_BUCKET_AUTOROLLERS
-	rollerName := hostname
+	rollerName := cfg.RollerName
 	if *local {
 		gcsBucket = gcs.TEST_DATA_BUCKET
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatalf("Could not get hostname: %s", err)
+		}
 		rollerName = fmt.Sprintf("autoroll_%s", hostname)
 	}
 
