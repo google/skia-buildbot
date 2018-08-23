@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/autoscaler"
@@ -11,9 +12,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-
-	"go.skia.org/infra/ct/go/master_scripts/master_common"
-	"go.skia.org/infra/ct/go/util"
 )
 
 const (
@@ -49,10 +47,11 @@ func NewCTAutoscaler() (*CTAutoscaler, error) {
 	}
 
 	// Authenticated HTTP client.
-	httpClient, err := auth.NewClient(*master_common.Local, "google_storage_token.data", swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(false, swarming.AUTH_SCOPE)
 	if err != nil {
-		return nil, fmt.Errorf("Could not create an authenticated HTTP client: %s", err)
+		return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 	}
+	httpClient := auth.ClientFromTokenSource(ts)
 	// Instantiate the swarming client.
 	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {

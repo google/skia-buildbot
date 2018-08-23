@@ -246,15 +246,15 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func AddHandlers(r *mux.Router) {
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.METRICS_ANALYSIS_URI, "GET", addTaskView)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.METRICS_ANALYSIS_RUNS_URI, "GET", runsHistoryView)
+func AddHandlers(externalRouter, internalRouter *mux.Router) {
+	externalRouter.HandleFunc("/"+ctfeutil.METRICS_ANALYSIS_URI, addTaskView).Methods("GET")
+	externalRouter.HandleFunc("/"+ctfeutil.METRICS_ANALYSIS_RUNS_URI, runsHistoryView).Methods("GET")
 
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.ADD_METRICS_ANALYSIS_TASK_POST_URI, "POST", addTaskHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.GET_METRICS_ANALYSIS_TASKS_POST_URI, "POST", getTasksHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.DELETE_METRICS_ANALYSIS_TASK_POST_URI, "POST", deleteTaskHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.REDO_METRICS_ANALYSIS_TASK_POST_URI, "POST", redoTaskHandler)
+	externalRouter.HandleFunc("/"+ctfeutil.ADD_METRICS_ANALYSIS_TASK_POST_URI, addTaskHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.GET_METRICS_ANALYSIS_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.DELETE_METRICS_ANALYSIS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.REDO_METRICS_ANALYSIS_TASK_POST_URI, redoTaskHandler).Methods("POST")
 
-	// Do not add force login handler for update methods. They use webhooks for authentication.
-	r.HandleFunc("/"+ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	// Updating tasks is done via the internal router.
+	internalRouter.HandleFunc("/"+ctfeutil.UPDATE_METRICS_ANALYSIS_TASK_POST_URI, updateTaskHandler).Methods("POST")
 }

@@ -491,6 +491,8 @@ func Close(c io.Closer) {
 		// Don't start the stacktrace here, but at the caller's location
 		sklog.ErrorfWithDepth(1, "Failed to Close(): %v", err)
 	}
+	fmt.Printf("XXXXXXXX Closed in skutil.Close %d\n", runtime.NumGoroutine())
+
 }
 
 // RemoveAll removes the specified path and logs an error if one is returned.
