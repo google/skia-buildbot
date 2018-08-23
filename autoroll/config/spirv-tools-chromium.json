@@ -4,6 +4,7 @@
   "maxRollFrequency": "0m",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "spirv-tools-chromium-autoroll",
   "sheriff": ["dsinclair@google.com"],
   "noCheckoutDepsRepoManager": {
     "childBranch": "master",

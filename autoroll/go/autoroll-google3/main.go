@@ -61,8 +61,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
-	rollerName := "google3-autoroll" // TODO(borenet): Get this from the config.
-	arb, err := NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master", rollerName)
+	arb, err := NewAutoRoller(ctx, *workdir, &cfg)
 	if err != nil {
 		sklog.Fatal(err)
 	}

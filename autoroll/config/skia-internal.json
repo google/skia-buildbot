@@ -16,6 +16,7 @@
   ],
   "parentName": "Internal Test",
   "parentWaterfall": "https://status-internal.skia.org/",
+  "rollerName": "skia-internal-autoroll",
   "safetyThrottle": {
     "attemptCount": 0,
     "timeWindow": "1h"

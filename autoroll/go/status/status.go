@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/autoroll/go/modes"
-	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
@@ -27,12 +25,9 @@ type AutoRollStatus struct {
 	IssueUrlBase    string                    `json:"issueUrlBase"`
 	LastRoll        *autoroll.AutoRollIssue   `json:"lastRoll"`
 	LastRollRev     string                    `json:"lastRollRev"`
-	Mode            *modes.ModeChange         `json:"mode"`
 	ParentName      string                    `json:"parentName"`
-	ParentWaterfall string                    `json:"parentWaterfall"`
 	Recent          []*autoroll.AutoRollIssue `json:"recent"`
 	Status          string                    `json:"status"`
-	Strategy        *strategy.StrategyChange  `json:"strategy"`
 	ThrottledUntil  int64                     `json:"throttledUntil"`
 	ValidModes      []string                  `json:"validModes"`
 	ValidStrategies []string                  `json:"validStrategies"`
@@ -49,9 +44,6 @@ type AutoRollMiniStatus struct {
 
 	// Revision of the last successful roll.
 	LastRollRev string `json:"lastRollRev"`
-
-	// Current mode.
-	Mode string `json:"mode"`
 
 	// The number of failed rolls since the last successful roll.
 	NumFailedRolls int `json:"numFailed"`
@@ -157,7 +149,6 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 		AutoRollMiniStatus: AutoRollMiniStatus{
 			CurrentRollRev:      s.CurrentRollRev,
 			LastRollRev:         s.LastRollRev,
-			Mode:                s.AutoRollMiniStatus.Mode,
 			NumFailedRolls:      s.NumFailedRolls,
 			NumNotRolledCommits: s.NumNotRolledCommits,
 		},
@@ -168,7 +159,6 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 		IssueUrlBase:    s.IssueUrlBase,
 		LastRollRev:     s.LastRollRev,
 		ParentName:      s.ParentName,
-		ParentWaterfall: s.ParentWaterfall,
 		Recent:          recent,
 		Status:          s.Status,
 		ThrottledUntil:  s.ThrottledUntil,
@@ -180,12 +170,6 @@ func (s *AutoRollStatus) Copy() *AutoRollStatus {
 	}
 	if s.LastRoll != nil {
 		rv.LastRoll = s.LastRoll.Copy()
-	}
-	if s.Mode != nil {
-		rv.Mode = s.Mode.Copy()
-	}
-	if s.Strategy != nil {
-		rv.Strategy = s.Strategy.Copy()
 	}
 	return rv
 }
@@ -201,7 +185,7 @@ func (c *AutoRollStatusCache) Update(ctx context.Context) error {
 	if err == datastore.ErrNoSuchEntity || status == nil {
 		// This will occur the first time the roller starts,
 		// before it sets the status for the first time. Ignore.
-		sklog.Warningf("Unable to find AutoRollStatus. Is this the first startup for this roller?")
+		sklog.Warningf("Unable to find AutoRollStatus for %s. Is this the first startup for this roller?", c.roller)
 		status = &AutoRollStatus{}
 	} else if err != nil {
 		return err

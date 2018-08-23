@@ -6,6 +6,8 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll-fe \
+    --config_dir=/usr/local/share/autoroll/config \
+    --host=autoroll-internal.skia.org \
     --internal \
     --resources_dir=/usr/local/share/autoroll/
 Restart=always
