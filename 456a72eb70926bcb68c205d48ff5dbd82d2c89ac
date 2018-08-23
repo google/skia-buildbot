@@ -16,6 +16,24 @@
       "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6771d643_294878ae",
+        "filename": "autoroll/config/skia-chromium.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T13:22:08Z",
+      "side": 1,
+      "message": "Yes.  It was probably a mistake on my part not to add the \"rollerName\" field when we first moved to datastore.  So unfortunately we\u0027re \"stuck\" with the GCE instance name as the rollerName for now.  I would definitely prefer to switch to the ${child}-${parent} format and drop the \"-autoroll\" suffix, but I\u0027m not sure it\u0027d be worth all the trouble.",
+      "parentUuid": "1f912e79_9471aee3",
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
