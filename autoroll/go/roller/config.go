@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/flynn/json5"
@@ -78,10 +77,21 @@ func (c *ThrottleConfig) UnmarshalJSON(b []byte) error {
 }
 
 // Dummy repo manager config used to indicate a Google3 roller.
-type google3FakeRepoManagerConfig struct{}
+type Google3FakeRepoManagerConfig struct {
+	// Branch of the child repo to roll.
+	ChildBranch string `json:"childBranch"`
+	// URL of the child repo.
+	ChildRepo string `json:"childRepo"`
+}
 
 // See documentation for util.Validator interface.
-func (c *google3FakeRepoManagerConfig) Validate() error {
+func (c *Google3FakeRepoManagerConfig) Validate() error {
+	if c.ChildBranch == "" {
+		return errors.New("ChildBranch is required.")
+	}
+	if c.ChildRepo == "" {
+		return errors.New("ChildRepo is required.")
+	}
 	return nil
 }
 
@@ -99,6 +109,8 @@ type AutoRollerConfig struct {
 	ParentName string `json:"parentName"`
 	// URL of the waterfall/status display for the parent repo.
 	ParentWaterfall string `json:"parentWaterfall"`
+	// Name of the roller, used for database keys.
+	RollerName string `json:"rollerName"`
 	// Email addresses to CC on rolls, or URL from which to obtain those
 	// email addresses.
 	Sheriff []string `json:"sheriff"`
@@ -120,7 +132,7 @@ type AutoRollerConfig struct {
 	FuchsiaSDKRepoManager     *repo_manager.FuchsiaSDKRepoManagerConfig     `json:"fuchsiaSDKRepoManager"`
 	GithubRepoManager         *repo_manager.GithubRepoManagerConfig         `json:"githubRepoManager"`
 	GithubDEPSRepoManager     *repo_manager.GithubDEPSRepoManagerConfig     `json:"githubDEPSRepoManager"`
-	Google3RepoManager        *google3FakeRepoManagerConfig                 `json:"google3"`
+	Google3RepoManager        *Google3FakeRepoManagerConfig                 `json:"google3"`
 	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager"`
 	NoCheckoutDEPSRepoManager *repo_manager.NoCheckoutDEPSRepoManagerConfig `json:"noCheckoutDEPSRepoManager"`
 
@@ -154,6 +166,9 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.ParentWaterfall == "" {
 		return errors.New("ParentWaterfall is required.")
+	}
+	if c.RollerName == "" {
+		return errors.New("RollerName is required.")
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
@@ -200,11 +215,6 @@ func (c *AutoRollerConfig) Validate() error {
 	// Verify that the notifier configs are valid.
 	a := arb_notifier.New("fake", "fake", nil)
 	return a.Router().AddFromConfigs(context.Background(), c.Notifiers)
-}
-
-// Return a metrics-friendly name for the roller based on the config.
-func (c *AutoRollerConfig) RollerName() string {
-	return strings.ToLower(c.ChildName) + "-" + strings.ToLower(c.ParentName)
 }
 
 // Return the "type" of this roller.

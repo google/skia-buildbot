@@ -16,6 +16,7 @@
   "maxRollFrequency": "8h",
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
+  "rollerName": "angle-skia-autoroll",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
   "noCheckoutDepsRepoManager": {
     "childBranch": "master",
