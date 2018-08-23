@@ -92,10 +92,11 @@ func (b *baseInitOpt) order() int {
 
 // cloudLoggingInitOpt implements Opt for cloud logging.
 type cloudLoggingInitOpt struct {
-	logGrouping        string
-	serviceAccountPath *string
-	local              *bool
-	useDefaultAuth     bool // If true then use the instance service account.
+	logGrouping           string
+	serviceAccountPath    *string
+	local                 *bool
+	useDefaultAuth        bool // If true then use the instance service account.
+	useDefaultTokenSource bool // If true the use the default token source.
 }
 
 // CloudLoggingOpt creates an Opt to initialize cloud logging when passed to InitWith().
@@ -113,6 +114,13 @@ func CloudLoggingDefaultAuthOpt(local *bool) Opt {
 	return &cloudLoggingInitOpt{
 		useDefaultAuth: true,
 		local:          local,
+	}
+}
+
+func CloudLoggingDefaultTokenSourceOpt(local *bool) Opt {
+	return &cloudLoggingInitOpt{
+		useDefaultTokenSource: true,
+		local: local,
 	}
 }
 
@@ -136,7 +144,13 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 	}
 	var err error
 	var c *http.Client
-	if !o.useDefaultAuth {
+	if o.useDefaultTokenSource {
+		ts, err := auth.NewDefaultTokenSource(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		if err != nil {
+			return fmt.Errorf("Problem setting up default token source: %s", err)
+		}
+		c = auth.ClientFromTokenSource(ts)
+	} else if !o.useDefaultAuth {
 		path := ""
 		if o.serviceAccountPath != nil {
 			path = *(o.serviceAccountPath)
