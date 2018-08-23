@@ -22,6 +22,30 @@
       "revId": "a91ebb9b901fee52836e0f5f24c42c62eb390af0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09f89399_96ffc161",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T19:06:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f86064b9_54ca9451",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 27
+      },
+      "revId": "a91ebb9b901fee52836e0f5f24c42c62eb390af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
