@@ -62,7 +62,7 @@ ALERT DiskSpaceLow
   }
 
 ALERT DiskSpaceLow
-  IF df_complex_free{resource=~"df-mnt-.*"} < 1e10
+  IF df_complex_free{resource=~"df-mnt-.*",resource!~".+docker.+"} < 1e10
   FOR 5m
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
