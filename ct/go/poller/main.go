@@ -8,12 +8,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,7 +36,7 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/metrics2"
+	//"go.skia.org/infra/go/metrics2"// test ing to see if it causes the gorotuine problem.
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -95,7 +97,13 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for run_chromium_analysis_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "run_chromium_analysis_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -111,9 +119,29 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 			"--match_stdout_txt=" + task.MatchStdoutTxt,
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "run_chromium_analysis_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("run_chromium_analysis_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "run_chromium_analysis_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.ChromiumPerfDatastoreTask here so we can add methods.
@@ -146,7 +174,13 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for run_chromium_perf_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "run_chromium_perf_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -163,9 +197,36 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "run_chromium_analysis_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("run_chromium_analysis_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "run_chromium_analysis_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
+}
+
+func GetTaskOutput(b bytes.Buffer, taskName, runId string) (string, error) {
+	if _, err := b.WriteString(fmt.Sprintf("========== End of stdout and stderr for %s %s ==========\n", taskName, runId)); err != nil {
+		return "", fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+	return b.String(), nil
 }
 
 // Define frontend.MetricsAnalysisDatastoreTask here so we can add methods.
@@ -193,7 +254,13 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for metrics_analysis_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "metrics_analysis_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -204,9 +271,29 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "metrics_analysis_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("metrics_analysis_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "metrics_analysis_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.PixelDiffDatastoreTask here so we can add methods.
@@ -234,7 +321,13 @@ func (task *PixelDiffTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 		}
 		defer skutil.Remove(patchPath)
 	}
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for pixel_diff_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "pixel_diff_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -247,9 +340,29 @@ func (task *PixelDiffTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "pixel_diff_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("pixel_diff_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "pixel_diff_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.CaptureSkpsDatastoreTask here so we can add methods.
@@ -260,7 +373,13 @@ type CaptureSkpsTask struct {
 func (task *CaptureSkpsTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for capture_skps_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "capture_skps_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -272,9 +391,29 @@ func (task *CaptureSkpsTask) Execute(ctx context.Context, getPatchFunc GetPatchF
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "capture_skps_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("capture_skps_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "capture_skps_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.LuaScriptDatastoreTask here so we can add methods.
@@ -302,7 +441,13 @@ func (task *LuaScriptTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 		}
 		defer skutil.Remove(luaAggregatorPath)
 	}
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for run_lua_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "run_lua_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -313,9 +458,29 @@ func (task *LuaScriptTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "run_lua_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("run_lua_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "run_lua_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.ChromiumBuildDatastoreTask here so we can add methods.
@@ -325,9 +490,15 @@ type ChromiumBuildTask struct {
 
 func (task *ChromiumBuildTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for build_chromium %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
 	// We do not pass --run_on_gce to the below because build tasks always run
 	// on GCE builders not GCE workers or bare-metal machines.
-	return exec.Run(ctx, &exec.Command{
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "build_chromium",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -337,9 +508,29 @@ func (task *ChromiumBuildTask) Execute(ctx context.Context, getPatchFunc GetPatc
 			"--chromium_hash=" + task.ChromiumRev,
 			"--skia_hash=" + task.SkiaRev,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "build_chromium", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("build_chromium failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "build_chromium", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.RecreatePageSetsDatastoreTask here so we can add methods.
@@ -349,7 +540,13 @@ type RecreatePageSetsTask struct {
 
 func (task *RecreatePageSetsTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for create_pagesets_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "create_pagesets_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -358,9 +555,29 @@ func (task *RecreatePageSetsTask) Execute(ctx context.Context, getPatchFunc GetP
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "create_pagesets_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("create_pagesets_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "create_pagesets_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Define frontend.RecreateWebpageArchivesDatastoreTask here so we can add methods.
@@ -370,7 +587,13 @@ type RecreateWebpageArchivesTask struct {
 
 func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context, getPatchFunc GetPatchFunc) error {
 	runId := runId(task)
-	return exec.Run(ctx, &exec.Command{
+
+	var b bytes.Buffer
+	if _, err := b.WriteString(fmt.Sprintf("========== Start of stdout and stderr for capture_archives_on_workers %s ==========\n", runId)); err != nil {
+		return fmt.Errorf("Error writing to output buffer: %s", err)
+	}
+
+	if taskErr := exec.Run(ctx, &exec.Command{
 		Name: "capture_archives_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -379,9 +602,29 @@ func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context, getPatchFu
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-	})
+		LogStdout: false,
+		LogStderr: false,
+		Stdout:    &b,
+		Stderr:    &b,
+	}); taskErr != nil {
+		output, getErr := GetTaskOutput(b, "capture_archives_on_workers", runId)
+		skutil.LogErr(getErr)
+		fmt.Println(output)
+		return fmt.Errorf("capture_archives_on_workers failed with: %s", taskErr)
+	}
+
+	output, err := GetTaskOutput(b, "capture_archives_on_workers", runId)
+	if err != nil {
+		return fmt.Errorf("Could not get output: %s", err)
+	}
+	// Print the output and return.
+	fmt.Println(output)
+	return nil
 }
 
 // Returns a poller Task containing the given task_common.Task, or nil if otherTask is nil.
@@ -428,14 +671,19 @@ func updateWebappTaskSetFailed(task Task) error {
 // WaitGroup of the goroutine is returned to the caller. The caller can then call
 // wg.Wait() if they would like to wait for the task to finish.
 func pollAndExecOnce(ctx context.Context, getPatchFunc GetPatchFunc) *sync.WaitGroup {
+	fmt.Printf("XXXXXXXX before get oldest pending task %d\n", runtime.NumGoroutine())
 	pending, err := frontend.GetOldestPendingTaskV2()
+	fmt.Printf("XXXXXXXX after get oldest pending task %d\n", runtime.NumGoroutine())
 	var wg sync.WaitGroup
 	if err != nil {
 		sklog.Error(err)
+		fmt.Println("HHHHHHHHHHHHHHHHHHH")
+		fmt.Println(err)
 		return &wg
 	}
 	task := asPollerTask(ctx, pending)
 	if task == nil {
+		fmt.Println("XXXXXXXX No task to pickup here!")
 		return &wg
 	}
 
@@ -473,22 +721,32 @@ func pollAndExecOnce(ctx context.Context, getPatchFunc GetPatchFunc) *sync.WaitG
 }
 
 func main() {
+
+	fmt.Printf("SSSSSSSS in poller %d\n", runtime.NumGoroutine())
+
 	master_common.InitWithMetrics2("ct-poller", promPort)
 
-	healthyGauge := metrics2.GetInt64Metric("healthy")
+	fmt.Printf("SSSSSSSS in poller %d\n", runtime.NumGoroutine())
+
+	//healthyGauge := metrics2.GetInt64Metric("healthy")
 
 	// Terminate all tasks which were in running state when the poller was restarted.
 	// See skbug.com/7062.
-	if err := frontend.TerminateRunningTasks(); err != nil {
-		sklog.Fatalf("Could not terminate running tasks: %s", err)
-	}
+	//if err := frontend.TerminateRunningTasks(); err != nil {
+	//	sklog.Fatalf("Could not terminate running tasks: %s", err)
+	//}
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	ctx := context.Background()
 	pollAndExecOnce(ctx, ctutil.GetPatchFromStorage)
+	fmt.Printf("XXXXXXXX in poller %d\n", runtime.NumGoroutine())
 	for range time.Tick(*pollInterval) {
-		healthyGauge.Update(1)
-		pollAndExecOnce(ctx, ctutil.GetPatchFromStorage)
+		fmt.Println(ctx)
+		fmt.Printf("XXXXXXXX entering poller %d\n", runtime.NumGoroutine())
+		//healthyGauge.Update(1)
+		fmt.Printf("XXXXXXXX after update in poller %d\n", runtime.NumGoroutine())
+		//pollAndExecOnce(ctx, ctutil.GetPatchFromStorage)
+		fmt.Printf("XXXXXXXX in poller after poll and exec once %d\n", runtime.NumGoroutine())
 		// Sleeping for a second to avoid the small probability of ending up
 		// with 2 tasks with the same runID. For context see
 		// https://skia-review.googlesource.com/c/26941/8/ct/go/poller/main.go#96

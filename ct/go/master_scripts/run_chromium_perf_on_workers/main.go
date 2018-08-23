@@ -190,7 +190,7 @@ func main() {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{chromiumHash}, remotePatches, []string{},
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, remotePatches, []string{},
 				/*singlebuild*/ true, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
@@ -204,7 +204,7 @@ func main() {
 		} else {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
-				ctx, "build_chromium", *runID, "chromium", *targetPlatform, []string{chromiumHash}, remotePatches, []string{},
+				ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, remotePatches, []string{},
 				/*singlebuild*/ false, *master_common.Local, 3*time.Hour, 1*time.Hour)
 			if err != nil {
 				return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
@@ -222,7 +222,7 @@ func main() {
 	isolateDeps := []string{}
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -263,7 +263,7 @@ func main() {
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, *master_common.ServiceAccountFile, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
