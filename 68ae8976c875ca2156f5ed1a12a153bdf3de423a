@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55d37296_75d0a2ac",
+        "filename": "skolo/docker/Makefile",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-23T21:10:40Z",
+      "side": 1,
+      "message": "How about putting the SHA in a variable and then test it automatically\n...\nIMG_SHA \u003d \"08d6f0b16a83d9961cdd4e79d9baddc7140dca98\"\n...\ngsutil cp gs://skia-backups/rpi_image/2018-08-23-$(IMG_SHA).gz serve-rpi-image/rpi.img\n$(shell echo \"$(IMG_SHA) *serve-rpi-image/rpi.img\" | sha1sum --quiet -c -)\n...",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 24
+      },
+      "revId": "68ae8976c875ca2156f5ed1a12a153bdf3de423a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b386319a_8e650072",
+        "filename": "skolo/docker/Makefile",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-23T21:10:40Z",
+      "side": 1,
+      "message": "Should these have .PHONY markers ?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 30
+      },
+      "revId": "68ae8976c875ca2156f5ed1a12a153bdf3de423a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
