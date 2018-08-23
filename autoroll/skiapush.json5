@@ -106,6 +106,7 @@
     "google3-autoroll": {
       "AppNames": [
         "autoroll-frontend-internal",
+        "autoroll-google3",
         "pulld",
       ],
     },

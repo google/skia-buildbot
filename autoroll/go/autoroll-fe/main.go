@@ -13,14 +13,12 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"text/template"
 	"time"
 
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 
-	"go.skia.org/infra/autoroll/go/google3"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -31,11 +29,9 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -58,7 +54,6 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20001", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	workdir      = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
 
 func reloadTemplates() {
@@ -73,10 +68,6 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/main.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
-}
-
-func isGoogle3Roller() bool {
-	return strings.Contains(rollerName, "google3")
 }
 
 func Init() {
@@ -226,20 +217,6 @@ func runServer(ctx context.Context, serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	sklog.AddLogsRedirect(r)
-
-	// Add handlers for Google3 roller.
-	if isGoogle3Roller() {
-		if err := webhook.InitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT); err != nil {
-			sklog.Fatal(err)
-		}
-		arb, err := google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master", rollerName)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		arb.AddHandlers(r)
-		arb.Start(ctx, time.Minute, time.Minute)
-	}
-
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
