@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "241b635d_4cfa1651",
+        "filename": "autoroll/build_frontend_internal_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T15:20:58Z",
+      "side": 1,
+      "message": "Does \u0027cp -r\u0027 use the right permissions? \u0027fakeroot\u0027 isn\u0027t needed?",
+      "parentUuid": "209e8f12_ee8b79de",
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f912e79_9471aee3",
         "filename": "autoroll/config/skia-chromium.json",
         "patchSetId": 5
@@ -155,6 +173,30 @@
     },
     {
       "key": {
+        "uuid": "d83c9485_b0fdb32e",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T15:20:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "7a9fd034_30b5ae55",
+      "range": {
+        "startLine": 82,
+        "startChar": 35,
+        "endLine": 82,
+        "endChar": 45
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "33a199a2_decc27af",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -199,6 +241,30 @@
       "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "469725ab_8fabb575",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T15:20:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c72ec4a5_f2c963ad",
+      "range": {
+        "startLine": 205,
+        "startChar": 37,
+        "endLine": 210,
+        "endChar": 2
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -296,6 +362,30 @@
     },
     {
       "key": {
+        "uuid": "d2ab2e5d_a8cdd2b4",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T15:20:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b0928424_eec2e1f8",
+      "range": {
+        "startLine": 335,
+        "startChar": 6,
+        "endLine": 335,
+        "endChar": 56
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f0f8eda2_f86487aa",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -343,6 +433,30 @@
     },
     {
       "key": {
+        "uuid": "5e256428_cf399c96",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T15:20:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c1a578f3_f3782515",
+      "range": {
+        "startLine": 387,
+        "startChar": 5,
+        "endLine": 387,
+        "endChar": 19
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bcc7ee4_0d1ea778",
         "filename": "autoroll/templates/main.html",
         "patchSetId": 5
@@ -387,6 +501,30 @@
       "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49ceabb1_eba457b3",
+        "filename": "autoroll/templates/main.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T15:20:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b589d546_729e261b",
+      "range": {
+        "startLine": 39,
+        "startChar": 7,
+        "endLine": 39,
+        "endChar": 19
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
