@@ -41,7 +41,6 @@ scrape_configs:
       - targets: ['flutter-engine-flutter-autoroll:20000']
       - targets: ['fuchsia-autoroll:20000']
       - targets: ['fuchsia-sdk-chromium-autoroll:20000']
-      - targets: ['google3-autoroll:20000']
       - targets: ['lottie-web-lottie-ci-autoroll:20000']
       - targets: ['nacl-autoroll:20000']
       - targets: ['pdfium-autoroll:20000']
