@@ -39,9 +39,9 @@ func ParseConfigFile(path, flagName string, out interface{}) error {
 		flagName = flagName + " "
 	}
 	if data, err := ioutil.ReadFile(path); err != nil {
-		return fmt.Errorf("Unable to read %sfile %q: %s", flagName, path, err)
+		return fmt.Errorf("Unable to read %s file %q: %s", flagName, path, err)
 	} else if err := json5.Unmarshal(data, out); err != nil {
-		return fmt.Errorf("Unable to parse %sfile %q: %s", flagName, path, err)
+		return fmt.Errorf("Unable to parse %s file %q: %s", flagName, path, err)
 	}
 	return nil
 }
