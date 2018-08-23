@@ -7,6 +7,7 @@
   "maxRollFrequency": "0m",
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
+  "rollerName": "skia-lottie-ci-autoroll",
   "safetyThrottle": {
     "attemptCount": 0,
     "timeWindow": "1h"

@@ -1,21 +1,22 @@
 {
-    "githubRepoOwner": "flutter",
-    "githubRepoName": "flutter",
-    "githubChecksNum": 11,
-    "maxRollFrequency": "0m",
-    "childName": "Engine",
-    "parentName": "Flutter",
-    "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
-    "sheriff": ["rmistry@google.com","liyuqian@google.com"],
-    "githubRepoManager": {
-      "childBranch": "master",
-      "childPath": "engine",
-      "parentBranch": "master",
-      "parentRepoURL": "git@github.com:flutter/flutter.git",
-      "childRepoURL": "git@github.com:flutter/engine.git",
-      "revisionFile": "bin/internal/engine.version",
-      "defaultStrategy": "gcs file",
-      "storageBucket": "flutter_infra",
-      "storagePathTemplates": ["flutter/%s/android-javadoc.zip","flutter/%s/dart-sdk-linux-x64.zip","flutter/%s/dart-sdk-darwin-x64.zip","flutter/%s/dart-sdk-windows-x64.zip"]
-    }
+  "githubRepoOwner": "flutter",
+  "githubRepoName": "flutter",
+  "githubChecksNum": 11,
+  "maxRollFrequency": "0m",
+  "childName": "Engine",
+  "parentName": "Flutter",
+  "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+  "rollerName": "flutter-engine-flutter-autoroll",
+  "sheriff": ["rmistry@google.com","liyuqian@google.com"],
+  "githubRepoManager": {
+    "childBranch": "master",
+    "childPath": "engine",
+    "parentBranch": "master",
+    "parentRepoURL": "git@github.com:flutter/flutter.git",
+    "childRepoURL": "git@github.com:flutter/engine.git",
+    "revisionFile": "bin/internal/engine.version",
+    "defaultStrategy": "gcs file",
+    "storageBucket": "flutter_infra",
+    "storagePathTemplates": ["flutter/%s/android-javadoc.zip","flutter/%s/dart-sdk-linux-x64.zip","flutter/%s/dart-sdk-darwin-x64.zip","flutter/%s/dart-sdk-windows-x64.zip"]
+  }
 }

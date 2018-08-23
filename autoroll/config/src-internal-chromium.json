@@ -5,6 +5,7 @@
   "maxRollFrequency": "0m",
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "src-internal-chromium-autoroll",
   "sheriff": ["mmoss@chromium.org"],
   "noCheckoutDepsRepoManager": {
     "childBranch": "master",

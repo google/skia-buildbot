@@ -19,6 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -40,36 +41,34 @@ const (
 // AutoRoller provides a handler for adding/updating Rolls, translating them into AutoRollIssue for
 // storage in RecentRolls. It also manages an AutoRollStatusCache for status handlers.
 type AutoRoller struct {
-	recent      *recent_rolls.RecentRolls
-	status      *status.AutoRollStatusCache
-	childRepo   *git.Repo
-	childBranch string
-	mtx         sync.Mutex
-	liveness    metrics2.Liveness
-	roller      string
+	cfg       *roller.AutoRollerConfig
+	recent    *recent_rolls.RecentRolls
+	status    *status.AutoRollStatusCache
+	childRepo *git.Repo
+	mtx       sync.Mutex
+	liveness  metrics2.Liveness
 }
 
-func NewAutoRoller(ctx context.Context, workdir, childRepoUrl, childBranch, rollerName string) (*AutoRoller, error) {
-	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
+func NewAutoRoller(ctx context.Context, workdir string, cfg *roller.AutoRollerConfig) (*AutoRoller, error) {
+	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, err
 	}
 
-	childRepo, err := git.NewRepo(ctx, childRepoUrl, workdir)
+	childRepo, err := git.NewRepo(ctx, cfg.Google3RepoManager.ChildRepo, workdir)
 	if err != nil {
 		return nil, err
 	}
-	cache, err := status.NewCache(ctx, rollerName)
+	cache, err := status.NewCache(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, err
 	}
 	a := &AutoRoller{
-		recent:      recent,
-		status:      cache,
-		childRepo:   childRepo,
-		childBranch: childBranch,
-		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
-		roller:      rollerName,
+		cfg:       cfg,
+		recent:    recent,
+		status:    cache,
+		childRepo: childRepo,
+		liveness:  metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
 	if err := a.UpdateStatus(ctx, "", true); err != nil {
@@ -114,7 +113,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		headRev, err := a.childRepo.RevParse(ctx, a.childBranch)
+		headRev, err := a.childRepo.RevParse(ctx, a.cfg.Google3RepoManager.ChildBranch)
 		if err != nil {
 			return err
 		}
@@ -141,33 +140,21 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	}
 
 	sklog.Infof("Updating status (%d)", commitsNotRolled)
-	if err := status.Set(ctx, a.roller, &status.AutoRollStatus{
+	if err := status.Set(ctx, a.cfg.RollerName, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
 		},
-		ChildName:      "Skia", // TODO(borenet): Use config file.
-		CurrentRoll:    a.recent.CurrentRoll(),
-		Error:          errorMsg,
-		FullHistoryUrl: "https://goto.google.com/skia-autoroll-history",
-		IssueUrlBase:   ISSUE_URL_BASE,
-		LastRoll:       lastRoll,
-		LastRollRev:    lastSuccessRev,
-		Mode: &modes.ModeChange{
-			Message: "https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller",
-			Mode:    modes.MODE_RUNNING,
-			User:    "benjaminwagner@google.com",
-			Time:    time.Date(2015, time.October, 14, 17, 6, 27, 0, time.UTC),
-		},
-		ParentName:      "Google3",                                     // TODO(borenet): Use config file.
-		ParentWaterfall: "https://goto.google.com/skia-testing-status", // TODO(borenet): Use config file.
+		ChildName:       a.cfg.ChildName,
+		CurrentRoll:     a.recent.CurrentRoll(),
+		Error:           errorMsg,
+		FullHistoryUrl:  "https://goto.google.com/skia-autoroll-history",
+		IssueUrlBase:    ISSUE_URL_BASE,
+		LastRoll:        lastRoll,
+		LastRollRev:     lastSuccessRev,
+		ParentName:      a.cfg.ParentName,
 		Recent:          recent,
 		Status:          state_machine.S_NORMAL_ACTIVE,
-		Strategy: &strategy.StrategyChange{
-			Message:  "Google3 roller strategy cannot be changed.",
-			Strategy: strategy.ROLL_STRATEGY_BATCH,
-			User:     "AutoRoller",
-		},
 		ValidModes:      []string{modes.MODE_RUNNING},
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}); err != nil {

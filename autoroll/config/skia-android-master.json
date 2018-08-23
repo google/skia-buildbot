@@ -5,6 +5,7 @@
   "maxRollFrequency": "0m",
   "parentName": "Android (master)",
   "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_master/grid",
+  "rollerName": "android-master-autoroll",
   "sheriff": ["https://skia-tree-status.appspot.com/current-robocop"],
   "androidRepoManager": {
     "childBranch": "master",

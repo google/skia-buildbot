@@ -5,6 +5,10 @@
   "maxRollFrequency": "0m",
   "parentName": "Google3",
   "parentWaterfall": "https://goto.google.com/skia-testing-status",
+  "rollerName": "google3-autoroll",
   "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-  "google3": {}
+  "google3": {
+    "childBranch": "master",
+    "childRepo": "https://skia.googlesource.com/skia.git"
+  }
 }

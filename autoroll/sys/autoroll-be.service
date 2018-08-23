@@ -7,7 +7,6 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/autoroll-be \
     --config_file=/mnt/pd0/autoroll_workdir/autoroll-config.json \
-    --host=swiftshader-skia-roll.skia.org \
     --workdir=/mnt/pd0/autoroll_workdir
 Restart=always
 User=default

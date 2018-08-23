@@ -20,11 +20,15 @@ func validBaseConfig() *AutoRollerConfig {
 		GerritURL:       "https://gerrit",
 		ParentName:      "parentName",
 		ParentWaterfall: "parentWaterfall",
+		RollerName:      "test-roller",
 		Sheriff:         []string{"sheriff@gmail.com"},
 
 		// Use the fake Google3 repo manager config, so that we don't
 		// have to bother with correctly filling in real configs.
-		Google3RepoManager: &google3FakeRepoManagerConfig{},
+		Google3RepoManager: &Google3FakeRepoManagerConfig{
+			ChildBranch: "master",
+			ChildRepo:   "my-repo",
+		},
 	}
 }
 

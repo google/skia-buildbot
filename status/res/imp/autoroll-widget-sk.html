@@ -162,14 +162,14 @@
         notify: true,
         value: function() {
           var rollers = [
-            {name: "Android", url: "https://android-master-roll.skia.org"},
-            {name: "Flutter", url: "https://skia-flutter-roll.skia.org"},
-            {name: "Fuchsia", url: "https://fuchsia-roll.skia.org"},
-            {name: "Chrome",  url: "https://autoroll.skia.org"},
-            {name: "Google3",  url: "https://google3-roll.skia.org"},
-            {name: "ANGLE", url: "https://angle-skia-roll.skia.org"},
-            {name: "skcms", url: "https://skcms-skia-roll.skia.org"},
-            {name: "SwiftSh", url: "https://swiftshader-skia-roll.skia.org"},
+            {name: "Android", url: "https://autoroll-internal.skia.org/r/android-master-autoroll"},
+            {name: "Flutter", url: "https://autoroll.skia.org/r/skia-flutter-autoroll"},
+            {name: "Fuchsia", url: "https://autoroll.skia.org/r/fuchsia-autoroll"},
+            {name: "Chrome",  url: "https://autoroll.skia.org/r/skia-autoroll"},
+            {name: "Google3", url: "https://autoroll-internal.skia.org/r/google3-autoroll"},
+            {name: "ANGLE",   url: "https://autoroll.skia.org/r/angle-skia-autoroll"},
+            {name: "skcms",   url: "https://autoroll.skia.org/r/skcms-skia-autoroll"},
+            {name: "SwiftSh", url: "https://autoroll.skia.org/r/swiftshader-skia-autoroll"},
           ];
           for (var i = 0; i < rollers.length; i++) {
             rollers[i].currentRollRev = "???";

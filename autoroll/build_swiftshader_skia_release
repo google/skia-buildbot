@@ -11,7 +11,7 @@ copy_release_files()
 {
 INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service       ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/autoroll-be.service      ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/autoroll-be      ${ROOT}/usr/local/bin/autoroll-be
 ${INSTALL_DIR} --mode=777                               ${ROOT}/mnt/pd0/autoroll_workdir
 ${INSTALL} --mode=644 -T ../infra/config/recipes.cfg    ${ROOT}/mnt/pd0/autoroll_workdir/recipes.cfg
