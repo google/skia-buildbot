@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "96c648ee_f80ed9aa",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T20:26:01Z",
+      "side": 1,
+      "message": "It\u0027s tempting to put the internal rollers in a different config directory to reduce the risk of crosstalk, but not in this CL.",
+      "range": {
+        "startLine": 381,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 4
+      },
+      "revId": "ba1b21d9fd10f151cc32a7fd5a582431bff58570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb051cc1_b09b73b0",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 9
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T20:26:01Z",
+      "side": 1,
+      "message": "I *think* this will work but I don\u0027t know enough about nginx to be sure.",
+      "range": {
+        "startLine": 421,
+        "startChar": 4,
+        "endLine": 421,
+        "endChar": 51
+      },
+      "revId": "ba1b21d9fd10f151cc32a7fd5a582431bff58570",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
