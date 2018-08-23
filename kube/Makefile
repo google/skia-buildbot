@@ -1,4 +1,4 @@
-.PHONY: build test pushk release_configmap_reload release_expand_and_reload release_iap_proxy push release_continuous_deploy
+.PHONY: build test pushk release_configmap_reload release_expand_and_reload release_iap_proxy push release_continuous_deploy kube-conf-gen
 
 build:
 	go install  ./go/...
@@ -8,6 +8,9 @@ test:
 
 pushk:
 	go install ./go/pushk
+
+kube-conf-gen:
+	go install ./go/kube-conf-gen
 
 release_configmap_reload:
 	CGO_ENABLED=0 GOOS=linux go install -a github.com/jimmidyson/configmap-reload
