@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "a0ddc069_66580ef9",
+        "filename": "autoroll/build_frontend_internal_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T13:24:40Z",
+      "side": 1,
+      "message": "config is a dir -- Does this work?",
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f912e79_9471aee3",
         "filename": "autoroll/config/skia-chromium.json",
         "patchSetId": 5
@@ -52,6 +69,98 @@
       "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8d12b34d_1172ff7e",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T13:24:40Z",
+      "side": 1,
+      "message": "uber-nit: Is this ever empty?",
+      "range": {
+        "startLine": 82,
+        "startChar": 35,
+        "endLine": 82,
+        "endChar": 45
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44cedc1b_04b696d4",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T13:24:40Z",
+      "side": 1,
+      "message": "I think you want:\nhttputils.ReportError(w, r, err, \"Failed to expand template.\")\n\n(Both the 3rd and 4th arg get logged.)",
+      "range": {
+        "startLine": 273,
+        "startChar": 30,
+        "endLine": 273,
+        "endChar": 121
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c27e54b_06c0b7a3",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T13:24:40Z",
+      "side": 1,
+      "message": "nit: roller.Cfg.Google3RepoManager !\u003d nil",
+      "range": {
+        "startLine": 335,
+        "startChar": 6,
+        "endLine": 335,
+        "endChar": 56
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0f8eda2_f86487aa",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T13:24:40Z",
+      "side": 1,
+      "message": "I don\u0027t understand why this check is needed.",
+      "range": {
+        "startLine": 387,
+        "startChar": 5,
+        "endLine": 387,
+        "endChar": 19
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
