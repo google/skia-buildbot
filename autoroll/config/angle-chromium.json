@@ -16,7 +16,7 @@
     "childPath": "src/third_party/angle",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
     "gerritProject": "chromium/src",
-    "includeBugs": false,
+    "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
