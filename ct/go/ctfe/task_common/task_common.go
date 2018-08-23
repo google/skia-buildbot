@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -28,7 +29,6 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 const (
@@ -437,7 +437,8 @@ func updateDatastoreTask(vars UpdateTaskVars, task Task) error {
 }
 
 func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWriter, r *http.Request) {
-	data, err := webhook.AuthenticateRequest(r)
+	defer skutil.Close(r.Body)
+	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		if data == nil {
 			httputils.ReportError(w, r, err, "Failed to read update request")
@@ -453,7 +454,6 @@ func UpdateTaskHandler(vars UpdateTaskVars, prototype Task, w http.ResponseWrite
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update", vars))
 		return
 	}
-	defer skutil.Close(r.Body)
 
 	key := ds.NewKey(prototype.GetDatastoreKind())
 	key.ID = vars.GetUpdateTaskCommonVars().Id
@@ -729,8 +729,8 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func AddHandlers(r *mux.Router) {
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, "POST", pageSetsHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.CL_DATA_POST_URI, "POST", getCLHandler)
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, "POST", benchmarksPlatformsHandler)
+func AddHandlers(externalRouter, internalRouter *mux.Router) {
+	externalRouter.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
 }
