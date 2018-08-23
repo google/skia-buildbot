@@ -31,9 +31,11 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -227,6 +229,9 @@ func runServer(ctx context.Context, serverURL string) {
 
 	// Add handlers for Google3 roller.
 	if isGoogle3Roller() {
+		if err := webhook.InitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT); err != nil {
+			sklog.Fatal(err)
+		}
 		arb, err := google3.NewAutoRoller(ctx, *workdir, common.REPO_SKIA, "master", rollerName)
 		if err != nil {
 			sklog.Fatal(err)
