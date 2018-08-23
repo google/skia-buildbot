@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "209e8f12_ee8b79de",
+        "filename": "autoroll/build_frontend_internal_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:53:01Z",
+      "side": 1,
+      "message": "Actually, no, it doesn\u0027t.  I\u0027m not sure what happened, since I thought I tested this before and it worked.",
+      "parentUuid": "1c51709a_c9dee06e",
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f912e79_9471aee3",
         "filename": "autoroll/config/skia-chromium.json",
         "patchSetId": 5
