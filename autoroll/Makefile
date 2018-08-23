@@ -12,7 +12,7 @@ BOWER_DIR=third_party/bower_components
 
 include ../go/skiaversion/skiaversion.mk
 
-all: autoroll-fe autoroll-be
+all: autoroll-fe autoroll-be google3
 
 autoroll-fe: core_js elements_html skiaversion
 	ln -sf ../../res res/imp/res
@@ -21,12 +21,15 @@ autoroll-fe: core_js elements_html skiaversion
 autoroll-be: skiaversion
 	go install -v ./go/autoroll-be
 
-testgo: skiaversion
-	go test ./go/... -v
+autoroll-google3: skiaversion
+	go install -v ./go/autoroll-google3
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
+
+testgo: skiaversion
+	go test ./go/... -v
 
 include ../webtools/webtools.mk
 
@@ -36,7 +39,10 @@ release-fe: autoroll-fe
 
 release-be: autoroll-be afdo_chromium_release android_master_release android_next_release android_o_release angle_skia_release angle_chromium_release catapult_release chromite_chromium_release chromium_skia_release depot_tools_chromium_release flutter_engine_flutter_release fuchsia_sdk_chromium_release ios_internal_chromium_release lottie_web_lottie_ci_release nacl_release pdfium_release perfetto_chromium_release fuchsia_release skcms_skia_release skia_release skia_flutter_release skia_internal_release skia_lottie_ci_release spirv_headers_chromium_release spirv_tools_chromium_release src_internal_chromium_release swiftshader_skia_release webrtc_chromium_release
 
-release-all: release-fe release-be
+release-google3: autoroll-google3
+	./build_google3_release "$(MESSAGE)"
+
+release-all: release-fe release-be release-google3
 
 afdo_chromium_release: autoroll-be
 	./build_afdo_chromium_release "$(MESSAGE)"

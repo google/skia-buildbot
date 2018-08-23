@@ -4,7 +4,7 @@
 	Rolls are added/updated by POST/PUT request with webhook authentication.
 */
 
-package google3
+package main
 
 import (
 	"context"
