@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f86064b9_54ca9451",
+        "filename": "autoroll/skiapush.json5",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T17:53:24Z",
+      "side": 1,
+      "message": "I don\u0027t think you can deploy both of these on the same machine because they both want to listen on port 8000.",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 27
+      },
+      "revId": "a91ebb9b901fee52836e0f5f24c42c62eb390af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
