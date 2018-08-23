@@ -42,9 +42,7 @@ const (
 // flags
 var (
 	configFile     = flag.String("config_file", "", "Configuration file to use.")
-	frontendHost   = flag.String("host", "localhost", "HTTP service host of the frontend server, informational only.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	frontendPort   = flag.String("port", ":8000", "HTTP service port (e.g., ':8000') of the frontend server, informational only.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -87,14 +85,14 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		sklog.Fatalf("Could not get hostname: %s", err)
-	}
 	gcsBucket := GS_BUCKET_AUTOROLLERS
-	rollerName := hostname
+	rollerName := cfg.RollerName
 	if *local {
 		gcsBucket = gcs.TEST_DATA_BUCKET
+		hostname, err := os.Hostname()
+		if err != nil {
+			sklog.Fatalf("Could not get hostname: %s", err)
+		}
 		rollerName = fmt.Sprintf("autoroll_%s", hostname)
 	}
 
@@ -143,9 +141,9 @@ func main() {
 		}
 	}
 
-	serverURL := "https://" + *frontendHost
-	if *local {
-		serverURL = "http://" + *frontendHost + *frontendPort
+	serverURL := roller.AUTOROLL_URL_PUBLIC + "/r/" + cfg.RollerName
+	if cfg.IsInternal {
+		serverURL = roller.AUTOROLL_URL_PRIVATE + "/r/" + cfg.RollerName
 	}
 
 	ctx := context.Background()
