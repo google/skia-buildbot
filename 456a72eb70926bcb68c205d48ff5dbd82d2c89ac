@@ -34,6 +34,24 @@
       "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42d0a0d4_33761ec9",
+        "filename": "autoroll/config/skia-chromium.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-23T13:23:51Z",
+      "side": 1,
+      "message": "We will do it one day (tm).",
+      "parentUuid": "6771d643_294878ae",
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
