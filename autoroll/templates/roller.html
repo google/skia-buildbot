@@ -3,7 +3,7 @@
   <head>
     {{template "header.html" .}}
 
-    <title>Directory of AutoRollers</title>
+    <title>{{.ChildName}} into {{.ParentName}} AutoRoller</title>
 
   </head>
   <body>
@@ -35,17 +35,8 @@
     </style>
     <app-sk id="app" class="fit">
       {{template "navbar.html" .}}
-      <h1 toolbar>Directory of AutoRollers</h1>
-      <arb-table-sk></arb-table-sk>
+      <h1 toolbar>{{.ChildName}} into {{.ParentName}} AutoRoller</h1>
+      <arb-status-sk></arb-status-sk>
     </app-sk>
   </body>
-  <script>
-    var rollers = [
-      {{range .Rollers}}
-        "{{.}}",
-      {{end}}
-    ];
-    var elem = document.getElementsByTagName("arb-table-sk")[0];
-    elem.rollers = rollers;
-  </script>
 </html>

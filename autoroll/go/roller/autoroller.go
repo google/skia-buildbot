@@ -32,6 +32,9 @@ import (
 )
 
 const (
+	AUTOROLL_URL_PUBLIC  = "https://autoroll.skia.org"
+	AUTOROLL_URL_PRIVATE = "https://autoroll-internal.skia.org"
+
 	// We'll send a notification if this many rolls fail in a row.
 	NOTIFY_IF_LAST_N_FAILED = 3
 )
@@ -47,7 +50,6 @@ type AutoRoller struct {
 	failureThrottle *state_machine.Throttler
 	gerrit          *gerrit.Gerrit
 	liveness        metrics2.Liveness
-	metricsName     string
 	modeHistory     *modes.ModeHistory
 	notifier        *arb_notifier.AutoRollNotifier
 	parentName      string
@@ -162,8 +164,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
-	metricsName := c.RollerName()
-	emails, err := getSheriff(c.ParentName, c.ChildName, metricsName, c.Sheriff, c.SheriffBackup)
+	emails, err := getSheriff(c.ParentName, c.ChildName, c.RollerName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
 		return nil, err
 	}
@@ -181,8 +182,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		emails:          emails,
 		failureThrottle: failureThrottle,
 		gerrit:          g,
-		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": metricsName}),
-		metricsName:     metricsName,
+		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		modeHistory:     mh,
 		notifier:        n,
 		recent:          recent,
@@ -266,7 +266,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 
 	// Update the current sheriff in a loop.
 	cleanup.Repeat(30*time.Minute, func() {
-		emails, err := getSheriff(r.cfg.ParentName, r.cfg.ChildName, r.metricsName, r.cfg.Sheriff, r.cfg.SheriffBackup)
+		emails, err := getSheriff(r.cfg.ParentName, r.cfg.ChildName, r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
 		} else {
@@ -412,10 +412,8 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		IssueUrlBase:    r.rm.GetIssueUrlBase(),
 		LastRoll:        r.recent.LastRoll(),
 		LastRollRev:     r.rm.LastRollRev(),
-		Mode:            r.modeHistory.CurrentMode(),
 		Recent:          recent,
 		Status:          string(r.sm.Current()),
-		Strategy:        r.strategyHistory.CurrentStrategy(),
 		ThrottledUntil:  throttledUntil,
 		ValidModes:      modes.VALID_MODES,
 		ValidStrategies: r.rm.ValidStrategies(),
@@ -517,7 +515,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished RollImpl) er
 	if currentRoll.Closed && currentRoll.Committed {
 		v = int64(1)
 	}
-	metrics2.GetInt64Metric("autoroll_last_roll_result", map[string]string{"roller": r.cfg.RollerName()}).Update(v)
+	metrics2.GetInt64Metric("autoroll_last_roll_result", map[string]string{"roller": r.cfg.RollerName}).Update(v)
 
 	recent = recent[idx:]
 	var lastRoll *autoroll.AutoRollIssue
