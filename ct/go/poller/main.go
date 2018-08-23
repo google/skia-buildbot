@@ -111,6 +111,9 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 			"--match_stdout_txt=" + task.MatchStdoutTxt,
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -163,6 +166,9 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -204,6 +210,9 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 			"--benchmark_extra_args=" + task.BenchmarkArgs,
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -247,6 +256,9 @@ func (task *PixelDiffTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -272,6 +284,9 @@ func (task *CaptureSkpsTask) Execute(ctx context.Context, getPatchFunc GetPatchF
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -313,6 +328,9 @@ func (task *LuaScriptTask) Execute(ctx context.Context, getPatchFunc GetPatchFun
 			"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
 			"--run_id=" + runId,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -337,6 +355,9 @@ func (task *ChromiumBuildTask) Execute(ctx context.Context, getPatchFunc GetPatc
 			"--chromium_hash=" + task.ChromiumRev,
 			"--skia_hash=" + task.SkiaRev,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -358,6 +379,9 @@ func (task *RecreatePageSetsTask) Execute(ctx context.Context, getPatchFunc GetP
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
@@ -379,6 +403,9 @@ func (task *RecreateWebpageArchivesTask) Execute(ctx context.Context, getPatchFu
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
 			"--logtostderr",
+			"--email_client_secret_file=" + *master_common.EmailClientSecretFile,
+			"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
+			"--service_account_file=" + *master_common.ServiceAccountFile,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 	})
