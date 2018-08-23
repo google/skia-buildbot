@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1c51709a_c9dee06e",
+        "filename": "autoroll/build_frontend_internal_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "Yep!",
+      "parentUuid": "a0ddc069_66580ef9",
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1f912e79_9471aee3",
         "filename": "autoroll/config/skia-chromium.json",
         "patchSetId": 5
@@ -95,6 +113,30 @@
     },
     {
       "key": {
+        "uuid": "7a9fd034_30b5ae55",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "Yes, it\u0027s unused by /ministatus where we want to keep the data small.  They\u0027re filled in for /json/all though.",
+      "parentUuid": "8d12b34d_1172ff7e",
+      "range": {
+        "startLine": 82,
+        "startChar": 35,
+        "endLine": 82,
+        "endChar": 45
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "33a199a2_decc27af",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -106,6 +148,30 @@
       "writtenOn": "2018-08-23T14:23:07Z",
       "side": 1,
       "message": "This endpoint (as well as miniStatusJsonHandler) is now returning a different struct as JSON, but I don\u0027t see any changes to the HTML that is using these endpoints.",
+      "range": {
+        "startLine": 205,
+        "startChar": 37,
+        "endLine": 210,
+        "endChar": 2
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c72ec4a5_f2c963ad",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "It\u0027s an embedded struct, so the JSON looks the same.",
+      "parentUuid": "33a199a2_decc27af",
       "range": {
         "startLine": 205,
         "startChar": 37,
@@ -141,6 +207,30 @@
     },
     {
       "key": {
+        "uuid": "67ed66c7_04cea673",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44cedc1b_04b696d4",
+      "range": {
+        "startLine": 273,
+        "startChar": 30,
+        "endLine": 273,
+        "endChar": 121
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5c27e54b_06c0b7a3",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -152,6 +242,30 @@
       "writtenOn": "2018-08-23T13:24:40Z",
       "side": 1,
       "message": "nit: roller.Cfg.Google3RepoManager !\u003d nil",
+      "range": {
+        "startLine": 335,
+        "startChar": 6,
+        "endLine": 335,
+        "endChar": 56
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0928424_eec2e1f8",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 335,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "Done. FTR this will require updating the G3 roller to point to https://autoroll-internal.skia.org/google3/json/roll",
+      "parentUuid": "5c27e54b_06c0b7a3",
       "range": {
         "startLine": 335,
         "startChar": 6,
@@ -187,6 +301,30 @@
     },
     {
       "key": {
+        "uuid": "c1a578f3_f3782515",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 387,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "Just being extra cautious I guess.",
+      "parentUuid": "f0f8eda2_f86487aa",
+      "range": {
+        "startLine": 387,
+        "startChar": 5,
+        "endLine": 387,
+        "endChar": 19
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1bcc7ee4_0d1ea778",
         "filename": "autoroll/templates/main.html",
         "patchSetId": 5
@@ -198,6 +336,30 @@
       "writtenOn": "2018-08-23T14:23:07Z",
       "side": 1,
       "message": "Needs periodic calls to update?",
+      "range": {
+        "startLine": 39,
+        "startChar": 7,
+        "endLine": 39,
+        "endChar": 19
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b589d546_729e261b",
+        "filename": "autoroll/templates/main.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-23T14:52:21Z",
+      "side": 1,
+      "message": "I\u0027m okay with this being a static page.  I assume most people will only stay for as long as it takes to find the roller they care about.",
+      "parentUuid": "1bcc7ee4_0d1ea778",
       "range": {
         "startLine": 39,
         "startChar": 7,
