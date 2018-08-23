@@ -95,6 +95,29 @@
     },
     {
       "key": {
+        "uuid": "33a199a2_decc27af",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T14:23:07Z",
+      "side": 1,
+      "message": "This endpoint (as well as miniStatusJsonHandler) is now returning a different struct as JSON, but I don\u0027t see any changes to the HTML that is using these endpoints.",
+      "range": {
+        "startLine": 205,
+        "startChar": 37,
+        "endLine": 210,
+        "endChar": 2
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "44cedc1b_04b696d4",
         "filename": "autoroll/go/autoroll-fe/main.go",
         "patchSetId": 5
@@ -156,6 +179,29 @@
         "startLine": 387,
         "startChar": 5,
         "endLine": 387,
+        "endChar": 19
+      },
+      "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bcc7ee4_0d1ea778",
+        "filename": "autoroll/templates/main.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-23T14:23:07Z",
+      "side": 1,
+      "message": "Needs periodic calls to update?",
+      "range": {
+        "startLine": 39,
+        "startChar": 7,
+        "endLine": 39,
         "endChar": 19
       },
       "revId": "456a72eb70926bcb68c205d48ff5dbd82d2c89ac",
