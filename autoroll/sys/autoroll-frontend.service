@@ -6,7 +6,6 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/autoroll-fe \
-    --workdir=/mnt/pd0/autoroll_workdir \
     --resources_dir=/usr/local/share/autoroll/
 Restart=always
 User=default

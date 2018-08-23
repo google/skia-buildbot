@@ -17,7 +17,6 @@ ${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/autor
 ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/autoroll/res/js/core.js
 ${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/autoroll/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/main.html     ${ROOT}/usr/local/share/autoroll/templates/main.html
-${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/autoroll_workdir
 }
 
 source ../bash/release.sh
