@@ -34,11 +34,12 @@ const (
 )
 
 type SwarmingClient struct {
-	WorkDir        string
-	isolateClient  *isolate.Client
-	isolateServer  string
-	SwarmingPy     string
-	SwarmingServer string
+	WorkDir            string
+	isolateClient      *isolate.Client
+	isolateServer      string
+	SwarmingPy         string
+	SwarmingServer     string
+	ServiceAccountJSON string
 }
 
 type SwarmingTask struct {
@@ -83,8 +84,12 @@ func (t *SwarmingTask) Trigger(ctx context.Context, s *SwarmingClient, hardTimeo
 		"--hard-timeout", strconv.FormatFloat(hardTimeout.Seconds(), 'f', 0, 64),
 		"--verbose",
 	}
+	// REMOVE ?
 	if t.ServiceAccount != "" {
 		triggerArgs = append(triggerArgs, "--service-account", t.ServiceAccount)
+	}
+	if s.ServiceAccountJSON != "" {
+		triggerArgs = append(triggerArgs, "--auth-service-account-json", s.ServiceAccountJSON)
 	}
 	for k, v := range t.Dimensions {
 		triggerArgs = append(triggerArgs, "--dimension", k, v)
@@ -129,6 +134,9 @@ func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient) (string, 
 		"--task-output-dir", t.OutputDir,
 		"--verbose",
 	}
+	if s.ServiceAccountJSON != "" {
+		collectArgs = append(collectArgs, "--auth-service-account-json", s.ServiceAccountJSON)
+	}
 	err := exec.Run(ctx, &exec.Command{
 		Name:      s.SwarmingPy,
 		Args:      collectArgs,
@@ -162,7 +170,7 @@ func (t *SwarmingTask) Collect(ctx context.Context, s *SwarmingClient) (string, 
 
 // NewSwarmingClient returns an instance of Swarming populated with default
 // values.
-func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServer string) (*SwarmingClient, error) {
+func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServer, serviceAccountJSON string) (*SwarmingClient, error) {
 	if _, err := os.Stat(workDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(workDir, 0700); err != nil {
 			return nil, fmt.Errorf("Could not create %s: %s", workDir, err)
@@ -180,17 +188,18 @@ func NewSwarmingClient(ctx context.Context, workDir, swarmingServer, isolateServ
 	swarmingPy := path.Join(luciClient.Dir(), "swarming.py")
 
 	// Create an isolate client.
-	isolateClient, err := isolate.NewClient(workDir, isolateServer)
+	isolateClient, err := isolate.NewClientWithServiceAccount(workDir, isolateServer, serviceAccountJSON)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create isolate client: %s", err)
 	}
 
 	return &SwarmingClient{
-		WorkDir:        workDir,
-		isolateClient:  isolateClient,
-		isolateServer:  isolateServer,
-		SwarmingPy:     swarmingPy,
-		SwarmingServer: swarmingServer,
+		WorkDir:            workDir,
+		isolateClient:      isolateClient,
+		isolateServer:      isolateServer,
+		SwarmingPy:         swarmingPy,
+		SwarmingServer:     swarmingServer,
+		ServiceAccountJSON: serviceAccountJSON,
 	}, nil
 }
 
@@ -281,9 +290,10 @@ func (s *SwarmingClient) TriggerSwarmingTasks(ctx context.Context, tasksToHashes
 }
 
 func (s *SwarmingClient) Cleanup() {
-	if err := os.RemoveAll(s.WorkDir); err != nil {
-		sklog.Errorf("Could not cleanup swarming work dir: %s", err)
-	}
+	// rmistry: just for testing.
+	//if err := os.RemoveAll(s.WorkDir); err != nil {
+	//	sklog.Errorf("Could not cleanup swarming work dir: %s", err)
+	//}
 }
 
 func _VerifyBinaryExists(ctx context.Context, binary string) error {
