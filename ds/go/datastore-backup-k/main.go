@@ -18,28 +18,26 @@ import (
 // flags
 var (
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-)
-
-const (
-	BUCKET  = "skia-backups"
-	PROJECT = "google.com:skia-buildbots"
+	project  = flag.String("project", "skia-public", "Name of the project we are running in.")
+	bucket   = flag.String("bucket", "skia-backups-skia-public", "Name of a bucket in 'project' to store the backups.")
+	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 func main() {
 	common.InitWithMust(
-		"datastore_backup",
+		"datastore_backup_k",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
-	client, err := auth.NewDefaultJWTServiceAccountClient(datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
-	if err := backup.Step(client, PROJECT, BUCKET); err != nil {
+	client := auth.ClientFromTokenSource(ts)
+	if err := backup.Step(client, *project, *bucket); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}
 	for _ = range time.Tick(24 * time.Hour) {
-		if err := backup.Step(client, PROJECT, BUCKET); err != nil {
+		if err := backup.Step(client, *project, *bucket); err != nil {
 			sklog.Errorf("Failed to backup: %s", err)
 		}
 	}
