@@ -247,7 +247,7 @@ func isSyncError(err error) bool {
 func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency time.Duration) {
 	sklog.Infof("Starting autoroller.")
 	repo_manager.Start(ctx, r.rm, repoFrequency)
-	lv := metrics2.NewLiveness("last_successful_autoroll_tick")
+	lv := metrics2.NewLiveness("last_successful_autoroll_tick", map[string]string{"roller": r.roller})
 	cleanup.Repeat(tickFrequency, func() {
 		if err := r.Tick(ctx); err != nil {
 			// Hack: we frequently get failures from GoB which trigger error-rate alerts.

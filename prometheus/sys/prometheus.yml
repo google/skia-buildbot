@@ -26,7 +26,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-android-ingest:20001']
 
-  - job_name: 'autoroll'
+  - job_name: 'autoroll-be'
     static_configs:
       - targets: ['afdo-chromium-autoroll:20000']
       - targets: ['android-master-autoroll:20000']
@@ -55,6 +55,15 @@ scrape_configs:
       - targets: ['src-internal-chromium-autoroll:20000']
       - targets: ['swiftshader-skia-autoroll:20000']
       - targets: ['webrtc-chromium-autoroll:20000']
+
+  - job_name: 'autoroll-fe'
+    static_configs:
+      - targets: ['skia-autoroll:20001']
+      - targets: ['skia-internal-autoroll:20001']
+
+  - job_name: 'autoroll-google3'
+    static_configs:
+      - targets: ['google3-autoroll:20000']
 
   - job_name: 'collectd'
     static_configs:
