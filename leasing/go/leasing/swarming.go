@@ -166,7 +166,7 @@ type IsolateDetails struct {
 	CipdInput   *swarming_api.SwarmingRpcsCipdInput
 }
 
-func GetIsolateDetails(ctx context.Context, properties *swarming_api.SwarmingRpcsTaskProperties) (*IsolateDetails, error) {
+func GetIsolateDetails(ctx context.Context, serviceAccountFile string, properties *swarming_api.SwarmingRpcsTaskProperties) (*IsolateDetails, error) {
 	details := &IsolateDetails{}
 	inputsRef := properties.InputsRef
 
@@ -177,6 +177,7 @@ func GetIsolateDetails(ctx context.Context, properties *swarming_api.SwarmingRpc
 	defer util.Remove(f.Name())
 	cmd := []string{
 		isolateServerPath, "download",
+		"--auth-service-account-json", serviceAccountFile,
 		"-I", inputsRef.Isolatedserver,
 		"--namespace", inputsRef.Namespace,
 		"-f", inputsRef.Isolated, path.Base(f.Name()),
