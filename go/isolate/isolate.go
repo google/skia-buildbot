@@ -352,7 +352,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 		"--isolate-server", c.serverUrl,
 	}
 	if c.serviceAccountJSON != "" {
-		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
+		cmd = append(cmd, "--auth-service-account-json", c.serviceAccountJSON)
 	}
 	for _, f := range isolatedFiles {
 		dirname, filename := path.Split(f)
