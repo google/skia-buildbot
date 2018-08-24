@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "729a2b2e_85e5ea36",
+        "filename": "autoroll/probers.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-24T15:06:49Z",
+      "side": 1,
+      "message": "Maybe, but that gets us back in the business of listing rollers, and I\u0027d like to avoid that if at all possible.  I think it\u0027s okay to assume that if the server is running, all of its sub-urls are available.",
+      "parentUuid": "3ef5a7b2_3e4ed52e",
+      "revId": "6ae2cdf8952b8050799cdedff74916ad51e84c0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ac77db96_419f74a0",
         "filename": "prometheus/sys/prometheus.yml",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "6ae2cdf8952b8050799cdedff74916ad51e84c0b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41428ff2_fa83ce67",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-24T15:06:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ac77db96_419f74a0",
+      "revId": "6ae2cdf8952b8050799cdedff74916ad51e84c0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
