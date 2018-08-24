@@ -14,12 +14,13 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/api/googleapi"
+	storage "google.golang.org/api/storage/v1"
+
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	googleapi "google.golang.org/api/googleapi"
-	storage "google.golang.org/api/storage/v1"
 )
 
 const (
@@ -41,11 +42,15 @@ type GcsUtil struct {
 func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
 		var authErr error
-		// If ClientSecretPath exists then assume that we do not get tokens from metadata.
+		// If ClientSecretPath exists then assume that we do not use the default token source.
 		if _, err := os.Stat(ClientSecretPath); err == nil {
 			client, err = auth.NewClientWithTransport(true, GCSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
 		} else {
-			client, err = auth.NewClientWithTransport(false, GCSTokenPath, "", nil, auth.SCOPE_FULL_CONTROL)
+			ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_FULL_CONTROL)
+			if err != nil {
+				return nil, fmt.Errorf("Problem setting up default token source: %s", err)
+			}
+			client = auth.ClientFromTokenSource(ts)
 		}
 		if authErr != nil {
 			return nil, authErr
