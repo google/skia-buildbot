@@ -88,6 +88,24 @@
       "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccb3a7c1_1038d258",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-24T19:22:50Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "52c713e0_73a47f4e",
+      "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
