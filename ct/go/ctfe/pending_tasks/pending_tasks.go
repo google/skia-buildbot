@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"text/template"
@@ -30,7 +31,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/webhook"
+	skutil "go.skia.org/infra/go/util"
 )
 
 var (
@@ -212,7 +213,8 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 }
 
 func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := webhook.AuthenticateRequest(r)
+	data, err := ioutil.ReadAll(r.Body)
+	defer skutil.Close(r.Body)
 	if err != nil {
 		if data == nil {
 			httputils.ReportError(w, r, err, "Failed to read update request")
@@ -239,7 +241,8 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getTerminateRunningTasksHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := webhook.AuthenticateRequest(r)
+	data, err := ioutil.ReadAll(r.Body)
+	defer skutil.Close(r.Body)
 	if err != nil {
 		if data == nil {
 			httputils.ReportError(w, r, err, "Failed to read update request")
@@ -288,15 +291,14 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(pendingTasksTemplate, w, r)
 }
 
-func AddHandlers(r *mux.Router) {
+func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	// Runs history handlers.
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.RUNS_HISTORY_URI, "GET", runsHistoryView)
+	externalRouter.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
 
 	// Task Queue handlers.
-	ctfeutil.AddForceLoginHandler(r, "/"+ctfeutil.PENDING_TASKS_URI, "GET", pendingTasksView)
+	externalRouter.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
 
-	// Do not add force login handler for getOldestPendingTaskHandler and
-	// getTerminateRunningTasksHandler, they use webhooks for authentication.
-	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
-	r.HandleFunc("/"+ctfeutil.TERMINATE_RUNNING_TASKS_URI, getTerminateRunningTasksHandler).Methods("POST")
+	// getOldestPendingTaskHandler and getTerminateRunningTasksHandler is done via the internal router.
+	internalRouter.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
+	internalRouter.HandleFunc("/"+ctfeutil.TERMINATE_RUNNING_TASKS_URI, getTerminateRunningTasksHandler).Methods("POST")
 }

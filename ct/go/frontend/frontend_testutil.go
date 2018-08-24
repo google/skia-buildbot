@@ -5,6 +5,7 @@ package frontend
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -14,7 +15,6 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 // UpdateTaskReq includes the URL of an update request, the unmarshaled body, and any error
@@ -84,7 +84,7 @@ func (ms *MockServer) HandleGetOldestPendingTask(w http.ResponseWriter, r *http.
 
 func (ms *MockServer) HandleUpdateTask(w http.ResponseWriter, r *http.Request) {
 	updateTaskReq := UpdateTaskReq{Url: r.URL.Path}
-	data, err := webhook.AuthenticateRequest(r)
+	data, err := ioutil.ReadAll(r.Body)
 	defer skutil.Close(r.Body)
 	if err != nil {
 		updateTaskReq.Error = err
@@ -116,7 +116,7 @@ func (ms *MockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // InitForTesting. Can be used as "defer CloseTestServer(InitTestServer(h))".
 func InitTestServer(h http.Handler) *httptest.Server {
 	ts := httptest.NewServer(h)
-	InitForTesting(ts.URL + "/")
+	MustInit(ts.URL+"/", ts.URL+"/")
 	return ts
 }
 
@@ -124,5 +124,5 @@ func InitTestServer(h http.Handler) *httptest.Server {
 // UpdateWebappTaskV2. Can be used as "defer CloseTestServer(InitTestServer(h))".
 func CloseTestServer(ts *httptest.Server) {
 	ts.Close()
-	InitForTesting(WEBAPP_ROOT_V2)
+	MustInit(WEBAPP_ROOT, INTERNAL_WEBAPP_ROOT)
 }
