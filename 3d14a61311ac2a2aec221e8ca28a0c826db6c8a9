@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b3415c6_9fab88ad",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T17:30:32Z",
+      "side": 0,
+      "message": "Does this mean we can no longer do individual releases via the Makefile and we have to know to use build_backend_release for that?",
+      "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35ed8b92_a0f03ed5",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T17:30:32Z",
+      "side": 1,
+      "message": "Is google3 intentionally left out?",
+      "revId": "cec1f4b60779f18456c27fb01e03f706c2976821",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f025e48d_5d46a190",
+        "filename": "autoroll/build_backend_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T17:30:32Z",
+      "side": 1,
+      "message": "Test existence of CONFIG_FILE and print help msg if not set.",
+      "revId": "cec1f4b60779f18456c27fb01e03f706c2976821",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4ae961c_fff767c7",
+        "filename": "autoroll/build_backend_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T17:30:32Z",
+      "side": 1,
+      "message": "Also test to see if APPNAME returned a non empty thing.",
+      "revId": "cec1f4b60779f18456c27fb01e03f706c2976821",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
