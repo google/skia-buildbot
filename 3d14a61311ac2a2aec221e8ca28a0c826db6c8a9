@@ -70,6 +70,24 @@
       "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52c713e0_73a47f4e",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T19:17:48Z",
+      "side": 0,
+      "message": "We already require an environt variable for MESSAGE and with your new change in build_backend_release it will complain if we do not specify CONFIG.",
+      "parentUuid": "736db973_76443e7b",
+      "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
