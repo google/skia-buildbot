@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f87eb28_500d9e54",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T20:58:24Z",
+      "side": 1,
+      "message": "This specifies all roller configs to autoroll-be ?",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 45
+      },
+      "revId": "dafd7055b0bab04bdb331e36339cb48d413f4c62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
