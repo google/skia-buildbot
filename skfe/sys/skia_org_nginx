@@ -414,13 +414,13 @@ server {
     access_log /var/log/nginx/autoroll-internal.access.log;
     error_log /var/log/nginx/autoroll-internal.error.log error;
 
+    location ~ /r/.+/json/ministatus {
+        proxy_pass http://skia-internal-autoroll:8000;
+        proxy_set_header Host $host;
+    }
     location / {
         proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "skia-internal-autoroll-8000-proxy.skia.org;
-    }
-    location ^/r/([a-zA-Z0-1_-]+)/json/ministatus {
-        proxy_pass http://skia-internal-autoroll:8000$request_uri
-        proxy_set_header Host $host;
+        proxy_set_header Host "skia-internal-autoroll-8000-proxy.skia.org";
     }
 }
 server {
