@@ -348,21 +348,12 @@ server {
 server {
     listen      443;
     server_name afdo-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/autoroll.access.log;
-    error_log /var/log/nginx/autoroll.error.log error;
-
-    location / {
-        proxy_pass http://afdo-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/afdo-chromium-autoroll;
 }
 server {
     listen      80;
     server_name afdo-chromium-roll.skia.org;
-    return 301 https://afdo-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/afdo-chromium-autoroll;
 }
 
 #####   alerts.skia.org   ###########################
@@ -462,229 +453,123 @@ server {
 server {
     listen      443;
     server_name android-master-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/android-master-roll.access.log;
-    error_log /var/log/nginx/android-master-roll.error.log error;
-
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "android-master-autoroll-8000-proxy.skia.org";
-    }
-
-    location /json/status {
-        proxy_pass http://android-master-autoroll:8000/json/status;
-        proxy_set_header Host $host;
-    }
-    location /json/ministatus {
-        proxy_pass http://android-master-autoroll:8000/json/ministatus;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll-internal.skia.org/r/android-master-autoroll;
 }
 server {
     listen      80;
     server_name android-master-roll.skia.org;
-    return 301 https://android-master-roll.skia.org$request_uri;
+    return 301 https://autoroll-internal.skia.org/r/android-master-autoroll;
 }
 
 #####   android-next-roll.skia.org   ###########################
 server {
     listen      443;
     server_name android-next-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/android-next-roll.access.log;
-    error_log /var/log/nginx/android-next-roll.error.log error;
-
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "android-next-autoroll-8000-proxy.skia.org";
-    }
-
-    location /json/status {
-        proxy_pass http://android-next-autoroll:8000/json/status;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll-internal.skia.org/r/android-next-autoroll;
 }
 server {
     listen      80;
     server_name android-next-roll.skia.org;
-    return 301 https://android-next-roll.skia.org$request_uri;
+    return 301 https://autoroll-internal.skia.org/r/android-next-autoroll;
 }
+
 
 #####   android-o-roll.skia.org   ###########################
 server {
     listen      443;
     server_name android-o-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/android-o-roll.access.log;
-    error_log /var/log/nginx/android-o-roll.error.log error;
-
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "android-o-autoroll-8000-proxy.skia.org";
-    }
-
-    location /json/status {
-        proxy_pass http://android-o-autoroll:8000/json/status;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll-internal.skia.org/r/android-o-autoroll;
 }
 server {
     listen      80;
     server_name android-o-roll.skia.org;
-    return 301 https://android-o-roll.skia.org$request_uri;
+    return 301 https://autoroll-internal.skia.org/r/android-o-autoroll;
 }
+
 
 #####   angle-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name angle-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/angle-chromium-roll.access.log;
-    error_log /var/log/nginx/angle-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://angle-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/angle-chromium-autoroll;
 }
 server {
     listen      80;
     server_name angle-chromium-roll.skia.org;
-    return 301 https://angle-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/angle-chromium-autoroll;
 }
+
 
 #####   angle-skia-roll.skia.org   ###########################
 server {
     listen      443;
     server_name angle-skia-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/angle-skia-roll.access.log;
-    error_log /var/log/nginx/angle-skia-roll.error.log error;
-
-    location / {
-        proxy_pass http://angle-skia-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/angle-skia-autoroll;
 }
 server {
     listen      80;
     server_name angle-skia-roll.skia.org;
-    return 301 https://angle-skia-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/angle-skia-autoroll;
 }
 
 #####   catapult-roll.skia.org   ###########################
 server {
     listen      443;
     server_name catapult-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/catapult-roll.access.log;
-    error_log /var/log/nginx/catapult-roll.error.log error;
-
-    location / {
-        proxy_pass http://catapult-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/catapult-autoroll;
 }
 server {
     listen      80;
     server_name catapult-roll.skia.org;
-    return 301 https://catapult-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/catapult-autoroll;
 }
 
 #####   chromite-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name chromite-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/chromite-chromium-roll.access.log;
-    error_log /var/log/nginx/chromite-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://chromite-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/chromite-chromium-autoroll;
 }
 server {
     listen      80;
     server_name chromite-chromium-roll.skia.org;
-    return 301 https://chromite-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/chromite-chromium-autoroll;
 }
 
 #####   chromium-skia-roll.skia.org   ###########################
 server {
     listen      443;
     server_name chromium-skia-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/chromium-skia-roll.access.log;
-    error_log /var/log/nginx/chromium-skia-roll.error.log error;
-
-    location / {
-        proxy_pass http://chromium-skia-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/chromium-skia-autoroll;
 }
 server {
     listen      80;
     server_name chromium-skia-roll.skia.org;
-    return 301 https://chromium-skia-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/chromium-skia-autoroll;
 }
 
 #####   depot-tools-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name depot-tools-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/depot-tools-chromium-roll.access.log;
-    error_log /var/log/nginx/depot-tools-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://depot-tools-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/depot-tools-chromium-autoroll;
 }
 server {
     listen      80;
     server_name depot-tools-chromium-roll.skia.org;
-    return 301 https://depot-tools-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/depot-tools-chromium-autoroll;
 }
 
 #####   flutter-engine-flutter-roll.skia.org   ###########################
 server {
     listen      443;
     server_name flutter-engine-flutter-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/flutter-engine-flutter-roll.access.log;
-    error_log /var/log/nginx/flutter-engine-flutter-roll.error.log error;
-
-    location / {
-        proxy_pass http://flutter-engine-flutter-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/flutter-engine-flutter-autoroll;
 }
 server {
     listen      80;
     server_name flutter-engine-flutter-roll.skia.org;
-    return 301 https://flutter-engine-flutter-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/flutter-engine-flutter-autoroll;
 }
 
 #####   google3-roll.skia.org   ###########################
@@ -702,343 +587,186 @@ server {
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "google3-autoroll-8000-proxy.skia.org";
-    }
-
-    location /json/status {
-        proxy_pass http://google3-autoroll:8000/json/status;
-        proxy_set_header Host $host;
-    }
-    location /json/ministatus {
-        proxy_pass http://google3-autoroll:8000/json/ministatus;
-        proxy_set_header Host $host;
-    }
     location /json/roll {
         proxy_pass http://google3-autoroll:8001/json/roll;
         proxy_set_header Host $host;
+    }
+    location / {
+        return 301 https://autoroll-internal.skia.org/r/google3-autoroll;
     }
 }
 server {
     listen      80;
     server_name google3-roll.skia.org;
-    return 301 https://google3-roll.skia.org$request_uri;
+    return 301 https://autoroll-internal.skia.org/r/google3-autoroll;
 }
 
 #####   lottie-web-lottie-ci-roll.skia.org   ###########################
 server {
     listen      443;
     server_name lottie-web-lottie-ci-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/lottie-web-lottie-ci-roll.access.log;
-    error_log /var/log/nginx/lottie-web-lottie-ci-roll.error.log error;
-
-    location / {
-        proxy_pass http://lottie-web-lottie-ci-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/lottie-web-lottie-ci-autoroll;
 }
 server {
     listen      80;
     server_name lottie-web-lottie-ci-roll.skia.org;
-    return 301 https://lottie-web-lottie-ci-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/lottie-web-lottie-ci-autoroll;
 }
 
 #####   nacl-roll.skia.org   ###########################
 server {
     listen      443;
     server_name nacl-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/nacl-roll.access.log;
-    error_log /var/log/nginx/nacl-roll.error.log error;
-
-    location / {
-        proxy_pass http://nacl-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/nacl-autoroll;
 }
 server {
     listen      80;
     server_name nacl-roll.skia.org;
-    return 301 https://nacl-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/nacl-autoroll;
 }
 
 #####   pdfium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name pdfium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/pdfium-roll.access.log;
-    error_log /var/log/nginx/pdfium-roll.error.log error;
-
-    location / {
-        proxy_pass http://pdfium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/pdfium-autoroll;
 }
 server {
     listen      80;
     server_name pdfium-roll.skia.org;
-    return 301 https://pdfium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/pdfium-autoroll;
 }
 
 #####   perfetto-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name perfetto-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/perfetto-chromium-roll.access.log;
-    error_log /var/log/nginx/perfetto-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://perfetto-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/perfetto-chromium-autoroll;
 }
 server {
     listen      80;
     server_name perfetto-chromium-roll.skia.org;
-    return 301 https://perfetto-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/perfetto-chromium-autoroll;
 }
 
 #####   fuchsia-roll.skia.org   ###########################
 server {
     listen      443;
     server_name fuchsia-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/fuchsia-roll.access.log;
-    error_log /var/log/nginx/fuchsia-roll.error.log error;
-
-    location / {
-        proxy_pass http://fuchsia-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/fuchsia-autoroll;
 }
 server {
     listen      80;
     server_name fuchsia-roll.skia.org;
-    return 301 https://fuchsia-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/fuchsia-autoroll;
 }
 
 #####   fuchsia-sdk-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name fuchsia-sdk-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/fuchsia-sdk-chromium-roll.access.log;
-    error_log /var/log/nginx/fuchsia-sdk-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://fuchsia-sdk-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/fuchsia-sdk-chromium-autoroll;
 }
 server {
     listen      80;
     server_name fuchsia-sdk-chromium-roll.skia.org;
-    return 301 https://fuchsia-sdk-chromium-roll.skia.org$request_uri;
-}
-
-#####   ios-internal-chromium-roll.skia.org   ###########################
-server {
-    listen      443;
-    server_name ios-internal-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/ios-internal-chromium-roll.access.log;
-    error_log /var/log/nginx/ios-internal-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://ios-internal-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name ios-internal-chromium-roll.skia.org;
-    return 301 https://ios-internal-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/fuchsia-sdk-chromium-autoroll;
 }
 
 #####   skcms-skia-roll.skia.org   ###########################
 server {
     listen      443;
     server_name skcms-skia-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/skcms-skia-roll.access.log;
-    error_log /var/log/nginx/skcms-skia-roll.error.log error;
-
-    location / {
-        proxy_pass http://skcms-skia-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/skcms-skia-autoroll;
 }
 server {
     listen      80;
     server_name skcms-skia-roll.skia.org;
-    return 301 https://skcms-skia-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/skcms-skia-autoroll;
 }
 
 #####   skia-flutter-roll.skia.org   ###########################
 server {
     listen      443;
     server_name skia-flutter-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/skia-flutter-roll.access.log;
-    error_log /var/log/nginx/skia-flutter-roll.error.log error;
-
-    location / {
-        proxy_pass http://skia-flutter-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/skia-flutter-autoroll;
 }
 server {
     listen      80;
     server_name skia-flutter-roll.skia.org;
-    return 301 https://skia-flutter-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/skia-flutter-autoroll;
 }
 
 #####   skia-lottie-ci-roll.skia.org   ###########################
 server {
     listen      443;
     server_name skia-lottie-ci-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/skia-lottie-ci-roll.access.log;
-    error_log /var/log/nginx/skia-lottie-ci-roll.error.log error;
-
-    location / {
-        proxy_pass http://skia-lottie-ci-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/skia-lottie-ci-autoroll;
 }
 server {
     listen      80;
     server_name skia-lottie-ci-roll.skia.org;
-    return 301 https://skia-lottie-ci-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/skia-lottie-ci-autoroll;
 }
 
 #####   spirv-headers-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name spirv-headers-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/spirv-headers-chromium-roll.access.log;
-    error_log /var/log/nginx/spirv-headers-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://spirv-headers-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/spirv-headers-chromium-autoroll;
 }
 server {
     listen      80;
     server_name spirv-headers-chromium-roll.skia.org;
-    return 301 https://spirv-headers-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/spirv-headers-chromium-autoroll;
 }
 
 #####   spirv-tools-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name spirv-tools-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/spirv-tools-chromium-roll.access.log;
-    error_log /var/log/nginx/spirv-tools-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://spirv-tools-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/spirv-tools-chromium-autoroll;
 }
 server {
     listen      80;
     server_name spirv-tools-chromium-roll.skia.org;
-    return 301 https://spirv-tools-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/spirv-tools-chromium-autoroll;
 }
 
 #####   src-internal-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name src-internal-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/src-internal-chromium-roll.access.log;
-    error_log /var/log/nginx/src-internal-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://src-internal-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll-internal.skia.org/r/src-internal-chromium-autoroll;
 }
 server {
     listen      80;
     server_name src-internal-chromium-roll.skia.org;
-    return 301 https://src-internal-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll-internal.skia.org/r/src-internal-chromium-autoroll;
 }
 
 #####   swiftshader-skia-roll.skia.org   ###########################
 server {
     listen      443;
     server_name swiftshader-skia-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/swiftshader-skia-roll.access.log;
-    error_log /var/log/nginx/swiftshader-skia-roll.error.log error;
-
-    location / {
-        proxy_pass http://swiftshader-skia-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/swiftshader-skia-autoroll;
 }
 server {
     listen      80;
     server_name swiftshader-skia-roll.skia.org;
-    return 301 https://swiftshader-skia-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/swiftshader-skia-autoroll;
 }
 
 #####   webrtc-chromium-roll.skia.org   ###########################
 server {
     listen      443;
     server_name webrtc-chromium-roll.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/webrtc-chromium-roll.access.log;
-    error_log /var/log/nginx/webrtc-chromium-roll.error.log error;
-
-    location / {
-        proxy_pass http://webrtc-chromium-autoroll:8000;
-        proxy_set_header Host $host;
-    }
+    return 301 https://autoroll.skia.org/r/webrtc-chromium-autoroll;
 }
 server {
     listen      80;
     server_name webrtc-chromium-roll.skia.org;
-    return 301 https://webrtc-chromium-roll.skia.org$request_uri;
+    return 301 https://autoroll.skia.org/r/webrtc-chromium-autoroll;
 }
 
 #####   mon.skia.org   ###########################
