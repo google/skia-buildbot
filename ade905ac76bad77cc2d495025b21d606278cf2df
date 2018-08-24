@@ -22,6 +22,30 @@
       "revId": "ade905ac76bad77cc2d495025b21d606278cf2df",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a69ca165_9eb0225e",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-24T17:25:47Z",
+      "side": 0,
+      "message": "Yes, the name is a duplicate of TRYJOB_TEST_DIGEST_EXP.",
+      "parentUuid": "3aef8b51_d96cc0d5",
+      "range": {
+        "startLine": 123,
+        "startChar": 82,
+        "endLine": 123,
+        "endChar": 98
+      },
+      "revId": "ade905ac76bad77cc2d495025b21d606278cf2df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

@@ -22,6 +22,30 @@
       "revId": "c65c25742c891eca791bbcd9a403de39409a78ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bd31a8e_39043ff2",
+        "filename": "ds/create-datastore-backup-k-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-24T17:25:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "696810e9_0450cb1a",
+      "range": {
+        "startLine": 15,
+        "startChar": 108,
+        "endLine": 15,
+        "endChar": 118
+      },
+      "revId": "c65c25742c891eca791bbcd9a403de39409a78ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
