@@ -16,6 +16,24 @@
       "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "152a2342_962827bc",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-24T19:05:59Z",
+      "side": 0,
+      "message": "Yes, unfortunately we\u0027ll have to use build_backend_release directly.  I was not able to figure out how to dynamically add targets for each backend based on the config files.  It may be possible but my Makefile-foo is not strong enough.",
+      "parentUuid": "7b3415c6_9fab88ad",
+      "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
