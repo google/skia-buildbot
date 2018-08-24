@@ -1,10 +1,17 @@
 default:
 	go install -v ./go/datastore_backup
 
-push: default
+release:
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/datastore-backup-k
+
+push: default release
 	./build_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
 	pushcli datastore-backup skia-monitoring
+
+pushk: release
+	./build_docker_release
+	pushk --message="`git log -n1 --format=%s`" datastore-backup-k
 
 indexes:
 	gcloud datastore create-indexes ./index.yaml
