@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ef5a7b2_3e4ed52e",
+        "filename": "autoroll/probers.json5",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-24T14:59:23Z",
+      "side": 1,
+      "message": "Worthwhile to probe 1 (or all) roller status and ministatus?",
+      "revId": "6ae2cdf8952b8050799cdedff74916ad51e84c0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac77db96_419f74a0",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-24T14:59:23Z",
+      "side": 1,
+      "message": "google3 missing?",
+      "revId": "6ae2cdf8952b8050799cdedff74916ad51e84c0b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
