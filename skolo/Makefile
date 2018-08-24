@@ -63,7 +63,7 @@ trooper_tools:
 
 .PHONY: trooper_tools_release
 trooper_tools_release: trooper_tools
-	./build_release_trooper_tools "`git log -n1 --format=%s`" "linux-01 rpi-01 win-02 win-03"
+	./build_release_trooper_tools "`git log -n1 --format=%s`" "internal-01 linux-01 rpi-01 win-02 win-03"
 
 .PHONY: trooper_tools_push_all
 trooper_tools_push_all: trooper_tools_release
