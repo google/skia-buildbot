@@ -34,6 +34,24 @@
       "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df930223_1522fab1",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-24T19:10:27Z",
+      "side": 0,
+      "message": "We can add a generic target where we expect an environment var to be set, something like\nrelease-config: autoroll-be $CONFIG\n  ./build_backend_release $CONFIG $MESSAGE",
+      "parentUuid": "152a2342_962827bc",
+      "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
