@@ -27,7 +27,7 @@ const displayLoaded= (ele) => html`
 <button class=edit-config on-click=${(e) => ele._startEdit()}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
 <button on-click=${(e) => ele._rewind(e)}>Rewind</button>
 <button id=playpause on-click=${(e) => ele._playpause(e)}>Pause</button>
-<div class=download><a target=_blank download href="https://storage.googleapis.com/skottie-renderer/${ele._hash}/lottie.json">JSON</a></div>
+<div class=download><a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>JSON</a></div>
 <section class=figures>
   <figure>
     <video id=video muted on-loadeddata=${(e) => ele._videoLoaded(e)} title=lottie loop src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
@@ -88,6 +88,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._hash = '';
     this._anim = null;
     this._video = null;
+    this._downloadUrl = null; // The URL to download the lottie JSON from.
   }
 
   connectedCallback() {
@@ -199,6 +200,10 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   }
 
   _render() {
+    if (this._downloadUrl)  {
+      URL.revokeObjectURL(this._downloadUrl);
+    }
+    this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
     render(template(this), this);
     if (this._ui == LOADED_MODE) {
       this._anim = bodymovin.loadAnimation({

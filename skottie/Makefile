@@ -6,10 +6,10 @@ release: app
 	./build_release
 
 serve: app
-	npx webpack-dev-server --mode=development --watch-poll
+	npx webpack-dev-server --mode=development --watch
 
 watch: app
-	npx webpack --mode=development --watch-poll
+	npx webpack --mode=development --watch
 
 app: package-lock.json
 	go install ./go/skottie
