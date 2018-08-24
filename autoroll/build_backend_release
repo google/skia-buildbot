@@ -1,10 +1,25 @@
 #!/bin/bash
-# Builds and uploads a debian package for autoroll.
-APPNAME=fuchsia-autorolld
-DESCRIPTION="Controls Skia rolls into Fuchsia."
-SYSTEMD=${APPNAME}.service
+# Builds and uploads a debian package for the autoroll backend.
 
 set -x -e
+
+# Load the config specified in the first argument.
+CONFIG_FILE="$1"
+if [ -z "${CONFIG_FILE}" ]; then
+  echo "Usage: $0 <path to config file> <message>"
+  exit 1
+fi
+shift
+
+ROLLER_NAME=$(cat $CONFIG_FILE | python -c "import sys, json; print json.load(sys.stdin)['rollerName']")
+if [ -z "${ROLLER_NAME}" ]; then
+  echo "Failed to obtain rollerName from config file."
+  exit 1
+fi
+
+APPNAME=${ROLLER_NAME}d
+DESCRIPTION="Controls rolls of one repo into another."
+SYSTEMD=${APPNAME}.service
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
@@ -15,7 +30,7 @@ ${INSTALL} --mode=644 -T ./sys/autoroll-be.service   ${ROOT}/etc/systemd/system/
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/autoroll-be   ${ROOT}/usr/local/bin/autoroll-be
 ${INSTALL_DIR} --mode=777                            ${ROOT}/mnt/pd0/autoroll_workdir
 ${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/mnt/pd0/autoroll_workdir/recipes.cfg
-${INSTALL} --mode=644 -T ./config/skia-fuchsia.json  ${ROOT}/mnt/pd0/autoroll_workdir/autoroll-config.json
+${INSTALL} --mode=644 -T ${CONFIG_FILE}              ${ROOT}/mnt/pd0/autoroll_workdir/autoroll-config.json
 }
 
 source ../bash/release.sh
