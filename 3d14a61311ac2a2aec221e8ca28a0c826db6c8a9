@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cd831e6_7ff91684",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 2
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-24T17:32:42Z",
+      "side": 1,
+      "message": "I think all return statements need semicolons",
+      "range": {
+        "startLine": 351,
+        "startChar": 59,
+        "endLine": 351,
+        "endChar": 65
+      },
+      "revId": "3d14a61311ac2a2aec221e8ca28a0c826db6c8a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
