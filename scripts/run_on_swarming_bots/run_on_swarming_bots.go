@@ -113,7 +113,7 @@ func main() {
 		return
 	}
 
-	swarmClient, err := swarming.NewSwarmingClient(ctx, *workdir, swarmingServer, isolateServer)
+	swarmClient, err := swarming.NewSwarmingClient(ctx, *workdir, swarmingServer, isolateServer, "")
 	if err != nil {
 		sklog.Fatal(err)
 	}
