@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -89,6 +90,48 @@ func TestMergePullRequest(t *testing.T) {
 	assert.NoError(t, err)
 	mergePullErr := githubClient.MergePullRequest(1234, "test comment", "squash")
 	assert.NoError(t, mergePullErr)
+}
+
+func TestResusePullRequestDescription(t *testing.T) {
+	testutils.SmallTest(t)
+	commitMsg := "test commit msg"
+	knownPrNumber := 12345
+	unKnownPrNumber := 1234
+
+	reqBody := []byte(fmt.Sprintf(`{"title":"title","head":"headBranch","base":"baseBranch","body":"%s"}
+`, commitMsg))
+	respBody := []byte(testutils.MarshalJSON(t, &github.PullRequest{Number: &knownPrNumber}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, http.StatusCreated)
+	r.Schemes("https").Host("api.github.com").Methods("POST").Path("/repos/kryptonians/krypton/pulls").Handler(md)
+
+	// Handler for PR created via githubClient.CreatePullRequest with commit message.
+	mergeReqBody := []byte(fmt.Sprintf(`{"commit_message":"%s","merge_method":"squash"}
+`, commitMsg))
+	mdMerge := mockhttpclient.MockPutDialogue("application/json", mergeReqBody, nil)
+	r.Schemes("https").Host("api.github.com").Methods("PUT").Path(fmt.Sprintf("/repos/kryptonians/krypton/pulls/%d/merge", knownPrNumber)).Handler(mdMerge)
+
+	// Handler for PR NOT created via githubClient.CreatePullRequest. Will be missing
+	mergeReqBody2 := []byte(`{"commit_message":"","merge_method":"squash"}
+`)
+	mdMerge2 := mockhttpclient.MockPutDialogue("application/json", mergeReqBody2, nil)
+	r.Schemes("https").Host("api.github.com").Methods("PUT").Path(fmt.Sprintf("/repos/kryptonians/krypton/pulls/%d/merge", unKnownPrNumber)).Handler(mdMerge2)
+
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	assert.NoError(t, err)
+	pullRequest, createPullErr := githubClient.CreatePullRequest("title", "baseBranch", "headBranch", commitMsg)
+	assert.NoError(t, createPullErr)
+	assert.Equal(t, knownPrNumber, *pullRequest.Number)
+
+	// Merge with no commit message specified.
+	// Use a PR number that the client knows about.
+	mergePullErr1 := githubClient.MergePullRequest(knownPrNumber, "", "squash")
+	assert.NoError(t, mergePullErr1)
+	// Use a PR number that the client does not know about.
+	mergePullErr2 := githubClient.MergePullRequest(unKnownPrNumber, "", "squash")
+	assert.NoError(t, mergePullErr2)
 }
 
 func TestClosePullRequest(t *testing.T) {
