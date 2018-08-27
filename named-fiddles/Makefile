@@ -9,7 +9,7 @@ release: build package-lock.json
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/named-fiddles
 	./build_release
 
-push:
+push: release
 	pushk named-fiddles
 
 serve: package-lock.json
