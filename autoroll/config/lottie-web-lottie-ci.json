@@ -1,18 +1,14 @@
 {
   "childName": "Lottie Web",
-  "cqExtraTrybots": [],
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "lottie-web-lottie-ci-autoroll",
-  "safetyThrottle": {
-    "attemptCount": 0,
-    "timeWindow": "1h"
-  },
-  "serverURL": "",
-  "sheriff": ["borenet@google.com"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "borenet@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "lottie",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web.git",
@@ -21,5 +17,10 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+  },
+  "maxRollFrequency": "0m",
+  "safetyThrottle": {
+    "attemptCount": 0,
+    "timeWindow": "1h"
   }
 }

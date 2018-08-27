@@ -1,12 +1,14 @@
 {
   "childName": "PDFium",
   "gerritURL": "https://chromium-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "pdfium-autoroll",
-  "sheriff": ["dsinclair@chromium.org"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "dsinclair@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/pdfium",
     "childRepo": "https://pdfium.googlesource.com/pdfium.git",
@@ -15,5 +17,6 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  },
+  "maxRollFrequency": "0m"
 }

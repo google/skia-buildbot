@@ -51,7 +51,7 @@ type CopyRepoManagerConfig struct {
 	// Whitelist indicates which files and directories to copy from the
 	// child repo into the parent repo. If not specified, the whole repo
 	// is copied.
-	Whitelist []string `json:"whitelist"`
+	Whitelist []string `json:"whitelist,omitempty"`
 }
 
 // Validate the config.

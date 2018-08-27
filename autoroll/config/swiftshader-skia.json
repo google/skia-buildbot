@@ -1,15 +1,14 @@
 {
   "childName": "SwiftShader",
-  "cqExtraTrybots": [
-    "skia.primary:Test-Debian9-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
-  ],
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "swiftshader-skia-autoroll",
-  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "https://skia-tree-status.appspot.com/current-sheriff"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/externals/swiftshader",
     "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
@@ -18,5 +17,9 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
-  }
+  },
+  "cqExtraTrybots": [
+    "skia.primary:Test-Debian9-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
+  ],
+  "maxRollFrequency": "0m"
 }

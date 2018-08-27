@@ -28,10 +28,10 @@ func fakeAncestor() *datastore.Key {
 	return rv
 }
 
-// dsRoll is a struct used for storing autoroll.AutoRollIssue objects in
+// DsRoll is a struct used for storing autoroll.AutoRollIssue objects in
 // datastore. The AutoRollIssue is gob-serialized before and after inserting
 // to simplify the interactions with datastore.
-type dsRoll struct {
+type DsRoll struct {
 	// Data is the gob-serialized AutoRollIssue.
 	Data []byte `datastore:"data,noindex"`
 
@@ -95,7 +95,7 @@ func (r *RecentRolls) put(ctx context.Context, roll *autoroll.AutoRollIssue) err
 	if err := gob.NewEncoder(&buf).Encode(roll); err != nil {
 		return fmt.Errorf("Failed to encode roll: %s", err)
 	}
-	obj := &dsRoll{
+	obj := &DsRoll{
 		Data:          buf.Bytes(),
 		Roller:        r.roller,
 		RollerCreated: fmt.Sprintf("%s_%s", r.roller, roll.Created.UTC().Format(util.RFC3339NanoZeroPad)),
@@ -210,7 +210,7 @@ func (r *RecentRolls) LastRoll() *autoroll.AutoRollIssue {
 
 func (r *RecentRolls) getHistory(ctx context.Context) ([]*autoroll.AutoRollIssue, error) {
 	query := ds.NewQuery(ds.KIND_AUTOROLL_ROLL).Ancestor(fakeAncestor()).Filter("roller =", r.roller).Order("-rollerCreated").Limit(RECENT_ROLLS_LENGTH)
-	var history []*dsRoll
+	var history []*DsRoll
 	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
 		return nil, err
 	}

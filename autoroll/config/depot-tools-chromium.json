@@ -1,12 +1,14 @@
 {
   "childName": "Depot Tools",
   "gerritURL": "https://chromium-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "depot-tools-chromium-autoroll",
-  "sheriff": ["agable@chromium.org"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "agable@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/depot_tools",
     "childRepo": "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
@@ -15,5 +17,6 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  },
+  "maxRollFrequency": "0m"
 }

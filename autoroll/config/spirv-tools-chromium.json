@@ -1,12 +1,14 @@
 {
   "childName": "SPIRV-Tools",
   "gerritURL": "https://chromium-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "spirv-tools-chromium-autoroll",
-  "sheriff": ["dsinclair@google.com"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "dsinclair@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/SPIRV-Tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
@@ -15,5 +17,6 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  },
+  "maxRollFrequency": "0m"
 }

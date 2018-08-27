@@ -1,16 +1,14 @@
 {
   "childName": "Chromium",
-  "cqExtraTrybots": [
-    "skia.primary:Perf-Mac-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Release-All-CommandBuffer",
-    "skia.primary:Test-Mac-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
-  ],
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "24h",
+  "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "chromium-skia-autoroll",
-  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "https://skia-tree-status.appspot.com/current-sheriff"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "../src",
     "childRepo": "https://chromium.googlesource.com/chromium/src.git",
@@ -19,5 +17,10 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
-  }
+  },
+  "cqExtraTrybots": [
+    "skia.primary:Perf-Mac-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Release-All-CommandBuffer",
+    "skia.primary:Test-Mac-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
+  ],
+  "maxRollFrequency": "24h"
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/flynn/json5"
@@ -56,7 +57,7 @@ type throttleConfigJSON struct {
 func (c *ThrottleConfig) MarshalJSON() ([]byte, error) {
 	tc := throttleConfigJSON{
 		AttemptCount: c.AttemptCount,
-		TimeWindow:   human.Duration(c.TimeWindow),
+		TimeWindow:   strings.TrimSpace(human.Duration(c.TimeWindow)),
 	}
 	return json.Marshal(&tc)
 }
@@ -102,7 +103,7 @@ type AutoRollerConfig struct {
 	// User friendly name of the child repo.
 	ChildName string `json:"childName"`
 	// Gerrit URL the roller will be uploading issues to.
-	GerritURL string `json:"gerritURL"`
+	GerritURL string `json:"gerritURL,omitempty"`
 	// If true, the roller is only visible to Googlers.
 	IsInternal bool `json:"isInternal"`
 	// User friendly name of the parent repo.
@@ -117,37 +118,37 @@ type AutoRollerConfig struct {
 	// Backup email addresses to CC on rolls, in case obtaining the email
 	// addresses from the URL fails.  Only required if a URL is specified
 	// for Sheriff.
-	SheriffBackup []string `json:"sheriffBackup"`
+	SheriffBackup []string `json:"sheriffBackup,omitempty"`
 
 	// Github code review flags.
-	GithubRepoOwner string `json:"githubRepoOwner"`
-	GithubRepoName  string `json:"githubRepoName"`
-	GithubChecksNum int    `json:"githubChecksNum"`
+	GithubRepoOwner string `json:"githubRepoOwner,omitempty"`
+	GithubRepoName  string `json:"githubRepoName,omitempty"`
+	GithubChecksNum int    `json:"githubChecksNum,omitempty"`
 
 	// RepoManager configs. Exactly one must be provided.
-	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager"`
-	AndroidRepoManager        *repo_manager.AndroidRepoManagerConfig        `json:"androidRepoManager"`
-	CopyRepoManager           *repo_manager.CopyRepoManagerConfig           `json:"copyRepoManager"`
-	DEPSRepoManager           *repo_manager.DEPSRepoManagerConfig           `json:"depsRepoManager"`
-	FuchsiaSDKRepoManager     *repo_manager.FuchsiaSDKRepoManagerConfig     `json:"fuchsiaSDKRepoManager"`
-	GithubRepoManager         *repo_manager.GithubRepoManagerConfig         `json:"githubRepoManager"`
-	GithubDEPSRepoManager     *repo_manager.GithubDEPSRepoManagerConfig     `json:"githubDEPSRepoManager"`
-	Google3RepoManager        *Google3FakeRepoManagerConfig                 `json:"google3"`
-	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager"`
-	NoCheckoutDEPSRepoManager *repo_manager.NoCheckoutDEPSRepoManagerConfig `json:"noCheckoutDEPSRepoManager"`
+	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager,omitempty"`
+	AndroidRepoManager        *repo_manager.AndroidRepoManagerConfig        `json:"androidRepoManager,omitempty"`
+	CopyRepoManager           *repo_manager.CopyRepoManagerConfig           `json:"copyRepoManager,omitempty"`
+	DEPSRepoManager           *repo_manager.DEPSRepoManagerConfig           `json:"depsRepoManager,omitempty"`
+	FuchsiaSDKRepoManager     *repo_manager.FuchsiaSDKRepoManagerConfig     `json:"fuchsiaSDKRepoManager,omitempty"`
+	GithubRepoManager         *repo_manager.GithubRepoManagerConfig         `json:"githubRepoManager,omitempty"`
+	GithubDEPSRepoManager     *repo_manager.GithubDEPSRepoManagerConfig     `json:"githubDEPSRepoManager,omitempty"`
+	Google3RepoManager        *Google3FakeRepoManagerConfig                 `json:"google3,omitempty"`
+	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager,omitempty"`
+	NoCheckoutDEPSRepoManager *repo_manager.NoCheckoutDEPSRepoManagerConfig `json:"noCheckoutDEPSRepoManager,omitempty"`
 
 	// Optional Fields.
 
 	// Comma-separated list of trybots to add to roll CLs, in addition to
 	// the default set of commit queue trybots.
-	CqExtraTrybots []string `json:"cqExtraTrybots"`
+	CqExtraTrybots []string `json:"cqExtraTrybots,omitempty"`
 	// Limit to one successful roll within this time period.
-	MaxRollFrequency string `json:"maxRollFrequency"`
+	MaxRollFrequency string `json:"maxRollFrequency,omitempty"`
 	// Any extra notification systems to be used for this roller.
-	Notifiers []*notifier.Config `json:"notifiers"`
+	Notifiers []*notifier.Config `json:"notifiers,omitempty"`
 	// Throttling configuration to prevent uploading too many CLs within
 	// too short a time period.
-	SafetyThrottle *ThrottleConfig `json:"safetyThrottle"`
+	SafetyThrottle *ThrottleConfig `json:"safetyThrottle,omitempty"`
 
 	// Private.
 	rollerType string // Set by RollerType().

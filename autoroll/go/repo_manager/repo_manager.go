@@ -124,9 +124,9 @@ type CommonRepoManagerConfig struct {
 	// the childPath should be rooted. In most cases, this should be empty,
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
 	// specifies use_relative_paths), then this is required.
-	ChildSubdir string `json:"childSubdir"`
+	ChildSubdir string `json:"childSubdir,omitempty"`
 	// Named steps to run before uploading roll CLs.
-	PreUploadSteps []string `json:"preUploadSteps"`
+	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
 
 // Validate the config.
@@ -351,7 +351,7 @@ type DepotToolsRepoManagerConfig struct {
 	// Optional fields.
 
 	// Override the default gclient spec with this string.
-	GClientSpec string `json:"gclientSpec"`
+	GClientSpec string `json:"gclientSpec,omitempty"`
 }
 
 // Validate the config.

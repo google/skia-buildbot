@@ -31,14 +31,14 @@ type Config struct {
 	Filter string `json:"filter"`
 
 	// Exactly one of these should be specified.
-	Email  *EmailNotifierConfig  `json:"email"`
-	Chat   *ChatNotifierConfig   `json:"chat"`
-	PubSub *PubSubNotifierConfig `json:"pubsub"`
+	Email  *EmailNotifierConfig  `json:"email,omitempty"`
+	Chat   *ChatNotifierConfig   `json:"chat,omitempty"`
+	PubSub *PubSubNotifierConfig `json:"pubsub,omitempty"`
 
 	// Optional fields.
 
 	// If present, all messages inherit this subject line.
-	Subject string `json:"subject"`
+	Subject string `json:"subject,omitempty"`
 }
 
 // Validate the Config.

@@ -1,5 +1,23 @@
 {
   "childName": "ANGLE",
+  "gerritURL": "https://skia-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Skia",
+  "parentWaterfall": "https://status.skia.org",
+  "rollerName": "angle-skia-autoroll",
+  "sheriff": [
+    "https://skia-tree-status.appspot.com/current-sheriff"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "third_party/externals/angle2",
+    "childRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "gerritProject": "skia",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/skia.git"
+  },
   "cqExtraTrybots": [
     "skia.primary:Build-Debian9-Clang-x86_64-Release-ANGLE",
     "skia.primary:Perf-Win10-Clang-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-All-ANGLE",
@@ -12,20 +30,5 @@
     "skia.primary:Test-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE",
     "skia.primary:Test-Win10-Clang-ShuttleC-GPU-GTX960-x86_64-Debug-All-ANGLE"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "8h",
-  "parentName": "Skia",
-  "parentWaterfall": "https://status.skia.org",
-  "rollerName": "angle-skia-autoroll",
-  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
-  "noCheckoutDepsRepoManager": {
-    "childBranch": "master",
-    "childPath": "third_party/externals/angle2",
-    "childRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "gerritProject": "skia",
-    "includeBugs": false,
-    "includeLog": true,
-    "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skia.git"
-  }
+  "maxRollFrequency": "8h"
 }

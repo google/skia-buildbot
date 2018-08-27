@@ -1,20 +1,14 @@
 {
   "childName": "Perfetto",
   "gerritURL": "https://chromium-review.googlesource.com",
-  "maxRollFrequency": "0m",
-  "notifiers": [
-    {
-      "filter": "error",
-      "email": {
-        "emails": ["perfetto-bugs@google.com"]
-      }
-    }
-  ],
+  "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "perfetto-chromium-autoroll",
-  "sheriff": ["perfetto-bugs@google.com"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "perfetto-bugs@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/perfetto",
     "childRepo": "https://android.googlesource.com/platform/external/perfetto.git",
@@ -23,5 +17,16 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  },
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "perfetto-bugs@google.com"
+        ]
+      }
+    }
+  ]
 }

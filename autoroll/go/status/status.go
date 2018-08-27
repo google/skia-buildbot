@@ -60,9 +60,9 @@ func fakeAncestor() *datastore.Key {
 	return rv
 }
 
-// statusWrapper is a helper struct used for storing an AutoRollStatus in the
+// DsStatusWrapper is a helper struct used for storing an AutoRollStatus in the
 // datastore.
-type statusWrapper struct {
+type DsStatusWrapper struct {
 	Data   []byte `datastore:"data,noindex"`
 	Roller string `datastore:"roller"`
 }
@@ -82,7 +82,7 @@ func Set(ctx context.Context, rollerName string, st *AutoRollStatus) error {
 	if err := gob.NewEncoder(buf).Encode(st); err != nil {
 		return err
 	}
-	w := &statusWrapper{
+	w := &DsStatusWrapper{
 		Data:   buf.Bytes(),
 		Roller: rollerName,
 	}
@@ -96,7 +96,7 @@ func Set(ctx context.Context, rollerName string, st *AutoRollStatus) error {
 // Get the AutoRollStatus for the given roller from the datastore. Most callers
 // should use AutoRollStatusCache.
 func Get(ctx context.Context, rollerName string) (*AutoRollStatus, error) {
-	var w statusWrapper
+	var w DsStatusWrapper
 	if err := ds.DS.Get(ctx, key(rollerName), &w); err != nil {
 		return nil, err
 	}
