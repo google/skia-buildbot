@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58f15dcf_648a9419",
+        "filename": "go/github/github.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-27T16:37:00Z",
+      "side": 1,
+      "message": "I don\u0027t think this will work.  What if the process is restarted between creating and merging a pull request?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 43
+      },
+      "revId": "5b8cb94fbba0135b3d56304eacdeb43037e76447",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
