@@ -9,7 +9,7 @@
   # The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
   - name: Copy the Intel Graphics Driver EXE to the host
     win_copy:
-      src: "{{ win_package_src }}/Intel Graphics Broadwell win64_154037.4835.exe"
+      src: "{{ win_package_src }}/Intel Graphics Broadwell win64_15.40.38.4963.exe"
       dest: c:\Temp\intel_gfx.exe
   - name: Install Intel Graphics Driver for Broadwell and earlier
     # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html

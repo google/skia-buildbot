@@ -11,7 +11,7 @@
   - name: Copy the Radeon driver ZIP to the host
     win_copy:
       src: "{{ win_package_src }}/\
-        Radeon Graphics win10-64bit-radeon-software-adrenalin-edition-18.3.4-march23.zip"
+        Radeon Graphics win10-64bit-radeon-software-adrenalin-edition-18.8.1-aug17.zip"
       dest: c:\Temp\radeon_gfx.zip
   - name: Extract the Radeon driver ZIP
     win_unzip:
