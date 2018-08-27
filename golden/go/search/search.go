@@ -131,7 +131,8 @@ type Query struct {
 	RQuery    paramtools.ParamSet `json:"-"`
 
 	// Trybot support.
-	Issue         int64   `json:"issue,string"`
+	IssueStr      string  `json:"issue"`
+	Issue         int64   `json:"-"`
 	PatchsetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
 	Patchsets     []int64 `json:"-"`
 	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching code review issues.
