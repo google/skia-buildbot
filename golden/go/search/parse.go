@@ -91,6 +91,9 @@ func ParseCTQuery(r io.ReadCloser, limitDefault int32, ctQuery *CTQuery) error {
 	ctQuery.ColumnQuery.Patchsets = validate.Int64SliceValue("patchsets", ctQuery.ColumnQuery.PatchsetsStr, nil)
 	ctQuery.RowQuery.Patchsets = validate.Int64SliceValue("patchsets", ctQuery.RowQuery.PatchsetsStr, nil)
 
+	ctQuery.ColumnQuery.Issue = validate.Int64Value("column.issue", ctQuery.ColumnQuery.IssueStr, 0)
+	ctQuery.RowQuery.Issue = validate.Int64Value("row.issue", ctQuery.RowQuery.IssueStr, 0)
+
 	// Parse the general parameters of the query.
 	validate.StrValue("sortRows", &ctQuery.SortRows, rowSortFields, SORT_FIELD_COUNT)
 	validate.StrValue("rowsDir", &ctQuery.RowsDir, sortDirections, SORT_DESC)
