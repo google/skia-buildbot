@@ -16,6 +16,24 @@
       "revId": "515f8658131d9b67b34617f997f1b2a47b363281",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f2fa669_80e443c8",
+        "filename": "autoroll/config/swiftshader-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-27T13:48:07Z",
+      "side": 1,
+      "message": "It\u0027s the order that the fields appear in the AutoRollerConfig (and nested) struct.  Those were manually put in alphabetical order, with the exception that some things are grouped together, eg. optional fields at the bottom.",
+      "parentUuid": "d0e966be_c81f1c5f",
+      "revId": "515f8658131d9b67b34617f997f1b2a47b363281",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
