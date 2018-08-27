@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5cb1da2_ab1f49a6",
+        "filename": "autoroll/go/autoroll-fe-kube/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-27T19:43:56Z",
+      "side": 1,
+      "message": "This is copy/pasted and modified from autoroll-fe/main.go.  The only differences are:\n\n1. Changed metrics port back to 20000 since we don\u0027t need to worry about conflicts with autoroll-be.\n2. Removed CloudLoggingOpt on line 337.\n3. Added necessary scopes on line 344.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 2
+      },
+      "revId": "1a72ff4311868284e723ab4afed4b4d99fb5b540",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
