@@ -8,6 +8,7 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/chromevr-gold-ingestion \
     --config_filename=/etc/chromevr-gold-ingestion/config.json5 \
     --ds_namespace=gold-chromevr \
+    --http_port=:9091 \
     --logtostderr \
     --prom_port=:20002
 Restart=always
