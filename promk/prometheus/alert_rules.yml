@@ -91,23 +91,23 @@ groups:
       description: '{{ $labels.instance }} has failed to rebuild documentation for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/jsdoc/PROD.md#build_liveness'
   # Container Builder
   - alert: ContainerBuilderFailure
-    expr: ci_build_failure > 0
+    expr: ci_build_failure >= 2
     labels:
       category: infra
       severity: warning
     annotations:
       abbr: 'Container Builder Failed'
-      description: 'The build with trigger name {{ $labels.trigger}} has failed when rebuilding.'
+      description: 'The build with trigger name {{ $labels.trigger}} has failed when rebuilding twice in a row.'
   # Continuous Deploy
   - alert: ContinuousDeployLiveness
-    expr: liveness_ci_pubsub_receive_s > 60 * 60 * 24
+    expr: liveness_ci_pubsub_receive_s > 60 * 60 * 24 * 2
     for: 5m
     labels:
       category: infra
       severity: critical
     annotations:
       abbr: '{{ $labels.instance }}'
-      description: '{{ $labels.instance }} has failed to recieve a pubsub event in the last 24 hours.
+      description: '{{ $labels.instance }} has failed to recieve a pubsub event in the last 48 hours.
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
