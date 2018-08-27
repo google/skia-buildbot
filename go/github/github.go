@@ -55,6 +55,10 @@ type GitHub struct {
 	RepoOwner string
 	RepoName  string
 
+	// Entries are added when CreatePullRequest is called. It is used during MergePullRequest
+	// if an empty commit message is provided for a pull request number in the map.
+	pullRequestNumToDescription map[int]string
+
 	client     *github.Client
 	httpClient *http.Client
 	ctx        context.Context
@@ -64,8 +68,9 @@ type GitHub struct {
 func NewGitHub(ctx context.Context, repoOwner, repoName string, httpClient *http.Client) (*GitHub, error) {
 	client := github.NewClient(httpClient)
 	return &GitHub{
-		RepoOwner:  repoOwner,
-		RepoName:   repoName,
+		RepoOwner:                   repoOwner,
+		RepoName:                    repoName,
+		pullRequestNumToDescription: map[int]string{},
 		client:     client,
 		httpClient: httpClient,
 		ctx:        ctx,
@@ -130,16 +135,24 @@ func (g *GitHub) CreatePullRequest(title, baseBranch, headBranch, body string) (
 	if resp.StatusCode != http.StatusCreated {
 		return nil, fmt.Errorf("Unexpected status code %d from pullrequests.create.", resp.StatusCode)
 	}
+	g.pullRequestNumToDescription[*pullRequest.Number] = body
 	return pullRequest, nil
 }
 
 // See https://developer.github.com/v3/pulls/#merge-a-pull-request-merge-button
 // for the API documentation.
+// If msg is empty string then the description from g.pullRequestNumToDescription is used
+// as the commit message (if it exists).
 func (g *GitHub) MergePullRequest(pullRequestNum int, msg, mergeMethod string) error {
 	options := &github.PullRequestOptions{
 		MergeMethod: mergeMethod,
 	}
-	_, resp, err := g.client.PullRequests.Merge(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, msg, options)
+
+	commitMsg := msg
+	if val, ok := g.pullRequestNumToDescription[pullRequestNum]; ok {
+		commitMsg = val
+	}
+	_, resp, err := g.client.PullRequests.Merge(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum, commitMsg, options)
 	if err != nil {
 		return fmt.Errorf("Failed doing pullrequests.merge: %s", err)
 	}
