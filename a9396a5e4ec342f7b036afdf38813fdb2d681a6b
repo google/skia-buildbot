@@ -22,6 +22,30 @@
       "revId": "a9396a5e4ec342f7b036afdf38813fdb2d681a6b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c564323b_0450562b",
+        "filename": "ds/go/datastore_backup/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-27T14:59:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00046151_0d57f6b7",
+      "range": {
+        "startLine": 37,
+        "startChar": 14,
+        "endLine": 37,
+        "endChar": 42
+      },
+      "revId": "a9396a5e4ec342f7b036afdf38813fdb2d681a6b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
