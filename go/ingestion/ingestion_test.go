@@ -168,6 +168,10 @@ func (m mockSource) ID() string {
 	return "test-source"
 }
 
+func (m *mockSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+	return nil
+}
+
 // return a mock vcs
 func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 	commits := make([]*vcsinfo.LongCommit, 0, nCommits)
