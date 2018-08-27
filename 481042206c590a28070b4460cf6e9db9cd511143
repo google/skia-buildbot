@@ -1,0 +1,366 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8257ead3_afa25bab",
+        "filename": "ct/build_ctfe_release",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "Would be nice to put binaries in a consistent place. The build_release scripts that Joe wrote use ${ROOT}/usr/local/bin/${APPNAME} (except jsdoc, not sure why).",
+      "range": {
+        "startLine": 14,
+        "startChar": 59,
+        "endLine": 14,
+        "endChar": 77
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7371ac19_015e10cb",
+        "filename": "ct/create-email-secrets.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: Would be nice to not duplicate this script for every service that needs email.",
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b379b92a_ab0a99fa",
+        "filename": "ct/ctfe/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: Merge these lines.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 52
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "810c458c_3f7de72a",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: Generally we\u0027ve been using 9000 (or 9xxx) as the internal port.\n\n(Grafana is the odd exception, although https://skia-review.googlesource.com/c/buildbot/+/126921/6/kube/skia-public/grafana.yaml#10 )",
+      "range": {
+        "startLine": 53,
+        "startChar": 47,
+        "endLine": 53,
+        "endChar": 51
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11801c27_4d23e10c",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: IMO, just pass h to ListenAndServe below. That means any HTTP handlers that aren\u0027t explicitly added above won\u0027t be served, but I think that\u0027s a good thing.",
+      "range": {
+        "startLine": 140,
+        "startChar": 1,
+        "endLine": 140,
+        "endChar": 20
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eed6a528_a00cc399",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "Why did this change from READ_ONLY to READ_WRITE?",
+      "range": {
+        "startLine": 314,
+        "startChar": 74,
+        "endLine": 314,
+        "endChar": 84
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "602b8477_6019e787",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "All of this can be deleted.",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 227,
+        "endChar": 2
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42fb6b89_b2f06f74",
+        "filename": "ct/go/ctfe/pending_tasks/pending_tasks.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 244,
+        "startChar": 0,
+        "endLine": 255,
+        "endChar": 2
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06075bd7_c3dc3b09",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: delete all of this and just use \"json.NewDecoder(r.Body).Decode(\u0026vars)\" below.",
+      "range": {
+        "startLine": 440,
+        "startChar": 0,
+        "endLine": 451,
+        "endChar": 2
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99a0db69_40b3b014",
+        "filename": "ct/go/frontend/frontend.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: inline this function",
+      "range": {
+        "startLine": 51,
+        "startChar": 1,
+        "endLine": 51,
+        "endChar": 9
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "926a78f6_3f2b6313",
+        "filename": "ct/go/frontend/frontend.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 101
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c1e8016_198dd76d",
+        "filename": "ct/go/master_scripts/master_common/master_common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "nit: slightly odd that this is called \"host\" but it\u0027s a URL, especially since the next flag is ctfeInternalURL.",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 9
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2393eb7d_11fc3cf5",
+        "filename": "ct/go/master_scripts/master_common/master_common.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 0
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1f00a6a_4f4fa608",
+        "filename": "ct/go/util/gs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "Is this still used?",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 112
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07f5341b_c7e3c942",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 1
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "881bc617_b16b4b44",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T15:21:08Z",
+      "side": 1,
+      "message": "It seems likely that fout will be nil when there\u0027s an error.",
+      "range": {
+        "startLine": 42,
+        "startChar": 57,
+        "endLine": 42,
+        "endChar": 68
+      },
+      "revId": "481042206c590a28070b4460cf6e9db9cd511143",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
