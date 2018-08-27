@@ -6,12 +6,14 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"time"
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/ds/go/backup"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -31,7 +33,11 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.CloudLoggingOpt(),
 	)
-	client, err := auth.NewDefaultJWTServiceAccountClient(datastore.ScopeDatastore)
+
+	// Don't use auth.NewDefaultJWTServiceAccountClient because it uses the
+	// BackOffTransport, and what we really want is a client that returns the
+	// status code on failure.
+	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}

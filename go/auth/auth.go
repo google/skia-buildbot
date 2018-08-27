@@ -70,6 +70,18 @@ func ClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
 	})
 }
 
+// TimeoutClientFromTokenSource creates an http.Client with a Timeout transport and a
+// request timeout.
+func TimeoutClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
+	return httputils.AddMetricsToClient(&http.Client{
+		Transport: &oauth2.Transport{
+			Source: tok,
+			Base:   &http.Transport{Dial: httputils.DialTimeout},
+		},
+		Timeout: httputils.REQUEST_TIMEOUT,
+	})
+}
+
 // NewDefaultClient creates a new OAuth 2.0 authorized client with all the
 // defaults for the given scopes. If local is true then a 3-legged flow is
 // initiated, otherwise the GCE Service Account is used if running in GCE, and

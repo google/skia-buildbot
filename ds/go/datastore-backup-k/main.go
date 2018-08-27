@@ -32,7 +32,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+
+	// Don't use auth.ClientFromTokenSource() because it uses the
+	// BackOffTransport, and what we really want is a client that returns the
+	// status code on failure.
+	client := auth.TimeoutClientFromTokenSource(ts)
 	if err := backup.Step(client, *project, *bucket); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}

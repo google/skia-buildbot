@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -37,6 +38,24 @@ type EntityFilter struct {
 type Request struct {
 	OutputUrlPrefix string       `json:"outputUrlPrefix"`
 	EntityFilter    EntityFilter `json:"entityFilter"`
+}
+
+// singleRequest makes a single http POST request to 'url' with a body of
+// 'buf'.
+//
+// Returns the http.Response and a bool that is true if the request should be
+// retried because there are already the maximum number of exports running.
+func singleRequest(client *http.Client, url string, buf *bytes.Buffer) (*http.Response, error, bool) {
+	shouldRetry := false
+	resp, err := client.Post(url, "application/json", buf)
+	if resp != nil {
+		if resp.StatusCode == 429 {
+			sklog.Infof("Got 429 RESOURCE_EXHAUSTED, waiting to retry operation.")
+			shouldRetry = true
+			util.Close(resp.Body)
+		}
+	}
+	return resp, err, shouldRetry
 }
 
 // Step runs a single backup of all the entities listed in ds.KindsToBackup
@@ -60,13 +79,22 @@ func Step(client *http.Client, project, bucket string) error {
 			success = false
 			continue
 		}
-		buf := bytes.NewBuffer(b)
 		url := fmt.Sprintf(URL, project)
-		resp, err := client.Post(url, "application/json", buf)
+		var resp *http.Response
+
+		shouldRetry := true
+		for shouldRetry { // Could retry forever, but then backupSuccess will never be Reset() and that will trigger an alert.
+			resp, err, shouldRetry = singleRequest(client, url, bytes.NewBuffer(b))
+			if shouldRetry {
+				time.Sleep(10 * time.Minute)
+			}
+		}
 		if err != nil {
 			sklog.Errorf("Request failed: %s-%v: %s", ns, kinds, err)
 			success = false
 			continue
+		} else {
+			sklog.Infof("Successfully started backup: %s-%v", ns, kinds)
 		}
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		body := string(bodyBytes)
