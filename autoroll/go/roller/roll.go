@@ -378,7 +378,11 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
-		if err := g.MergePullRequest(int(issueNum), "Auto-roller completed checks. Merging.", github.MERGE_METHOD_SQUASH); err != nil {
+		if err := g.AddComment(int(issueNum), "Auto-roller completed checks. About to merge."); err != nil {
+			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
+		}
+		// Merge with empty commit message so that the original PR description is used by github client.
+		if err := g.MergePullRequest(int(issueNum), "", github.MERGE_METHOD_SQUASH); err != nil {
 			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
 		}
 	}
