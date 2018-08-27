@@ -160,7 +160,7 @@ func TestPixelDiffExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "pixel_diff_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 11)
+	expect.Equal(t, len(cmd.Args), 14)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
@@ -208,7 +208,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "metrics_analysis_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 9)
+	expect.Equal(t, len(cmd.Args), 12)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
