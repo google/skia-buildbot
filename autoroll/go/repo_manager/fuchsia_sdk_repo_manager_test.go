@@ -27,7 +27,8 @@ const (
 	fuchsiaSDKTimeBase = "2009-11-10T23:00:02Z"
 	fuchsiaSDKTimeNext = "2009-11-10T23:00:03Z"
 
-	fuchsiaSDKLatestArchiveUrl = "https://storage.googleapis.com/fuchsia/sdk/linux-amd64/LATEST_ARCHIVE"
+	fuchsiaSDKLatestArchiveUrlLinux = "https://storage.googleapis.com/fuchsia/sdk/linux-amd64/LATEST_ARCHIVE"
+	fuchsiaSDKLatestArchiveUrlMac   = "https://storage.googleapis.com/fuchsia/sdk/mac-amd64/LATEST_ARCHIVE"
 )
 
 func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
@@ -48,7 +49,8 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, string, *git_testutils.GitB
 
 	// Create child and parent repos.
 	parent := git_testutils.GitInit(t, context.Background())
-	parent.Add(context.Background(), FUCHSIA_SDK_VERSION_FILE_PATH, fuchsiaSDKRevBase)
+	parent.Add(context.Background(), FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, fuchsiaSDKRevBase)
+	parent.Add(context.Background(), FUCHSIA_SDK_VERSION_FILE_PATH_MAC, fuchsiaSDKRevBase)
 	parent.Commit(context.Background())
 
 	mockRun := &exec.CommandCollector{}
@@ -79,8 +81,9 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, string, *git_testutils.GitB
 	return ctx, wd, parent, mockRun, urlmock, cleanup
 }
 
-func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, rev string) {
-	urlmock.MockOnce(fuchsiaSDKLatestArchiveUrl, mockhttpclient.MockGetDialogue([]byte(rev)))
+func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) {
+	urlmock.MockOnce(fuchsiaSDKLatestArchiveUrlLinux, mockhttpclient.MockGetDialogue([]byte(revLinux)))
+	urlmock.MockOnce(fuchsiaSDKLatestArchiveUrlMac, mockhttpclient.MockGetDialogue([]byte(revMac)))
 }
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
@@ -96,7 +99,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 	})
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase)
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 	cfg := fuchsiaCfg()
 	cfg.ParentRepo = gb.RepoUrl()
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client())
@@ -124,7 +127,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
 	})
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext)
+	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext, "mac-next")
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
 	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev())

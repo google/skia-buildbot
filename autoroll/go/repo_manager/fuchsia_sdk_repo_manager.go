@@ -24,11 +24,13 @@ import (
 )
 
 const (
-	FUCHSIA_SDK_GS_BUCKET      = "fuchsia"
-	FUCHSIA_SDK_GS_PATH        = "sdk"
-	FUCHSIA_SDK_GS_LATEST_PATH = "sdk/linux-amd64/LATEST_ARCHIVE"
+	FUCHSIA_SDK_GS_BUCKET            = "fuchsia"
+	FUCHSIA_SDK_GS_PATH              = "sdk"
+	FUCHSIA_SDK_GS_LATEST_PATH_LINUX = "sdk/linux-amd64/LATEST_ARCHIVE"
+	FUCHSIA_SDK_GS_LATEST_PATH_MAC   = "sdk/mac-amd64/LATEST_ARCHIVE"
 
-	FUCHSIA_SDK_VERSION_FILE_PATH = "build/fuchsia/sdk.sha1"
+	FUCHSIA_SDK_VERSION_FILE_PATH_LINUX = "build/fuchsia/linux.sdk.sha1"
+	FUCHSIA_SDK_VERSION_FILE_PATH_MAC   = "build/fuchsia/mac.sdk.sha1"
 
 	FUCHSIA_SDK_COMMIT_MSG_TMPL = `Roll Fuchsia SDK from %s to %s
 
@@ -84,10 +86,12 @@ type fuchsiaSDKRepoManager struct {
 	commitsNotRolled int // Protected by infoMtx.
 	gcsClient        gcs.GCSClient
 	gsBucket         string
-	lastRollRev      *fuchsiaSDKVersion // Protected by infoMtx.
-	nextRollRev      *fuchsiaSDKVersion // Protected by infoMtx.
+	lastRollRevLinux *fuchsiaSDKVersion // Protected by infoMtx.
+	nextRollRevLinux *fuchsiaSDKVersion // Protected by infoMtx.
+	nextRollRevMac   string             // Protected by infoMtx.
 	storageClient    *storage.Client
-	versionFile      string
+	versionFileLinux string
+	versionFileMac   string
 	versions         []*fuchsiaSDKVersion // Protected by infoMtx.
 }
 
@@ -110,7 +114,8 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 		gcsClient:             gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
 		gsBucket:              FUCHSIA_SDK_GS_BUCKET,
 		storageClient:         storageClient,
-		versionFile:           path.Join(drm.parentDir, FUCHSIA_SDK_VERSION_FILE_PATH),
+		versionFileLinux:      path.Join(drm.parentDir, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX),
+		versionFileMac:        path.Join(drm.parentDir, FUCHSIA_SDK_VERSION_FILE_PATH_MAC),
 	}
 	return rv, nil
 }
@@ -142,7 +147,13 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Write the file.
-	if err := ioutil.WriteFile(rm.versionFile, []byte(to), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(rm.versionFileLinux, []byte(to), os.ModePerm); err != nil {
+		return 0, err
+	}
+	rm.infoMtx.RLock()
+	nextRollRevMac := rm.nextRollRevMac
+	rm.infoMtx.RUnlock()
+	if err := ioutil.WriteFile(rm.versionFileLinux, []byte(nextRollRevMac), os.ModePerm); err != nil {
 		return 0, err
 	}
 
@@ -233,11 +244,11 @@ func (rm *fuchsiaSDKRepoManager) Update(ctx context.Context) error {
 	}
 
 	// Read the file to determine the last roll rev.
-	lastRollRevBytes, err := ioutil.ReadFile(rm.versionFile)
+	lastRollRevLinuxBytes, err := ioutil.ReadFile(rm.versionFileLinux)
 	if err != nil {
 		return err
 	}
-	lastRollRevStr := strings.TrimSpace(string(lastRollRevBytes))
+	lastRollRevLinuxStr := strings.TrimSpace(string(lastRollRevLinuxBytes))
 
 	// Get the available object hashes. Note that not all of these are SDKs,
 	// so they don't necessarily represent versions we could feasibly roll.
@@ -257,34 +268,41 @@ func (rm *fuchsiaSDKRepoManager) Update(ctx context.Context) error {
 	sort.Sort(fuchsiaSDKVersionSlice(availableVersions))
 
 	// Get next SDK version.
-	nextRollRevBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, FUCHSIA_SDK_GS_LATEST_PATH)
+	nextRollRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, FUCHSIA_SDK_GS_LATEST_PATH_LINUX)
 	if err != nil {
 		return err
 	}
-	nextRollRevStr := strings.TrimSpace(string(nextRollRevBytes))
+	nextRollRevLinuxStr := strings.TrimSpace(string(nextRollRevLinuxBytes))
+
+	nextRollRevMacBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, FUCHSIA_SDK_GS_LATEST_PATH_MAC)
+	if err != nil {
+		return err
+	}
+	nextRollRevMacStr := strings.TrimSpace(string(nextRollRevMacBytes))
 
 	// Find the last and next roll rev in the list of available versions.
 	lastIdx := -1
 	nextIdx := -1
 	for idx, v := range availableVersions {
-		if v.Version == lastRollRevStr {
+		if v.Version == lastRollRevLinuxStr {
 			lastIdx = idx
 		}
-		if v.Version == nextRollRevStr {
+		if v.Version == nextRollRevLinuxStr {
 			nextIdx = idx
 		}
 	}
 	if lastIdx == -1 {
-		return fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevStr)
+		return fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevLinuxStr)
 	}
 	if nextIdx == -1 {
-		return fmt.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRevStr)
+		return fmt.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRevLinuxStr)
 	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
-	rm.lastRollRev = availableVersions[lastIdx]
-	rm.nextRollRev = availableVersions[nextIdx]
+	rm.lastRollRevLinux = availableVersions[lastIdx]
+	rm.nextRollRevLinux = availableVersions[nextIdx]
+	rm.nextRollRevMac = nextRollRevMacStr
 	// Versions should be in reverse chronological order. Note that this
 	// number is not correct because there are things other than SDKs in the
 	// GS dir, and because they are content-addresed, we can't tell which
@@ -310,14 +328,14 @@ func (rm *fuchsiaSDKRepoManager) FullChildHash(ctx context.Context, ver string) 
 func (r *fuchsiaSDKRepoManager) LastRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
-	return r.lastRollRev.Version
+	return r.lastRollRevLinux.Version
 }
 
 // See documentation for RepoManager interface.
 func (r *fuchsiaSDKRepoManager) NextRollRev() string {
 	r.infoMtx.RLock()
 	defer r.infoMtx.RUnlock()
-	return r.nextRollRev.Version
+	return r.nextRollRevLinux.Version
 }
 
 // See documentation for RepoManager interface.
@@ -334,7 +352,7 @@ func (rm *fuchsiaSDKRepoManager) RolledPast(ctx context.Context, ver string) (bo
 	}
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
-	return !testVer.Greater(rm.lastRollRev), nil
+	return !testVer.Greater(rm.lastRollRevLinux), nil
 }
 
 // See documentation for RepoManager interface.
