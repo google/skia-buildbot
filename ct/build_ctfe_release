@@ -1,31 +1,28 @@
 #!/bin/bash
 # Builds and uploads a debian package for CT frontend.
 APPNAME=ctfe
-SYSTEMD=${APPNAME}.service
-DESCRIPTION="Cluster Telemetry allows you to run telemetry’s benchmarks, lua \
-scripts and other tasks using multiple repository patches through Alexa’s top \
-1 million web pages. Developers can use the framework to measure the \
-performance of their patch against the top subset of the internet on both \
-Desktop and Android. This package contains the frontend running on GCE."
 
 set -x -e
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
 
+${INSTALL}     --mode=644 -T ${APPNAME}/Dockerfile         ${ROOT}/Dockerfile
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/ctfe            ${ROOT}/usr/local/bin/${APPNAME}
-
-${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service      ${ROOT}/etc/systemd/system/${APPNAME}.service
 
 ${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/templates
 ${INSTALL}     --mode=644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/css
 ${INSTALL}     --mode=644 -T ./res/css/ctfe.css            ${ROOT}/usr/local/share/${APPNAME}/res/css/ctfe.css
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/img
 ${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/js
 ${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/vul
 ${INSTALL}     --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
 }
 
-source ../bash/release.sh
+source ../bash/docker_build.sh
