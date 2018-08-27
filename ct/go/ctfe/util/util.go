@@ -13,8 +13,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/gorilla/mux"
-
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -167,8 +165,4 @@ func GetQualifiedCustomWebpages(customWebpages, benchmarkArgs string) ([]string,
 		}
 	}
 	return qualifiedWebpages, nil
-}
-
-func AddForceLoginHandler(r *mux.Router, path, httpMethod string, handlerFunc http.HandlerFunc) {
-	r.Handle(path, login.ForceAuth(handlerFunc, OAUTH2_CALLBACK_PATH)).Methods(httpMethod)
 }
