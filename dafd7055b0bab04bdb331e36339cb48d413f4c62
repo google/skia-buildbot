@@ -46,6 +46,30 @@
       "revId": "dafd7055b0bab04bdb331e36339cb48d413f4c62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48536da1_8faaf4c7",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-27T11:50:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "aaace981_a590ea99",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 45
+      },
+      "revId": "dafd7055b0bab04bdb331e36339cb48d413f4c62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
