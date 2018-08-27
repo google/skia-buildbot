@@ -7,8 +7,8 @@ import (
 	"go.skia.org/infra/go/ds"
 )
 
-// entry is a struct representing the should-unthrottle status for a roller.
-type entry struct {
+// Entry is a struct representing the should-unthrottle status for a roller.
+type Entry struct {
 	ShouldUnthrottle bool `datastore:"shouldUnthrottle,noindex"`
 }
 
@@ -41,7 +41,7 @@ func Reset(ctx context.Context, roller string) error {
 
 // Set whether the given roller should be unthrottled.
 func set(ctx context.Context, roller string, shouldUnthrottle bool) error {
-	e := &entry{
+	e := &Entry{
 		ShouldUnthrottle: shouldUnthrottle,
 	}
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
@@ -53,7 +53,7 @@ func set(ctx context.Context, roller string, shouldUnthrottle bool) error {
 
 // Determine whether the given roller should be unthrottled.
 func Get(ctx context.Context, roller string) (bool, error) {
-	var e entry
+	var e Entry
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		return tx.Get(key(roller), &e)
 	})

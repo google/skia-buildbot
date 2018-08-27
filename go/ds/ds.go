@@ -16,6 +16,12 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+// Global constants.
+const (
+	// Maximum number of entities which may be inserted or deleted at once.
+	MAX_MODIFICATIONS = 500
+)
+
 type Kind string
 
 // Below are all the Kinds used in all applications. New Kinds should be listed

@@ -1,15 +1,18 @@
 {
   "childName": "Skia",
   "gerritURL": "https://fuchsia-review.googlesource.com",
-  "maxRollFrequency": "3h",
+  "isInternal": false,
   "parentName": "Fuchsia",
   "parentWaterfall": "https://fuchsia-dashboard.appspot.com/",
   "rollerName": "fuchsia-autoroll",
-  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
+  "sheriff": [
+    "https://skia-tree-status.appspot.com/current-sheriff"
+  ],
   "manifestRepoManager": {
     "childBranch": "master",
     "childPath": "skia",
     "parentBranch": "master",
     "parentRepo": "https://fuchsia.googlesource.com/topaz.git"
-  }
+  },
+  "maxRollFrequency": "3h"
 }

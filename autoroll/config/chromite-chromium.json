@@ -1,6 +1,23 @@
 {
   "childName": "Chromite",
   "gerritURL": "https://chromium-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "chromite-chromium-autoroll",
+  "sheriff": [
+    "chrome-os-gardeners@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/chromite",
+    "childRepo": "https://chromium.googlesource.com/chromiumos/chromite.git",
+    "gerritProject": "chromium/src",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
   "maxRollFrequency": "0m",
   "notifiers": [
     {
@@ -12,19 +29,5 @@
         ]
       }
     }
-  ],
-  "parentName": "Chromium",
-  "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "chromite-chromium-autoroll",
-  "sheriff": ["chrome-os-gardeners@google.com"],
-  "noCheckoutDepsRepoManager": {
-    "childBranch": "master",
-    "childPath": "src/third_party/chromite",
-    "childRepo": "https://chromium.googlesource.com/chromiumos/chromite.git",
-    "gerritProject": "chromium/src",
-    "includeBugs": false,
-    "includeLog": true,
-    "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  ]
 }

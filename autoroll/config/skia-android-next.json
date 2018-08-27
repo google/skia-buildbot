@@ -2,15 +2,16 @@
   "childName": "Skia",
   "gerritURL": "(none)",
   "isInternal": true,
-  "maxRollFrequency": "0m",
   "parentName": "Android (next release)",
   "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_pi-dev/grid",
   "rollerName": "android-next-autoroll",
-  "sheriff": ["https://skia-tree-status.appspot.com/current-robocop"],
+  "sheriff": [
+    "https://skia-tree-status.appspot.com/current-robocop"
+  ],
   "androidRepoManager": {
     "childBranch": "android/next-release",
     "childPath": "external/skia",
-    "parentBranch": "pi-dev",
-    "parentRepo": "android"
-  }
+    "parentBranch": "pi-dev"
+  },
+  "maxRollFrequency": "0m"
 }

@@ -1,12 +1,29 @@
 {
   "childName": "Catapult",
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "catapult-autoroll",
+  "sheriff": [
+    "sullivan@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/catapult",
+    "childRepo": "https://chromium.googlesource.com/catapult.git",
+    "gerritProject": "chromium/src",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
   "cqExtraTrybots": [
     "luci.chromium.try:android_optional_gpu_tests_rel",
     "luci.chromium.try:linux_optional_gpu_tests_rel",
     "luci.chromium.try:mac_optional_gpu_tests_rel",
     "luci.chromium.try:win_optional_gpu_tests_rel"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
   "maxRollFrequency": "0m",
   "notifiers": [
     {
@@ -19,22 +36,10 @@
     {
       "filter": "warning",
       "email": {
-        "emails": ["chrome-speed-operations@google.com"]
+        "emails": [
+          "chrome-speed-operations@google.com"
+        ]
       }
     }
-  ],
-  "parentName": "Chromium",
-  "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "catapult-autoroll",
-  "sheriff": ["sullivan@chromium.org"],
-  "noCheckoutDepsRepoManager": {
-    "childBranch": "master",
-    "childPath": "src/third_party/catapult",
-    "childRepo": "https://chromium.googlesource.com/catapult.git",
-    "gerritProject": "chromium/src",
-    "includeBugs": true,
-    "includeLog": true,
-    "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  ]
 }

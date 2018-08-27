@@ -1,10 +1,27 @@
 {
   "childName": "WebRTC",
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "webrtc-chromium-autoroll",
+  "sheriff": [
+    "webrtc-chromium-sheriffs-robots@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "lkgr",
+    "childPath": "src/third_party/webrtc",
+    "childRepo": "https://webrtc.googlesource.com/src.git",
+    "gerritProject": "chromium/src",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
   "cqExtraTrybots": [
     "luci.chromium.try:linux_chromium_archive_rel_ng",
     "master.tryserver.chromium.mac:mac_chromium_archive_rel_ng"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
   "maxRollFrequency": "0m",
   "notifiers": [
     {
@@ -18,19 +35,5 @@
         ]
       }
     }
-  ],
-  "parentName": "Chromium",
-  "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "webrtc-chromium-autoroll",
-  "sheriff": ["webrtc-chromium-sheriffs-robots@google.com"],
-  "noCheckoutDepsRepoManager": {
-    "childBranch": "lkgr",
-    "childPath": "src/third_party/webrtc",
-    "childRepo": "https://webrtc.googlesource.com/src.git",
-    "gerritProject": "chromium/src",
-    "includeBugs": true,
-    "includeLog": true,
-    "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  ]
 }

@@ -1,26 +1,30 @@
 {
   "childName": "Skia",
-  "cqExtraTrybots": [
-    "skia.primary:Housekeeper-PerCommit-InfraTests"
-  ],
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "skia-lottie-ci-autoroll",
-  "safetyThrottle": {
-    "attemptCount": 0,
-    "timeWindow": "1h"
-  },
-  "serverURL": "",
-  "sheriff": ["borenet@google.com"],
+  "sheriff": [
+    "borenet@google.com"
+  ],
   "depsRepoManager": {
     "childBranch": "master",
     "childPath": "skia",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
+    "preUploadSteps": [
+      "TrainInfra"
+    ],
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
-    "preUploadSteps": ["TrainInfra"]
+    "includeBugs": false,
+    "includeLog": true
+  },
+  "cqExtraTrybots": [
+    "skia.primary:Housekeeper-PerCommit-InfraTests"
+  ],
+  "maxRollFrequency": "0m",
+  "safetyThrottle": {
+    "attemptCount": 0,
+    "timeWindow": "1h"
   }
 }

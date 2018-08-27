@@ -1,12 +1,14 @@
 {
   "childName": "NaCl",
   "gerritURL": "https://chromium-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "nacl-autoroll",
-  "sheriff": ["mseaborn@chromium.org"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "mseaborn@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/native_client",
     "childRepo": "https://chromium.googlesource.com/native_client/src/native_client.git",
@@ -15,5 +17,6 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  },
+  "maxRollFrequency": "0m"
 }

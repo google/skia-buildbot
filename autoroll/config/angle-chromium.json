@@ -1,18 +1,14 @@
 {
   "childName": "ANGLE",
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:win_optional_gpu_tests_rel"
-  ],
   "gerritURL": "https://chromium-review.googlesource.com",
-  "maxRollFrequency": "1h",
+  "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "angle-chromium-autoroll",
-  "sheriff": ["https://build.chromium.org/deprecated/chromium/sheriff_angle.json"],
-  "noCheckoutDepsRepoManager": {
+  "sheriff": [
+    "https://build.chromium.org/deprecated/chromium/sheriff_angle.json"
+  ],
+  "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/angle",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
@@ -21,5 +17,12 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
-  }
+  },
+  "cqExtraTrybots": [
+    "luci.chromium.try:android_optional_gpu_tests_rel",
+    "luci.chromium.try:linux_optional_gpu_tests_rel",
+    "luci.chromium.try:mac_optional_gpu_tests_rel",
+    "luci.chromium.try:win_optional_gpu_tests_rel"
+  ],
+  "maxRollFrequency": "1h"
 }

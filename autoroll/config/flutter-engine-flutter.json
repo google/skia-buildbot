@@ -1,13 +1,16 @@
 {
-  "githubRepoOwner": "flutter",
-  "githubRepoName": "flutter",
-  "githubChecksNum": 10,
-  "maxRollFrequency": "0m",
   "childName": "Engine",
+  "isInternal": false,
   "parentName": "Flutter",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
   "rollerName": "flutter-engine-flutter-autoroll",
-  "sheriff": ["rmistry@google.com","liyuqian@google.com"],
+  "sheriff": [
+    "rmistry@google.com",
+    "liyuqian@google.com"
+  ],
+  "githubRepoOwner": "flutter",
+  "githubRepoName": "flutter",
+  "githubChecksNum": 10,
   "githubRepoManager": {
     "childBranch": "master",
     "childPath": "engine",
@@ -17,6 +20,12 @@
     "revisionFile": "bin/internal/engine.version",
     "defaultStrategy": "gcs file",
     "storageBucket": "flutter_infra",
-    "storagePathTemplates": ["flutter/%s/android-javadoc.zip","flutter/%s/dart-sdk-linux-x64.zip","flutter/%s/dart-sdk-darwin-x64.zip","flutter/%s/dart-sdk-windows-x64.zip"]
-  }
+    "storagePathTemplates": [
+      "flutter/%s/android-javadoc.zip",
+      "flutter/%s/dart-sdk-linux-x64.zip",
+      "flutter/%s/dart-sdk-darwin-x64.zip",
+      "flutter/%s/dart-sdk-windows-x64.zip"
+    ]
+  },
+  "maxRollFrequency": "0m"
 }

@@ -53,7 +53,7 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	// Optional fields.
 
 	// Named steps to run before uploading roll CLs.
-	PreUploadSteps []string `json:"preUploadSteps"`
+	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
 
 func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {

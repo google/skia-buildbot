@@ -1,20 +1,19 @@
 {
   "childName": "skcms",
-  "cqExtraTrybots": [
-    "master.tryserver.blink:linux_trusty_blink_rel"
-  ],
   "gerritURL": "https://skia-review.googlesource.com",
-  "maxRollFrequency": "0m",
+  "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "skcms-skia-autoroll",
-  "sheriff": ["https://skia-tree-status.appspot.com/current-sheriff"],
+  "sheriff": [
+    "https://skia-tree-status.appspot.com/current-sheriff"
+  ],
   "copyRepoManager": {
     "childBranch": "master",
     "childPath": "skia/third_party/skcms",
-    "childRepo": "https://skia.googlesource.com/skcms.git",
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
+    "childRepo": "https://skia.googlesource.com/skcms.git",
     "whitelist": [
       "LICENSE",
       "README.chromium",
@@ -24,5 +23,9 @@
       "skcms_internal.h",
       "src"
     ]
-  }
+  },
+  "cqExtraTrybots": [
+    "master.tryserver.blink:linux_trusty_blink_rel"
+  ],
+  "maxRollFrequency": "0m"
 }

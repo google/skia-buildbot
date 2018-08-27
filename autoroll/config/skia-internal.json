@@ -1,35 +1,40 @@
 {
   "childName": "Skia",
+  "gerritURL": "https://skia-review.googlesource.com",
+  "isInternal": true,
+  "parentName": "Internal Test",
+  "parentWaterfall": "https://status-internal.skia.org/",
+  "rollerName": "skia-internal-autoroll",
+  "sheriff": [
+    "borenet@google.com"
+  ],
+  "depsRepoManager": {
+    "childBranch": "master",
+    "childPath": "skia",
+    "parentBranch": "master",
+    "preUploadSteps": [
+      "TrainInfra"
+    ],
+    "parentRepo": "https://skia.googlesource.com/internal_test.git",
+    "includeBugs": false,
+    "includeLog": true
+  },
   "cqExtraTrybots": [
     "skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
-  "isInternal": true,
   "maxRollFrequency": "0m",
   "notifiers": [
     {
       "filter": "warning",
       "email": {
-        "emails": ["borenet@google.com"]
+        "emails": [
+          "borenet@google.com"
+        ]
       }
     }
   ],
-  "parentName": "Internal Test",
-  "parentWaterfall": "https://status-internal.skia.org/",
-  "rollerName": "skia-internal-autoroll",
   "safetyThrottle": {
     "attemptCount": 0,
     "timeWindow": "1h"
-  },
-  "serverURL": "",
-  "sheriff": ["borenet@google.com"],
-  "depsRepoManager": {
-    "childBranch": "master",
-    "childPath": "skia",
-    "includeBugs": false,
-    "includeLog": true,
-    "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/internal_test.git",
-    "preUploadSteps": ["TrainInfra"]
   }
 }

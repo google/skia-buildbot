@@ -31,7 +31,7 @@ type GithubDEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
 	// Optional config to use if parent path is different than
 	// workdir + parent repo.
-	GithubParentPath string `json:"githubParentPath"`
+	GithubParentPath string `json:"githubParentPath,omitempty"`
 }
 
 // Validate the config.
