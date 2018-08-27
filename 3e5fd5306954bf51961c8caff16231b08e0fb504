@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10fd592c_96bb2cb5",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-27T12:47:59Z",
+      "side": 1,
+      "message": "A little documentation on why we use createObjectURL instead of just making the url string would be appreciated.",
+      "revId": "3e5fd5306954bf51961c8caff16231b08e0fb504",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
