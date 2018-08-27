@@ -47,6 +47,8 @@ type Source interface {
 
 	// ID returns a unique identifier for this source.
 	ID() string
+
+	SetEventChannel(chan<- []ResultFileLocation) error
 }
 
 // ResultFileLocation is an abstract interface to a file like object that
@@ -169,7 +171,7 @@ func (i *Ingester) stop() {
 	close(i.doneCh)
 }
 
-// rflQueue is a helper type that implements a very simple queue to buffer ResultFileLcoations.
+// rflQueue is a helper type that implements a very simple queue to buffer ResultFileLocations.
 type rflQueue []ResultFileLocation
 
 // push appends the given result file locations to the queue.
@@ -220,6 +222,8 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 				srcMetrics.pollTimer.Stop()
 			})
 		}(source, i.srcMetrics[idx], i.doneCh)
+
+		source.SetEventChannel(eventChan)
 	}
 	return pollChan, eventChan
 }
