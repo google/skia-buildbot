@@ -1,5 +1,5 @@
 default:
-	go install -v ./go/datastore_backup
+	go install -v ./go/datastore_backup ./go/datastore-backup-k
 
 release:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/datastore-backup-k
