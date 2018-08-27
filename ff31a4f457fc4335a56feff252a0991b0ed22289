@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35535223_9a50d8b5",
+        "filename": "ct/go/poller/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-08-27T16:09:48Z",
+      "side": 1,
+      "message": "nit: Maybe think about moving the boilerplate in the Execute methods into a helper function.",
+      "revId": "ff31a4f457fc4335a56feff252a0991b0ed22289",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
