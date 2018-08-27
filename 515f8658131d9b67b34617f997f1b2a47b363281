@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0e966be_c81f1c5f",
+        "filename": "autoroll/config/swiftshader-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-27T13:45:06Z",
+      "side": 1,
+      "message": "Just curious: how was this order decided? I thought if it was re-ordered it would be alpha-sorted but does not appear to be.",
+      "revId": "515f8658131d9b67b34617f997f1b2a47b363281",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
