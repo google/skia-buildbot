@@ -22,6 +22,30 @@
       "revId": "dafd7055b0bab04bdb331e36339cb48d413f4c62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aaace981_a590ea99",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-27T11:49:09Z",
+      "side": 1,
+      "message": "It sets each of the configs as a dependency of release-be-all.  It\u0027s not really necessary in this fake usage of a makefile, but if we were using it as intended, it would force a re-run of build_backend_release if any of the config files changed, where we would not otherwise need to re-run.",
+      "parentUuid": "3f87eb28_500d9e54",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 45
+      },
+      "revId": "dafd7055b0bab04bdb331e36339cb48d413f4c62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
