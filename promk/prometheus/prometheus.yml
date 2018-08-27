@@ -15,23 +15,12 @@ alerting:
 scrape_configs:
   # Scrape configs for pods that run multiple containers. If a pod doesn't
   # run multiple containers then just use annotations to get it scraped.
-  - job_name: 'alertmanager'
-    static_configs:
-      - targets: ['alertmanager:9090']
-  - job_name: 'grafana'
-    static_configs:
-      - targets: ['grafana:3000']
-  - job_name: 'iap-proxy'
+  # Otherwise add the second, third, fourth, etc. port here.
+  - job_name: 'auth-proxy'
     static_configs:
       - targets: ['prometheus:10000']
       - targets: ['alertmanager:10000']
       - targets: ['grafana:10000']
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['prometheus:9090']
-  - job_name: 'expand-and-reload'
-    static_configs:
-      - targets: ['alertmanager:10001']
 
   - job_name: 'kubernetes-apiservers'
 
