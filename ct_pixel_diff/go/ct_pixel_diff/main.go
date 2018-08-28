@@ -117,7 +117,7 @@ func main() {
 	}
 
 	// Instantiate the source for the ingester.
-	source, err := ingestion.NewGoogleStorageSource(INGESTER_ID, *gsBucket, *gsBaseDirs, client)
+	source, err := ingestion.NewGoogleStorageSource(INGESTER_ID, *gsBucket, *gsBaseDirs, client, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to initialize source for ingester: %s", err)
 	}
@@ -140,7 +140,9 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Unable to initialize Ingester: %s", err)
 	}
-	ingester.Start(ctx)
+	if err := ingester.Start(ctx); err != nil {
+		sklog.Fatalf("Unable to start ingester: %s", err)
+	}
 
 	router := mux.NewRouter()
 

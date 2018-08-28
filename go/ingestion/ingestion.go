@@ -47,6 +47,10 @@ type Source interface {
 
 	// ID returns a unique identifier for this source.
 	ID() string
+
+	// SetEventChannel configures storage events and sets up routines to send
+	// new results to the given channel.
+	SetEventChannel(resultCh chan<- []ResultFileLocation) error
 }
 
 // ResultFileLocation is an abstract interface to a file like object that
@@ -144,8 +148,11 @@ func (i *Ingester) setupMetrics() {
 }
 
 // Start starts the ingester in a new goroutine.
-func (i *Ingester) Start(ctx context.Context) {
-	pollChan, eventChan := i.getInputChannels(ctx)
+func (i *Ingester) Start(ctx context.Context) error {
+	pollChan, eventChan, err := i.getInputChannels(ctx)
+	if err != nil {
+		return sklog.FmtErrorf("Error retrieving input channels: %s", err)
+	}
 	go func(doneCh <-chan bool) {
 		var resultFiles []ResultFileLocation = nil
 		var useMetrics *processMetrics
@@ -162,6 +169,7 @@ func (i *Ingester) Start(ctx context.Context) {
 			i.processResults(ctx, resultFiles, useMetrics)
 		}
 	}(i.doneCh)
+	return nil
 }
 
 // stop stops the ingestion process. Currently only used for testing.
@@ -169,7 +177,7 @@ func (i *Ingester) stop() {
 	close(i.doneCh)
 }
 
-// rflQueue is a helper type that implements a very simple queue to buffer ResultFileLcoations.
+// rflQueue is a helper type that implements a very simple queue to buffer ResultFileLocations.
 type rflQueue []ResultFileLocation
 
 // push appends the given result file locations to the queue.
@@ -182,7 +190,7 @@ func (q *rflQueue) clear() {
 	*q = rflQueue{}
 }
 
-func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation) {
+func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation, error) {
 	pollChan := make(chan []ResultFileLocation)
 	eventChan := make(chan []ResultFileLocation)
 	i.doneCh = make(chan bool)
@@ -220,8 +228,12 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 				srcMetrics.pollTimer.Stop()
 			})
 		}(source, i.srcMetrics[idx], i.doneCh)
+
+		if err := source.SetEventChannel(eventChan); err != nil {
+			return nil, nil, sklog.FmtErrorf("Error setting event channel: %s", err)
+		}
 	}
-	return pollChan, eventChan
+	return pollChan, eventChan, nil
 }
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
