@@ -128,9 +128,6 @@ func runServer(serverURL string) {
 	externalRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 
-	// Do not log healthz requests.
-	http.HandleFunc("/healthz", httputils.HealthCheckHandler)
-
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
 	h = login.RestrictViewer(h)
 	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
