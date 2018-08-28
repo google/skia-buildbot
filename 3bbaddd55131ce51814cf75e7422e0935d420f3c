@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a34d02d_8c0b9d51",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T19:44:27Z",
+      "side": 1,
+      "message": "val \u003d t\n\u0027t\u0027 is in each case clause the type it matches, same for the other type clauses below",
+      "range": {
+        "startLine": 91,
+        "startChar": 3,
+        "endLine": 91,
+        "endChar": 19
+      },
+      "revId": "3bbaddd55131ce51814cf75e7422e0935d420f3c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
