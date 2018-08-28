@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6764f11f_2e5ff90c",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T15:31:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2c934b24_557bfae7",
+      "range": {
+        "startLine": 49,
+        "startChar": 21,
+        "endLine": 49,
+        "endChar": 58
+      },
+      "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc9b9ce3_5411cad4",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 14
@@ -45,6 +69,30 @@
       "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05b8cb79_52281e4a",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T15:31:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fc9b9ce3_5411cad4",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 62
+      },
+      "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "11164458_9be5bb90",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T15:31:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d2cb516e_f3be1f61",
+      "range": {
+        "startLine": 157,
+        "startChar": 1,
+        "endLine": 157,
+        "endChar": 30
+      },
+      "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4da21b66_07891003",
         "filename": "go/ingestion/helpers.go",
         "patchSetId": 14
@@ -82,6 +154,30 @@
       "writtenOn": "2018-08-28T14:26:30Z",
       "side": 1,
       "message": "Drive by comment - hasn\u0027t this happened?",
+      "range": {
+        "startLine": 186,
+        "startChar": 61,
+        "endLine": 186,
+        "endChar": 77
+      },
+      "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "999fcb16_df77b58f",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T15:31:11Z",
+      "side": 1,
+      "message": "Yes, thanks. I will fix this in a separate CL, because it first requires a config change.",
+      "parentUuid": "4da21b66_07891003",
       "range": {
         "startLine": 186,
         "startChar": 61,
