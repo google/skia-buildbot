@@ -16,6 +16,24 @@
       "revId": "e6cbde0c037294638795cb22de97267ec72d2b72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "092a8446_511df6e3",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-28T13:49:53Z",
+      "side": 1,
+      "message": "Since ForceHTTPS comes before LoggingGzipRequestResponse the GFE probes never get logged, but the k8s probes still will get logged. I have added a handler for /__liveness to httputils.ForceHTTPS() to avoid that, and also updated the prober to also hit that endpoint, now my logs are nice and quiet.\n\nAlso, since the logs are quiet I could see a bug where login was hitting metadata unnecessarily, so I also fixed that bug.",
+      "parentUuid": "4de8b84b_67b8b98e",
+      "revId": "e6cbde0c037294638795cb22de97267ec72d2b72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
