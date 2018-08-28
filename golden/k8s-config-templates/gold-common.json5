@@ -1,0 +1,5 @@
+{
+    "TRACESERVER_IMAGE_URL": "gcr.io/skia-public/gold-traceserver:2018-08-16T19_11_41Z-stephana-94afa14-clean",
+    "INGESTION_IMAGE_URL":   "gcr.io/skia-public/gold-ingestion:2018-08-16T19_12_39Z-stephana-94afa14-clean",
+    "CORRECTNESS_IMAGE_URL": "gcr.io/skia-public/gold-skiacorrectness:2018-08-16T19_24_14Z-stephana-94afa14-clean"
+}
