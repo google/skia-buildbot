@@ -9,11 +9,11 @@ release: build package-lock.json
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/named-fiddles
 	./build_release
 
-push:
+push: release
 	pushk named-fiddles
 
 serve: package-lock.json
-	npx webpack-dev-server --mode=development --watch-poll
+	npx webpack-dev-server --mode=development --watch
 
 test:
 	# Run the generated tests just once under Xvfb.
@@ -25,7 +25,7 @@ testci:
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 watch: package-lock.json
-	npx webpack --mode=development --watch-poll
+	npx webpack --mode=development --watch
 
 package-lock.json: package.json
 	npm install

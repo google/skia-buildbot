@@ -515,6 +515,10 @@ func ForceHTTPS(h http.Handler) http.Handler {
 				w.WriteHeader(http.StatusOK)
 				return
 			}
+			if r.URL.Path == "/__liveness" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
 			h.ServeHTTP(w, r)
 		}
 	}
