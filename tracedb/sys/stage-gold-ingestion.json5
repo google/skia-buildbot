@@ -23,7 +23,7 @@
         BuildBucketName: "skia.primary",
         BuildBucketPollInterval: "10s",
         BuildBucketTimeWindow: "5h",
-        BuilderRegEx: ".*",
+        BuilderRegEx: "^Test-.*",
       }
     }
   }
