@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -95,7 +96,14 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			oneSource, err := getSource(id, dataSource, client)
+			// TODO(stephana): Remove this once we can support event driven
+			// ingestion for all ingesters.
+			var sourceEventBus eventbus.EventBus = nil
+			if id == "gold-tryjob" {
+				sourceEventBus = eventBus
+			}
+
+			oneSource, err := getSource(id, dataSource, client, sourceEventBus)
 			if err != nil {
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
@@ -120,36 +128,39 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 }
 
 // getSource returns an instance of source that is either getting data from
-// Google storage or the local fileystem.
-func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client) (Source, error) {
+// Google storage or the local filesystem.
+func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
 	if dataSource.Dir == "" {
 		return nil, fmt.Errorf("Datasource for %s is missing a directory.", id)
 	}
 
 	if dataSource.Bucket != "" {
-		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client)
+		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, eventBus)
 	}
 	return NewFileSystemSource(id, dataSource.Dir)
 }
 
 // validIngestionFile returns true if the given file name matches basic rules.
 func validIngestionFile(fName string) bool {
-	return strings.HasSuffix(strings.TrimSpace(fName), ".json")
+	return targetFileRegExp.Match([]byte(fName))
 }
 
-// GoogleStorageSource implementes the Source interface for Google Storage.
+// targetFileRegExp must be matched for a file to be considered for ingestion.
+var targetFileRegExp = regexp.MustCompile(`.*\.json`)
+
+// GoogleStorageSource implements the Source interface for Google Storage.
 type GoogleStorageSource struct {
 	bucket        string
 	rootDir       string
 	id            string
 	storageClient *storage.Client
-	client        *http.Client
+	eventBus      eventbus.EventBus
 }
 
 // NewGoogleStorageSource returns a new instance of GoogleStorageSource based
 // on the bucket and directory provided. The id is used to identify the Source
 // and is generally the same id as the ingester.
-func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client) (Source, error) {
+func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
@@ -159,8 +170,8 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 		bucket:        bucket,
 		rootDir:       rootDir,
 		id:            fmt.Sprintf("%s:gs://%s/%s", baseName, bucket, rootDir),
-		client:        client,
 		storageClient: storageClient,
+		eventBus:      eventBus,
 	}, nil
 }
 
@@ -188,6 +199,34 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 // See Source interface.
 func (g *GoogleStorageSource) ID() string {
 	return g.id
+}
+
+// SetEventChannel implements the Source interface.
+func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+	if g.eventBus != nil {
+		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
+		if err != nil {
+			return sklog.FmtErrorf("Unable to register storage event: %s", err)
+		}
+
+		g.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
+			file := evData.(*eventbus.StorageEvent)
+
+			// Fetch the object attributes.
+			objAttr, err := g.storageClient.Bucket(file.BucketID).
+				Object(file.ObjectID).
+				Attrs(context.TODO())
+			if err != nil {
+				sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
+				return
+			}
+			ret := []ResultFileLocation{
+				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
+			}
+			resultCh <- ret
+		})
+	}
+	return nil
 }
 
 // gsResultFileLocation implements the ResultFileLocation for Google storage.
@@ -330,6 +369,11 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 // See Source interface.
 func (f *FileSystemSource) ID() string {
 	return f.id
+}
+
+// SetEventChannel implements the Source interface.
+func (f *FileSystemSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+	return nil
 }
 
 // fsResultFileLocation implements the ResultFileLocation interface for

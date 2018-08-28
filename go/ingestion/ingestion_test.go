@@ -72,7 +72,7 @@ func testIngester(t *testing.T, statusDir string) {
 	// Instantiate ingester and start it.
 	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor)
 	assert.NoError(t, err)
-	ingester.Start(ctx)
+	assert.NoError(t, ingester.Start(ctx))
 
 	// Wait until we have collected the desired result, but no more than two seconds.
 	startTime := time.Now()
@@ -166,6 +166,10 @@ func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error
 
 func (m mockSource) ID() string {
 	return "test-source"
+}
+
+func (m *mockSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+	return nil
 }
 
 // return a mock vcs
