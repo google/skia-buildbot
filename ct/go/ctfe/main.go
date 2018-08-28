@@ -37,7 +37,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
@@ -129,13 +128,14 @@ func runServer(serverURL string) {
 	externalRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 
+	// Do not log healthz requests.
+	http.HandleFunc("/healthz", httputils.HealthCheckHandler)
+
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
-	if !*local {
-		h = iap.None(h)
-	}
 	h = login.RestrictViewer(h)
 	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 	h = httputils.ForceHTTPS(h)
+	http.Handle("/", h)
 
 	go func() {
 		sklog.Infof("Internal server is accessible via %s", *internalPort)
@@ -143,7 +143,7 @@ func runServer(serverURL string) {
 	}()
 
 	sklog.Infof("Ready to serve on %s", serverURL)
-	sklog.Fatal(http.ListenAndServe(*port, h))
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 // startCtfeMetrics registers metrics which indicate CT is running healthily
