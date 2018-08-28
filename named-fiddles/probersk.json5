@@ -2,7 +2,7 @@
    "named-fiddles": {
      "urls": ["https://named-fiddles.skia.org"],
      "method": "GET",
-     "expected": [302],
+     "expected": [307],
      "body": "",
      "mimetype": ""
    },

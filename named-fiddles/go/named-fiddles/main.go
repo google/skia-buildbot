@@ -17,10 +17,11 @@ import (
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/fiddlek/go/store"
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -35,32 +36,6 @@ var (
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
-
-// AuditLog is used to create structured logs for auditable actions.
-//
-// TODO(jcgregorio) Break out as its own library or maybe fold into sklog?
-type AuditLog struct {
-	Action string      `json:"action"`
-	App    string      `json:"app"`
-	Body   interface{} `json:"body"`
-	Type   string      `json:"type"`
-	User   string      `json:"user"`
-}
-
-func auditLog(r *http.Request, action string, body Named) {
-	a := AuditLog{
-		Type:   "audit",
-		App:    "named-fiddles",
-		Action: action,
-		User:   r.Header.Get(iap.EMAIL_HEADER),
-		Body:   body,
-	}
-	b, err := json.Marshal(a)
-	if err != nil {
-		sklog.Errorf("Failed to marshall audit log entry: %s", err)
-	}
-	fmt.Println(string(b))
-}
 
 // Server is the state of the server.
 type Server struct {
@@ -129,7 +104,8 @@ func (srv *Server) updateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error decoding JSON.")
 		return
 	}
-	auditLog(r, "update", req)
+	req.User = login.LoggedInAs(r)
+	auditlog.Log(r, "update", req)
 
 	if req.Hash == "" {
 		httputils.ReportError(w, r, nil, "Invalid request, Hash must be non-empty.")
@@ -177,7 +153,7 @@ func (srv *Server) deleteHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error decoding JSON.")
 		return
 	}
-	auditLog(r, "delete", req)
+	auditlog.Log(r, "delete", req)
 	if err := srv.store.DeleteName(req.Name); err != nil {
 		httputils.ReportError(w, r, err, "Failed to delete.")
 
@@ -210,7 +186,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 	// Configure Content Security Policy (CSP).
 	cspOpts := csp.Opts{
 		DefaultSrc: []string{csp.SourceNone},
-		ConnectSrc: []string{csp.SourceSelf},
+		ConnectSrc: []string{"https://skia.org", csp.SourceSelf},
 		ImgSrc:     []string{csp.SourceSelf},
 		StyleSrc:   []string{csp.SourceSelf},
 		ScriptSrc:  []string{csp.SourceSelf},
@@ -223,7 +199,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 
 	// Apply CSP and other security minded headers.
 	secureMiddleware := secure.New(secure.Options{
-		AllowedHosts:          []string{"named-fiddles.skia.org"},
+		AllowedHosts:          []string{"named-fiddles.skia.org", "skia.org"},
 		HostsProxyHeaders:     []string{"X-Forwarded-Host"},
 		SSLRedirect:           true,
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
@@ -268,10 +244,17 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		h = iap.New(h, *aud, allow)
+		login.InitWithAllow(*port, *local, nil, nil, allow)
 	}
-	h = httputils.LoggingGzipRequestResponse(h)
+
+	if !*local {
+		h = httputils.LoggingGzipRequestResponse(h)
+		h = login.RestrictViewer(h)
+		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+		h = httputils.ForceHTTPS(h)
+	}
 	http.Handle("/", h)
+
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
