@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "893da8e0_c9763a24",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T18:38:44Z",
+      "side": 1,
+      "message": "This is right now a comma separated list, if the MultiStringFlag preserves order, we should use it here too.",
+      "range": {
+        "startLine": 26,
+        "startChar": 20,
+        "endLine": 26,
+        "endChar": 60
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7868a823_36f62ba3",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T18:38:44Z",
+      "side": 1,
+      "message": "nit: I should have called this \u0027loadConfigFiles\u0027 :-)",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 30
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d53a2823_44c6bb6b",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 7
@@ -18,6 +64,75 @@
         "startChar": 1,
         "endLine": 88,
         "endChar": 52
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af6b1ae2_6c027679",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T18:38:44Z",
+      "side": 1,
+      "message": "IMO this should return an error if it finds a type we don\u0027t support and that error should bubble up to the main function.",
+      "range": {
+        "startLine": 91,
+        "startChar": 22,
+        "endLine": 91,
+        "endChar": 92
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71f41984_e6077329",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T18:38:44Z",
+      "side": 1,
+      "message": "This should be a type switch \nhttps://tour.golang.org/methods/16",
+      "range": {
+        "startLine": 93,
+        "startChar": 2,
+        "endLine": 107,
+        "endChar": 3
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93bf3c9c_b44a9c3c",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-28T18:38:44Z",
+      "side": 1,
+      "message": "The code from here on should be removed. I used that to see if I can extract the keys from the template for a round-trip feature.",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 0
       },
       "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
