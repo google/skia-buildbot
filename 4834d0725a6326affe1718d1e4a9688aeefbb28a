@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d53a2823_44c6bb6b",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T18:28:42Z",
+      "side": 1,
+      "message": "One thing which might be helpful is to support writing the config to stdout for debugging, eg. with \"-o _\" or when \"-o\" is not supplied.",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 52
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
