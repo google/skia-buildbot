@@ -20,7 +20,7 @@
   },
   "cqExtraTrybots": [
     "luci.chromium.try:linux_chromium_archive_rel_ng",
-    "master.tryserver.chromium.mac:mac_chromium_archive_rel_ng"
+    "luci.chromium.try:mac_chromium_archive_rel_ng"
   ],
   "maxRollFrequency": "0m",
   "notifiers": [
