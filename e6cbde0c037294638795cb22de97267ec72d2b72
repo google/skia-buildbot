@@ -52,6 +52,24 @@
       "revId": "e6cbde0c037294638795cb22de97267ec72d2b72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bf9aa42_80186c2b",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-28T14:02:16Z",
+      "side": 1,
+      "message": "readinessProbe:                                                       \n            httpGet:                                                            \n              path: /__healthz                                                    \n              port: 8000",
+      "parentUuid": "62c5d0e5_c6184662",
+      "revId": "e6cbde0c037294638795cb22de97267ec72d2b72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
