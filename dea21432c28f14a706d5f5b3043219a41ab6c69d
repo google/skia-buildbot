@@ -16,6 +16,24 @@
       "revId": "dea21432c28f14a706d5f5b3043219a41ab6c69d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72082989_976b48f6",
+        "filename": "ct/go/ctfe/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-28T15:17:51Z",
+      "side": 1,
+      "message": "Where is /__liveness set? (I could not find it)",
+      "parentUuid": "9daf3029_664e7f41",
+      "revId": "dea21432c28f14a706d5f5b3043219a41ab6c69d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
