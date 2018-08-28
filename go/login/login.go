@@ -673,6 +673,9 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 // setActiveWhitelists initializes activeDomainWhiteList and
 // activeEmailWhiteList from authWhiteList.
 func setActiveWhitelists(authWhiteList string) {
+	if adminAllow != nil || editAllow != nil || viewAllow != nil {
+		return
+	}
 	activeUserDomainWhiteList, activeUserEmailWhiteList = splitAuthWhiteList(authWhiteList)
 	adminWhiteList := metadata.ProjectGetWithDefault(metadata.ADMIN_WHITE_LIST, DEFAULT_ADMIN_WHITELIST)
 	_, activeAdminEmailWhiteList = splitAuthWhiteList(adminWhiteList)
