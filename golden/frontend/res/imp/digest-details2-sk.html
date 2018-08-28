@@ -233,17 +233,17 @@
 
         <!-- left -->
         <div class="preview" hidden$="[[_noteq(_rotateImageIndex, 0)]]">
-          <img src$="https://public-gold.skia.org[[_digestHref(details.digest)]]">
+          <img src$="[[_digestHref(details.digest)]]">
         </div>
 
         <!-- right -->
         <div class="preview" hidden$="[[_noteq(_rotateImageIndex, 1)]]">
-          <img src$="https://public-gold.skia.org[[_digestHref(_right.digest)]]">
+          <img src$="[[_digestHref(_right.digest)]]">
         </div>
 
         <!-- diff -->
         <div class="preview" hidden$="[[_noteq(_rotateImageIndex, 2)]]">
-          <img src$="https://public-gold.skia.org[[_diffImgHref]]">
+          <img src$="[[_diffImgHref]]">
         </div>
       </div>
 
