@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "31b47797_94f1cd54",
+        "filename": "promk/prometheus/alert_rules.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-28T18:59:42Z",
+      "side": 1,
+      "message": "Oops. I blindly copy pasted from above.",
+      "parentUuid": "cddbe2ad_4f5e3fef",
+      "range": {
+        "startLine": 228,
+        "startChar": 12,
+        "endLine": 228,
+        "endChar": 23
+      },
+      "revId": "859bead552bf329f192878746516e83a1e81dac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15c1fb94_d09619f6",
         "filename": "promk/prometheus/alert_rules.yml",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "859bead552bf329f192878746516e83a1e81dac2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83866f35_e634b86a",
+        "filename": "promk/prometheus/alert_rules.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-28T18:59:42Z",
+      "side": 1,
+      "message": "Not sure why I lost that.",
+      "parentUuid": "15c1fb94_d09619f6",
+      "range": {
+        "startLine": 237,
+        "startChar": 59,
+        "endLine": 237,
+        "endChar": 70
+      },
+      "revId": "859bead552bf329f192878746516e83a1e81dac2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

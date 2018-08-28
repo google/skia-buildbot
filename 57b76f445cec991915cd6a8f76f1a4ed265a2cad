@@ -22,6 +22,30 @@
       "revId": "57b76f445cec991915cd6a8f76f1a4ed265a2cad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a73261c5_9e3d9c4a",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-28T18:59:42Z",
+      "side": 0,
+      "message": "I had a reason for removing this but now I decided it was not a good reason.",
+      "parentUuid": "b2cb584d_85864d2c",
+      "range": {
+        "startLine": 115,
+        "startChar": 6,
+        "endLine": 115,
+        "endChar": 25
+      },
+      "revId": "57b76f445cec991915cd6a8f76f1a4ed265a2cad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
