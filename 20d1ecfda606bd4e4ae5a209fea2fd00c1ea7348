@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d1c7e89_3079bf6a",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-28T16:32:17Z",
+      "side": 1,
+      "message": "I know I\u0027m asking for a bunch, but could you give an example regex or indicate where to find where they are set?  It\u0027s not clear to me what sort of regexes one would use.",
+      "revId": "20d1ecfda606bd4e4ae5a209fea2fd00c1ea7348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

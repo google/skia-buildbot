@@ -187,6 +187,30 @@
       "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01577a97_6ac8c3cc",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-28T16:32:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "999fcb16_df77b58f",
+      "range": {
+        "startLine": 186,
+        "startChar": 61,
+        "endLine": 186,
+        "endChar": 77
+      },
+      "revId": "00bdea7ad79606079aed9e5247bd40ef15ae3a89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
