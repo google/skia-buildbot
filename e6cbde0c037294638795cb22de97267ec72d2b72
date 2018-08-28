@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4de8b84b_67b8b98e",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-28T13:25:09Z",
+      "side": 1,
+      "message": "Possibly unrelated question. To avoid the logging due to probes every 3 seconds do we need to do iap.None(h) ? or is there another way to do things.\nI ask for: https://skia-review.googlesource.com/c/buildbot/+/149234/8/ct/go/ctfe/main.go#134",
+      "revId": "e6cbde0c037294638795cb22de97267ec72d2b72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
