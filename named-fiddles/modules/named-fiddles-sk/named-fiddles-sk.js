@@ -11,6 +11,7 @@ import '../named-fiddle-sk'
 import 'elements-sk/error-toast-sk'
 import 'elements-sk/styles/buttons'
 import 'elements-sk/spinner-sk'
+import 'infra-sk/modules/login-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html/lib/lit-extended'
@@ -20,6 +21,7 @@ import { repeat } from 'lit-html/lib/repeat';
 const template = (ele) => html`
 <header>
   <h1>Named Fiddles</h1>
+  <login-sk></login-sk>
 </header>
 <main>
   <section>
