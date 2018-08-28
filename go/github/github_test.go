@@ -201,6 +201,22 @@ func TestGetChecksRequest(t *testing.T) {
 	assert.Equal(t, statusID2, *checks[1].ID)
 }
 
+func TestGetDescription(t *testing.T) {
+	testutils.SmallTest(t)
+	body := "test test test"
+	respBody := []byte(testutils.MarshalJSON(t, &github.Issue{Body: &body}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path("/repos/kryptonians/krypton/issues/12345").Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
+	assert.NoError(t, err)
+	desc, err := githubClient.GetDescription(12345)
+	assert.NoError(t, err)
+	assert.Equal(t, body, desc)
+}
+
 func TestReadRawFileRequest(t *testing.T) {
 	testutils.SmallTest(t)
 	respBody := []byte(`abcd`)

@@ -258,6 +258,19 @@ func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
 	return combinedStatus.Statuses, nil
 }
 
+// See https://developer.github.com/v3/issues/#get-a-single-issue
+// for the API documentation.
+func (g *GitHub) GetDescription(pullRequestNum int) (string, error) {
+	issue, resp, err := g.client.Issues.Get(g.ctx, g.RepoOwner, g.RepoName, pullRequestNum)
+	if err != nil {
+		return "", fmt.Errorf("Failed doing issues.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Unexpected status code %d from issues.get.", resp.StatusCode)
+	}
+	return issue.GetBody(), nil
+}
+
 func (g *GitHub) ReadRawFile(branch, filePath string) (string, error) {
 	githubContentURL := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s", g.RepoOwner, g.RepoName, branch, filePath)
 	resp, err := g.httpClient.Get(githubContentURL)
