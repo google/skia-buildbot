@@ -1,8 +1,8 @@
 {
    "named-fiddles": {
-     "urls": ["https://named-fiddles.skia.org"],
+     "urls": ["https://named-fiddles.skia.org/healthz"],
      "method": "GET",
-     "expected": [307],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },

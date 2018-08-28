@@ -488,7 +488,7 @@ func GetBaseURL(urlStr string) (string, error) {
 	return rv.String(), nil
 }
 
-// Force traffic to go over HTTPS and also handles healthchecks.
+// Force traffic to go over HTTPS and also handles healthchecks at /healthz.
 // See: https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
 //
 // h - The http.Handler to wrap.
@@ -512,6 +512,10 @@ func ForceHTTPS(h http.Handler) http.Handler {
 			// User-Agent, the request path, and that SCHEME_AT_LOAD_BALANCER_HEADER
 			// isn't set.
 			if r.URL.Path == "/" && r.Header.Get("User-Agent") == "GoogleHC/1.0" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			if r.URL.Path == "/healthz" {
 				w.WriteHeader(http.StatusOK)
 				return
 			}
