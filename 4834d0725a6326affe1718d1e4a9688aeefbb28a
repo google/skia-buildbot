@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cf17fdf1_6938f244",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T19:02:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "893da8e0_c9763a24",
+      "range": {
+        "startLine": 26,
+        "startChar": 20,
+        "endLine": 26,
+        "endChar": 60
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7868a823_36f62ba3",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c78b5fe0_d8923e76",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T19:02:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7868a823_36f62ba3",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 30
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f99dc11e_6363fcaa",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T19:02:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d53a2823_44c6bb6b",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 52
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "af6b1ae2_6c027679",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2018-08-28T18:38:44Z",
       "side": 1,
       "message": "IMO this should return an error if it finds a type we don\u0027t support and that error should bubble up to the main function.",
+      "range": {
+        "startLine": 91,
+        "startChar": 22,
+        "endLine": 91,
+        "endChar": 92
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16e7f455_502fb7c4",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T19:02:17Z",
+      "side": 1,
+      "message": "My autoroll config files would always fail due to eg. arrays.  Added --strict flag and changed to return an error if --strict is set.",
+      "parentUuid": "af6b1ae2_6c027679",
       "range": {
         "startLine": 91,
         "startChar": 22,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "69fce58a_335e117a",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T19:02:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71f41984_e6077329",
+      "range": {
+        "startLine": 93,
+        "startChar": 2,
+        "endLine": 107,
+        "endChar": 3
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93bf3c9c_b44a9c3c",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 7
@@ -137,6 +257,30 @@
       "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17581769_f8a4acc4",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T19:02:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "93bf3c9c_b44a9c3c",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 0
+      },
+      "revId": "4834d0725a6326affe1718d1e4a9688aeefbb28a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
