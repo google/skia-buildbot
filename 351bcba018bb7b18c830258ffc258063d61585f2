@@ -22,6 +22,30 @@
       "revId": "351bcba018bb7b18c830258ffc258063d61585f2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "934172bc_2266024a",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-08-28T11:09:24Z",
+      "side": 1,
+      "message": "I wanted to be explicit, since otherwise it would not be clear which lastRollRev we were referring to.",
+      "parentUuid": "c0c08a5a_da13e249",
+      "range": {
+        "startLine": 89,
+        "startChar": 1,
+        "endLine": 89,
+        "endChar": 17
+      },
+      "revId": "351bcba018bb7b18c830258ffc258063d61585f2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
