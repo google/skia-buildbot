@@ -27,7 +27,7 @@ ctfe_release: ctfe
 	./build_ctfe_release
 
 .PHONY: ctfe_push
-ctfe_push: ctfe
+ctfe_push: ctfe skia-public
 	pushk ctfe
 
 .PHONY: ctmaster_release
@@ -36,13 +36,14 @@ ctmaster_release: all
 	./build_ctmaster_release
 
 .PHONY: ctmaster_push
-ctmaster_push: all
+ctmaster_push: all skia-public
 	pushk ct-master
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
+include ../make/clusters.mk
 include ../webtools/webtools.mk
 
 # Master scripts.

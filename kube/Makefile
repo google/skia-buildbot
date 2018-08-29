@@ -1,4 +1,4 @@
-.PHONY: build test pushk release_configmap_reload release_expand_and_reload release_auth_push release_continuous_deploy
+.PHONY: build test pushk release_configmap_reload release_auth_push release_continuous_deploy
 
 build:
 	go install  ./go/...
@@ -13,10 +13,6 @@ release_configmap_reload:
 	CGO_ENABLED=0 GOOS=linux go install -a github.com/jimmidyson/configmap-reload
 	./build_configmap_reload_release
 
-release_expand_and_reload:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/expand-and-reload
-	./build_expand_and_reload_release
-
 release_auth_proxy:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/auth-proxy
 	./build_auth_proxy_release
@@ -26,4 +22,5 @@ release_continuous_deploy:
 	./build_continuous_deploy_release
 
 push: pushk
-	pushk auth-proxy configmap-reload expand-and-reload continuous-deploy
+	pushk --project=skia-public auth-proxy configmap-reload continuous-deploy
+	pushk --project=skia-corp configmap-reload

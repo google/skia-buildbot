@@ -18,5 +18,7 @@ package-lock.json: package.json
 	npm install
 	touch package-lock.json
 
-push:
+push: release skia-public
 	pushk skottie
+
+include ../make/clusters.mk

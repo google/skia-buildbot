@@ -13,7 +13,7 @@ release:
 	./build_docker_release
 
 .PHONY: push
-push:
+push: release skia-public
 	go install ../kube/go/pushk
 	pushk debugger
 
@@ -28,3 +28,5 @@ run:
 .PHONY: tag_skiaserve
 tag_skiaserve:
 	./tag-latest-skiaserve.sh
+
+include ../make/clusters.mk
