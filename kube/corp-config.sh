@@ -1,19 +1,19 @@
 source ./clusters.sh
 # Common config values used by all create-* scripts.
 
-# Your project ID
-PROJECT_ID=skia-public
+# Your Project ID
+PROJECT_ID=google.com:skia-corp
 
 # The Project ID rewritten as GCE does when putting in an email address.
-PROJECT_SUBDOMAIN=skia-public
+PROJECT_SUBDOMAIN=skia-corp.google.com
 
 # Your Zone. E.g. us-west1-c
 ZONE=us-central1-a
 
 # Name for your cluster we will create or modify. E.g. example-secure-cluster
-CLUSTER_NAME=skia-public
+CLUSTER_NAME=skia-corp
 
 # The ID of the security account used by kubernetes.
 SA_NAME=${CLUSTER_NAME}-k8s
 
-__skia_public
+__skia_corp

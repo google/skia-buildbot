@@ -6,7 +6,8 @@ set -e -x
 source ../kube/config.sh
 source ../bash/ramdisk.sh
 
-# New service account we will create.
+# New service account we will create. Name must be the same for all clusters
+# that alert-to-pubsub runs in.
 SA_NAME=skia-alert-to-pubsub
 
 cd /tmp/ramdisk
