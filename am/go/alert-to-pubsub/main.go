@@ -218,7 +218,9 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/v1/alerts", server.alertHandler)
-	http.Handle("/", httputils.LoggingRequestResponse(r))
+	h := httputils.LoggingRequestResponse(r)
+	h = httputils.ForceHTTPS(h)
+	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

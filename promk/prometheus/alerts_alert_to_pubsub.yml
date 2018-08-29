@@ -1,0 +1,14 @@
+# Alerts for the alert-to-pubsub service.
+groups:
+- name: general
+  rules:
+
+# alert-to-pubsub
+  - alert: AlertToPubSub
+    expr: rate(pubsub_send_failure[5m]) > 1/(5*60)
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: 'skia-public'
+      description: 'Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"'

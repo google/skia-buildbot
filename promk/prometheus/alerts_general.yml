@@ -1,0 +1,94 @@
+# Alerts we need no matter what is running in the cluster.
+groups:
+- name: general
+  rules:
+
+  # General
+  - alert: InstanceDown
+    expr: up == 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} has been down
+        for more than 5 minutes. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          '
+  - alert: CrashLoop
+    expr: max_over_time(liveness_uptime_s[6m]) < 60 * 3
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} is crashing on
+        startup. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+        '
+  - alert: TooManyGoRoutines
+    expr: go_goroutines{job!="kubernetes-nodes"} > 3000
+    for: 2m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.job }}'
+      description: 'Too many Go routines in {{ $labels.job }} running on {{ $labels.instance
+        }}. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+        '
+  - alert: ProbeFailure
+    expr: prober{type="failure"} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.probename }} {{ $labels.url }}'
+      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
+        respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{
+        $labels.probename }}+filename%3Aprobersk.json5 for the endpoint URL.'
+  - alert: TooManyOpenFDs
+    expr: process_open_fds > 2000
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.host }}'
+      description: 'Too many open file handles on {{ $labels.host }}.'
+  - alert: PersistentVolumeLowSpace
+    expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.persistentvolumeclaim }}'
+      description: '{{ $labels.persistentvolumeclaim }} is more than 90% full.'
+  - alert: ContainerVolumeLowSpace
+    expr: (container_fs_usage_bytes/container_fs_limit_bytes) > 0.9
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.device }} on {{ $labels.instance }} in pool {{ $labels.cloud_google_com_gke_nodepool }} is more than 90% full.'
+  - alert: JSDocLiveness
+    expr: liveness_build_s{app="jsdoc"}/60 > 120
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'JSDoc documentation building is failing.'
+      description: '{{ $labels.instance }} has failed to rebuild documentation for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/jsdoc/PROD.md#build_liveness'
