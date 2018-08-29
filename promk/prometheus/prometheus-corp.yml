@@ -3,7 +3,6 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - "alerts_public.yml"
   - "alerts_general.yml"
   - "alerts_alert_to_pubsub.yml"
 
@@ -14,14 +13,6 @@ alerting:
         - alert-to-pubsub:8000
 
 scrape_configs:
-  # Scrape configs for pods that run multiple containers. If a pod doesn't
-  # run multiple containers then just use annotations to get it scraped.
-  # Otherwise add the second, third, fourth, etc. port here.
-  - job_name: 'auth-proxy'
-    static_configs:
-      - targets: ['prometheus:10000']
-      - targets: ['grafana:10000']
-
   - job_name: 'kubernetes-apiservers'
 
     kubernetes_sd_configs:
