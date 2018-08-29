@@ -22,3 +22,13 @@ Indices are in ../ds/index-skia-public.yaml and can be created using:
 ```
 gcloud datastore create-indexes index-skia-public.yaml
 ```
+
+Service Account
+---------------
+
+Run:
+
+    create-skia-alert-manager-sa.sh
+    create-skia-alert-to-pubsub-sa.sh
+    create-skia-alert-to-pubsub-sa-skia-corp.sh
+
