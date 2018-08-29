@@ -53,7 +53,7 @@ release_kube: statusk
 run_kube: release
 	docker run status
 
-push_kube: release
+push_kube: release skia-public
 	pushk status
 
 # Build debug versions of core.js and elements.html.
@@ -61,3 +61,4 @@ push_kube: release
 debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
+include ../make/clusters.mk

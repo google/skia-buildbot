@@ -12,6 +12,8 @@ release: default
 	./build_docker_release
 
 .PHONY: push
-push: release
+push: release skia-public
 	go install ../kube/go/pushk
 	pushk proberk
+
+include ../make/clusters.mk
