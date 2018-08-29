@@ -97,20 +97,32 @@ func Step(client *http.Client, project, bucket string) error {
 			sklog.Infof("Successfully started backup: %s-%v", ns, kinds)
 		}
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		body := string(bodyBytes)
 		if err != nil {
 			sklog.Errorf("Failed to read response: %s-%v: %s", ns, kinds, err)
 			success = false
 			continue
 		}
-		if resp.StatusCode == 200 {
-			sklog.Info(body)
-		} else if resp.StatusCode >= 500 {
+		if resp.StatusCode >= 500 {
 			success = false
-			sklog.Error(body)
-		} else {
-			sklog.Warning(body)
+
+			// Emit the reponse into the structured logs, but make sure the JSON is
+			// only a singe line by decoding and re-encoding as JSON using
+			// json.Marshal().
+			var parsed interface{}
+			err := json.Unmarshal(bodyBytes, &parsed)
+			if err != nil {
+				sklog.Errorf("Response was invalid JSON: %s", err)
+				continue
+			}
+			singleLine, err := json.Marshal(parsed)
+			if err != nil {
+				sklog.Errorf("Unable to convert response to JSON: %s", err)
+				continue
+			}
+			fmt.Print(string(singleLine))
+			continue
 		}
+		sklog.Infof("Started backup of %s-%v", ns, kinds)
 	}
 	if success {
 		backupSuccess.Reset()
