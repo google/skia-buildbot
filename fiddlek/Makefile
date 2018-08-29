@@ -31,7 +31,7 @@ release: build
 	./build_fiddler_release
 
 .PHONY: push
-push:
+push: release skia-public
 	pushk fiddle fiddler
 
 .PHONY: cli
@@ -56,3 +56,4 @@ run_local_fiddler:
 debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
+include ../make/clusters.mk

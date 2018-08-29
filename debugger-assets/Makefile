@@ -31,7 +31,7 @@ release: build
 	./build_docker_release
 
 .PHONY: push
-push:
+push: release skia-public
 	go install ../kube/go/pushk
 	pushk debugger-assets
 
@@ -40,3 +40,4 @@ run:
 	 docker run -p8000:8000 -ti debugger-assets
 
 include ../webtools/webtools.mk
+include ../make/clusters.mk

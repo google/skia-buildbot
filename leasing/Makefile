@@ -27,5 +27,7 @@ release: leasing
 	./build_docker_release
 
 .PHONY: push
-push: leasing
+push: release skia-public
 	pushk leasing
+
+include ../make/clusters.mk
