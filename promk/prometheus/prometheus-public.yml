@@ -3,13 +3,14 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - "alert_rules.yml"
+  - "alerts_public.yml"
+  - "alerts_general.yml"
+  - "alerts_alert_to_pubsub.yml"
 
 alerting:
   alertmanagers:
     - static_configs:
       - targets:
-        - alertmanager:9090
         - alert-to-pubsub:8000
 
 scrape_configs:
