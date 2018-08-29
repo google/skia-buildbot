@@ -17,7 +17,7 @@ NODE_POOL=n1-highmem-64
 
 gcloud container node-pools create ${NODE_POOL} \
   --cluster "${CLUSTER_NAME}" \
-  --service-account="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
+  --service-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
   --disk-size "200" \
   --enable-autoscaling \
   --enable-autoupgrade \

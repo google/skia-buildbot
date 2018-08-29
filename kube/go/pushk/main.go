@@ -3,8 +3,8 @@
 // pushk
 // pushk docserver
 // pushk --rollback docserver
-// pushk --project=skia-public docserver
-// pushk --rollback --project=skia-public docserver
+// pushk --cluster=skia-public docserver
+// pushk --rollback --cluster=skia-corp docserver
 // pushk --dry-run my-new-service
 package main
 
@@ -33,6 +33,27 @@ const (
 	repoUrlTemplate = "https://skia.googlesource.com/%s-config"
 	repoBaseDir     = "/tmp"
 	repoDirTemplate = "/tmp/%s-config"
+
+	containerRegistryProject = "skia-public"
+)
+
+// Project is used to map cluster name to GCE project info.
+type Project struct {
+	Zone    string
+	Project string // The full project name, e.g. google.com:skia-corp.
+}
+
+var (
+	clusters = map[string]*Project{
+		"skia-public": &Project{
+			Zone:    "us-central1-a",
+			Project: "skia-public",
+		},
+		"skia-corp": &Project{
+			Zone:    "us-central1-a",
+			Project: "google.com:skia-corp",
+		},
+	}
 )
 
 func init() {
@@ -65,6 +86,9 @@ Examples:
   # Push the latest version of docserver.
   pushk docserver --message="Fix bug #1234"
 
+  # Push the latest version of docserver to the skia-corp cluster.
+  pushk docserver --project=skia-corp --message="Fix bug #1234"
+
   # Push the latest version of docserver and iap-proxy
   pushk docserver iap-proxy
 
@@ -92,9 +116,9 @@ func toRepoDir(s string) string {
 
 // flags
 var (
+	cluster  = flag.String("cluster", "skia-public", "Either 'skia-public' or 'skia-corp'.")
 	dryRun   = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
 	message  = flag.String("message", "Push", "Message to go along with the change.")
-	project  = flag.String("project", "skia-public", "The GCE project name.")
 	rollback = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
 )
 
@@ -177,20 +201,46 @@ func imageFromCmdLineImage(imageName string, tp tagProvider) (string, error) {
 	}
 
 	// The full docker image name and tag of the image we want to deploy.
-	return fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, *project, imageName, tag), nil
+	return fmt.Sprintf("%s/%s/%s:%s", gcr.SERVER, containerRegistryProject, imageName, tag), nil
 }
 
 func main() {
 	common.Init()
 
 	ctx := context.Background()
-	repoDir := toRepoDir(*project)
-	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*project), repoBaseDir)
+	repoDir := toRepoDir(*cluster)
+	checkout, err := git.NewCheckout(ctx, toFullRepoURL(*cluster), repoBaseDir)
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
 	if err := checkout.Update(ctx); err != nil {
 		sklog.Fatalf("Failed to update repo: %s", err)
+	}
+
+	// Switch kubectl to the right project.
+	p := clusters[*cluster]
+	if p == nil {
+		fmt.Printf("Invalid value for --cluster flag: %q", *cluster)
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if err := exec.Run(context.Background(), &exec.Command{
+		Name: "gcloud",
+		Args: []string{
+			"container",
+			"clusters",
+			"get-credentials",
+			*cluster,
+			"--zone",
+			p.Zone,
+			"--project",
+			p.Project,
+		},
+		LogStderr: true,
+		LogStdout: true,
+	}); err != nil {
+		sklog.Errorf("Failed to run: %s", err)
 	}
 
 	// Get all the yaml files.
@@ -199,12 +249,12 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	tokenSource := auth.NewGCloudTokenSource(*project)
+	tokenSource := auth.NewGCloudTokenSource(containerRegistryProject)
 	imageNames := flag.Args()
 	if len(imageNames) == 0 {
-		imageNames = findAllImageNames(filenames, gcr.SERVER, *project)
+		imageNames = findAllImageNames(filenames, gcr.SERVER, containerRegistryProject)
 		if len(imageNames) == 0 {
-			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", repoDir, *project)
+			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", repoDir, containerRegistryProject)
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -212,7 +262,7 @@ func main() {
 	sklog.Infof("Pushing the following images: %q", imageNames)
 
 	gcrTagProvider := func(imageName string) ([]string, error) {
-		return gcr.NewClient(tokenSource, *project, imageName).Tags()
+		return gcr.NewClient(tokenSource, containerRegistryProject, imageName).Tags()
 	}
 
 	changed := util.StringSet{}

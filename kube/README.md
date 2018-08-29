@@ -105,3 +105,13 @@ containers:
 
 Since continuous-deploy runs `pushk`, all of these deployments will be
 recorded in the git repo for skia-public.
+
+Standing up a new cluster in a different project
+================================================
+
+  1. Add a new `__skia_NNN` function to `clusters.sh`.
+  2. Create the `config-NNN.sh` file.
+  3. Copy and modify the `create-cluster-corp.sh` script.
+  4. Add a node pool if necessary using the web UI.
+  5. Create a new config repo of the form https://skia.googlesource.com/skia-NNNNN-config/.
+  6. Add the new cluster to the `clusters` variable in go/pushk/main.go.
