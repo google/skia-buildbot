@@ -11,6 +11,6 @@ SA_NAME=skia-skottie-internal
 
 cd /tmp/ramdisk
 gcloud iam service-accounts create "${SA_NAME}" --display-name="Read-write access to GCS for skottie-internal server."
-gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
+gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
 cd -
