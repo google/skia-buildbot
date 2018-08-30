@@ -26,8 +26,10 @@ import (
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/util"
 )
 
@@ -281,4 +283,61 @@ func (q *Query) Matches(s string) bool {
 		s = s[valueIndex:]
 	}
 	return true
+}
+
+// Regext returns a *regexp.Regex that can be used against OrderedParamSet
+// encoded Params, which are structured keys of indicies, i.e.:
+//
+//    ,0=1,1=5,3=10,4=0,
+//
+func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) {
+	ret := []string{}
+	// Loop over KeyOrder, we don't care about the q.params order.
+	for index, key := range ops.KeyOrder {
+		for _, part := range q.params {
+			if part.keyMatch[1:len(part.keyMatch)-1] == key {
+				// WildCard, Regex and Negative are all mutually exclusive.
+				keyIndex := strconv.Itoa(index)
+				if part.isWildCard {
+					ret = append(ret, fmt.Sprintf(",%s=[^,]+,.*", keyIndex))
+				} else if part.isRegex {
+					values := ops.ParamSet[key]
+					toBeOrd := []string{}
+					for index, value := range values {
+						if part.reg.MatchString(value) {
+							toBeOrd = append(toBeOrd, fmt.Sprintf("(,%s=%s,)", keyIndex, strconv.Itoa(index)))
+						}
+					}
+					if len(toBeOrd) > 0 {
+						ret = append(ret, "(", strings.Join(toBeOrd, "|"), ").*")
+					}
+				} else if part.isNegative {
+					values := ops.ParamSet[key]
+					toBeOrd := []string{}
+					for index, value := range values {
+						if !util.In(value, part.values) {
+							toBeOrd = append(toBeOrd, fmt.Sprintf("(,%s=%s,)", keyIndex, strconv.Itoa(index)))
+						}
+					}
+					if len(toBeOrd) > 0 {
+						ret = append(ret, "(", strings.Join(toBeOrd, "|"), ").*")
+					}
+				} else {
+					values := ops.ParamSet[key]
+					toBeOrd := []string{}
+					for index, value := range values {
+						if util.In(value, part.values) {
+							toBeOrd = append(toBeOrd, fmt.Sprintf("(,%s=%s,)", keyIndex, strconv.Itoa(index)))
+						}
+					}
+					if len(toBeOrd) > 0 {
+						ret = append(ret, "(", strings.Join(toBeOrd, "|"), ").*")
+					}
+				}
+				continue
+			}
+		}
+	}
+	fmt.Printf("Regex: %q\n", strings.Join(ret, ""))
+	return regexp.Compile(strings.Join(ret, ""))
 }
