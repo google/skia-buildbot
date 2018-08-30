@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+	"github.com/davecgh/go-spew/spew"
 	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/eventbus"
@@ -146,6 +147,7 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 	}
 	sklog.Infof("Retrieved: %d notifications", len(notifications))
 
+	var notificationInfo *storage.Notification
 	found := false
 	notifyID := bucketName + "/" + strings.TrimLeft(objectPrefix, "/")
 	for _, notify := range notifications {
@@ -155,6 +157,7 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 			if notify.CustomAttributes[notificationIDAttr] != notifyID {
 				continue
 			}
+			notificationInfo = notify
 			found = true
 			break
 		}
@@ -162,7 +165,7 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 
 	if !found {
 		bucket := client.Bucket(bucketName)
-		_, err := bucket.AddNotification(ctx, &storage.Notification{
+		notificationInfo, err := bucket.AddNotification(ctx, &storage.Notification{
 			TopicProjectID:   d.projectID,
 			TopicID:          d.topic.ID(),
 			EventTypes:       []string{storage.ObjectFinalizeEvent},
@@ -175,6 +178,9 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 		if err != nil {
 			return "", sklog.FmtErrorf("Error registering event: %s", err)
 		}
+		sklog.Infof("Created storage notification: %s", spew.Sdump(notificationInfo))
+	} else {
+		sklog.Infof("Re-using storage notification: %s", spew.Sdump(notificationInfo))
 	}
 
 	// If no regex was provided we add a single entry.

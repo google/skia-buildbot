@@ -58,8 +58,12 @@
       }
 
       .ingestedTryjob {
-        background-color: #117733;
+        background-color: #8BC34A;
         color: white;
+      }
+
+      .ingestedTryjob:after {
+        content: "\2714";
       }
 
       .failedTryjob {
@@ -112,6 +116,15 @@
       .controlsContainer {
         margin:1em 0 1em 0;
       }
+
+      .legend {
+        font-weight: bolder;
+      }
+
+      .legendContainer {
+        border: 1px solid #CCCC;
+        float: right;
+      }
     </style>
     <template is="dom-if" if={{_issue}}>
       <div class="layout horizontal">
@@ -138,8 +151,17 @@
       </div>
       <div class="tryjobContainer horizontal layout wrap" hidden$="[[!_tryjobs]]">
         <template is="dom-repeat" items={{_tryjobs}} as="tryjob">
-          <div class$="{{tryjob.status}}Tryjob tryjobStatus">{{tryjob.builder}}</div>
+          <div class$="{{tryjob.status}}Tryjob tryjobStatus" title$="Status: [[tryjob.status]]">{{tryjob.builder}}</div>
         </template>
+      </div>
+      <div class="legendContainer" hidden$="[[!_tryjobs]]">
+        <div class="tryjobContainer horizontal layout">
+          <div class="tryjobStatus legend">Legend:</div>
+          <div class="scheduledTryjob tryjobStatus">scheduled</div>
+          <div class="runningTryjob tryjobStatus">running</div>
+          <div class="completeTryjob tryjobStatus">complete</div>
+          <div class="ingestedTryjob tryjobStatus">ingested</div>
+        </div>
       </div>
       <div class="horizontal layout" hidden$="[[_tryjobs]]">
           No Tryjobs for Patchset [[_state.patchsets]].

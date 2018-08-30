@@ -39,9 +39,9 @@ this.sk = this.sk || {};
 
   /**
    * app_config is a place for applications to store app specific
-   * configuration variables.
+   * configuration variables. If it has been set already, use the existing one.
   **/
-  sk.app_config = {};
+  sk.app_config = sk.app_config || {};
 
   /**
    * clearChildren removes all children of the passed in node.

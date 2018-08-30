@@ -30,9 +30,6 @@ var gold = gold || {};
     gold.METRIC_PIXEL,
   ];
 
-  // Default values for match selection.
-  gold.DEFAULT_MATCH_CONFIGS = ['gamma_correct', 'name'];
-
   // Operators to apply to images grouped by test.
   gold.GROUP_TEST_MAX_COUNT = 'count'    // Most often occuring digest.
   gold.groupTestOps = [
@@ -59,7 +56,7 @@ var gold = gold || {};
     sort: gold.SORT_DESC,
 
     // Configs that need to match during comparisons.
-    match: gold.DEFAULT_MATCH_CONFIGS,
+    match: sk.app_config.defaultMatchFields,
 
     // Note: query is a URL encoded query over the test parameters
     // The fields of query are not fixed but change over time. This requires
