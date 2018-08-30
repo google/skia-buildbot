@@ -29,7 +29,8 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --diff_server_http=skia-diffserver-prod:8001 \
     --force_login \
     --event_topic=gold-prod-eventbus \
-    --ds_namespace=gold-skia-prod
+    --ds_namespace=gold-skia-prod \
+    --match_fields=gamma_correct,name
 
 Restart=always
 User=default

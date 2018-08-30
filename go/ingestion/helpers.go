@@ -212,6 +212,8 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 		g.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
 			file := evData.(*eventbus.StorageEvent)
 
+			sklog.Infof("Received storage event: %s / %s", file.BucketID, file.ObjectID)
+
 			// Fetch the object attributes.
 			objAttr, err := g.storageClient.Bucket(file.BucketID).
 				Object(file.ObjectID).
@@ -224,6 +226,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
 			}
 			resultCh <- ret
+			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
 		})
 	}
 	return nil
