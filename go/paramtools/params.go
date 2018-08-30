@@ -2,7 +2,11 @@
 package paramtools
 
 import (
+	"bytes"
+	"encoding/gob"
+	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/util"
@@ -196,4 +200,245 @@ func (p ParamMatcher) MatchAny(params ParamSet) bool {
 		}
 	}
 	return false
+}
+
+// OrderedParamSet is a ParamSet that keeps track of the order in which
+// keys and values were added, which allows for compressing Params
+// that make up the ParamSet to a smaller number of bytes.
+//
+// For example, if the paramset has just one key and two values:
+//
+//    "config": ["8888", "565"]
+//
+// Then a Params of
+//
+//    "config": "565"
+//
+// can be represented as two integers, the offset of "config" into the list of
+// ordered keys (0), and the offset of "565" into the list of all values seen
+// for that key (1).
+//
+// As a structured key that could be represented as:
+//
+//  ,0=1,
+//
+// Which is a savings over
+//
+//  ,config=565,
+//
+// OrderedParamSet is not Go routine safe.
+type OrderedParamSet struct {
+	KeyOrder      []string
+	ParamSet      ParamSet
+	paramsEncoder *paramsEncoder
+	paramsDecoder *paramsDecoder
+}
+
+func NewOrderedParamSet() *OrderedParamSet {
+	return &OrderedParamSet{
+		KeyOrder:      []string{},
+		ParamSet:      ParamSet{},
+		paramsEncoder: nil,
+		paramsDecoder: nil,
+	}
+}
+
+// Delta returns all the keys and their values that don't exist in the
+// OrderedParamSet.
+func (o *OrderedParamSet) Delta(p ParamSet) ParamSet {
+	ret := ParamSet{}
+	for k, newValues := range p {
+		if values, ok := o.ParamSet[k]; !ok {
+			ret[k] = newValues
+		} else {
+			for _, v := range newValues {
+				if !util.In(v, values) {
+					ret[k] = append(ret[k], v)
+				}
+			}
+		}
+	}
+	return ret
+}
+
+// Update adds all the key/value pairs from ParamSet, which is usually the
+// ParamSet returned from Delta().
+func (o *OrderedParamSet) Update(p ParamSet) {
+	o.paramsEncoder = nil
+	o.paramsDecoder = nil
+	// Add new keys to KeyOrder.
+	// Append new values if they don't exist.
+	for k, values := range p {
+		currentValues, ok := o.ParamSet[k]
+		if !ok {
+			o.KeyOrder = append(o.KeyOrder, k)
+			o.ParamSet[k] = []string{}
+			currentValues = []string{}
+		}
+		for _, v := range values {
+			if !util.In(v, currentValues) {
+				currentValues = append(currentValues, v)
+			}
+		}
+		o.ParamSet[k] = currentValues
+	}
+}
+
+// Encode the OrderedParamSet as a byte slice.
+//
+func (o *OrderedParamSet) Encode() ([]byte, error) {
+	var b bytes.Buffer
+	err := gob.NewEncoder(&b).Encode(o)
+	return b.Bytes(), err
+}
+
+// NewOrderedParamSetFromBytes creates an OrderedParamSet using a byte slice
+// previously returned from Encode().
+//
+func NewOrderedParamSetFromBytes(b []byte) (*OrderedParamSet, error) {
+	p := NewOrderedParamSet()
+	buf := bytes.NewBuffer(b)
+	err := gob.NewDecoder(buf).Decode(&p)
+	return p, err
+}
+
+// buildEncoder builds a paramsEncoder for the current state of the OrderedParamSet.
+func (o *OrderedParamSet) buildEncoder() *paramsEncoder {
+	ret := &paramsEncoder{
+		keyOrder: o.KeyOrder,
+		keys:     map[string]string{},
+		values:   map[string]map[string]string{},
+	}
+	for keyIndex, key := range o.KeyOrder {
+		keyString := strconv.Itoa(keyIndex)
+		ret.keys[key] = keyString
+		valueMap := map[string]string{}
+		for valueIndex, value := range o.ParamSet[key] {
+			valueMap[value] = strconv.Itoa(valueIndex)
+		}
+		ret.values[keyString] = valueMap
+	}
+	return ret
+}
+
+// buildDecoder builds a paramsDecoder for the current state of the OrderedParamSet.
+func (o *OrderedParamSet) buildDecoder() *paramsDecoder {
+	ret := &paramsDecoder{
+		keys:   map[string]string{},
+		values: map[string]map[string]string{},
+	}
+	for keyIndex, key := range o.KeyOrder {
+		keyString := strconv.Itoa(keyIndex)
+		ret.keys[keyString] = key
+		valueMap := map[string]string{}
+		for valueIndex, value := range o.ParamSet[key] {
+			valueMap[strconv.Itoa(valueIndex)] = value
+		}
+		ret.values[keyString] = valueMap
+	}
+	return ret
+}
+
+// paramsDecoder is built from the data in an OrderedParamSet and can efficiently
+// decode Params for that OrderedParamSet.
+//
+// It builds up data structures that allow parsing params by lookup table.
+type paramsDecoder struct {
+	// keys maps the offset, as a string, to the key name.
+	keys map[string]string
+
+	// values maps the key name to a map of value offset, as a string, to the value.
+	values map[string]map[string]string
+}
+
+// decodeStringToParams takes a string converts it to a Params.
+//
+// The input string representation is integer pairs as a structured key:
+//
+//   ,0=1,1=3,3=0,
+//
+func (p *paramsDecoder) decodeStringToParams(s string) (Params, error) {
+	ret := Params{}
+	for _, pair := range strings.Split(s, ",") {
+		if pair == "" {
+			continue
+		}
+		parts := strings.Split(pair, "=")
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("Failed to parse: %s", pair)
+		}
+		key, ok := p.keys[parts[0]]
+		if !ok {
+			return nil, fmt.Errorf("Failed to find key: %q", parts[0])
+		}
+		value, ok := p.values[parts[0]][parts[1]]
+		if !ok {
+			return nil, fmt.Errorf("Failed to find value: %q", parts[1])
+		}
+		ret[key] = value
+	}
+	return ret, nil
+}
+
+// paramsEncoder is built from the data in an OrderedParamSet and can efficiently
+// encode Params for that OrderedParamSet.
+//
+// It builds up data structures that allow encoding Params by lookup table.
+type paramsEncoder struct {
+	// keyOrder is the order of the keys.
+	keyOrder []string
+
+	// keys maps the key name to its offset in OrdereredParamSet.KeyOrder, the offset being
+	// given as a string, i.e. "2".
+	keys map[string]string
+
+	// values maps the key key offset to a map that maps the value to its offset, the offset being
+	// given as a string, i.e. "2".
+	values map[string]map[string]string
+}
+
+// encodeAsString takes a Params and finds the indexes of both the key and its value in
+// the OrderedParamSet and then writes a string representation.
+//
+// The representation is integer pairs as a structured key:
+//
+//   ,0=1,1=3,3=0,
+func (p *paramsEncoder) encodeAsString(params Params) (string, error) {
+	ret := []string{","}
+	for _, key := range p.keyOrder {
+		value, ok := params[key]
+		if !ok {
+			continue
+		}
+		keyIndex, ok := p.keys[key]
+		if !ok {
+			return "", fmt.Errorf("Unknown key.")
+		}
+		valueIndex, ok := p.values[keyIndex][value]
+		if !ok {
+			return "", fmt.Errorf("Unknown value.")
+		}
+		ret = append(ret, keyIndex, "=", valueIndex, ",")
+	}
+	if len(ret) == 1 {
+		return "", fmt.Errorf("No params encoded.")
+	}
+	return strings.Join(ret, ""), nil
+}
+
+// EncodeParamsAsString encodes the Params as a string.
+func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
+	if o.paramsEncoder == nil {
+		o.paramsEncoder = o.buildEncoder()
+	}
+	return o.paramsEncoder.encodeAsString(p)
+}
+
+// DecodeParamsFromString decodes the Params from a string.
+func (o *OrderedParamSet) DecodeParamsFromString(s string) (Params, error) {
+
+	if o.paramsDecoder == nil {
+		o.paramsDecoder = o.buildDecoder()
+	}
+	return o.paramsDecoder.decodeStringToParams(s)
 }
