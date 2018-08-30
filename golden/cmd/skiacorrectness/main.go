@@ -74,6 +74,7 @@ var (
 	clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
+	defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
 	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
 	dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
@@ -467,17 +468,19 @@ func main() {
 
 	// appConfig is injected into the header of the index file.
 	appConfig := &struct {
-		BaseRepoURL     string `json:"baseRepoURL"`
-		DefaultCorpus   string `json:"defaultCorpus"`
-		ShowBotProgress bool   `json:"showBotProgress"`
-		Title           string `json:"title"`
-		IsPublic        bool   `json:"isPublic"` // If true this is not open but restrictions apply.
+		BaseRepoURL        string   `json:"baseRepoURL"`
+		DefaultCorpus      string   `json:"defaultCorpus"`
+		DefaultMatchFields []string `json:"defaultMatchFields"`
+		ShowBotProgress    bool     `json:"showBotProgress"`
+		Title              string   `json:"title"`
+		IsPublic           bool     `json:"isPublic"` // If true this is not open but restrictions apply.
 	}{
-		BaseRepoURL:     *gitRepoURL,
-		DefaultCorpus:   *defaultCorpus,
-		ShowBotProgress: *showBotProgress,
-		Title:           *appTitle,
-		IsPublic:        !openSite,
+		BaseRepoURL:        *gitRepoURL,
+		DefaultCorpus:      *defaultCorpus,
+		DefaultMatchFields: strings.Split(*defaultMatchFields, ","),
+		ShowBotProgress:    *showBotProgress,
+		Title:              *appTitle,
+		IsPublic:           !openSite,
 	}
 
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
