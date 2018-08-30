@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
@@ -245,7 +244,7 @@ func main() {
 
 	var h http.Handler = router
 	if !*local {
-		h = iap.None(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
 

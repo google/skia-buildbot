@@ -488,18 +488,19 @@ func GetBaseURL(urlStr string) (string, error) {
 	return rv.String(), nil
 }
 
-// Force traffic to go over HTTPS and also handles healthchecks at /healthz.
-// See: https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
+// HealthzAndHTTPS forces traffic to go over HTTPS and also handles
+// healthchecks at /healthz.  See:
+// https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
 //
 // h - The http.Handler to wrap.
 //
 // Example:
 //    if !*local {
-//      h := httputils.ForceHTTPS(h)
+//      h := httputils.HealthzAndHTTPS(h)
 //    }
 //    http.Handle("/", h)
 //
-func ForceHTTPS(h http.Handler) http.Handler {
+func HealthzAndHTTPS(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
 		if "http" == r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) {
 			u := *r.URL

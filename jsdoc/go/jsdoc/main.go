@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
@@ -119,7 +118,7 @@ func main() {
 
 	h := httputils.LoggingGzipRequestResponse(router)
 	if !*local {
-		h = iap.None(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 
 	http.Handle("/", h)

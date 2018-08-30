@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
@@ -636,7 +635,7 @@ func runServer(serverURL string) {
 	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
 	if !*testing {
-		h = iap.None(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
