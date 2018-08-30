@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f611741c_b14a0989",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-30T19:49:50Z",
+      "side": 1,
+      "message": "Good catch, done!",
+      "parentUuid": "817af8ef_dd5165c6",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 276,
+        "endChar": 32
+      },
+      "revId": "b67edd184cc49e1ba399d9ecc3d031d8f252be37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b79e50b_3a9a939d",
         "filename": "go/paramtools/params.go",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2018-08-30T19:36:23Z",
       "side": 1,
       "message": "shouldn\u0027t this be an error ?",
+      "range": {
+        "startLine": 409,
+        "startChar": 2,
+        "endLine": 411,
+        "endChar": 3
+      },
+      "revId": "b67edd184cc49e1ba399d9ecc3d031d8f252be37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f404383_37f4064e",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-08-30T19:49:50Z",
+      "side": 1,
+      "message": "No, keyOrder contains all keys that have ever been seen, a Params does not necessarily use all keys.",
+      "parentUuid": "3b79e50b_3a9a939d",
       "range": {
         "startLine": 409,
         "startChar": 2,
