@@ -28,6 +28,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/util"
 )
 
@@ -281,4 +282,25 @@ func (q *Query) Matches(s string) bool {
 		s = s[valueIndex:]
 	}
 	return true
+}
+
+// Regext returns a *regexp.Regex that can be used against OrderedParamSet
+// encoded Params, which are structured keys of indicies, i.e.:
+//
+//    ,0=1,1=5,3=10,4=0,
+//
+func (q *Query) Regexp(ops paramtools.OrderedParamSet) (*regexp.Regexp, error) {
+	ret := []string{}
+	// Loop over KeyOrder, we don't care about the q.params order.
+	for index, key := range ops.KeyOrder {
+		for _, part := range q.params {
+			if part.keyMatch[1:len(part.keyMatch)-1] == key {
+				// WildCard, Regex and Negative are all mutually exclusive.
+				if part.isWildCard {
+					ret = append(ret, fmt.Sprintf(",%s=[^,]+,.*", key))
+				}
+				continue
+			}
+		}
+	}
 }
