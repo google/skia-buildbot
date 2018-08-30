@@ -81,14 +81,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-ct-pixel-diff:20000']
 
-  - job_name: 'ct-poller'
-    static_configs:
-      - targets: ['skia-ct-master:20000']
-
-  - job_name: 'ctfe'
-    static_configs:
-      - targets: ['skia-ctfe:20000']
-
   - job_name: 'datahopper'
     static_configs:
       - targets: ['skia-datahopper2:20000']
