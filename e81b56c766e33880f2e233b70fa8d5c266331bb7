@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d88dd84_0caebc1a",
+        "filename": "promk/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-08-30T13:27:20Z",
+      "side": 1,
+      "message": "Not strictly necessary but just being consistent with line 28 below.",
+      "revId": "e81b56c766e33880f2e233b70fa8d5c266331bb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
