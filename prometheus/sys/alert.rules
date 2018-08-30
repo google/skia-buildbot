@@ -526,18 +526,10 @@ ALERT RpiMaster
 # General.
 # TODO(borenet): Specific alerts for Swarming.
 ALERT HighExternalQPS
-  IF sum(rate(http_request_metrics{job!="ct-poller",job!="skiaperf",host!="www.googleapis.com"}[30m])) by (host) > 25
+  IF sum(rate(http_request_metrics{job!="skiaperf",host!="www.googleapis.com"}[30m])) by (host) > 25
   LABELS { category = "infra", severity = "warning" }
   ANNOTATIONS {
     description = "QPS to {{ $labels.host }} is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
-  }
-
-# CTPoller has a different threshold than the above alert due to the autoscaler.
-ALERT HighExternalQPSCTPoller
-  IF sum(rate(http_request_metrics{job="ct-poller"}[30m])) by (host) > 20
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "QPS to {{ $labels.host }} from the ct-poller is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
   }
 
 # Perf has a different threshold than the above due to high QPS to Google Storage.
