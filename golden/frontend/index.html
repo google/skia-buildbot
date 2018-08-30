@@ -8,12 +8,13 @@
     <link rel="shortcut icon" href="/res/img/favicon.ico" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/res/js/core.js"></script>
-
-    <!-- Set the global app config. -->
+    <!-- Set the global app config before all other JS. -->
     <script type="text/javascript" charset="utf-8">
-      sk.app_config = {{.}};
+      this.sk = this.sk || {};
+      this.sk.app_config = {{.}};
     </script>
+
+    <script src="/res/js/core.js"></script>
     <link href="/res/vul/elements.html" rel="import" />
     <style type="text/css" media="screen">
       body {
