@@ -332,7 +332,9 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 
 	regexes, ok := d.storageNotifications[notificationID]
 	if !ok {
-		return nil, nil, false, sklog.FmtErrorf("Received event for unregistered storage bucket (%s) and object (%s) with id: '%s'", bucketID, objectID, notificationID)
+		// Ignore events that have not been registers. Not all clients are interested
+		// in all events.
+		return nil, nil, true, nil
 	}
 
 	data := &eventbus.StorageEvent{
