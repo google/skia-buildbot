@@ -111,43 +111,6 @@ ALERT TooManyOpenFDs
     description = "Too many open file handles on {{ $labels.host }}.",
   }
 
-# CT
-ALERT CTPollerHealthCheck
-  IF healthy{instance="skia-ct-master:20000",job="ct-poller"} != 1
-  FOR 5m
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    summary = "CT poller healthy check failed.",
-    description = "CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check"
-  }
-
-ALERT CTFEPendingTaskCount
-  IF num_pending_tasks{instance="skia-ctfe:20000",job="ctfe"} >= 10
-  FOR 5m
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    summary = "CTFE pending task count too high.",
-    description = "There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks"
-  }
-
-ALERT CTFEPendingTaskStatus
-  IF oldest_pending_task_status{instance="skia-ctfe:20000",job="ctfe"} >= 2
-  FOR 5m
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    summary = "CTFE pending task not running.",
-    description = "A task has been waiting to be executed for a while and it's still not started. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks"
-  }
-
-ALERT CTFEErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="ctfe"}[2m]) > 0.1
-  FOR 2m
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    summary = "CTFE error rate too high.",
-    description = "The error rate for CTFE is too high. See cloud logging for skia-ctfe. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }}"
-  }
-
 # Android Compile Server
 ALERT AndroidCompileTooManyWaitingTasks
   IF android_compile_waiting_tasks{instance="android-compile:20000",job="android_compile"} >= 5
