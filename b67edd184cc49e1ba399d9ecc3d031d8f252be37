@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "817af8ef_dd5165c6",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-30T19:36:23Z",
+      "side": 1,
+      "message": "o.KeyOrder and the keys in o.ParamSet should always be the same so you could use o.ParamSet to look them up. The following should be more efficient than using the .In() as KeyOrder gets bigger. \n\ncurrentValues, ok :\u003d o.ParamSet[k]\nif !ok {\n   o.KeyOrder \u003d append(o.KeyOrder, k)\n   currentValues :\u003d []string{}   // not strictly necessary \n}\n...",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 276,
+        "endChar": 32
+      },
+      "revId": "b67edd184cc49e1ba399d9ecc3d031d8f252be37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b79e50b_3a9a939d",
+        "filename": "go/paramtools/params.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-30T19:36:23Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be an error ?",
+      "range": {
+        "startLine": 409,
+        "startChar": 2,
+        "endLine": 411,
+        "endChar": 3
+      },
+      "revId": "b67edd184cc49e1ba399d9ecc3d031d8f252be37",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
