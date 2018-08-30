@@ -16,6 +16,24 @@
       "revId": "bcaddd397b773286a1f3998dafd1c8987c9dfb22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7574462d_387609e1",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-30T17:36:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "afc1599a_213ed3fb",
+      "revId": "bcaddd397b773286a1f3998dafd1c8987c9dfb22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
