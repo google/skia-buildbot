@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afc1599a_213ed3fb",
+        "filename": "golden/frontend/res/imp/trybot-controls-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-08-30T17:21:51Z",
+      "side": 1,
+      "message": "Maybe also add title$\u003d\"{{tryjob.status}}\" ?",
+      "revId": "bcaddd397b773286a1f3998dafd1c8987c9dfb22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
