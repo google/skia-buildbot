@@ -11,7 +11,7 @@ import (
 
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/iap"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 )
@@ -58,7 +58,7 @@ func main() {
 	}
 
 	var h http.Handler = NewProxy(target)
-	h = iap.None(h)
+	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

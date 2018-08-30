@@ -29,7 +29,7 @@ func TestForceHTTPS(t *testing.T) {
 	assert.Len(t, b, 12)
 
 	// Add in ForceHTTPS behavior.
-	h = ForceHTTPS(h)
+	h = HealthzAndHTTPS(h)
 	w = httptest.NewRecorder()
 	h.ServeHTTP(w, r)
 	assert.Equal(t, 301, w.Result().StatusCode)

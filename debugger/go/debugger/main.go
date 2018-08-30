@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -207,7 +206,7 @@ func main() {
 
 	h := httputils.LoggingRequestResponse(router)
 	if !*local {
-		h = iap.None(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
 

@@ -343,7 +343,7 @@ func main() {
 			h = login.RestrictViewer(h)
 			h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 		}
-		h = httputils.ForceHTTPS(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 
 	http.Handle("/", h)
