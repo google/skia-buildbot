@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/iap"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -219,7 +218,7 @@ func main() {
 	r.HandleFunc("/update", updateHandler)
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
-		h = iap.None(h)
+		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
