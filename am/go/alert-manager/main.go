@@ -44,6 +44,7 @@ var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
 	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -615,6 +616,13 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create Server: %s", err)
 	}
+
+	// Internal endpoints that are only accessible from within the cluster.
+	unprotected := mux.NewRouter()
+	unprotected.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
+	go func() {
+		sklog.Fatal(http.ListenAndServe(*internalPort, unprotected))
+	}()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", srv.mainHandler)
