@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9869aa6_3078e432",
+        "filename": "go/query/query.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-08-31T13:32:04Z",
+      "side": 1,
+      "message": "It would be useful to mention RE2 here and maybe have link to something like \nhttps://github.com/google/re2/wiki/Syntax\nsince it\u0027s almost a guarantee that the returned value can be used in BigTable.",
+      "range": {
+        "startLine": 307,
+        "startChar": 3,
+        "endLine": 309,
+        "endChar": 12
+      },
+      "revId": "eee25a56b86467334e5746f02dc56febbbf2414e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
