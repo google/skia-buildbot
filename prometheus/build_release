@@ -2,7 +2,7 @@
 # Builds and uploads a debian package for Grafana config.
 APPNAME=prometheus
 DESCRIPTION="Prometheus monitoring and alerting."
-SYSTEMD="prometheus.service alertmanager.service webhook-proxy.service prom-proxy.service alert-proxy.service pushgateway.service"
+SYSTEMD="prometheus.service webhook-proxy.service prom-proxy.service alert-proxy.service pushgateway.service"
 
 set -x -e
 
@@ -17,17 +17,14 @@ ${INSTALL} --mode=755 -T ./tmp/promtool                    ${ROOT}/usr/local/bin
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/proxy_with_auth     ${ROOT}/usr/local/bin/prom_proxy_with_auth
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/proxy_with_auth     ${ROOT}/usr/local/bin/alert_proxy_with_auth
 ${INSTALL} --mode=755 -T ./tmp/prometheus                  ${ROOT}/usr/local/bin/prometheus
-${INSTALL} --mode=755 -T ./tmp/alertmanager                ${ROOT}/usr/local/bin/alertmanager
 ${INSTALL} --mode=755 -T ./tmp/pushgateway                 ${ROOT}/usr/local/bin/pushgateway
 ${INSTALL} --mode=644 -T ./sys/prometheus.service          ${ROOT}/etc/systemd/system/prometheus.service
-${INSTALL} --mode=644 -T ./sys/alertmanager.service        ${ROOT}/etc/systemd/system/alertmanager.service
 ${INSTALL} --mode=644 -T ./sys/pushgateway.service         ${ROOT}/etc/systemd/system/pushgateway.service
 ${INSTALL} --mode=644 -T ./sys/webhook-proxy.service       ${ROOT}/etc/systemd/system/webhook-proxy.service
 ${INSTALL} --mode=644 -T ./sys/prom-proxy.service          ${ROOT}/etc/systemd/system/prom-proxy.service
 ${INSTALL} --mode=644 -T ./sys/alert-proxy.service         ${ROOT}/etc/systemd/system/alert-proxy.service
 
 ${INSTALL_DIR} --mode=777                                  ${ROOT}/mnt/pd0/prometheus
-${INSTALL_DIR} --mode=777                                  ${ROOT}/mnt/pd0/alertmanager
 }
 
 source ../bash/release.sh
