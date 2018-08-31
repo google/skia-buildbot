@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/android_compile \
     --host=android-compile.skia.org \
     --resources_dir=/usr/local/share/android-compiled/ \
     --num_checkouts=5 \
+    --repo_update_duration=1h \
     --logtostderr
 Restart=always
 User=default
