@@ -22,12 +22,15 @@
 package query
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/util"
 )
 
@@ -35,6 +38,8 @@ var (
 	invalidChar = regexp.MustCompile("([^a-zA-Z0-9._\\-])")
 	keyRe       = regexp.MustCompile("^,([a-zA-Z0-9._\\-]+=[a-zA-Z0-9._\\-]+,)+$")
 	paramRe     = regexp.MustCompile("^[a-zA-Z0-9._\\-]+$")
+
+	QueryWillNeverMatch = errors.New("Query will never match.")
 )
 
 func clean(s string) string {
@@ -281,4 +286,63 @@ func (q *Query) Matches(s string) bool {
 		s = s[valueIndex:]
 	}
 	return true
+}
+
+// appendRegexForFilter will attach a regex to 'ret' for every value in
+// 'values' that matches the given 'filter'.
+func appendRegexForFilter(keyIndex string, values []string, part queryParam, ret *[]string, filter func(string) bool) error {
+	toBeORd := []string{}
+	for index, value := range values {
+		if filter(value) {
+			toBeORd = append(toBeORd, fmt.Sprintf(`(,%s=%s\b)`, keyIndex, strconv.Itoa(index)))
+		}
+	}
+	if len(toBeORd) == 0 {
+		return QueryWillNeverMatch
+	}
+	*ret = append(*ret, "(", strings.Join(toBeORd, "|"), ").*")
+	return nil
+}
+
+// Regext returns a *regexp.Regex that can be used against OrderedParamSet
+// encoded Params, which are structured keys of indicies, i.e.:
+//
+//    ,0=1,1=5,3=10,4=0,
+//
+func (q *Query) Regexp(ops *paramtools.OrderedParamSet) (*regexp.Regexp, error) {
+	// ret is the strings that make up the regular expression we are building.
+	ret := []string{}
+	// Loop over KeyOrder, we don't care about the q.params order.
+	for index, key := range ops.KeyOrder {
+		for _, part := range q.params {
+			// Strip the , and = from part.keyMatch.
+			partKey := part.keyMatch[1 : len(part.keyMatch)-1]
+			if partKey == key {
+				// WildCard, Regex and Negative are all mutually exclusive.
+				keyIndex := strconv.Itoa(index)
+				values := ops.ParamSet[key]
+				var err error = nil
+				if part.isWildCard {
+					ret = append(ret, fmt.Sprintf(`,%s=[^,]+\b`, keyIndex))
+				} else if part.isRegex {
+					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
+						return part.reg.MatchString(value)
+					})
+				} else if part.isNegative {
+					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
+						return !util.In(value, part.values)
+					})
+				} else {
+					err = appendRegexForFilter(keyIndex, values, part, &ret, func(value string) bool {
+						return util.In(value, part.values)
+					})
+				}
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
+		}
+	}
+	return regexp.Compile(strings.Join(ret, ""))
 }
