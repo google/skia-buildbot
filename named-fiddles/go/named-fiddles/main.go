@@ -220,6 +220,7 @@ func main() {
 	common.InitWithMust(
 		"named-fiddles",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	srv, err := New()

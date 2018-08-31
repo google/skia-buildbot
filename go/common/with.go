@@ -165,6 +165,38 @@ func (o *cloudLoggingInitOpt) order() int {
 	return 1
 }
 
+// metricsLoggingInitOpt implements Opt for logging with metrics.
+type metricsLoggingInitOpt struct {
+}
+
+// MetricsLoggingOpt creates an Opt to initialize logging and record metrics when passed to InitWith().
+//
+func MetricsLoggingOpt() Opt {
+	return &metricsLoggingInitOpt{}
+}
+
+func (o *metricsLoggingInitOpt) preinit(appName string) error {
+	glog.Info("metricslogging preinit")
+	return nil
+}
+
+func (o *metricsLoggingInitOpt) init(appName string) error {
+	glog.Info("metricslogging init")
+	metricLookup := map[string]metrics2.Counter{}
+	for _, sev := range sklog.AllSeverities {
+		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev})
+	}
+	metricsCallback := func(severity string) {
+		metricLookup[severity].Inc(1)
+	}
+	sklog.SetMetricsCallback(metricsCallback)
+	return nil
+}
+
+func (o *metricsLoggingInitOpt) order() int {
+	return 1
+}
+
 // promInitOpt implments Opt for Prometheus.
 type promInitOpt struct {
 	port *string

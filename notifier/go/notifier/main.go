@@ -109,6 +109,7 @@ func main() {
 	common.InitWithMust(
 		"alertmanager-webhooks",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	// Init chatbot.

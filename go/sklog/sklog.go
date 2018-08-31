@@ -38,18 +38,19 @@ const (
 type MetricsCallback func(severity string)
 
 var (
-	// The module-level logger.  If this is nil, we will just log using glog.
+	// logger is the module-level logger. If this is nil, we will just log using glog.
 	logger CloudLogger
 
-	// The module-level default report name, set in PreInitCloudLogging.
+	// defaultReportName is the module-level default report name, set in PreInitCloudLogging.
 	// See cloud_logging.go for more information.
 	defaultReportName string
 
-	// The module-level log grouping name, set in PreInitCloudLogging.
+	// logGroupingName is the module-level log grouping name, set in PreInitCloudLogging.
 	logGroupingName string
 
-	// used to report metrics about logs seen so we can alert if many ERRORs are seen, for example.
-	// This is set up to break a dependency cycle, such that sklog does not depend on metrics2.
+	// sawLogWithSeverity is used to report metrics about logs seen so we can
+	// alert if many ERRORs are seen, for example. This is set up to break a
+	// dependency cycle, such that sklog does not depend on metrics2.
 	sawLogWithSeverity MetricsCallback = func(s string) {}
 
 	// AllSeverities is the list of all severities that sklog supports.
@@ -63,6 +64,16 @@ var (
 		ALERT,
 	}
 )
+
+// SetMetricsCallback sets sawLogWithSeverity.
+//
+// This is set up to break a dependency cycle, such that sklog does not depend
+// on metrics2.
+func SetMetricsCallback(metricsCallback MetricsCallback) {
+	if metricsCallback != nil {
+		sawLogWithSeverity = metricsCallback
+	}
+}
 
 // These convenience methods will either make a Cloud Logging Entry using the current time and the
 // default report name associated with the CloudLogger or log to glog if Cloud Logging is not

@@ -184,6 +184,7 @@ func main() {
 	common.InitWithMust(
 		"alert-to-pubsub",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*local, pubsub.ScopePubSub)

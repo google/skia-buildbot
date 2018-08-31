@@ -222,6 +222,7 @@ func main() {
 	common.InitWithMust(
 		"docserver",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	if !*local {

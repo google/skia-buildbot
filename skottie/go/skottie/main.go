@@ -312,6 +312,7 @@ func main() {
 	common.InitWithMust(
 		"skottie",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	if *lockedDown && *local {
