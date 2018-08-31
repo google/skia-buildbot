@@ -35,7 +35,7 @@ source_cmd="source ./build/envsetup.sh"
 log_step "Running $source_cmd"
 eval $source_cmd
 
-lunch_cmd="lunch gce_x86_phone-eng"
+lunch_cmd="lunch sdk_gphone_x86_64-eng"
 log_step "Running $lunch_cmd"
 eval $lunch_cmd
 
