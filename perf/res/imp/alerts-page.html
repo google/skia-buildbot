@@ -84,6 +84,7 @@
         <th>Query</th>
         <th>Alert</th>
         <th>Owner</th>
+        <th>State</th>
         <th></th>
       </tr>
       <template is="dom-repeat" items="{{_alerts}}">
@@ -93,6 +94,7 @@
           <td><query-summary-sk selection="{{item.query}}"></query-summary-sk></td>
           <td>{{item.alert}}</td>
           <td>{{item.owner}}</td>
+          <td>{{item.state}}</td>
           <td><iron-icon title="Delete" icon="delete" on-tap="_delete" __config="{{item}}"></iron-icon></td>
         </tr>
       </template>
