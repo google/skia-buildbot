@@ -1,10 +1,12 @@
 package query
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 	"testing"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 
 	"github.com/stretchr/testify/assert"
@@ -302,12 +304,35 @@ func TestMatches(t *testing.T) {
 			reason:  "Negative, wildcard, and miss regexp",
 		},
 	}
+	ops := &paramtools.OrderedParamSet{
+		KeyOrder: []string{"arch", "config", "debug", "foo"},
+		ParamSet: paramtools.ParamSet{
+			"config": []string{"8888", "565", "gpu"},
+			"arch":   []string{"x86", "arm"},
+			"debug":  []string{"true", "false"},
+			"foo":    []string{"bar"},
+		},
+	}
+
 	for _, tc := range testCases {
 		q, err := New(tc.query)
 		assert.NoError(t, err)
 		if got, want := q.Matches(tc.key), tc.matches; got != want {
 			t.Errorf("Failed matching %q to %#v. Got %v Want %v. %s", tc.key, tc.query, got, want, tc.reason)
 		}
+		// Now confirm that the query transformed into a Regexp will give the same answer as Matches().
+		r, err := q.Regexp(ops)
+		if err == QueryWillNeverMatch {
+			assert.False(t, tc.matches)
+			continue
+		} else {
+			assert.NoError(t, err)
+		}
+		parsed, err := ParseKey(tc.key)
+		assert.NoError(t, err)
+		s, err := ops.EncodeParamsAsString(paramtools.Params(parsed))
+		assert.NoError(t, err)
+		assert.Equal(t, tc.matches, r.MatchString(s), fmt.Sprintf("%#v %s %v\n", tc, s, r))
 	}
 }
 
