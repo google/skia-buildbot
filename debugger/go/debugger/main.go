@@ -188,6 +188,7 @@ func main() {
 	common.InitWithMust(
 		"debugger",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	co = instances.New()
 

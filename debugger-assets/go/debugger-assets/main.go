@@ -38,6 +38,7 @@ func main() {
 	common.InitWithMust(
 		"debugger-assets",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	if *resourcesDir == "" {
