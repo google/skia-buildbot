@@ -50,6 +50,7 @@ func main() {
 	common.InitWithMust(
 		"auth-proxy",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	login.InitWithAllow(*port, *local, nil, nil, allowed.NewAllowedFromList([]string{"google.com"}))
 	target, err := url.Parse(fmt.Sprintf("http://localhost%s", *targetPort))

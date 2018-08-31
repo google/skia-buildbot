@@ -474,6 +474,7 @@ func main() {
 	common.InitWithMust(
 		"leasing",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	skiaversion.MustLogVersion()
