@@ -64,6 +64,12 @@ var (
 	}
 )
 
+func SetMetricsCallback(metricsCallback MetricsCallback) {
+	if metricsCallback != nil {
+		sawLogWithSeverity = metricsCallback
+	}
+}
+
 // These convenience methods will either make a Cloud Logging Entry using the current time and the
 // default report name associated with the CloudLogger or log to glog if Cloud Logging is not
 // configured.  They are a superset of the glog interface.  Info and Infoln do the same thing
