@@ -309,6 +309,8 @@ func main() {
 		sklog.Fatalf("Could not init datastore: %s", err)
 	}
 
+	sklog.Fatal("LOOK ABOVE!!!!!!!!!!!")
+
 	// Create authenticated HTTP client.
 	storageTokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_ONLY)
 	if err != nil {
