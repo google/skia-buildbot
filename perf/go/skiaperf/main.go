@@ -1267,9 +1267,7 @@ func initIngestion(ctx context.Context) {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
 	for _, oneIngester := range ingesters {
-		if err := oneIngester.Start(ctx); err != nil {
-			sklog.Fatalf("Unable to start ingester: %s", err)
-		}
+		oneIngester.Start(ctx)
 	}
 }
 
