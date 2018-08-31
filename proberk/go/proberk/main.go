@@ -318,6 +318,7 @@ func main() {
 	common.InitWithMust(
 		"probeserver",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	var err error
 	startHash, err = getHash()

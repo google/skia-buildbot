@@ -191,6 +191,7 @@ func main() {
 	common.InitWithMust(
 		"contest",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	ts, err := auth.NewDefaultTokenSource(*local, sheets.SpreadsheetsReadonlyScope)

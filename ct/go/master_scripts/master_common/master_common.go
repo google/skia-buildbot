@@ -29,7 +29,11 @@ func Init(appName string) {
 }
 
 func InitWithMetrics2(appName string, promPort *string) {
-	common.InitWithMust(appName, common.PrometheusOpt(promPort))
+	common.InitWithMust(
+		appName,
+		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
+	)
 	initRest()
 }
 
