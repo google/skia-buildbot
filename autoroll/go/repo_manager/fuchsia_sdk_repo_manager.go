@@ -153,7 +153,7 @@ func (rm *fuchsiaSDKRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	rm.infoMtx.RLock()
 	nextRollRevMac := rm.nextRollRevMac
 	rm.infoMtx.RUnlock()
-	if err := ioutil.WriteFile(rm.versionFileLinux, []byte(nextRollRevMac), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(rm.versionFileMac, []byte(nextRollRevMac), os.ModePerm); err != nil {
 		return 0, err
 	}
 
