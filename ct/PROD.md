@@ -42,6 +42,6 @@ This alert indicates there are many tasks in the
 ct_poller_health_check
 ----------------------
 The CT poller health check is failing. The poller's error logs are
-[here](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&resource=logging_log%2Fname%2Fskia-ct-master&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fct-poller).
-The poller runs on the CT master (skia-ct-master GCE instance).
+[here](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fct-master%22%20AND%20severity%3DERROR).
+The poller runs on the CT master (ct-master Google Cloud Kubernetes service).
 
