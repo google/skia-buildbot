@@ -277,7 +277,11 @@ func main() {
 		}
 	}
 
-	common.InitWithMust("ctfe", common.PrometheusOpt(promPort))
+	common.InitWithMust(
+		"ctfe",
+		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
+	)
 	skiaversion.MustLogVersion()
 
 	Init()

@@ -27,6 +27,7 @@ func main() {
 	common.InitWithMust(
 		"datastore_backup_k",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	ts, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore)
 	if err != nil {

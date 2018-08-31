@@ -647,6 +647,7 @@ func main() {
 	common.InitWithMust(
 		"status",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	skiaversion.MustLogVersion()

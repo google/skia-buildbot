@@ -22,5 +22,5 @@ release_continuous_deploy:
 	./build_continuous_deploy_release
 
 push: pushk
-	pushk --project=skia-public auth-proxy configmap-reload continuous-deploy
-	pushk --project=skia-corp configmap-reload
+	pushk --cluster=skia-public auth-proxy configmap-reload continuous-deploy
+	pushk --cluster=skia-corp configmap-reload
