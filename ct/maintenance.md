@@ -20,9 +20,10 @@ Frontend server code lives in:
 - package.json
 - sys/...
 
-To build the frontend server, use `make ctfe`. To create a new DEB for
-[push](https://push.skia.org/), use `MESSAGE="<release message>" make
-ctfe_release`.
+To build the frontend server, use `make ctfe`. To create a new docker build,
+use `make ctfe_release`.
+To deploy the latest docker build on the kubernetes ctfe service, use
+`make ctfe_push`.
 
 Master code lives in:
 
@@ -31,19 +32,17 @@ Master code lives in:
 - go/frontend/...
 - py/...
 
-To build the master binaries, use `make master_scripts`. The poller
-automatically runs `git pull` and `make all` to update the master scripts before
-running any tasks, so changes will be live as soon as they are committed; the
-next task to start will run the updated code. The poller itself must be updated
-manually; see below.
+To build the master binaries, use `make master_scripts`. To create a new docker
+build, use `make ctmaster_release`.
+To deploy the latest docker build on the kubernetes ct-master servce, use
+`make ctmaster_push`.
 
 Worker code lives in go/worker_scripts/...
 
-To build the worker binaries, use `make worker_scripts`. Master scripts
-run `git pull` and `make all` on all slaves before starting the worker scripts.
+To build the worker binaries, use `make worker_scripts`.
 
-Prober config is in ../prober/probers.json. Alerts config is in
-../alertserver/alerts.cfg.
+Prober config is in probers.json5. Alerts config is in
+../promk/prometheus/alerts_public.yml.
 
 ## Running locally
 
@@ -66,7 +65,7 @@ The `host` argument is optional and allows others to log in to your
 server. Initially you will get an error when logging in; follow the instructions
 on the error page. The `host` argument will also be included in metrics names.
 
-To test prober config changes, edit the config in ../prober/probers.json to
+To test prober config changes, edit the config in probers.json5 to
 point to localhost:8000, then run `make && prober --alsologtostderr
 --use_metadata=false` from ../prober/.
 
@@ -135,43 +134,39 @@ The CTFE production datastore instance is
 The staging datastore instance is
 [here](https://console.cloud.google.com/datastore/entities/query?organizationId=433637338589&project=google.com:skia-buildbots&ns=cluster-telemetry-staging&kind=CaptureSkpsTasks).
 
-The frontend runs on a GCE instance named
-[skia-ctfe](https://console.cloud.google.com/project/31977622648/compute/instancesDetail/zones/us-central1-c/instances/skia-ctfe).
-There are scripts to create and delete this instance in
-../compute_engine_scripts/ctfe/.
+The frontend runs on a Google Cloud Kubernetes service named
+[ctfe](https://console.cloud.google.com/kubernetes/service/us-central1-a/skia-public/default/ctfe?project=skia-public&organizationId=433637338589).
+Its dockerfile is in ctfe/Dockerfile.
 
-As mentioned above, to create a new DEB for CTFE, use `MESSAGE="<release
-message>" make ctfe_release`. To deploy this DEB to the skia-ctfe instance, use
-[push](https://push.skia.org/). Systemd will automatically restart the service
-after the update is installed, based on the configuration in
-sys/ctfe.service. You can then see the updated frontend at
+To build the frontend server, use `make ctfe`. To create a new docker build,
+use `make ctfe_release`.
+To deploy the latest docker build on the kubernetes ctfe service, use
+`make ctfe_push`. You can then see the updated frontend at
 [ct.skia.org](https://ct.skia.org/).
 
-To access skia-ctfe directly, use `gcloud compute ssh default@skia-ctfe --zone
-us-central1-c`.
+To access ctfe directly, use `kubectl exec -it $(kubectl get pod
+--selector="app=ctfe" -o jsonpath='{.items[0].metadata.name}') bash`.
 
-Frontend logs are available via the
-link from [push](https://push.skia.org/).
+Frontend logs are available [here](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fctfe%22).
 
 ### Master
 
-The poller and master scripts run on skia-ct-master in the skia-buildbots
-Google cloud project. See
-[here](https://skia.googlesource.com/buildbot/+/master/compute_engine_scripts/ct_master/)
-for how the GCE instance is setup and
-[here](https://skia.googlesource.com/buildbot/+/master/ct/sys/ct-masterd.service)
-for how the poller is started.
+The poller and master scripts run on a Google cloud kubernetes service named
+[ct-master](https://console.cloud.google.com/kubernetes/service/us-central1-a/skia-public/default/ct-master?project=skia-public&organizationId=433637338589).
+Its dockerfile is in ct-master/Dockerfile.
 
-To stop the poller safely, check that the CTFE task queue is empty and then
-stop ct-masterd in skia-ct-master on push.
+To push a new build to the poller safely, check that the CTFE task queue is
+empty and then run `make ctmaster_release && make ctmaster_push`.
 
-Changes to master scripts and worker scripts will be picked
-up for the next task execution after the change is committed.
+To access ct-master directly, use `kubectl exec -it $(kubectl get pod
+--selector="app=ct-master" -o jsonpath='{.items[0].metadata.name}') bash`.
+
+Poller logs are available [here](https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fct-master%22).
 
 ### Workers
 
-Worker scripts are normally automatically updated and run via the master
-scripts. However, from time to time, it may be necessary to perform maintenance
+Worker scripts are part of the docker build when `ctmaster_release` is run.
+However, from time to time, it may be necessary to perform maintenance
 tasks on all worker machines. In this case, the
 [run_on_swarming_bots](https://skia.googlesource.com/buildbot/+/master/scripts/run_on_swarming_bots/)
 script can be used to update all
