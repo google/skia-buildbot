@@ -243,6 +243,15 @@ func NewOrderedParamSet() *OrderedParamSet {
 	}
 }
 
+func (o *OrderedParamSet) Dup() *OrderedParamSet {
+	ret := &OrderedParamSet{
+		KeyOrder: make([]string, len(o.KeyOrder)),
+		ParamSet: o.ParamSet.Copy(),
+	}
+	copy(ret.KeyOrder, o.KeyOrder)
+	return ret
+}
+
 // Delta returns all the keys and their values that don't exist in the
 // OrderedParamSet.
 func (o *OrderedParamSet) Delta(p ParamSet) ParamSet {
