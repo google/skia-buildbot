@@ -63,10 +63,9 @@ func testIngester(t *testing.T, statusDir string) {
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:  config.Duration{Duration: 1 * time.Second},
-		NCommits:  totalCommits / 2,
-		MinDays:   3,
-		StatusDir: statusDir,
+		RunEvery: config.Duration{Duration: 1 * time.Second},
+		NCommits: totalCommits / 2,
+		MinDays:  3,
 	}
 
 	// Instantiate ingester and start it.
@@ -113,10 +112,6 @@ func (m *mockProcessor) Process(ctx context.Context, resultsFile ResultFileLocat
 	return m.process(resultsFile)
 }
 
-func (m *mockProcessor) BatchFinished() error {
-	return m.finish()
-}
-
 type mockRFLocation struct {
 	path        string
 	md5         string
@@ -156,19 +151,23 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 	}
 }
 
-func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
+func (m *mockSource) Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) (int, error) {
 	startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
 	endIdx := startIdx
 	for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
 	}
-	return m.data[startIdx:endIdx], nil
+	for _, retFile := range m.data[startIdx:endIdx] {
+		resultCh <- retFile
+	}
+
+	return 0, nil
 }
 
 func (m mockSource) ID() string {
 	return "test-source"
 }
 
-func (m *mockSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (m *mockSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	return nil
 }
 

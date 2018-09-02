@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/boltdb/bolt"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
@@ -43,14 +40,14 @@ var (
 type Source interface {
 	// Return a list of result files that originated between the given
 	// timestamps in milliseconds.
-	Poll(startTime, endTime int64) ([]ResultFileLocation, error)
+	Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) (int, error)
 
 	// ID returns a unique identifier for this source.
 	ID() string
 
 	// SetEventChannel configures storage events and sets up routines to send
 	// new results to the given channel.
-	SetEventChannel(resultCh chan<- []ResultFileLocation) error
+	SetEventChannel(resultCh chan<- ResultFileLocation) error
 }
 
 // ResultFileLocation is an abstract interface to a file like object that
@@ -76,29 +73,23 @@ type ResultFileLocation interface {
 // Processor is the core of an ingester. It takes instances of ResultFileLocation
 // and ingests them. It is responsible for the storage of ingested data.
 type Processor interface {
-	// Process ingests a single result file. It is either stores the file
-	// immediately or updates the internal state of the processor and writes
-	// data during the BatchFinished call.
+	// Process ingests a single result file.
 	Process(ctx context.Context, resultsFile ResultFileLocation) error
-
-	// BatchFinished is called when the current batch is finished. This is
-	// to cover the case when ingestion is better done for the whole batch
-	// This should reset the internal state of the Processor instance.
-	BatchFinished() error
 }
 
 // Ingester is the main type that drives ingestion for a single type.
 type Ingester struct {
-	id             string
-	vcs            vcsinfo.VCS
-	nCommits       int
-	minDuration    time.Duration
-	runEvery       time.Duration
-	sources        []Source
-	processor      Processor
-	doneCh         chan bool
-	statusDB       *bolt.DB
-	resultFilesDir string
+	id          string
+	vcs         vcsinfo.VCS
+	nCommits    int
+	minDuration time.Duration
+	runEvery    time.Duration
+	sources     []Source
+	processor   Processor
+	doneCh      chan bool
+
+	mutex               sync.Mutex
+	filesBeingProcessed util.StringSet
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -116,24 +107,14 @@ type Ingester struct {
 // NewIngester creates a new ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
 func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor) (*Ingester, error) {
-	statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
-	dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
-	statusDB, err := bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
-	}
-	resultFilesDir := filepath.Join(statusDir, fmt.Sprintf("%s-results-cache", ingesterID))
-
 	ret := &Ingester{
-		id:             ingesterID,
-		vcs:            vcs,
-		nCommits:       ingesterConf.NCommits,
-		minDuration:    time.Duration(ingesterConf.MinDays) * time.Hour * 24,
-		runEvery:       ingesterConf.RunEvery.Duration,
-		sources:        sources,
-		processor:      processor,
-		statusDB:       statusDB,
-		resultFilesDir: resultFilesDir,
+		id:          ingesterID,
+		vcs:         vcs,
+		nCommits:    ingesterConf.NCommits,
+		minDuration: time.Duration(ingesterConf.MinDays) * time.Hour * 24,
+		runEvery:    ingesterConf.RunEvery.Duration,
+		sources:     sources,
+		processor:   processor,
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -153,20 +134,26 @@ func (i *Ingester) Start(ctx context.Context) error {
 	if err != nil {
 		return sklog.FmtErrorf("Error retrieving input channels: %s", err)
 	}
-	go func(doneCh <-chan bool) {
-		var resultFiles []ResultFileLocation = nil
-		var useMetrics *processMetrics
 
+	// Process up to so many files in parallel.
+	concurrentEntry := make(chan bool, 200)
+
+	go func(doneCh <-chan bool) {
 		for {
+			var resultFile ResultFileLocation = nil
 			select {
-			case resultFiles = <-pollChan:
-				useMetrics = i.pollProcessMetrics
-			case resultFiles = <-eventChan:
-				useMetrics = i.eventProcessMetrics
+			case resultFile = <-pollChan:
+			case resultFile = <-eventChan:
 			case <-doneCh:
 				return
 			}
-			i.processResults(ctx, resultFiles, useMetrics)
+
+			concurrentEntry <- true
+			go func(resultFile ResultFileLocation) {
+				// Process the file and release the token so another thread can enter.
+				defer func() { <-concurrentEntry }()
+				i.processResult(ctx, resultFile)
+			}(resultFile)
 		}
 	}(i.doneCh)
 	return nil
@@ -190,9 +177,9 @@ func (q *rflQueue) clear() {
 	*q = rflQueue{}
 }
 
-func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation, error) {
-	pollChan := make(chan []ResultFileLocation)
-	eventChan := make(chan []ResultFileLocation)
+func (i *Ingester) getInputChannels(ctx context.Context) (<-chan ResultFileLocation, <-chan ResultFileLocation, error) {
+	pollChan := make(chan ResultFileLocation)
+	eventChan := make(chan ResultFileLocation)
 	i.doneCh = make(chan bool)
 
 	for idx, source := range i.sources {
@@ -208,7 +195,7 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 
 				sklog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
 				// measure how long the polling takes.
-				resultFiles, err := source.Poll(startTime, endTime)
+				fileCount, err := source.Poll(startTime, endTime, pollChan)
 				if err != nil {
 					// Indicate that there was an error in polling the source.
 					srcMetrics.pollError.Update(1)
@@ -216,14 +203,10 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 					return
 				}
 
-				sklog.Infof("Sending pollChan from %s for %d files.", source.ID(), len(resultFiles))
+				sklog.Infof("Sent %d files from %s.", fileCount, source.ID())
+
 				// Indicate that the polling was successful.
 				srcMetrics.pollError.Update(0)
-				for len(resultFiles) > 0 {
-					chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
-					pollChan <- resultFiles[:chunkSize]
-					resultFiles = resultFiles[chunkSize:]
-				}
 				srcMetrics.liveness.Reset()
 				srcMetrics.pollTimer.Stop()
 			})
@@ -237,108 +220,91 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 }
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
-// already processed files.
+// already processed files or in the list of files currently being processed.
 func (i *Ingester) inProcessedFiles(md5 string) bool {
+
 	ret := false
-	getFn := func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(PROCESSED_FILES_BUCKET))
-		if bucket == nil {
-			return nil
-		}
+	// getFn := func(tx *bolt.Tx) error {
+	// 	bucket := tx.Bucket([]byte(PROCESSED_FILES_BUCKET))
+	// 	if bucket == nil {
+	// 		return nil
+	// 	}
 
-		ret = bucket.Get([]byte(md5)) != nil
-		return nil
-	}
+	// 	ret = bucket.Get([]byte(md5)) != nil
+	// 	return nil
+	// }
 
-	if err := i.statusDB.View(getFn); err != nil {
-		sklog.Errorf("Error reading from bucket %s: %s", PROCESSED_FILES_BUCKET, err)
-	}
+	// if err := i.statusDB.View(getFn); err != nil {
+	// 	sklog.Errorf("Error reading from bucket %s: %s", PROCESSED_FILES_BUCKET, err)
+	// }
 	return ret
 }
 
 // addToProcessedFiles adds the given list of md5 hashes to the list of
 // file that have been already processed.
-func (i *Ingester) addToProcessedFiles(md5s []string) {
-	updateFn := func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(PROCESSED_FILES_BUCKET))
-		if err != nil {
-			return err
-		}
+func (i *Ingester) addToProcessedFiles(md5 string) {
+	// updateFn := func(tx *bolt.Tx) error {
+	// 	bucket, err := tx.CreateBucketIfNotExists([]byte(PROCESSED_FILES_BUCKET))
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		for _, md5 := range md5s {
-			if err := bucket.Put([]byte(md5), []byte{}); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+	// 	for _, md5 := range md5s {
+	// 		if err := bucket.Put([]byte(md5), []byte{}); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// 	return nil
+	// }
 
-	if err := i.statusDB.Update(updateFn); err != nil {
-		sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
+	// if err := i.statusDB.Update(updateFn); err != nil {
+	// 	sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
+	// }
+}
+
+func (i *Ingester) startProcessing(fileMD5Sum string) bool {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+	if i.filesBeingProcessed[fileMD5Sum] {
+		return false
 	}
+	i.filesBeingProcessed[fileMD5Sum] = true
+	return true
+}
+
+func (i *Ingester) finishProcessing(fileMD5Sum string) {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+	delete(i.filesBeingProcessed, fileMD5Sum)
 }
 
 // processResults ingests a set of result files.
-func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
+func (i *Ingester) processResult(ctx context.Context, resultLocation ResultFileLocation) {
+	fileMD5 := resultLocation.MD5()
 
-	var mutex sync.Mutex // Protects access to the following vars.
-	processedMD5s := make([]string, 0, len(resultFiles))
-	var processedCounter int64 = 0
-	var ignoredCounter int64 = 0
-	var errorCounter int64 = 0
+	// check if this is currently being processed.
+	proceed := i.startProcessing(fileMD5)
+	if !proceed {
+		return
+	}
+	defer i.finishProcessing(fileMD5)
 
-	// time how long the overall process takes.
-	i.processTimer.Start()
-	var wg sync.WaitGroup
-	for _, resultLocation := range resultFiles {
-		if i.inProcessedFiles(resultLocation.MD5()) {
-			mutex.Lock()
-			ignoredCounter++
-			mutex.Unlock()
-			continue
+	// Check if it's already been processed in the past.
+	if i.inProcessedFiles(fileMD5) {
+		return
+	}
+
+	// process the file.
+	err := i.processor.Process(ctx, resultLocation)
+	if err != nil {
+		if err != IgnoreResultsFileErr {
+			sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
 		}
-		wg.Add(1)
-		go func(resultLocation ResultFileLocation) {
-			defer wg.Done()
-			defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
-			err := i.processor.Process(ctx, resultLocation)
-
-			mutex.Lock()
-			defer mutex.Unlock()
-
-			if err != nil {
-				if err == IgnoreResultsFileErr {
-					ignoredCounter++
-				} else {
-					errorCounter++
-					sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
-					return
-				}
-			}
-
-			// Gather all successfully processed MD5s
-			processedCounter++
-			processedMD5s = append(processedMD5s, resultLocation.MD5())
-		}(resultLocation)
+		return
 	}
-	wg.Wait()
-	targetMetrics.liveness.Reset()
 
-	// Update the timer and the gauges that measure how the ingestion works
-	// for the input type.
-	i.processTimer.Stop()
-	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)) + targetMetrics.totalFilesGauge.Get())
-	targetMetrics.processedGauge.Update(processedCounter + targetMetrics.processedGauge.Get())
-	targetMetrics.ignoredGauge.Update(ignoredCounter + targetMetrics.ignoredGauge.Get())
-	targetMetrics.errorGauge.Update(errorCounter + targetMetrics.errorGauge.Get())
-
-	// Notify the ingester that the batch has finished and cause it to reset its
-	// state and do any pending ingestion.
-	if err := i.processor.BatchFinished(); err != nil {
-		sklog.Errorf("Batchfinished failed: %s", err)
-	} else {
-		i.addToProcessedFiles(processedMD5s)
-	}
+	// Record it as begin process in the db.
+	i.addToProcessedFiles(fileMD5)
 }
 
 // getCommitRangeOfInterest returns the time range (start, end) that

@@ -176,24 +176,22 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 }
 
 // See Source interface.
-func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
+func (g *GoogleStorageSource) Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) (int, error) {
 	dirs := gcs.GetLatestGCSDirs(startTime, endTime, g.rootDir)
-	retval := []ResultFileLocation{}
+	count := 0
 	for _, dir := range dirs {
 		err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
-			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
-			if strings.Contains(filepath.Base(item.Name), "uploading") {
-				sklog.Warningf("Received temporary file from GS: %s", item.Name)
-			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
+			if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
+				resultCh <- newGCSResultFileLocation(item, g.rootDir, g.storageClient)
+				count++
 			}
 		})
 
 		if err != nil {
-			return nil, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+			return 0, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
 		}
 	}
-	return retval, nil
+	return count, nil
 }
 
 // See Source interface.
@@ -202,7 +200,7 @@ func (g *GoogleStorageSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
@@ -222,10 +220,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 				sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
 				return
 			}
-			ret := []ResultFileLocation{
-				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
-			}
-			resultCh <- ret
+			resultCh <- newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient)
 			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
 		})
 	}
@@ -324,9 +319,7 @@ func NewFileSystemSource(baseName, rootDir string) (Source, error) {
 }
 
 // See Source interface.
-func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	retval := []ResultFileLocation{}
-
+func (f *FileSystemSource) Poll(startTime, endTime int64, resultCh chan<- ResultFileLocation) (int, error) {
 	// although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
 	// its operation that makes it not re-usable here.
 	dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
@@ -351,7 +344,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 						sklog.Errorf("Unable to create file system result: %s", err)
 						return nil
 					}
-					retval = append(retval, rf)
+					resultCh <- rf
 				}
 				return nil
 			}
@@ -366,7 +359,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 		}(dir)
 	}
 
-	return retval, nil
+	return 0, nil
 }
 
 // See Source interface.
@@ -375,7 +368,7 @@ func (f *FileSystemSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (f *FileSystemSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (f *FileSystemSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	return nil
 }
 
