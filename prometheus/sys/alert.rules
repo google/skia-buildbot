@@ -71,15 +71,6 @@ ALERT DiskSpaceLow
   }
 
 ALERT DiskSpaceLow
-  IF df_complex_free{resource="df-b",host!~".*rpi-.+"} < 2e10
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.host }}",
-    description = "Free space has fallen below 20GB on {{ $labels.host }} drive {{ $labels.resource }}.\n\nTry running:\ngo run scripts/run_on_swarming_bots/run_on_swarming_bots.go --alsologtostderr --script=scripts/run_on_swarming_bots/delete_out_dirs.py --dimension id:{{ $labels.host }}",
-  }
-
-ALERT DiskSpaceLow
   IF df_complex_free{resource=~"df-var|df-tmp",host=~"skia-rpi-.+"} < 1e8
   FOR 5m
   LABELS { category = "infra", severity = "warning" }
