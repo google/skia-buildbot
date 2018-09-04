@@ -15,10 +15,7 @@ all: autoroll-fe autoroll-be autoroll-google3
 
 autoroll-fe: core_js elements_html skiaversion
 	ln -sf ../../res res/imp/res
-	go install -v ./go/autoroll-fe
-
-autoroll-fe-kube: core_js elements_html skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe-kube
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
 
 autoroll-be: skiaversion
 	go install -v ./go/autoroll-be
@@ -35,16 +32,8 @@ testgo: skiaversion
 
 include ../webtools/webtools.mk
 
-release-fe-public: autoroll-fe
-	./build_frontend_release "$(MESSAGE)"
-
-release-fe-kube: autoroll-fe-kube
-	./build_docker_frontend_release
-
-release-fe-internal: autoroll-fe
-	./build_frontend_internal_release "$(MESSAGE)"
-
-release-fe-all: release-fe-public release-fe-internal
+release-fe: autoroll-fe
+	./build_frontend_release
 
 ROLLER_CONFIGS=$(wildcard config/*.json)
 
@@ -57,4 +46,4 @@ release-be-all: autoroll-be $(ROLLER_CONFIGS)
 release-google3: autoroll-google3
 	./build_google3_release "$(MESSAGE)"
 
-release-all: release-fe-all release-be-all release-google3
+release-all: release-fe release-be-all release-google3
