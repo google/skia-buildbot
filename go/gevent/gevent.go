@@ -85,7 +85,7 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 
 	// Create the client.
 	var err error
-	ret.client, err = pubsub.NewClient(context.Background(), projectID)
+	ret.client, err = pubsub.NewClient(context.Background(), projectID, opts...)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Error creating pubsub client: %s", err)
 	}
