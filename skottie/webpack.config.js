@@ -9,6 +9,15 @@ module.exports = (env, argv) => {
     new CopyWebpackPlugin([{
       from: './node_modules/lottie-web/build/player/lottie.min.js',
       to: 'lottie.min.js'
+    },{
+      from: './node_modules/jsoneditor/dist/jsoneditor-minimalist.js',
+      to: 'jsoneditor.js'
+    },{
+      from: './node_modules/jsoneditor/dist/jsoneditor.min.css',
+      to: 'jsoneditor.css'
+    },{
+      from: './node_modules/jsoneditor/dist/img/jsoneditor-icons.svg',
+      to: 'img/jsoneditor-icons.svg'
     }])
   );
   config.resolve = config.resolve || {};
