@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -20,6 +21,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webevent"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -59,6 +61,8 @@ type WebHandlers struct {
 	Indexer       *indexer.Indexer
 	IssueTracker  issues.IssueTracker
 	SearchAPI     *search.SearchAPI
+
+	dispatcher *webevent.EventDispatcher
 }
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -280,12 +284,7 @@ func (wh *WebHandlers) JsonTryjobSummaryHandler(w http.ResponseWriter, r *http.R
 
 // JsonSearchHandler is the endpoint for all searches.
 func (wh *WebHandlers) JsonSearchHandler(w http.ResponseWriter, r *http.Request) {
-	query, ok := parseSearchQuery(w, r)
-	if !ok {
-		return
-	}
-
-	searchResponse, err := wh.SearchAPI.Search(r.Context(), query)
+	searchResponse, err := wh.searchHandler(r)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -293,13 +292,58 @@ func (wh *WebHandlers) JsonSearchHandler(w http.ResponseWriter, r *http.Request)
 	sendJsonResponse(w, searchResponse)
 }
 
+func (wh *WebHandlers) EventSearchHandler(r *http.Request, conn *websocket.Conn) {
+	// Close the connection at the end.
+	defer util.Close(conn)
+	query, err := parseSearchQuery(r)
+	if err != nil {
+		webevent.ReportError(conn, "Parsing query failed.", err)
+		return
+	}
+
+	if query.Issue <= 0 {
+		webevent.ReportError(conn, "No valied issue ID provided", err)
+		return
+	}
+
+	subscription, err := wh.dispatcher.Subscribe(tryjobstore.EV_TRYJOB_UPDATED)
+	if err != nil {
+		webevent.ReportError(conn, "Unable to subscribe to event", err)
+		return
+	}
+	defer util.Close(subscription)
+
+	for event := range subscription.Channel {
+		data := event.Data.(*tryjobstore.Tryjob)
+		if data.IssueID == query.Issue {
+			resp, err := wh.SearchAPI.Search(r.Context(), query)
+			if err != nil {
+				sklog.Errorf("Error searching API:", err)
+				continue
+			}
+			if err := webevent.SendEvent(conn, event.Type, resp); err != nil {
+				sklog.Errorf("Error sending web event: %s", err)
+			}
+		}
+	}
+}
+
+func (wh *WebHandlers) searchHandler(r *http.Request) (*search.NewSearchResponse, error) {
+	query, err := parseSearchQuery(r)
+	if err != nil {
+		return nil, err
+	}
+	return wh.SearchAPI.Search(r.Context(), query)
+}
+
 // JsonExportHandler is the endpoint to export the Gold knowledge base.
 // It has the same interface as the search endpoint.
 func (wh *WebHandlers) JsonExportHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	query, ok := parseSearchQuery(w, r)
-	if !ok {
+	query, err := parseSearchQuery(r)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
 
@@ -340,13 +384,12 @@ func (wh *WebHandlers) JsonExportHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // parseSearchQuery extracts the search query from request.
-func parseSearchQuery(w http.ResponseWriter, r *http.Request) (*search.Query, bool) {
+func parseSearchQuery(r *http.Request) (*search.Query, error) {
 	query := search.Query{Limit: 50}
 	if err := search.ParseQuery(r, &query); err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
-		return nil, false
+		return nil, sklog.FmtErrorf("Unable to parse query: %s", err)
 	}
-	return &query, true
+	return &query, nil
 }
 
 // JsonDetailsHandler returns the details about a single digest.

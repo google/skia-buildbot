@@ -26,6 +26,7 @@ const (
 	EV_TRYJOB_EXP_CHANGED = "tryjobstore:change"
 
 	// EV_TRYJOB_UPDATED is the event that is fired when a tryjob is updated (update or creation).
+	// It sends an instance of *Tryjob.
 	EV_TRYJOB_UPDATED = "tryjobstore:tryjob-updated"
 )
 

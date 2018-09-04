@@ -444,7 +444,10 @@ func main() {
 	router.HandleFunc("/json/failure", handlers.JsonListFailureHandler).Methods("GET")
 	router.HandleFunc("/json/failure/clear", handlers.JsonClearFailureHandler).Methods("POST")
 	router.HandleFunc("/json/cleardigests", handlers.JsonClearDigests).Methods("POST")
+
 	router.HandleFunc("/json/search", handlers.JsonSearchHandler).Methods("GET")
+	router.HandleFunc("/ws/search", webevent.Handle(handlers.EventSearchHandler).Methods("GET")
+
 	router.HandleFunc("/json/export", handlers.JsonExportHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob", handlers.JsonTryjobListHandler).Methods("GET")
 	router.HandleFunc("/json/tryjob/{id}", handlers.JsonTryjobSummaryHandler).Methods("GET")
