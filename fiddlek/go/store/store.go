@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	lru "github.com/hashicorp/golang-lru"
@@ -110,7 +111,7 @@ func shouldBeCached(media Media) bool {
 // New creates a new Store.
 //
 // local - True if running locally.
-func New(local bool) (*Store, error) {
+func New(local, nocache bool) (*Store, error) {
 	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
@@ -124,6 +125,11 @@ func New(local bool) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed creating cache: %s", err)
 	}
+	go func() {
+		for _ = range time.Tick(15 * time.Minute) {
+			cache.Purge()
+		}
+	}()
 	return &Store{
 		bucket: storageClient.Bucket(FIDDLE_STORAGE_BUCKET),
 		cache:  cache,
