@@ -23,9 +23,19 @@ export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig"
 # Build and install in order of dependencies.
 cd libplist && ./autogen.sh --prefix=$PREFIX --without-cython && make && make install && cd ..
 cd libusbmuxd && ./autogen.sh --prefix=$PREFIX && make && make install && cd ..
-cd libimobiledevice && ./autogen.sh --prefix=$PREFIX && make && make install && cd ..
+cd libimobiledevice && ./autogen.sh --prefix=$PREFIX --without-cython && make && make install && cd ..
 cd ifuse && ./autogen.sh --prefix=$PREFIX && make && make install && cd ..
-cd ideviceinstaller && ./autogen.sh --prefix=$PREFIX && make && make install && cd ..
+
+# Patch a specific commit of ideviceinstaller so it can be compile on RPi Stretch
+# The reason might be 32-bit vs 64-bit architectures or the fact that RPi Stretch 
+# uses gcc 6 by default while Debian uses gcc 7. 
+cd ideviceinstaller
+git checkout f7988de8279051f3d2d7973b8d7f2116aa5d9317
+git am ../patches/ideviceinstaller.patch
+./autogen.sh --prefix=$PREFIX
+make
+make install 
+cd ..
 
 cd usbmuxd
 ./autogen.sh --prefix=$PREFIX \
