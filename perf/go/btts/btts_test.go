@@ -1,0 +1,216 @@
+package btts
+
+import (
+	"context"
+	"math"
+	"net/url"
+	"testing"
+
+	"cloud.google.com/go/bigtable"
+	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/vec32"
+	"golang.org/x/oauth2"
+)
+
+type MockTS struct{}
+
+func (t *MockTS) Token() (*oauth2.Token, error) {
+	return nil, nil
+}
+
+func createTestTable() {
+	ctx := context.Background()
+	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
+	client.CreateTableFromConf(ctx, &bigtable.TableConf{
+		TableID: "skia",
+		Families: map[string]bigtable.GCPolicy{
+			"V": bigtable.MaxVersionsPolicy(1),
+			"S": bigtable.MaxVersionsPolicy(1),
+			"D": bigtable.MaxVersionsPolicy(1),
+		},
+	})
+}
+
+func cleanUpTestTable() {
+	ctx := context.Background()
+	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
+	client.DeleteTable(ctx, "skia")
+}
+
+func TestBasic(t *testing.T) {
+	testutils.LargeTest(t)
+	ctx := context.Background()
+	createTestTable()
+	defer cleanUpTestTable()
+
+	b, err := NewBigTableTraceStore(ctx, 256, "skia", "test", "test", &MockTS{})
+	assert.NoError(t, err)
+
+	// Create an OPS in a fresh tile.
+	tileKey := TileKeyFromOffset(1)
+	op, err := b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
+		"cpu":    []string{"x86", "arm"},
+		"config": []string{"8888", "565"},
+	})
+	assert.NoError(t, err)
+	assert.Len(t, op.KeyOrder, 2)
+
+	// Then update that OPS.
+	op, err = b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
+		"os": []string{"linux", "win"},
+	})
+	assert.NoError(t, err)
+	assert.Len(t, op.KeyOrder, 3)
+
+	// Do we calculate LatestTile correctly?
+	latest, err := b.GetLatestTile()
+	assert.NoError(t, err)
+	assert.Equal(t, int32(1), latest.Offset())
+
+	// Add an OPS for a new tile.
+	tileKey2 := TileKeyFromOffset(4)
+	op, err = b.UpdateOrderedParamSet(tileKey2, paramtools.ParamSet{
+		"os": []string{"win", "linux"},
+	})
+
+	// Do we calculate LatestTile correctly?
+	latest, err = b.GetLatestTile()
+	assert.NoError(t, err)
+	assert.Equal(t, int32(4), latest.Offset())
+
+	// Create another instance, so it has no cache.
+	b2, err := NewBigTableTraceStore(ctx, 256, "skia", "test", "test", &MockTS{})
+	assert.NoError(t, err)
+
+	// OPS for tile 4 should be a no-op since it's already in BT.
+	op2, err := b2.UpdateOrderedParamSet(tileKey2, paramtools.ParamSet{
+		// Note we reverse "linux", "win" order, but still get the same
+		// result as op.
+		"os": []string{"linux", "win"},
+	})
+	assert.Equal(t, op, op2)
+}
+
+func encodeParams(t *testing.T, op *paramtools.OrderedParamSet, p paramtools.Params) string {
+	key, err := op.EncodeParamsAsString(p)
+	assert.NoError(t, err)
+	return key
+}
+
+func TestTraces(t *testing.T) {
+	testutils.LargeTest(t)
+	ctx := context.Background()
+	createTestTable()
+	defer cleanUpTestTable()
+
+	b, err := NewBigTableTraceStore(ctx, 256, "skia", "test", "test", &MockTS{})
+	assert.NoError(t, err)
+
+	tileKey := TileKeyFromOffset(1)
+	op, err := b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
+		"cpu": []string{"x86", "arm"},
+	})
+	assert.NoError(t, err)
+	op, err = b.UpdateOrderedParamSet(tileKey, paramtools.ParamSet{
+		"config": []string{"8888", "565"},
+	})
+	assert.NoError(t, err)
+	values := map[string]float32{
+		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}): 1.0,
+		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "565"}):  1.1,
+		encodeParams(t, op, paramtools.Params{"cpu": "arm", "config": "8888"}): 1.2,
+		encodeParams(t, op, paramtools.Params{"cpu": "arm", "config": "565"}):  1.3,
+	}
+	err = b.WriteTraces(257, values, "gs://some/test/location")
+	assert.NoError(t, err)
+
+	q, err := query.New(url.Values{"config": []string{"8888"}})
+	assert.NoError(t, err)
+	r, err := q.Regexp(op)
+	assert.NoError(t, err)
+
+	results, err := b.QueryTraces(tileKey, r)
+	assert.NoError(t, err)
+	vec1 := vec32.New(256)
+	vec1[1] = 1.0
+	vec2 := vec32.New(256)
+	vec2[1] = 1.2
+	expected := map[string][]float32{
+		",0=0,1=0,": vec1,
+		",0=1,1=0,": vec2,
+	}
+	assert.Equal(t, expected, results)
+
+	// Now overwrite a value.
+	values = map[string]float32{
+		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}): 2.0,
+	}
+	err = b.WriteTraces(257, values, "gs://some/other/test/location")
+	assert.NoError(t, err)
+
+	// Query again to get the updated value.
+	results, err = b.QueryTraces(tileKey, r)
+	assert.NoError(t, err)
+	vec1 = vec32.New(256)
+	vec1[1] = 2.0
+	vec2 = vec32.New(256)
+	vec2[1] = 1.2
+	expected = map[string][]float32{
+		",0=0,1=0,": vec1,
+		",0=1,1=0,": vec2,
+	}
+	assert.Equal(t, expected, results)
+
+	// Write in the next column.
+	values = map[string]float32{
+		encodeParams(t, op, paramtools.Params{"cpu": "x86", "config": "8888"}): 3.0,
+	}
+	err = b.WriteTraces(258, values, "gs://some/other/test/location")
+	assert.NoError(t, err)
+
+	// Query again to get the updated value.
+	results, err = b.QueryTraces(tileKey, r)
+	assert.NoError(t, err)
+	vec1 = vec32.New(256)
+	vec1[1] = 2.0
+	vec1[2] = 3.0
+	vec2 = vec32.New(256)
+	vec2[1] = 1.2
+	expected = map[string][]float32{
+		",0=0,1=0,": vec1,
+		",0=1,1=0,": vec2,
+	}
+	assert.Equal(t, expected, results)
+}
+
+func TestTileKey(t *testing.T) {
+	testutils.SmallTest(t)
+
+	tileKey := TileKeyFromOffset(0)
+	assert.Equal(t, int32(math.MaxInt32), int32(tileKey))
+	assert.Equal(t, int32(0), tileKey.Offset())
+	assert.Equal(t, "@2147483647", tileKey.OpsRowName())
+	assert.Equal(t, "2147483647:", tileKey.TraceRowPrefix())
+	assert.Equal(t, "2147483647:,0=1,", tileKey.TraceRowName(",0=1,"))
+
+	tileKey = TileKeyFromOffset(1)
+	assert.Equal(t, int32(math.MaxInt32-1), int32(tileKey))
+	assert.Equal(t, "@2147483646", tileKey.OpsRowName())
+	assert.Equal(t, "2147483646:", tileKey.TraceRowPrefix())
+	assert.Equal(t, "2147483646:,0=1,", tileKey.TraceRowName(",0=1,"))
+
+	tileKey = TileKeyFromOffset(-1)
+	assert.Equal(t, BadTileKey, tileKey)
+
+	var err error
+	tileKey, err = TileKeyFromOpsRowName("2147483646")
+	assert.Error(t, err)
+	assert.Equal(t, BadTileKey, tileKey)
+
+	tileKey, err = TileKeyFromOpsRowName("@2147483637")
+	assert.NoError(t, err)
+	assert.Equal(t, "@2147483637", tileKey.OpsRowName())
+}
