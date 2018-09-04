@@ -98,9 +98,6 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	return err
 }
 
-// See ingestion.Processor interface.
-func (g *goldProcessor) BatchFinished() error { return nil }
-
 // getCommitID extracts the commitID from the given commit and dm results.
 func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
 	return &tracedb.CommitID{

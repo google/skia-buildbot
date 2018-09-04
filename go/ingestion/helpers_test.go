@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -70,11 +71,15 @@ func TestCompareSources(t *testing.T) {
 	fsSource, err := NewFileSystemSource("test-fs-source", TEST_DATA_DIR)
 	assert.NoError(t, err)
 
-	gsResults, err := gsSource.Poll(START_TIME, END_TIME)
+	gsCh, retFn := getCollectingChan(t)
+	_, err = gsSource.Poll(START_TIME, END_TIME, gsCh)
 	assert.NoError(t, err)
+	gsResults := retFn()
 
-	fsResults, err := fsSource.Poll(START_TIME, END_TIME)
+	fsCh, retFn := getCollectingChan(t)
+	_, err = fsSource.Poll(START_TIME, END_TIME, fsCh)
 	assert.NoError(t, err)
+	fsResults := retFn()
 
 	assert.Equal(t, len(gsResults), len(fsResults))
 	sort.Sort(rflSlice(gsResults))
@@ -103,8 +108,10 @@ func TestCompareSources(t *testing.T) {
 func testSource(t *testing.T, src Source) {
 	testFilePaths := readTestFileNames(t)
 
-	resultFileLocations, err := src.Poll(START_TIME, END_TIME)
+	ch, retFn := getCollectingChan(t)
+	_, err := src.Poll(START_TIME, END_TIME, ch)
 	assert.NoError(t, err)
+	resultFileLocations := retFn()
 
 	assert.Equal(t, len(testFilePaths), len(resultFileLocations))
 	sort.Sort(rflSlice(resultFileLocations))
@@ -114,8 +121,10 @@ func testSource(t *testing.T, src Source) {
 	}
 
 	// Make sure the narrow and wide time range produce the same result.
-	allResultFileLocations, err := src.Poll(BEGINNING_OF_TIME, END_OF_TIME)
+	ch, retFn = getCollectingChan(t)
+	_, err = src.Poll(BEGINNING_OF_TIME, END_OF_TIME, ch)
 	assert.NoError(t, err)
+	allResultFileLocations := retFn()
 	sort.Sort(rflSlice(allResultFileLocations))
 
 	assert.Equal(t, len(resultFileLocations), len(allResultFileLocations))
@@ -139,3 +148,26 @@ type rflSlice []ResultFileLocation
 func (r rflSlice) Len() int           { return len(r) }
 func (r rflSlice) Less(i, j int) bool { return r[i].Name() < r[j].Name() }
 func (r rflSlice) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+
+func getCollectingChan(t assert.TestingT) (chan ResultFileLocation, func() []ResultFileLocation) {
+	ch := make(chan ResultFileLocation)
+	collected := []ResultFileLocation{}
+	go func() {
+		for {
+			rf := <-ch
+			fmt.Printf("NAME: %s\n", rf.Name())
+
+			if rf == nil {
+				return
+			}
+			collected = append(collected, rf)
+		}
+	}()
+
+	retFn := func() []ResultFileLocation {
+		ch <- nil
+		return collected
+	}
+
+	return ch, retFn
+}
