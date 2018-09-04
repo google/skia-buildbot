@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "42edade0_d515f429",
+        "filename": "kube/clusters.sh",
+        "patchSetId": 17
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-04T13:06:39Z",
+      "side": 1,
+      "message": "I kind of wish there was a pushd/popd type thing, so that the scripts could avoid stepping on the user\u0027s configured project.",
+      "revId": "b6fc0d5360f923979ea5bf95c7bbbfef148d08d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa3944f4_15282da9",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-04T13:06:39Z",
+      "side": 1,
+      "message": "I might suggest removing the default to force the user to type the cluster.  I think that will reduce error.",
+      "range": {
+        "startLine": 119,
+        "startChar": 35,
+        "endLine": 119,
+        "endChar": 49
+      },
+      "revId": "b6fc0d5360f923979ea5bf95c7bbbfef148d08d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
