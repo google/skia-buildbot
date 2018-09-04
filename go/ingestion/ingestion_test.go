@@ -18,16 +18,29 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-const LOCAL_STATUS_DIR = "./ingestion_status"
-
-const RFLOCATION_CONTENT = "result file content"
+const (
+	LOCAL_STATUS_DIR   = "./ingestion_status"
+	RFLOCATION_CONTENT = "result file content"
+)
 
 func TestPollingIngester(t *testing.T) {
-	testutils.MediumTest(t)
-	testIngester(t, LOCAL_STATUS_DIR+"-polling")
+	testutils.LargeTest(t)
+	testIngester(t, LOCAL_STATUS_DIR+"-polling", nil)
 }
 
-func testIngester(t *testing.T, statusDir string) {
+func TestPollingIngesterWithStore(t *testing.T) {
+	store, err := NewBTIStore(projectID, instanceID, nameSpace)
+	assert.NoError(t, err)
+	assert.NotNil(t, store)
+
+	// Clear the store and re-initialize the tables.
+	assert.NoError(t, store.Clear())
+	assert.NoError(t, store.(*BTIStore).initTables())
+
+	testIngester(t, LOCAL_STATUS_DIR+"-polling", store)
+}
+
+func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore) {
 	defer util.RemoveAll(statusDir)
 
 	ctx := context.Background()
@@ -58,8 +71,7 @@ func testIngester(t *testing.T, statusDir string) {
 		return nil
 	}
 
-	finishFn := func() error { return nil }
-	processor := MockProcessor(processFn, finishFn)
+	processor := MockProcessor(processFn)
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
@@ -70,7 +82,7 @@ func testIngester(t *testing.T, statusDir string) {
 	}
 
 	// Instantiate ingester and start it.
-	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor)
+	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, ingestionStore)
 	assert.NoError(t, err)
 	assert.NoError(t, ingester.Start(ctx))
 
@@ -80,7 +92,7 @@ func testIngester(t *testing.T, statusDir string) {
 		mutex.Lock()
 		colen := len(collected)
 		mutex.Unlock()
-		if colen >= (totalCommits/2) || (time.Now().Sub(startTime) > (time.Second * 2)) {
+		if colen >= (totalCommits/2) || (time.Now().Sub(startTime) > (time.Second * 10)) {
 			break
 		}
 		time.Sleep(time.Millisecond * 100)
@@ -99,22 +111,16 @@ func testIngester(t *testing.T, statusDir string) {
 // mock processor
 type mockProcessor struct {
 	process func(ResultFileLocation) error
-	finish  func() error
 }
 
-func MockProcessor(process func(ResultFileLocation) error, finish func() error) Processor {
+func MockProcessor(process func(ResultFileLocation) error) Processor {
 	return &mockProcessor{
 		process: process,
-		finish:  finish,
 	}
 }
 
 func (m *mockProcessor) Process(ctx context.Context, resultsFile ResultFileLocation) error {
 	return m.process(resultsFile)
-}
-
-func (m *mockProcessor) BatchFinished() error {
-	return m.finish()
 }
 
 type mockRFLocation struct {
@@ -219,7 +225,7 @@ func TestIngesterNilVcs(t *testing.T) {
 
 	// Instantiate ingester and call getCommitRangeOfInterest.
 	ctx := context.Background()
-	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil)
+	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil, nil)
 	start, end, err := ingester.getCommitRangeOfInterest(ctx)
 	assert.NoError(t, err)
 
