@@ -242,9 +242,6 @@ func (g *goldTryjobProcessor) setTryjobToStatus(tryjob *tryjobstore.Tryjob, minS
 	})
 }
 
-// See ingestion.Processor interface.
-func (g *goldTryjobProcessor) BatchFinished() error { return nil }
-
 // parseDuration parses the given duration. If strVal is empty the default value
 // will be returned. If the given duration is invalid an error will be returned.
 func parseDuration(strVal string, defaultVal time.Duration) (time.Duration, error) {

@@ -135,9 +135,6 @@ func (p *pdfProcessor) Process(ctx context.Context, resultsFile ingestion.Result
 	return p.rasterizeAndUpload(outFile, dmResults, pdfResults)
 }
 
-// See ingestion.Processor interface.
-func (p *pdfProcessor) BatchFinished() error { return nil }
-
 func (p *pdfProcessor) rasterizeAndUpload(dmResultName string, dmResults *goldingestion.DMResults, pdfResults []*goldingestion.Result) error {
 	processedResults := make([]*goldingestion.Result, 0, len(pdfResults)*len(p.rasterizers))
 
