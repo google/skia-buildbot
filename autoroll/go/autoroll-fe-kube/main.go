@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
@@ -127,11 +128,6 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !login.IsGoogler(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights: %q", login.LoggedInAs(r)), "You must be logged in with an @google.com account to do that.")
-		return
-	}
-
 	var mode struct {
 		Message string `json:"message"`
 		Mode    string `json:"mode"`
@@ -155,11 +151,6 @@ func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
 	roller := getRoller(w, r)
 	if roller == nil {
 		// Errors are handled by getRoller().
-		return
-	}
-
-	if !login.IsGoogler(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights: %q", login.LoggedInAs(r)), "You must be logged in with an @google.com account to do that.")
 		return
 	}
 
@@ -193,7 +184,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// Obtain the status info. Only display potentially sensitive info if the user is a logged-in
 	// Googler.
 	status := roller.Status.Get()
-	if !login.IsGoogler(r) {
+	if !login.IsAdmin(r) {
 		status.Error = ""
 	}
 	mode := roller.Mode.CurrentMode()
@@ -237,10 +228,6 @@ func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !login.IsGoogler(r) {
-		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights: %q", login.LoggedInAs(r)), "You must be logged in with an @google.com account to do that.")
-		return
-	}
 	if err := unthrottle.Unthrottle(context.Background(), roller.Cfg.RollerName); err != nil {
 		httputils.ReportError(w, r, err, "Failed to unthrottle.")
 		return
@@ -320,13 +307,17 @@ func runServer(ctx context.Context, serverURL string) {
 
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", rollerHandler)
-	rollerRouter.HandleFunc("/json/mode", modeJsonHandler).Methods("POST")
 	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
-	rollerRouter.HandleFunc("/json/strategy", strategyJsonHandler).Methods("POST")
-	rollerRouter.HandleFunc("/json/unthrottle", unthrottleHandler).Methods("POST")
+	rollerRouter.Handle("/json/mode", login.RestrictEditor(http.HandlerFunc(modeJsonHandler))).Methods("POST")
+	rollerRouter.Handle("/json/strategy", login.RestrictEditor(http.HandlerFunc(strategyJsonHandler))).Methods("POST")
+	rollerRouter.Handle("/json/unthrottle", login.RestrictEditor(http.HandlerFunc(unthrottleHandler))).Methods("POST")
 	sklog.AddLogsRedirect(r)
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
+	if !*local {
+		h = httputils.HealthzAndHTTPS(h)
+	}
+	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
@@ -340,6 +331,15 @@ func main() {
 
 	Init()
 	skiaversion.MustLogVersion()
+
+	// TODO(borenet): Use CRIA groups instead of @google.com, ie. admins are
+	// "google/skia-root@google.com", editors are specified in each roller's
+	// config file, and viewers are either public or @google.com.
+	var viewAllow allowed.Allow
+	if *internal {
+		viewAllow = allowed.Googlers()
+	}
+	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore)
 	if err != nil {

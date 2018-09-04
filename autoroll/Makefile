@@ -38,7 +38,7 @@ include ../webtools/webtools.mk
 release-fe-public: autoroll-fe
 	./build_frontend_release "$(MESSAGE)"
 
-release-fe-public-kube: autoroll-fe-kube
+release-fe-kube: autoroll-fe-kube
 	./build_docker_frontend_release
 
 release-fe-internal: autoroll-fe

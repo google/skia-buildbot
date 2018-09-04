@@ -441,6 +441,27 @@ server {
     return 301 https://autoroll-internal.skia.org$request_uri;
 }
 
+#####   autoroll-internal2.skia.org   ###########################
+server {
+    listen      443;
+    server_name autoroll-internal2.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/autoroll-internal2.access.log;
+    error_log /var/log/nginx/autoroll-internal2.error.log error;
+
+    location / {
+        proxy_pass https://35.201.76.220;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name autoroll-internal2.skia.org;
+    return 301 https://autoroll-internal2.skia.org$request_uri;
+}
+
 #####   android-compile.skia.org   ###########################
 server {
     listen      443;

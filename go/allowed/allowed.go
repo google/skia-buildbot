@@ -80,6 +80,12 @@ func (a *AllowedFromList) Emails() []string {
 	return ret
 }
 
+// Googlers creates a new AllowedFromList which restricts to only users logged
+// in with an @google.com account.
+func Googlers() *AllowedFromList {
+	return NewAllowedFromList([]string{"google.com"})
+}
+
 // AllowedFromFile implements Allow by reading the list of emails and domains
 // from a file. The file is watched for changes and re-read when they occur.
 // The file format is one email address or domain name per line.
