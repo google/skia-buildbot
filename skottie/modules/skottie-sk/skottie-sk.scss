@@ -53,7 +53,6 @@ skottie-sk {
     font-size: 18px;
     margin: 0.6em;
   }
-
   button.edit-config {
     display: block;
   }
@@ -61,7 +60,6 @@ skottie-sk {
   button {
     text-transform: initial;
   }
-
   .loading {
     display: flex;
     align-items: center;
@@ -87,4 +85,12 @@ skottie-sk {
   .download a {
     margin-left: 0.6em;
   }
+
+}
+
+#json_editor button {
+  /* Prevent clashes with element-sk/buttons.css */
+  min-width: initial;
+  transition: initial;
+  box-shadow: initial;
 }
