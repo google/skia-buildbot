@@ -1,0 +1,25 @@
+From 9330f6ca2a5b9be49a6ad571140a541c6a3c8b41 Mon Sep 17 00:00:00 2001
+From: Stephan Altmueller <stephana@chromium.org>
+Date: Mon, 13 Aug 2018 12:47:37 -0400
+Subject: [PATCH] wip
+
+---
+ src/ideviceinstaller.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ideviceinstaller.c b/src/ideviceinstaller.c
+index 5709b58..800a7e0 100644
+--- a/src/ideviceinstaller.c
++++ b/src/ideviceinstaller.c
+@@ -980,7 +980,7 @@ run_again:
+ 			char *ibuf = malloc(filesize * sizeof(char));
+ 			size_t amount = fread(ibuf, 1, filesize, fp);
+ 			if (amount != filesize) {
+-				fprintf(stderr, "ERROR: could not read %ld bytes from %s\n", filesize, filename);
++				fprintf(stderr, "ERROR: could not read %d bytes from %s\n", filesize, filename);
+ 				free(filename);
+ 				res = -1;
+ 				goto leave_cleanup;
+-- 
+2.11.0
+
