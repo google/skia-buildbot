@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dd1d56eb_2b4cf038",
+        "filename": "autoroll/go/autoroll-fe-kube/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-05T18:51:21Z",
+      "side": 1,
+      "message": "Shrug. It\u0027s found in every single one of our apps that I\u0027ve seen.",
+      "parentUuid": "2a548c58_002738c3",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 10
+      },
+      "revId": "84885e10b51ab44d8b6c8bf63a50d10a36a2d3f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4c1b2ba2_f654582e",
         "filename": "go/allowed/allowed.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-09-05T18:44:01Z",
       "side": 1,
       "message": "Why is this a struct?.  Could it be a bool, ie. map[string]bool?  It would make it easier for me to understand that it\u0027s basically doing a de-duplication.",
+      "range": {
+        "startLine": 193,
+        "startChar": 15,
+        "endLine": 193,
+        "endChar": 24
+      },
+      "revId": "84885e10b51ab44d8b6c8bf63a50d10a36a2d3f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13454a6f_3d2e9673",
+        "filename": "go/allowed/allowed.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-05T18:51:21Z",
+      "side": 1,
+      "message": "struct{} takes up no memory, so this is more efficient than map[string]bool.",
+      "parentUuid": "4c1b2ba2_f654582e",
       "range": {
         "startLine": 193,
         "startChar": 15,
