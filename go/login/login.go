@@ -626,6 +626,9 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 // is logged in with an allowed account before the wrapped handler is called. It
 // uses the given message when a user is denied access.
 func RestrictMWWithMessage(allow allowed.Allow, msg string) func(http.Handler) http.Handler {
+	if allow == nil {
+		return func(h http.Handler) http.Handler { return h }
+	}
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			email := LoggedInAs(r)
