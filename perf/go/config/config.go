@@ -16,6 +16,7 @@ const (
 	// Constructor names that are used to instantiate an ingester.
 	// Note that, e.g. 'android-gold' has a different ingester, but writes
 	// to the gold dataset.
+	CONSTRUCTOR_NANO_BT     = "nanobt"
 	CONSTRUCTOR_NANO        = "nano"
 	CONSTRUCTOR_NANO_TRYBOT = "nano-trybot"
 )

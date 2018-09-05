@@ -100,6 +100,8 @@ type Ingester struct {
 	statusDB       *bolt.DB
 	resultFilesDir string
 
+	processChan chan ResultFileLocation
+
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
 
@@ -134,6 +136,7 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		processor:      processor,
 		statusDB:       statusDB,
 		resultFilesDir: resultFilesDir,
+		processChan:    make(chan ResultFileLocation, 100),
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -153,22 +156,34 @@ func (i *Ingester) Start(ctx context.Context) error {
 	if err != nil {
 		return sklog.FmtErrorf("Error retrieving input channels: %s", err)
 	}
+	pollProcessor := func(r ResultFileLocation) {
+		i.processResults(ctx, []ResultFileLocation{r}, i.pollProcessMetrics)
+	}
 	go func(doneCh <-chan bool) {
 		var resultFiles []ResultFileLocation = nil
-		var useMetrics *processMetrics
-
 		for {
 			select {
 			case resultFiles = <-pollChan:
-				useMetrics = i.pollProcessMetrics
 			case resultFiles = <-eventChan:
-				useMetrics = i.eventProcessMetrics
 			case <-doneCh:
 				return
 			}
-			i.processResults(ctx, resultFiles, useMetrics)
+
+			for _, r := range resultFiles {
+				i.processChan <- r
+			}
+			//i.processResults(ctx, resultFiles, useMetrics)
 		}
 	}(i.doneCh)
+
+	for n := 0; n < 25; n++ {
+		go func() {
+			for r := range i.processChan {
+				pollProcessor(r)
+			}
+		}()
+	}
+
 	return nil
 }
 
@@ -191,7 +206,7 @@ func (q *rflQueue) clear() {
 }
 
 func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation, error) {
-	pollChan := make(chan []ResultFileLocation)
+	pollChan := make(chan []ResultFileLocation, 100)
 	eventChan := make(chan []ResultFileLocation)
 	i.doneCh = make(chan bool)
 
@@ -276,6 +291,9 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 	if err := i.statusDB.Update(updateFn); err != nil {
 		sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
 	}
+}
+
+func (i *Ingester) startWorkers() {
 }
 
 // processResults ingests a set of result files.
