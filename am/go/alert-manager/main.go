@@ -652,7 +652,7 @@ func main() {
 	h := srv.applySecurityWrappers(r)
 	if !*local {
 		h = httputils.LoggingGzipRequestResponse(h)
-		h = login.RestrictViewer(h)
+		h = login.RestrictMWViewer(h)
 		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 		h = httputils.HealthzAndHTTPS(h)
 	}

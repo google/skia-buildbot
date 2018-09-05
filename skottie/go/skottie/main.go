@@ -341,7 +341,7 @@ func main() {
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
 		if *lockedDown {
-			h = login.RestrictViewer(h)
+			h = login.RestrictMWViewer(h)
 			h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 		}
 		h = httputils.HealthzAndHTTPS(h)

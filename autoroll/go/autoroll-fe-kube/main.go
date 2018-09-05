@@ -41,8 +41,8 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// flags
 var (
+	// flags.
 	configDir    = flag.String("config_dir", "", "Directory containing only configuration files for all rollers.")
 	host         = flag.String("host", "localhost", "HTTP service host")
 	internal     = flag.Bool("internal", false, "If true, display the internal rollers.")
@@ -50,6 +50,11 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+
+	SKIA_STATUS_SERVICE_ACCOUNTS = []string{
+		"skia-status@skia-public.iam.gserviceaccount.com",
+		"skia-status-internal@skia-public.iam.gserviceaccount.com",
+	}
 
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
@@ -309,11 +314,11 @@ func runServer(ctx context.Context, serverURL string) {
 	rollerRouter.HandleFunc("", rollerHandler)
 	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
-	rollerRouter.Handle("/json/mode", login.RestrictEditor(http.HandlerFunc(modeJsonHandler))).Methods("POST")
-	rollerRouter.Handle("/json/strategy", login.RestrictEditor(http.HandlerFunc(strategyJsonHandler))).Methods("POST")
-	rollerRouter.Handle("/json/unthrottle", login.RestrictEditor(http.HandlerFunc(unthrottleHandler))).Methods("POST")
+	rollerRouter.Handle("/json/mode", login.RestrictEditor(modeJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/strategy", login.RestrictEditor(strategyJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/unthrottle", login.RestrictEditor(unthrottleHandler)).Methods("POST")
 	sklog.AddLogsRedirect(r)
-	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
+	h := httputils.LoggingGzipRequestResponse(login.RestrictMWViewer(r))
 	if !*local {
 		h = httputils.HealthzAndHTTPS(h)
 	}
@@ -337,7 +342,7 @@ func main() {
 	// config file, and viewers are either public or @google.com.
 	var viewAllow allowed.Allow
 	if *internal {
-		viewAllow = allowed.Googlers()
+		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(SKIA_STATUS_SERVICE_ACCOUNTS), allowed.Googlers())
 	}
 	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
