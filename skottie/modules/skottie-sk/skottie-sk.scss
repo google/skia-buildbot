@@ -40,11 +40,26 @@ skottie-sk {
   figure {
     display: flex;
     flex-flow: column;
+    position: relative;
   }
 
   figure video,
   figure div {
     border: solid lightgray 1px;
+    margin: 0 auto;
+  }
+
+  .video_loading {
+    position: absolute;
+    text-align: center;
+    left: 0;
+    right: 0;
+    top: 20px;
+    bottom: 0;
+    border: none;
+  }
+  .video_loading > div {
+    border: none;
   }
 
   figcaption {
@@ -53,7 +68,6 @@ skottie-sk {
     font-size: 18px;
     margin: 0.6em;
   }
-
   button.edit-config {
     display: block;
   }
@@ -61,7 +75,6 @@ skottie-sk {
   button {
     text-transform: initial;
   }
-
   .loading {
     display: flex;
     align-items: center;
@@ -87,4 +100,12 @@ skottie-sk {
   .download a {
     margin-left: 0.6em;
   }
+
+}
+
+#json_editor button {
+  /* Prevent clashes with element-sk/buttons.css */
+  min-width: initial;
+  transition: initial;
+  box-shadow: initial;
 }
