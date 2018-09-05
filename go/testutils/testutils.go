@@ -41,7 +41,7 @@ var (
 	}
 
 	TIMEOUT_SMALL  = "4s"
-	TIMEOUT_MEDIUM = "15s"
+	TIMEOUT_MEDIUM = "4m"
 	TIMEOUT_LARGE  = "4m"
 
 	TIMEOUT_RACE = "5m"
