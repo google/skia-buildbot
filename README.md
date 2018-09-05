@@ -11,7 +11,7 @@ The main source code repository is a Git repository hosted at
 https://skia.googlesource.com/buildbot. Although it is possible to check out
 this repository directly with git clone or using gclient fetch, it is preferred to use go get so
 that the code is arranged correctly for Go. If this is your first time working on Go code, read
-about [the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH). Make sure that
+about [the GOPATH environment variable](https://gola      ng.org/doc/code.html#GOPATH). Make sure that
 $GOPATH/bin comes before /usr/bin in your PATH. If you have GOPATH set, run:
 
 ```
