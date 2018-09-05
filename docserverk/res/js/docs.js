@@ -35,11 +35,18 @@ sk.DomReady.then(function() {
         url += q;
       }
       sk.get('/_'+url).then(function(content) {
-        window.history.pushState(null, null, url);
-        highlightNav();
-        $$$('html #content').innerHTML = content;
-        $$$('html #page').scrollIntoView();
-        prettyPrint();
+        if (content.indexOf('<script') !== -1) {
+          // We can't render <script> using innerHTML, so we just go
+          // directly to the page.
+          // https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML#Security_considerations
+          window.location.href = url;
+        } else {
+          window.history.pushState(null, null, url);
+          highlightNav();
+          $$$('html #content').innerHTML = content;
+          $$$('html #page').scrollIntoView();
+          prettyPrint();
+        }
       });
       e.preventDefault();
     });
