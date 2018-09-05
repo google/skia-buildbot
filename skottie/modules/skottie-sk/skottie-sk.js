@@ -15,6 +15,9 @@ import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html/lib/lit-extended'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
+const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
+const bodymovin = require('lottie-web/build/player/lottie.min.js');
+
 const DIALOG_MODE = 1;
 const LOADING_MODE = 2;
 const LOADED_MODE = 3;
@@ -23,23 +26,45 @@ const displayDialog = (ele) => html`
 <skottie-config-sk state=${ele._state}></skottie-config-sk>
 `;
 
+const livePreview = (ele) => {
+  if (ele._hasEdits) {
+    return html`
+<figure>
+  <div id=live title=lottie-web style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
+  <figcaption>Preview [lottie-web]</figcaption>
+</figure>`;
+  } else {
+    return '';
+  }
+}
+
 const displayLoaded= (ele) => html`
 <button class=edit-config on-click=${(e) => ele._startEdit()}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
 <button on-click=${(e) => ele._rewind(e)}>Rewind</button>
 <button id=playpause on-click=${(e) => ele._playpause(e)}>Pause</button>
+<button hidden?=${!ele._hasEdits} on-click=${(e) => ele._applyEdits()}>Apply Edits</button>
 <div class=download><a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>JSON</a></div>
 <section class=figures>
   <figure>
-    <video id=video muted on-loadeddata=${(e) => ele._videoLoaded(e)} title=lottie loop src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
-      <spinner-sk active></spinner-sk>
+    <video id=video muted on-loadeddata=${(e) => ele._videoLoaded(e)} title=lottie loop
+        src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
+      Your browser does not support the video tag.
     </video>
+    <div class=video_loading hidden?=${!!ele._hash} title="processing video on backend">
+      <div>Processing</div>
+      <spinner-sk active></spinner-sk>
+    </div>
     <figcaption>skottie</figcaption>
   </figure>
   <figure>
-    <div id=container style='width: ${ele._state.width}px; height: ${ele._state.height}px'>
-    </div>
+    <div id=container title=lottie-web style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
     <figcaption>lottie-web (${bodymovin.version})</figcaption>
   </figure>
+  ${livePreview(ele)}
+</section>
+
+<section class=editor>
+  <div id=json_editor></div>
 </section>
 `;
 
@@ -83,12 +108,16 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       height: 256,
       fps: 30,
     };
-    // One of "dialog", "loading", or "loaded"
+    // One of 'dialog', 'loading', or 'loaded'
     this._ui = DIALOG_MODE;
     this._hash = '';
     this._anim = null;
     this._video = null;
+    this._playing = true;
     this._downloadUrl = null; // The URL to download the lottie JSON from.
+    this._editor = null;
+    this._editorLoaded = false;
+    this._hasEdits = false;
   }
 
   connectedCallback() {
@@ -121,7 +150,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
     if (!match) {
       // Make this the hash of the lottie file you want to play on startup.
-      this._hash = '1112d01d28a776d777cebcd0632da15b';
+      this._hash = '1112d01d28a776d777cebcd0632da15b'; // gear.json
     } else {
       this._hash = match[1];
     }
@@ -141,6 +170,14 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     });
   }
 
+  _applyEdits() {
+    if (!this._editor || !this._editorLoaded || !this._hasEdits) {
+      return;
+    }
+    this._state.lottie = this._editor.get();
+    this._upload();
+  }
+
   _startEdit() {
     this._ui = DIALOG_MODE;
     this._render();
@@ -150,8 +187,11 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     // POST the JSON along with options to /_/upload
     this._ui = LOADING_MODE;
     this._hash = '';
+    this._hasEdits = false;
+    this._editorLoaded = false;
+    this._editor = null;
     this._render();
-    fetch("/_/upload", {
+    fetch('/_/upload', {
       credentials: 'include',
       body: JSON.stringify(this._state),
       headers: {
@@ -164,27 +204,31 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._hash = json.hash;
       window.history.pushState(null, '', '/' + this._hash);
       this._render();
+      this._rewind();
     }).catch(msg => {
       this._ui = DIALOG_MODE;
       this._render();
       msg.resp.text().then(errorMessage);
     });
+    this._ui = LOADED_MODE;
+    this._render();
   }
 
   _playpause(e) {
-    if (e.target.textContent == "Pause") {
+    if (!this._playing) {
       this._anim.pause();
       this._video.pause();
-      e.target.textContent = "Play";
+      e.target.textContent = 'Play';
     } else {
       this._anim.play();
       this._video.play();
-      e.target.textContent = "Pause";
+      e.target.textContent = 'Pause';
     }
+    this._playing = !this._playing;
   }
 
   _rewind(e) {
-    if ($$('#playpause', this).textContent == "Play") {
+    if (!this._playing) {
       this._anim.goToAndStop(0);
       this._video.currentTime = 0;
     } else {
@@ -197,6 +241,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   _videoLoaded(e) {
     e.target.play();
     this._anim.play();
+    this._playing = true;
   }
 
   _render() {
@@ -206,18 +251,55 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
     render(template(this), this);
     if (this._ui == LOADED_MODE) {
-      this._anim = bodymovin.loadAnimation({
-        container: $$('#container'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: false,
-        // Apparently the lottie player modifies the data as it runs?
-        animationData: JSON.parse(JSON.stringify(this._state.lottie)),
-        rendererSettings: {
-          preserveAspectRatio:'xMidYMid meet'
-        },
-      });
-      this._video = $$('#video', this);
+      // Don't re-start the animation while the user edits.
+      if (!this._hasEdits) {
+        $$('#container').innerHTML = '';
+        this._anim = bodymovin.loadAnimation({
+          container: $$('#container'),
+          renderer: 'svg',
+          loop: true,
+          autoplay: this._playing,
+          // Apparently the lottie player modifies the data as it runs?
+          animationData: JSON.parse(JSON.stringify(this._state.lottie)),
+          rendererSettings: {
+            preserveAspectRatio:'xMidYMid meet'
+          },
+        });
+        this._video = $$('#video', this);
+      } else {
+        // we have edits, update the live preview version
+        $$('#live').innerHTML = '';
+        this._anim = bodymovin.loadAnimation({
+          container: $$('#live'),
+          renderer: 'svg',
+          loop: true,
+          autoplay: this._playing,
+          // Apparently the lottie player modifies the data as it runs?
+          animationData: JSON.parse(JSON.stringify(this._editor.get())),
+          rendererSettings: {
+            preserveAspectRatio:'xMidYMid meet'
+          },
+        });
+      }
+
+      let editorOptions = {
+        sortObjectKeys: true,
+        onChange: () => {
+          if (!this._editorLoaded) {
+            return;
+          }
+          this._hasEdits = true;
+          this._render();
+        }
+      };
+      this._editorLoaded = false;
+      if (!this._editor) {
+        this._editor = new JSONEditor($$('#json_editor'), editorOptions);
+      }
+      if (!this._hasEdits) {
+        this._editor.set(this._state.lottie);
+      }
+      this._editorLoaded = true;
     }
   }
 
