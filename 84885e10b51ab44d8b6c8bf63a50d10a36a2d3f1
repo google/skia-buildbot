@@ -117,6 +117,30 @@
       "revId": "84885e10b51ab44d8b6c8bf63a50d10a36a2d3f1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e5a2a39_36baafea",
+        "filename": "go/allowed/allowed.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-05T19:12:28Z",
+      "side": 1,
+      "message": "Done. More info here: https://dave.cheney.net/2014/03/25/the-empty-struct   I started to change util.StringSet to use struct{} but that requires updating a LOT of callers who use it like a map.",
+      "parentUuid": "f984155c_dec25bee",
+      "range": {
+        "startLine": 193,
+        "startChar": 15,
+        "endLine": 193,
+        "endChar": 24
+      },
+      "revId": "84885e10b51ab44d8b6c8bf63a50d10a36a2d3f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
