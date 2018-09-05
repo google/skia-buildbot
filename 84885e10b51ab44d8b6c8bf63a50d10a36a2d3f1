@@ -93,6 +93,30 @@
       "revId": "84885e10b51ab44d8b6c8bf63a50d10a36a2d3f1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f984155c_dec25bee",
+        "filename": "go/allowed/allowed.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-05T18:52:28Z",
+      "side": 1,
+      "message": "I did not know that.  Can you mention that rationale in a comment?",
+      "parentUuid": "13454a6f_3d2e9673",
+      "range": {
+        "startLine": 193,
+        "startChar": 15,
+        "endLine": 193,
+        "endChar": 24
+      },
+      "revId": "84885e10b51ab44d8b6c8bf63a50d10a36a2d3f1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
