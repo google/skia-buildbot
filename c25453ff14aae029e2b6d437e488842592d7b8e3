@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3da32721_c665d83a",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-05T18:53:40Z",
+      "side": 1,
+      "message": "Make into a sentence.",
+      "range": {
+        "startLine": 46,
+        "startChar": 32,
+        "endLine": 46,
+        "endChar": 59
+      },
+      "revId": "c25453ff14aae029e2b6d437e488842592d7b8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9b08d19_da2a003d",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-05T18:53:40Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this go in the figcaption?",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "c25453ff14aae029e2b6d437e488842592d7b8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1ba0ccb_b5946acd",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.scss",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-05T18:53:40Z",
+      "side": 1,
+      "message": "Blank line between classes.",
+      "revId": "c25453ff14aae029e2b6d437e488842592d7b8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c379900_1cd4420d",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.scss",
+        "patchSetId": 8
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-05T18:53:40Z",
+      "side": 1,
+      "message": "Blank line between classes.",
+      "revId": "c25453ff14aae029e2b6d437e488842592d7b8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0064db27_a136a03c",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.scss",
+        "patchSetId": 8
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-05T18:53:40Z",
+      "side": 1,
+      "message": "Blank line between classes.",
+      "revId": "c25453ff14aae029e2b6d437e488842592d7b8e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
