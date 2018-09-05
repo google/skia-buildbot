@@ -303,6 +303,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	resp := UploadResponse{
 		Hash: hash,
 	}
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write response: %s", err)
 	}
