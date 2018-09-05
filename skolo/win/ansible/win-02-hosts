@@ -19,7 +19,6 @@ all:
         skia-e-win-202:
         skia-e-win-204:
         skia-e-win-205:
-        skia-e-win-213:
     radeon:
       hosts:
         skia-e-win-203:
