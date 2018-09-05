@@ -11,6 +11,9 @@ INSTALL_DIR="install -d --verbose --backup=none"
 ${INSTALL} --mode=644 -T ${APPNAME}/Dockerfile    ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/${APPNAME}
-${INSTALL} --mode=644 ./dist/*                    ${ROOT}/usr/local/share/${APPNAME}
+${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/${APPNAME}/img
+${INSTALL} --mode=644 ./dist/img/*                ${ROOT}/usr/local/share/${APPNAME}/img
+# install fails if there's a directory it ignores (e.g. dist/img) so we ignore the return value
+${INSTALL} --mode=644 ./dist/*                    ${ROOT}/usr/local/share/${APPNAME} || true
 }
 source ../bash/docker_build.sh
