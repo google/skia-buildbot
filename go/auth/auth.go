@@ -20,7 +20,6 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
-	oauth2_api "google.golang.org/api/oauth2/v2"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -505,16 +504,4 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 // from a local file.
 func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	return NewJWTServiceAccountTokenSource("", "", scopes...)
-}
-
-// ValidateBearerToken takes an OAuth 2.0 Bearer token (e.g. The third part of
-// Authorization: Bearer ya29.Elj...
-// and polls a Google HTTP endpoint to see if is valid. This is fine in low-volumne
-// situations, but another solution may be needed if this goes higher than a few QPS.
-func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {
-	c, err := oauth2_api.New(httputils.NewTimeoutClient())
-	if err != nil {
-		return nil, fmt.Errorf("could not make oauth2 api client: %s", err)
-	}
-	return c.Tokeninfo().AccessToken(token).Do()
 }
