@@ -14,6 +14,7 @@ import { $$ } from 'common-sk/modules/dom'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html/lib/lit-extended'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -321,26 +322,29 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         });
       }
 
+      let editorContainer = $$('#json_editor');
       // See https://github.com/josdejong/jsoneditor/blob/master/docs/api.md
       // for documentation on this editor.
       let editorOptions = {
         sortObjectKeys: true,
         // There are sometimes a few onChange events that happen
         // during the initial .set(), so we have a safety variable
-        // _editorLoaded to prevent a bunch of recursion and
+        // _editorLoaded to prevent a bunch of recursion
         onChange: () => {
           if (!this._editorLoaded) {
             return;
           }
           this._hasEdits = true;
+          onUserEdit(editorContainer, this._editor.get());
           this._render();
         }
       };
 
       if (!this._editor) {
         this._editorLoaded = false;
-        $$('#json_editor').innerHTML = '';
-        this._editor = new JSONEditor($$('#json_editor'), editorOptions);
+        editorContainer.innerHTML = '';
+        this._editor = new JSONEditor(editorContainer, editorOptions);
+        setupListeners(editorContainer);
       }
       if (!this._hasEdits) {
         // Only set the JSON when it is loaded, either because it's
@@ -348,6 +352,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         // hit applyEdits.
         this._editor.set(this._state.lottie);
       }
+      reannotate(editorContainer, this._state.lottie);
       // We are now pretty confident that the onChange events will only be
       // when the user modifies the JSON.
       this._editorLoaded = true;
