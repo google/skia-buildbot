@@ -35,9 +35,12 @@
 <link rel="import" href="/res/common/imp/styles-sk.html">
 <link rel="import" href="/res/common/imp/timer-sk.html">
 
-<dom-module id="autoroll-row-sk">
+<dom-module id="autoroll-widget-sk">
   <template>
     <style include="iron-flex iron-flex-alignment styles-sk">
+      :host {
+        font-family: sans-serif;
+      }
       a {
         color: inherit;
         text-decoration: none;
@@ -49,88 +52,11 @@
         font-size: 1.0em;
         padding: 6px;
       }
-    </style>
-    <a class$="tr [[class]]" href$="[[roller.url]]" target="_blank">
-      <div class="td">[[roller.name]]</div>
-      <div class="td">[[roller.mode]]</div>
-      <div class="td number">[[roller.numFailed]]</div>
-      <div class="td number">[[roller.numBehind]]</div>
-    </a>
-  </template>
-  <script>
-  Polymer({
-    is: "autoroll-row-sk",
-
-    properties: {
-      // input/output
-      roller: {
-        type: Object,
-        value: function() {
-          return {};
-        },
-        notify: true,
-      },
-
-      // private
-      class: {
-        type: String,
-        value: "",
-      },
-    },
-
-    reload: function() {
-      console.log("Loading " + this.roller.name + " AutoRoll data...");
-      sk.get(this.roller.url + "/json/ministatus").then(JSON.parse).then(function(s) {
-        if (!s || s.numFailed === undefined || s.numBehind === undefined || s.mode === undefined) {
-          sk.errorMessage("autoroll-widget-sk got an invalid response from the server: " + s);
-          return;
-        }
-        this.set("roller.currentRollRev", s.currentRollRev);
-        this.set("roller.lastRollRev", s.lastRollRev);
-        this.set("roller.mode", s.mode);
-        this.set("roller.numBehind", s.numBehind);
-        this.set("roller.numFailed", s.numFailed);
-
-        // Find a color class for the roller.
-        // TODO(borenet): These numbers (especially number of commits behind)
-        // are probably going to differ from roller to roller. How can we give
-        // each roller its own definition of "bad"?
-        var badness = this.roller.numFailed / 2.0;
-        var badnessBehind = this.roller.numBehind / 20.0;
-        if (this.roller.mode != "dry run" && badnessBehind > badness) {
-          badness = badnessBehind;
-        }
-        if (badness < 0.5 && this.roller.mode != "stopped") {
-          this.class = "bg-success";
-        } else if (badness < 1.0) {
-          this.class = "bg-lightorange";
-        } else {
-          this.class = "bg-failure";
-        }
-        console.log("Loaded " + this.roller.name + " AutoRoll data.");
-        this.fire("update");
-      }.bind(this)).catch(function(msg) {
-        sk.errorMessage("Failed to load autoroll data: " + msg);
-        this.set("roller.mode", "???");
-        this.set("roller.numBehind", "?");
-        this.set("roller.numFailed", "?");
-        this.class = "bg-failure";
-      }.bind(this));
-    },
-  });
-  </script>
-</dom-module>
-
-<dom-module id="autoroll-widget-sk">
-  <template>
-    <style include="iron-flex iron-flex-alignment styles-sk">
-      :host {
-        font-family: sans-serif;
-      }
       .th {
         padding: 8px;
       }
     </style>
+
 
     <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
     <div class="table">
@@ -141,7 +67,12 @@
         <div class="th">Behind</div>
       </div>
       <template is="dom-repeat" items="[[rollers]]" as="roller">
-        <autoroll-row-sk class="tr-container" roller="{{roller}}"></autoroll-row-sk>
+        <a class$="tr [[roller.class]]" href$="[[roller.url]]" target="_blank">
+          <div class="td">[[roller.name]]</div>
+          <div class="td">[[roller.mode]]</div>
+          <div class="td number">[[roller.numFailed]]</div>
+          <div class="td number">[[roller.numBehind]]</div>
+        </a>
       </template>
     </div>
   </template>
@@ -161,24 +92,7 @@
         type: Array,
         notify: true,
         value: function() {
-          var rollers = [
-            {name: "Android", url: "https://autoroll-internal.skia.org/r/android-master-autoroll"},
-            {name: "Flutter", url: "https://autoroll.skia.org/r/skia-flutter-autoroll"},
-            {name: "Fuchsia", url: "https://autoroll.skia.org/r/fuchsia-autoroll"},
-            {name: "Chrome",  url: "https://autoroll.skia.org/r/skia-autoroll"},
-            {name: "Google3", url: "https://autoroll-internal.skia.org/r/google3-autoroll"},
-            {name: "ANGLE",   url: "https://autoroll.skia.org/r/angle-skia-autoroll"},
-            {name: "skcms",   url: "https://autoroll.skia.org/r/skcms-skia-autoroll"},
-            {name: "SwiftSh", url: "https://autoroll.skia.org/r/swiftshader-skia-autoroll"},
-          ];
-          for (var i = 0; i < rollers.length; i++) {
-            rollers[i].currentRollRev = "???";
-            rollers[i].lastRollRev = "???";
-            rollers[i].mode = "";
-            rollers[i].numFailed = -1;
-            rollers[i].numBehind = -1;
-          }
-          return rollers;
+          return [];
         },
       },
     },
@@ -189,10 +103,35 @@
 
     _reload: function() {
       console.log("Loading AutoRoll data...");
-      Polymer.dom.flush();
-      $$("autoroll-row-sk", this).forEach(function(elem) {
-        elem.reload();
-      });
+      sk.get("/json/autorollers").then(JSON.parse).then(function(data) {
+        this.set("rollers", []);
+        for (var roller in data) {
+          var rollerData = data[roller];
+          rollerData.name = roller;
+
+          // Find a color class for the roller.
+          // TODO(borenet): These numbers (especially number of commits behind)
+          // are probably going to differ from roller to roller. How can we give
+          // each roller its own definition of "bad"?
+          var badness = rollerData.numFailed / 2.0;
+          var badnessBehind = rollerData.numBehind / 20.0;
+          if (rollerData.mode !== "dry run" && badnessBehind > badness) {
+            badness = badnessBehind;
+          }
+          if (badness < 0.5 && rollerData.mode !== "stopped") {
+            rollerData.class = "bg-success";
+          } else if (badness < 1.0) {
+            rollerData.class = "bg-lightorange";
+          } else {
+            rollerData.class = "bg-failure";
+          }
+
+          this.push("rollers", rollerData);
+        }
+      }.bind(this)).catch(function(msg) {
+        sk.errorMessage("Failed to load autoroll data: " + msg);
+        this.set("rollers", [])
+      }.bind(this));
     },
 
   });
