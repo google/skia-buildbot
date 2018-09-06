@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "faed4145_ea705672",
+        "filename": "skottie/modules/lottie-annotations/annotations.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T15:18:43Z",
+      "side": 1,
+      "message": "D",
+      "range": {
+        "startLine": 109,
+        "startChar": 19,
+        "endLine": 109,
+        "endChar": 20
+      },
+      "revId": "6283a53942f4192bfad22673be94778999e551ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cfeeebd_2344ad8f",
+        "filename": "skottie/modules/lottie-annotations/annotations.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T15:18:43Z",
+      "side": 1,
+      "message": "out.\u0027)",
+      "range": {
+        "startLine": 109,
+        "startChar": 56,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "6283a53942f4192bfad22673be94778999e551ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
