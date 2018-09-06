@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6225ccae_c405f8dd",
+        "filename": "go/login/login.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T14:08:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f6c584e_be4ea419",
+      "revId": "48e15a965f48bbbe250f134ac70ecdca812e5520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6c3166e1_988955cf",
         "filename": "go/login/login.go",
         "patchSetId": 8
@@ -33,6 +51,24 @@
       "revId": "48e15a965f48bbbe250f134ac70ecdca812e5520",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffce6ffa_a0b57a6a",
+        "filename": "go/login/login.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T14:08:01Z",
+      "side": 1,
+      "message": "Changed to sklog.Fatal.",
+      "parentUuid": "6c3166e1_988955cf",
+      "revId": "48e15a965f48bbbe250f134ac70ecdca812e5520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
