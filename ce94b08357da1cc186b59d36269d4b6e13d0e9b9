@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4fe67f5e_b562c2a8",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T15:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "867eae54_c0886058",
+      "revId": "ce94b08357da1cc186b59d36269d4b6e13d0e9b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f03b9a53_de508abd",
         "filename": "status/res/imp/autoroll-widget-sk.html",
         "patchSetId": 3
@@ -39,6 +57,30 @@
       "revId": "ce94b08357da1cc186b59d36269d4b6e13d0e9b9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38416c94_282aae08",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T15:16:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f03b9a53_de508abd",
+      "range": {
+        "startLine": 118,
+        "startChar": 30,
+        "endLine": 118,
+        "endChar": 32
+      },
+      "revId": "ce94b08357da1cc186b59d36269d4b6e13d0e9b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
