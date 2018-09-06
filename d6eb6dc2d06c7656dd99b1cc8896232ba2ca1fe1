@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d441e0f_3c588992",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T12:28:00Z",
+      "side": 1,
+      "message": "Can we just call this Restrict*, we don\u0027t use the term middleware, or MW, on any other functions, such as ForceAuth, LoggingGzipRequestResponse, or HealthzAndHTTPS.",
+      "revId": "d6eb6dc2d06c7656dd99b1cc8896232ba2ca1fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "479b03a0_233093de",
+        "filename": "go/allowed/allowed.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T12:28:00Z",
+      "side": 1,
+      "message": "True, but the allowed email lists are going to be small so you aren\u0027t really saving a useful amount of memory, if you used util.StringSet then the code would be smaller, and at least StringSet.Keys() has tests.\n\n        emails :\u003d util.StringSet{}\n\tfor _, a :\u003d range allows {\n\t\tfor _, e :\u003d range a.Emails() {\n\t\t\temails[e] \u003d true\n\t\t}\n\t}\n        ret :\u003d emails.Keys()\n\tsort.Strings(ret)\n\treturn ret",
+      "range": {
+        "startLine": 191,
+        "startChar": 4,
+        "endLine": 192,
+        "endChar": 20
+      },
+      "revId": "d6eb6dc2d06c7656dd99b1cc8896232ba2ca1fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
