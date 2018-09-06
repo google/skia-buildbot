@@ -3,6 +3,7 @@ package allowed
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"sync"
 
@@ -167,4 +168,38 @@ func (a *AllowedFromFile) Emails() []string {
 	defer a.mutex.RUnlock()
 
 	return a.allowed.Emails()
+}
+
+// Union is an Allow which includes members of multiple other Allows.
+type Union []Allow
+
+func UnionOf(allows ...Allow) Allow {
+	return Union(allows)
+}
+
+func (allows Union) Member(email string) bool {
+	for _, a := range allows {
+		if a.Member(email) {
+			return true
+		}
+	}
+	return false
+}
+
+func (allows Union) Emails() []string {
+	// Retrieve the email lists for all Allows, deduplicate using a map.
+	// struct{} takes up no memory, so this is more efficient than
+	// map[string]bool.
+	emails := map[string]struct{}{}
+	for _, a := range allows {
+		for _, e := range a.Emails() {
+			emails[e] = struct{}{}
+		}
+	}
+	rv := make([]string, 0, len(emails))
+	for e, _ := range emails {
+		rv = append(rv, e)
+	}
+	sort.Strings(rv)
+	return rv
 }
