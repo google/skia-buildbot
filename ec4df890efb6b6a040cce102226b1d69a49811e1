@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2939ec16_7af3f7d6",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:21:30Z",
+      "side": 1,
+      "message": "Seems weird to return an error for an already existing hash, why not return (bool, error)?",
+      "revId": "ec4df890efb6b6a040cce102226b1d69a49811e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f024944_17c9259c",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:21:30Z",
+      "side": 1,
+      "message": "Why not make statusDB implement IngestionStore?",
+      "revId": "ec4df890efb6b6a040cce102226b1d69a49811e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
