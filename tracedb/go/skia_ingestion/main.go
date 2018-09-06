@@ -34,8 +34,9 @@ import (
 
 // Command line flags.
 var (
+	btInstance         = flag.String("bt_instance", "", "Bigtable instance to use in the project identified by 'project_id'")
 	configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
-	dsNamespace        = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+	namespace          = flag.String("namespace", "", "Namespace to be used with Cloud datastore and BigTable (as a row-prefix).")
 	httpPort           = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
@@ -76,8 +77,23 @@ func main() {
 		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
 	}
 
-	if err := ds.InitWithOpt(*projectID, *dsNamespace, option.WithTokenSource(tokenSrc)); err != nil {
+	// Make sure we have a namespace.
+	if *namespace == "" {
+		sklog.Fatalf("'namespace' cannot be empty")
+	}
+
+	if err := ds.InitWithOpt(*projectID, *namespace, option.WithTokenSource(tokenSrc)); err != nil {
 		sklog.Fatalf("Unable to configure cloud datastore: %s", err)
+	}
+
+	// If configured create an instance of IngestionStore based on BigTable.
+	var ingestionStore ingestion.IngestionStore
+	if *namespace != "" && *projectID != "" && *btInstance != "" {
+		ingestionStore, err = ingestion.NewBTIStore(*projectID, *btInstance, *namespace)
+		if err != nil {
+			sklog.Errorf("Error creating ingestion store: %s", err)
+		}
+		sklog.Infof("IngestionStore instance instantiated.")
 	}
 
 	// Start the ingesters.
@@ -102,7 +118,7 @@ func main() {
 		eventBus = eventbus.New()
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, eventBus)
+	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}

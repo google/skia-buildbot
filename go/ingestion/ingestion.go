@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
@@ -76,15 +78,20 @@ type ResultFileLocation interface {
 // Processor is the core of an ingester. It takes instances of ResultFileLocation
 // and ingests them. It is responsible for the storage of ingested data.
 type Processor interface {
-	// Process ingests a single result file. It is either stores the file
-	// immediately or updates the internal state of the processor and writes
-	// data during the BatchFinished call.
+	// Process ingests a single result file.
 	Process(ctx context.Context, resultsFile ResultFileLocation) error
+}
 
-	// BatchFinished is called when the current batch is finished. This is
-	// to cover the case when ingestion is better done for the whole batch
-	// This should reset the internal state of the Processor instance.
-	BatchFinished() error
+// IngestionStore keeps track of files being ingested based on their MD5 hashes.
+type IngestionStore interface {
+	// Clear completely clears the datastore. Mostly used for testing.
+	Clear() error
+
+	// SetResultFileHash sets the given md5 hash in the database.
+	SetResultFileHash(md5 string) error
+
+	// ContainsResultFileHash returns true if the provided md5 hash is in the DB.
+	ContainsResultFileHash(md5 string) (bool, error)
 }
 
 // Ingester is the main type that drives ingestion for a single type.
@@ -97,8 +104,8 @@ type Ingester struct {
 	sources        []Source
 	processor      Processor
 	doneCh         chan bool
-	statusDB       *bolt.DB
-	resultFilesDir string
+	statusDB       *bolt.DB // Deprecated: To be removed when all ingesters use the IngestionStore
+	ingestionStore IngestionStore
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -115,14 +122,19 @@ type Ingester struct {
 
 // NewIngester creates a new ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
-func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor) (*Ingester, error) {
-	statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
-	dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
-	statusDB, err := bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
+func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore) (*Ingester, error) {
+
+	// TODO(stephana): Remove once all instances have been moved to BigTable.
+	var statusDB *bolt.DB
+	var err error
+	if ingestionStore == nil {
+		statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
+		dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
+		statusDB, err = bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
+		if err != nil {
+			return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
+		}
 	}
-	resultFilesDir := filepath.Join(statusDir, fmt.Sprintf("%s-results-cache", ingesterID))
 
 	ret := &Ingester{
 		id:             ingesterID,
@@ -133,7 +145,7 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		sources:        sources,
 		processor:      processor,
 		statusDB:       statusDB,
-		resultFilesDir: resultFilesDir,
+		ingestionStore: ingestionStore,
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -239,6 +251,15 @@ func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLoc
 // inProcessedFiles returns true if the given md5 hash is in the list of
 // already processed files.
 func (i *Ingester) inProcessedFiles(md5 string) bool {
+	if i.ingestionStore != nil {
+		ret, err := i.ingestionStore.ContainsResultFileHash(md5)
+		if err != nil {
+			sklog.Errorf("Error checking ingestionstore: %s", err)
+			return false
+		}
+		return ret
+	}
+
 	ret := false
 	getFn := func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(PROCESSED_FILES_BUCKET))
@@ -259,6 +280,21 @@ func (i *Ingester) inProcessedFiles(md5 string) bool {
 // addToProcessedFiles adds the given list of md5 hashes to the list of
 // file that have been already processed.
 func (i *Ingester) addToProcessedFiles(md5s []string) {
+	if i.ingestionStore != nil {
+		var egroup errgroup.Group
+		for _, md5 := range md5s {
+			func(md5 string) {
+				egroup.Go(func() error {
+					return i.ingestionStore.SetResultFileHash(md5)
+				})
+			}(md5)
+		}
+		if err := egroup.Wait(); err != nil {
+			sklog.Errorf("Error setting md5 in ingestionstore: %s", err)
+		}
+		return
+	}
+
 	updateFn := func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(PROCESSED_FILES_BUCKET))
 		if err != nil {
@@ -332,13 +368,7 @@ func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileL
 	targetMetrics.ignoredGauge.Update(ignoredCounter + targetMetrics.ignoredGauge.Get())
 	targetMetrics.errorGauge.Update(errorCounter + targetMetrics.errorGauge.Get())
 
-	// Notify the ingester that the batch has finished and cause it to reset its
-	// state and do any pending ingestion.
-	if err := i.processor.BatchFinished(); err != nil {
-		sklog.Errorf("Batchfinished failed: %s", err)
-	} else {
-		i.addToProcessedFiles(processedMD5s)
-	}
+	i.addToProcessedFiles(processedMD5s)
 }
 
 // getCommitRangeOfInterest returns the time range (start, end) that
