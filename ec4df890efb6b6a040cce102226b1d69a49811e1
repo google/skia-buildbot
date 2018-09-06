@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b7b275d3_00c4799f",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-06T13:30:05Z",
+      "side": 1,
+      "message": "Maybe the doc string doesn\u0027t make sense, I removed it. \nIt won\u0027t return an error if the hash already exists, just overwrite it. \nErrors are only returned if the i/o with the DB fails.",
+      "parentUuid": "2939ec16_7af3f7d6",
+      "revId": "ec4df890efb6b6a040cce102226b1d69a49811e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2f024944_17c9259c",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 17
@@ -30,6 +48,24 @@
       "writtenOn": "2018-09-06T13:21:30Z",
       "side": 1,
       "message": "Why not make statusDB implement IngestionStore?",
+      "revId": "ec4df890efb6b6a040cce102226b1d69a49811e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "970759e5_c81f6ffd",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-06T13:30:05Z",
+      "side": 1,
+      "message": "If I wanted boltdb to be a real alternative and that allows to pick which backend to use, I would have done that. \nBut I don\u0027t want to maintain the boltdb code, but get rid of it asap. So I didn\u0027t bother.",
+      "parentUuid": "2f024944_17c9259c",
       "revId": "ec4df890efb6b6a040cce102226b1d69a49811e1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
