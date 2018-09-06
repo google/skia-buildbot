@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 
 	"go.skia.org/infra/fiddlek/go/store"
 	"go.skia.org/infra/go/sklog"
@@ -45,20 +44,13 @@ type NameStore interface {
 
 // Named deals with creating and dereferencing named fiddles.
 type Named struct {
-	// cache maps fiddle names to fiddle hashes.
-	cache map[string]string
-
-	// mutex protects the cache.
-	mutex sync.Mutex
-
 	st NameStore
 }
 
 // New creates a new Named.
 func New(st NameStore) *Named {
 	return &Named{
-		cache: map[string]string{},
-		st:    st,
+		st: st,
 	}
 }
 
@@ -92,9 +84,6 @@ func (n *Named) Add(name, hash, user string, overwrite bool) error {
 	if err := n.st.WriteName(name, hash, user); err != nil {
 		return fmt.Errorf("Failed to write name: %s", err)
 	}
-	n.mutex.Lock()
-	defer n.mutex.Unlock()
-	n.cache[name] = hash
 	return nil
 }
 
@@ -109,23 +98,14 @@ func (n *Named) DereferenceID(id string) (string, error) {
 	}
 	if id[0] == '@' {
 		id = id[1:]
-		n.mutex.Lock()
-		fiddleHash, ok := n.cache[id]
-		n.mutex.Unlock()
-		if !ok {
-			// Look up the name in gs://skia-fiddle/named/<id>.
-			var err error
-			fiddleHash, err = n.st.GetHashFromName(id)
-			if err != nil {
-				return "", fmt.Errorf("Unknown name: %s", err)
-			}
-			if !fiddleHashRe.MatchString(fiddleHash) {
-				return "", fmt.Errorf("Not a valid fiddle hash found in named file %q: %s", id, fiddleHash)
-			}
-			n.mutex.Lock()
-			defer n.mutex.Unlock()
-			// If found, add to cache.
-			n.cache[id] = fiddleHash
+		// Look up the name in gs://skia-fiddle/named/<id>.
+		var err error
+		fiddleHash, err := n.st.GetHashFromName(id)
+		if err != nil {
+			return "", fmt.Errorf("Unknown name: %s", err)
+		}
+		if !fiddleHashRe.MatchString(fiddleHash) {
+			return "", fmt.Errorf("Not a valid fiddle hash found in named file %q: %s", id, fiddleHash)
 		}
 		return fiddleHash, nil
 	} else {
