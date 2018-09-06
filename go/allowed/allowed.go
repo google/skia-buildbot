@@ -3,6 +3,7 @@ package allowed
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"sync"
 
@@ -167,4 +168,30 @@ func (a *AllowedFromFile) Emails() []string {
 	defer a.mutex.RUnlock()
 
 	return a.allowed.Emails()
+}
+
+// Union is an Allow which includes members of multiple other Allows.
+type Union []Allow
+
+func UnionOf(allows ...Allow) Allow {
+	return Union(allows)
+}
+
+func (allows Union) Member(email string) bool {
+	for _, a := range allows {
+		if a.Member(email) {
+			return true
+		}
+	}
+	return false
+}
+
+func (allows Union) Emails() []string {
+	emails := util.StringSet{}
+	for _, a := range allows {
+		emails.AddLists(a.Emails())
+	}
+	rv := emails.Keys()
+	sort.Strings(rv)
+	return rv
 }
