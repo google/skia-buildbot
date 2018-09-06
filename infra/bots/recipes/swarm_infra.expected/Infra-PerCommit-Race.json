@@ -384,6 +384,7 @@
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra",
     "env": {
+      "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
       "GIT_USER_AGENT": "git/1.9.1",
@@ -402,6 +403,7 @@
     ],
     "cwd": "[START_DIR]/gopath/src/go.skia.org/infra/go/ds/emulator",
     "env": {
+      "BIGTABLE_EMULATOR_HOST": "localhost:8892",
       "CHROME_HEADLESS": "1",
       "DATASTORE_EMULATOR_HOST": "localhost:8891",
       "GIT_USER_AGENT": "git/1.9.1",
