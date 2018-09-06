@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "132452fd_50b7060e",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 5
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T16:45:34Z",
+      "side": 1,
+      "message": "Leaving autoroll2 for now.",
+      "range": {
+        "startLine": 398,
+        "startChar": 7,
+        "endLine": 398,
+        "endChar": 28
+      },
+      "revId": "8ac48b3378c73b61ba4017fa11699a9323359d36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
