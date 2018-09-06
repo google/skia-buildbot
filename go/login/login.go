@@ -283,15 +283,18 @@ func getSession(r *http.Request) (*Session, error) {
 // LoggedInAs returns the user's ID, i.e. their email address, if they are
 // logged in, and "" if they are not logged in.
 func LoggedInAs(r *http.Request) string {
+	sklog.Info("LoggedInAs()")
 	var email string
 	if s, err := getSession(r); err == nil {
 		email = s.Email
 	} else if e, err := ViaBearerToken(r); err == nil {
 		email = e
 	}
+	sklog.Infof("LoggedInAs %s", email)
 	if inWhitelist(email) {
 		return email
 	}
+	sklog.Warningf("LoggedInAs rejected by whitelist")
 	return ""
 }
 

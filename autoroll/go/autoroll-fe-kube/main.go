@@ -54,6 +54,8 @@ var (
 	SKIA_STATUS_SERVICE_ACCOUNTS = []string{
 		"skia-status@skia-public.iam.gserviceaccount.com",
 		"skia-status-internal@skia-public.iam.gserviceaccount.com",
+		"status@skia-buildbots.google.com.iam.gserviceaccount.com",
+		"status-internal@skia-buildbots.google.com.iam.gserviceaccount.com",
 	}
 
 	mainTemplate   *template.Template = nil
