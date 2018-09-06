@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8442a102_275d7353",
+        "filename": "go/ingestion/bt_store.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-06T18:28:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36623345_83052eb8",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62a57104_1fae01d2",
         "filename": "go/ingestion/bt_store.go",
         "patchSetId": 18
@@ -33,6 +51,24 @@
       "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a63473fa_2063d538",
+        "filename": "go/ingestion/bt_store.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-06T18:28:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62a57104_1fae01d2",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "29bc0ded_3c396805",
+        "filename": "go/ingestion/bt_store.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-06T18:28:18Z",
+      "side": 1,
+      "message": "Done\nI split the table creation function into the bt package and the gold_init app. I am not opposed to using a script, but out testing currently doesn\u0027t support that without some significant changes to the testing framework. But the account running this no longer needs Admin rights.",
+      "parentUuid": "20b7fcc5_19c07edd",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6151bd3_74ad9094",
         "filename": "go/ingestion/bt_store_test.go",
         "patchSetId": 18
@@ -67,6 +121,24 @@
       "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0eb23615_d009baa0",
+        "filename": "go/ingestion/bt_store_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-06T18:28:18Z",
+      "side": 1,
+      "message": "Done\nResidue from debugging.",
+      "parentUuid": "f6151bd3_74ad9094",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
