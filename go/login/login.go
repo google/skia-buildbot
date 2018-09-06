@@ -30,6 +30,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -46,6 +47,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	oauth2_api "google.golang.org/api/oauth2/v2"
 )
 
 const (
@@ -143,6 +145,9 @@ func InitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
 	editAllow = edit
 	viewAllow = view
 	SimpleInitMust(port, local)
+	RestrictAdmin = RestrictWithMessage(adminAllow, "User is not an admin")
+	RestrictEditor = RestrictWithMessage(editAllow, "User is not an editor")
+	RestrictViewer = RestrictWithMessage(viewAllow, "User is not a viewer")
 }
 
 // Init must be called before any other login methods.
@@ -278,14 +283,16 @@ func getSession(r *http.Request) (*Session, error) {
 // LoggedInAs returns the user's ID, i.e. their email address, if they are
 // logged in, and "" if they are not logged in.
 func LoggedInAs(r *http.Request) string {
-	s, err := getSession(r)
-	if err != nil {
-		return ""
+	var email string
+	if s, err := getSession(r); err == nil {
+		email = s.Email
+	} else if e, err := ViaBearerToken(r); err == nil {
+		email = e
 	}
-	if !inWhitelist(s.Email) {
-		return ""
+	if inWhitelist(email) {
+		return email
 	}
-	return s.Email
+	return ""
 }
 
 // ID returns the user's ID, i.e. their opaque identifier, if they are
@@ -615,43 +622,71 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 	})
 }
 
+// RestrictWithMessage returns a middleware func which enforces that the user
+// is logged in with an allowed account before the wrapped handler is called. It
+// uses the given message when a user is denied access.
+func RestrictWithMessage(allow allowed.Allow, msg string) func(http.Handler) http.Handler {
+	if allow == nil {
+		return func(h http.Handler) http.Handler { return h }
+	}
+	return func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			email := LoggedInAs(r)
+			if !allow.Member(email) {
+				sklog.Warningf("%s: %s", msg, email)
+				http.Error(w, msg, 403)
+				return
+			}
+			h.ServeHTTP(w, r)
+		})
+	}
+}
+
+// Restrict returns a middleware func which enforces that the user is logged
+// in with an allowed account before the wrapped handler is called.
+func Restrict(allow allowed.Allow) func(http.Handler) http.Handler {
+	return RestrictWithMessage(allow, "User is not in allowed list")
+}
+
 // RestrictAdmin is middleware which enforces that the user is logged in as an
-// admin before the wrapped handler is called.
-func RestrictAdmin(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !IsAdmin(r) {
-			sklog.Warning("User is not an admin: %s", LoggedInAs(r))
-			http.Error(w, "User is not an admin.", 403)
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
+// admin before the wrapped handler is called.  Filled in during InitWithAllow.
+var RestrictAdmin = func(h http.Handler) http.Handler {
+	sklog.Fatal("RestrictAdmin called but not configured with InitWithAllow.")
+	return h
 }
 
 // RestrictEditor is middleware which enforces that the user is logged in as an
-// editor before the wrapped handler is called.
-func RestrictEditor(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !IsEditor(r) {
-			sklog.Warning("User is not an editor: %s", LoggedInAs(r))
-			http.Error(w, "User is not an editor.", 403)
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
+// editor before the wrapped handler is called.  Filled in during InitWithAllow.
+var RestrictEditor = func(h http.Handler) http.Handler {
+	sklog.Fatal("RestrictEditor called but not configured with InitWithAllow.")
+	return h
 }
 
 // RestrictViewer is middleware which enforces that the user is logged in as a
-// viewer before the wrapped handler is called.
-func RestrictViewer(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !IsViewer(r) {
-			sklog.Warning("User is not a viewer: %s", LoggedInAs(r))
-			http.Error(w, "User is not a viewer.", 403)
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
+// viewer before the wrapped handler is called.  Filled in during InitWithAllow.
+var RestrictViewer = func(h http.Handler) http.Handler {
+	sklog.Fatal("RestrictViewer called but not configured with InitWithAllow.")
+	return h
+}
+
+// RestrictFn wraps an http.HandlerFunc, restricting it to the given allowed list.
+func RestrictFn(h http.HandlerFunc, allow allowed.Allow) http.HandlerFunc {
+	return Restrict(allow)(h).(http.HandlerFunc)
+}
+
+// RestrictAdminFn wraps an http.HandlerFunc, restricting it to admins.
+func RestrictAdminFn(h http.HandlerFunc) http.HandlerFunc {
+	return RestrictAdmin(h).(http.HandlerFunc)
+}
+
+// RestrictEditorFn wraps an http.HandlerFunc, restricting it to editors.
+func RestrictEditorFn(h http.HandlerFunc) http.HandlerFunc {
+	return RestrictEditor(h).(http.HandlerFunc)
+}
+
+// RestrictViewerFn wraps an http.HandlerFunc, restricting it to viewers.
+func RestrictViewerFn(h http.HandlerFunc) http.HandlerFunc {
+	return RestrictViewer(h).(http.HandlerFunc)
 }
 
 func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
@@ -728,4 +763,41 @@ func tryLoadingFromKnownLocations() (string, string, string) {
 		return DEFAULT_COOKIE_SALT, "", ""
 	}
 	return cookieSalt, clientID, clientSecret
+}
+
+// ViaBearerToken tries to load an OAuth 2.0 Bearer token from from the request
+// and derives the login email address from it.
+func ViaBearerToken(r *http.Request) (string, error) {
+	tok := r.Header.Get("Authorization")
+	if tok == "" {
+		return "", errors.New("User is not authenticated.")
+	}
+	tok = strings.TrimPrefix(tok, "Bearer ")
+	tokenInfo, err := ValidateBearerToken(tok)
+	if err != nil {
+		return "", err
+	}
+	return tokenInfo.Email, nil
+}
+
+// ValidateBearerToken takes an OAuth 2.0 Bearer token (e.g. The third part of
+// Authorization: Bearer ya29.Elj...
+// and polls a Google HTTP endpoint to see if is valid. This is fine in low-volumne
+// situations, but another solution may be needed if this goes higher than a few QPS.
+func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {
+	c, err := oauth2_api.New(httputils.NewTimeoutClient())
+	if err != nil {
+		return nil, fmt.Errorf("could not make oauth2 api client: %s", err)
+	}
+	ti, err := c.Tokeninfo().AccessToken(token).Do()
+	if err != nil {
+		return nil, err
+	}
+	if ti.ExpiresIn <= 0 {
+		return nil, fmt.Errorf("Token is expired.")
+	}
+	if !ti.VerifiedEmail {
+		return nil, fmt.Errorf("Email not verified.")
+	}
+	return ti, nil
 }

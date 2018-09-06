@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
@@ -208,12 +209,6 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 
 func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if !login.IsGoogler(r) {
-		errStr := "Cannot modify the blacklist; user is not a logged-in Googler."
-		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
-		return
-	}
-
 	if r.Method == http.MethodDelete {
 		var msg struct {
 			Name string `json:"name"`
@@ -263,12 +258,6 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
-	if !login.IsGoogler(r) {
-		errStr := "Cannot trigger tasks; user is not a logged-in Googler."
-		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
-		return
-	}
-
 	var msg []struct {
 		Name   string `json:"name"`
 		Commit string `json:"commit"`
@@ -323,11 +312,6 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 
 func jsonCancelJobHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if !login.IsGoogler(r) {
-		httputils.ReportError(w, r, nil, "Cannot cancel jobs; user is not a logged-in Googler.")
-		return
-	}
-
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
 		httputils.ReportError(w, r, nil, "Job ID is required.")
@@ -561,15 +545,15 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 	r.HandleFunc("/jobs/search", jobSearchHandler)
 	r.HandleFunc("/task/{id}", taskHandler)
 	r.HandleFunc("/trigger", triggerHandler)
-	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
+	r.HandleFunc("/json/blacklist", login.RestrictEditorFn(jsonBlacklistHandler)).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
-	r.HandleFunc("/json/job/{id}/cancel", jsonCancelJobHandler).Methods(http.MethodPost)
+	r.HandleFunc("/json/job/{id}/cancel", login.RestrictEditorFn(jsonCancelJobHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
 	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/task/{id}", jsonGetTaskHandler)
 	r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
 	r.HandleFunc("/json/tasks/search", jsonTaskSearchHandler)
-	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/json/trigger", login.RestrictEditorFn(jsonTriggerHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
@@ -580,7 +564,9 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 
 	sklog.AddLogsRedirect(r)
 	swarming.RegisterPubSubServer(ts, r)
-	if err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter(), VALID_DB_EMAILS); err != nil {
+	dbRouter := r.PathPrefix("/db").Subrouter()
+	dbRouter.Use(login.Restrict(allowed.NewAllowedFromList(VALID_DB_EMAILS)))
+	if err := remote_db.RegisterServer(taskDb, dbRouter); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -593,7 +579,7 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 // RPC calls to taskDb. Does not return.
 func runDbServer(taskDb db.RemoteDB) {
 	r := mux.NewRouter()
-	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter(), nil)
+	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter())
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -613,6 +599,8 @@ func main() {
 	reloadTemplates()
 
 	skiaversion.MustLogVersion()
+
+	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), nil)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)

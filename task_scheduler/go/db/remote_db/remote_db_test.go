@@ -94,7 +94,7 @@ func newReqCountingTransport(rt http.RoundTripper) http.RoundTripper {
 func makeDB(t *testing.T) db.DBCloser {
 	baseDB := db.NewInMemoryDB()
 	r := mux.NewRouter()
-	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter(), nil)
+	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter())
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
 	c := httputils.NewTimeoutClient()

@@ -41,8 +41,8 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// flags
 var (
+	// flags.
 	configDir    = flag.String("config_dir", "", "Directory containing only configuration files for all rollers.")
 	host         = flag.String("host", "localhost", "HTTP service host")
 	internal     = flag.Bool("internal", false, "If true, display the internal rollers.")
@@ -50,6 +50,11 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+
+	SKIA_STATUS_SERVICE_ACCOUNTS = []string{
+		"skia-status@skia-public.iam.gserviceaccount.com",
+		"skia-status-internal@skia-public.iam.gserviceaccount.com",
+	}
 
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
@@ -296,6 +301,15 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runServer(ctx context.Context, serverURL string) {
+	// TODO(borenet): Use CRIA groups instead of @google.com, ie. admins are
+	// "google/skia-root@google.com", editors are specified in each roller's
+	// config file, and viewers are either public or @google.com.
+	var viewAllow allowed.Allow
+	if *internal {
+		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(SKIA_STATUS_SERVICE_ACCOUNTS), allowed.Googlers())
+	}
+	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), viewAllow)
+
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
@@ -309,12 +323,16 @@ func runServer(ctx context.Context, serverURL string) {
 	rollerRouter.HandleFunc("", rollerHandler)
 	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
 	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
-	rollerRouter.Handle("/json/mode", login.RestrictEditor(http.HandlerFunc(modeJsonHandler))).Methods("POST")
-	rollerRouter.Handle("/json/strategy", login.RestrictEditor(http.HandlerFunc(strategyJsonHandler))).Methods("POST")
-	rollerRouter.Handle("/json/unthrottle", login.RestrictEditor(http.HandlerFunc(unthrottleHandler))).Methods("POST")
+	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/unthrottle", login.RestrictEditorFn(unthrottleHandler)).Methods("POST")
 	sklog.AddLogsRedirect(r)
-	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
+	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
+		if viewAllow != nil {
+			h = login.RestrictViewer(h)
+			h = login.ForceAuth(h, "/oauth2callback/")
+		}
 		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
@@ -331,15 +349,6 @@ func main() {
 
 	Init()
 	skiaversion.MustLogVersion()
-
-	// TODO(borenet): Use CRIA groups instead of @google.com, ie. admins are
-	// "google/skia-root@google.com", editors are specified in each roller's
-	// config file, and viewers are either public or @google.com.
-	var viewAllow allowed.Allow
-	if *internal {
-		viewAllow = allowed.Googlers()
-	}
-	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, datastore.ScopeDatastore)
 	if err != nil {
@@ -426,7 +435,6 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	login.SimpleInitMust(*port, *local)
 
 	runServer(ctx, serverURL)
 }
