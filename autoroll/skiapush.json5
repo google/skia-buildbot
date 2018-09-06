@@ -140,7 +140,6 @@
     },
     "skia-autoroll": {
       "AppNames": [
-        "autoroll-frontend",
         "skia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
@@ -154,7 +153,6 @@
     },
     "skia-internal-autoroll": {
       "AppNames": [
-        "autoroll-frontend-internal",
         "skia-internal-autorolld",
         "git-cookie-authdaemon",
         "pulld",
