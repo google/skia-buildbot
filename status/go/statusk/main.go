@@ -16,6 +16,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 	"unicode"
@@ -57,6 +58,8 @@ const (
 )
 
 var (
+	autorollMtx      sync.RWMutex
+	autorollStatus   []byte                        = nil
 	capacityClient   *capacity.CapacityClient      = nil
 	capacityTemplate *template.Template            = nil
 	commitsTemplate  *template.Template            = nil
@@ -65,6 +68,18 @@ var (
 	taskDb           db.RemoteDB                   = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
 	tCache           db.TaskCache                  = nil
+
+	// AUTOROLLERS maps roller IDs to their human-friendly display names.
+	AUTOROLLERS = map[string]string{
+		"android-master-autoroll":   "Android",
+		"skia-flutter-autoroll":     "Flutter",
+		"fuchsia-autoroll":          "Fuchsia",
+		"skia-autoroll":             "Chrome",
+		"google3-autoroll":          "Google3",
+		"angle-skia-autoroll":       "ANGLE",
+		"skcms-skia-autoroll":       "skcms",
+		"swiftshader-skia-autoroll": "SwiftSh",
+	}
 )
 
 // flags
@@ -604,13 +619,23 @@ func lkgrHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	autorollMtx.RLock()
+	defer autorollMtx.RUnlock()
+	if _, err := w.Write(autorollStatus); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write response.")
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	// TODO(borenet): "/" is used to determine readiness. Remove the redirect.
 	r.HandleFunc("/", defaultRedirectHandler)
 	r.HandleFunc("/repo/{repo}", statusHandler)
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
+	r.HandleFunc("/json/autorollers", autorollStatusHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
@@ -662,8 +687,13 @@ func main() {
 	}
 	ctx := context.Background()
 
+	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	c := auth.ClientFromTokenSource(ts)
+
 	// Create LKGR object.
-	var err error
 	lkgrObj, err = lkgr.New(ctx)
 	if err != nil {
 		sklog.Fatalf("Failed to create LKGR: %s", err)
@@ -678,11 +708,6 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		c := auth.ClientFromTokenSource(ts)
 		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, c)
 		if err != nil {
 			sklog.Fatalf("Failed to create remote task DB: %s", err)
@@ -759,6 +784,45 @@ func main() {
 	// Capacity stats.
 	capacityClient = capacity.New(tasksPerCommit.tcc, tCache, repos)
 	capacityClient.StartLoading(ctx, *capacityRecalculateInterval)
+
+	// Periodically obtain the autoroller statuses.
+	updateAutorollStatus := func() error {
+		statuses := make(map[string]interface{}, len(AUTOROLLERS))
+		for _, host := range []string{"https://autoroll2.skia.org", "https://autoroll-internal2.skia.org"} {
+			url := host + "/json/all"
+			resp, err := c.Get(url)
+			if err != nil {
+				return err
+			}
+			defer util.Close(resp.Body)
+			var st map[string]map[string]interface{}
+			if err := json.NewDecoder(resp.Body).Decode(&st); err != nil {
+				return err
+			}
+			for name, s := range st {
+				if friendlyName, ok := AUTOROLLERS[name]; ok {
+					s["url"] = host + "/r/" + name
+					statuses[friendlyName] = s
+				}
+			}
+		}
+		b, err := json.Marshal(statuses)
+		if err != nil {
+			return err
+		}
+		autorollMtx.Lock()
+		defer autorollMtx.Unlock()
+		autorollStatus = b
+		return nil
+	}
+	if err := updateAutorollStatus(); err != nil {
+		sklog.Fatal(err)
+	}
+	go util.RepeatCtx(60*time.Second, ctx, func() {
+		if err := updateAutorollStatus(); err != nil {
+			sklog.Errorf("Failed to update autoroll status: %s", err)
+		}
+	})
 
 	// Run the server.
 	runServer(serverURL)

@@ -17,14 +17,15 @@
           reject("nope error");
         } else {
           resolve(JSON.stringify({
-            currentRollRev: "abc123",
-            lastRollRev: "def456",
-            mode: modes[i % modes.length],
-            numFailed: i % 4,
-            numBehind: i++,
+            "Android": {
+              currentRollRev: "abc123",
+              lastRollRev: "def456",
+              mode: modes[i % modes.length],
+              numFailed: i % 4,
+              numBehind: i++,
+            }
           }));
         }
-
       });
     };
   </script>
