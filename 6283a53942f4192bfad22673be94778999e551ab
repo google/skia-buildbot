@@ -45,6 +45,54 @@
       "revId": "6283a53942f4192bfad22673be94778999e551ab",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e76561fe_c83f1868",
+        "filename": "skottie/modules/lottie-annotations/annotations.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-06T15:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "faed4145_ea705672",
+      "range": {
+        "startLine": 109,
+        "startChar": 19,
+        "endLine": 109,
+        "endChar": 20
+      },
+      "revId": "6283a53942f4192bfad22673be94778999e551ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b8c39da_b5a0ea03",
+        "filename": "skottie/modules/lottie-annotations/annotations.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-06T15:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9cfeeebd_2344ad8f",
+      "range": {
+        "startLine": 109,
+        "startChar": 56,
+        "endLine": 109,
+        "endChar": 59
+      },
+      "revId": "6283a53942f4192bfad22673be94778999e551ab",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
