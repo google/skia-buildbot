@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "867eae54_c0886058",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-06T15:09:31Z",
+      "side": 1,
+      "message": "Add a comment that this maps domains to short-hand form.  Same on statusk.",
+      "revId": "ce94b08357da1cc186b59d36269d4b6e13d0e9b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f03b9a53_de508abd",
+        "filename": "status/res/imp/autoroll-widget-sk.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-06T15:09:31Z",
+      "side": 1,
+      "message": "!\u003d\u003d here and other places.",
+      "range": {
+        "startLine": 118,
+        "startChar": 30,
+        "endLine": 118,
+        "endChar": 32
+      },
+      "revId": "ce94b08357da1cc186b59d36269d4b6e13d0e9b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
