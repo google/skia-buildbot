@@ -12,7 +12,7 @@ core: package-lock.json
 
 test: core
 	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run --no-colors
 
 release: core
 	npx webpack --mode=production

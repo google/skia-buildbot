@@ -22,7 +22,7 @@ test:
 testci:
 	rm -rf node_modules
 	npm install
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run --no-colors
 
 watch: package-lock.json
 	npx webpack --mode=development --watch

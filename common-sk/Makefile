@@ -18,7 +18,7 @@ testci:
 	rm -rf node_modules
 	npm install
 	# Run the generated tests just once under Xvfb.
-	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run --no-colors
 
 continuous: package-lock.json
 	# Setup for continuous testing when ssh'd into a machine.
