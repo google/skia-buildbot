@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f6c584e_be4ea419",
+        "filename": "go/login/login.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:47:52Z",
+      "side": 1,
+      "message": "The cache means we\u0027ll accept an exploited service account even after it\u0027s been deleted. Drop the cache and we can revisit caching if we hit some sort of limit on making those API calls.",
+      "revId": "48e15a965f48bbbe250f134ac70ecdca812e5520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c3166e1_988955cf",
+        "filename": "go/login/login.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:47:52Z",
+      "side": 1,
+      "message": "Maybe these default versions should spew sklog.Error messages? That would means they were called, bu not configured with InitWithAllow?\n\nOr maybe they should sklog.Fatal, or http.Error()?",
+      "revId": "48e15a965f48bbbe250f134ac70ecdca812e5520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
