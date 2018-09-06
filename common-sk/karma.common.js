@@ -36,6 +36,12 @@ module.exports = function(dirname) {
     webpackConfig.entry = null;
     webpackConfig.mode = 'development';
 
+    // Work-around for karma-webpack issues:
+    // https://github.com/webpack-contrib/karma-webpack/issues/322#issuecomment-417862717
+    webpackConfig.output= {
+      filename: '[name]',
+    };
+
     config.set({
 
       // base path, that will be used to resolve files and exclude
