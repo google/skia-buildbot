@@ -261,6 +261,32 @@ func TestOrderedParamSetEmpty(t *testing.T) {
 	roundTripsEncode(t, NewOrderedParamSet())
 }
 
+func TestOrderedParamSetDup(t *testing.T) {
+	testutils.SmallTest(t)
+
+	p := NewOrderedParamSet()
+	// Add some data.
+	p.Update(
+		ParamSet{
+			"arch": []string{"riscv", "arm"},
+		},
+	)
+	p2 := p.Dup()
+	p2.Update(
+		ParamSet{
+			"config": []string{"8888", "565", "gpu"},
+		},
+	)
+	assert.Equal(t, []string{"arch"}, p.KeyOrder)
+	assert.Equal(t, []string{"arch", "config"}, p2.KeyOrder)
+	_, err := p.EncodeParamsAsString(Params{"arch": "arm"})
+	assert.NoError(t, err)
+	_, err = p.EncodeParamsAsString(Params{"config": "8888"})
+	assert.Error(t, err)
+	_, err = p2.EncodeParamsAsString(Params{"config": "8888"})
+	assert.NoError(t, err)
+}
+
 func TestOrderedParamSetStartFromEmpty(t *testing.T) {
 	testutils.SmallTest(t)
 	// Start from an empty OrderedParamSet.
