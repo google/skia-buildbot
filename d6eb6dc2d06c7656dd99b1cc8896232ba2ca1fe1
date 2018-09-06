@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a621cb73_3367d562",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T12:42:30Z",
+      "side": 1,
+      "message": "Done, had to rename the new Restrict* helpers (that deal with http.HandlerFunc rather than http.Handler) to Restrict*Fn.",
+      "parentUuid": "0d441e0f_3c588992",
+      "revId": "d6eb6dc2d06c7656dd99b1cc8896232ba2ca1fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "479b03a0_233093de",
         "filename": "go/allowed/allowed.go",
         "patchSetId": 7
@@ -39,6 +57,30 @@
       "revId": "d6eb6dc2d06c7656dd99b1cc8896232ba2ca1fe1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94909e09_f3cd9c5e",
+        "filename": "go/allowed/allowed.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-06T12:42:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "479b03a0_233093de",
+      "range": {
+        "startLine": 191,
+        "startChar": 4,
+        "endLine": 192,
+        "endChar": 20
+      },
+      "revId": "d6eb6dc2d06c7656dd99b1cc8896232ba2ca1fe1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
