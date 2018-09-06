@@ -56,11 +56,6 @@ scrape_configs:
       - targets: ['swiftshader-skia-autoroll:20000']
       - targets: ['webrtc-chromium-autoroll:20000']
 
-  - job_name: 'autoroll-fe'
-    static_configs:
-      - targets: ['skia-autoroll:20001']
-      - targets: ['skia-internal-autoroll:20001']
-
   - job_name: 'autoroll-google3'
     static_configs:
       - targets: ['google3-autoroll:20000']

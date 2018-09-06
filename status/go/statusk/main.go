@@ -788,7 +788,7 @@ func main() {
 	// Periodically obtain the autoroller statuses.
 	updateAutorollStatus := func() error {
 		statuses := make(map[string]interface{}, len(AUTOROLLERS))
-		for _, host := range []string{"https://autoroll2.skia.org", "https://autoroll-internal2.skia.org"} {
+		for _, host := range []string{"https://autoroll.skia.org", "https://autoroll-internal.skia.org"} {
 			url := host + "/json/all"
 			resp, err := c.Get(url)
 			if err != nil {
