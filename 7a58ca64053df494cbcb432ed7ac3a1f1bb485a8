@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "36623345_83052eb8",
+        "filename": "go/ingestion/bt_store.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:56:25Z",
+      "side": 1,
+      "message": "Names in comments don\u0027t match variable name. Here and below.",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62a57104_1fae01d2",
+        "filename": "go/ingestion/bt_store.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:56:25Z",
+      "side": 1,
+      "message": "// VAL_TRUE is a true value..",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20b7fcc5_19c07edd",
+        "filename": "go/ingestion/bt_store.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:56:25Z",
+      "side": 1,
+      "message": "Something to consider is the principle of least privilege. If your client creates the table then it needs admin access to bigtable, as opposed to just needing bigtable user privs.\n\nFor perf I\u0027ve just put the table creation command into a command line script that uses the \u0027cbt\u0027 command line, so the perf ingester only needs bigtable user privs. I.e.\n\n  cbt --instance perf-bt createtable skia families\u003dV:maxversions\u003d1,S:maxversions\u003d1,D:maxversions\u003d1",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6151bd3_74ad9094",
+        "filename": "go/ingestion/bt_store_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-06T13:56:25Z",
+      "side": 1,
+      "message": "Sleep isn\u0027t needed, row operations on bigtable are consistent.",
+      "revId": "7a58ca64053df494cbcb432ed7ac3a1f1bb485a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
