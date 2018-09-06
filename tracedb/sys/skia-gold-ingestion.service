@@ -7,7 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/skia-gold-ingestion \
     --config_filename=/etc/skia-gold-ingestion/config.json5 \
-    --ds_namespace=gold-skia-prod \
+    --namespace=gold-skia-prod \
     --http_port=:9093 \
     --logtostderr \
     --prom_port=:20000

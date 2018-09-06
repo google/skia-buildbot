@@ -166,6 +166,8 @@ def RunSteps(api):
           'start the cloud data store emulator',
            cmd=['./run_emulator', 'start'])
     env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
+    env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
+
 
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']

@@ -53,6 +53,3 @@ func (p *perfProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 
 	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name())
 }
-
-// See ingestion.Processor interface.
-func (p *perfProcessor) BatchFinished() error { return nil }

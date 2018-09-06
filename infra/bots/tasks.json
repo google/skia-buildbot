@@ -265,7 +265,7 @@
         {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
-          "version": "version:10"
+          "version": "version:12"
         }
       ],
       "command": [
@@ -528,7 +528,7 @@
         {
           "name": "skia/bots/gcloud_linux",
           "path": "gcloud_linux",
-          "version": "version:10"
+          "version": "version:12"
         }
       ],
       "command": [

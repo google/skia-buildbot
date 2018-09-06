@@ -166,9 +166,6 @@ func (p *pixelDiffProcessor) Process(ctx context.Context, resultsFile ingestion.
 	return nil
 }
 
-// See the ingestion.Processor interface.
-func (p *pixelDiffProcessor) BatchFinished() error { return nil }
-
 // Returns the diffstore.PixelDiffIDPathMapper image ID for a screenshot, which
 // has the format runID/{nopatch/withpatch}/rank/URLfilename.
 func getImageID(runID, patchType, filename string, rank int) string {

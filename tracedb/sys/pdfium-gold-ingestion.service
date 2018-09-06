@@ -7,7 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/pdfium-gold-ingestion \
     --config_filename=/etc/pdfium-gold-ingestion/config.json5 \
-    --ds_namespace=gold-pdfium \
+    --namespace=gold-pdfium \
     --http_port=:9092 \
     --logtostderr \
     --prom_port=:20001

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function kill_emulator()
+function kill_emulators()
 {
   kill -9 `ps aux | grep "[g]cloud\.py" | awk '{print $2}'`
   kill -9 `ps aux | grep "[c]loud_datastore_emulator" | awk '{print $2}'`
@@ -11,19 +11,27 @@ function kill_emulator()
 case "$1" in
   "start")
     # make sure it's not running then start the emulator.
-    kill_emulator
+    kill_emulators
     set -e
     gcloud beta emulators datastore start \
                 --no-store-on-disk \
                 --host-port=localhost:8891 \
                 --project=test-project > /tmp/datastore_emulator.log 2>&1 &
+
+    gcloud beta emulators bigtable start \
+                --host-port=localhost:8892 \
+                --project=test-project > /tmp/bigtable_emulator.log 2>&1 &
+
     set -e
     sleep 5s
-    echo "Cloud datastore emulator started."
+    cat /tmp/datastore_emulator.log
+    cat /tmp/bigtable_emulator.log
+
+    echo "Cloud datastore and Bigtable emulators started."
     ;;
   "stop")
-    kill_emulator
-    echo "Cloud datastore emulator stopped."
+    kill_emulators
+    echo "Cloud datastore and Bigtable emulators stopped."
     ;;
   *)
     echo "Error: argument must be {start|stop}"
