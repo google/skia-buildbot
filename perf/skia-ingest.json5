@@ -1,6 +1,6 @@
 {
 	// Directory location for the Skia repo.
-	GitRepoDir: "../../../../../skia_for_perf/",
+	GitRepoDir: "/tmp/skia/",
 
 	// URL location for the repo.
 	GitRepoURL: "https://skia.googlesource.com/skia",
@@ -10,7 +10,7 @@
 		nanobt: {
 			RunEvery: "1m",
 			NCommits: 10,
-			MinDays: 1,
+			MinDays: 5,
 			StatusDir: "/tmp/ingest_status",
 			MetricName: "nano-ingest",
 			Sources: [
@@ -23,7 +23,7 @@
         project: "skia-public",
         instance: "perf-bt",
         table: "skia",
-        tile_size: "1024",
+        tile_size: "50",
       }
 		},
 	}
