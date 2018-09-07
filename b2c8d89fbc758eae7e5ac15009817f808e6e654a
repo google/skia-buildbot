@@ -34,6 +34,24 @@
       "revId": "b2c8d89fbc758eae7e5ac15009817f808e6e654a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6604f0db_edbd0efb",
+        "filename": "golden/go/tryjobstore/tryjob_types.go",
+        "patchSetId": 45
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-07T14:14:28Z",
+      "side": 1,
+      "message": "Ignore, somehow I mixed this up with an more recent CL.",
+      "parentUuid": "9ca3f78a_d61f4970",
+      "revId": "b2c8d89fbc758eae7e5ac15009817f808e6e654a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
