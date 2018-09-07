@@ -88,7 +88,7 @@ func (g *goldProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	}
 
 	// Get the entries that should be added to the tracedb.
-	entries, err := dmResults.getTraceDBEntries()
+	entries, err := extractTraceDBEntries(dmResults)
 	if err != nil {
 		return err
 	}
