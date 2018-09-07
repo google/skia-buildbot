@@ -30,7 +30,7 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	POLL_CHUNK_SIZE = 50
+	POLL_CHUNK_SIZE = 10
 )
 
 var (
@@ -80,6 +80,9 @@ type ResultFileLocation interface {
 type Processor interface {
 	// Process ingests a single result file.
 	Process(ctx context.Context, resultsFile ResultFileLocation) error
+
+	// A processor may also provide an IngestionStore.
+	GetIngestionStore() IngestionStore
 }
 
 // IngestionStore keeps track of files being ingested based on their MD5 hashes.
@@ -127,6 +130,9 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 	// TODO(stephana): Remove once all instances have been moved to BigTable.
 	var statusDB *bolt.DB
 	var err error
+	if ingestionStore == nil {
+		ingestionStore = processor.GetIngestionStore()
+	}
 	if ingestionStore == nil {
 		statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
 		dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
