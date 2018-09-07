@@ -9,107 +9,44 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"html/template"
 	"net/http"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"github.com/gorilla/mux"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/webhook"
 )
 
 const (
-	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
-	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
-
+	// ALL THIS NEEDS TO BE CONVERTED TO USE PUBSUB INSTEAD.
 	REGISTER_RUN_POST_URI = "/_/register"
 	GET_TASK_STATUS_URI   = "/get_task_status"
-
-	PROD_URI = "https://android-compile.skia.org"
 )
 
 var (
 	// Flags
-	host               = flag.String("host", "localhost", "HTTP service host")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	port               = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	// NEEDED?
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir            = flag.String("workdir", ".", "Directory to use for scratch work.")
-	resourcesDir       = flag.String("resources_dir", "", "The directory to find compile.sh, templates, JS, and CSS files.  If blank then the directory two directories up from this source file will be used.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find compile.sh.  If blank then the directory two directories up from this source file will be used.")
 	numCheckouts       = flag.Int("num_checkouts", 10, "The number of checkouts the Android compile server should maintain.")
-	repoUpdateDuration = flag.Duration("repo_update_duration", 15*time.Minute, "How often to update the main Android repository.")
+	repoUpdateDuration = flag.Duration("repo_update_duration", 1*time.Hour, "How often to update the main Android repository.")
 
 	// Datastore params
-	namespace   = flag.String("namespace", "android-compile", "The Cloud Datastore namespace, such as 'android-compile'.")
+	namespace   = flag.String("namespace", "android-compile-staging", "The Cloud Datastore namespace, such as 'android-compile'.")
 	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
-
-	// OAUTH params
-	authWhiteList = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
-	redirectURL   = flag.String("redirect_url", "https://leasing.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-
-	// indexTemplate is the main index.html page we serve.
-	indexTemplate *template.Template = nil
-
-	serverURL string
 
 	// Used to signal when checkouts are ready to serve requests.
 	checkoutsReadyMutex sync.RWMutex
 )
-
-func reloadTemplates() {
-	if *resourcesDir == "" {
-		// If resourcesDir is not specified then consider the directory two directories up from this
-		// source file as the resourcesDir.
-		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
-	}
-	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-}
-
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
-	return
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		reloadTemplates()
-	}
-	w.Header().Set("Content-Type", "text/html")
-
-	waitingTasks, runningTasks, err := GetCompileTasks()
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get compile tasks")
-		return
-	}
-
-	var templateTasks = struct {
-		WaitingTasks []*CompileTask
-		RunningTasks []*CompileTask
-	}{
-		WaitingTasks: waitingTasks,
-		RunningTasks: runningTasks,
-	}
-
-	if err := indexTemplate.Execute(w, templateTasks); err != nil {
-		httputils.ReportError(w, r, err, "Failed to expand template")
-		return
-	}
-	return
-}
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := webhook.AuthenticateRequest(r)
@@ -222,57 +159,12 @@ func triggerCompileTask(ctx context.Context, task *CompileTask, datastoreKey *da
 	}()
 }
 
-func runServer() {
-	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	r.HandleFunc("/", indexHandler)
-	r.HandleFunc(REGISTER_RUN_POST_URI, registerRunHandler).Methods("POST")
-	r.HandleFunc(GET_TASK_STATUS_URI, statusHandler)
-
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	r.HandleFunc("/login/", loginHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	sklog.AddLogsRedirect(r)
-	sklog.Infof("Ready to serve on %s", serverURL)
-	sklog.Fatal(http.ListenAndServe(*port, nil))
-}
-
 func main() {
 	flag.Parse()
 
-	if *local {
-		// Dont log to cloud in local mode.
-		common.InitWithMust(
-			"android_compile",
-			common.PrometheusOpt(promPort),
-		)
-		reloadTemplates()
-	} else {
-		common.InitWithMust(
-			"android_compile",
-			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
-		)
-	}
+	common.InitWithMust("android_compile", common.PrometheusOpt(promPort))
 	defer common.Defer()
 	skiaversion.MustLogVersion()
-
-	reloadTemplates()
-	serverURL = "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
-
-	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		useRedirectURL = *redirectURL
-	}
-	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
-		sklog.Fatal(fmt.Errorf("Problem setting up server OAuth: %s", err))
-	}
 
 	// Initialize cloud datastore.
 	if err := DatastoreInit(*projectName, *namespace); err != nil {
@@ -287,13 +179,6 @@ func main() {
 			sklog.Fatalf("Failed to init checkouts: %s", err)
 		}
 	}()
-
-	// Initialize webhooks.
-	if *local {
-		webhook.InitRequestSaltForTesting()
-	} else {
-		webhook.MustInitRequestSaltFromMetadata("ac_webhook_request_salt")
-	}
 
 	// Reset metrics on server startup.
 	resetMetrics()
@@ -311,5 +196,8 @@ func main() {
 		triggerCompileTask(ctx, taskAndKey.task, taskAndKey.key)
 	}
 
-	runServer()
+	// Wait for pubsub stuff.
+	for true {
+
+	}
 }
