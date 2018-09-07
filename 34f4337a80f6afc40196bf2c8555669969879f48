@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e8018c4_70a01205",
+        "filename": "golden/cmd/goldctl/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-07T19:00:26Z",
+      "side": 1,
+      "message": "Doesn\u0027t match actual func being documented. Check all log* func comments.",
+      "range": {
+        "startLine": 105,
+        "startChar": 3,
+        "endLine": 105,
+        "endChar": 11
+      },
+      "revId": "34f4337a80f6afc40196bf2c8555669969879f48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ae6ed2f_05cd8ba0",
+        "filename": "golden/go/client/client.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-07T19:00:26Z",
+      "side": 1,
+      "message": "\"{}\" will parse as a valid ingestion input, which isn\u0027t helpful.\n\nThere should be tests for required fields like Hash.\n\nThe validator in verbose mode should also print out a summary of what it got, i.e. num digests, some sample keys, etc.",
+      "revId": "34f4337a80f6afc40196bf2c8555669969879f48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
