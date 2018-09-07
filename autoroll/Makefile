@@ -17,7 +17,7 @@ autoroll-fe-kube: core_js elements_html skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe-kube
 
 autoroll-be: skiaversion
-	go install -v ./go/autoroll-be
+	GCO_ENABLED=0 GOOD=linux go install -v ./go/autoroll-be
 
 autoroll-google3: skiaversion
 	go install -v ./go/autoroll-google3
@@ -35,6 +35,8 @@ release-fe-kube: autoroll-fe-kube
 	./build_docker_frontend_release
 
 ROLLER_CONFIGS=$(wildcard config/*.json)
+ROLLER_CONFIGS_INTERNAL=$(shell python -c "import json,sys; print ' '.join([f for f in sys.argv[1:] if json.load(open(f))['isInternal']])" $(ROLLER_CONFIGS))
+ROLLER_CONFIGS_EXTERNAL=$(shell python -c "import json,sys; print ' '.join([f for f in sys.argv[1:] if not json.load(open(f))['isInternal']])" $(ROLLER_CONFIGS))
 
 release-be: autoroll-be
 	./build_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
@@ -46,3 +48,26 @@ release-google3: autoroll-google3
 	./build_google3_release "$(MESSAGE)"
 
 release-all: release-fe-kube release-be-all release-google3
+
+include ../kube/kube.mk
+
+KUBE_CONF_GEN_INTERNAL=kube-conf-gen -t ./go/autoroll-be/autoroll-be.yaml.template \
+	-c "$(CONFIG_FILE)" \
+	-o $(SKIA_CORP_CONFIG_DIR)/autoroll-be-$(basename $(notdir $(CONFIG_FILE))).yaml \
+	--extra configFile:$(notdir $(CONFIG_FILE))
+
+KUBE_CONF_GEN_EXTERNAL=kube-conf-gen -t ./go/autoroll-be/autoroll-be.yaml.template \
+	-c "$(CONFIG_FILE)" \
+	-o $(SKIA_PUBLIC_CONFIG_DIR)/autoroll-be-$(basename $(notdir $(CONFIG_FILE))).yaml \
+	--extra configFile:$(notdir $(CONFIG_FILE))
+
+CONFIG_IS_INTERNAL=$(shell python -c "import json,sys; print ('1' if json.load(open(sys.argv[1]))['isInternal'] else '0')" $(CONFIG_FILE))
+
+update-kube-config-be: kube-conf-gen deployment-dirs $(CONFIG_FILE)
+	if [ "$(CONFIG_IS_INTERNAL)" == "1" ]; then $(KUBE_CONF_GEN_INTERNAL); else $(KUBE_CONF_GEN_EXTERNAL); fi
+
+update-kube-config-be-internal: kube-conf-gen deployment-dirs $(ROLLER_CONFIGS_INTERNAL)
+	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
+
+update-kube-config-be-external: kube-conf-gen deployment-dirs $(ROLLER_CONFIGS_EXTERNAL)
+	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_EXTERNAL), $(KUBE_CONF_GEN_EXTERNAL);)

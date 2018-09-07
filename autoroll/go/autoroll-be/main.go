@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
@@ -24,12 +25,13 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -43,6 +45,7 @@ const (
 var (
 	configFile     = flag.String("config_file", "", "Configuration file to use.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":8000", "HTTP service port.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -57,11 +60,10 @@ type AutoRollerI interface {
 }
 
 func main() {
-	common.InitWithMust(
-		"autoroll-be",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	opts := []common.Opt{common.PrometheusOpt(promPort)}
+	fmt.Println(fmt.Sprintf("Got %d opts", len(opts)))
+	common.InitWithMust("autoroll-be", opts...)
+
 	defer common.Defer()
 
 	skiaversion.MustLogVersion()
@@ -73,7 +75,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -102,24 +104,14 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	// The rollers use the gitcookie created by gcompute-tools/git-cookie-authdaemon.
-	gitcookiesPath := filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+	// The rollers use the gitcookie created by gitauth package.
+	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
 
 	androidInternalGerritUrl := cfg.GerritURL
 	var emailer *email.GMail
-	if *local {
-		webhook.InitRequestSaltForTesting()
-
-		// Use the current user's default gitcookies.
-		gitcookiesPath = path.Join(user.HomeDir, ".gitcookies")
-	} else {
-
-		if err := webhook.InitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT); err != nil {
-			sklog.Fatal(err)
-		}
-
+	if !*local {
 		// Emailing init.
-		emailClientId := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+		/*emailClientId := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
 		emailClientSecret := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
 		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
 		tokenFile, err := filepath.Abs(user.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
@@ -138,7 +130,7 @@ func main() {
 		androidInternalGerritUrl, err = metadata.ProjectGet("android_internal_gerrit_url")
 		if err != nil {
 			sklog.Fatal(err)
-		}
+		}*/
 	}
 
 	serverURL := roller.AUTOROLL_URL_PUBLIC + "/r/" + cfg.RollerName
@@ -159,6 +151,11 @@ func main() {
 	}
 	sklog.Infof("Writing persistent data to gs://%s/%s", gcsBucket, rollerName)
 	gcsClient := gcs.NewGCSClient(s, gcsBucket)
+
+	// Also create the git cookie updater.
+	if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
+		sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	}
 
 	if cfg.GerritURL != "" {
 		// Create the code review API client.
@@ -232,5 +229,5 @@ func main() {
 			}
 		}()
 	}
-	select {}
+	httputils.RunHealthCheckServer(*port)
 }

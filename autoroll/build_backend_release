@@ -1,9 +1,9 @@
 #!/bin/bash
-# Builds and uploads a debian package for the autoroll backend.
+# Creates a build for the autoroll backend, either in Kubernetes or for Skia Push.
 
 set -x -e
 
-# Load the config specified in the first argument.
+# Load the config file and determine which script to call.
 CONFIG_FILE="$1"
 if [ -z "${CONFIG_FILE}" ]; then
   echo "Usage: $0 <path to config file> <message>"
@@ -11,26 +11,11 @@ if [ -z "${CONFIG_FILE}" ]; then
 fi
 shift
 
-ROLLER_NAME=$(cat $CONFIG_FILE | python -c "import sys, json; print json.load(sys.stdin)['rollerName']")
-if [ -z "${ROLLER_NAME}" ]; then
-  echo "Failed to obtain rollerName from config file."
-  exit 1
+IS_KUBERNETES=$(cat $CONFIG_FILE | python -c "import sys, json; print '1' if json.load(sys.stdin).get('kubernetes') is not None else ''")
+echo $IS_KUBERNETES
+
+if [ -z "$IS_KUBERNETES" ]; then
+  ./deprecated_build_backend_release ${CONFIG_FILE} $@
+else
+  ./build_docker_backend_release ${CONFIG_FILE} $@
 fi
-
-APPNAME=${ROLLER_NAME}d
-DESCRIPTION="Controls rolls of one repo into another."
-SYSTEMD=${APPNAME}.service
-
-# Copy files into the right locations in ${ROOT}.
-copy_release_files()
-{
-INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
-INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./sys/autoroll-be.service   ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=755 -T ${GOPATH}/bin/autoroll-be   ${ROOT}/usr/local/bin/autoroll-be
-${INSTALL_DIR} --mode=777                            ${ROOT}/mnt/pd0/autoroll_workdir
-${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/mnt/pd0/autoroll_workdir/recipes.cfg
-${INSTALL} --mode=644 -T ${CONFIG_FILE}              ${ROOT}/mnt/pd0/autoroll_workdir/autoroll-config.json
-}
-
-source ../bash/release.sh
