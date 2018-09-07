@@ -124,10 +124,11 @@ type Ingester struct {
 // the supplied vcs (version control system), input sources and Processor instance.
 func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore) (*Ingester, error) {
 
-	// TODO(stephana): Remove once all instances have been moved to BigTable.
+	// TODO(stephana): Remove once all instances have been moved to BigTable and
+	// all live data have moved to BT.
 	var statusDB *bolt.DB
 	var err error
-	if ingestionStore == nil {
+	if ingesterConf.StatusDir != "" {
 		statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(ingesterConf.StatusDir, ingesterID)))
 		dbName := filepath.Join(statusDir, fmt.Sprintf("%s-status.db", ingesterID))
 		statusDB, err = bolt.Open(dbName, 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -257,7 +258,16 @@ func (i *Ingester) inProcessedFiles(md5 string) bool {
 			sklog.Errorf("Error checking ingestionstore: %s", err)
 			return false
 		}
-		return ret
+
+		// If we have confirmed the file exists then return true otherwise see
+		// if it's in the deprecated database.
+		if ret {
+			return true
+		}
+	}
+
+	if i.statusDB == nil {
+		return false
 	}
 
 	ret := false
@@ -292,6 +302,11 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 		if err := egroup.Wait(); err != nil {
 			sklog.Errorf("Error setting md5 in ingestionstore: %s", err)
 		}
+		return
+	}
+
+	if i.statusDB == nil {
+		sklog.Errorf("No viable database configured for ingestion.")
 		return
 	}
 
