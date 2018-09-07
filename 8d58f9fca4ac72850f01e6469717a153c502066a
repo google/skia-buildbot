@@ -1279,6 +1279,30 @@
     },
     {
       "key": {
+        "uuid": "32567ef8_d079cb80",
+        "filename": "golden/go/dsutil/dsutil.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-07T13:20:37Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9f8f1e54_3ce1a368",
+      "range": {
+        "startLine": 171,
+        "startChar": 6,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a93ff569_d649486f",
         "filename": "golden/go/dsutil/dsutil.go",
         "patchSetId": 37
@@ -4671,6 +4695,30 @@
         "id": 5120
       },
       "writtenOn": "2018-05-10T03:02:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0123a21f_33bfb8b9",
+      "range": {
+        "startLine": 53,
+        "startChar": 2,
+        "endLine": 59,
+        "endChar": 4
+      },
+      "revId": "8d58f9fca4ac72850f01e6469717a153c502066a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "608356f0_92b2c3a4",
+        "filename": "golden/go/ignore/cloud_ignorestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-07T13:20:37Z",
       "side": 1,
       "message": "Ack",
       "parentUuid": "0123a21f_33bfb8b9",
