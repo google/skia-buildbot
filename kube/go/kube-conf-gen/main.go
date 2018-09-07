@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"reflect"
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/sklog"
@@ -46,7 +48,7 @@ func main() {
 		extraVarsMap[split[0]] = split[1]
 	}
 
-	tmpl, err := template.ParseFiles(*templateFileName)
+	tmpl, err := template.New(path.Base(*templateFileName)).Funcs(sprig.TxtFuncMap()).ParseFiles(*templateFileName)
 	if err != nil {
 		sklog.Fatalf("Error parsing template '%s'. Error:%s", *templateFileName, err)
 	}

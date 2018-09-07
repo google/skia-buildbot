@@ -96,6 +96,11 @@ func (c *Google3FakeRepoManagerConfig) Validate() error {
 	return nil
 }
 
+// KubernetesConfig contains configuration information for an AutoRoller running
+// in Kubernetes.
+type KubernetesConfig struct {
+}
+
 // AutoRollerConfig contains configuration information for an AutoRoller.
 type AutoRollerConfig struct {
 	// Required Fields.
@@ -112,6 +117,8 @@ type AutoRollerConfig struct {
 	ParentWaterfall string `json:"parentWaterfall"`
 	// Name of the roller, used for database keys.
 	RollerName string `json:"rollerName"`
+	// Full email address of the service account for this roller.
+	ServiceAccount string `json:"serviceAccount"`
 	// Email addresses to CC on rolls, or URL from which to obtain those
 	// email addresses.
 	Sheriff []string `json:"sheriff"`
@@ -136,6 +143,10 @@ type AutoRollerConfig struct {
 	Google3RepoManager        *Google3FakeRepoManagerConfig                 `json:"google3,omitempty"`
 	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager,omitempty"`
 	NoCheckoutDEPSRepoManager *repo_manager.NoCheckoutDEPSRepoManagerConfig `json:"noCheckoutDEPSRepoManager,omitempty"`
+
+	// Kubernetes config.
+	// TODO(borenet): Optional right now, but will eventually be required.
+	Kubernetes *KubernetesConfig `json:"kubernetes"`
 
 	// Optional Fields.
 
@@ -170,6 +181,9 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.RollerName == "" {
 		return errors.New("RollerName is required.")
+	}
+	if c.ServiceAccount == "" {
+		return errors.New("ServiceAccount is required.")
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
