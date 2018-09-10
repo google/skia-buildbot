@@ -213,9 +213,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
-	if err := checkout.Update(ctx); err != nil {
-		sklog.Fatalf("Failed to update repo: %s", err)
-	}
 
 	// Switch kubectl to the right project.
 	p := clusters[*cluster]
@@ -290,6 +287,7 @@ func main() {
 
 		// Loop over all the yaml files and update tags for the given imageName.
 		for _, filename := range filenames {
+			sklog.Infof("Reading %s; looking for %s", filename, fmt.Sprintf(`^(\s+image:\s+)(%s):.*$`, imageNoTag))
 			b, err := ioutil.ReadFile(filename)
 			if err != nil {
 				sklog.Errorf("Failed to read %q (skipping): %s", filename, err)
