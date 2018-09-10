@@ -46,6 +46,30 @@
       "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6770d6c8_7ed5a210",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-10T17:45:26Z",
+      "side": 0,
+      "message": "checkout.Update() is designed with our servers in mind, so it assumes you always want a clean checkout.  There are a number of options we could do instead, including being very careful never to throw away the user\u0027s changes (and just failing if there\u0027s a non-trivial rebase).  I guess what you\u0027d choose depends on whether you think pushk should be sharing checkouts with the user (or other apps).  If not, then IMO continuing to be destructive is the right call.  If so, I think we have to make some decisions about what the interactions should be.  My problem at the moment is that I want to start with a clean, up-to-date checkout, then run kube-conf-gen, then pushk.  Maybe the ideal interaction is something like this?\n\n$ pushk --cluster\u003dskia-public clean\n# Now I have a clean checkout in /tmp/skia-public-config (maybe the above command should give me a new, temporary dir)\n$ kube-conf-gen -t my-template -c input.yaml -o /tmp/skia-public-config/output.yaml\n$ pushk --cluster\u003dskia-public push-changes\n\nSince I\u0027m relying on kube-conf-gen to write the config file, I\u0027d actually prefer to move the image logic there too, and just make pushk be a tool for applying changes and committing them.",
+      "parentUuid": "b656a78d_c75e3000",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
