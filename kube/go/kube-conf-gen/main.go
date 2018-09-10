@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"path"
 	"reflect"
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig"
 	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/sklog"
@@ -46,7 +48,7 @@ func main() {
 		extraVarsMap[split[0]] = split[1]
 	}
 
-	tmpl, err := template.ParseFiles(*templateFileName)
+	tmpl, err := template.New(path.Base(*templateFileName)).Funcs(sprig.TxtFuncMap()).ParseFiles(*templateFileName)
 	if err != nil {
 		sklog.Fatalf("Error parsing template '%s'. Error:%s", *templateFileName, err)
 	}
@@ -83,7 +85,7 @@ func generateOutput(tmpl *template.Template, configFileNames []string, extraVars
 	}
 }
 
-func parseConfigHelper(prefix string, confMap map[string]interface{}, ret map[string]string) error {
+func parseConfigHelper(confMap map[string]interface{}, ret map[string]interface{}) error {
 	for k, v := range confMap {
 		val := ""
 		switch t := v.(type) {
@@ -96,9 +98,11 @@ func parseConfigHelper(prefix string, confMap map[string]interface{}, ret map[st
 				val = "false"
 			}
 		case map[string]interface{}:
-			if err := parseConfigHelper(prefix+k+".", t, ret); err != nil {
+			subMap := map[string]interface{}{}
+			if err := parseConfigHelper(t, subMap); err != nil {
 				return err
 			}
+			ret[k] = subMap
 		default:
 			if *strict {
 				return fmt.Errorf("Key %q has unsupported type %q", k, t)
@@ -107,20 +111,20 @@ func parseConfigHelper(prefix string, confMap map[string]interface{}, ret map[st
 			}
 		}
 		if val != "" {
-			ret[prefix+k] = val
+			ret[k] = val
 		}
 	}
 	return nil
 }
 
-func loadConfigFiles(configFileNames ...string) (map[string]string, error) {
-	ret := map[string]string{}
+func loadConfigFiles(configFileNames ...string) (map[string]interface{}, error) {
+	ret := map[string]interface{}{}
 	for _, configFile := range configFileNames {
 		confMap := map[string]interface{}{}
 		if err := config.ParseConfigFile(configFile, "-c", &confMap); err != nil {
 			return nil, fmt.Errorf("Failed to parse config file %q: %s", configFile, err)
 		}
-		if err := parseConfigHelper("", confMap, ret); err != nil {
+		if err := parseConfigHelper(confMap, ret); err != nil {
 			return nil, fmt.Errorf("Failed to parse config file %q: %s", configFile, err)
 		}
 	}

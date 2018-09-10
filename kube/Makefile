@@ -1,3 +1,5 @@
+include kube.mk
+
 .PHONY: build test pushk release_configmap_reload release_auth_push release_continuous_deploy
 
 build:
@@ -5,9 +7,6 @@ build:
 
 test:
 	go test ./go/...
-
-pushk:
-	go install ./go/pushk
 
 release_configmap_reload:
 	CGO_ENABLED=0 GOOS=linux go install -a github.com/jimmidyson/configmap-reload

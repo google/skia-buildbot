@@ -19,6 +19,9 @@ autoroll-fe-kube: core_js elements_html skiaversion
 autoroll-be: skiaversion
 	go install -v ./go/autoroll-be
 
+autoroll-be-kube: skiaversion
+	GCO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-be-kube
+
 autoroll-google3: skiaversion
 	go install -v ./go/autoroll-google3
 
@@ -34,15 +37,53 @@ include ../webtools/webtools.mk
 release-fe-kube: autoroll-fe-kube
 	./build_docker_frontend_release
 
+# Parse the config files, compile lists of roller configs.
 ROLLER_CONFIGS=$(wildcard config/*.json)
+ROLLER_CONFIGS_GCE=$(shell python -c "import json,sys; print ' '.join([f for f in sys.argv[1:] if json.load(open(f)).get('kubernetes') is None])" $(ROLLER_CONFIGS))
+ROLLER_CONFIGS_KUBE=$(shell python -c "import json,sys; print ' '.join([f for f in sys.argv[1:] if json.load(open(f)).get('kubernetes') is not None])" $(ROLLER_CONFIGS))
+ROLLER_CONFIGS_KUBE_INTERNAL=$(shell python -c "import json,sys; c = [(f, json.load(open(f))) for f in sys.argv[1:]]; print ' '.join([name for name, f in c if f.get(u'kubernetes') is not None and f[u'isInternal']])" $(ROLLER_CONFIGS))
+ROLLER_CONFIGS_KUBE_EXTERNAL=$(shell python -c "import json,sys; c = [(f, json.load(open(f))) for f in sys.argv[1:]]; print ' '.join([name for name, f in c if f.get(u'kubernetes') is not None and not f[u'isInternal']])" $(ROLLER_CONFIGS))
 
 release-be: autoroll-be
-	./build_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
+	./deprecated_build_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
 
-release-be-all: autoroll-be $(ROLLER_CONFIGS)
-	$(foreach cfg, $(ROLLER_CONFIGS), ./build_backend_release "$(cfg)" "$(MESSAGE)";)
+release-be-all: autoroll-be $(ROLLER_CONFIGS_GCE)
+	$(foreach cfg, $(ROLLER_CONFIGS_GCE), ./deprecated_build_backend_release "$(cfg)" "$(MESSAGE)";)
+
+release-be-kube: autoroll-be-kube
+	./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
 
 release-google3: autoroll-google3
 	./build_google3_release "$(MESSAGE)"
 
 release-all: release-fe-kube release-be-all release-google3
+
+include ../kube/kube.mk
+
+KUBE_CONF_GEN_INTERNAL=kube-conf-gen -t ./go/autoroll-be-kube/autoroll-be.yaml.template \
+	-c "$(CONFIG_FILE)" \
+	-o $(SKIA_CORP_CONFIG_DIR)/autoroll-be-$(basename $(notdir $(CONFIG_FILE))).yaml \
+	--extra configFile:$(notdir $(CONFIG_FILE))
+
+KUBE_CONF_GEN_EXTERNAL=kube-conf-gen -t ./go/autoroll-be-kube/autoroll-be.yaml.template \
+	-c "$(CONFIG_FILE)" \
+	-o $(SKIA_PUBLIC_CONFIG_DIR)/autoroll-be-$(basename $(notdir $(CONFIG_FILE))).yaml \
+	--extra configFile:$(notdir $(CONFIG_FILE))
+
+CONFIG_IS_INTERNAL=$(shell python -c "import json,sys; print ('1' if json.load(open(sys.argv[1]))['isInternal'] else '0')" $(CONFIG_FILE))
+
+PUSHK_CMD=pushk --dry-run --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
+
+update-kube-config-be: release-be-kube kube-conf-gen pushk deployment-dirs $(CONFIG_FILE)
+	if [ "$(CONFIG_IS_INTERNAL)" == "1" ]; then $(KUBE_CONF_GEN_INTERNAL); else $(KUBE_CONF_GEN_EXTERNAL); fi
+	$(PUSHK_CMD)
+
+update-kube-config-be-internal: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
+	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
+	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(PUSHK_CMD);)
+
+update-kube-config-be-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_EXTERNAL)
+	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_EXTERNAL), $(KUBE_CONF_GEN_EXTERNAL);)
+	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_EXTERNAL), $(PUSHK_CMD);)
+
+update-kube-config-be-all: update-kube-config-be-internal update-kube-config-be-external
