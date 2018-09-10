@@ -213,9 +213,6 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
-	if err := checkout.Update(ctx); err != nil {
-		sklog.Fatalf("Failed to update repo: %s", err)
-	}
 
 	// Switch kubectl to the right project.
 	p := clusters[*cluster]
