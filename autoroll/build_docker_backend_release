@@ -1,0 +1,17 @@
+#!/bin/bash
+APPNAME=autoroll-be
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+${INSTALL} --mode=644 -T ./go/autoroll-be-kube/Dockerfile ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}-kube    ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ../infra/config/recipes.cfg      ${ROOT}/usr/local/share/autoroll/recipes.cfg
+cp -r                    ./config                         ${ROOT}/usr/local/share/autoroll/config
+}
+
+source ../bash/docker_build.sh

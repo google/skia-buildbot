@@ -532,3 +532,13 @@ func ReadyHandleFunc(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("ready"))
 	util.LogErr(err)
 }
+
+// RunHealthCheckServer is a helper function which runs an HTTP server which
+// only handles health checks. This is used for processes which don't run an
+// HTTP server of their own but still want health checks. Does not return.
+func RunHealthCheckServer(port string) {
+	h := http.NotFoundHandler()
+	h = HealthzAndHTTPS(h)
+	http.Handle("/", h)
+	sklog.Fatal(http.ListenAndServe(port, nil))
+}

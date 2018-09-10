@@ -5,6 +5,7 @@
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "skia-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
@@ -25,6 +26,11 @@
     "luci.chromium.try:mac_optional_gpu_tests_rel",
     "luci.chromium.try:win_optional_gpu_tests_rel"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi"
+  },
   "maxRollFrequency": "0m",
   "notifiers": [
     {

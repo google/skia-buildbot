@@ -116,10 +116,11 @@ func toRepoDir(s string) string {
 
 // flags
 var (
-	cluster  = flag.String("cluster", "skia-public", "Either 'skia-public' or 'skia-corp'.")
-	dryRun   = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
-	message  = flag.String("message", "Push", "Message to go along with the change.")
-	rollback = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
+	cluster     = flag.String("cluster", "skia-public", "Either 'skia-public' or 'skia-corp'.")
+	dryRun      = flag.Bool("dry-run", false, "If true then do not run the kubectl command to apply the changes, and do not commit the changes to the config repo.")
+	ignoreDirty = flag.Bool("ignore-dirty", false, "If true, then do not fail out if the git repo is dirty.")
+	message     = flag.String("message", "Push", "Message to go along with the change.")
+	rollback    = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
 )
 
 var (
@@ -213,8 +214,18 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to check out config repo: %s", err)
 	}
-	if err := checkout.Update(ctx); err != nil {
-		sklog.Fatalf("Failed to update repo: %s", err)
+	output, err := checkout.Git(ctx, "status", "-s")
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if strings.TrimSpace(output) != "" {
+		if !*ignoreDirty {
+			sklog.Fatalf("Found dirty checkout in %s:\n%s", repoBaseDir, output)
+		}
+	} else {
+		if err := checkout.Update(ctx); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Switch kubectl to the right project.

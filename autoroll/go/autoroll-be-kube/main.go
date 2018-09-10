@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
@@ -24,7 +25,9 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -41,7 +44,9 @@ const (
 // flags
 var (
 	configFile     = flag.String("config_file", "", "Configuration file to use.")
+	emailCreds     = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":8000", "HTTP service port.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -59,7 +64,6 @@ func main() {
 	common.InitWithMust(
 		"autoroll-be",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 	defer common.Defer()
 
@@ -72,7 +76,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -101,33 +105,31 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	// The rollers use the gitcookie created by gcompute-tools/git-cookie-authdaemon.
-	gitcookiesPath := filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
 
 	androidInternalGerritUrl := cfg.GerritURL
 	var emailer *email.GMail
-	if *local {
-		// Use the current user's default gitcookies.
-		gitcookiesPath = path.Join(user.HomeDir, ".gitcookies")
-	} else {
+	if !*local {
 		// Emailing init.
-		emailClientId := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-		emailClientSecret := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
+		emailClientId, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		emailClientSecret, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CLIENT_SECRET))
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		cachedGMailToken, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
+		if err != nil {
+			sklog.Fatal(err)
+		}
 		tokenFile, err := filepath.Abs(user.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		if err := ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm); err != nil {
+		if err := ioutil.WriteFile(tokenFile, cachedGMailToken, os.ModePerm); err != nil {
 			sklog.Fatalf("Failed to cache token: %s", err)
 		}
-		emailer, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-
-		// If we are rolling into Android get the Gerrit Url from metadata.
-		androidInternalGerritUrl, err = metadata.ProjectGet("android_internal_gerrit_url")
+		emailer, err = email.NewGMail(strings.TrimSpace(string(emailClientId)), strings.TrimSpace(string(emailClientSecret)), tokenFile)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -151,6 +153,12 @@ func main() {
 	}
 	sklog.Infof("Writing persistent data to gs://%s/%s", gcsBucket, rollerName)
 	gcsClient := gcs.NewGCSClient(s, gcsBucket)
+
+	// The rollers use the gitcookie created by gitauth package.
+	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+	if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
+		sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	}
 
 	if cfg.GerritURL != "" {
 		// Create the code review API client.
@@ -224,5 +232,5 @@ func main() {
 			}
 		}()
 	}
-	select {}
+	httputils.RunHealthCheckServer(*port)
 }

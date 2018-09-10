@@ -8,3 +8,7 @@ infra/tools/cipd/${os}-${arch}  latest
 
 @Subdir git
 infra/git/${platform}	version:2.17.1.chromium15
+
+@Subdir python
+infra/python/cpython/${platform}	version:2.7.15.chromium14
+infra/tools/luci/vpython/${platform}	git_revision:b6cdec8586c9f8d3d728b1bc0bd4331330ba66fc
