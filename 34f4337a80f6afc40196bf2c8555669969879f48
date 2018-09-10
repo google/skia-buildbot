@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f726af78_b9593261",
+        "filename": "golden/cmd/goldctl/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-10T17:52:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4e8018c4_70a01205",
+      "range": {
+        "startLine": 105,
+        "startChar": 3,
+        "endLine": 105,
+        "endChar": 11
+      },
+      "revId": "34f4337a80f6afc40196bf2c8555669969879f48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2ae6ed2f_05cd8ba0",
         "filename": "golden/go/client/client.go",
         "patchSetId": 9
@@ -39,6 +63,24 @@
       "revId": "34f4337a80f6afc40196bf2c8555669969879f48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95e354a5_a05e7d7e",
+        "filename": "golden/go/client/client.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-10T17:52:39Z",
+      "side": 1,
+      "message": "Done\nRefactored JSON input and output into a separate package. \nAll input is now validated and we can also validate a result before we \nserialize it to JSON.",
+      "parentUuid": "2ae6ed2f_05cd8ba0",
+      "revId": "34f4337a80f6afc40196bf2c8555669969879f48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
