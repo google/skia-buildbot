@@ -70,6 +70,30 @@
       "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f440b17_4903d01f",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-10T18:42:14Z",
+      "side": 0,
+      "message": "Okay, PTAL at the next version.  If the checkout is dirty, then we fail out unless --ignore-dirty is set.  We only attempt to update the checkout if it\u0027s not dirty, so in my use case where it will always be dirty, we\u0027ll fail the \"git push\" step if there are any upstream changes.",
+      "parentUuid": "6770d6c8_7ed5a210",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
