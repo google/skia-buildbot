@@ -67,33 +67,48 @@ The JSON file intended to be simple with  flexibility for the specific applicati
 that generates the baseline images.
 
 Here is a shortened but representative example of the input format:
-
 ```json
 {
-   "build_number" : "1300",
-   "gitHash" : "0a1fa5e4c34524bc04f820bb77798999673d3de3",
-   "issue": 1234567,
-   "patchset": 4040,
+   "gitHash" : "c4711517219f333c1116f47706eb57b51b5f8fc7",
    "key" : {
-      "arch" : "Arm7",
-      "compiler" : "GCC",
+      "arch" : "arm64",
+      "compiler" : "Clang",
       "configuration" : "Debug",
-      "cpu_or_gpu" : "CPU",
-      "cpu_or_gpu_value" : "NEON",
-      "model" : "Daisy",
-      "os" : "ChromeOS"
+      "cpu_or_gpu" : "GPU",
+      "cpu_or_gpu_value" : "PowerVRGT7600",
+      "extra_config" : "Metal",
+      "model" : "iPhone7",
+      "os" : "iOS"
    },
-   "max_rss_MB" : 973,
+   "issue": "0",
+   "patchset": "0",
+   "buildbucket_build_id" : "0",
+   "builder" : "Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal",
+   "swarming_bot_id" : "skia-rpi-102",
+   "swarming_task_id" : "3fcd8d4a539ba311",
    "results" : [
       {
          "key" : {
-            "config" : "pipe-8888",
-            "name" : "aaclip",
+            "config" : "mtl",
+            "name" : "yuv_nv12_to_rgb_effect",
             "source_type" : "gm"
          },
-         "md5" : "fa3c371d201d6f88f7a47b41862e2e85",
+         "md5" : "30a470b6ac174aa1ffb54fcb77a21f21",
          "options" : {
-            "ext" : "png"
+            "ext" : "png",
+            "gamma_correct" : "no"
+         }
+      },
+      {
+         "key" : {
+            "config" : "mtl",
+            "name" : "yuv_to_rgb_effect",
+            "source_type" : "gm"
+         },
+         "md5" : "0ea32027e1e651e4250797aa44bfadaa",
+         "options" : {
+            "ext" : "png",
+            "gamma_correct" : "no"
          }
       },
       {
@@ -106,7 +121,7 @@ Here is a shortened but representative example of the input format:
          "options" : {
             "ext" : "png"
          }
-      },
+      }
    ]
 }
 ```
