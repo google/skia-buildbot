@@ -22,6 +22,30 @@
       "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b656a78d_c75e3000",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-10T17:28:49Z",
+      "side": 0,
+      "message": "I\u0027ve had this wipe out changes I\u0027ve had in progress, so forcing an update is bad, but, unless we do an update then pushk may fail if the checked out repo is not up to date. Is there a way to do an update, but only if it can be done safely, or only if there are no local changes?",
+      "parentUuid": "a01207e4_d5f3066e",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
