@@ -1068,8 +1068,7 @@ func tempGitRepoBotUpdate(ctx context.Context, rs db.RepoState, depotToolsDir, g
 		} else {
 			gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
 			cmd = append(cmd, []string{
-				"--gerrit_repo", patchRepo,
-				"--gerrit_ref", gerritRef,
+				"--patch_ref", fmt.Sprintf("%s@%s", patchRepo, gerritRef),
 			}...)
 		}
 	}
