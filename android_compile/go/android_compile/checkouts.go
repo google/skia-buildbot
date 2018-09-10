@@ -231,7 +231,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 
 		// Sync the current branch, only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
-		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j10", "--optimized-fetch", "--prune", "-f"); err != nil {
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j64", "--optimized-fetch", "--prune", "-f"); err != nil {
 			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
 			sklog.Errorln(errMsg)
 			return errors.New(errMsg)
@@ -373,7 +373,7 @@ func addToCheckoutsChannel(checkout string) {
 // that the tree is not broken by building at Skia HEAD. Update CompileTask
 // with link to logs and whether the no patch run was successful.
 //
-func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
+func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
 	incWaitingMetric()
 	// Blocking call to wait for an available checkout.
 	checkoutPath := <-availableCheckoutsChan
@@ -384,7 +384,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 	// Step 1: Find an available Android checkout and update the CompileTask
 	// with the checkout. This is done for the UI and for easier debugging.
 	task.Checkout = path.Base(checkoutPath)
-	if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+	if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 		return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 	}
 
@@ -440,7 +440,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		}
 		task.IsMasterBranch = fromMaster
 		if !task.IsMasterBranch {
-			if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+			if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 				return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 			}
 			sklog.Infof("Patch with issue %d and patchset %d is not on master branch.", task.Issue, task.PatchSet)
@@ -464,7 +464,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		}
 		task.IsMasterBranch = fromMaster
 		if !task.IsMasterBranch {
-			if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+			if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 				return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 			}
 			sklog.Infof("Hash %s is not on master branch.", task.Hash)
@@ -486,7 +486,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 	}
 	task.WithPatchSucceeded = withPatchSuccess
 	task.WithPatchLog = gsWithPatchLink
-	if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+	if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 		return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 	}
 
@@ -513,7 +513,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		updateAndroidTreeBrokenMetric(!noPatchSuccess)
 		task.NoPatchSucceeded = noPatchSuccess
 		task.NoPatchLog = gsNoPatchLink
-		if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+		if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 			return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 		}
 	}
