@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "484d4603_59b2a3c6",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-10T14:54:13Z",
+      "side": 1,
+      "message": "This might be a temporary change (testing a theory).",
+      "revId": "778622ef8d5b069fe5c939107dfcd69b052b82b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
