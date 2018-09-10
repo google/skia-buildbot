@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9bb4af29_07be967c",
+        "filename": "kube/go/kube-conf-gen/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-10T17:19:19Z",
+      "side": 1,
+      "message": "The template library doesn\u0027t work as I expected when you give it a flat map with \"X.Y\" keys.  Instead, it wants nested maps or structs, ie. \"X\": map[string]interface{\"Y\": \"value\"}",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 55
+      },
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8a3cb38_379565b7",
+        "filename": "kube/kube.mk",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-10T17:19:19Z",
+      "side": 1,
+      "message": "I broke some targets out into this file so that other makefiles can include it and depend on having pushk and kube-conf-gen built.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

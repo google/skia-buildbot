@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a01207e4_d5f3066e",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-10T17:19:19Z",
+      "side": 0,
+      "message": "This destroys any changes previously created by kube-conf-gen.  Should I put it behind a flag?  Alternatively, it\u0027d be nice to merge the pushk and kube-conf-gen somehow, so that all of the editing of the config files happens in one tool.",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
