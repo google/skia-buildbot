@@ -177,7 +177,10 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}()
 
 	// Make sure the forked repo is at the same hash as the target repo before
-	// creating the pull request.
+	// creating the pull request on both parentBranch and ROLL_BRANCH.
+	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.parentBranch, "-f"); err != nil {
+		return 0, err
+	}
 	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", ROLL_BRANCH, "-f"); err != nil {
 		return 0, err
 	}
