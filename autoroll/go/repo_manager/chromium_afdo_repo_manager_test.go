@@ -106,7 +106,7 @@ type gsObjectList struct {
 }
 
 func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path string, items map[string]string) {
-	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&projection=full&versions=false", bucket, url.PathEscape(path))
+	fakeUrl := fmt.Sprintf("https://www.googleapis.com/storage/v1/b/%s/o?alt=json&delimiter=&pageToken=&prefix=%s&prettyPrint=false&projection=full&versions=false", bucket, url.PathEscape(path))
 	resp := gsObjectList{
 		Kind:  "storage#objects",
 		Items: []gsObject{},
