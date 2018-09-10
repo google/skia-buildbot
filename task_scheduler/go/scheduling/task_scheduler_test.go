@@ -3264,7 +3264,7 @@ func TestValidateTaskForAdd(t *testing.T) {
 	{
 		task := tmpl.Copy()
 		task.Revision = "abc123"
-		test(task, "error: pathspec 'abc123' did not match any file(s) known to git.")
+		test(task, "error: pathspec 'abc123' did not match any file(s) known to git")
 	}
 	{
 		task := tmpl.Copy()
