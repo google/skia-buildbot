@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "c6147147_4a33e6fa",
+        "filename": "autoroll/go/autoroll-be-kube/autoroll-be.yaml.template",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-10T18:41:16Z",
+      "side": 1,
+      "message": "We will need a way to specify N number of secrets as well.",
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5fdf9389_8d2bd138",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-10T18:41:16Z",
+      "side": 1,
+      "message": "Do we need this?\nWe can also probe the prom port to see if the backend is still up:\n          readinessProbe:                                                       \n            tcpSocket:                                                          \n              port: 20000",
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9bb4af29_07be967c",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 6
