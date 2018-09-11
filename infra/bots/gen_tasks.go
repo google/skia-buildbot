@@ -275,7 +275,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	extraProps := map[string]string{
 		"category":         "cq",
 		"patch_gerrit_url": "https://skia-review.googlesource.com",
-		"patch_project":    "skiabuildbot",
+		"patch_project":    "buildbot",
 		"patch_ref":        fmt.Sprintf("refs/changes/%s/%s/%s", specs.PLACEHOLDER_ISSUE_SHORT, specs.PLACEHOLDER_ISSUE, specs.PLACEHOLDER_PATCHSET),
 		"reason":           "CQ",
 		"repo_name":        "skia_buildbot",
