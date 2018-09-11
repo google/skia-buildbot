@@ -15,8 +15,15 @@
       private: no
 
   tasks:
+
+      # This allows us to get access to the newer libdrm2 (see below)
+    - name: Add stretch-backports to deb sources
+      apt_repository:
+        repo: deb http://ftp.debian.org/debian stretch-backports main
+        state: present
+
     - name: Update and Upgrade
-      apt: upgrade=dist update_cache=yes
+      apt: upgrade=safe update_cache=yes
     - name: Install openssh-server
       apt: name=openssh-server
 
@@ -43,6 +50,11 @@
     # These are needed to run our swarming tests
     - name: Install Beignet OpenCL driver
       apt: name=beignet-opencl-icd,ocl-icd-libopencl1
+
+    # Required for mesa linux drivers > 17.0.4
+    - name: Install newer libdrm2
+      apt:
+        name: libdrm2=2.4.91-2~bpo9+1
 
     # These are needed for general use
     - name: Install collectd, without the JDK
