@@ -202,7 +202,7 @@ func (g *GoogleStorageSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
@@ -222,10 +222,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 				sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
 				return
 			}
-			ret := []ResultFileLocation{
-				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
-			}
-			resultCh <- ret
+			resultCh <- newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient)
 			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
 		})
 	}
@@ -375,7 +372,7 @@ func (f *FileSystemSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (f *FileSystemSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (f *FileSystemSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	return nil
 }
 
