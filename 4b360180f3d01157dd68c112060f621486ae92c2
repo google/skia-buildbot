@@ -118,6 +118,30 @@
       "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dd44d9c_14f62d30",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-11T14:42:29Z",
+      "side": 0,
+      "message": "Any of the above SGTM, in a future CL.",
+      "parentUuid": "f2344b4d_f1a62b5e",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
