@@ -8,6 +8,11 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+const (
+	// maxConcurrentPublishers is the maxium number of go-routines that can publish events concurrently.
+	maxConcurrentPublishers = 1000
+)
+
 // CallbackFn defines the signature of all callback functions used for
 // callbacks by the EventBus interface.
 type CallbackFn func(data interface{})
@@ -68,6 +73,11 @@ type MemEventBus struct {
 	// Map of handlers keyed by channel. This is used to keep track of subscriptions.
 	handlers map[string]*channelHandler
 
+	// concurrentPub is used the limit the number of go-routines that can concurrently
+	// publish events. Since each Publish call can spin up multiple go-routines we avoid
+	// creating too many. In most cases the maximum will never be reached.
+	concurrentPub chan bool
+
 	// Used to protect handlers.
 	mutex sync.Mutex
 }
@@ -82,20 +92,27 @@ type channelHandler struct {
 // different components about events.
 func New() EventBus {
 	ret := &MemEventBus{
-		handlers: map[string]*channelHandler{},
+		handlers:      map[string]*channelHandler{},
+		concurrentPub: make(chan bool, maxConcurrentPublishers),
 	}
 	return ret
 }
 
 // Publish implements the EventBus interface.
 func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
+	// Get one of the publisher slots before spinning up more go-routines.
+	e.concurrentPub <- true
+
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	if th, ok := e.handlers[channel]; ok {
 		for _, callback := range th.callbacks {
 			th.wg.Add(1)
 			go func(callback CallbackFn) {
-				defer th.wg.Done()
+				defer func() {
+					<-e.concurrentPub
+					th.wg.Done()
+				}()
 				callback(arg)
 			}(callback)
 		}
