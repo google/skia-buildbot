@@ -94,6 +94,30 @@
       "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2344b4d_f1a62b5e",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-11T14:36:01Z",
+      "side": 0,
+      "message": "+1 for integrating kube-conf-gen into pushk, with the constraint that we still want to be able to use it standalone to \"debug\" config templates \nI see these ways:\n\n-- add a flag to pushk that shells out to kube-conf-gen \n-- factor out kube-conf-gen into a package with kube-conf-gen being a very thin layer that extracts command line arguments and calling the package from pushk\n-- making kube-conf-gen a sub command that can either be called from the pushk pipeline or individually to just generate template, something like \n    pushk confgen ....",
+      "parentUuid": "1f440b17_4903d01f",
+      "range": {
+        "startLine": 216,
+        "startChar": 0,
+        "endLine": 218,
+        "endChar": 2
+      },
+      "revId": "4b360180f3d01157dd68c112060f621486ae92c2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
