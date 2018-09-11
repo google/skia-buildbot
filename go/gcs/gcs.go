@@ -298,3 +298,8 @@ func SplitGSPath(path string) (string, string) {
 	}
 	return path, ""
 }
+
+type StorageEvent struct {
+	ObjectName string `json:"name"`
+	Bucket     string `json:"bucket"`
+}
