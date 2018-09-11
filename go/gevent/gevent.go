@@ -28,6 +28,11 @@ const (
 	storageEventPrefix = "--storage-event-"
 )
 
+func init() {
+	// Register a codec for synthetic storage events.
+	RegisterCodec(eventbus.SYN_STORAGE_EVENT, util.JSONCodec(&eventbus.StorageEvent{}))
+}
+
 // codecMap holds codecs for the different event channels. Values are added
 // via the RegisterCodec function.
 var codecMap = sync.Map{}
@@ -195,6 +200,16 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 	return getEventType(notifyID, objectRegEx), nil
 }
 
+// PublishStorageEvent implements the EventBus interface.
+func (d *distEventBus) PublishStorageEvent(bucketName, objectName string) {
+	evtData := &eventbus.StorageEvent{
+		EventType: storage.ObjectFinalizeEvent,
+		BucketID:  bucketName,
+		ObjectID:  objectName,
+	}
+	d.Publish(eventbus.SYN_STORAGE_EVENT, evtData, true)
+}
+
 // getEventType creates a unique ID from the notification ID (which is a
 // combination of bucket name and object prefix) and a regular expression.
 func getEventType(notificationID string, regEx *regexp.Regexp) string {
@@ -311,7 +326,40 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 	if err != nil {
 		return nil, nil, false, fmt.Errorf("Unable to decode payload of pubsub event: %s", err)
 	}
+
+	// Check if this is synthetic storage event in which case we need to notify the right subcribers.
+	if wrapper.Channel == eventbus.SYN_STORAGE_EVENT {
+		return d.wrapSyntheticStorageEvent(wrapper, data)
+	}
+
 	return []*channelWrapper{wrapper}, data, false, nil
+}
+
+func (d *distEventBus) wrapSyntheticStorageEvent(wrapper *channelWrapper, evtData interface{}) ([]*channelWrapper, interface{}, bool, error) {
+	evt := evtData.(*eventbus.StorageEvent)
+	wrappers := []*channelWrapper{}
+	for notifyID, regexes := range d.storageNotifications {
+		parts := strings.SplitN(notifyID, "/", 1)
+		if len(parts) != 2 {
+			return nil, nil, false, sklog.FmtErrorf("Invalid notification id found. This should never happen!")
+		}
+		bucketID, objectPrefix := parts[0], parts[1]
+
+		if evt.BucketID == bucketID && strings.HasPrefix(evt.ObjectID, objectPrefix) {
+			// Check the regular expressions.
+			for id, oneRegEx := range regexes {
+				if id == "" || oneRegEx.Match([]byte(evt.ObjectID)) {
+					wrappers = append(wrappers, &channelWrapper{
+						Channel: getEventType(notifyID, oneRegEx),
+						Sender:  wrapper.Sender,
+						Data:    wrapper.Data,
+					})
+				}
+			}
+		}
+	}
+
+	return wrappers, evtData, false, nil
 }
 
 // decodeStorageMsg checks wether the given pubsub message is a notification

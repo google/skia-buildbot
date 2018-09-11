@@ -19,7 +19,6 @@ import (
 
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
@@ -96,14 +95,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			// TODO(stephana): Remove this once we can support event driven
-			// ingestion for all ingesters.
-			var sourceEventBus eventbus.EventBus = nil
-			if id == "gold-tryjob" {
-				sourceEventBus = eventBus
-			}
-
-			oneSource, err := getSource(id, dataSource, client, sourceEventBus)
+			oneSource, err := getSource(id, dataSource, client, eventBus)
 			if err != nil {
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
@@ -117,7 +109,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore)
+		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
 		if err != nil {
 			return nil, err
 		}
@@ -175,25 +167,35 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 	}, nil
 }
 
-// See Source interface.
-func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	dirs := gcs.GetLatestGCSDirs(startTime, endTime, g.rootDir)
-	retval := []ResultFileLocation{}
-	for _, dir := range dirs {
-		err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
-			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
-			if strings.Contains(filepath.Base(item.Name), "uploading") {
-				sklog.Warningf("Received temporary file from GS: %s", item.Name)
-			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
-			}
-		})
+const maxConcurrentDirPollers = 200
 
-		if err != nil {
-			return nil, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+// See Source interface.
+func (g *GoogleStorageSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	dirs := gcs.GetHourlyGCSDirs(startTime, endTime, g.rootDir)
+	ch := make(chan ResultFileLocation, maxConcurrentDirPollers)
+	concurrentPollers := make(chan bool, maxConcurrentDirPollers)
+
+	go func() {
+		for _, dir := range dirs {
+			concurrentPollers <- true
+
+			go func(dir string) {
+				defer func() { <-concurrentPollers }()
+				err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
+					if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
+						ch <- newGCSResultFileLocation(item, g.rootDir, g.storageClient)
+					}
+				})
+
+				if err != nil {
+					sklog.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+				}
+			}(dir)
 		}
-	}
-	return retval, nil
+		close(ch)
+	}()
+
+	return ch
 }
 
 // See Source interface.
@@ -202,7 +204,7 @@ func (g *GoogleStorageSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
@@ -222,10 +224,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 				sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
 				return
 			}
-			ret := []ResultFileLocation{
-				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
-			}
-			resultCh <- ret
+			resultCh <- newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient)
 			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
 		})
 	}
@@ -294,6 +293,11 @@ func (g *gsResultFileLocation) Name() string {
 	return fmt.Sprintf("gs://%s/%s", g.bucket, g.name)
 }
 
+// StorageIDs implements the ResultFileLocation interface.
+func (g *gsResultFileLocation) StorageIDs() (string, string) {
+	return g.bucket, g.name
+}
+
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) MD5() string {
 	return g.md5
@@ -324,49 +328,50 @@ func NewFileSystemSource(baseName, rootDir string) (Source, error) {
 }
 
 // See Source interface.
-func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	retval := []ResultFileLocation{}
+func (f *FileSystemSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	// retval := []ResultFileLocation{}
 
-	// although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
-	// its operation that makes it not re-usable here.
-	dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
-	for _, dir := range dirs {
-		// Inject dir into a closure.
-		func(dir string) {
-			walkFn := func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					// We swallow the error to continue processing, but make sure it's
-					// shows up in the logs.
-					sklog.Errorf("Error walking %s: %s", path, err)
-					return nil
-				}
-				if info.IsDir() {
-					return nil
-				}
+	// // although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
+	// // its operation that makes it not re-usable here.
+	// dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
+	// for _, dir := range dirs {
+	// 	// Inject dir into a closure.
+	// 	func(dir string) {
+	// 		walkFn := func(path string, info os.FileInfo, err error) error {
+	// 			if err != nil {
+	// 				// We swallow the error to continue processing, but make sure it's
+	// 				// shows up in the logs.
+	// 				sklog.Errorf("Error walking %s: %s", path, err)
+	// 				return nil
+	// 			}
+	// 			if info.IsDir() {
+	// 				return nil
+	// 			}
 
-				updateTimestamp := info.ModTime().Unix()
-				if validIngestionFile(path) && (updateTimestamp > startTime) {
-					rf, err := FileSystemResult(path, f.rootDir)
-					if err != nil {
-						sklog.Errorf("Unable to create file system result: %s", err)
-						return nil
-					}
-					retval = append(retval, rf)
-				}
-				return nil
-			}
+	// 			updateTimestamp := info.ModTime().Unix()
+	// 			if validIngestionFile(path) && (updateTimestamp > startTime) {
+	// 				rf, err := FileSystemResult(path, f.rootDir)
+	// 				if err != nil {
+	// 					sklog.Errorf("Unable to create file system result: %s", err)
+	// 					return nil
+	// 				}
+	// 				retval = append(retval, rf)
+	// 			}
+	// 			return nil
+	// 		}
 
-			// Only walk the tree if the top directory exists.
-			if fileutil.FileExists(dir) {
-				if err := filepath.Walk(dir, walkFn); err != nil {
-					sklog.Infof("Unable to read the local dir %s: %s", dir, err)
-					return
-				}
-			}
-		}(dir)
-	}
+	// 		// Only walk the tree if the top directory exists.
+	// 		if fileutil.FileExists(dir) {
+	// 			if err := filepath.Walk(dir, walkFn); err != nil {
+	// 				sklog.Infof("Unable to read the local dir %s: %s", dir, err)
+	// 				return
+	// 			}
+	// 		}
+	// 	}(dir)
+	// }
 
-	return retval, nil
+	// return retval, nil
+	return nil
 }
 
 // See Source interface.
@@ -375,7 +380,7 @@ func (f *FileSystemSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (f *FileSystemSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (f *FileSystemSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	return nil
 }
 
@@ -435,6 +440,11 @@ func (f *fsResultFileLocation) Open() (io.ReadCloser, error) {
 // see ResultFileLocation interface.
 func (f *fsResultFileLocation) Name() string {
 	return f.path
+}
+
+// StorageIDs implements the ResultFileLocation interface.
+func (f *fsResultFileLocation) StorageIDs() (string, string) {
+	return "--fsResultFileLocation", f.path
 }
 
 // see ResultFileLocation interface.

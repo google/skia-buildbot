@@ -6,17 +6,15 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"sync"
 	"time"
 
-	"golang.org/x/sync/errgroup"
+	"go.skia.org/infra/go/eventbus"
 
 	"github.com/boltdb/bolt"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -30,7 +28,8 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	POLL_CHUNK_SIZE = 50
+	// nConcurrentProcessors is the maximum number of go-routines that run Processors.
+	nConcurrentProcessors = 256
 )
 
 var (
@@ -43,16 +42,16 @@ var (
 // Source defines an ingestion source that returns lists of result files
 // either through polling or in an event driven mode.
 type Source interface {
-	// Return a list of result files that originated between the given
-	// timestamps in milliseconds.
-	Poll(startTime, endTime int64) ([]ResultFileLocation, error)
-
 	// ID returns a unique identifier for this source.
 	ID() string
 
+	// Return all result files that originated between the given
+	// timestamps in milliseconds.
+	Poll(startTime, endTime int64) <-chan ResultFileLocation
+
 	// SetEventChannel configures storage events and sets up routines to send
 	// new results to the given channel.
-	SetEventChannel(resultCh chan<- []ResultFileLocation) error
+	SetEventChannel(resultCh chan<- ResultFileLocation) error
 }
 
 // ResultFileLocation is an abstract interface to a file like object that
@@ -64,6 +63,9 @@ type ResultFileLocation interface {
 	// Name returns the full path of the file. The last segment is usually the
 	// the file name.
 	Name() string
+
+	// StorageIDs return the bucket and object ID for the given location.
+	StorageIDs() (string, string)
 
 	// MD5 returns the MD5 hash of the content of the file.
 	MD5() string
@@ -106,15 +108,16 @@ type Ingester struct {
 	doneCh         chan bool
 	statusDB       *bolt.DB // Deprecated: To be removed when all ingesters use the IngestionStore
 	ingestionStore IngestionStore
+	eventBus       eventbus.EventBus
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
 
 	// pollProcessMetrics capture metrics from processing polled result files.
-	pollProcessMetrics *processMetrics
+	pollProcessMetricsx *processMetrics
 
 	// eventProcessMetrics capture metrics from processing result files delivered by events from sources.
-	eventProcessMetrics *processMetrics
+	eventProcessMetricsx *processMetrics
 
 	// processTimer measure the overall time it takes to process a set of files.
 	processTimer metrics2.Timer
@@ -122,7 +125,7 @@ type Ingester struct {
 
 // NewIngester creates a new ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
-func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore) (*Ingester, error) {
+func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
 
 	// TODO(stephana): Remove once all instances have been moved to BigTable.
 	var statusDB *bolt.DB
@@ -146,39 +149,44 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		processor:      processor,
 		statusDB:       statusDB,
 		ingestionStore: ingestionStore,
+		eventBus:       eventBus,
 	}
-	ret.setupMetrics()
+	// ret.setupMetrics()
 	return ret, nil
 }
 
-// setupMetrics instantiates and registers the metrics instances used by the Ingester.
-func (i *Ingester) setupMetrics() {
-	i.pollProcessMetrics = newProcessMetrics(i.id, "poll")
-	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
-	i.srcMetrics = newSourceMetrics(i.id, i.sources)
-	i.processTimer = metrics2.NewTimer("ingestion_process", map[string]string{"id": i.id})
-}
+// // setupMetrics instantiates and registers the metrics instances used by the Ingester.
+// func (i *Ingester) setupMetrics() {
+// 	i.pollProcessMetrics = newProcessMetrics(i.id, "poll")
+// 	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
+// 	i.srcMetrics = newSourceMetrics(i.id, i.sources)
+// 	i.processTimer = metrics2.NewTimer("ingestion_process", map[string]string{"id": i.id})
+// }
 
 // Start starts the ingester in a new goroutine.
 func (i *Ingester) Start(ctx context.Context) error {
-	pollChan, eventChan, err := i.getInputChannels(ctx)
+	concurrentProc := make(chan bool, nConcurrentProcessors)
+	resultChan, err := i.getInputChannel(ctx)
 	if err != nil {
-		return sklog.FmtErrorf("Error retrieving input channels: %s", err)
+		return sklog.FmtErrorf("Error retrieving input channel: %s", err)
 	}
-	go func(doneCh <-chan bool) {
-		var resultFiles []ResultFileLocation = nil
-		var useMetrics *processMetrics
 
+	// Continuously catch events from all input sources and push the data to the processor.
+	go func(doneCh <-chan bool) {
+		var resultFile ResultFileLocation = nil
 		for {
 			select {
-			case resultFiles = <-pollChan:
-				useMetrics = i.pollProcessMetrics
-			case resultFiles = <-eventChan:
-				useMetrics = i.eventProcessMetrics
+			case resultFile = <-resultChan:
 			case <-doneCh:
 				return
 			}
-			i.processResults(ctx, resultFiles, useMetrics)
+
+			// get a slot in line to call Process
+			concurrentProc <- true
+			go func(resultFile ResultFileLocation) {
+				defer func() { <-concurrentProc }()
+				i.processResults(ctx, resultFile)
+			}(resultFile)
 		}
 	}(i.doneCh)
 	return nil
@@ -202,50 +210,55 @@ func (q *rflQueue) clear() {
 	*q = rflQueue{}
 }
 
-func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation, error) {
-	pollChan := make(chan []ResultFileLocation)
-	eventChan := make(chan []ResultFileLocation)
+const eventChanSize = 500
+
+func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocation, error) {
+	eventChan := make(chan ResultFileLocation, eventChanSize)
 	i.doneCh = make(chan bool)
 
-	for idx, source := range i.sources {
-		go func(source Source, srcMetrics *sourceMetrics, doneCh <-chan bool) {
-			util.Repeat(i.runEvery, doneCh, func() {
-				srcMetrics.pollTimer.Start()
-				var startTime, endTime int64 = 0, 0
-				startTime, endTime, err := i.getCommitRangeOfInterest(ctx)
-				if err != nil {
-					sklog.Errorf("Unable to retrieve the start and end time. Got error: %s", err)
-					return
-				}
-
-				sklog.Infof("Polling range: %s - %s", time.Unix(startTime, 0), time.Unix(endTime, 0))
-				// measure how long the polling takes.
-				resultFiles, err := source.Poll(startTime, endTime)
-				if err != nil {
-					// Indicate that there was an error in polling the source.
-					srcMetrics.pollError.Update(1)
-					sklog.Errorf("Error polling data source '%s': %s", source.ID(), err)
-					return
-				}
-
-				sklog.Infof("Sending pollChan from %s for %d files.", source.ID(), len(resultFiles))
-				// Indicate that the polling was successful.
-				srcMetrics.pollError.Update(0)
-				for len(resultFiles) > 0 {
-					chunkSize := util.MinInt(POLL_CHUNK_SIZE, len(resultFiles))
-					pollChan <- resultFiles[:chunkSize]
-					resultFiles = resultFiles[chunkSize:]
-				}
-				srcMetrics.liveness.Reset()
-				srcMetrics.pollTimer.Stop()
-			})
-		}(source, i.srcMetrics[idx], i.doneCh)
-
+	for _, source := range i.sources {
 		if err := source.SetEventChannel(eventChan); err != nil {
-			return nil, nil, sklog.FmtErrorf("Error setting event channel: %s", err)
+			return nil, sklog.FmtErrorf("Error setting event channel: %s", err)
+		}
+
+		// Watch the source and feed anything not found in the IngestionStore
+		go i.watchSource(source, eventChan)
+	}
+	return eventChan, nil
+}
+
+func (i *Ingester) watchSource(source Source, eventChan chan ResultFileLocation) {
+	ticker := time.NewTicker(i.runEvery)
+	defer ticker.Stop()
+
+	var startTime, endTime int64
+Loop:
+	for {
+		select {
+		case <-i.doneCh:
+			break Loop
+		case <-ticker.C:
+			rfCh := source.Poll(startTime, endTime)
+			if err != nil {
+				sklog.Errorf("Error polling source '%s': %s", source.ID(), err)
+				continue
+			}
+
+			for resultFile := range rfCh {
+				ok, err := i.ingestionStore.ContainsResultFileHash(resultFile.MD5())
+				if err != nil {
+					sklog.Errorf("Error looking up file hash: %s", err)
+					continue
+				}
+				if ok {
+					continue
+				}
+
+				bucketID, objectID := resultFile.StorageIDs()
+				i.eventBus.PublishStorageEvent(bucketID, objectID)
+			}
 		}
 	}
-	return pollChan, eventChan, nil
 }
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
@@ -279,17 +292,9 @@ func (i *Ingester) inProcessedFiles(md5 string) bool {
 
 // addToProcessedFiles adds the given list of md5 hashes to the list of
 // file that have been already processed.
-func (i *Ingester) addToProcessedFiles(md5s []string) {
+func (i *Ingester) addToProcessedFiles(md5 string) {
 	if i.ingestionStore != nil {
-		var egroup errgroup.Group
-		for _, md5 := range md5s {
-			func(md5 string) {
-				egroup.Go(func() error {
-					return i.ingestionStore.SetResultFileHash(md5)
-				})
-			}(md5)
-		}
-		if err := egroup.Wait(); err != nil {
+		if err := i.ingestionStore.SetResultFileHash(md5); err != nil {
 			sklog.Errorf("Error setting md5 in ingestionstore: %s", err)
 		}
 		return
@@ -301,74 +306,35 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 			return err
 		}
 
-		for _, md5 := range md5s {
-			if err := bucket.Put([]byte(md5), []byte{}); err != nil {
-				return err
-			}
+		if err := bucket.Put([]byte(md5), []byte{}); err != nil {
+			return err
 		}
 		return nil
 	}
 
 	if err := i.statusDB.Update(updateFn); err != nil {
-		sklog.Errorf("Error writing to bucket %s/%v: %s", PROCESSED_FILES_BUCKET, md5s, err)
+		sklog.Errorf("Error writing to bucket %s/%s: %s", PROCESSED_FILES_BUCKET, md5, err)
 	}
 }
 
 // processResults ingests a set of result files.
-func (i *Ingester) processResults(ctx context.Context, resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
-
-	var mutex sync.Mutex // Protects access to the following vars.
-	processedMD5s := make([]string, 0, len(resultFiles))
-	var processedCounter int64 = 0
-	var ignoredCounter int64 = 0
-	var errorCounter int64 = 0
-
-	// time how long the overall process takes.
-	i.processTimer.Start()
-	var wg sync.WaitGroup
-	for _, resultLocation := range resultFiles {
-		if i.inProcessedFiles(resultLocation.MD5()) {
-			mutex.Lock()
-			ignoredCounter++
-			mutex.Unlock()
-			continue
-		}
-		wg.Add(1)
-		go func(resultLocation ResultFileLocation) {
-			defer wg.Done()
-			defer metrics2.NewTimer("ingestion_process_file", map[string]string{"id": i.id}).Stop()
-			err := i.processor.Process(ctx, resultLocation)
-
-			mutex.Lock()
-			defer mutex.Unlock()
-
-			if err != nil {
-				if err == IgnoreResultsFileErr {
-					ignoredCounter++
-				} else {
-					errorCounter++
-					sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
-					return
-				}
-			}
-
-			// Gather all successfully processed MD5s
-			processedCounter++
-			processedMD5s = append(processedMD5s, resultLocation.MD5())
-		}(resultLocation)
+func (i *Ingester) processResults(ctx context.Context, resultLocation ResultFileLocation) {
+	resultMD5 := resultLocation.MD5()
+	if i.inProcessedFiles(resultMD5) {
+		return
 	}
-	wg.Wait()
-	targetMetrics.liveness.Reset()
 
-	// Update the timer and the gauges that measure how the ingestion works
-	// for the input type.
-	i.processTimer.Stop()
-	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)) + targetMetrics.totalFilesGauge.Get())
-	targetMetrics.processedGauge.Update(processedCounter + targetMetrics.processedGauge.Get())
-	targetMetrics.ignoredGauge.Update(ignoredCounter + targetMetrics.ignoredGauge.Get())
-	targetMetrics.errorGauge.Update(errorCounter + targetMetrics.errorGauge.Get())
-
-	i.addToProcessedFiles(processedMD5s)
+	err := i.processor.Process(ctx, resultLocation)
+	if err != nil {
+		if err == IgnoreResultsFileErr {
+			// ignoredCounter++
+		} else {
+			// errorCounter++
+			sklog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+			return
+		}
+	}
+	i.addToProcessedFiles(resultMD5)
 }
 
 // getCommitRangeOfInterest returns the time range (start, end) that
