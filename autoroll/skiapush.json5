@@ -28,48 +28,6 @@
         "pulld",
       ],
     },
-    "angle-chromium-autoroll": {
-      "AppNames": [
-        "angle-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "angle-skia-autoroll": {
-      "AppNames": [
-        "angle-skia-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "catapult-autoroll": {
-      "AppNames": [
-        "catapult-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "chromite-chromium-autoroll": {
-      "AppNames": [
-        "chromite-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "chromium-skia-autoroll": {
-      "AppNames": [
-        "chromium-skia-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "depot-tools-chromium-autoroll": {
-      "AppNames": [
-        "depot-tools-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "flutter-engine-flutter-autoroll": {
       "AppNames": [
         "flutter-engine-flutter-autorolld",
@@ -96,51 +54,9 @@
         "pulld",
       ],
     },
-    "ios-internal-chromium-autoroll": {
-      "AppNames": [
-        "ios-internal-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "lottie-web-lottie-ci-autoroll": {
-      "AppNames": [
-        "lottie-web-lottie-ci-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "nacl-autoroll": {
-      "AppNames": [
-        "nacl-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "pdfium-autoroll": {
-      "AppNames": [
-        "pdfium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "perfetto-chromium-autoroll": {
-      "AppNames": [
-        "perfetto-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "skcms-skia-autoroll": {
       "AppNames": [
         "skcms-skia-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "skia-autoroll": {
-      "AppNames": [
-        "skia-autorolld",
         "git-cookie-authdaemon",
         "pulld",
       ],
@@ -161,41 +77,6 @@
     "skia-lottie-ci-autoroll": {
       "AppNames": [
         "skia-lottie-ci-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "spirv-headers-chromium-autoroll": {
-      "AppNames": [
-        "spirv-headers-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "spirv-tools-chromium-autoroll": {
-      "AppNames": [
-        "spirv-tools-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "src-internal-chromium-autoroll": {
-      "AppNames": [
-        "src-internal-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "swiftshader-skia-autoroll": {
-      "AppNames": [
-        "swiftshader-skia-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "webrtc-chromium-autoroll": {
-      "AppNames": [
-        "webrtc-chromium-autorolld",
         "git-cookie-authdaemon",
         "pulld",
       ],

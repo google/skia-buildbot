@@ -5,6 +5,7 @@
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "lottie-web-lottie-ci-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "borenet@google.com"
   ],
@@ -17,6 +18,11 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi"
   },
   "maxRollFrequency": "0m",
   "safetyThrottle": {

@@ -24,15 +24,6 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	return vm
 }
 
-func Skia() *gce.Instance {
-	vm := AutoRollBase("skia-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"borenet@google.com",
-	}
-	vm.ServiceAccount = "skia-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
 func SkiaInternal() *gce.Instance {
 	vm := AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -63,102 +54,12 @@ func AngleSkia() *gce.Instance {
 	return vm
 }
 
-func AngleChromium() *gce.Instance {
-	vm := AutoRollBase("angle-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"jmadill@google.com",
-	}
-	vm.ServiceAccount = "angle-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func Catapult() *gce.Instance {
-	vm := AutoRollBase("catapult-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"sullivan@google.com",
-	}
-	vm.ServiceAccount = "catapult-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func Chromite_Chromium() *gce.Instance {
-	vm := AutoRollBase("chromite-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"bpastene@google.com",
-	}
-	vm.ServiceAccount = "chromite-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func Chromium_Skia() *gce.Instance {
-	vm := AutoRollBase("chromium-skia-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"borenet@google.com",
-	}
-	vm.ServiceAccount = "chromium-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func DepotTools_Chromium() *gce.Instance {
-	vm := AutoRollBase("depot-tools-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"agable@google.com",
-	}
-	vm.ServiceAccount = "depot-tools-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
 func FlutterEngine_Flutter() *gce.Instance {
 	vm := AutoRollBase("flutter-engine-flutter-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
 		"rmistry@google.com",
 	}
 	vm.ServiceAccount = "engine-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func IosInternal_Chromium() *gce.Instance {
-	vm := AutoRollBase("ios-internal-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"sdefresne@google.com",
-	}
-	vm.ServiceAccount = "ios-internal-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func LottieWeb_LottieCI() *gce.Instance {
-	vm := AutoRollBase("lottie-web-lottie-ci-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"borenet@google.com",
-	}
-	vm.ServiceAccount = "lottie-web-lottie-ci-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func NaCl() *gce.Instance {
-	vm := AutoRollBase("nacl-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"mseaborn@google.com",
-	}
-	vm.ServiceAccount = "nacl-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func PDFium() *gce.Instance {
-	vm := AutoRollBase("pdfium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"dsinclair@google.com",
-	}
-	vm.ServiceAccount = "pdfium-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func PerfettoChromium() *gce.Instance {
-	vm := AutoRollBase("perfetto-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"primiano@chromium.org",
-	}
-	vm.ServiceAccount = "perfetto-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
@@ -212,52 +113,6 @@ func Skia_LottieCI() *gce.Instance {
 	dir := path.Dir(filename)
 	// This is not an internal roller, but it needs the same setup.
 	vm.SetupScript = path.Join(dir, "setup-script-internal.sh")
-	return vm
-}
-
-func SpirvHeaders_Chromium() *gce.Instance {
-	vm := AutoRollBase("spirv-headers-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"dsinclair@google.com",
-	}
-	vm.ServiceAccount = "spirv-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func SpirvTools_Chromium() *gce.Instance {
-	vm := AutoRollBase("spirv-tools-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"dsinclair@google.com",
-	}
-	vm.ServiceAccount = "spirv-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func SrcInternal_Chromium() *gce.Instance {
-	vm := AutoRollBase("src-internal-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"mmoss@google.com",
-	}
-	vm.ServiceAccount = "src-internal-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func SwiftShader_Skia() *gce.Instance {
-	vm := AutoRollBase("swiftshader-skia-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"benjaminwagner@google.com",
-		"halcanary@google.com",
-	}
-	vm.ServiceAccount = "swiftshader-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func WebRTC_Chromium() *gce.Instance {
-	vm := AutoRollBase("webrtc-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"comms-engprod-sto@google.com",
-	}
-	vm.ServiceAccount = "webrtc-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
 
@@ -319,30 +174,13 @@ func main() {
 		"android-master":         AndroidMaster(),
 		"android-next":           AndroidNext(),
 		"android-o":              AndroidO(),
-		"angle-chromium":         AngleChromium(),
-		"angle-skia":             AngleSkia(),
-		"catapult":               Catapult(),
-		"chromite-chromium":      Chromite_Chromium(),
-		"chromium-skia":          Chromium_Skia(),
-		"depot-tools-chromium":   DepotTools_Chromium(),
 		"flutter-engine-flutter": FlutterEngine_Flutter(),
 		"fuchsia":                Fuchsia(),
 		"fuchsia-sdk-chromium":   FuchsiaSDK_Chromium(),
 		"google3":                Google3(),
-		"ios-internal-chromium":  IosInternal_Chromium(),
-		"lottie-web-lottie-ci":   LottieWeb_LottieCI(),
-		"nacl":                   NaCl(),
-		"pdfium":                 PDFium(),
-		"perfetto-chromium":      PerfettoChromium(),
 		"skcms-skia":             SkCMS_Skia(),
-		"skia":                   Skia(),
 		"skia-flutter":           Skia_Flutter(),
 		"skia-internal":          SkiaInternal(),
 		"skia-lottie-ci":         Skia_LottieCI(),
-		"spirv-headers-chromium": SpirvHeaders_Chromium(),
-		"spirv-tools-chromium":   SpirvTools_Chromium(),
-		"src-internal-chromium":  SrcInternal_Chromium(),
-		"swiftshader-skia":       SwiftShader_Skia(),
-		"webrtc-chromium":        WebRTC_Chromium(),
 	})
 }

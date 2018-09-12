@@ -5,6 +5,7 @@
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "angle-skia-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
@@ -30,5 +31,10 @@
     "skia.primary:Test-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE",
     "skia.primary:Test-Win10-Clang-ShuttleC-GPU-GTX960-x86_64-Debug-All-ANGLE"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi"
+  },
   "maxRollFrequency": "8h"
 }

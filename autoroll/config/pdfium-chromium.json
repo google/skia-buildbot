@@ -5,6 +5,7 @@
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "pdfium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "dsinclair@chromium.org"
   ],
@@ -17,6 +18,11 @@
     "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi"
   },
   "maxRollFrequency": "0m"
 }
