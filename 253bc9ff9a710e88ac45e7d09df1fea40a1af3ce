@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3ad74701_847f02ab",
+        "filename": "autoroll/go/autoroll-be-kube/autoroll-be.yaml.template",
+        "patchSetId": 6
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-12T17:07:43Z",
+      "side": 1,
+      "message": "Good point, we can address that in a future CL.",
+      "parentUuid": "c6147147_4a33e6fa",
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5fdf9389_8d2bd138",
         "filename": "autoroll/go/autoroll-be-kube/main.go",
         "patchSetId": 6
