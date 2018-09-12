@@ -185,7 +185,7 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 			if strings.Contains(filepath.Base(item.Name), "uploading") {
 				sklog.Warningf("Received temporary file from GS: %s", item.Name)
 			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
+				retval = append(retval, NewGCSResultFileLocation(item, g.rootDir, g.storageClient))
 			}
 		})
 
@@ -223,7 +223,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 				return
 			}
 			ret := []ResultFileLocation{
-				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
+				NewGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
 			}
 			resultCh <- ret
 			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
@@ -243,7 +243,7 @@ type gsResultFileLocation struct {
 	content       []byte
 }
 
-func newGCSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
+func NewGCSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
 	return &gsResultFileLocation{
 		bucket:        result.Bucket,
 		name:          result.Name,
