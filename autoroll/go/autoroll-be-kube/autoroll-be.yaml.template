@@ -42,10 +42,6 @@ spec:
               mountPath: /data
             - name: autoroll-be-{{$svcAcct}}-sa
               mountPath: /var/secrets/google
-            - name: skia-public-auth
-              mountPath: /var/secrets/skia-public-auth
-            - name: skia-org-legacy-login-secrets
-              mountPath: /etc/skia.org/
             - name: autoroll-email-creds
               mountPath: /var/secrets/autoroll-email-creds
           env:
@@ -66,12 +62,6 @@ spec:
         - name: autoroll-be-{{$svcAcct}}-sa
           secret:
             secretName: {{$svcAcct}}
-        - name: skia-public-auth
-          secret:
-            secretName: skia-public-auth
-        - name: skia-org-legacy-login-secrets
-          secret:
-            secretName: skia-org-legacy-login-secrets
         - name: autoroll-email-creds
           secret:
             secretName: autoroll-email-creds
