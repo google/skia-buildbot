@@ -8,6 +8,7 @@ source ./config.sh
 source ../bash/ramdisk.sh
 
 SECRET_NAME="autoroll-email-creds"
+ORIG_WD=$(pwd)
 
 cd /tmp/ramdisk
 
@@ -19,6 +20,9 @@ get gmail_clientid
 get gmail_clientsecret
 get gmail_cached_token_autoroll
 
+kubectl create secret generic "${SECRET_NAME}" --from-file=gmail_clientid --from-file=gmail_clientsecret --from-file=gmail_cached_token_autoroll
+
+source ${ORIG_WD}/corp-config.sh
 kubectl create secret generic "${SECRET_NAME}" --from-file=gmail_clientid --from-file=gmail_clientsecret --from-file=gmail_cached_token_autoroll
 
 cd -
