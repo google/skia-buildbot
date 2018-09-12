@@ -420,6 +420,7 @@
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]",
       "TMPDIR": null
     },
@@ -439,6 +440,7 @@
       "GOPATH": "[START_DIR]/gopath",
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/gopath/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
+      "PUBSUB_EMULATOR_HOST": "localhost:8893",
       "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]",
       "TMPDIR": null
     },

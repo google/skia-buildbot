@@ -173,7 +173,7 @@ def RunSteps(api):
            cmd=['./run_emulator', 'start'])
     env['DATASTORE_EMULATOR_HOST'] = 'localhost:8891'
     env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
-
+    env['PUBSUB_EMULATOR_HOST'] = 'localhost:8893'
 
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
