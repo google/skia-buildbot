@@ -33,7 +33,7 @@ func (m *Empty) Reset()         { *m = Empty{} }
 func (m *Empty) String() string { return proto.CompactTextString(m) }
 func (*Empty) ProtoMessage()    {}
 func (*Empty) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{0}
+	return fileDescriptor_7be44b2c6ca656f4, []int{0}
 }
 func (m *Empty) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Empty.Unmarshal(m, b)
@@ -66,7 +66,7 @@ func (m *GetDiffsRequest) Reset()         { *m = GetDiffsRequest{} }
 func (m *GetDiffsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetDiffsRequest) ProtoMessage()    {}
 func (*GetDiffsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{1}
+	return fileDescriptor_7be44b2c6ca656f4, []int{1}
 }
 func (m *GetDiffsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDiffsRequest.Unmarshal(m, b)
@@ -118,7 +118,7 @@ func (m *GetDiffsResponse) Reset()         { *m = GetDiffsResponse{} }
 func (m *GetDiffsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetDiffsResponse) ProtoMessage()    {}
 func (*GetDiffsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{2}
+	return fileDescriptor_7be44b2c6ca656f4, []int{2}
 }
 func (m *GetDiffsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDiffsResponse.Unmarshal(m, b)
@@ -157,7 +157,7 @@ func (m *PurgeDigestsRequest) Reset()         { *m = PurgeDigestsRequest{} }
 func (m *PurgeDigestsRequest) String() string { return proto.CompactTextString(m) }
 func (*PurgeDigestsRequest) ProtoMessage()    {}
 func (*PurgeDigestsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{3}
+	return fileDescriptor_7be44b2c6ca656f4, []int{3}
 }
 func (m *PurgeDigestsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PurgeDigestsRequest.Unmarshal(m, b)
@@ -202,7 +202,7 @@ func (m *UnavailableDigestsResponse) Reset()         { *m = UnavailableDigestsRe
 func (m *UnavailableDigestsResponse) String() string { return proto.CompactTextString(m) }
 func (*UnavailableDigestsResponse) ProtoMessage()    {}
 func (*UnavailableDigestsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{4}
+	return fileDescriptor_7be44b2c6ca656f4, []int{4}
 }
 func (m *UnavailableDigestsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UnavailableDigestsResponse.Unmarshal(m, b)
@@ -242,7 +242,7 @@ func (m *WarmDigestsRequest) Reset()         { *m = WarmDigestsRequest{} }
 func (m *WarmDigestsRequest) String() string { return proto.CompactTextString(m) }
 func (*WarmDigestsRequest) ProtoMessage()    {}
 func (*WarmDigestsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{5}
+	return fileDescriptor_7be44b2c6ca656f4, []int{5}
 }
 func (m *WarmDigestsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WarmDigestsRequest.Unmarshal(m, b)
@@ -296,7 +296,7 @@ func (m *WarmDiffsRequest) Reset()         { *m = WarmDiffsRequest{} }
 func (m *WarmDiffsRequest) String() string { return proto.CompactTextString(m) }
 func (*WarmDiffsRequest) ProtoMessage()    {}
 func (*WarmDiffsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{6}
+	return fileDescriptor_7be44b2c6ca656f4, []int{6}
 }
 func (m *WarmDiffsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WarmDiffsRequest.Unmarshal(m, b)
@@ -350,7 +350,7 @@ func (m *DigestFailureResponse) Reset()         { *m = DigestFailureResponse{} }
 func (m *DigestFailureResponse) String() string { return proto.CompactTextString(m) }
 func (*DigestFailureResponse) ProtoMessage()    {}
 func (*DigestFailureResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_diffservice_d7943ba5cd994fc1, []int{7}
+	return fileDescriptor_7be44b2c6ca656f4, []int{7}
 }
 func (m *DigestFailureResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DigestFailureResponse.Unmarshal(m, b)
@@ -652,9 +652,9 @@ var _DiffService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "diffservice.proto",
 }
 
-func init() { proto.RegisterFile("diffservice.proto", fileDescriptor_diffservice_d7943ba5cd994fc1) }
+func init() { proto.RegisterFile("diffservice.proto", fileDescriptor_7be44b2c6ca656f4) }
 
-var fileDescriptor_diffservice_d7943ba5cd994fc1 = []byte{
+var fileDescriptor_7be44b2c6ca656f4 = []byte{
 	// 490 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0xc1, 0x6e, 0xd3, 0x40,
 	0x10, 0x8d, 0xed, 0xa6, 0x8d, 0xc7, 0x51, 0x09, 0x53, 0x40, 0x96, 0x2b, 0x2a, 0x6b, 0x25, 0xa4,
