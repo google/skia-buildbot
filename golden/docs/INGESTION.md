@@ -38,9 +38,9 @@ when the buildbot run finished. All times are based on UTC.
 GIT_HASH is the value of the git commit hash, BUILDER_NAME and BUILDER_NUMBER
 refer to the buildbot instance and run that produced the output.
 
-Here is an example of a valid uploaded JSON file:
+Here is an example of a valid uploaded JSON file (requires permissions to the bucket):
 
-gs://chromium-skia-gm/dm-json-v1/2014/09/17/15/4aa6dfc0b77af9ac298bb9d48991b72a2fec00b2/Test-Android-Xoom-Tegra2-Arm7-Release/3056/dm.json
+gs://skia-infra-gm/dm-json-v1/2014/09/17/15/4aa6dfc0b77af9ac298bb9d48991b72a2fec00b2/Test-Android-Xoom-Tegra2-Arm7-Release/3056/dm.json
 
 Images are stored at
 
@@ -65,6 +65,7 @@ JSON Input file
 
 The JSON file intended to be simple with  flexibility for the specific application
 that generates the baseline images.
+See below for a tool to validate JSON input to Gold.
 
 Here is a shortened but representative example of the input format:
 ```json
@@ -159,3 +160,10 @@ In the root of the object these fields are required:
 
     - options.ext: The file type. This needs to be "png" for the test to be
       ingested.
+
+Validating Gold input with goldctl
+----------------------------------
+
+To validate whether a JSON is valid Gold input you can use the goldctl tool.
+Download a binary version from here.
+To install install it from source run
