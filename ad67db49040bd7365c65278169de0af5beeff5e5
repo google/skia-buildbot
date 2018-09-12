@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44806c14_3cd8af7c",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-12T14:44:52Z",
+      "side": 1,
+      "message": "LGTM",
+      "revId": "ad67db49040bd7365c65278169de0af5beeff5e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

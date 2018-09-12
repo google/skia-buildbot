@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "b787b745_8d198318",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-12T14:44:52Z",
+      "side": 1,
+      "message": "I like httputils.RunHealthCheckServer(*port) because then I get to see a readiness probe in the yaml config file of \"/healthz\".",
+      "parentUuid": "cd5bf73f_1e9eee40",
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9bb4af29_07be967c",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 6
