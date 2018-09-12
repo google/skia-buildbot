@@ -33,7 +33,7 @@ func (m *Empty) Reset()         { *m = Empty{} }
 func (m *Empty) String() string { return proto.CompactTextString(m) }
 func (*Empty) ProtoMessage()    {}
 func (*Empty) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{0}
+	return fileDescriptor_6a33e1f1de7a389e, []int{0}
 }
 func (m *Empty) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Empty.Unmarshal(m, b)
@@ -70,7 +70,7 @@ func (m *CommitID) Reset()         { *m = CommitID{} }
 func (m *CommitID) String() string { return proto.CompactTextString(m) }
 func (*CommitID) ProtoMessage()    {}
 func (*CommitID) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{1}
+	return fileDescriptor_6a33e1f1de7a389e, []int{1}
 }
 func (m *CommitID) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CommitID.Unmarshal(m, b)
@@ -126,7 +126,7 @@ func (m *Params) Reset()         { *m = Params{} }
 func (m *Params) String() string { return proto.CompactTextString(m) }
 func (*Params) ProtoMessage()    {}
 func (*Params) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{2}
+	return fileDescriptor_6a33e1f1de7a389e, []int{2}
 }
 func (m *Params) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Params.Unmarshal(m, b)
@@ -164,7 +164,7 @@ func (m *MissingParamsRequest) Reset()         { *m = MissingParamsRequest{} }
 func (m *MissingParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*MissingParamsRequest) ProtoMessage()    {}
 func (*MissingParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{3}
+	return fileDescriptor_6a33e1f1de7a389e, []int{3}
 }
 func (m *MissingParamsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MissingParamsRequest.Unmarshal(m, b)
@@ -202,7 +202,7 @@ func (m *MissingParamsResponse) Reset()         { *m = MissingParamsResponse{} }
 func (m *MissingParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*MissingParamsResponse) ProtoMessage()    {}
 func (*MissingParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{4}
+	return fileDescriptor_6a33e1f1de7a389e, []int{4}
 }
 func (m *MissingParamsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MissingParamsResponse.Unmarshal(m, b)
@@ -241,7 +241,7 @@ func (m *ParamsPair) Reset()         { *m = ParamsPair{} }
 func (m *ParamsPair) String() string { return proto.CompactTextString(m) }
 func (*ParamsPair) ProtoMessage()    {}
 func (*ParamsPair) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{5}
+	return fileDescriptor_6a33e1f1de7a389e, []int{5}
 }
 func (m *ParamsPair) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ParamsPair.Unmarshal(m, b)
@@ -286,7 +286,7 @@ func (m *AddParamsRequest) Reset()         { *m = AddParamsRequest{} }
 func (m *AddParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*AddParamsRequest) ProtoMessage()    {}
 func (*AddParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{6}
+	return fileDescriptor_6a33e1f1de7a389e, []int{6}
 }
 func (m *AddParamsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddParamsRequest.Unmarshal(m, b)
@@ -325,7 +325,7 @@ func (m *StoredEntry) Reset()         { *m = StoredEntry{} }
 func (m *StoredEntry) String() string { return proto.CompactTextString(m) }
 func (*StoredEntry) ProtoMessage()    {}
 func (*StoredEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{7}
+	return fileDescriptor_6a33e1f1de7a389e, []int{7}
 }
 func (m *StoredEntry) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StoredEntry.Unmarshal(m, b)
@@ -364,7 +364,7 @@ func (m *ValuePair) Reset()         { *m = ValuePair{} }
 func (m *ValuePair) String() string { return proto.CompactTextString(m) }
 func (*ValuePair) ProtoMessage()    {}
 func (*ValuePair) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{8}
+	return fileDescriptor_6a33e1f1de7a389e, []int{8}
 }
 func (m *ValuePair) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ValuePair.Unmarshal(m, b)
@@ -411,7 +411,7 @@ func (m *AddRequest) Reset()         { *m = AddRequest{} }
 func (m *AddRequest) String() string { return proto.CompactTextString(m) }
 func (*AddRequest) ProtoMessage()    {}
 func (*AddRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{9}
+	return fileDescriptor_6a33e1f1de7a389e, []int{9}
 }
 func (m *AddRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddRequest.Unmarshal(m, b)
@@ -459,7 +459,7 @@ func (m *ListRequest) Reset()         { *m = ListRequest{} }
 func (m *ListRequest) String() string { return proto.CompactTextString(m) }
 func (*ListRequest) ProtoMessage()    {}
 func (*ListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{10}
+	return fileDescriptor_6a33e1f1de7a389e, []int{10}
 }
 func (m *ListRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListRequest.Unmarshal(m, b)
@@ -506,7 +506,7 @@ func (m *ListResponse) Reset()         { *m = ListResponse{} }
 func (m *ListResponse) String() string { return proto.CompactTextString(m) }
 func (*ListResponse) ProtoMessage()    {}
 func (*ListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{11}
+	return fileDescriptor_6a33e1f1de7a389e, []int{11}
 }
 func (m *ListResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListResponse.Unmarshal(m, b)
@@ -544,7 +544,7 @@ func (m *GetValuesRequest) Reset()         { *m = GetValuesRequest{} }
 func (m *GetValuesRequest) String() string { return proto.CompactTextString(m) }
 func (*GetValuesRequest) ProtoMessage()    {}
 func (*GetValuesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{12}
+	return fileDescriptor_6a33e1f1de7a389e, []int{12}
 }
 func (m *GetValuesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetValuesRequest.Unmarshal(m, b)
@@ -583,7 +583,7 @@ func (m *GetValuesResponse) Reset()         { *m = GetValuesResponse{} }
 func (m *GetValuesResponse) String() string { return proto.CompactTextString(m) }
 func (*GetValuesResponse) ProtoMessage()    {}
 func (*GetValuesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{13}
+	return fileDescriptor_6a33e1f1de7a389e, []int{13}
 }
 func (m *GetValuesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetValuesResponse.Unmarshal(m, b)
@@ -629,7 +629,7 @@ func (m *GetParamsRequest) Reset()         { *m = GetParamsRequest{} }
 func (m *GetParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetParamsRequest) ProtoMessage()    {}
 func (*GetParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{14}
+	return fileDescriptor_6a33e1f1de7a389e, []int{14}
 }
 func (m *GetParamsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetParamsRequest.Unmarshal(m, b)
@@ -667,7 +667,7 @@ func (m *GetParamsResponse) Reset()         { *m = GetParamsResponse{} }
 func (m *GetParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetParamsResponse) ProtoMessage()    {}
 func (*GetParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{15}
+	return fileDescriptor_6a33e1f1de7a389e, []int{15}
 }
 func (m *GetParamsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetParamsResponse.Unmarshal(m, b)
@@ -707,7 +707,7 @@ func (m *GetValuesRawResponse) Reset()         { *m = GetValuesRawResponse{} }
 func (m *GetValuesRawResponse) String() string { return proto.CompactTextString(m) }
 func (*GetValuesRawResponse) ProtoMessage()    {}
 func (*GetValuesRawResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{16}
+	return fileDescriptor_6a33e1f1de7a389e, []int{16}
 }
 func (m *GetValuesRawResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetValuesRawResponse.Unmarshal(m, b)
@@ -752,7 +752,7 @@ func (m *GetTraceIDsRequest) Reset()         { *m = GetTraceIDsRequest{} }
 func (m *GetTraceIDsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetTraceIDsRequest) ProtoMessage()    {}
 func (*GetTraceIDsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{17}
+	return fileDescriptor_6a33e1f1de7a389e, []int{17}
 }
 func (m *GetTraceIDsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetTraceIDsRequest.Unmarshal(m, b)
@@ -791,7 +791,7 @@ func (m *TraceIDPair) Reset()         { *m = TraceIDPair{} }
 func (m *TraceIDPair) String() string { return proto.CompactTextString(m) }
 func (*TraceIDPair) ProtoMessage()    {}
 func (*TraceIDPair) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{18}
+	return fileDescriptor_6a33e1f1de7a389e, []int{18}
 }
 func (m *TraceIDPair) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TraceIDPair.Unmarshal(m, b)
@@ -836,7 +836,7 @@ func (m *GetTraceIDsResponse) Reset()         { *m = GetTraceIDsResponse{} }
 func (m *GetTraceIDsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetTraceIDsResponse) ProtoMessage()    {}
 func (*GetTraceIDsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{19}
+	return fileDescriptor_6a33e1f1de7a389e, []int{19}
 }
 func (m *GetTraceIDsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetTraceIDsResponse.Unmarshal(m, b)
@@ -875,7 +875,7 @@ func (m *CommitMD5) Reset()         { *m = CommitMD5{} }
 func (m *CommitMD5) String() string { return proto.CompactTextString(m) }
 func (*CommitMD5) ProtoMessage()    {}
 func (*CommitMD5) Descriptor() ([]byte, []int) {
-	return fileDescriptor_traceservice_1b12dd6e6103f7d2, []int{20}
+	return fileDescriptor_6a33e1f1de7a389e, []int{20}
 }
 func (m *CommitMD5) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CommitMD5.Unmarshal(m, b)
@@ -1297,9 +1297,9 @@ var _TraceService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "traceservice.proto",
 }
 
-func init() { proto.RegisterFile("traceservice.proto", fileDescriptor_traceservice_1b12dd6e6103f7d2) }
+func init() { proto.RegisterFile("traceservice.proto", fileDescriptor_6a33e1f1de7a389e) }
 
-var fileDescriptor_traceservice_1b12dd6e6103f7d2 = []byte{
+var fileDescriptor_6a33e1f1de7a389e = []byte{
 	// 705 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x4b, 0x6f, 0xd3, 0x40,
 	0x10, 0x80, 0xeb, 0x47, 0x42, 0x3d, 0x0e, 0xa8, 0x6c, 0x43, 0x31, 0x16, 0x82, 0xb0, 0xf4, 0x10,

@@ -121,7 +121,7 @@
         "-recipe",
         "run_presubmit",
         "-properties",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE)\",\"patch_project\":\"skiabuildbot\",\"patch_ref\":\"refs/changes/<(ISSUE_SHORT)/<(ISSUE)/<(PATCHSET)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE)\",\"patch_project\":\"buildbot\",\"patch_ref\":\"refs/changes/<(ISSUE_SHORT)/<(ISSUE)/<(PATCHSET)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "-logdog-annotation-url",
         "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations",
         "-repository",

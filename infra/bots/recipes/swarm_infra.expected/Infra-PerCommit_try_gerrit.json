@@ -79,7 +79,7 @@
       "--output_json",
       "/path/to/tmp/json",
       "--patch_ref",
-      "https://skia.googlesource.com/skia@refs/changes/89/456789/12",
+      "https://skia.googlesource.com/buildbot.git@refs/changes/34/1234/1",
       "--revision",
       "infra@origin/master"
     ],
@@ -255,7 +255,7 @@
       "--output_json",
       "/path/to/tmp/json",
       "--patch_ref",
-      "https://skia.googlesource.com/skia@refs/changes/89/456789/12",
+      "https://skia.googlesource.com/buildbot.git@refs/changes/34/1234/1",
       "--revision",
       "infra@origin/master"
     ],

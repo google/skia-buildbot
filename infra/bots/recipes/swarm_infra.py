@@ -210,11 +210,12 @@ def GenTests(api):
       api.test('Infra-PerCommit_try_gerrit') +
       api.properties(buildername='Infra-PerCommit-Small',
                      revision=REF_HEAD,
-                     path_config='kitchen') +
-      api.properties.tryserver(
-          gerrit_project='skia',
-          gerrit_url='https://skia-review.googlesource.com/',
-      )
+                     patch_issue='1234',
+                     patch_ref='refs/changes/34/1234/1',
+                     patch_set='1',
+                     patch_storage='gerrit',
+                     path_config='kitchen',
+                     repository='https://skia.googlesource.com/buildbot.git')
   )
   yield (
       api.test('Infra-PerCommit-Large') +
