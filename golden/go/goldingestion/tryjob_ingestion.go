@@ -156,7 +156,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	entries, err := dmResults.getTraceDBEntries()
+	entries, err := extractTraceDBEntries(dmResults)
 	if err != nil {
 		sklog.Errorf("Error getting tracedb entries: %s", err)
 		return ingestion.IgnoreResultsFileErr

@@ -100,7 +100,7 @@ func TestDMResults(t *testing.T) {
 	dmResults, err := ParseDMResultsFromReader(f, TEST_INGESTION_FILE)
 	assert.NoError(t, err)
 
-	entries, err := dmResults.getTraceDBEntries()
+	entries, err := extractTraceDBEntries(dmResults)
 	assert.NoError(t, err)
 	assert.Equal(t, len(TEST_ENTRIES), len(entries))
 

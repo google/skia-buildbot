@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/goldingestion"
+	"go.skia.org/infra/golden/go/jsonio"
 	"google.golang.org/api/option"
 )
 
@@ -138,8 +139,8 @@ func (p *pdfProcessor) Process(ctx context.Context, resultsFile ingestion.Result
 // See ingestion.Processor interface.
 func (p *pdfProcessor) BatchFinished() error { return nil }
 
-func (p *pdfProcessor) rasterizeAndUpload(dmResultName string, dmResults *goldingestion.DMResults, pdfResults []*goldingestion.Result) error {
-	processedResults := make([]*goldingestion.Result, 0, len(pdfResults)*len(p.rasterizers))
+func (p *pdfProcessor) rasterizeAndUpload(dmResultName string, dmResults *goldingestion.DMResults, pdfResults []*jsonio.Result) error {
+	processedResults := make([]*jsonio.Result, 0, len(pdfResults)*len(p.rasterizers))
 
 	// Create a temporary directory to hold the rastered images.
 	tempDir, err := ioutil.TempDir(p.pdfCacheDir, "pdfingestion")
@@ -262,8 +263,8 @@ func (p *pdfProcessor) download(bucket, dir, fileName, outputPath string) error 
 	return nil
 }
 
-func getPDFResults(dmResults *goldingestion.DMResults) []*goldingestion.Result {
-	ret := make([]*goldingestion.Result, 0, len(dmResults.Results))
+func getPDFResults(dmResults *goldingestion.DMResults) []*jsonio.Result {
+	ret := make([]*jsonio.Result, 0, len(dmResults.Results))
 	for _, result := range dmResults.Results {
 		if result.Options["ext"] == "pdf" {
 			ret = append(ret, result)
