@@ -5,6 +5,7 @@
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "swiftshader-skia-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
@@ -21,5 +22,10 @@
   "cqExtraTrybots": [
     "skia.primary:Test-Debian9-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi"
+  },
   "maxRollFrequency": "0m"
 }
