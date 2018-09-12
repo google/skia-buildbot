@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e -x
+
+BIN_NAME="./build/goldctl"
+DATETIME=`date --utc "+%Y-%m-%d"`
+HASH=`git rev-parse HEAD`
+BASE_PATH="gs://skia-binaries/goldctl/goldctl"
+
+# Determine if the tree is dirty
+git fetch
+git update-index --refresh
+if ! git diff-index --quiet HEAD -- ; then
+  HASH="${HASH}-dirty"
+  echo "Setting DIRTY=true due to modified files:"
+  echo "$(git diff-index --name-status HEAD --)"
+elif ! git merge-base --is-ancestor HEAD origin/master ; then
+  HASH="${HASH}-dirty"
+  echo "Setting DIRTY=true due to current branch: " \
+    "$(git rev-parse --abbrev-ref HEAD)"
+fi
+
+GS_PATH=${BASE_PATH}-${DATETIME}-${HASH}
+LATEST_PATH=${BASE_PATH}--latest
+
+gsutil cp ${BIN_NAME} ${GS_PATH}
+gsutil cp ${GS_PATH} ${LATEST_PATH}
+gsutil acl ch -u AllUsers:R ${GS_PATH}
+gsutil acl ch -u AllUsers:R ${LATEST_PATH}
