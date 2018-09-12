@@ -1,4 +1,5 @@
-FROM debian:testing-slim
+FROM debian:testing
+# FROM debian:testing-slim slim broke early Sept 2018.
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
   libfontconfig1 \
