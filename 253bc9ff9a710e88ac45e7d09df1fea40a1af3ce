@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "2081739a_de5d02ca",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-12T14:50:55Z",
+      "side": 1,
+      "message": "+Kevin (for fuzzer-be-*.yaml files)",
+      "parentUuid": "e59868c4_0f158123",
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9bb4af29_07be967c",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 6
