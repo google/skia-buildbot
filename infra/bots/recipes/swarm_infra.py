@@ -73,8 +73,14 @@ def git_checkout(api, url, dest, ref=None):
   sln.revision = ref
   gclient_cfg.got_revision_mapping[basename] = 'got_revision'
 
+  patch_refs = None
+  patch_ref = api.properties.get('patch_ref')
+  if patch_ref:
+    patch_refs = ['%s@%s' %(api.properties['patch_repo'], patch_ref)]
+
   with api.context(cwd=dirname):
-    api.bot_update.ensure_checkout(gclient_config=gclient_cfg)
+    api.bot_update.ensure_checkout(gclient_config=gclient_cfg,
+                                   patch_refs=patch_refs)
 
   with api.context(cwd=dest):
     # Fix the remote URL, since bot_update switches it to the cached repo.
@@ -212,6 +218,7 @@ def GenTests(api):
                      revision=REF_HEAD,
                      patch_issue='1234',
                      patch_ref='refs/changes/34/1234/1',
+                     patch_repo='https://skia.googlesource.com/buildbot.git',
                      patch_set='1',
                      patch_storage='gerrit',
                      path_config='kitchen',
