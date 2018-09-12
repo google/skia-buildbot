@@ -73,8 +73,14 @@ def git_checkout(api, url, dest, ref=None):
   sln.revision = ref
   gclient_cfg.got_revision_mapping[basename] = 'got_revision'
 
+  patch_refs = None
+  patch_ref = api.properties.get('patch_ref')
+  if patch_ref:
+    patch_refs = ['%s@%s' %(api.properties['repository'], patch_ref)]
+
   with api.context(cwd=dirname):
-    api.bot_update.ensure_checkout(gclient_config=gclient_cfg)
+    api.bot_update.ensure_checkout(gclient_config=gclient_cfg,
+                                   patch_refs=patch_refs)
 
   with api.context(cwd=dest):
     # Fix the remote URL, since bot_update switches it to the cached repo.
