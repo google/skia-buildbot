@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "d92e98f6_10eeb4f1",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-12T15:08:03Z",
+      "side": 1,
+      "message": "Yeah, that\u0027s the check I do for the fuzzer instances.",
+      "parentUuid": "2081739a_de5d02ca",
+      "revId": "253bc9ff9a710e88ac45e7d09df1fea40a1af3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9bb4af29_07be967c",
         "filename": "kube/go/kube-conf-gen/main.go",
         "patchSetId": 6
