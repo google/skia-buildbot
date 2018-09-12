@@ -125,6 +125,10 @@ func (m *mockProcessor) Process(ctx context.Context, resultsFile ResultFileLocat
 	return m.process(resultsFile)
 }
 
+func (m *mockProcessor) GetIngestionStore() IngestionStore {
+	return nil
+}
+
 type mockRFLocation struct {
 	path        string
 	md5         string
