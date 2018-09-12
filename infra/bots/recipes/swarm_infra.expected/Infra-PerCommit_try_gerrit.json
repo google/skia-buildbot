@@ -78,8 +78,6 @@
       "[CLEANUP]/bot_update",
       "--output_json",
       "/path/to/tmp/json",
-      "--patch_ref",
-      "https://skia.googlesource.com/buildbot.git@refs/changes/34/1234/1",
       "--revision",
       "infra@origin/master"
     ],
@@ -254,8 +252,6 @@
       "[CLEANUP]/bot_update",
       "--output_json",
       "/path/to/tmp/json",
-      "--patch_ref",
-      "https://skia.googlesource.com/buildbot.git@refs/changes/34/1234/1",
       "--revision",
       "infra@origin/master"
     ],
