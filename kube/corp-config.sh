@@ -1,4 +1,4 @@
-source ./clusters.sh
+source ../kube/clusters.sh
 # Common config values used by all create-* scripts.
 
 # Your Project ID
