@@ -30,7 +30,7 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	POLL_CHUNK_SIZE = 50
+	POLL_CHUNK_SIZE = 20
 )
 
 var (
@@ -203,7 +203,7 @@ func (q *rflQueue) clear() {
 }
 
 func (i *Ingester) getInputChannels(ctx context.Context) (<-chan []ResultFileLocation, <-chan []ResultFileLocation, error) {
-	pollChan := make(chan []ResultFileLocation)
+	pollChan := make(chan []ResultFileLocation, 20)
 	eventChan := make(chan []ResultFileLocation)
 	i.doneCh = make(chan bool)
 
