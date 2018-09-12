@@ -22,12 +22,17 @@ case "$1" in
                 --host-port=localhost:8892 \
                 --project=test-project > /tmp/bigtable_emulator.log 2>&1 &
 
+    gcloud beta emulators pubsub start \
+                --host-port=localhost:8893 \
+                --project=test-project > /tmp/pubsub_emulator.log 2>&1 &
+
     set -e
     sleep 5s
     cat /tmp/datastore_emulator.log
     cat /tmp/bigtable_emulator.log
+    cat /tmp/pubsub_emulator.log
 
-    echo "Cloud datastore and Bigtable emulators started."
+    echo "Cloud datastore,Bigtable and PubSub emulators started."
     ;;
   "stop")
     kill_emulators

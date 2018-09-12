@@ -1,21 +1,22 @@
 package gevent
 
 import (
-	"os"
 	"sort"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
 
-const LOCAL_TOPIC = "testing-local-topic"
-const SUBSCRIBER_1 = "buildbot-1"
-const SUBSCRIBER_2 = "buildbot-2"
+const (
+	PROJECT_ID   = "test-project"
+	LOCAL_TOPIC  = "testing-local-topic"
+	SUBSCRIBER_1 = "buildbot-1"
+	SUBSCRIBER_2 = "buildbot-2"
+)
 
 // Test structure that is send as the payload on the event channels.
 type testType struct {
@@ -25,22 +26,16 @@ type testType struct {
 }
 
 func TestEventBus(t *testing.T) {
-	testutils.MediumTest(t)
-
-	if os.Getenv("PUBSUB_EMULATOR_HOST") == "" {
-		t.Skip(`Skipping tests that require a local Cloud PubSub emulator.
-Set the environment: $(gcloud beta emulators pubsub env-init)
-Run the emulator: gcloud beta emulators pubsub start`)
-	}
+	testutils.LargeTest(t)
 
 	testCodec := util.JSONCodec(&testType{})
 	RegisterCodec("channel1", testCodec)
 	RegisterCodec("channel2", testCodec)
 
-	eventBus, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1)
+	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1)
 	assert.NoError(t, err)
 
-	eventBusTwo, err := New(common.PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2)
+	eventBusTwo, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2)
 	assert.NoError(t, err)
 
 	ch := make(chan int, 5)
