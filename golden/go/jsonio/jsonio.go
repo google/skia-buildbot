@@ -123,14 +123,13 @@ type rawGoldResults struct {
 func (r *rawGoldResults) parseValidate() []string {
 	jn := rawGoldResultsJsonMap
 	var ret []string
-	issueValid := (r.Issue == "" && r.BuildBucketID == "" && r.Patchset == "" ||
-		r.Issue != "" && r.BuildBucketID != "" && r.Patchset != "")
-	addErrMessage(&ret, issueValid, "fields %s, %s, %s must all be empty or all be filled.", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
+	issueValid := (r.Issue == "") || (r.Issue != "" && r.BuildBucketID != "" && r.Patchset != "")
+	addErrMessage(&ret, issueValid, "fields '%s', '%s' must not be empty if field '%s' contains a value", jn["Patchset"], jn["BuildBucketID"], jn["Issue"])
 
 	f := []string{"Issue", r.Issue, "Patchset", r.Patchset, "BuildBucketID", r.BuildBucketID}
 	for i := 0; i < len(f); i += 2 {
 		valid := f[i+1] == "" || govalidator.IsInt(f[i+1])
-		addErrMessage(&ret, valid, "field %s must be empty or contain a valid integer", jn[f[i]])
+		addErrMessage(&ret, valid, "field '%s' must be empty or contain a valid integer", jn[f[i]])
 	}
 
 	if len(ret) == 0 {
@@ -155,8 +154,7 @@ func (g *GoldResults) Validate() ([]string, error) {
 	addErrMessage(&errMsg, len(g.Key) > 0 && hasNonEmptyKV(g.Key), "field '%s' must not be empty and must not have empty keys or values", jn["Key"])
 	addErrMessage(&errMsg, len(g.Results) > 0, "field '%s' must not be empty.", jn["Results"])
 
-	validIssue := (g.Issue == 0) && (g.Patchset == 0) && (g.BuildBucketID == 0) ||
-		(g.Issue > 0) && (g.Patchset > 0) && (g.BuildBucketID > 0)
+	validIssue := g.Issue == 0 || (g.Issue > 0 && g.Patchset > 0 && g.BuildBucketID > 0)
 	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be zero or all not be zero", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
 	for _, r := range g.Results {
 		r.validate(&errMsg, jn["Results"])
