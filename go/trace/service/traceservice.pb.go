@@ -41,8 +41,8 @@ func (m *Empty) XXX_Unmarshal(b []byte) error {
 func (m *Empty) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Empty.Marshal(b, m, deterministic)
 }
-func (dst *Empty) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Empty.Merge(dst, src)
+func (m *Empty) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Empty.Merge(m, src)
 }
 func (m *Empty) XXX_Size() int {
 	return xxx_messageInfo_Empty.Size(m)
@@ -78,8 +78,8 @@ func (m *CommitID) XXX_Unmarshal(b []byte) error {
 func (m *CommitID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CommitID.Marshal(b, m, deterministic)
 }
-func (dst *CommitID) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CommitID.Merge(dst, src)
+func (m *CommitID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CommitID.Merge(m, src)
 }
 func (m *CommitID) XXX_Size() int {
 	return xxx_messageInfo_CommitID.Size(m)
@@ -134,8 +134,8 @@ func (m *Params) XXX_Unmarshal(b []byte) error {
 func (m *Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Params.Marshal(b, m, deterministic)
 }
-func (dst *Params) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Params.Merge(dst, src)
+func (m *Params) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Params.Merge(m, src)
 }
 func (m *Params) XXX_Size() int {
 	return xxx_messageInfo_Params.Size(m)
@@ -172,8 +172,8 @@ func (m *MissingParamsRequest) XXX_Unmarshal(b []byte) error {
 func (m *MissingParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_MissingParamsRequest.Marshal(b, m, deterministic)
 }
-func (dst *MissingParamsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MissingParamsRequest.Merge(dst, src)
+func (m *MissingParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MissingParamsRequest.Merge(m, src)
 }
 func (m *MissingParamsRequest) XXX_Size() int {
 	return xxx_messageInfo_MissingParamsRequest.Size(m)
@@ -210,8 +210,8 @@ func (m *MissingParamsResponse) XXX_Unmarshal(b []byte) error {
 func (m *MissingParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_MissingParamsResponse.Marshal(b, m, deterministic)
 }
-func (dst *MissingParamsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MissingParamsResponse.Merge(dst, src)
+func (m *MissingParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MissingParamsResponse.Merge(m, src)
 }
 func (m *MissingParamsResponse) XXX_Size() int {
 	return xxx_messageInfo_MissingParamsResponse.Size(m)
@@ -249,8 +249,8 @@ func (m *ParamsPair) XXX_Unmarshal(b []byte) error {
 func (m *ParamsPair) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ParamsPair.Marshal(b, m, deterministic)
 }
-func (dst *ParamsPair) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ParamsPair.Merge(dst, src)
+func (m *ParamsPair) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ParamsPair.Merge(m, src)
 }
 func (m *ParamsPair) XXX_Size() int {
 	return xxx_messageInfo_ParamsPair.Size(m)
@@ -294,8 +294,8 @@ func (m *AddParamsRequest) XXX_Unmarshal(b []byte) error {
 func (m *AddParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AddParamsRequest.Marshal(b, m, deterministic)
 }
-func (dst *AddParamsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddParamsRequest.Merge(dst, src)
+func (m *AddParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddParamsRequest.Merge(m, src)
 }
 func (m *AddParamsRequest) XXX_Size() int {
 	return xxx_messageInfo_AddParamsRequest.Size(m)
@@ -333,8 +333,8 @@ func (m *StoredEntry) XXX_Unmarshal(b []byte) error {
 func (m *StoredEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_StoredEntry.Marshal(b, m, deterministic)
 }
-func (dst *StoredEntry) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StoredEntry.Merge(dst, src)
+func (m *StoredEntry) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StoredEntry.Merge(m, src)
 }
 func (m *StoredEntry) XXX_Size() int {
 	return xxx_messageInfo_StoredEntry.Size(m)
@@ -372,8 +372,8 @@ func (m *ValuePair) XXX_Unmarshal(b []byte) error {
 func (m *ValuePair) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ValuePair.Marshal(b, m, deterministic)
 }
-func (dst *ValuePair) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ValuePair.Merge(dst, src)
+func (m *ValuePair) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ValuePair.Merge(m, src)
 }
 func (m *ValuePair) XXX_Size() int {
 	return xxx_messageInfo_ValuePair.Size(m)
@@ -419,8 +419,8 @@ func (m *AddRequest) XXX_Unmarshal(b []byte) error {
 func (m *AddRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AddRequest.Marshal(b, m, deterministic)
 }
-func (dst *AddRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddRequest.Merge(dst, src)
+func (m *AddRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddRequest.Merge(m, src)
 }
 func (m *AddRequest) XXX_Size() int {
 	return xxx_messageInfo_AddRequest.Size(m)
@@ -467,8 +467,8 @@ func (m *ListRequest) XXX_Unmarshal(b []byte) error {
 func (m *ListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ListRequest.Marshal(b, m, deterministic)
 }
-func (dst *ListRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListRequest.Merge(dst, src)
+func (m *ListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListRequest.Merge(m, src)
 }
 func (m *ListRequest) XXX_Size() int {
 	return xxx_messageInfo_ListRequest.Size(m)
@@ -514,8 +514,8 @@ func (m *ListResponse) XXX_Unmarshal(b []byte) error {
 func (m *ListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ListResponse.Marshal(b, m, deterministic)
 }
-func (dst *ListResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListResponse.Merge(dst, src)
+func (m *ListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListResponse.Merge(m, src)
 }
 func (m *ListResponse) XXX_Size() int {
 	return xxx_messageInfo_ListResponse.Size(m)
@@ -552,8 +552,8 @@ func (m *GetValuesRequest) XXX_Unmarshal(b []byte) error {
 func (m *GetValuesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetValuesRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetValuesRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetValuesRequest.Merge(dst, src)
+func (m *GetValuesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetValuesRequest.Merge(m, src)
 }
 func (m *GetValuesRequest) XXX_Size() int {
 	return xxx_messageInfo_GetValuesRequest.Size(m)
@@ -591,8 +591,8 @@ func (m *GetValuesResponse) XXX_Unmarshal(b []byte) error {
 func (m *GetValuesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetValuesResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetValuesResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetValuesResponse.Merge(dst, src)
+func (m *GetValuesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetValuesResponse.Merge(m, src)
 }
 func (m *GetValuesResponse) XXX_Size() int {
 	return xxx_messageInfo_GetValuesResponse.Size(m)
@@ -637,8 +637,8 @@ func (m *GetParamsRequest) XXX_Unmarshal(b []byte) error {
 func (m *GetParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetParamsRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetParamsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetParamsRequest.Merge(dst, src)
+func (m *GetParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetParamsRequest.Merge(m, src)
 }
 func (m *GetParamsRequest) XXX_Size() int {
 	return xxx_messageInfo_GetParamsRequest.Size(m)
@@ -675,8 +675,8 @@ func (m *GetParamsResponse) XXX_Unmarshal(b []byte) error {
 func (m *GetParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetParamsResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetParamsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetParamsResponse.Merge(dst, src)
+func (m *GetParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetParamsResponse.Merge(m, src)
 }
 func (m *GetParamsResponse) XXX_Size() int {
 	return xxx_messageInfo_GetParamsResponse.Size(m)
@@ -715,8 +715,8 @@ func (m *GetValuesRawResponse) XXX_Unmarshal(b []byte) error {
 func (m *GetValuesRawResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetValuesRawResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetValuesRawResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetValuesRawResponse.Merge(dst, src)
+func (m *GetValuesRawResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetValuesRawResponse.Merge(m, src)
 }
 func (m *GetValuesRawResponse) XXX_Size() int {
 	return xxx_messageInfo_GetValuesRawResponse.Size(m)
@@ -760,8 +760,8 @@ func (m *GetTraceIDsRequest) XXX_Unmarshal(b []byte) error {
 func (m *GetTraceIDsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetTraceIDsRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetTraceIDsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetTraceIDsRequest.Merge(dst, src)
+func (m *GetTraceIDsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTraceIDsRequest.Merge(m, src)
 }
 func (m *GetTraceIDsRequest) XXX_Size() int {
 	return xxx_messageInfo_GetTraceIDsRequest.Size(m)
@@ -799,8 +799,8 @@ func (m *TraceIDPair) XXX_Unmarshal(b []byte) error {
 func (m *TraceIDPair) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_TraceIDPair.Marshal(b, m, deterministic)
 }
-func (dst *TraceIDPair) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TraceIDPair.Merge(dst, src)
+func (m *TraceIDPair) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TraceIDPair.Merge(m, src)
 }
 func (m *TraceIDPair) XXX_Size() int {
 	return xxx_messageInfo_TraceIDPair.Size(m)
@@ -844,8 +844,8 @@ func (m *GetTraceIDsResponse) XXX_Unmarshal(b []byte) error {
 func (m *GetTraceIDsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetTraceIDsResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetTraceIDsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetTraceIDsResponse.Merge(dst, src)
+func (m *GetTraceIDsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTraceIDsResponse.Merge(m, src)
 }
 func (m *GetTraceIDsResponse) XXX_Size() int {
 	return xxx_messageInfo_GetTraceIDsResponse.Size(m)
@@ -883,8 +883,8 @@ func (m *CommitMD5) XXX_Unmarshal(b []byte) error {
 func (m *CommitMD5) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CommitMD5.Marshal(b, m, deterministic)
 }
-func (dst *CommitMD5) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CommitMD5.Merge(dst, src)
+func (m *CommitMD5) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CommitMD5.Merge(m, src)
 }
 func (m *CommitMD5) XXX_Size() int {
 	return xxx_messageInfo_CommitMD5.Size(m)

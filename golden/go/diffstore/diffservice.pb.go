@@ -41,8 +41,8 @@ func (m *Empty) XXX_Unmarshal(b []byte) error {
 func (m *Empty) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Empty.Marshal(b, m, deterministic)
 }
-func (dst *Empty) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Empty.Merge(dst, src)
+func (m *Empty) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Empty.Merge(m, src)
 }
 func (m *Empty) XXX_Size() int {
 	return xxx_messageInfo_Empty.Size(m)
@@ -74,8 +74,8 @@ func (m *GetDiffsRequest) XXX_Unmarshal(b []byte) error {
 func (m *GetDiffsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetDiffsRequest.Marshal(b, m, deterministic)
 }
-func (dst *GetDiffsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetDiffsRequest.Merge(dst, src)
+func (m *GetDiffsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDiffsRequest.Merge(m, src)
 }
 func (m *GetDiffsRequest) XXX_Size() int {
 	return xxx_messageInfo_GetDiffsRequest.Size(m)
@@ -126,8 +126,8 @@ func (m *GetDiffsResponse) XXX_Unmarshal(b []byte) error {
 func (m *GetDiffsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GetDiffsResponse.Marshal(b, m, deterministic)
 }
-func (dst *GetDiffsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetDiffsResponse.Merge(dst, src)
+func (m *GetDiffsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetDiffsResponse.Merge(m, src)
 }
 func (m *GetDiffsResponse) XXX_Size() int {
 	return xxx_messageInfo_GetDiffsResponse.Size(m)
@@ -165,8 +165,8 @@ func (m *PurgeDigestsRequest) XXX_Unmarshal(b []byte) error {
 func (m *PurgeDigestsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PurgeDigestsRequest.Marshal(b, m, deterministic)
 }
-func (dst *PurgeDigestsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PurgeDigestsRequest.Merge(dst, src)
+func (m *PurgeDigestsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PurgeDigestsRequest.Merge(m, src)
 }
 func (m *PurgeDigestsRequest) XXX_Size() int {
 	return xxx_messageInfo_PurgeDigestsRequest.Size(m)
@@ -210,8 +210,8 @@ func (m *UnavailableDigestsResponse) XXX_Unmarshal(b []byte) error {
 func (m *UnavailableDigestsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_UnavailableDigestsResponse.Marshal(b, m, deterministic)
 }
-func (dst *UnavailableDigestsResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UnavailableDigestsResponse.Merge(dst, src)
+func (m *UnavailableDigestsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UnavailableDigestsResponse.Merge(m, src)
 }
 func (m *UnavailableDigestsResponse) XXX_Size() int {
 	return xxx_messageInfo_UnavailableDigestsResponse.Size(m)
@@ -250,8 +250,8 @@ func (m *WarmDigestsRequest) XXX_Unmarshal(b []byte) error {
 func (m *WarmDigestsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_WarmDigestsRequest.Marshal(b, m, deterministic)
 }
-func (dst *WarmDigestsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WarmDigestsRequest.Merge(dst, src)
+func (m *WarmDigestsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WarmDigestsRequest.Merge(m, src)
 }
 func (m *WarmDigestsRequest) XXX_Size() int {
 	return xxx_messageInfo_WarmDigestsRequest.Size(m)
@@ -304,8 +304,8 @@ func (m *WarmDiffsRequest) XXX_Unmarshal(b []byte) error {
 func (m *WarmDiffsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_WarmDiffsRequest.Marshal(b, m, deterministic)
 }
-func (dst *WarmDiffsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WarmDiffsRequest.Merge(dst, src)
+func (m *WarmDiffsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WarmDiffsRequest.Merge(m, src)
 }
 func (m *WarmDiffsRequest) XXX_Size() int {
 	return xxx_messageInfo_WarmDiffsRequest.Size(m)
@@ -358,8 +358,8 @@ func (m *DigestFailureResponse) XXX_Unmarshal(b []byte) error {
 func (m *DigestFailureResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DigestFailureResponse.Marshal(b, m, deterministic)
 }
-func (dst *DigestFailureResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DigestFailureResponse.Merge(dst, src)
+func (m *DigestFailureResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DigestFailureResponse.Merge(m, src)
 }
 func (m *DigestFailureResponse) XXX_Size() int {
 	return xxx_messageInfo_DigestFailureResponse.Size(m)
