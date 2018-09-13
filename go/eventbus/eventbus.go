@@ -5,7 +5,15 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"go.skia.org/infra/go/sklog"
+)
+
+const (
+	// maxConcurrentPublishers is the maximum number of go-routines that can publish events concurrently.
+	maxConcurrentPublishers = 1000
+
+	// SYN_STORAGE_EVENT is the event type for synthetic storage events that are sent via the
+	// PublishStorageEvent function.
+	SYN_STORAGE_EVENT = "eventbus:synthetic-storage-event"
 )
 
 // CallbackFn defines the signature of all callback functions used for
@@ -47,6 +55,10 @@ type EventBus interface {
 	//
 	// Currently this is only implemented by the gevent package.
 	RegisterStorageEvents(bucketName string, objectPrefix string, objectRegEx *regexp.Regexp, client *storage.Client) (string, error)
+
+	// PublishStorageEvent publishes a synthetic storage event that is handled by
+	// registered storage event handlers.
+	PublishStorageEvent(bucketName, objectName string)
 }
 
 // StorageEvent is the type of object that is published by GCS storage events.
@@ -68,8 +80,15 @@ type MemEventBus struct {
 	// Map of handlers keyed by channel. This is used to keep track of subscriptions.
 	handlers map[string]*channelHandler
 
+	// concurrentPub is used the limit the number of go-routines that can concurrently
+	// publish events. Since each Publish call can spin up multiple go-routines we avoid
+	// creating too many. In most cases the maximum will never be reached.
+	concurrentPub chan bool
+
 	// Used to protect handlers.
 	mutex sync.Mutex
+
+	notificationsMap *NotificationsMap
 }
 
 // Internal struct to keep keep track of an event and it's handlers.
@@ -82,20 +101,27 @@ type channelHandler struct {
 // different components about events.
 func New() EventBus {
 	ret := &MemEventBus{
-		handlers: map[string]*channelHandler{},
+		handlers:      map[string]*channelHandler{},
+		concurrentPub: make(chan bool, maxConcurrentPublishers),
 	}
 	return ret
 }
 
 // Publish implements the EventBus interface.
 func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
+	// Get one of the publisher slots before spinning up more go-routines.
+	e.concurrentPub <- true
+
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	if th, ok := e.handlers[channel]; ok {
 		for _, callback := range th.callbacks {
 			th.wg.Add(1)
 			go func(callback CallbackFn) {
-				defer th.wg.Done()
+				defer func() {
+					<-e.concurrentPub
+					th.wg.Done()
+				}()
 				callback(arg)
 			}(callback)
 		}
@@ -115,7 +141,14 @@ func (e *MemEventBus) SubscribeAsync(channel string, callback CallbackFn) {
 
 // RegisterStorageEvent implements the EventBus interface.
 func (e *MemEventBus) RegisterStorageEvents(bucketName string, objectPrefix string, objectRegEx *regexp.Regexp, client *storage.Client) (string, error) {
-	return "", sklog.FmtErrorf("Function RegisterStorageEvents not implemented by MemEventBus - see gevent package instead")
+	notificationsID := e.notificationsMap.GetNotificationID(bucketName, objectPrefix)
+	return e.notificationsMap.Add(notificationsID, objectRegEx), nil
+}
+
+// PublishStorageEvent implements the EventBus interface.
+func (e *MemEventBus) PublishStorageEvent(bucketName, objectName string) {
+	evtData := NewStorageEvent(storage.ObjectFinalizeEvent, bucketName, objectName)
+	e.Publish(SYN_STORAGE_EVENT, evtData, true)
 }
 
 // Wait will block until the goroutines for a specific channel have finished.
@@ -127,4 +160,63 @@ func (e *MemEventBus) Wait(channel string) {
 	if ok {
 		th.wg.Wait()
 	}
+}
+
+func NewStorageEvent(storageEventType, bucketID, objectID string) *StorageEvent {
+	return &StorageEvent{
+		EventType: storageEventType,
+		BucketID:  bucketID,
+		ObjectID:  objectID,
+	}
+}
+
+type NotificationsMap struct {
+	notifications map[string]map[string]*regexp.Regexp
+}
+
+func NewNotificationsMap() *NotificationsMap {
+	return &NotificationsMap{
+		notifications: map[string]map[string]*regexp.Regexp{},
+	}
+}
+
+func (n *NotificationsMap) GetNotificationID(bucketName, objectPrefix string) string {
+	return ""
+}
+
+func (n *NotificationsMap) Add(notifyID string, objectRegEx *regexp.Regexp) string {
+	return ""
+}
+func (n *NotificationsMap) MatchesByID(notificationID, objectID string) []string {
+	// regexes, ok := d.storagesNotifications[notificationID]
+
+	return nil
+}
+
+func (n *NotificationsMap) Matches(bucketName, objectID string) []string {
+	return nil
+
+	// 	for notifyID, regexes := range d.storageNotifications {
+	// 		parts := strings.SplitN(notifyID, "/", 1)
+	// 		if len(parts) != 2 {
+	// 			return nil, nil, false, sklog.FmtErrorf("Invalid notification id found. This should never happen!")
+	// 		}
+	// 		bucketID, objectPrefix := parts[0], parts[1]
+
+	// 		if evt.BucketID == bucketID && strings.HasPrefix(evt.ObjectID, objectPrefix) {
+	// 			// Check the regular expressions.
+	// 			for id, oneRegEx := range regexes {
+	// 				if id == "" || oneRegEx.Match([]byte(evt.ObjectID)) {
+	// 					wrappers = append(wrappers, &channelWrapper{
+	// 						Channel: getEventType(notifyID, oneRegEx),
+	// 						Sender:  wrapper.Sender,
+	// 						Data:    wrapper.Data,
+	// 					})
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+
+	// 	return wrappers, evtData, false, nil
+	// }
 }
