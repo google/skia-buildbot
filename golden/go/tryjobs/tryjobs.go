@@ -79,7 +79,10 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 		return sklog.FmtErrorf("Error retrieving Gerrit issue %d: %s", issueID, err)
 	}
 
-	if err := t.gerritAPI.AddComment(gerritIssue, t.getGerritMsg(issueID)); err != nil {
+	reviewInfoFields := map[string]interface{}{
+		"notify": "NONE",
+	}
+	if err := t.gerritAPI.SetReview(gerritIssue, t.getGerritMsg(issueID), nil, nil, reviewInfoFields); err != nil {
 		return sklog.FmtErrorf("Error adding Gerrit comment to issue %d: %s", issueID, err)
 	}
 

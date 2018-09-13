@@ -40,7 +40,10 @@ const (
 	BASELINE_ROUTE = "/json/baseline"
 
 	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
-	BASELINE_ISSUE_ROUTE = "/json/baseline/{id}"
+	BASELINE_ISSUE_ROUTE = "/json/baseline/{issue_id}"
+
+	// BASELINE_PATCHSET_ROUTE address a Gerrit patchsets baseline resource
+	BASELINE_PATCHSET_ROUTE = "/json/baseline/{issue_id}/{patchset_id}"
 )
 
 const (
@@ -1020,7 +1023,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 	issueID := int64(0)
 	var err error
-	issueIDStr, ok := mux.Vars(r)["id"]
+	issueIDStr, ok := mux.Vars(r)["issue_id"]
 	if ok {
 		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 		if err != nil {
@@ -1030,6 +1033,39 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	baseline, err := wh.Storages.FetchBaseline(issueID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fetching baselines failed.")
+		return
+	}
+
+	sendJsonResponse(w, baseline)
+}
+
+func (wh *WebHandlers) JsonCreateBaselineHandler(w http.ResponseWriter, r *http.Request) {
+	issueID := int64(0)
+	patchsetID := int64(0)
+	var err error
+	issueIDStr := mux.Vars(r)["issue_id"]
+	issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
+	if err != nil || issueID <= 0 {
+		httputils.ReportError(w, r, err, "Issue ID must be a valid integer > 0.")
+		return
+	}
+
+	patchsetIDStr := mux.Vars(r)["patchset_id"]
+	patchsetID, err = strconv.ParseInt(patchsetIDStr, 10, 64)
+	if err != nil || patchsetID <= 0 {
+		httputils.ReportError(w, r, err, "Patchset ID must be a valid integer > 0.")
+		return
+	}
+
+	err := wh.Storages.CalcBaseline(issueID, patchsetID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fetching baselines failed.")
+		return
+	}
+
+	baseline, err := wh.Storages.FetchBaseline(issueID, patchsetID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
