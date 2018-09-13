@@ -153,3 +153,20 @@ groups:
     annotations:
       abbr: 'CTFE pending task not running.'
       description: 'A task has been waiting to be executed for a while and it has still not started. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
+
+  - alert: AutoRollLatency
+    expr: prober{type="latency",probename="autoroll"} > 200
+    for: 10m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      description: 'The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency'
+
+  - alert: AutoRollFrontendErrorRate
+    expr: rate(num_log_lines{level="ERROR",log_source="autoroll-fe"}[1h]) > 0.001
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      description: 'The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'

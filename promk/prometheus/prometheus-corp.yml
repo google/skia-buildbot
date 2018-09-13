@@ -3,6 +3,7 @@ global:
   evaluation_interval: 15s
 
 rule_files:
+  - "alerts_corp.yml"
   - "alerts_general.yml"
   - "alerts_alert_to_pubsub.yml"
 
