@@ -64,6 +64,7 @@ func main() {
 	common.InitWithMust(
 		"autoroll-be",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 
