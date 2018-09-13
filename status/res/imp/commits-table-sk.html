@@ -153,19 +153,12 @@
               Trigger a Job
             </paper-button>
           </a>
-          <paper-button raised on-click="_retryPurpleTasks">
-            <iron-icon icon="icons:autorenew"></iron-icon>
-            Re-Run Purple Jobs
-          </paper-button>
-          <paper-dialog id="triggered_jobs_dialog" modal>
-            <h2>Triggered Jobs</h2>
-            <template is="dom-repeat" items="[[_triggered_jobs]]">
-              <p>
-                <a href$="[[task_scheduler_url]]/job/[[item]]" target="_blank" rel="noopener">[[item]]</a>
-              </p>
-            </template>
-            <paper-button dialog-confirm id="confirm_button" autofocus>Dismiss</paper-button>
-          </paper-dialog>
+          <a href$="{{_rerun_purple_url}}" target="_blank" class="nodecorate" rel="noopener">
+            <paper-button raised>
+              <iron-icon icon="icons:autorenew"></iron-icon>
+              Re-Run Purple Jobs
+            </paper-button>
+          </a>
         </div>
       </div>
 
@@ -291,6 +284,10 @@
             return ["author", "subject"];
           }
         },
+        _rerun_purple_url: {
+          type: String,
+          computed: "_getRerunJobsUrl(task_scheduler_url, purple_tasks)",
+        },
         _searchVal: {
           type: String,
           value: "",
@@ -329,18 +326,17 @@
         return this.task_scheduler_url + "/trigger";
       },
 
-      _retryPurpleTasks: function() {
-        var msg = "This will trigger " + this.purple_tasks.length + " jobs. Proceed?";
-        $$$('confirm-dialog-sk').open(msg).then(function() {
-          var url = this.task_scheduler_url + "/json/trigger";
-          var body = JSON.stringify(this.purple_tasks);
-          sk.post(url, body, null, true).then(JSON.parse).then(function(jobIds) {
-            this.set("_triggered_jobs", jobIds);
-            this.$.triggered_jobs_dialog.open();
-          }.bind(this), function(err) {
-            sk.errorMessage("Failed to trigger tasks: " + err.response);
-          });
-        }.bind(this), function(){});
+      _getRerunJobsUrl: function() {
+        var url = this.task_scheduler_url + "/trigger";
+        for (var i = 0; i < this.purple_tasks.length; i++) {
+          var sep = "&";
+          if (i === 0) {
+            sep = "?";
+          }
+          var t = this.purple_tasks[i];
+          url += sep + "job=" + t.name + "@" + t.commit;
+        }
+        return url;
       },
 
       _setFilterToSearch: function() {

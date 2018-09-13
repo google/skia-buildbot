@@ -53,8 +53,8 @@ release_kube: statusk
 run_kube: release
 	docker run status
 
-push_kube: release skia-public
-	pushk status
+push_kube: release_kube skia-public
+	pushk --message="$(MESSAGE)" statusk
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
