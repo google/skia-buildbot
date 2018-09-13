@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b35eac9_8525d215",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-13T13:43:04Z",
+      "side": 0,
+      "message": "Why do we need to remove this?",
+      "revId": "d3b9fd058208ca9d819d33701a7651e922464e1d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
