@@ -30,6 +30,9 @@ type Probe struct {
 	// The body testing function we should use.
 	ResponseTestName string `json:"responsetest"`
 
+	// If true, attach an OAuth 2.0 Bearer Token to the request.
+	Authenticated bool `json:"authenticated"`
+
 	ResponseTest ResponseTester `json:"-"`
 
 	//      map[url]metric.
