@@ -17,6 +17,7 @@ import (
 
 	"github.com/flynn/json5"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
@@ -29,6 +30,7 @@ import (
 // flags
 var (
 	config   = flag.String("config", "probersk.json5", "Prober config filename.")
+	local    = flag.Bool("local", false, "True if running locally (as opposed to in production).")
 	promPort = flag.String("prom_port", ":10110", "Metrics service address (e.g., ':10110')")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 	validate = flag.Bool("validate", false, "Validate the config file and then exit.")
@@ -177,10 +179,14 @@ func hasKeys(obj map[string]interface{}, keys []string) bool {
 	return true
 }
 
-func probeOneRound(cfg types.Probes, c *http.Client) {
+func probeOneRound(cfg types.Probes, anonymousClient, authClient *http.Client) {
 	var resp *http.Response
 	var begin time.Time
 	for name, probe := range cfg {
+		c := anonymousClient
+		if probe.Authenticated {
+			c = authClient
+		}
 		for _, url := range probe.URLs {
 			sklog.Infof("Probe: %s Starting fail value: %d", name, probe.Failure[url].Get())
 			begin = time.Now()
@@ -210,28 +216,39 @@ func probeOneRound(cfg types.Probes, c *http.Client) {
 			d := time.Since(begin)
 			probe.Latency[url].Update(d.Nanoseconds() / int64(time.Millisecond))
 			if err != nil {
-				sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, url, err)
-				probe.Failure[url].Update(1)
-				continue
+				errorOkay := false
+				for _, expect := range probe.Expected {
+					if strings.Contains(err.Error(), fmt.Sprintf("statuscode %d", expect)) {
+						errorOkay = true
+						break
+					}
+				}
+				if !errorOkay {
+					sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, url, err)
+					probe.Failure[url].Update(1)
+					continue
+				}
 			}
-			responseTestResults := true
-			if probe.ResponseTest != nil && resp.Body != nil {
-				responseTestResults = probe.ResponseTest(resp.Body, resp.Header)
-			}
-			if resp.Body != nil {
-				util.Close(resp.Body)
-			}
-			// TODO(jcgregorio) Save the last N responses and present them in a web UI.
+			if resp != nil {
+				responseTestResults := true
+				if probe.ResponseTest != nil && resp.Body != nil {
+					responseTestResults = probe.ResponseTest(resp.Body, resp.Header)
+				}
+				if resp.Body != nil {
+					util.Close(resp.Body)
+				}
+				// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
-			if !In(resp.StatusCode, probe.Expected) {
-				sklog.Errorf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
-				probe.Failure[url].Update(1)
-				continue
-			}
-			if !responseTestResults {
-				sklog.Warningf("Response test failed: Name: %s %#v", name, probe)
-				probe.Failure[url].Update(1)
-				continue
+				if !In(resp.StatusCode, probe.Expected) {
+					sklog.Errorf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
+					probe.Failure[url].Update(1)
+					continue
+				}
+				if !responseTestResults {
+					sklog.Warningf("Response test failed: Name: %s %#v", name, probe)
+					probe.Failure[url].Update(1)
+					continue
+				}
 			}
 
 			probe.Failure[url].Update(0)
@@ -349,14 +366,22 @@ func main() {
 	}
 
 	// Create a client that uses our dialer with a timeout.
-	c := httputils.NewConfiguredTimeoutClient(DIAL_TIMEOUT, REQUEST_TIMEOUT)
-	c.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+	anonymousClient := httputils.NewConfiguredTimeoutClient(DIAL_TIMEOUT, REQUEST_TIMEOUT)
+	anonymousClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	authClient := auth.ClientFromTokenSource(ts)
+	authClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
 
-	probeOneRound(cfg, c)
+	probeOneRound(cfg, anonymousClient, authClient)
 	for range time.Tick(*runEvery) {
-		probeOneRound(cfg, c)
+		probeOneRound(cfg, anonymousClient, authClient)
 		liveness.Reset()
 
 		currentHash, err := getHash()

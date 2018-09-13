@@ -1,0 +1,73 @@
+{
+   "autoroll": {
+     "urls": [
+       "https://autoroll.skia.org",
+       "https://autoroll.skia.org/r/skia-autoroll"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "autoroll_json": {
+     "urls": [
+       "https://autoroll.skia.org/json/all",
+       "https://autoroll.skia.org/r/skia-autoroll/json/ministatus",
+       "https://autoroll.skia.org/r/skia-autoroll/json/status"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "validJSON"
+   },
+   "autoroll_post_deny": {
+     "urls": [
+       "https://autoroll.skia.org/r/skia-autoroll/json/mode",
+       "https://autoroll.skia.org/r/skia-autoroll/json/strategy",
+       "https://autoroll.skia.org/r/skia-autoroll/json/unthrottle"
+     ],
+     "method": "POST",
+     "expected": [403],
+   },
+   "autoroll_internal": {
+     "urls": [
+       "https://autoroll-internal.skia.org",
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "authenticated": true
+   },
+   "autoroll_internal_json": {
+     "urls": [
+       "https://autoroll-internal.skia.org/json/all",
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll/json/ministatus",
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll/json/status"
+     ],
+     "method": "GET",
+     "expected": [200],
+     "mimetype": "application/json",
+     "responsetest": "validJSON",
+     "authenticated": true
+   },
+   "autoroll_internal_post_deny": {
+     "urls": [
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll/json/mode",
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll/json/strategy",
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll/json/unthrottle"
+     ],
+     "method": "POST",
+     "expected": [403],
+     "authenticated": true
+   },
+   "autoroll_internal_anonymous_redirect": {
+     "urls": [
+       "https://autoroll-internal.skia.org",
+       "https://autoroll-internal.skia.org/r/skia-internal-autoroll"
+     ],
+     "method": "GET",
+     "expected": [307],
+     "authenticated": false
+   },
+}

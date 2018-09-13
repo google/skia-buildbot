@@ -51,7 +51,8 @@ var (
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 
-	SKIA_STATUS_SERVICE_ACCOUNTS = []string{
+	WHITELISTED_VIEWERS = []string{
+		"prober@skia-public.iam.gserviceaccount.com",
 		"skia-status@skia-public.iam.gserviceaccount.com",
 		"skia-status-internal@skia-public.iam.gserviceaccount.com",
 		"status@skia-buildbots.google.com.iam.gserviceaccount.com",
@@ -308,7 +309,7 @@ func runServer(ctx context.Context, serverURL string) {
 	// config file, and viewers are either public or @google.com.
 	var viewAllow allowed.Allow
 	if *internal {
-		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(SKIA_STATUS_SERVICE_ACCOUNTS), allowed.Googlers())
+		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(WHITELISTED_VIEWERS), allowed.Googlers())
 	}
 	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
