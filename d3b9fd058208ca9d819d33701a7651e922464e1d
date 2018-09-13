@@ -16,6 +16,24 @@
       "revId": "d3b9fd058208ca9d819d33701a7651e922464e1d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fae99d77_321d7c0d",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-13T13:47:11Z",
+      "side": 0,
+      "message": "It\u0027s no longer doing any good.  We have an auth wrapper around this handler which is rejecting the request before we get to this point.  Rather than doing hackery to bypass it, I figured I\u0027d just make the button take you to the task scheduler frontend, where the auth wrapper works as expected.",
+      "parentUuid": "6b35eac9_8525d215",
+      "revId": "d3b9fd058208ca9d819d33701a7651e922464e1d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
