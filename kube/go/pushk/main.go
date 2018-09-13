@@ -1,6 +1,5 @@
 // pushk pushes a new version of an app.
 //
-// pushk
 // pushk docserver
 // pushk --rollback docserver
 // pushk --cluster=skia-public docserver
@@ -58,7 +57,7 @@ var (
 
 func init() {
 	flag.Usage = func() {
-		fmt.Printf("Usage: pushk <flags> [zero or more image names]\n\n")
+		fmt.Printf("Usage: pushk <flags> [one or more image names]\n\n")
 		fmt.Printf(`pushk pushes a new version of an app.
 
 The command:
@@ -77,9 +76,6 @@ appropriate images (ones that match the SERVER and project) and tries to push a
 new image for each of them.
 
 Examples:
-  # Push the latest version of all images from the given container repository.
-  pushk
-
   # Pusk an exact tag.
   pushk gcr.io/skia-public/fiddler:694900e3ca9468784a5794dc53382d1c8411ab07
 
@@ -143,28 +139,6 @@ func filter(tags []string) ([]string, error) {
 		return nil, fmt.Errorf("Not enough tags returned.")
 	}
 	return validTags, nil
-}
-
-// findAllImageNames searches for all the images that come from the given
-// project container registry across all the yaml files listed in filenames.
-func findAllImageNames(filenames []string, server, project string) []string {
-	// allImageRegex has the following groups returned on match:
-	// 0 - the entire line
-	// 1 - the image name
-	allImageRegex := regexp.MustCompile(fmt.Sprintf(`(?m)^\s+image:\s+%s/%s/([^:]+):\S+\s*$`, server, project))
-	filenameSet := util.StringSet{}
-	for _, filename := range filenames {
-		b, err := ioutil.ReadFile(filename)
-		if err != nil {
-			sklog.Errorf("Failed to read %q (skipping): %s", filename, err)
-			continue
-		}
-		matches := allImageRegex.FindAllStringSubmatch(string(b), -1)
-		for _, m := range matches {
-			filenameSet[m[1]] = true
-		}
-	}
-	return filenameSet.Keys()
 }
 
 // tagProvider is a type that returns the correct tag to push for the given imageName.
@@ -263,12 +237,9 @@ func main() {
 	tokenSource := auth.NewGCloudTokenSource(containerRegistryProject)
 	imageNames := flag.Args()
 	if len(imageNames) == 0 {
-		imageNames = findAllImageNames(filenames, gcr.SERVER, containerRegistryProject)
-		if len(imageNames) == 0 {
-			fmt.Printf("Failed to find any images that match kubernetes directory: %q and project: %q.", repoDir, containerRegistryProject)
-			flag.Usage()
-			os.Exit(1)
-		}
+		fmt.Printf("At least one image name needs to be supplied.")
+		flag.Usage()
+		os.Exit(1)
 	}
 	sklog.Infof("Pushing the following images: %q", imageNames)
 
