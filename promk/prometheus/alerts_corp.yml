@@ -1,0 +1,20 @@
+# Alerts for things in the skia-corp cluster only.
+groups:
+- name: general
+  rules:
+  - alert: InternalAutoRoll
+    expr: autoroll_last_roll_result{roller="skia-internal-autoroll"} == 0
+    for: 10m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed'
+
+  - alert: InternalAutoRoll24H
+    expr: liveness_last_autoroll_landed_s{roller="skia-internal-autoroll"}/60/60 > 24
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h'
