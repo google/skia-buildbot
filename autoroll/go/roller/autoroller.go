@@ -119,29 +119,33 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
+	sklog.Info("Creating strategy history")
 	sh, err := strategy.NewStrategyHistory(ctx, rollerName, rm.DefaultStrategy(), rm.ValidStrategies())
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create strategy history: %s", err)
 	}
+	sklog.Info("Setting strategy.")
 	initialStrategy := sh.CurrentStrategy().Strategy
 	if err := repo_manager.SetStrategy(ctx, rm, initialStrategy); err != nil {
 		return nil, fmt.Errorf("Failed to set repo manager strategy: %s", err)
 	}
+	sklog.Info("Running repo_manager.Update()")
 	if err := rm.Update(ctx); err != nil {
 		return nil, fmt.Errorf("Failed initial repo manager update: %s", err)
 	}
-
+	sklog.Info("Creating roll history")
 	recent, err := recent_rolls.NewRecentRolls(ctx, rollerName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create recent rolls DB: %s", err)
 	}
-
+	sklog.Info("Creating mode history")
 	mh, err := modes.NewModeHistory(ctx, rollerName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create mode history: %s", err)
 	}
 
 	// Throttling counters.
+	sklog.Info("Creating throttlers")
 	if c.SafetyThrottle == nil {
 		c.SafetyThrottle = SAFETY_THROTTLE_CONFIG_DEFAULT
 	}
@@ -163,16 +167,17 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, err
 	}
-
+	sklog.Info("Getting sheriff")
 	emails, err := getSheriff(c.ParentName, c.ChildName, c.RollerName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
 		return nil, err
 	}
-
+	sklog.Info("Creating notifier")
 	n := arb_notifier.New(c.ChildName, c.ParentName, emailer)
 	if err := n.Router().AddFromConfigs(ctx, c.Notifiers); err != nil {
 		return nil, err
 	}
+	sklog.Info("Creating status cache.")
 	statusCache, err := status.NewCache(ctx, rollerName)
 	if err != nil {
 		return nil, err
@@ -197,6 +202,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		strategyHistory: sh,
 		successThrottle: successThrottle,
 	}
+	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
 	if err != nil {
 		return nil, err
@@ -210,6 +216,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		}
 		arb.currentRoll = roll
 	}
+	sklog.Info("Done creating autoroller")
 	return arb, nil
 }
 

@@ -5,6 +5,7 @@
   "parentName": "Internal Test",
   "parentWaterfall": "https://status-internal.skia.org/",
   "rollerName": "skia-internal-autoroll",
+  "serviceAccount": "skia-internal-autoroll@skia-corp.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "borenet@google.com"
   ],
@@ -22,6 +23,14 @@
   "cqExtraTrybots": [
     "skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
+  },
   "maxRollFrequency": "0m",
   "notifiers": [
     {
