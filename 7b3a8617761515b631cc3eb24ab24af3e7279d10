@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46031913_5e28c5ff",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-14T13:32:04Z",
+      "side": 1,
+      "message": "Might be useful to make it part of the kubernetes config to show up in the template, since not all rollers will need this. No idea how easy / hard that is.",
+      "revId": "7b3a8617761515b631cc3eb24ab24af3e7279d10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
