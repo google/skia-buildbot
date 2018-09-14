@@ -42,7 +42,7 @@ const (
 
 // flags
 var (
-	branch       = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
+	branch       = flag.String("branch", "git_master-skia", "A comma separated list of branches where to look for buildids. Note that the first branch name will not add a branch name key-value pair to traces, but the rest will.")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -62,6 +62,7 @@ var (
 	recentRequests    *recent.Recent
 	uploads           metrics2.Counter
 	txLogWriteFailure metrics2.Counter
+	branches          []string
 
 	lookupCache *lookup.Cache
 )
@@ -69,6 +70,12 @@ var (
 func Init() {
 	ctx := context.Background()
 	loadTemplates()
+
+	for _, s := range strings.Split(*branch, ",") {
+		if s != "" {
+			branches = append(branches, s)
+		}
+	}
 
 	txLogWriteFailure = metrics2.GetCounter("tx_log_write_failure", nil)
 	uploads = metrics2.GetCounter("uploads", nil)
@@ -99,7 +106,7 @@ func Init() {
 	}
 
 	// Start process that adds buildids to the git repo.
-	process, err = continuous.New(*branch, checkout, lookupCache, client, *local, *subdomain)
+	process, err = continuous.New(branches, checkout, lookupCache, client, *local, *subdomain)
 	if err != nil {
 		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
@@ -125,7 +132,7 @@ func Init() {
 
 	recentRequests = recent.New()
 
-	converter = parser.New(lookupCache, *branch)
+	converter = parser.New(lookupCache, branches)
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -225,16 +232,22 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // redirectHandler handles the links that we added to the git repo and redirects
-// them to the source android-build dashboard.
+// them to the source android-build dashboard. An optional query parameter of 'branch'
+// will determine the branch. If not supplied the first branch in branches is used.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
+	branch := r.FormValue("branch")
+	if branch == "" {
+		branch = branches[0]
+	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", *branch, id, id), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", branch, id, id), http.StatusFound)
 }
 
 // rangeRedirectHandler handles the commit range links that we added to cluster-summary2-sk and redirects
-// them to the android-build dashboard.
+// them to the android-build dashboard. An optional query parameter of 'branch'
+// will determine the branch. If not supplied the first branch in branches is used.
 func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	begin := mux.Vars(r)["begin"]
@@ -255,7 +268,11 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, *branch, endID), http.StatusFound)
+	branch := r.FormValue("branch")
+	if branch == "" {
+		branch = branches[0]
+	}
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, branch, endID), http.StatusFound)
 }
 
 func loadTemplates() {
