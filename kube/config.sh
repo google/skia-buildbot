@@ -1,6 +1,5 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${DIR}/clusters.sh"
-
 # Common config values used by all create-* scripts.
 
 # Your project ID

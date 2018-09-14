@@ -12,6 +12,13 @@ VULCANIZE1=true
 .PHONY: build
 build: skiaperf web ptracequery ingest_json_validator
 
+build-perf-ingest:
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-ingest
+	./build_perf_ingest_release
+
+push-perf-ingest: build-perf-ingest
+	pushk perf-ingest
+
 .PHONY: validate
 validate: ingest_json_validator
 	ingest_json_validator --config_filename=sys/android-master-perf.json5
