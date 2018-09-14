@@ -16,6 +16,24 @@
       "revId": "7b3a8617761515b631cc3eb24ab24af3e7279d10",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "42338275_b6edbb20",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-14T13:36:49Z",
+      "side": 1,
+      "message": "I don\u0027t mind having the variable set for all rollers, as it doesn\u0027t hurt anything, but I struggle whether to do it in code or in the k8s config.",
+      "parentUuid": "46031913_5e28c5ff",
+      "revId": "7b3a8617761515b631cc3eb24ab24af3e7279d10",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
