@@ -50,6 +50,7 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 // Train the infra expectations.
 func TrainInfra(ctx context.Context, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
+	sklog.Info("Installing Go...")
 	goExc, goEnv, err := go_install.EnsureGo(false, os.TempDir())
 	if err != nil {
 		return err
@@ -61,6 +62,7 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 		}
 		envSlice = append(envSlice, fmt.Sprintf("%s=%s", k, v))
 	}
+	sklog.Info("Retrieving Go deps...")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Name: goExc,
 		Args: []string{"get", "-u", "go.skia.org/infra/..."},
@@ -68,6 +70,7 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 	}); err != nil {
 		return err
 	}
+	sklog.Info("Training infra expectations...")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Name: "make",
 		Args: []string{"train"},
