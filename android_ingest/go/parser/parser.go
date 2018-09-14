@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
@@ -37,7 +38,7 @@ func Parse(incoming io.Reader) (*Incoming, error) {
 	return ret, nil
 }
 
-// An interface for looking up a git hashe from a buildid.
+// An interface for looking up a git hashes from a buildid.
 //
 // The *lookup.Cache satisfies this interface.
 type Lookup interface {
@@ -47,17 +48,17 @@ type Lookup interface {
 // Converter converts a serialized *Incoming into
 // an *ingestcommon.BenchData.
 type Converter struct {
-	lookup Lookup
-	branch string
+	lookup   Lookup
+	branches []string
 }
 
 // New creates a new *Converter.
 //
 // Only data from the given branch are successfully converted.
-func New(lookup Lookup, branch string) *Converter {
+func New(lookup Lookup, branches []string) *Converter {
 	return &Converter{
-		lookup: lookup,
-		branch: branch,
+		lookup:   lookup,
+		branches: branches,
 	}
 }
 
@@ -73,8 +74,8 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
 	}
 	sklog.Infof("POST for buildid: %s branch: %s flavor: %s results_name: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, in.ResultsName, len(in.Metrics))
-	if in.Branch != c.branch {
-		return nil, fmt.Errorf("Found data for a branch we weren't expecting: Got %q Want %q at BuildID: %s", in.Branch, c.branch, in.BuildId)
+	if !util.In(in.Branch, c.branches) {
+		return nil, fmt.Errorf("Found data for a branch we weren't expecting: Got %q Wanted one of %v at BuildID: %s", in.Branch, c.branches, in.BuildId)
 	}
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
@@ -133,6 +134,13 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 		},
 		Results: map[string]ingestcommon.BenchResults{},
 	}
+
+	// Record the branch name, but only for branches after the first one.
+	branchIndex := util.Index(in.Branch, c.branches)
+	if branchIndex > 0 {
+		benchData.Key["branch"] = in.Branch
+	}
+
 	for test, metrics := range in.Metrics {
 		benchData.Results[test] = ingestcommon.BenchResults{}
 		benchData.Results[test]["default"] = ingestcommon.BenchResult{}
