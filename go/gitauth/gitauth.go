@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -116,6 +117,8 @@ func New(tokenSource oauth2.TokenSource, filename string, config bool, email str
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get initial git cookie: %s", err)
 	}
+	// Set the GIT_COOKIES_PATH environment variable for Depot Tools.
+	os.Setenv("GIT_COOKIES_PATH", filename)
 
 	go func() {
 		for {

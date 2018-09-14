@@ -67,13 +67,6 @@
         "pulld",
       ],
     },
-    "skia-internal-autoroll": {
-      "AppNames": [
-        "skia-internal-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "skia-lottie-ci-autoroll": {
       "AppNames": [
         "skia-lottie-ci-autorolld",
