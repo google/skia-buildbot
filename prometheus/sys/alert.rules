@@ -285,38 +285,8 @@ ALERT IssueTrackerLiveness
 
 # Autoroller
 
-ALERT InternalAutoRoll
-  IF autoroll_last_roll_result{roller="skia-internal-autoroll"} == 0
-  FOR 10m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed"
-  }
-
-ALERT InternalAutoRoll24H
-  IF liveness_last_autoroll_landed_s{roller="skia-internal-autoroll"}/60/60 > 24
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h"
-  }
-
-ALERT AutoRollLatency
-  IF prober{type="latency",probename="autoroll"} > 200
-  FOR 10m
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "The endpoint for {{ $labels.probename }} {{ $labels.url }} took more than 200ms to respond. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#http_latency"
-  }
-
 ALERT AutoRollBackendErrorRate
   IF rate(num_log_lines{level="ERROR",log_source="autoroll-be"}[1h]) > 0.001
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate"
-  }
-
-ALERT AutoRollFrontendErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="autoroll-fe"}[1h]) > 0.001
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate"

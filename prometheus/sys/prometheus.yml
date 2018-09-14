@@ -35,10 +35,8 @@ scrape_configs:
       - targets: ['flutter-engine-flutter-autoroll:20000']
       - targets: ['fuchsia-autoroll:20000']
       - targets: ['fuchsia-sdk-chromium-autoroll:20000']
-      - targets: ['lottie-web-lottie-ci-autoroll:20000']
       - targets: ['skcms-skia-autoroll:20000']
       - targets: ['skia-flutter-autoroll:20000']
-      - targets: ['skia-internal-autoroll:20000']
       - targets: ['skia-lottie-ci-autoroll:20000']
 
   - job_name: 'autoroll-google3'
