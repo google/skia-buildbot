@@ -51,7 +51,7 @@ func (l lookupMockBad) Lookup(buildid int64) (string, error) {
 
 func TestConvert(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "google-marlin-marlin-O")
+	c := New(lookupMockGood{}, []string{"google-marlin-marlin-O"})
 	r := bytes.NewBufferString(INCOMING)
 	benchData, err := c.Convert(r)
 	assert.NoError(t, err)
@@ -63,7 +63,7 @@ func TestConvert(t *testing.T) {
 
 func TestConvert2(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "google-angler-angler-O")
+	c := New(lookupMockGood{}, []string{"google-angler-angler-O"})
 	r := bytes.NewBufferString(INCOMING2)
 	benchData, err := c.Convert(r)
 	assert.NoError(t, err)
@@ -74,7 +74,7 @@ func TestConvert2(t *testing.T) {
 
 func TestConvertFailHashLookup(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockBad{}, "google-marlin-marlin-O")
+	c := New(lookupMockBad{}, []string{"google-marlin-marlin-O"})
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)
 	assert.Error(t, err)
@@ -82,7 +82,7 @@ func TestConvertFailHashLookup(t *testing.T) {
 
 func TestConvertFailWrongBranch(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "this-isnt-the-branch-youre-looking-for")
+	c := New(lookupMockGood{}, []string{"this-isnt-the-branch-youre-looking-for"})
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)
 	assert.Error(t, err)
