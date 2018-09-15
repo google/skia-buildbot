@@ -59,6 +59,21 @@ func TestConvert(t *testing.T) {
 	assert.Len(t, benchData.Results, 7)
 	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
 	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
+	assert.Equal(t, "", benchData.Key["branch"])
+}
+
+func TestConvertSecondBranch(t *testing.T) {
+	testutils.SmallTest(t)
+	// If our branch isn't listed as the master branch it should become part of the key.
+	c := New(lookupMockGood{}, "master")
+	r := bytes.NewBufferString(INCOMING)
+	benchData, err := c.Convert(r)
+	assert.NoError(t, err)
+	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
+	assert.Len(t, benchData.Results, 7)
+	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
+	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
+	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
 }
 
 func TestConvert2(t *testing.T) {
@@ -70,6 +85,7 @@ func TestConvert2(t *testing.T) {
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
 	assert.Len(t, benchData.Results, 1)
 	assert.Equal(t, 5439.620216, benchData.Results["coremark"]["default"]["score"])
+	assert.Equal(t, "", benchData.Key["branch"])
 }
 
 func TestConvertFailHashLookup(t *testing.T) {
@@ -82,10 +98,10 @@ func TestConvertFailHashLookup(t *testing.T) {
 
 func TestConvertFailWrongBranch(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "this-isnt-the-branch-youre-looking-for")
+	c := New(lookupMockGood{}, "this-isnt-the-master-branch")
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 const INCOMING = `{
