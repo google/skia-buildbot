@@ -5,12 +5,14 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 	"sync"
 	"testing"
 	"time"
 
 	"go.skia.org/infra/go/bt"
+	"go.skia.org/infra/go/gevent"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/config"
@@ -23,6 +25,10 @@ import (
 const (
 	LOCAL_STATUS_DIR   = "./ingestion_status"
 	RFLOCATION_CONTENT = "result file content"
+
+	PROJECT_ID      = "test-project-ingestion"
+	TEST_TOPIC      = "test-topic-ingestion-testing"
+	TEST_SUBSCRIBER = "test-subscriber-ingestion-testing"
 )
 
 func TestPollingIngester(t *testing.T) {
@@ -32,6 +38,13 @@ func TestPollingIngester(t *testing.T) {
 
 func TestPollingIngesterWithStore(t *testing.T) {
 	testutils.LargeTest(t)
+
+	if os.Getenv("PUBSUB_EMULATOR_HOST") == "" {
+		t.Skip(`Skipping tests that require a local Cloud PubSub emulator.
+Set the environment: $(gcloud beta emulators pubsub env-init)
+Run the emulator: gcloud beta emulators pubsub start`)
+	}
+
 	assert.NoError(t, bt.InitBigtable(projectID, instanceID, BigTableConfig))
 	store, err := NewBTIStore(projectID, instanceID, nameSpace)
 	assert.NoError(t, err)
@@ -44,6 +57,9 @@ func TestPollingIngesterWithStore(t *testing.T) {
 
 func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore) {
 	defer util.RemoveAll(statusDir)
+
+	eventBus, err := gevent.New(PROJECT_ID, TEST_TOPIC, TEST_SUBSCRIBER)
+	assert.NoError(t, err)
 
 	ctx := context.Background()
 	now := time.Now()
@@ -77,18 +93,20 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:  config.Duration{Duration: 1 * time.Second},
+		RunEvery:  config.Duration{Duration: 5 * time.Second},
 		NCommits:  totalCommits / 2,
 		MinDays:   3,
 		StatusDir: statusDir,
 	}
 
 	// Instantiate ingester and start it.
-	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, ingestionStore)
+	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, ingestionStore, eventBus)
 	assert.NoError(t, err)
 	assert.NoError(t, ingester.Start(ctx))
 
-	// Wait until we have collected the desired result, but no more than two seconds.
+	time.Sleep(10 * time.Second)
+
+	// Wait until we have collected the desired result, but no more than 10 seconds.
 	startTime := time.Now()
 	for {
 		mutex.Lock()
@@ -133,6 +151,7 @@ type mockRFLocation struct {
 
 func (m *mockRFLocation) Open() (io.ReadCloser, error) { return nil, nil }
 func (m *mockRFLocation) Name() string                 { return m.path }
+func (m *mockRFLocation) StorageIDs() (string, string) { return "mock", m.path }
 func (m *mockRFLocation) MD5() string                  { return m.md5 }
 func (m *mockRFLocation) TimeStamp() int64             { return m.lastUpdated }
 func (m *mockRFLocation) Content() []byte              { return []byte(RFLOCATION_CONTENT) }
@@ -164,19 +183,32 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 	}
 }
 
-func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
-	endIdx := startIdx
-	for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
-	}
-	return m.data[startIdx:endIdx], nil
+func (m *mockSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	ch := make(chan ResultFileLocation)
+	go func() {
+		startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
+		endIdx := startIdx
+		for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
+		}
+		for _, entry := range m.data[startIdx:endIdx] {
+			ch <- entry
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 func (m mockSource) ID() string {
 	return "test-source"
 }
 
-func (m *mockSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (m *mockSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
+	eventType, err := m.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
+	if err != nil {
+		return sklog.FmtErrorf("Unable to register storage event: %s", err)
+	}
+
+
 	return nil
 }
 
@@ -227,7 +259,7 @@ func TestIngesterNilVcs(t *testing.T) {
 
 	// Instantiate ingester and call getCommitRangeOfInterest.
 	ctx := context.Background()
-	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil, nil)
+	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil, nil, nil)
 	start, end, err := ingester.getCommitRangeOfInterest(ctx)
 	assert.NoError(t, err)
 
