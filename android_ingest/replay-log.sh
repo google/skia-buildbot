@@ -7,8 +7,9 @@
 set -x -e
 
 # Change the below gs: url to capture all the data you want to replay.
-for FILENAME in $(gsutil ls "gs://skia-perf/android-master-ingest/tx_log/2018/06/27/**")
+for FILENAME in $(gsutil ls "gs://skia-perf/android-master-ingest/tx_log/2018/09/14/20/**")
 do
-  curl -d "`gsutil cat $FILENAME`" -H "Content-Type: application/json" -X POST https://android-master-ingest.skia.org/upload
+  echo $FILENAME
+  curl --data-binary @<(gsutil cat $FILENAME) -H "Content-Type: application/json" -X POST https://android-master-ingest.skia.org/upload
 done
 
