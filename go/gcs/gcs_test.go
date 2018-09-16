@@ -51,6 +51,18 @@ func TestGetLatestGCSDirs(t *testing.T) {
 	}
 }
 
+func TestGetHourlyGCSDirs(t *testing.T) {
+	testutils.SmallTest(t)
+	startTS := time.Date(1972, time.November, 29, 13, 45, 20, 67, time.UTC).Unix()
+	endTS := time.Date(1982, time.February, 2, 3, 45, 20, 67, time.UTC).Unix()
+	results := GetHourlyGCSDirs(startTS, endTS, "prefix")
+	assert.True(t, len(results) > 0)
+
+	// Only check the first and the last expected date.
+	assert.Equal(t, results[0], "prefix/1972/11/29/13")
+	assert.Equal(t, results[len(results)-1], "prefix/1982/02/02/03")
+}
+
 func TestDownloadHelper(t *testing.T) {
 	testutils.MediumTest(t)
 

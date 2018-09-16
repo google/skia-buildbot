@@ -8,10 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 	"sync"
 
 	"cloud.google.com/go/storage"
@@ -19,13 +16,11 @@ import (
 
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -96,14 +91,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			// TODO(stephana): Remove this once we can support event driven
-			// ingestion for all ingesters.
-			var sourceEventBus eventbus.EventBus = nil
-			if id == "gold-tryjob" {
-				sourceEventBus = eventBus
-			}
-
-			oneSource, err := getSource(id, dataSource, client, sourceEventBus)
+			oneSource, err := getSource(id, dataSource, client, eventBus)
 			if err != nil {
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
@@ -117,7 +105,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore)
+		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +125,8 @@ func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Clie
 	if dataSource.Bucket != "" {
 		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, eventBus)
 	}
-	return NewFileSystemSource(id, dataSource.Dir)
+
+	return nil, sklog.FmtErrorf("Unable to create source. At least a bucket and directory must be supplied")
 }
 
 // validIngestionFile returns true if the given file name matches basic rules.
@@ -175,25 +164,45 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 	}, nil
 }
 
-// See Source interface.
-func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	dirs := gcs.GetLatestGCSDirs(startTime, endTime, g.rootDir)
-	retval := []ResultFileLocation{}
-	for _, dir := range dirs {
-		err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
-			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
-			if strings.Contains(filepath.Base(item.Name), "uploading") {
-				sklog.Warningf("Received temporary file from GS: %s", item.Name)
-			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
-			}
-		})
+const maxConcurrentDirPollers = 200
 
-		if err != nil {
-			return nil, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+// See Source interface.
+func (g *GoogleStorageSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	dirs := gcs.GetHourlyGCSDirs(startTime, endTime, g.rootDir)
+	ch := make(chan ResultFileLocation, maxConcurrentDirPollers)
+	concurrentPollers := make(chan bool, maxConcurrentDirPollers)
+
+	go func() {
+		var wg sync.WaitGroup
+		for _, dir := range dirs {
+			concurrentPollers <- true
+			wg.Add(1)
+
+			go func(dir string) {
+				defer func() {
+					<-concurrentPollers
+					wg.Done()
+				}()
+				err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
+					if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
+						ch <- newGCSResultFileLocation(item.Bucket,
+							item.Name,
+							item.Updated.Unix(),
+							hex.EncodeToString(item.MD5),
+							g.storageClient)
+					}
+				})
+
+				if err != nil {
+					sklog.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+				}
+			}(dir)
 		}
-	}
-	return retval, nil
+		wg.Wait()
+		close(ch)
+	}()
+
+	return ch
 }
 
 // See Source interface.
@@ -202,7 +211,7 @@ func (g *GoogleStorageSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
@@ -211,23 +220,22 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 
 		g.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
 			file := evData.(*eventbus.StorageEvent)
-
-			sklog.Infof("Received storage event: %s / %s", file.BucketID, file.ObjectID)
-
-			// Fetch the object attributes.
-			objAttr, err := g.storageClient.Bucket(file.BucketID).
-				Object(file.ObjectID).
-				Attrs(context.TODO())
-			if err != nil {
-				sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
-				return
-			}
-			ret := []ResultFileLocation{
-				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
-			}
-			resultCh <- ret
-			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
+			resultCh <- newGCSResultFileLocation(file.BucketID, file.ObjectID, file.TimeStamp, file.MD5, g.storageClient)
 		})
+
+		// 	sklog.Infof("Received storage event: %s / %s", file.BucketID, file.ObjectID)
+
+		// 	// Fetch the object attributes.
+		// 	objAttr, err := g.storageClient.Bucket(file.BucketID).
+		// 		Object(file.ObjectID).
+		// 		Attrs(context.TODO())
+		// 	if err != nil {
+		// 		sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
+		// 		return
+		// 	}
+		// 	resultCh <- newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient)
+		// 	sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
+		// })
 	}
 	return nil
 }
@@ -236,20 +244,19 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 type gsResultFileLocation struct {
 	bucket        string
 	name          string
-	relativeName  string
 	lastUpdated   int64
 	md5           string
 	storageClient *storage.Client
 	content       []byte
 }
 
-func newGCSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
+// func newGCSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
+func newGCSResultFileLocation(bucketID, objectID string, lastUpdated int64, md5 string, storageClient *storage.Client) ResultFileLocation {
 	return &gsResultFileLocation{
-		bucket:        result.Bucket,
-		name:          result.Name,
-		relativeName:  strings.TrimPrefix(result.Name, rootDir+"/"),
-		lastUpdated:   result.Updated.Unix(),
-		md5:           hex.EncodeToString(result.MD5),
+		bucket:        bucketID,
+		name:          objectID,
+		lastUpdated:   lastUpdated,
+		md5:           md5,
 		storageClient: storageClient,
 	}
 }
@@ -294,6 +301,11 @@ func (g *gsResultFileLocation) Name() string {
 	return fmt.Sprintf("gs://%s/%s", g.bucket, g.name)
 }
 
+// StorageIDs implements the ResultFileLocation interface.
+func (g *gsResultFileLocation) StorageIDs() (string, string) {
+	return g.bucket, g.name
+}
+
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) MD5() string {
 	return g.md5
@@ -309,145 +321,151 @@ func (g *gsResultFileLocation) Content() []byte {
 	return g.content
 }
 
-// FileSystemSource implements the Source interface to read from the local
-// file system.
-type FileSystemSource struct {
-	rootDir string
-	id      string
-}
+// // FileSystemSource implements the Source interface to read from the local
+// // file system.
+// type FileSystemSource struct {
+// 	rootDir string
+// 	id      string
+// }
 
-func NewFileSystemSource(baseName, rootDir string) (Source, error) {
-	return &FileSystemSource{
-		rootDir: rootDir,
-		id:      fmt.Sprintf("%s:fs:%s", baseName, rootDir),
-	}, nil
-}
+// func NewFileSystemSource(baseName, rootDir string) (Source, error) {
+// 	return &FileSystemSource{
+// 		rootDir: rootDir,
+// 		id:      fmt.Sprintf("%s:fs:%s", baseName, rootDir),
+// 	}, nil
+// }
 
-// See Source interface.
-func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	retval := []ResultFileLocation{}
+// // See Source interface.
+// func (f *FileSystemSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+// 	// retval := []ResultFileLocation{}
 
-	// although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
-	// its operation that makes it not re-usable here.
-	dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
-	for _, dir := range dirs {
-		// Inject dir into a closure.
-		func(dir string) {
-			walkFn := func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					// We swallow the error to continue processing, but make sure it's
-					// shows up in the logs.
-					sklog.Errorf("Error walking %s: %s", path, err)
-					return nil
-				}
-				if info.IsDir() {
-					return nil
-				}
+// 	// // although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
+// 	// // its operation that makes it not re-usable here.
+// 	// dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
+// 	// for _, dir := range dirs {
+// 	// 	// Inject dir into a closure.
+// 	// 	func(dir string) {
+// 	// 		walkFn := func(path string, info os.FileInfo, err error) error {
+// 	// 			if err != nil {
+// 	// 				// We swallow the error to continue processing, but make sure it's
+// 	// 				// shows up in the logs.
+// 	// 				sklog.Errorf("Error walking %s: %s", path, err)
+// 	// 				return nil
+// 	// 			}
+// 	// 			if info.IsDir() {
+// 	// 				return nil
+// 	// 			}
 
-				updateTimestamp := info.ModTime().Unix()
-				if validIngestionFile(path) && (updateTimestamp > startTime) {
-					rf, err := FileSystemResult(path, f.rootDir)
-					if err != nil {
-						sklog.Errorf("Unable to create file system result: %s", err)
-						return nil
-					}
-					retval = append(retval, rf)
-				}
-				return nil
-			}
+// 	// 			updateTimestamp := info.ModTime().Unix()
+// 	// 			if validIngestionFile(path) && (updateTimestamp > startTime) {
+// 	// 				rf, err := FileSystemResult(path, f.rootDir)
+// 	// 				if err != nil {
+// 	// 					sklog.Errorf("Unable to create file system result: %s", err)
+// 	// 					return nil
+// 	// 				}
+// 	// 				retval = append(retval, rf)
+// 	// 			}
+// 	// 			return nil
+// 	// 		}
 
-			// Only walk the tree if the top directory exists.
-			if fileutil.FileExists(dir) {
-				if err := filepath.Walk(dir, walkFn); err != nil {
-					sklog.Infof("Unable to read the local dir %s: %s", dir, err)
-					return
-				}
-			}
-		}(dir)
-	}
+// 	// 		// Only walk the tree if the top directory exists.
+// 	// 		if fileutil.FileExists(dir) {
+// 	// 			if err := filepath.Walk(dir, walkFn); err != nil {
+// 	// 				sklog.Infof("Unable to read the local dir %s: %s", dir, err)
+// 	// 				return
+// 	// 			}
+// 	// 		}
+// 	// 	}(dir)
+// 	// }
 
-	return retval, nil
-}
+// 	// return retval, nil
+// 	return nil
+// }
 
-// See Source interface.
-func (f *FileSystemSource) ID() string {
-	return f.id
-}
+// // See Source interface.
+// func (f *FileSystemSource) ID() string {
+// 	return f.id
+// }
 
-// SetEventChannel implements the Source interface.
-func (f *FileSystemSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
-	return nil
-}
+// // SetEventChannel implements the Source interface.
+// func (f *FileSystemSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
+// 	return nil
+// }
 
-// fsResultFileLocation implements the ResultFileLocation interface for
-// the local filesystem.
-type fsResultFileLocation struct {
-	path        string
-	buf         []byte
-	md5         string
-	lastUpdated int64
-}
+// // fsResultFileLocation implements the ResultFileLocation interface for
+// // the local filesystem.
+// type fsResultFileLocation struct {
+// 	path        string
+// 	buf         []byte
+// 	md5         string
+// 	lastUpdated int64
+// }
 
-// FileSystemResult returns a ResultFileLocation for files. path is the path
-// where the target file resides and rootDir is the root of all paths.
-func FileSystemResult(path, rootDir string) (ResultFileLocation, error) {
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return nil, err
-	}
+// // FileSystemResult returns a ResultFileLocation for files. path is the path
+// // where the target file resides and rootDir is the root of all paths.
+// func FileSystemResult(path, rootDir string) (ResultFileLocation, error) {
+// 	fileInfo, err := os.Stat(path)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// Read file into buffer and calculate the md5 in the process.
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(file)
+// 	// Read file into buffer and calculate the md5 in the process.
+// 	file, err := os.Open(path)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer util.Close(file)
 
-	var buf bytes.Buffer
-	md5, err := util.MD5FromReader(file, &buf)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to get MD5 hash of %s: %s", path, err)
-	}
+// 	var buf bytes.Buffer
+// 	md5, err := util.MD5FromReader(file, &buf)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("Unable to get MD5 hash of %s: %s", path, err)
+// 	}
 
-	absRootDir, err := filepath.Abs(rootDir)
-	if err != nil {
-		return nil, err
-	}
+// 	absRootDir, err := filepath.Abs(rootDir)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
+// 	absPath, err := filepath.Abs(path)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &fsResultFileLocation{
-		path:        strings.TrimPrefix(absPath, absRootDir+"/"),
-		buf:         buf.Bytes(),
-		md5:         hex.EncodeToString(md5),
-		lastUpdated: fileInfo.ModTime().Unix(),
-	}, nil
-}
+// 	return &fsResultFileLocation{
+// 		path:        strings.TrimPrefix(absPath, absRootDir+"/"),
+// 		buf:         buf.Bytes(),
+// 		md5:         hex.EncodeToString(md5),
+// 		lastUpdated: fileInfo.ModTime().Unix(),
+// 	}, nil
+// }
 
-// see ResultFileLocation interface.
-func (f *fsResultFileLocation) Open() (io.ReadCloser, error) {
-	return ioutil.NopCloser(bytes.NewBuffer(f.buf)), nil
-}
+// // see ResultFileLocation interface.
+// func (f *fsResultFileLocation) Open() (io.ReadCloser, error) {
+// 	return ioutil.NopCloser(bytes.NewBuffer(f.buf)), nil
+// }
 
-// see ResultFileLocation interface.
-func (f *fsResultFileLocation) Name() string {
-	return f.path
-}
+// // see ResultFileLocation interface.
+// func (f *fsResultFileLocation) Name() string {
+// 	return f.path
+// }
 
-// see ResultFileLocation interface.
-func (f *fsResultFileLocation) MD5() string {
-	return f.md5
-}
+// // StorageIDs implements the ResultFileLocation interface.
+// func (f *fsResultFileLocation) StorageIDs() (string, string) {
+// 	return "--fsResultFileLocation", f.path
+// }
 
-// see ResultFileLocation interface.
-func (f *fsResultFileLocation) TimeStamp() int64 {
-	return f.lastUpdated
-}
+// // see ResultFileLocation interface.
+// func (f *fsResultFileLocation) MD5() string {
+// 	return f.md5
+// }
 
-// see ResultFileLocation interface.
-func (f *fsResultFileLocation) Content() []byte {
-	return f.buf
-}
+// // see ResultFileLocation interface.
+// func (f *fsResultFileLocation) TimeStamp() int64 {
+// 	return f.lastUpdated
+// }
+
+// // see ResultFileLocation interface.
+// func (f *fsResultFileLocation) Content() []byte {
+// 	return f.buf
+// }
