@@ -38,7 +38,7 @@ func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string, codec
 	return &NetDiffStore{
 		serviceClient:          serviceClient,
 		diffServerImageAddress: diffServerImageAddress,
-		codec: codec,
+		codec:                  codec,
 	}, nil
 }
 
