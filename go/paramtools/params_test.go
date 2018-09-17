@@ -29,7 +29,7 @@ func TestAddParamsFromKey(t *testing.T) {
 func TestParams(t *testing.T) {
 	testutils.SmallTest(t)
 	p := Params{"foo": "1", "bar": "2"}
-	p2 := p.Dup()
+	p2 := p.Copy()
 	p["baz"] = "3"
 	assert.NotEqual(t, p["baz"], p2["baz"])
 
@@ -259,6 +259,34 @@ func TestOrderedParamSetEmpty(t *testing.T) {
 	testutils.SmallTest(t)
 	// Confirm that empty OrderedParamSet's round-trip correctly.
 	roundTripsEncode(t, NewOrderedParamSet())
+}
+
+func TestOrderedParamSetCopy(t *testing.T) {
+	testutils.SmallTest(t)
+
+	p := NewOrderedParamSet()
+	// Add some data.
+	p.Update(
+		ParamSet{
+			"arch": []string{"riscv", "arm"},
+		},
+	)
+	// Make a copy and modify that copy.
+	p2 := p.Copy()
+	p2.Update(
+		ParamSet{
+			"config": []string{"8888", "565", "gpu"},
+		},
+	)
+	// Config they are different.
+	assert.Equal(t, []string{"arch"}, p.KeyOrder)
+	assert.Equal(t, []string{"arch", "config"}, p2.KeyOrder)
+	_, err := p.EncodeParamsAsString(Params{"arch": "arm"})
+	assert.NoError(t, err)
+	_, err = p.EncodeParamsAsString(Params{"config": "8888"})
+	assert.Error(t, err)
+	_, err = p2.EncodeParamsAsString(Params{"config": "8888"})
+	assert.NoError(t, err)
 }
 
 func TestOrderedParamSetStartFromEmpty(t *testing.T) {

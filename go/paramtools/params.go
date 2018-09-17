@@ -44,8 +44,8 @@ func (p Params) Add(b ...Params) {
 	}
 }
 
-// Dup returns a copy of the Params.
-func (p Params) Dup() Params {
+// Copy returns a copy of the Params.
+func (p Params) Copy() Params {
 	ret := make(Params, len(p))
 	for k, v := range p {
 		ret[k] = v
@@ -241,6 +241,15 @@ func NewOrderedParamSet() *OrderedParamSet {
 		paramsEncoder: nil,
 		paramsDecoder: nil,
 	}
+}
+
+func (o *OrderedParamSet) Copy() *OrderedParamSet {
+	ret := &OrderedParamSet{
+		KeyOrder: make([]string, len(o.KeyOrder)),
+		ParamSet: o.ParamSet.Copy(),
+	}
+	copy(ret.KeyOrder, o.KeyOrder)
+	return ret
 }
 
 // Delta returns all the keys and their values that don't exist in the
