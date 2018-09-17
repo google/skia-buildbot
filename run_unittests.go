@@ -446,32 +446,37 @@ func main() {
 		tests = append(tests, polylintTests()...)
 	}
 
-	goimportsCmd := []string{"goimports", "-l", "."}
-	tests = append(tests, &test{
-		Name: "goimports",
-		Cmd:  strings.Join(goimportsCmd, " "),
-		run: func() (string, error) {
-			command := exec.Command(goimportsCmd[0], goimportsCmd[1:]...)
-			output, err := command.Output()
-			outStr := strings.Trim(string(output), "\n")
-			if err != nil {
-				if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
-					return outStr, fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err)
+	// TODO(stephan): Re-enable goimports once we can guarantee that go-generate
+	// doesn't conflict with it.
+	// Temporarily disabled.
+	if false {
+		goimportsCmd := []string{"goimports", "-l", "."}
+		tests = append(tests, &test{
+			Name: "goimports",
+			Cmd:  strings.Join(goimportsCmd, " "),
+			run: func() (string, error) {
+				command := exec.Command(goimportsCmd[0], goimportsCmd[1:]...)
+				output, err := command.Output()
+				outStr := strings.Trim(string(output), "\n")
+				if err != nil {
+					if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
+						return outStr, fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err)
+					}
+					// Sometimes goimports returns exit code 2, but gives no reason.
+					if outStr != "" {
+						return fmt.Sprintf("goimports output: %q", outStr), err
+					}
 				}
-				// Sometimes goimports returns exit code 2, but gives no reason.
-				if outStr != "" {
-					return fmt.Sprintf("goimports output: %q", outStr), err
+				diffFiles := strings.Split(outStr, "\n")
+				if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
+					return outStr, fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - "))
 				}
-			}
-			diffFiles := strings.Split(outStr, "\n")
-			if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
-				return outStr, fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - "))
-			}
-			return "", nil
+				return "", nil
 
-		},
-		Type: testutils.MEDIUM_TEST,
-	})
+			},
+			Type: testutils.MEDIUM_TEST,
+		})
+	}
 
 	if *race {
 		tests = gotests
