@@ -43,7 +43,7 @@ func main() {
 	sources := []ingestion.Source{inputSource}
 	processor := &BenchProcessor{}
 
-	ingester, err := ingestion.NewIngester("bench-ingester", &ingesterConf, nil, sources, processor, nil)
+	ingester, err := ingestion.NewIngester("bench-ingester", &ingesterConf, nil, sources, processor, nil, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to create ingester: %s", err)
 	}
