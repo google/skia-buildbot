@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
-	_ "go.skia.org/infra/golden/go/pdfingestion"
 )
 
 // Command line flags.
