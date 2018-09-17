@@ -88,6 +88,10 @@ var (
 
 	// Every call to cmdTest uses a different KARMA_PORT.
 	nextKarmaPort = 9876
+
+	// ignoreGoImportsFailures is a regular expression that determines which files should be ignored
+	// if their goimports output differs from what is checked in.
+	ignoreGoImportsFailures = regexp.MustCompile(`^.*.pb.go`)
 )
 
 // cmdTest returns a test which runs a command and fails if the command fails.
@@ -446,37 +450,41 @@ func main() {
 		tests = append(tests, polylintTests()...)
 	}
 
-	// TODO(stephan): Re-enable goimports once we can guarantee that go-generate
-	// doesn't conflict with it.
-	// Temporarily disabled.
-	if false {
-		goimportsCmd := []string{"goimports", "-l", "."}
-		tests = append(tests, &test{
-			Name: "goimports",
-			Cmd:  strings.Join(goimportsCmd, " "),
-			run: func() (string, error) {
-				command := exec.Command(goimportsCmd[0], goimportsCmd[1:]...)
-				output, err := command.Output()
-				outStr := strings.Trim(string(output), "\n")
-				if err != nil {
-					if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
-						return outStr, fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err)
-					}
-					// Sometimes goimports returns exit code 2, but gives no reason.
-					if outStr != "" {
-						return fmt.Sprintf("goimports output: %q", outStr), err
+	goimportsCmd := []string{"goimports", "-l", "."}
+	tests = append(tests, &test{
+		Name: "goimports",
+		Cmd:  strings.Join(goimportsCmd, " "),
+		run: func() (string, error) {
+			command := exec.Command(goimportsCmd[0], goimportsCmd[1:]...)
+			output, err := command.Output()
+			outStr := strings.Trim(string(output), "\n")
+			if err != nil {
+				if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
+					return outStr, fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err)
+				}
+				// Sometimes goimports returns exit code 2, but gives no reason.
+				if outStr != "" {
+					return fmt.Sprintf("goimports output: %q", outStr), err
+				}
+			}
+			diffFiles := strings.Split(outStr, "\n")
+			if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
+				nonGeneratedFound := false
+				for _, file := range diffFiles {
+					if !ignoreGoImportsFailures.Match([]byte(file)) {
+						nonGeneratedFound = true
+						break
 					}
 				}
-				diffFiles := strings.Split(outStr, "\n")
-				if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
+				if nonGeneratedFound {
 					return outStr, fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - "))
 				}
-				return "", nil
+			}
+			return "", nil
 
-			},
-			Type: testutils.MEDIUM_TEST,
-		})
-	}
+		},
+		Type: testutils.MEDIUM_TEST,
+	})
 
 	if *race {
 		tests = gotests
