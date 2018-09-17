@@ -3,6 +3,7 @@ package ptraceingest
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
@@ -51,5 +52,5 @@ func (p *perfProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 		return err
 	}
 
-	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name())
+	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name(), time.Now())
 }
