@@ -14,6 +14,16 @@ const (
 	MISSING_DATA_SENTINEL float32 = 1e32
 )
 
+// New creates a new []float32 of the given size pre-populated
+// with MISSING_DATA_SENTINEL.
+func New(size int) []float32 {
+	ret := make([]float32, size)
+	for i, _ := range ret {
+		ret[i] = MISSING_DATA_SENTINEL
+	}
+	return ret
+}
+
 func MeanAndStdDev(a []float32) (float32, float32, error) {
 	count := 0
 	sum := float32(0.0)

@@ -29,6 +29,21 @@ func vecNear(a, b []float32) bool {
 	return true
 }
 
+func TestNew(t *testing.T) {
+	testutils.SmallTest(t)
+	v := New(0)
+	assert.Len(t, v, 0)
+
+	v = New(1)
+	assert.Len(t, v, 1)
+	assert.Equal(t, MISSING_DATA_SENTINEL, v[0])
+
+	v = New(2)
+	assert.Len(t, v, 2)
+	assert.Equal(t, MISSING_DATA_SENTINEL, v[0])
+	assert.Equal(t, MISSING_DATA_SENTINEL, v[1])
+}
+
 func TestNorm(t *testing.T) {
 	testutils.SmallTest(t)
 	testCases := []struct {
