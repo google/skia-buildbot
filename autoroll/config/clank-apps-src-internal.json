@@ -1,0 +1,31 @@
+{
+  "childName": "clank/internal/apps",
+  "gerritURL": "https://chrome-internal-review.googlesource.com",
+  "isInternal": true,
+  "parentName": "src-internal",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "clank-apps-src-internal-autoroll",
+  "serviceAccount": "chromium-internal-autoroll@skia-corp.google.com.iam.gserviceaccount.com",
+  "sheriff": [
+    "jbudorick@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/clank",
+    "childRepo": "https://chrome-internal.googlesource.com/clank/internal/apps.git",
+    "gerritProject": "chrome/src-internal",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chrome-internal.googlesource.com/chrome/src-internal.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
