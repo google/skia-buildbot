@@ -216,6 +216,16 @@ type localDB struct {
 
 	dbMetric *boltutil.DbMetric
 
+	// Count queries and results to get QPS metrics.
+	metricReadTaskQueries  metrics2.Counter
+	metricReadTaskRows     metrics2.Counter
+	metricWriteTaskQueries metrics2.Counter
+	metricWriteTaskRows    metrics2.Counter
+	metricReadJobQueries   metrics2.Counter
+	metricReadJobRows      metrics2.Counter
+	metricWriteJobQueries  metrics2.Counter
+	metricWriteJobRows     metrics2.Counter
+
 	// ModifiedTasks and ModifiedJobs are embedded in order to implement
 	// db.TaskReader and db.JobReader.
 	db.ModifiedTasks
@@ -318,6 +328,54 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 		}),
 		txNextId: 0,
 		txActive: map[int64]string{},
+		metricReadTaskQueries: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "read",
+			"bucket":   BUCKET_TASKS,
+			"count":    "queries",
+		}),
+		metricReadTaskRows: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "read",
+			"bucket":   BUCKET_TASKS,
+			"count":    "rows",
+		}),
+		metricWriteTaskQueries: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "write",
+			"bucket":   BUCKET_TASKS,
+			"count":    "queries",
+		}),
+		metricWriteTaskRows: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "write",
+			"bucket":   BUCKET_TASKS,
+			"count":    "rows",
+		}),
+		metricReadJobQueries: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "read",
+			"bucket":   BUCKET_JOBS,
+			"count":    "queries",
+		}),
+		metricReadJobRows: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "read",
+			"bucket":   BUCKET_JOBS,
+			"count":    "rows",
+		}),
+		metricWriteJobQueries: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "write",
+			"bucket":   BUCKET_JOBS,
+			"count":    "queries",
+		}),
+		metricWriteJobRows: metrics2.GetCounter("db_op_count", map[string]string{
+			"database": name,
+			"op":       "write",
+			"bucket":   BUCKET_JOBS,
+			"count":    "rows",
+		}),
 	}
 
 	stopReportActiveTx := make(chan bool)
@@ -430,6 +488,7 @@ func (d *localDB) AssignId(t *db.Task) error {
 
 // See docs for TaskDB interface.
 func (d *localDB) GetTaskById(id string) (*db.Task, error) {
+	d.metricReadTaskQueries.Inc(1)
 	var rv *db.Task
 	if err := d.view("GetTaskById", func(tx *bolt.Tx) error {
 		value := tasksBucket(tx).Get([]byte(id))
@@ -455,11 +514,13 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 			return nil, err
 		}
 	}
+	d.metricReadTaskRows.Inc(1)
 	return rv, nil
 }
 
 // See docs for TaskDB interface.
 func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*db.Task, error) {
+	d.metricReadTaskQueries.Inc(1)
 	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.Add(MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	decoder := db.TaskDecoder{}
@@ -497,6 +558,7 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*d
 		endIdx--
 	}
 	if repo == "" {
+		d.metricReadTaskRows.Inc(int64(endIdx - startIdx))
 		return result[startIdx:endIdx], nil
 	}
 	rv := make([]*db.Task, 0, len(result[startIdx:endIdx]))
@@ -505,6 +567,7 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*d
 			rv = append(rv, t)
 		}
 	}
+	d.metricReadTaskRows.Inc(int64(len(rv)))
 	return rv, nil
 }
 
@@ -536,6 +599,7 @@ func (d *localDB) validateTask(task *db.Task) error {
 
 // See documentation for TaskDB interface.
 func (d *localDB) PutTasks(tasks []*db.Task) error {
+	d.metricWriteTaskQueries.Inc(1)
 	// If there is an error during the transaction, we should leave the tasks
 	// unchanged. Save the old Ids and DbModified times since we set them below.
 	type savedData struct {
@@ -605,6 +669,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		revertChanges()
 		return err
 	} else {
+		d.metricWriteTaskRows.Inc(int64(len(gobs)))
 		d.TrackModifiedTasksGOB(gobs)
 	}
 	return nil
@@ -629,6 +694,7 @@ func (d *localDB) assignJobId(tx *bolt.Tx, job *db.Job) error {
 
 // See docs for JobDB interface.
 func (d *localDB) GetJobById(id string) (*db.Job, error) {
+	d.metricReadJobQueries.Inc(1)
 	var rv *db.Job
 	if err := d.view("GetJobById", func(tx *bolt.Tx) error {
 		value := jobsBucket(tx).Get([]byte(id))
@@ -654,11 +720,13 @@ func (d *localDB) GetJobById(id string) (*db.Job, error) {
 			return nil, err
 		}
 	}
+	d.metricReadJobRows.Inc(1)
 	return rv, nil
 }
 
 // See docs for JobDB interface.
 func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) {
+	d.metricReadJobQueries.Inc(1)
 	min := []byte(start.UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
 	decoder := db.JobDecoder{}
@@ -684,6 +752,7 @@ func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) 
 		return nil, err
 	}
 	sort.Sort(db.JobSlice(result))
+	d.metricReadJobRows.Inc(int64(len(result)))
 	return result, nil
 }
 
@@ -712,6 +781,7 @@ func (d *localDB) validateJob(job *db.Job) error {
 
 // See documentation for JobDB interface.
 func (d *localDB) PutJobs(jobs []*db.Job) error {
+	d.metricWriteJobQueries.Inc(1)
 	// If there is an error during the transaction, we should leave the jobs
 	// unchanged. Save the old Ids and DbModified times since we set them below.
 	type savedData struct {
@@ -779,6 +849,7 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 		revertChanges()
 		return err
 	} else {
+		d.metricWriteJobRows.Inc(int64(len(gobs)))
 		d.TrackModifiedJobsGOB(gobs)
 	}
 	return nil
