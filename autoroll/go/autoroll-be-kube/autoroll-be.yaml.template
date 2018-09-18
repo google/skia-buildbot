@@ -47,6 +47,8 @@ spec:
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
+            - name: TMPDIR
+              value: /data/tmp
           resources:
             limits:
               memory: "{{.kubernetes.memory}}"
@@ -55,9 +57,9 @@ spec:
             httpGet:
               path: /healthz
               port: 8000
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            failureThreshold: 10
+            initialDelaySeconds: {{.kubernetes.readinessInitialDelaySeconds}}
+            periodSeconds: {{.kubernetes.readinessPeriodSeconds}}
+            failureThreshold: {{.kubernetes.readinessFailureThreshold}}
       volumes:
         - name: autoroll-be-{{$svcAcct}}-sa
           secret:

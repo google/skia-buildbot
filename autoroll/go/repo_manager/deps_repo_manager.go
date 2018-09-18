@@ -266,20 +266,23 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", dr.childPath, to)}
 	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  dr.parentDir,
-		Env:  depot_tools.Env(dr.depotTools),
-		Name: dr.gclient,
-		Args: args,
+		Dir:        dr.parentDir,
+		Env:        depot_tools.Env(dr.depotTools),
+		InheritEnv: true,
+		Name:       dr.gclient,
+		Args:       args,
 	}); err != nil {
 		return 0, err
 	}
 
 	// Run "gclient sync" to get the DEPS to the correct new revisions.
+	sklog.Info("Running command: gclient sync --nohooks")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  dr.workdir,
-		Env:  depot_tools.Env(dr.depotTools),
-		Name: "python",
-		Args: []string{dr.gclient, "sync", "--nohooks"},
+		Dir:        dr.workdir,
+		Env:        depot_tools.Env(dr.depotTools),
+		InheritEnv: true,
+		Name:       "python",
+		Args:       []string{dr.gclient, "sync", "--nohooks"},
 	}); err != nil {
 		return 0, err
 	}
@@ -291,6 +294,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Run the pre-upload steps.
+	sklog.Infof("Running pre-upload steps.")
 	for _, s := range dr.PreUploadSteps() {
 		if err := s(ctx, dr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
@@ -303,12 +307,14 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Upload the CL.
+	sklog.Infof("Running command git %s", strings.Join(args, " "))
 	uploadCmd := &exec.Command{
-		Dir:     dr.parentDir,
-		Env:     depot_tools.Env(dr.depotTools),
-		Name:    "git",
-		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
-		Timeout: 2 * time.Minute,
+		Dir:        dr.parentDir,
+		Env:        depot_tools.Env(dr.depotTools),
+		InheritEnv: true,
+		Name:       "git",
+		Args:       []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
+		Timeout:    2 * time.Minute,
 	}
 	if dryRun {
 		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
@@ -332,6 +338,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	}
 
 	// Obtain the issue number.
+	sklog.Infof("Retrieving issue number of uploaded CL.")
 	tmp, err := ioutil.TempDir("", "")
 	if err != nil {
 		return 0, err
@@ -339,10 +346,11 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	defer util.RemoveAll(tmp)
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  dr.parentDir,
-		Env:  depot_tools.Env(dr.depotTools),
-		Name: "git",
-		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
+		Dir:        dr.parentDir,
+		Env:        depot_tools.Env(dr.depotTools),
+		InheritEnv: true,
+		Name:       "git",
+		Args:       []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {
 		return 0, err
 	}

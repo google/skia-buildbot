@@ -192,6 +192,12 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 	}
+
+	// Set environment variable for depot_tools.
+	if err := os.Setenv("SKIP_GCE_AUTH_FOR_GIT", "1"); err != nil {
+		sklog.Fatal(err)
+	}
+
 	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, rollerName)
 	if err != nil {
 		sklog.Fatal(err)
