@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b9885bb0_148389e4",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-18T20:14:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37a56e8f_4da57eb9",
+      "range": {
+        "startLine": 22,
+        "startChar": 37,
+        "endLine": 22,
+        "endChar": 73
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "91027d9a_d00282d5",
         "filename": "kube/go/repo-sync/main.go",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2018-09-18T20:01:11Z",
       "side": 1,
       "message": "I would recommend using a git.Repo based on the source repo, then:\ngit remote set-url --push origin\n\nAnd on each tick you do:\ngit fetch --prune origin\ngit push --mirror",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7318ae0_2e820fd4",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-18T20:14:12Z",
+      "side": 1,
+      "message": "I\u0027m not sure what that does, or how it is different that what is currently there.",
+      "parentUuid": "91027d9a_d00282d5",
       "range": {
         "startLine": 31,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5649fb8_d3a1e88e",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-18T20:14:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ef821e0_333f750b",
+      "range": {
+        "startLine": 55,
+        "startChar": 32,
+        "endLine": 56,
+        "endChar": 2
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
