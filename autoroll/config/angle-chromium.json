@@ -9,6 +9,9 @@
   "sheriff": [
     "https://build.chromium.org/deprecated/chromium/sheriff_angle.json"
   ],
+  "sheriffBackup": [
+    "ynovikov@chromium.org"
+  ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/angle",
