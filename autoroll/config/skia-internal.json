@@ -25,7 +25,7 @@
   ],
   "kubernetes": {
     "cpu": "1",
-    "memory": "8Gi",
+    "memory": "16Gi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
