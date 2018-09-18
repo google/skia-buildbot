@@ -238,7 +238,7 @@ func MockHeartbeats(t *testing.T, mock *mockhttpclient.URLMock, now time.Time, j
 	assert.NoError(t, err)
 	resp = append(resp, []byte("\n")...)
 
-	mock.MockOnce(fmt.Sprintf("%sheartbeat?alt=json", API_URL_TESTING), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sheartbeat?alt=json&prettyPrint=false", API_URL_TESTING), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, msg string, err error) {
@@ -248,7 +248,7 @@ func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, msg string, err err
 		respStr = fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", err)
 	}
 	resp := []byte(respStr)
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, now time.Time, err error) {
@@ -258,7 +258,7 @@ func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, now time.Time, er
 		respStr = fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", err)
 	}
 	resp := []byte(respStr)
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockJobStarted(mock *mockhttpclient.URLMock, id int64, now time.Time, err error) {
@@ -269,7 +269,7 @@ func MockJobStarted(mock *mockhttpclient.URLMock, id int64, now time.Time, err e
 	if err != nil {
 		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", err.Error()))
 	}
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func serializeJob(j *db.Job) string {
@@ -293,7 +293,7 @@ func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expe
 	if expectErr != nil {
 		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
 	}
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/succeed?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/succeed?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
@@ -302,7 +302,7 @@ func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expe
 	if expectErr != nil {
 		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
 	}
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
@@ -311,7 +311,7 @@ func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expec
 	if expectErr != nil {
 		resp = []byte(fmt.Sprintf("{\"error\":{\"message\":\"%s\"}}", expectErr.Error()))
 	}
-	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
+	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
 func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.ApiCommonBuildMessage, now time.Time, cursor, nextcursor string, err error) {
@@ -328,5 +328,5 @@ func MockPeek(mock *mockhttpclient.URLMock, builds []*buildbucket_api.ApiCommonB
 	if err != nil {
 		panic(err)
 	}
-	mock.MockOnce(fmt.Sprintf("%speek?alt=json&bucket=%s&max_builds=50&start_cursor=%s", API_URL_TESTING, BUCKET_TESTING, cursor), mockhttpclient.MockGetDialogue(respBytes))
+	mock.MockOnce(fmt.Sprintf("%speek?alt=json&bucket=%s&max_builds=50&prettyPrint=false&start_cursor=%s", API_URL_TESTING, BUCKET_TESTING, cursor), mockhttpclient.MockGetDialogue(respBytes))
 }

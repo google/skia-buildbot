@@ -37,6 +37,7 @@ func (*Empty) ProtoMessage()    {}
 func (*Empty) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{0}
 }
+
 func (m *Empty) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Empty.Unmarshal(m, b)
 }
@@ -70,6 +71,7 @@ func (*GetDiffsRequest) ProtoMessage()    {}
 func (*GetDiffsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{1}
 }
+
 func (m *GetDiffsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDiffsRequest.Unmarshal(m, b)
 }
@@ -122,6 +124,7 @@ func (*GetDiffsResponse) ProtoMessage()    {}
 func (*GetDiffsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{2}
 }
+
 func (m *GetDiffsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetDiffsResponse.Unmarshal(m, b)
 }
@@ -161,6 +164,7 @@ func (*PurgeDigestsRequest) ProtoMessage()    {}
 func (*PurgeDigestsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{3}
 }
+
 func (m *PurgeDigestsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PurgeDigestsRequest.Unmarshal(m, b)
 }
@@ -206,6 +210,7 @@ func (*UnavailableDigestsResponse) ProtoMessage()    {}
 func (*UnavailableDigestsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{4}
 }
+
 func (m *UnavailableDigestsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UnavailableDigestsResponse.Unmarshal(m, b)
 }
@@ -246,6 +251,7 @@ func (*WarmDigestsRequest) ProtoMessage()    {}
 func (*WarmDigestsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{5}
 }
+
 func (m *WarmDigestsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WarmDigestsRequest.Unmarshal(m, b)
 }
@@ -300,6 +306,7 @@ func (*WarmDiffsRequest) ProtoMessage()    {}
 func (*WarmDiffsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{6}
 }
+
 func (m *WarmDiffsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WarmDiffsRequest.Unmarshal(m, b)
 }
@@ -354,6 +361,7 @@ func (*DigestFailureResponse) ProtoMessage()    {}
 func (*DigestFailureResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_7be44b2c6ca656f4, []int{7}
 }
+
 func (m *DigestFailureResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DigestFailureResponse.Unmarshal(m, b)
 }
