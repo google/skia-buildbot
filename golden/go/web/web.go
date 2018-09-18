@@ -40,7 +40,10 @@ const (
 	BASELINE_ROUTE = "/json/baseline"
 
 	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
-	BASELINE_ISSUE_ROUTE = "/json/baseline/{id}"
+	BASELINE_ISSUE_ROUTE = "/json/baseline/{issue_id}"
+
+	// BASELINE_PATCHSET_ROUTE addresses a Gerrit patchsets baseline resource
+	BASELINE_PATCHSET_ROUTE = "/json/baseline/{issue_id}/{patchset_id}"
 )
 
 const (
@@ -1020,7 +1023,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 	issueID := int64(0)
 	var err error
-	issueIDStr, ok := mux.Vars(r)["id"]
+	issueIDStr, ok := mux.Vars(r)["issue_id"]
 	if ok {
 		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 		if err != nil {
@@ -1029,7 +1032,33 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	baseline, err := wh.Storages.FetchBaseline(issueID)
+	baseline, err := wh.Storages.Baseliner.FetchBaseline(issueID, 0)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Fetching baselines failed.")
+		return
+	}
+
+	sendJsonResponse(w, baseline)
+}
+
+func (wh *WebHandlers) JsonCreateBaselineHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to refresh tryjob data")
+		return
+	}
+
+	validate := search.Validation{}
+	issueID := validate.Int64Value("issue", mux.Vars(r)["issue_id"], 0)
+	patchsetID := validate.Int64Value("patchset", mux.Vars(r)["patchset_id"], 0)
+
+	if len(validate) > 0 || issueID == 0 || patchsetID == 0 {
+		msg := "Issue ID and patchset ID must be valid integer."
+		httputils.ReportError(w, r, errors.New(msg), msg)
+		return
+	}
+
+	baseline, err := wh.Storages.Baseliner.FetchBaseline(issueID, patchsetID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return

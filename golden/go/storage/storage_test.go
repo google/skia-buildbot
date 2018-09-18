@@ -105,7 +105,8 @@ func TestWritingBaselines(t *testing.T) {
 	combined := &baseline.CommitableBaseLine{}
 	*combined = *masterBaseline
 	combined.Baseline = masterBaseline.Baseline.DeepCopy().Merge(issueBaseline.Baseline)
-	foundBaseline, err = storages.FetchBaseline(issueID)
+	foundBaseline, err = storages.Baseliner.FetchBaseline(issueID, 0)
+	// foundBaseline, err = storages.FetchBaseline(issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, combined, foundBaseline)
 }
@@ -139,7 +140,7 @@ func TestBaselineRobustness(t *testing.T) {
 
 	// Fetch the combined baselines when there are no baselines for the issue
 	storages := &Storage{GStorageClient: gsClient}
-	foundBaseline, err = storages.FetchBaseline(5344)
+	foundBaseline, err = storages.Baseliner.FetchBaseline(5344, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, masterBaseline, foundBaseline)
 }
