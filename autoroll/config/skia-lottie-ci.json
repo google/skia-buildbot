@@ -5,6 +5,7 @@
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "skia-lottie-ci-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "borenet@google.com"
   ],
@@ -22,6 +23,14 @@
   "cqExtraTrybots": [
     "skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
+  },
   "maxRollFrequency": "0m",
   "safetyThrottle": {
     "attemptCount": 0,
