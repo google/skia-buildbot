@@ -61,6 +61,11 @@ type StorageEvent struct {
 
 	// ObjectID is the name/path of the object that triggered the event.
 	ObjectID string
+
+	// The generation number of the object that was overwritten by the object
+	// that this notification pertains to. This attribute only appears in
+	// OBJECT_FINALIZE events in the case of an overwrite.
+	OverwroteGeneration string
 }
 
 // MemEventBus implement the EventBus interface for an in-process event bus.

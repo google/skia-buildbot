@@ -341,6 +341,8 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 		EventType: msg.Attributes["eventType"],
 		BucketID:  bucketID,
 		ObjectID:  objectID,
+		// This attribute only appears in OBJECT_FINALIZE events in the case of an overwrite.
+		OverwroteGeneration: msg.Attributes["overwroteGeneration"],
 	}
 
 	wrappers := make([]*channelWrapper, 0, len(regexes))
