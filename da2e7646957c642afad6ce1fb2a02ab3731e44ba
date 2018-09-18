@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "974d6472_9e7e5faa",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2018-09-18T22:01:26Z",
+      "side": 1,
+      "message": "i am not sure what\u0027s the value of these tests. Do they increase coverage?",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "da2e7646957c642afad6ce1fb2a02ab3731e44ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
