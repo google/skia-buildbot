@@ -13,8 +13,9 @@ include ../go/skiaversion/skiaversion.mk
 
 all: autoroll-fe autoroll-be autoroll-google3
 
-autoroll-fe-kube: core_js elements_html skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe-kube
+autoroll-fe: core_js elements_html skiaversion
+	ln -sf ../../res res/imp/res
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
 
 autoroll-be: skiaversion
 	go install -v ./go/autoroll-be
@@ -34,8 +35,8 @@ testgo: skiaversion
 
 include ../webtools/webtools.mk
 
-release-fe-kube: autoroll-fe-kube
-	./build_docker_frontend_release
+release-fe: autoroll-fe
+	./build_frontend_release
 
 # Parse the config files, compile lists of roller configs.
 ROLLER_CONFIGS=$(wildcard config/*.json)
@@ -56,7 +57,7 @@ release-be-kube: autoroll-be-kube
 release-google3: autoroll-google3
 	./build_google3_release "$(MESSAGE)"
 
-release-all: release-fe-kube release-be-all release-google3
+release-all: release-fe release-be-all release-google3
 
 include ../kube/kube.mk
 
