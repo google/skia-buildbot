@@ -12,7 +12,9 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 )
 
@@ -92,7 +94,11 @@ func GetCompileTasks() ([]*CompileTask, []*CompileTask, error) {
 }
 
 func DatastoreInit(project string, ns string) error {
-	return ds.Init(project, ns)
+	ts, err := auth.NewDefaultTokenSource(*local, "https://www.googleapis.com/auth/datastore")
+	if err != nil {
+		return fmt.Errorf("Problem setting up default token source: %s", err)
+	}
+	return ds.InitWithOpt(project, ns, option.WithTokenSource(ts))
 }
 
 func GetPendingTasks() *datastore.Iterator {
