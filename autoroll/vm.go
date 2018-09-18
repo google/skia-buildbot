@@ -24,18 +24,6 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	return vm
 }
 
-func SkiaInternal() *gce.Instance {
-	vm := AutoRollBase("skia-internal-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"borenet@google.com",
-	}
-	vm.ServiceAccount = "skia-internal-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Dir(filename)
-	vm.SetupScript = path.Join(dir, "setup-script-internal.sh")
-	return vm
-}
-
 func AFDOChromium() *gce.Instance {
 	vm := AutoRollBase("afdo-chromium-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -83,16 +71,6 @@ func FuchsiaSDK_Chromium() *gce.Instance {
 	return vm
 }
 
-func SkCMS_Skia() *gce.Instance {
-	vm := AutoRollBase("skcms-skia-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"brianosman@google.com",
-		"mtklein@google.com",
-	}
-	vm.ServiceAccount = "skcms-skia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
 func Skia_Flutter() *gce.Instance {
 	vm := AutoRollBase("skia-flutter-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -100,19 +78,6 @@ func Skia_Flutter() *gce.Instance {
 		"brianosman@google.com",
 	}
 	vm.ServiceAccount = "skia-flutter-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
-func Skia_LottieCI() *gce.Instance {
-	vm := AutoRollBase("skia-lottie-ci-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"borenet@google.com",
-	}
-	vm.ServiceAccount = "skia-lottie-ci-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Dir(filename)
-	// This is not an internal roller, but it needs the same setup.
-	vm.SetupScript = path.Join(dir, "setup-script-internal.sh")
 	return vm
 }
 
@@ -178,9 +143,6 @@ func main() {
 		"fuchsia":                Fuchsia(),
 		"fuchsia-sdk-chromium":   FuchsiaSDK_Chromium(),
 		"google3":                Google3(),
-		"skcms-skia":             SkCMS_Skia(),
 		"skia-flutter":           Skia_Flutter(),
-		"skia-internal":          SkiaInternal(),
-		"skia-lottie-ci":         Skia_LottieCI(),
 	})
 }
