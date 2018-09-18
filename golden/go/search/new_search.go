@@ -123,7 +123,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
 		issue = &tryjobstore.Issue{}
-		inter, issue, err = s.queryIssue(ctx, q, s.storages.WhiteListQuery, idx, exp)
+		inter, issue, err = s.queryIssue(ctx, q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -269,6 +269,21 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	}, nil
 }
 
+func (s *SearchAPI) CreateBaseline(issueID, patchsetID int64) error {
+	// // Load the issue and patchset => base expectations
+	// issue, err := b.tryjobStore.GetIssue(issueID, true)
+	// if err != nil {
+	// 	return sklog.FmtErrorf("Error retrieving issue: %s", err)
+	// }
+
+	// patchset := issue.FindPatchset(patchsetID)
+
+	// // Get the current baseline
+
+	// //
+	return nil
+}
+
 // getExpectationsFromQuery returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
 // querying tryjob results. If query is nil the expectations of the master
@@ -294,7 +309,7 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
@@ -354,10 +369,111 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 	}
 
 	// If we have a white list filter out anything that is not on the white list.
-	if len(whiteListQuery) > 0 {
+	if len(s.storages.WhiteListQuery) > 0 {
 		for _, oneTryjob := range tjResults {
 			for idx, trj := range oneTryjob {
-				if (trj != nil) && !whiteListQuery.Matches(trj.Params) {
+				if (trj != nil) && !s.storages.WhiteListQuery.Matches(trj.Params) {
+					oneTryjob[idx] = nil
+				}
+			}
+		}
+	}
+
+	// Adjust the add function to exclude digests already in the master branch
+	addFn := ret.add
+	if !q.IncludeMaster {
+		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+			// Include the digest if either the test or the digest is not in the master tile.
+			if _, ok := talliesByTest[test][digest]; !ok {
+				ret.add(test, digest, traceID, trace, params)
+			}
+		}
+	}
+
+	// Iterate over the remaining results.
+	pq := paramtools.ParamSet(q.Query)
+	for _, tryjobResults := range tjResults {
+		for _, tjr := range tryjobResults {
+			if tjr != nil {
+				// Filter by query.
+				if pq.Matches(tjr.Params) {
+					// Filter by classification.
+					cl := exp.Classification(tjr.TestName, tjr.Digest)
+					if !q.excludeClassification(cl) {
+						addFn(tjr.Params[types.PRIMARY_KEY_FIELD][0], tjr.Digest, "", nil, tjr.Params)
+					}
+				}
+			}
+		}
+	}
+	return ret, issue, nil
+}
+
+type filterAddFn func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet)
+
+// func (s *SearchAPI) getIssueDigests(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) getIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (*tryjobstore.Issue, error) {
+	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+	defer span.End()
+
+	// Get the issue.
+	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if issue == nil {
+		return nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+	}
+
+	// If no patchsets were given we pick the last one that has tryjobs.
+	issue.QueryPatchsets = q.Patchsets
+	if len(issue.QueryPatchsets) == 0 {
+		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
+		for i := len(issue.PatchsetDetails) - 1; i >= 0; i-- {
+			ps := issue.PatchsetDetails[i]
+			if len(ps.Tryjobs) > 0 {
+				issue.QueryPatchsets = append(issue.QueryPatchsets, ps.ID)
+				break
+			}
+		}
+	}
+
+	// Extract the list of tryjobs to consider.
+	tryjobs := []*tryjobstore.Tryjob{}
+	for _, psID := range issue.QueryPatchsets {
+		tryjobs = append(tryjobs, issue.FindPatchset(psID).Tryjobs...)
+	}
+
+	// If there are no tryjobs we are done.
+	if len(tryjobs) == 0 {
+		return issue, nil
+	}
+
+	// Get the results
+	tjResults, err := s.storages.TryjobStore.GetTryjobResults(tryjobs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter the ignored results by setting the results to nil.
+	if !q.IncludeIgnores {
+		ignoreMatcher := idx.GetIgnoreMatcher()
+		for _, oneTryjob := range tjResults {
+			for idx, trj := range oneTryjob {
+				if ignoreMatcher.MatchAny(trj.Params) {
+					oneTryjob[idx] = nil
+				}
+			}
+		}
+	}
+
+	// If we have a white list filter out anything that is not on the white list.
+	if len(s.storages.WhiteListQuery) > 0 {
+		for _, oneTryjob := range tjResults {
+			for idx, trj := range oneTryjob {
+				if (trj != nil) && !s.storages.WhiteListQuery.Matches(trj.Params) {
 					oneTryjob[idx] = nil
 				}
 			}
