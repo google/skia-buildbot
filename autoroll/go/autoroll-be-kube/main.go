@@ -70,6 +70,14 @@ func main() {
 
 	skiaversion.MustLogVersion()
 
+	// Rollers use a custom temporary dir, to ensure that it's on a
+	// persistent disk. Create it if it does not exist.
+	if _, err := os.Stat(os.TempDir()); os.IsNotExist(err) {
+		if err := os.Mkdir(os.TempDir(), os.ModePerm); err != nil {
+			sklog.Fatalf("Failed to create %s: %s", os.TempDir(), err)
+		}
+	}
+
 	var cfg roller.AutoRollerConfig
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
 		return json5.NewDecoder(f).Decode(&cfg)
