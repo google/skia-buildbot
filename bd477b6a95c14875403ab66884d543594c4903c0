@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6fd21e18_e902f243",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2018-09-18T22:07:27Z",
+      "side": 1,
+      "message": "does it have to do this extra work? bot_update internally knows how to discover the patchset associated with the current build, fetch and apply it",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
