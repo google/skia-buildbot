@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37a56e8f_4da57eb9",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-18T20:01:11Z",
+      "side": 1,
+      "message": "Nit: common.REPO_SKIA",
+      "range": {
+        "startLine": 22,
+        "startChar": 37,
+        "endLine": 22,
+        "endChar": 73
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91027d9a_d00282d5",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-18T20:01:11Z",
+      "side": 1,
+      "message": "I would recommend using a git.Repo based on the source repo, then:\ngit remote set-url --push origin\n\nAnd on each tick you do:\ngit fetch --prune origin\ngit push --mirror",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ef821e0_333f750b",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-18T20:01:11Z",
+      "side": 1,
+      "message": "Nit: log metrics",
+      "range": {
+        "startLine": 55,
+        "startChar": 32,
+        "endLine": 56,
+        "endChar": 2
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
