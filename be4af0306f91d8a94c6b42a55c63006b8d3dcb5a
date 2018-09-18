@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d2f0b072_482a0219",
+        "filename": "infra/bots/recipes/swarm_infra.expected/Infra-PerCommit_try_gerrit.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2018-09-18T20:59:27Z",
+      "side": 1,
+      "message": "this does not look right. Hold off landing this.",
+      "revId": "be4af0306f91d8a94c6b42a55c63006b8d3dcb5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
