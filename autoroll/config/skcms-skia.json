@@ -5,6 +5,7 @@
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "skcms-skia-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
@@ -27,5 +28,13 @@
   "cqExtraTrybots": [
     "master.tryserver.blink:linux_trusty_blink_rel"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
+  },
   "maxRollFrequency": "0m"
 }
