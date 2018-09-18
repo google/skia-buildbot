@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9592884e_18d3bbe3",
+        "filename": "android_compile/Dockerfile",
+        "patchSetId": 27
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-18T18:06:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "600bc4e8_0e24d247",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 61
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6a03adce_893a7455",
         "filename": "android_compile/create-android-compile-sa.sh",
         "patchSetId": 27
@@ -45,6 +69,30 @@
       "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "feca9513_19e1be13",
+        "filename": "android_compile/create-android-compile-sa.sh",
+        "patchSetId": 27
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-18T18:06:56Z",
+      "side": 1,
+      "message": "There are a lot not in the kube/ directory: find . -name \u0027create*-sa.sh\u0027\nI started preferring keeping these next to the service they are dealing with.",
+      "parentUuid": "6a03adce_893a7455",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "649e6ec4_d45e2ef7",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-18T18:06:56Z",
+      "side": 1,
+      "message": "Yea, it should be. It just uses the API to get issue properties and should not reach any anonymous quota limit.",
+      "parentUuid": "e0123746_c622a1c8",
+      "range": {
+        "startLine": 146,
+        "startChar": 65,
+        "endLine": 146,
+        "endChar": 70
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1454d8c5_728980fe",
         "filename": "android_compile/go/android_compile/datastore.go",
         "patchSetId": 27
@@ -91,6 +163,30 @@
       "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5348c2cd_d8b7c48a",
+        "filename": "android_compile/go/android_compile/datastore.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-18T18:06:56Z",
+      "side": 1,
+      "message": "Done. I probably should do that in leasing server as well.",
+      "parentUuid": "1454d8c5_728980fe",
+      "range": {
+        "startLine": 97,
+        "startChar": 47,
+        "endLine": 97,
+        "endChar": 90
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "17eed4ea_cd3ce51d",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-18T18:06:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8faf9cfb_61c71963",
+      "range": {
+        "startLine": 213,
+        "startChar": 40,
+        "endLine": 213,
+        "endChar": 71
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc6228f3_fc7238c9",
         "filename": "android_compile/go/android_compile/main.go",
         "patchSetId": 27
@@ -137,6 +257,30 @@
       "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7b102f7_9e2bc678",
+        "filename": "android_compile/go/android_compile/main.go",
+        "patchSetId": 27
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-18T18:06:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc6228f3_fc7238c9",
+      "range": {
+        "startLine": 238,
+        "startChar": 2,
+        "endLine": 238,
+        "endChar": 93
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
