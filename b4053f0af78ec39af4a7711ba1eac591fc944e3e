@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "59eacbe6_ee299a06",
+        "filename": "jsfiddle/DESIGN.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T14:07:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba262d57_6766785d",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "398b34d8_04ab1d69",
         "filename": "jsfiddle/go/jsfiddle_server/main.go",
         "patchSetId": 4
@@ -33,6 +51,24 @@
       "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea5aafe9_45cec5bf",
+        "filename": "jsfiddle/go/jsfiddle_server/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T14:07:46Z",
+      "side": 1,
+      "message": "Done.  As an FYI, I copied this from the original fiddle, so that might need a change too.",
+      "parentUuid": "398b34d8_04ab1d69",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "ae369db6_bd1837f9",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T14:07:46Z",
+      "side": 1,
+      "message": "Done, following the advice of https://webpack.js.org/guides/shimming/#loading-polyfills",
+      "parentUuid": "3a4bb496_5d1c75ea",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "445b89b7_270bedfe",
         "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
         "patchSetId": 4
@@ -67,6 +121,24 @@
       "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c88cdc95_33397dbc",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T14:07:46Z",
+      "side": 1,
+      "message": "Done.  It was originally just to load the demo code, but the property approach is much nicer.",
+      "parentUuid": "445b89b7_270bedfe",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "91d5bd41_0e99b674",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T14:07:46Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "93ea4c5d_2ce7857e",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48ef50fd_5fa1a2c9",
         "filename": "jsfiddle/package.json",
         "patchSetId": 4
@@ -101,6 +191,24 @@
       "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9484aa2_0f5cb026",
+        "filename": "jsfiddle/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T14:07:46Z",
+      "side": 1,
+      "message": "common-sk doesn\u0027t require lit-html.  elements-sk does, but the few elements I\u0027ve used so far (errorMessage, styles/buttons) do not, so I haven\u0027t seen a conflict yet.",
+      "parentUuid": "48ef50fd_5fa1a2c9",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
