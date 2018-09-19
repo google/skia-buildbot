@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "d61a4c5d_1765c916",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-19T12:48:13Z",
+      "side": 1,
+      "message": "A remote has both a fetch and push URL.  By default, they\u0027re the same, but you can change either one.  That command sets the push URL for origin to be the destination repo, so that when you fetch from origin you\u0027re reading from the source repo and when you push to origin you\u0027re writing to the dest repo.  The alternatives would be to either have two remotes (eg. src and dst), both configured for push and pull, or to perform a one-off fetch with a repo URL, which is what you\u0027re doing above.",
+      "parentUuid": "ef73c3fd_7ada9c4b",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4ef821e0_333f750b",
         "filename": "kube/go/repo-sync/main.go",
         "patchSetId": 8
