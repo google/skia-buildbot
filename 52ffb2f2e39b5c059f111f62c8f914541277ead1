@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1de47026_82a2b09d",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "Trim comments to 100 cols",
+      "range": {
+        "startLine": 13,
+        "startChar": 89,
+        "endLine": 13,
+        "endChar": 98
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

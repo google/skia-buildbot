@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "32b10e97_d1f4be41",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "nit: UPPER_CASE for consts (here and below)",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "843996fa_a260a169",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -18,6 +41,29 @@
         "startChar": 48,
         "endLine": 25,
         "endChar": 53
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d70e6d2_bc75ec6a",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "ubernit: .. reminds me a lot of directories (../) Consider using a prefix like \u0026# or something else w/o a pre-existing meaning.",
+      "range": {
+        "startLine": 26,
+        "startChar": 24,
+        "endLine": 26,
+        "endChar": 26
       },
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -87,6 +133,29 @@
         "startChar": 15,
         "endLine": 86,
         "endChar": 23
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf499e56_8841f290",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "Can we use a more-secure hashing algorithm (SHA-256) or are we stuck with MD5 for legacy reasons?  It may be worth a note here if it\u0027s the latter.",
+      "range": {
+        "startLine": 87,
+        "startChar": 1,
+        "endLine": 87,
+        "endChar": 4
       },
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -588,6 +657,30 @@
     },
     {
       "key": {
+        "uuid": "2c000b93_f82553e6",
+        "filename": "go/gcs/gcs_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "also leapyear, daylight savings time",
+      "parentUuid": "5184d2e5_e6c461e4",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 1
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f60b2789_78301941",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 19
@@ -627,6 +720,29 @@
         "startChar": 55,
         "endLine": 313,
         "endChar": 61
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d84a620a_197e052e",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "Add a comment specifying which types this should be.  Can we have it be strongly typed.",
+      "range": {
+        "startLine": 315,
+        "startChar": 115,
+        "endLine": 315,
+        "endChar": 126
       },
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -680,6 +796,29 @@
     },
     {
       "key": {
+        "uuid": "8e61bd5a_c618ec50",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "Can you clarify the comment to say \"This comes in as a base64 encoded Md5Hash, which we change to be the standard hex-encoded MD5 hash\"?\n\nPerhaps also change the field name to MD5Base64 to make it extra explicit.",
+      "range": {
+        "startLine": 340,
+        "startChar": 39,
+        "endLine": 340,
+        "endChar": 45
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b707a1d1_4c66c842",
         "filename": "go/ingestion/helpers.go",
         "patchSetId": 19
@@ -696,6 +835,98 @@
         "startChar": 0,
         "endLine": 248,
         "endChar": 129
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbc564d2_aed78390",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "nit: UPPER_CASE",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 22
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12bc3c8a_7067d635",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "nit: UPPER_CASE",
+      "range": {
+        "startLine": 194,
+        "startChar": 6,
+        "endLine": 194,
+        "endChar": 19
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74c1464e_d7c85aec",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "simplify this with just return?",
+      "range": {
+        "startLine": 229,
+        "startChar": 3,
+        "endLine": 229,
+        "endChar": 13
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21585eeb_d68d9de2",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T17:09:38Z",
+      "side": 1,
+      "message": "delete?",
+      "range": {
+        "startLine": 334,
+        "startChar": 4,
+        "endLine": 334,
+        "endChar": 22
       },
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
