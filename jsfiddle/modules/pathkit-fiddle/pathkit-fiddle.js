@@ -38,7 +38,7 @@ const codeEditor = (ele) => html`
 <div id=editor>
   <textarea class=code spellcheck=false rows=${lines(ele.content)} cols=80
         @paste=${() => ele._changed()} @input=${() => ele._changed()}
-  >${ele.content}</textarea>
+  ></textarea>
   <div class=numbers>
     ${repeat(lines(ele.content)).map((_, n) => _lineNumber(n+1))}
   </div>
@@ -98,6 +98,7 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
   set content(c) {
     this._content = c;
     this._render();
+    this._editor.value = c;
   }
 
   connectedCallback() {
@@ -112,20 +113,44 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
     });
 
     if (!this.content) {
-      fetch("/_/code?type=pathkit&hash=demo")
-        .then(jsonOrThrow)
-        .then((json) => {
-          this.content = json.code;
-          if (this.PathKit) {
-            this._run(); // auto-run the code if PathKit is loaded.
-          }
-        }
-      );
+      this._loadCode();
     }
+    // Listen for the forward and back buttons and re-load the code
+    // on any changes. Without this, the url changes, but nothing
+    // happens in the DOM.
+    window.addEventListener('popstate', this._loadCode.bind(this));
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('popstate', this._loadCode.bind(this));
   }
 
   _changed() {
     this.content = this._editor.value;
+  }
+
+  _loadCode() {
+    // The location should be either /pathkit or /pathkit/<fiddlehash>
+    let path = window.location.pathname;
+    let hash = '';
+    if (path.length > 9) { // 9 characters in '/pathkit/'
+      hash = path.slice(9);
+    }
+
+    fetch(`/_/code?type=pathkit&hash=${hash}`)
+      .then(jsonOrThrow)
+      .then((json) => {
+        this.content = json.code;
+        if (this.PathKit) {
+          this._run(); // auto-run the code if PathKit is loaded.
+        }
+      }
+    ).catch((e) => {
+      errorMessage('Fiddle not Found', 10000);
+      this.content = '';
+      const canvas = $$('#canvas', this);
+      resetCanvas(canvas);
+    });
   }
 
   _render() {
@@ -142,7 +167,16 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
     const canvas = $$('#canvas', this);
     resetCanvas(canvas);
     try {
-      const f = new Function('PathKit', 'canvas', this.content);
+      let f = new Function('PathKit', 'canvas', // actual params
+          // shadow these globals to at least make exploitation harder. CSP
+          // is our first line of defense, this adds another layer.
+          'window', 'document', 'open', 'event', 'Function', 'eval', 'frames',
+          'frameElement', 'localStorage', 'history', 'messageManager', 'name',
+          'opener', 'pkcs11', 'self', 'status', 'top', 'visualViewport',
+          'caches', 'origin', 'indexedDB', 'Worker', 'openDialog', 'alert',
+          'prompt', 'parent',
+           this.content); // user given code
+      f = f.bind({}); // By default, f is bound to Window.  Re bind it to remove that access.
       f(this.PathKit, canvas);
     } catch(e) {
       errorMessage(e);
@@ -150,18 +184,19 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
   }
 
   _save() {
-    // TODO(kjlubick):
-    // make a POST request to /_/save with form
-    // {
-    //   "code": ...,
-    //   "type": "pathkit",
-    // }
-    // which will return JSON of the form
-    // {
-    //   "new_url": "/pathkit/123adfs45asdf59923123"
-    // }
-    // where new_url is the hash (probably sha256) of the content
-    // and this will re-direct the browser to that new url.
+    fetch('/_/save', {
+      method: 'PUT',
+      headers: new Headers({
+        'content-type': 'application/json',
+      }),
+      body: JSON.stringify({
+        code: this.content,
+        type: 'pathkit',
+      })
+    }).then(jsonOrThrow).then((json) => {
+        history.pushState(null, '', json.new_url);
+      }
+    ).catch(errorMessage);
   }
 
 });
