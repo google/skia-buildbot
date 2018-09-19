@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44bbc238_a6333e50",
+        "filename": "golden/go/search/new_search.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T16:30:33Z",
+      "side": 1,
+      "message": "wrap comments to 100 cols",
+      "range": {
+        "startLine": 323,
+        "startChar": 91,
+        "endLine": 323,
+        "endChar": 99
+      },
+      "revId": "36843fab7978d35c4d598156d5ee71a9610bc103",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
