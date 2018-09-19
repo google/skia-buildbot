@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "ed83ec4e_47481f7f",
+        "filename": "android_compile/create-android-compile-sa.sh",
+        "patchSetId": 27
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-19T14:16:08Z",
+      "side": 1,
+      "message": "Hrm, I hadn\u0027t seen that.  I should move the autoroll and status accounts into their respective directories.",
+      "parentUuid": "feca9513_19e1be13",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "a83f7dc77490412dd995fcaa0211d926e9f42cfe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e0123746_c622a1c8",
         "filename": "android_compile/go/android_compile/checkouts.go",
         "patchSetId": 27
