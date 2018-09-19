@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "d439a20f_7b6b5aaf",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:23:01Z",
+      "side": 1,
+      "message": "\"That command sets the push URL for origin to be the destination repo, so that when you fetch from origin you\u0027re reading from the source repo and when you push to origin you\u0027re writing to the dest repo.\"\n\nToo tricky for me.\n\nAlso, I don\u0027t want a true mirror, I just care about changes to master, and that\u0027s only to trigger Cloud Build, which then uses the skia.googlesource.com/skia repo.",
+      "parentUuid": "d61a4c5d_1765c916",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4ef821e0_333f750b",
         "filename": "kube/go/repo-sync/main.go",
         "patchSetId": 8
