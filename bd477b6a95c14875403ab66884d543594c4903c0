@@ -46,6 +46,30 @@
       "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f56790a9_c83b46da",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2018-09-19T19:45:07Z",
+      "side": 1,
+      "message": "they don\u0027t appear twice. This CL would cause that because it modifies only tests.\nNow I am not sure about the correctness of this CL. Do I understand correctly these recipes are actually triggered by Skia scheduler, not buildbucket?\nMy goal is to get rid of patch_* properties, so that chops systems don\u0027t have to specify them when scheduling buildbucket builds. So it seems that this CL doesn\u0027t really improve anything because it is irrelevant.",
+      "parentUuid": "cb466072_623c26db",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

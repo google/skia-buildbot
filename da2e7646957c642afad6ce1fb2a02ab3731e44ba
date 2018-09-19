@@ -46,6 +46,30 @@
       "revId": "da2e7646957c642afad6ce1fb2a02ab3731e44ba",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91d445f3_890d4bd4",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 5040
+      },
+      "writtenOn": "2018-09-19T19:45:07Z",
+      "side": 1,
+      "message": "deleted",
+      "parentUuid": "80f1a7e4_b7dc79cb",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 259,
+        "endChar": 3
+      },
+      "revId": "da2e7646957c642afad6ce1fb2a02ab3731e44ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
