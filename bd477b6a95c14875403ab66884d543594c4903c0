@@ -70,6 +70,30 @@
       "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79a30aa7_0369c978",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-19T19:47:05Z",
+      "side": 1,
+      "message": "Yes, this recipe is triggered by the Skia scheduler and not through buildbucket.  We\u0027re happy as long as we have a way to plumb the patch ref through to bot_update.",
+      "parentUuid": "f56790a9_c83b46da",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
