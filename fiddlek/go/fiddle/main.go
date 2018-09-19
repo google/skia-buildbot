@@ -518,9 +518,9 @@ func main() {
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/healthz", healthzHandler)
 
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	// Do not log healthz requests.
-	http.HandleFunc("/healthz", healthzHandler)
+	h := httputils.LoggingGzipRequestResponse(r)
+	h = httputils.HealthzAndHTTPS(h)
+	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
