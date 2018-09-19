@@ -106,9 +106,10 @@ type ClusterResponse struct {
 // ClusterRequestProcess handles the processing of a single ClusterRequest.
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
-	request *ClusterRequest
-	git     *gitinfo.GitInfo
-	cidl    *cid.CommitIDLookup
+	request   *ClusterRequest
+	git       *gitinfo.GitInfo
+	cidl      *cid.CommitIDLookup
+	dfBuilder dataframe.DataFrameBuilder
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
@@ -124,6 +125,7 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 		request:    req,
 		git:        git,
 		cidl:       cidl,
+		dfBuilder:  dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default),
 		lastUpdate: time.Now(),
 		state:      PROCESS_RUNNING,
 		message:    "Running",
@@ -422,7 +424,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 				Offset: i,
 			})
 		}
-		df, err := dataframe.NewFromCommitIDsAndQuery(ctx, c, p.cidl, ptracestore.Default, q, nil)
+		df, err := p.dfBuilder.NewFromCommitIDsAndQuery(ctx, c, p.cidl, q, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load data searching for commit ids: %s", err)
 		}
@@ -434,7 +436,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		p.reportError(err, "Could not calculate the commits to run a cluster over.")
 		return
 	}
-	df, err := dataframe.NewFromCommitIDsAndQuery(ctx, p.cids, p.cidl, ptracestore.Default, q, p.progress)
+	df, err := p.dfBuilder.NewFromCommitIDsAndQuery(ctx, p.cids, p.cidl, q, p.progress)
 	if err != nil {
 		p.reportError(err, "Invalid range of commits.")
 		return
