@@ -21,13 +21,6 @@
         "pulld",
       ],
     },
-    "android-o-autoroll": {
-      "AppNames": [
-        "android-o-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "flutter-engine-flutter-autoroll": {
       "AppNames": [
         "flutter-engine-flutter-autorolld",
