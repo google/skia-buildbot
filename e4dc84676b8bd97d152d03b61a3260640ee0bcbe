@@ -1,0 +1,705 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "843996fa_a260a169",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo events",
+      "range": {
+        "startLine": 25,
+        "startChar": 48,
+        "endLine": 25,
+        "endChar": 53
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c5559d4_6df91e56",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: Would it be simpler if this were a string rather than a Regexp object?",
+      "range": {
+        "startLine": 66,
+        "startChar": 63,
+        "endLine": 66,
+        "endChar": 89
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80e7a6e9_c7eed63b",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "Is this used anywhere? If not, please remove. Seems like it\u0027s always storage.ObjectFinalizeEvent.\n\nIt\u0027s a bit confusing that this EventType is not the same thing as the RV of getEventType. If it can\u0027t be removed, maybe rename to GcsPubsubEventType or something.",
+      "range": {
+        "startLine": 78,
+        "startChar": 1,
+        "endLine": 78,
+        "endChar": 17
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91fe90a2_0d1d98ee",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: should document that this is a hex-encoded string (or store the bytes instead, or even just cast the bytes to string if you want/need to compare with \u003d\u003d instead of bytes.Equal).",
+      "range": {
+        "startLine": 86,
+        "startChar": 15,
+        "endLine": 86,
+        "endChar": 23
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcba3f82_32719718",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit limits",
+      "range": {
+        "startLine": 111,
+        "startChar": 18,
+        "endLine": 111,
+        "endChar": 35
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97eb0fdc_765af14a",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo extra word",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 120,
+        "endChar": 15
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3be86c7d_c74e8ae8",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo repeated word",
+      "range": {
+        "startLine": 124,
+        "startChar": 25,
+        "endLine": 124,
+        "endChar": 30
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81292ca8_7e7c35d8",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo its",
+      "range": {
+        "startLine": 124,
+        "startChar": 52,
+        "endLine": 124,
+        "endChar": 56
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "588dd842_58619d21",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo as?",
+      "range": {
+        "startLine": 140,
+        "startChar": 58,
+        "endLine": 140,
+        "endChar": 60
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8707ac56_50a3b82b",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo track",
+      "range": {
+        "startLine": 185,
+        "startChar": 47,
+        "endLine": 185,
+        "endChar": 53
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58ef0668_1778c206",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: Would be nice to have more documentation. These are the things I\u0027m left wondering after my first pass over the code:\n - What\u0027s the difference between a NotificationID and an eventType?\n - What uses the NotificationID? Why can\u0027t it use eventType instead?\n - Why does Add return an eventType? How would the client use it?",
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d8fa1e1_f2fa57cb",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: doc what the keys and values represent",
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38c9a9f2_c6162f52",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: maybe make this a function rather than a method",
+      "range": {
+        "startLine": 200,
+        "startChar": 27,
+        "endLine": 200,
+        "endChar": 44
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e0fcade_51762721",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: document return value",
+      "range": {
+        "startLine": 207,
+        "startChar": 76,
+        "endLine": 207,
+        "endChar": 82
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbe0f2c8_be650c17",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: Is it important for MatchesByID to exclude notifications for which the object prefix is shorter?\n\nIf no, could this method just call Matches after splitting out the bucket?\n\nIf yes, you might consider simplifying NotificationsMap, e.g.:\n\ntype notificationKey struct {\n  bucketName string\n  objectPrefix string\n  objectRegexpStr string\n}\ntype NotificationsMap struct {\n  notifications map[notificationKey]*regexp.Regexp\n}\n\nMaybe even:\n\nfunc (k *notificationKey) NotificationID() string {\n  return k.bucketName + \"/\" + k.objectPrefix\n}\nfunc (k *notificationKey) EventType() string {\n  return storageEventPrefix + k.NotificationID() + \"/\" + k.objectRegexpStr\n}",
+      "range": {
+        "startLine": 224,
+        "startChar": 27,
+        "endLine": 224,
+        "endChar": 38
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d855232d_f4e11a91",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "Not sure what this means.",
+      "range": {
+        "startLine": 256,
+        "startChar": 23,
+        "endLine": 256,
+        "endChar": 94
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f58fa8fd_1f461025",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: MatchString",
+      "range": {
+        "startLine": 283,
+        "startChar": 26,
+        "endLine": 283,
+        "endChar": 39
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02685cbc_c068ddcd",
+        "filename": "go/eventbus/eventbus_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: Doesn\u0027t seem to be used.",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 3
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2506a76a_9f6019d1",
+        "filename": "go/eventbus/eventbus_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "Seems like you should test that the events went to the expected channels. E.g. with the test as written, if none of the filtering worked, the test would pass because all three channels would have length 3*nEvents.",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 1
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60e4bbd7_3dc69a92",
+        "filename": "go/eventbus/eventbus_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: If it\u0027s important that this method exclude other notification IDs, we should test that.",
+      "range": {
+        "startLine": 123,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 23
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5aae320e_bfbdc054",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo the",
+      "range": {
+        "startLine": 106,
+        "startChar": 66,
+        "endLine": 106,
+        "endChar": 70
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84c092da_12b2abdb",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: either use time.Time or document the units",
+      "range": {
+        "startLine": 110,
+        "startChar": 22,
+        "endLine": 110,
+        "endChar": 29
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98ae7873_a8847245",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: If endTS is inclusive, this should be \u003c rather than \u003c\u003d. If endTS is exclusive, you would need to check if endTS minute and second are zero before doing \".Add(time.Hour)\".",
+      "range": {
+        "startLine": 111,
+        "startChar": 11,
+        "endLine": 111,
+        "endChar": 12
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff5f74d6_a86d08fb",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 115,
+        "startChar": 45,
+        "endLine": 115,
+        "endChar": 51
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25ef4a44_67591428",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit +1 to account for \".Add(time.Hour)\" below",
+      "range": {
+        "startLine": 116,
+        "startChar": 26,
+        "endLine": 116,
+        "endChar": 46
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5184d2e5_e6c461e4",
+        "filename": "go/gcs/gcs_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: maybe test boundary conditions (i.e. starting/ending on a month, date, or hour boundary).",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 1
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f60b2789_78301941",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit: update or remove doc",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 65
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04d43f2a_4f5b2c0e",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo event",
+      "range": {
+        "startLine": 313,
+        "startChar": 55,
+        "endLine": 313,
+        "endChar": 61
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60eaf954_0d61d567",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo delivered",
+      "range": {
+        "startLine": 332,
+        "startChar": 3,
+        "endLine": 332,
+        "endChar": 13
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ea98348_f62b0d63",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "typo it",
+      "range": {
+        "startLine": 334,
+        "startChar": 3,
+        "endLine": 334,
+        "endChar": 5
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b707a1d1_4c66c842",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T16:28:32Z",
+      "side": 1,
+      "message": "nit delete?",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 248,
+        "endChar": 129
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
