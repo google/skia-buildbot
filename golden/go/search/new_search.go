@@ -123,7 +123,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
 		issue = &tryjobstore.Issue{}
-		inter, issue, err = s.queryIssue(ctx, q, s.storages.WhiteListQuery, idx, exp)
+		inter, issue, err = s.queryIssue(ctx, q, idx, exp)
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -269,6 +269,21 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	}, nil
 }
 
+func (s *SearchAPI) CreateBaseline(issueID, patchsetID int64) error {
+	// // Load the issue and patchset => base expectations
+	// issue, err := b.tryjobStore.GetIssue(issueID, true)
+	// if err != nil {
+	// 	return sklog.FmtErrorf("Error retrieving issue: %s", err)
+	// }
+
+	// patchset := issue.FindPatchset(patchsetID)
+
+	// // Get the current baseline
+
+	// //
+	return nil
+}
+
 // getExpectationsFromQuery returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
 // querying tryjob results. If query is nil the expectations of the master
@@ -294,18 +309,49 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 }
 
 // query issue returns the digest related to this issues.
-func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+	defer span.End()
+
+	// Build the intermediate map to compare against the tile
+	ret := srInterMap{}
+
+	// Adjust the add function to exclude digests already in the master branch
+	addFn := ret.add
+	if !q.IncludeMaster {
+		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+			// Include the digest if either the test or the digest is not in the master tile.
+			if _, ok := talliesByTest[test][digest]; !ok {
+				ret.add(test, digest, traceID, trace, params)
+			}
+		}
+	}
+
+	issue, err := s.getIssueDigests(ctx, q, idx, exp, addFn)
+	if err != nil {
+		return nil, nil, err
+	}
+	return ret, issue, nil
+}
+
+// filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will be called
+// for each testName/digest combination and should accumulate the digests of interest.
+type filterAddFn func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet)
+
+// func (s *SearchAPI) getIssueDigests(ctx context.Context, q *Query, whiteListQuery paramtools.ParamSet, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
+func (s *SearchAPI) getIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
 	defer span.End()
 
 	// Get the issue.
 	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if issue == nil {
-		return nil, nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+		return nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
 	}
 
 	// If no patchsets were given we pick the last one that has tryjobs.
@@ -321,9 +367,6 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 		}
 	}
 
-	// Build the intermediate map to compare against the tile
-	ret := srInterMap{}
-
 	// Extract the list of tryjobs to consider.
 	tryjobs := []*tryjobstore.Tryjob{}
 	for _, psID := range issue.QueryPatchsets {
@@ -332,13 +375,13 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 
 	// If there are no tryjobs we are done.
 	if len(tryjobs) == 0 {
-		return ret, issue, nil
+		return issue, nil
 	}
 
 	// Get the results
 	tjResults, err := s.storages.TryjobStore.GetTryjobResults(tryjobs)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	// Filter the ignored results by setting the results to nil.
@@ -354,24 +397,12 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 	}
 
 	// If we have a white list filter out anything that is not on the white list.
-	if len(whiteListQuery) > 0 {
+	if len(s.storages.WhiteListQuery) > 0 {
 		for _, oneTryjob := range tjResults {
 			for idx, trj := range oneTryjob {
-				if (trj != nil) && !whiteListQuery.Matches(trj.Params) {
+				if (trj != nil) && !s.storages.WhiteListQuery.Matches(trj.Params) {
 					oneTryjob[idx] = nil
 				}
-			}
-		}
-	}
-
-	// Adjust the add function to exclude digests already in the master branch
-	addFn := ret.add
-	if !q.IncludeMaster {
-		talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
-		addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
-			// Include the digest if either the test or the digest is not in the master tile.
-			if _, ok := talliesByTest[test][digest]; !ok {
-				ret.add(test, digest, traceID, trace, params)
 			}
 		}
 	}
@@ -392,7 +423,7 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, whiteListQuery par
 			}
 		}
 	}
-	return ret, issue, nil
+	return issue, nil
 }
 
 // TODO(stephana): The filterTile function should be merged with the
