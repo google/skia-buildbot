@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a65297bc_2dcdba61",
+        "filename": "contestk/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:51:13Z",
+      "side": 1,
+      "message": "Sent follow up CL.",
+      "parentUuid": "155b4dd8_cc018fa2",
+      "range": {
+        "startLine": 10,
+        "startChar": 7,
+        "endLine": 10,
+        "endChar": 14
+      },
+      "revId": "f40ed9a21c90c7f558f24aa4a80916978f2d2b64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8e6b0565_a3655fb5",
         "filename": "contestk/build_docker_release",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "ae5c4427_4d15af5e",
+        "filename": "contestk/build_docker_release",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:51:13Z",
+      "side": 1,
+      "message": "I had issues with /bin/${APPNAME} vs /${APPNAME}, but that may be a difference between using ADD vs COPY in a Dockerfile. At one point I had /bin/${APPNAME} remove all other entries in /bin.",
+      "parentUuid": "8e6b0565_a3655fb5",
+      "range": {
+        "startLine": 11,
+        "startChar": 58,
+        "endLine": 11,
+        "endChar": 68
+      },
+      "revId": "f40ed9a21c90c7f558f24aa4a80916978f2d2b64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bfb8b446_7ec57b48",
         "filename": "contestk/create-skia-contest-sa.sh",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2018-05-23T19:24:27Z",
       "side": 1,
       "message": "Wrong description.",
+      "range": {
+        "startLine": 16,
+        "startChar": 64,
+        "endLine": 16,
+        "endChar": 123
+      },
+      "revId": "f40ed9a21c90c7f558f24aa4a80916978f2d2b64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37d02d9e_19253a1d",
+        "filename": "contestk/create-skia-contest-sa.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:51:13Z",
+      "side": 1,
+      "message": "Follow-up CL sent.",
+      "parentUuid": "bfb8b446_7ec57b48",
       "range": {
         "startLine": 16,
         "startChar": 64,
