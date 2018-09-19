@@ -13,6 +13,7 @@ DEPS = [
   'depot_tools/bot_update',
   'depot_tools/gclient',
   'depot_tools/infra_paths',
+  'recipe_engine/buildbucket',
   'recipe_engine/context',
   'recipe_engine/file',
   'recipe_engine/path',
@@ -200,8 +201,24 @@ def RunSteps(api):
             cmd=['./run_emulator', 'stop'])
 
 def GenTests(api):
+
+  def ci_build():
+    return api.buildbucket.ci_build(
+        project='skia',
+        builder='Infra-PerCommit-Small',
+        git_repo=INFRA_GIT_URL,
+    )
+
+  def try_build():
+    return api.buildbucket.try_build(
+        project='skia',
+        builder='Infra-PerCommit-Small',
+        git_repo=INFRA_GIT_URL,
+    )
+
   yield (
       api.test('Infra-PerCommit') +
+      ci_build() +
       api.path.exists(api.path['start_dir'].join('gopath', 'src', INFRA_GO,
                                                  '.git')) +
       api.properties(buildername='Infra-PerCommit-Small',
@@ -209,11 +226,13 @@ def GenTests(api):
   )
   yield (
       api.test('Infra-PerCommit_initialcheckout') +
+      ci_build() +
       api.properties(buildername='Infra-PerCommit-Small',
                      path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit_try_gerrit') +
+      try_build() +
       api.properties(buildername='Infra-PerCommit-Small',
                      revision=REF_HEAD,
                      patch_issue='1234',
@@ -226,16 +245,7 @@ def GenTests(api):
   )
   yield (
       api.test('Infra-PerCommit-Large') +
+      ci_build() +
       api.properties(buildername='Infra-PerCommit-Large',
-                     path_config='kitchen')
-  )
-  yield (
-      api.test('Infra-PerCommit-Medium') +
-      api.properties(buildername='Infra-PerCommit-Medium',
-                     path_config='kitchen')
-  )
-  yield (
-      api.test('Infra-PerCommit-Race') +
-      api.properties(buildername='Infra-PerCommit-Race',
                      path_config='kitchen')
   )
