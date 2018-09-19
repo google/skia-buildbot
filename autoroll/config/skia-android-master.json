@@ -1,10 +1,11 @@
 {
   "childName": "Skia",
-  "gerritURL": "(none)",
+  "gerritURL": "https://googleplex-android-review.googlesource.com",
   "isInternal": true,
   "parentName": "Android (master)",
   "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_master/grid",
   "rollerName": "android-master-autoroll",
+  "serviceAccount": "android-autoroll@skia-corp.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-robocop"
   ],
@@ -12,6 +13,14 @@
     "childBranch": "master",
     "childPath": "external/skia",
     "parentBranch": "master"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "0m"
 }
