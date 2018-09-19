@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "bde0782c_3436e0df",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-19T11:24:12Z",
+      "side": 1,
+      "message": "You currently have a working directory containing the files in the repo, which is not used.  Just syncing the repo (contents of .git/) with no checkout will save a little time and disk space.  In the absence of a checkout, fetch is used instead of pull (pull is just fetch+merge), and --prune will delete any refs which do not exist upstream.  Using push with --mirror causes all of the local refs to be pushed, rather than just the currently-active one.\n\nNone of the above may matter for a simple, single-branch repo, but IMO it makes sense to be complete in case we ever care about performing true mirrors ourselves.",
+      "parentUuid": "b7318ae0_2e820fd4",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4ef821e0_333f750b",
         "filename": "kube/go/repo-sync/main.go",
         "patchSetId": 8
