@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "0a7c5bab_868b93f0",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:50:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "59a7346a_ff0c8c37",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60af0e75_f70656d0",
         "filename": "skottie/go/skottie/main.go",
         "patchSetId": 20
@@ -82,6 +100,24 @@
     },
     {
       "key": {
+        "uuid": "3c0966e4_ddb3a74b",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:50:47Z",
+      "side": 1,
+      "message": "It could have failed template expansion, or it could have failed to write to \u0027w\u0027. In the latter case httputils.ReportError() will also fail because it writes to \u0027w\u0027.",
+      "parentUuid": "0f1ba930_225d864b",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "267e059a_1cf5702c",
         "filename": "skottie/go/skottie/main.go",
         "patchSetId": 20
@@ -99,6 +135,24 @@
     },
     {
       "key": {
+        "uuid": "ba54553a_45bebf5d",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:50:47Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "267e059a_1cf5702c",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32ec55a4_2d2905a2",
         "filename": "skottie/go/skottie/main.go",
         "patchSetId": 20
@@ -113,6 +167,24 @@
       "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17d6e0c4_37167e86",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T18:50:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32ec55a4_2d2905a2",
+      "revId": "eccdac23c6ddc39699bc28b207b9aef34e523e84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
