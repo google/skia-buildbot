@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c73c521_6f09b6b6",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-19T16:32:24Z",
+      "side": 1,
+      "message": "The docs seem outdated, vcs and store are not part of the interface, but used in the implementation.",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 77
+      },
+      "revId": "bcbe3cb3e3e5e68288ac5ec99527a715a55e06af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a3e4db8_fba785f9",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-19T16:32:24Z",
+      "side": 1,
+      "message": "Nit: the docs for the functions that implement the interface should refer back to the interface and they should be documented there.",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 76
+      },
+      "revId": "bcbe3cb3e3e5e68288ac5ec99527a715a55e06af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14b3c54f_27f57d74",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-19T16:32:24Z",
+      "side": 1,
+      "message": "Nit: not necessary, since you are returning a DataframeBuilder in the constructor of ptraceDataFrameBuilder",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 60
+      },
+      "revId": "bcbe3cb3e3e5e68288ac5ec99527a715a55e06af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
