@@ -70,7 +70,8 @@ type PTraceStore interface {
 	// values - A map from the trace id to a float32 value.
 	// sourceFile - The full path of the file where this information came from,
 	//   usually the Google Storage URL.
-	Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error
+	// ts - The timestamp of the values being added (ignored).
+	Add(commitID *cid.CommitID, values map[string]float32, sourceFile string, ts time.Time) error
 
 	// Retrieve the source and value for a given measurement in a given trace,
 	// and a non-nil error if no such point was found.
@@ -177,7 +178,7 @@ func serialize(i interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
+func (b *BoltTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string, ts time.Time) error {
 	sklog.Infof("Ingesting source file: %q", sourceFile)
 	index := commitID.Offset % constants.COMMITS_PER_TILE
 	bdb, err := b.getBoltDB(commitID, false)
