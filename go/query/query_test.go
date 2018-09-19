@@ -185,6 +185,12 @@ func TestMatches(t *testing.T) {
 	}{
 		{
 			key:     ",arch=x86,config=565,debug=true,",
+			query:   url.Values{},
+			matches: true,
+			reason:  "Empty query matches everything.",
+		},
+		{
+			key:     ",arch=x86,config=565,debug=true,",
 			query:   url.Values{"config": []string{"565"}},
 			matches: true,
 			reason:  "Simple match",

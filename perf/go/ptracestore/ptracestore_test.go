@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"testing"
+	"time"
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
@@ -48,7 +49,8 @@ func TestAdd(t *testing.T) {
 		",config=565,test=foo,":  1.23,
 		",config=8888,test=foo,": 3.21,
 	}
-	err = d.Add(commitID, values, "gs://skia-perf/nano-json-v1/blah/blah.json")
+	now := time.Now()
+	err = d.Add(commitID, values, "gs://skia-perf/nano-json-v1/blah/blah.json", now)
 	assert.NoError(t, err)
 
 	source, value, err := d.Details(commitID, ",config=565,test=foo,")
@@ -75,7 +77,7 @@ func TestAdd(t *testing.T) {
 		",config=565,test=foo,":  3.14,
 		",config=8888,test=foo,": 3.15,
 	}
-	err = d.Add(commitID2, values2, "gs://skia-perf/nano-json-v1/blah2/blah.json")
+	err = d.Add(commitID2, values2, "gs://skia-perf/nano-json-v1/blah2/blah.json", now)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 2, len(d.cache))
@@ -93,7 +95,7 @@ func TestAdd(t *testing.T) {
 		",config=565,test=foo,":  9.99,
 		",config=8888,test=foo,": 9.98,
 	}
-	err = d.Add(commitID2, values2, "gs://skia-perf/nano-json-v1/blah3/blah.json")
+	err = d.Add(commitID2, values2, "gs://skia-perf/nano-json-v1/blah3/blah.json", now)
 	assert.NoError(t, err)
 
 	// Confirm we get the last values written.
@@ -166,7 +168,8 @@ func TestMatch(t *testing.T) {
 		",config=8888,test=foo,":       3.21,
 		",arch=x86,source_type=image,": 5.55,
 	}
-	err = d.Add(commitID1, values, "gs://foo")
+	now := time.Now()
+	err = d.Add(commitID1, values, "gs://foo", now)
 	assert.NoError(t, err)
 
 	commitID2 := &cid.CommitID{
@@ -178,7 +181,7 @@ func TestMatch(t *testing.T) {
 		",config=8888,test=foo,":       5.43,
 		",arch=x86,source_type=image,": 6.66,
 	}
-	err = d.Add(commitID2, values, "gs://foo")
+	err = d.Add(commitID2, values, "gs://foo", now)
 	assert.NoError(t, err)
 
 	commitID3 := &cid.CommitID{
@@ -190,7 +193,7 @@ func TestMatch(t *testing.T) {
 		",config=8888,test=foo,":       9.10,
 		",arch=x86,source_type=image,": 7.77,
 	}
-	err = d.Add(commitID3, values, "gs://foo")
+	err = d.Add(commitID3, values, "gs://foo", now)
 	assert.NoError(t, err)
 
 	// A commit with no data.
