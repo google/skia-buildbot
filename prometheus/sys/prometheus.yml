@@ -31,7 +31,6 @@ scrape_configs:
       - targets: ['afdo-chromium-autoroll:20000']
       - targets: ['android-master-autoroll:20000']
       - targets: ['android-next-autoroll:20000']
-      - targets: ['android-o-autoroll:20000']
       - targets: ['flutter-engine-flutter-autoroll:20000']
       - targets: ['fuchsia-autoroll:20000']
       - targets: ['fuchsia-sdk-chromium-autoroll:20000']
