@@ -14,12 +14,12 @@ import (
 
 // Refresher keeps a fresh DataFrame of the last DEFAULT_NUM_COMMITS commits.
 type Refresher struct {
-	n      int // Number of commits in the DataFrame.
-	vcs    vcsinfo.VCS
-	store  ptracestore.PTraceStore
-	df     *DataFrame
-	period time.Duration
-	mutex  sync.Mutex
+	n         int // Number of commits in the DataFrame.
+	vcs       vcsinfo.VCS
+	df        *DataFrame
+	period    time.Duration
+	mutex     sync.Mutex
+	dfBuilder DataFrameBuilder
 }
 
 // NewRefresher creates a new Refresher that updates the dataframe every
@@ -30,10 +30,10 @@ type Refresher struct {
 // can be assured that Get() will return a non-nil DataFrame.
 func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, store ptracestore.PTraceStore, period time.Duration, n int) (*Refresher, error) {
 	ret := &Refresher{
-		vcs:    vcs,
-		store:  store,
-		period: period,
-		n:      n,
+		vcs:       vcs,
+		dfBuilder: NewDataFrameBuilderFromPTraceStore(vcs, store),
+		period:    period,
+		n:         n,
 	}
 	if err := ret.oneStep(ctx); err != nil {
 		return nil, fmt.Errorf("Failed to build the initial DataFrame: %s", err)
@@ -46,7 +46,7 @@ func (f *Refresher) oneStep(ctx context.Context) error {
 	if err := f.vcs.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to update repo: %s", err)
 	}
-	newDf, err := NewN(f.vcs, f.store, nil, f.n)
+	newDf, err := f.dfBuilder.NewN(nil, f.n)
 	if err != nil {
 		return err
 	}

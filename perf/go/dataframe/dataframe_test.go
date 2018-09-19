@@ -65,7 +65,7 @@ type mockPTraceStore struct {
 	matchFail bool
 }
 
-func (m mockPTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
+func (m mockPTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string, ts time.Time) error {
 	return nil
 }
 
