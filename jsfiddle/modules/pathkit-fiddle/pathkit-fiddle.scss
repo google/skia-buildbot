@@ -1,0 +1,97 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+pathkit-fiddle {
+  main {
+    padding: 5px;
+  }
+
+  header {
+    margin: 0;
+    padding: 1em 0.5em;
+    color: white;
+    background: #1f78b4;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .title {
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+
+    .version {
+      margin: auto;
+      font-size: 1.1em;
+
+      a {
+        color: white;
+      }
+    }
+  }
+
+  .code {
+    font-family: monospace;
+  }
+
+  #editor {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    background: #ddd;
+    font-family: monospace;
+    font-size: 13px;
+    width: 57em;
+
+    textarea {
+      background: #eee;
+      border: none;
+      font-family: monospace;
+      font-size: 13px;
+      margin-left: 5em;
+      outline: none;
+      overflow-x: auto;
+      padding: 0.5em 0.5em 2.0em 0.5em;
+      resize: none;
+      white-space: nowrap;
+    }
+
+    .numbers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 0.5em;
+      text-align: right;
+      background: #ddd;
+      width: 3em;
+    }
+  }
+
+  main {
+    .output {
+      display: inline-block;
+      vertical-align: top;
+      max-width: 500px;
+
+      .buttons, canvas {
+        display:block;
+      }
+
+      canvas {
+        border: 1px dashed grey;
+        vertical-align: top;
+      }
+    }
+
+  }
+
+  .flex {
+    flex: 1;
+    flex-basis: 0.000000001px;
+  }
+}
+
