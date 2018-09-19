@@ -75,14 +75,14 @@ CONFIG_IS_INTERNAL=$(shell python -c "import json,sys; print ('1' if json.load(o
 
 push-be-kube: release-be-kube kube-conf-gen pushk deployment-dirs $(CONFIG_FILE)
 	if [ "$(CONFIG_IS_INTERNAL)" == "1" ]; then $(KUBE_CONF_GEN_INTERNAL); else $(KUBE_CONF_GEN_EXTERNAL); fi
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
+	pushk --dry-run --ignore-dirty --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
 
-push-be-kube-internal: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
+push-be-kube-internal-all: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
 	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-be
 
-push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_EXTERNAL)
+push-be-kube-external-all: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_EXTERNAL)
 	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_EXTERNAL), $(KUBE_CONF_GEN_EXTERNAL);)
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-be
 
-push-be-kube-all: push-be-kube-internal push-be-kube-external
+push-be-kube-all: push-be-kube-internal-all push-be-kube-external-all
