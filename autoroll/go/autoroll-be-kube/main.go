@@ -115,7 +115,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	androidInternalGerritUrl := cfg.GerritURL
 	var emailer *email.GMail
 	if !*local {
 		// Emailing init.
@@ -171,9 +170,6 @@ func main() {
 
 	if cfg.GerritURL != "" {
 		// Create the code review API client.
-		if cfg.RollerType() == roller.ROLLER_TYPE_ANDROID {
-			cfg.GerritURL = androidInternalGerritUrl
-		}
 		g, err = gerrit.NewGerrit(cfg.GerritURL, gitcookiesPath, nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)

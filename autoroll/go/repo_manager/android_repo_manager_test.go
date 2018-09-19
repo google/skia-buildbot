@@ -74,7 +74,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account")
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -91,7 +91,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account")
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -159,7 +159,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account")
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
