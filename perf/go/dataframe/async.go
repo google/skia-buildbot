@@ -77,6 +77,9 @@ type FrameRequestProcess struct {
 	//   changed, but git is Go routine safe.
 	git *gitinfo.GitInfo
 
+	// dfBuilder builds DataFrame's.
+	dfBuilder DataFrameBuilder
+
 	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
 	lastUpdate    time.Time    // The last time this process was updated.
@@ -98,6 +101,7 @@ func newProcess(ctx context.Context, req *FrameRequest, git *gitinfo.GitInfo) *F
 		lastUpdate:    time.Now(),
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
+		dfBuilder:     NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default),
 	}
 	go ret.Run(ctx)
 	return ret
@@ -412,7 +416,7 @@ func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*
 	if err != nil {
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
-	return NewFromQueryAndRange(p.git, ptracestore.Default, begin, end, q, p.progress)
+	return p.dfBuilder.NewFromQueryAndRange(begin, end, q, p.progress)
 }
 
 // doKeys returns a DataFrame that matches the given set of keys given
@@ -422,7 +426,7 @@ func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataF
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
-	return NewFromKeysAndRange(p.git, keys.Keys, ptracestore.Default, begin, end, p.progress)
+	return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, p.progress)
 }
 
 // doCalc applies the given formula and returns a dataframe that matches the
@@ -443,7 +447,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if err != nil {
 			return nil, err
 		}
-		df, err = NewFromQueryAndRange(p.git, ptracestore.Default, begin, end, q, p.progress)
+		df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, p.progress)
 		if err != nil {
 			return nil, err
 		}
@@ -460,7 +464,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if err != nil {
 			return nil, err
 		}
-		df, err = NewFromKeysAndRange(p.git, keys.Keys, ptracestore.Default, begin, end, p.progress)
+		df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, p.progress)
 		if err != nil {
 			return nil, err
 		}
