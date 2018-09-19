@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "34e7b247_15b2127a",
+        "filename": "jsfiddle/go/jsfiddle_server/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T18:56:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "232e8303_2fc4b178",
+      "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b78d988_94e69a02",
         "filename": "jsfiddle/go/jsfiddle_server/main.go",
         "patchSetId": 5
@@ -33,6 +51,24 @@
       "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a982fa7_ff35cbad",
+        "filename": "jsfiddle/go/jsfiddle_server/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T18:56:44Z",
+      "side": 1,
+      "message": "Done.  I was able to just run the server locally and store the code and then see the hash.",
+      "parentUuid": "7b78d988_94e69a02",
+      "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9aa0278b_e8b82213",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T18:56:44Z",
+      "side": 1,
+      "message": "I believe that won\u0027t work because there will be two different anonymous functions and thus the call to remove won\u0027t match the call to add.",
+      "parentUuid": "87a70d37_859b3ae0",
+      "range": {
+        "startLine": 121,
+        "startChar": 3,
+        "endLine": 121,
+        "endChar": 67
+      },
+      "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83f28bb4_b77f5d38",
         "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
         "patchSetId": 5
@@ -73,6 +133,24 @@
       "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63eff7d2_1200fd25",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T18:56:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83f28bb4_b77f5d38",
+      "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -96,6 +174,30 @@
       "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20900f1c_8a26a81f",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-19T18:56:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "813bddd5_cb240d41",
+      "range": {
+        "startLine": 192,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 23
+      },
+      "revId": "1a2ee0c0aeebf4d8ee302036bf70b94eca617edc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
