@@ -22,6 +22,30 @@
       "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb466072_623c26db",
+        "filename": "infra/bots/recipes/swarm_infra.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-19T19:38:09Z",
+      "side": 1,
+      "message": "This was added because of upstream changes which made the --patch_ref flag to bot_update stop appearing.  I triggered try jobs to determine whether your change makes --patch_ref show up twice.  If so, we can remove this.",
+      "parentUuid": "6fd21e18_e902f243",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "bd477b6a95c14875403ab66884d543594c4903c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
