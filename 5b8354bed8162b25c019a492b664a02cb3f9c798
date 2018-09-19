@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6322650e_848a746c",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 0,
+      "message": "Was this an intentional change? Worth mentioning in the commit message?",
+      "revId": "5b8354bed8162b25c019a492b664a02cb3f9c798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dd042b69_9e52efc6",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 1,
+      "message": "https://github.com/golang/go/wiki/CodeReviewComments#mixed-caps",
+      "parentUuid": "32b10e97_d1f4be41",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "843996fa_a260a169",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19

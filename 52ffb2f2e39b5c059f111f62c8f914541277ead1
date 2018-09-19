@@ -22,6 +22,115 @@
       "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14599943_e6151164",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 1,
+      "message": "uber-nit: responding to comment below \"// although GetLatestGCSDirs is in the \"gcs\" package, there\u0027s nothing specific about\n// its operation that makes it not re-usable here.\" -- Maybe add this function to a different package?",
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fe3d195_d4dcee90",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 1,
+      "message": "uber-nit: it would make a bit more sense to me for prefixDir to be the first arg",
+      "range": {
+        "startLine": 110,
+        "startChar": 50,
+        "endLine": 110,
+        "endChar": 66
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffd536c5_5348a28f",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 1,
+      "message": "nit: It seems this is the last use of GetLatestGCSDirs. AFACT, the new GetHourlyGCSDirs would work fine here. Then we could delete GetLatestGCSDirs, since it\u0027s more complicated to use (not to mention understand the code and test) than GetHourlyGCSDirs.",
+      "range": {
+        "startLine": 343,
+        "startChar": 14,
+        "endLine": 343,
+        "endChar": 30
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58e1a712_c6d550e0",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 1,
+      "message": "Is there any race condition here? Specifically I\u0027m thinking about:\n1. Writer to GCS decides on a destination path like \"2018/09/19/01\"\n2. This loop executes with endTime \u003d \"2018-09-19T02:00:01Z\"\n3. Writer finishes writing to GCS with path \"2018/09/19/01\"\n4. This loop executes again with startTime \u003d \"2018-09-19T02:00:01Z\", which misses the files written in step 3.",
+      "range": {
+        "startLine": 250,
+        "startChar": 2,
+        "endLine": 250,
+        "endChar": 11
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e5c8d05_b547189a",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-19T17:47:12Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 324,
+        "startChar": 28,
+        "endLine": 324,
+        "endChar": 34
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
