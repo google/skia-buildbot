@@ -96,7 +96,8 @@ func _df(vcs vcsinfo.VCS, store ptracestore.PTraceStore, q *query.Query) (*dataf
 	if *verbose {
 		fmt.Printf("Requesting from %s to %s\n", beginTime, endTime)
 	}
-	return dataframe.NewFromQueryAndRange(vcs, store, beginTime, endTime, q, progress)
+	dfBuilder := dataframe.NewDataFrameBuilderFromPTraceStore(vcs, store)
+	return dfBuilder.NewFromQueryAndRange(beginTime, endTime, q, progress)
 }
 
 func count(vcs vcsinfo.VCS, store ptracestore.PTraceStore) {

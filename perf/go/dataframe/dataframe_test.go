@@ -65,7 +65,7 @@ type mockPTraceStore struct {
 	matchFail bool
 }
 
-func (m mockPTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string) error {
+func (m mockPTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string, ts time.Time) error {
 	return nil
 }
 
@@ -187,26 +187,29 @@ func TestVCS(t *testing.T) {
 	}
 	store.matchFail = false
 
-	d, err := New(vcs, store, nil)
+	dfBuiler := NewDataFrameBuilderFromPTraceStore(vcs, store)
+
+	d, err := dfBuiler.New(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 
-	d, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{}, nil)
+	d, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 
 	// Test error conditions, i.e. that we log only and don't return an error.
 	vcs.updateFail = true
-	_, err = New(vcs, store, nil)
+	_, err = dfBuiler.New(nil)
 	assert.NoError(t, err)
-	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{}, nil)
+	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, nil)
 	assert.NoError(t, err)
 
 	store.matchFail = true
+	dfBuiler = NewDataFrameBuilderFromPTraceStore(vcs, store)
 	// Test error conditions if the store fails.
-	_, err = New(vcs, store, nil)
+	_, err = dfBuiler.New(nil)
 	assert.Error(t, err)
-	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{}, nil)
+	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, nil)
 	assert.Error(t, err)
 }
 

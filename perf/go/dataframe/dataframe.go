@@ -24,6 +24,46 @@ const (
 	MAX_SAMPLE_SIZE = 256
 )
 
+// DataFrameBuilder is an interface for things that construct DataFrames.
+type DataFrameBuilder interface {
+	// New returns a populated DataFrame of the last 50 commits or a non-nil
+	// error if there was a failure retrieving the traces.
+	New(progress ptracestore.Progress) (*DataFrame, error)
+
+	// NewN returns a populated DataFrame of the last N commits or a non-nil
+	// error if there was a failure retrieving the traces.
+	NewN(progress ptracestore.Progress, n int) (*DataFrame, error)
+
+	// NewFromQueryAndRange returns a populated DataFrame of the traces that match
+	// the given time range [begin, end) and the passed in query, or a non-nil
+	// error if the traces can't be retrieved. The 'progress' callback is called
+	// periodically as the query is processed.
+	NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error)
+
+	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
+	// the given set of 'keys' over the range of [begin, end). The 'progress'
+	// callback is called periodically as the query is processed.
+	NewFromKeysAndRange(keys []string, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error)
+
+	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
+	// match the given time set of commits 'cids' and the query 'q'. The 'progress'
+	// callback is called periodically as the query is processed.
+	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress ptracestore.Progress) (*DataFrame, error)
+}
+
+// ptracestoreDataFrameBuilder implements DataFrameBuilder using ptracestore.
+type ptracestoreDataFrameBuilder struct {
+	vcs   vcsinfo.VCS
+	store ptracestore.PTraceStore
+}
+
+func NewDataFrameBuilderFromPTraceStore(vcs vcsinfo.VCS, store ptracestore.PTraceStore) DataFrameBuilder {
+	return &ptracestoreDataFrameBuilder{
+		vcs:   vcs,
+		store: store,
+	}
+}
+
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
 	Source    string `json:"source"`
@@ -143,38 +183,31 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptraces
 	return d, nil
 }
 
-// New returns a populated DataFrame of the last 50 commits given the 'vcs' and
-// 'store', or a non-nil error if there was a failure retrieving the traces.
-func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Progress) (*DataFrame, error) {
-	return NewN(vcs, store, progress, DEFAULT_NUM_COMMITS)
+// See DataFrameBuilder.
+func (p *ptracestoreDataFrameBuilder) New(progress ptracestore.Progress) (*DataFrame, error) {
+	return p.NewN(progress, DEFAULT_NUM_COMMITS)
 }
 
-// NewN returns a populated DataFrame of the last N commits given the 'vcs' and
-// 'store', or a non-nil error if there was a failure retrieving the traces.
-func NewN(vcs vcsinfo.VCS, store ptracestore.PTraceStore, progress ptracestore.Progress, n int) (*DataFrame, error) {
-	colHeaders, commitIDs, skip := lastN(vcs, n)
+// See DataFrameBuilder.
+func (p *ptracestoreDataFrameBuilder) NewN(progress ptracestore.Progress, n int) (*DataFrame, error) {
+	colHeaders, commitIDs, skip := lastN(p.vcs, n)
 	matches := func(key string) bool {
 		return true
 	}
-	return _new(colHeaders, commitIDs, matches, store, progress, skip)
+	return _new(colHeaders, commitIDs, matches, p.store, progress, skip)
 }
 
-// NewFromQueryAndRange returns a populated DataFrame of the traces that match
-// the given time range [begin, end) and the passed in query, or a non-nil
-// error if the traces can't be retrieved. The 'progress' callback is called
-// periodically as the query is processed.
-func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+// See DataFrameBuilder.
+func (p *ptracestoreDataFrameBuilder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromQueryAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(vcs, begin, end, true)
-	return _new(colHeaders, commitIDs, q.Matches, store, progress, skip)
+	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, true)
+	return _new(colHeaders, commitIDs, q.Matches, p.store, progress, skip)
 }
 
-// NewFromKeysAndRange returns a populated DataFrame of the traces that match
-// the given set of 'keys' over the range of [begin, end). The 'progress'
-// callback is called periodically as the query is processed.
-func NewFromKeysAndRange(vcs vcsinfo.VCS, keys []string, store ptracestore.PTraceStore, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error) {
+// See DataFrameBuilder.
+func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromKeysAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(vcs, begin, end, true)
+	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, true)
 	sort.Strings(keys)
 	matches := func(key string) bool {
 		i := sort.SearchStrings(keys, key)
@@ -183,13 +216,11 @@ func NewFromKeysAndRange(vcs vcsinfo.VCS, keys []string, store ptracestore.PTrac
 		}
 		return keys[i] == key
 	}
-	return _new(colHeaders, commitIDs, matches, store, progress, skip)
+	return _new(colHeaders, commitIDs, matches, p.store, progress, skip)
 }
 
-// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
-// match the given time set of commits 'cids' and the query 'q'. The 'progress'
-// callback is called periodically as the query is processed.
-func NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, store ptracestore.PTraceStore, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+// See DataFrameBuilder.
+func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
 	details, err := cidl.Lookup(ctx, cids)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
@@ -202,7 +233,7 @@ func NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *c
 			Timestamp: d.Timestamp,
 		})
 	}
-	return _new(colHeaders, cids, q.Matches, store, progress, 0)
+	return _new(colHeaders, cids, q.Matches, p.store, progress, 0)
 }
 
 // NewEmpty returns a new empty DataFrame.
@@ -229,3 +260,6 @@ func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) *Data
 		Skip:     skip,
 	}
 }
+
+// Validate that the concrete ptracestoreDataFrameBuilder faithfully implements the DataFrameBuidler interface.
+var _ DataFrameBuilder = (*ptracestoreDataFrameBuilder)(nil)

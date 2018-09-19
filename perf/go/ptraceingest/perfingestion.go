@@ -3,6 +3,7 @@ package ptraceingest
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
@@ -51,5 +52,9 @@ func (p *perfProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 		return err
 	}
 
-	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name())
+	// The timestamp passed to Add() is ignored in a ptracestore backed store, and the
+	// new Perf event based ingester doesn't use ingestion.Processor.
+	now := time.Now()
+
+	return p.store.Add(commitID, getValueMap(benchData), resultsFile.Name(), now)
 }
