@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba262d57_6766785d",
+        "filename": "jsfiddle/DESIGN.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:20:58Z",
+      "side": 1,
+      "message": "This url doesn\u0027t agree with the url structure defined on line 6.\n\nI prefer this url structure.",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "398b34d8_04ab1d69",
+        "filename": "jsfiddle/go/jsfiddle_server/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:20:58Z",
+      "side": 1,
+      "message": "This fails to redirect from http to https, do this instead:\n\n  h :\u003d httputils.LoggingGzipRequestResponse(r)\n  h \u003d httputils.HealthzAndHTTPS(h)\n  http.Handle(\"/\", h)",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a4bb496_5d1c75ea",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle-demo.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:20:58Z",
+      "side": 1,
+      "message": "Load the polyfill as part of the bundle and then we can use CSP to lock down the JS domains we allow to just \"self\".",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "445b89b7_270bedfe",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:20:58Z",
+      "side": 1,
+      "message": "I would avoid this, instead make \u0027content\u0027 a property only, and document it.\n\nThe innerHTML gets parsed as HTML, so \u003c and \u003e are problematic at the very least.",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93ea4c5d_2ce7857e",
+        "filename": "jsfiddle/modules/pathkit-fiddle/pathkit-fiddle.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:20:58Z",
+      "side": 1,
+      "message": "Should be handled with stateReflector, but that can be a later CL.",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48ef50fd_5fa1a2c9",
+        "filename": "jsfiddle/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T13:20:58Z",
+      "side": 1,
+      "message": "common-sk uses lit-html 0.10, and 0.11 has breaking changes to 0.10.",
+      "revId": "b4053f0af78ec39af4a7711ba1eac591fc944e3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
