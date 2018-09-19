@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "ef73c3fd_7ada9c4b",
+        "filename": "kube/go/repo-sync/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-19T12:36:36Z",
+      "side": 1,
+      "message": "OK, but what does \"git remote set-url --push origin\" do?",
+      "parentUuid": "bde0782c_3436e0df",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "46580c0d8a7c6d5f27a0759b44c149a70d596f2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4ef821e0_333f750b",
         "filename": "kube/go/repo-sync/main.go",
         "patchSetId": 8
