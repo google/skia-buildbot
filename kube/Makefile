@@ -20,6 +20,11 @@ release_continuous_deploy:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/continuous-deploy ./go/pushk
 	./build_continuous_deploy_release
 
+push_reposync:
+	go install ./go/repo-sync
+	./build_reposync_release
+	pushk repo-sync
+
 push: pushk
 	pushk --cluster=skia-public auth-proxy configmap-reload continuous-deploy
 	pushk --cluster=skia-corp configmap-reload
