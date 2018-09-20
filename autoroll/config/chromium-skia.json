@@ -1,5 +1,8 @@
 {
   "childName": "Chromium",
+  "contacts": [
+    "borenet@google.com"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "isInternal": false,
   "parentName": "Skia",
