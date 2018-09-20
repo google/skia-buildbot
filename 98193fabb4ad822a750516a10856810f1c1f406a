@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ce45311d_18c1c83d",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-20T14:32:54Z",
+      "side": 0,
+      "message": "Who is running the pre-upload steps now?",
+      "revId": "98193fabb4ad822a750516a10856810f1c1f406a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
