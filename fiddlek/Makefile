@@ -30,6 +30,14 @@ release: build
 	./build_fiddle_release
 	./build_fiddler_release
 
+.PHONY: release_ci
+release_ci: build
+	# Don't docker pull here, as we are in the CI pipeline and it already has
+	# done the pull.
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
+	./build_fiddle_release
+	./build_fiddler_release
+
 .PHONY: push
 push: release skia-public
 	pushk fiddle fiddler
