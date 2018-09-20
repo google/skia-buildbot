@@ -78,9 +78,14 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 // See documentation for noCheckoutRepoManagerBuildCommitMessageFunc.
 func (rm *afdoRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybots string, emails []string) (string, error) {
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, afdoShortVersion(from), afdoShortVersion(to), serverURL)
-	if len(emails) > 0 {
-		commitMsg += fmt.Sprintf("TBR=%s", strings.Join(emails, ","))
+	if cqExtraTrybots != "" {
+		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
+	tbr := "\nTBR="
+	if len(emails) > 0 {
+		tbr += strings.Join(emails, ",")
+	}
+	commitMsg += tbr
 	return commitMsg, nil
 }
 
