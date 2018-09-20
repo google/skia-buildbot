@@ -210,7 +210,7 @@ func TestAFDORepoManager(t *testing.T) {
 	from := afdoShortVersion(rm.LastRollRev())
 	to := afdoShortVersion(rm.NextRollRev())
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, "fake.server.com")
-	commitMsg += "TBR=reviewer@chromium.org"
+	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*afdoRepoManager).gerritProject, subject, rm.(*afdoRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
