@@ -3,6 +3,7 @@ package httputils
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -45,6 +46,11 @@ const (
 	// SCHEME_AT_LOAD_BALANCER_HEADER is the header, added by the load balancer,
 	// the has the scheme [http|https] that the original request was made under.
 	SCHEME_AT_LOAD_BALANCER_HEADER = "x-forwarded-proto"
+)
+
+var (
+	serverErr = errors.New("Server error")
+	clientErr = errors.New("Client error")
 )
 
 // HealthCheckHandler returns 200 OK with an empty body, appropriate
@@ -94,8 +100,35 @@ func NewConfiguredTimeoutClient(dialTimeout, reqTimeout time.Duration) *http.Cli
 	})
 }
 
-// NewBackOffClient creates a new http.Client with default exponential backoff
-// configuration.
+// Response2xxOnlyTransport is a RoundTripper that transforms non-2xx HTTP responses to an error
+// return value. Delegates all requests to the wrapped RoundTripper, which must be non-nil. Add this
+// behavior to an existing client with Response2xxOnly below.
+type Response2xxOnlyTransport struct {
+	http.RoundTripper
+}
+
+// RoundTrip implements the RoundTripper interface.
+func (t Response2xxOnlyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	resp, err := t.RoundTripper.RoundTrip(req)
+	if err == nil && resp != nil && (resp.StatusCode < 200 || resp.StatusCode > 299) {
+		return nil, fmt.Errorf("Got error response status code %d from the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+	}
+	return resp, err
+}
+
+// Response2xxOnly modifies client so that non-2xx HTTP responses cause a non-nil error return
+// value.
+func Response2xxOnly(client *http.Client) *http.Client {
+	wrap := client.Transport
+	if wrap == nil {
+		wrap = http.DefaultTransport
+	}
+	client.Transport = Response2xxOnlyTransport{wrap}
+	return client
+}
+
+// NewBackOffClient creates a new http.Client with default exponential backoff configuration. When
+// using this Client, non-2xx HTTP responses cause a non-nil error return value.
 func NewBackOffClient() *http.Client {
 	return AddMetricsToClient(&http.Client{
 		Transport: NewBackOffTransport(),
@@ -111,7 +144,8 @@ type BackOffConfig struct {
 }
 
 // NewBackOffTransport creates a BackOffTransport with default values. Look at
-// NewConfiguredBackOffTransport for an example of how the values impact behavior.
+// NewConfiguredBackOffTransport for an example of how the values impact behavior. When
+// using this RoundTripper, non-2xx HTTP responses cause a non-nil error return value.
 func NewBackOffTransport() http.RoundTripper {
 	config := &BackOffConfig{
 		initialInterval:     INITIAL_INTERVAL,
@@ -120,7 +154,7 @@ func NewBackOffTransport() http.RoundTripper {
 		randomizationFactor: RANDOMIZATION_FACTOR,
 		backOffMultiplier:   BACKOFF_MULTIPLIER,
 	}
-	return NewConfiguredBackOffTransport(config)
+	return Response2xxOnlyTransport{NewConfiguredBackOffTransportAllResponses(config)}
 }
 
 type BackOffTransport struct {
@@ -152,7 +186,7 @@ type ResponsePagination struct {
 //  8             8.538              [4.269, 12.807]
 //  9            12.807              [6.403, 19.210]
 //  10           19.210              backoff.Stop
-func NewConfiguredBackOffTransport(config *BackOffConfig) http.RoundTripper {
+func NewConfiguredBackOffTransportAllResponses(config *BackOffConfig) http.RoundTripper {
 	return &BackOffTransport{
 		Transport:     &http.Transport{Dial: DialTimeout},
 		backOffConfig: config,
@@ -185,31 +219,46 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		if req.Body != nil {
 			req.Body = ioutil.NopCloser(bytes.NewBufferString(bodyBuf.String()))
 		}
+		if resp != nil {
+			panic("Expected notifyFunc to be called between retries.")
+		}
 		resp, err = t.Transport.RoundTrip(req)
 		if err != nil {
-			return fmt.Errorf("Error while making the round trip to %s: %s", req.URL, err)
+			return err
 		}
 		if resp != nil {
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
-				// We can't close the resp.Body on success, so we must do it in each of the failure cases.
-				return fmt.Errorf("Got server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+				// This error will be retried.
+				return serverErr
 			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
-				// We can't close the resp.Body on success, so we must do it in each of the failure cases.
-				// Stop backing off if there are non server errors.
-				backOffClient.MaxElapsedTime = backoff.Stop
-				return fmt.Errorf("Got non server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+				// Using Permanent so that the request will not be retried.
+				return backoff.Permanent(clientErr)
 			}
 		}
 		return nil
 	}
-	notifyFunc := func(err error, wait time.Duration) {
-		sklog.Warningf("Got error: %s. Retrying HTTP request after sleeping for %s", err, wait)
+	notifyFunc := func(notifyErr error, wait time.Duration) {
+		if notifyErr == serverErr {
+			sklog.Warningf("Got server error status code %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, ReadAndClose(resp.Body))
+			resp = nil
+		} else {
+			sklog.Warningf("Got error while making the round trip to %s: %s. Retrying HTTP request after sleeping for %s", req.URL, notifyErr, wait)
+			if resp != nil {
+				panic("Expected serverErr when resp is non-nil")
+			}
+		}
 	}
 
-	if err := backoff.RetryNotify(roundTripOp, backOffClient, notifyFunc); err != nil {
-		return nil, fmt.Errorf("HTTP request failed inspite of exponential backoff: %s", err)
+	// Overall return values should be the return values of the final call to t.Transport.RoundTrip.
+	if err := backoff.RetryNotify(roundTripOp, backOffClient, notifyFunc); err == nil || err == clientErr {
+		return resp, nil
+	} else if err == serverErr {
+		sklog.Warningf("Final attempt got server error status code %d in spite of exponential backoff while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
+		return resp, nil
+	} else {
+		sklog.Warningf("Final attempt failed in spite of exponential backoff for HTTP %s request to %s: %s", req.Method, req.URL, err)
+		return nil, err
 	}
-	return resp, nil
 }
 
 // ReadAndClose reads the content of a ReadCloser (e.g. http Response), and returns it as a string.
