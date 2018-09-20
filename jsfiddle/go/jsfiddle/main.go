@@ -29,27 +29,26 @@ var (
 const MAX_FIDDLE_SIZE = 10 * 1024 * 1024 // 10KB ought to be enough for anyone.
 
 var pathkitPage []byte
+var canvaskitPage []byte
 
 var knownTypes = []string{"pathkit", "canvaskit"}
 
 var fiddleStore *store.Store
 
-func healthzHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-}
-
-func pathkitHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		// reload during local development
-		loadPages()
-	}
-	w.Header().Set("Content-Type", "text/html")
-	// This page should not be iframed. Maybe one day, something will be iframed,
-	// but likely not this page.
-	w.Header().Add("X-Frame-Options", "deny")
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write(pathkitPage); err != nil {
-		httputils.ReportError(w, r, err, "Server could not load page")
+func htmlHandler(page []byte) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if *local {
+			// reload during local development
+			loadPages()
+		}
+		w.Header().Set("Content-Type", "text/html")
+		// This page should not be iframed. Maybe one day, something will be iframed,
+		// but likely not this page.
+		w.Header().Add("X-Frame-Options", "deny")
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(page); err != nil {
+			httputils.ReportError(w, r, err, "Server could not load page")
+		}
 	}
 }
 
@@ -81,6 +80,9 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 	if hash == "" {
 		// use demo code
 		hash = "d962f6408d45d22c5e0dfe0a0b5cf2bad9dfaa49c4abc0e2b1dfb30726ab838d"
+		if fiddleType == "canvaskit" {
+			hash = "fe9806b64a59714d50b025cfd1627821336705ace0a798305adc7a9eef625c67"
+		}
 	}
 
 	code, err := fiddleStore.GetCode(hash, fiddleType)
@@ -112,9 +114,15 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func loadPages() {
 	if p, err := ioutil.ReadFile(filepath.Join(*resourcesDir, "pathkit-index.html")); err != nil {
-		sklog.Errorf("Could not find pathkit html", err)
+		sklog.Fatalf("Could not find pathkit html: %s", err)
 	} else {
 		pathkitPage = p
+	}
+
+	if p, err := ioutil.ReadFile(filepath.Join(*resourcesDir, "canvaskit-index.html")); err != nil {
+		sklog.Fatalf("Could not find canvaskit html: %s", err)
+	} else {
+		canvaskitPage = p
 	}
 }
 
@@ -179,8 +187,10 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
-	r.HandleFunc("/pathkit", cspHandler(pathkitHandler)).Methods("GET")
-	r.HandleFunc("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(pathkitHandler)).Methods("GET")
+	r.HandleFunc("/canvaskit", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
+	r.HandleFunc("/canvaskit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(canvaskitPage))).Methods("GET")
+	r.HandleFunc("/pathkit", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
+	r.HandleFunc("/pathkit/{id:[@0-9a-zA-Z_]+}", cspHandler(htmlHandler(pathkitPage))).Methods("GET")
 	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/save", saveHandler).Methods("PUT")
 	r.HandleFunc("/_/code", codeHandler).Methods("GET")

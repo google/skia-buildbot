@@ -9,14 +9,16 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 import { html, render } from 'lit-html'
 
-const PathKitInit = require('pathkit-wasm/bin/pathkit.js');
+const CanvasKitInit = require('../canvaskit/skia.js');
+
+// TODO(kjlubick): Deduplicate this with pathkit-fiddle.
 
 // Main template for this element
 const template = (ele) => html`
 <header>
-  <div class=title>PathKit Fiddle</div>
+  <div class=title>CanvasKit Fiddle</div>
   <div class=flex></div>
-  <div class=version>PathKit Version: <a href="https://www.npmjs.com/package/pathkit-wasm">0.4.0</a></div>
+  <div class=version>CanvasKit Version: 0.0.1</div>
 </header>
 
 <main>
@@ -65,31 +67,25 @@ const _lineNumber = (n) => html`
   <div id=${'L'+n}>${n}</div>
 `;
 
-function resetCanvas(canvas) {
-  // Reset the transform of the canvas then re-draw it blank.
-  let ctx = canvas.getContext('2d');
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
 /**
- * @module jsfiddle/modules/pathkit-fiddle
- * @description <h2><code>pathkit-fiddle</code></h2>
+ * @module jsfiddle/modules/canvaskit-fiddle
+ * @description <h2><code>canvaskit-fiddle</code></h2>
  *
  * <p>
- *   The top level element for displaying pathkit fiddles.
+ *   The top level element for displaying canvaskit fiddles.
  *   The main elements are a code editor box (textarea), a canvas
  *   on which to render the result and a few buttons.
  * </p>
  *
  */
-window.customElements.define('pathkit-fiddle', class extends HTMLElement {
+window.customElements.define('canvaskit-fiddle', class extends HTMLElement {
 
   constructor() {
     super();
 
+    // allows demo pages to supply content w/o making a network request
     this._content = this.getAttribute('content') || '';
-    this.PathKit = null;
+    this.CanvasKit = null;
     this._editor = null; // set in render to be the textarea
   }
 
@@ -103,10 +99,10 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
 
   connectedCallback() {
     this._render();
-    PathKitInit({
-      locateFile: (file) => '/res/'+file,
-    }).then((PathKit) => {
-      this.PathKit = PathKit;
+    CanvasKitInit({
+      locateFile: (file) => 'https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.1/bin/'+file,
+    }).then((CanvasKit) => {
+      this.CanvasKit = CanvasKit;
       if (this.content) {
         this._run(); // auto-run the code if the code was loaded.
       }
@@ -130,19 +126,19 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
   }
 
   _loadCode() {
-    // The location should be either /pathkit or /pathkit/<fiddlehash>
+    // The location should be either /canvaskit or /canvaskit/<fiddlehash>
     let path = window.location.pathname;
     let hash = '';
-    if (path.length > 9) { // 9 characters in '/pathkit/'
-      hash = path.slice(9);
+    if (path.length > 11) { // 11 characters in '/canvaskit/'
+      hash = path.slice(11);
     }
 
-    fetch(`/_/code?type=pathkit&hash=${hash}`)
+    fetch(`/_/code?type=canvaskit&hash=${hash}`)
       .then(jsonOrThrow)
       .then((json) => {
         this.content = json.code;
-        if (this.PathKit) {
-          this._run(); // auto-run the code if PathKit is loaded.
+        if (this.CanvasKit) {
+          this._run(); // auto-run the code if CanvasKit is loaded.
         }
       }
     ).catch((e) => {
@@ -174,15 +170,15 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
   }
 
   _run() {
-    if (!this.PathKit) {
-      errorMessage('PathKit is still loading.');
+    if (!this.CanvasKit) {
+      errorMessage('CanvasKit is still loading.');
       return;
     }
 
     const canvas = this._resetCanvas();
 
     try {
-      let f = new Function('PathKit', 'canvas', // actual params
+      let f = new Function('CanvasKit', 'canvas', // actual params
           // shadow these globals to at least make exploitation harder. CSP
           // is our first line of defense, this adds another layer.
           'window', 'document', 'open', 'event', 'Function', 'eval', 'frames',
@@ -192,7 +188,7 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
           'prompt', 'parent',
            this.content); // user given code
       f = f.bind({}); // By default, f is bound to Window.  Re bind it to remove that access.
-      f(this.PathKit, canvas);
+      f(this.CanvasKit, canvas);
     } catch(e) {
       errorMessage(e);
     }
@@ -206,7 +202,7 @@ window.customElements.define('pathkit-fiddle', class extends HTMLElement {
       }),
       body: JSON.stringify({
         code: this.content,
-        type: 'pathkit',
+        type: 'canvaskit',
       })
     }).then(jsonOrThrow).then((json) => {
         history.pushState(null, '', json.new_url);
