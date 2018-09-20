@@ -13,4 +13,16 @@ watch:
 package-lock.json: package.json
 	npm install
 
-.PHONY: build serve release_build watch
+core:
+	go install -v ./go/jsfiddle
+
+release: release_build
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
+	./build_release
+
+push: release
+	pushk jsfiddle
+
+.PHONY: build serve release_build watch core release
+
+include ../make/clusters.mk
