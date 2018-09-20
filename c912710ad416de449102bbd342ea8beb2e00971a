@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89cd9f6d_b940f88b",
+        "filename": "autoroll/config/skia-android-master.json",
+        "patchSetId": 10
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-20T13:27:58Z",
+      "side": 1,
+      "message": "You may need to adjust these values based on the size of the repos being checked out.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 37
+      },
+      "revId": "c912710ad416de449102bbd342ea8beb2e00971a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
