@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -33,51 +34,70 @@ const (
 
 func afdoCfg() *AFDORepoManagerConfig {
 	return &AFDORepoManagerConfig{
-		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  "master",
 				ChildPath:    "unused/by/afdo/repomanager",
 				ParentBranch: "master",
 			},
+			GerritProject: "fake-gerrit-project",
+			ParentRepo:    "", // Filled in after GitInit().
 		},
 	}
 }
 
-func setupAfdo(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
+func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
+	ctx := context.Background()
+
 	// Create child and parent repos.
-	parent := git_testutils.GitInit(t, context.Background())
+	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(context.Background(), AFDO_VERSION_FILE_PATH, afdoRevBase)
 	parent.Commit(context.Background())
 
-	mockRun := &exec.CommandCollector{}
-	mockRun.SetDelegateRun(func(cmd *exec.Command) error {
-		if cmd.Name == "git" && cmd.Args[0] == "cl" {
-			if cmd.Args[1] == "upload" {
-				return nil
-			} else if cmd.Args[1] == "issue" {
-				json := testutils.MarshalJSON(t, &issueJson{
-					Issue:    issueNum,
-					IssueUrl: "???",
-				})
-				f := strings.Split(cmd.Args[2], "=")[1]
-				testutils.WriteFile(t, f, json)
-				return nil
-			}
-		}
-		return exec.DefaultRun(cmd)
-	})
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
 	urlmock := mockhttpclient.NewURLMock()
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+
+	gUrl := "https://fake-skia-review.googlesource.com"
+	gitcookies := path.Join(wd, "gitcookies_fake")
+	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	serialized, err := json.Marshal(&gerrit.AccountDetails{
+		AccountId: 101,
+		Name:      mockUser,
+		Email:     mockUser,
+		UserName:  mockUser,
+	})
+	assert.NoError(t, err)
+	serialized = append([]byte("abcd\n"), serialized...)
+	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
+	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlmock.Client())
+	assert.NoError(t, err)
+
+	cfg := afdoCfg()
+	cfg.ParentRepo = parent.RepoUrl()
+
+	// Initial update. Everything up-to-date.
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
+	mockGSList(t, urlmock, strategy.AFDO_GS_BUCKET, strategy.AFDO_GS_PATH, map[string]string{
+		afdoRevBase: afdoTimeBase,
+	})
+
+	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client())
+	assert.NoError(t, err)
+	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_AFDO))
+	assert.NoError(t, rm.Update(ctx))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		parent.Cleanup()
 	}
 
-	return ctx, wd, parent, mockRun, urlmock, cleanup
+	return ctx, rm, urlmock, mockParent, parent, cleanup
 }
 
 type gsObject struct {
@@ -140,21 +160,9 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 func TestAFDORepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, wd, parent, _, urlmock, cleanup := setupAfdo(t)
+	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
-	g := setupFakeGerrit(t, wd)
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	// Initial update, everything up-to-date.
-	mockGSList(t, urlmock, strategy.AFDO_GS_BUCKET, strategy.AFDO_GS_PATH, map[string]string{
-		afdoRevBase: afdoTimeBase,
-	})
-	cfg := afdoCfg()
-	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client())
-	assert.NoError(t, err)
-	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_AFDO))
-	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, afdoRevBase, rm.LastRollRev())
 	assert.Equal(t, afdoRevBase, rm.NextRollRev())
@@ -170,10 +178,14 @@ func TestAFDORepoManager(t *testing.T) {
 	rolledPast, err = rm.RolledPast(ctx, afdoRevNext)
 	assert.NoError(t, err)
 	assert.False(t, rolledPast)
-	assert.Nil(t, rm.PreUploadSteps())
+	assert.Empty(t, rm.PreUploadSteps())
 	assert.Equal(t, 0, rm.CommitsNotRolled())
 
 	// There's a new version.
+	mockParent.MockGetCommit(ctx, "master")
+	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	assert.NoError(t, err)
+	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 	mockGSList(t, urlmock, strategy.AFDO_GS_BUCKET, strategy.AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
@@ -193,12 +205,59 @@ func TestAFDORepoManager(t *testing.T) {
 	assert.Equal(t, 1, rm.CommitsNotRolled())
 
 	// Upload a CL.
+
+	// Mock the initial change creation.
+	from := afdoShortVersion(rm.LastRollRev())
+	to := afdoShortVersion(rm.NextRollRev())
+	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, "fake.server.com")
+	commitMsg += "TBR=reviewer@chromium.org"
+	subject := strings.Split(commitMsg, "\n")[0]
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*afdoRepoManager).gerritProject, subject, rm.(*afdoRepoManager).parentBranch, parentMaster))
+	ci := gerrit.ChangeInfo{
+		ChangeId: "123",
+		Id:       "123",
+		Issue:    123,
+		Revisions: map[string]*gerrit.Revision{
+			"ps1": &gerrit.Revision{
+				ID:     "ps1",
+				Number: 1,
+			},
+		},
+	}
+	respBody, err := json.Marshal(ci)
+	assert.NoError(t, err)
+	respBody = append([]byte(")]}'\n"), respBody...)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
+
+	// Mock the edit of the change to update the commit message.
+	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(commitMsg, "\n", "\\n", -1)))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
+
+	// Mock the request to modify the version file.
+	reqBody = []byte(rm.NextRollRev())
+	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(AFDO_VERSION_FILE_PATH))
+	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
+
+	// Mock the request to publish the change edit.
+	reqBody = []byte(`{"notify":"ALL"}`)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+
+	// Mock the request to load the updated change.
+	respBody, err = json.Marshal(ci)
+	assert.NoError(t, err)
+	respBody = append([]byte(")]}'\n"), respBody...)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+
+	// Mock the request to set the CQ.
+	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
-	assert.Equal(t, issueNum, issue)
-	msg, err := ioutil.ReadFile(path.Join(rm.(*afdoRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
-	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(strings.Split(string(msg), "\n")[0], func(h string) (string, error) {
+	assert.Equal(t, ci.Issue, issue)
+
+	// Ensure that we can parse the commit message.
+	from, to, err = autoroll.RollRev(subject, func(h string) (string, error) {
 		return rm.FullChildHash(ctx, h)
 	})
 	assert.NoError(t, err)

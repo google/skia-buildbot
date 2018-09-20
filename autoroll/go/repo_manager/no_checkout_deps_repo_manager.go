@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"sync"
 
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools"
@@ -32,36 +31,20 @@ var (
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
 // don't use a local checkout.
 type NoCheckoutDEPSRepoManagerConfig struct {
-	// Branch of the child repo we want to roll.
-	ChildBranch string `json:"childBranch"`
-	// Path of the child repo within the parent repo.
-	ChildPath string `json:"childPath"`
+	NoCheckoutRepoManagerConfig
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"` // TODO(borenet): Can we just get this from DEPS?
-	// Gerrit project for the parent repo.
-	GerritProject string `json:"gerritProject"`
 	// If false, roll CLs do not link to bugs from the commits in the child
 	// repo.
 	IncludeBugs bool `json:"includeBugs"`
 	// If false, roll CLs do not include a git log.
 	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
-	ParentBranch string `json:"parentBranch"`
-	// URL of the parent repo.
-	ParentRepo string `json:"parentRepo"`
-
-	// Optional fields.
-
-	// Named steps to run before uploading roll CLs.
-	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
 
 func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
-	if c.ChildBranch == "" {
-		return errors.New("ChildBranch is required.")
-	}
-	if c.ChildPath == "" {
-		return errors.New("ChildPath is required.")
+	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
+		return err
 	}
 	if c.ChildRepo == "" {
 		return errors.New("ChildRepo is required.")
@@ -84,32 +67,15 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 }
 
 type noCheckoutDEPSRepoManager struct {
-	baseCommit          string
-	childBranch         string
-	childPath           string
-	childRepo           *gitiles.Repo
-	childRepoUrl        string
-	commitsNotRolled    int
-	depotTools          string
-	g                   gerrit.GerritInterface
-	gclient             string
-	gerritProject       string
-	includeBugs         bool
-	includeLog          bool
-	infoMtx             sync.RWMutex
-	lastRollRev         string
-	nextRollCommits     []*vcsinfo.LongCommit
-	nextRollDEPSContent []byte
-	nextRollRev         string
-	parentBranch        string
-	parentRepo          *gitiles.Repo
-	parentRepoUrl       string
-	preUploadSteps      []PreUploadStep
-	serverURL           string
-	strategy            strategy.NextRollStrategy
-	strategyMtx         sync.RWMutex
-	user                string
-	workdir             string
+	*noCheckoutRepoManager
+	childRepo       *gitiles.Repo
+	childRepoUrl    string
+	depotTools      string
+	gclient         string
+	includeBugs     bool
+	includeLog      bool
+	nextRollCommits []*vcsinfo.LongCommit
+	parentRepoUrl   string
 }
 
 // newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
@@ -122,55 +88,32 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
-	if err != nil {
-		return nil, err
-	}
-	user := ""
-	if g.Initialized() {
-		user, err = g.GetUserEmail()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
-		}
-	}
-	sklog.Infof("Repo Manager user: %s", user)
 
 	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
 	if err != nil {
 		return nil, err
 	}
 
-	rm := &noCheckoutDEPSRepoManager{
-		childBranch:    c.ChildBranch,
-		childPath:      c.ChildPath,
-		childRepo:      gitiles.NewRepo(c.ChildRepo, gitcookiesPath, client),
-		childRepoUrl:   c.ChildRepo,
-		depotTools:     depotTools,
-		g:              g,
-		gerritProject:  c.GerritProject,
-		gclient:        path.Join(depotTools, GCLIENT),
-		includeBugs:    c.IncludeBugs,
-		includeLog:     c.IncludeLog,
-		parentBranch:   c.ParentBranch,
-		parentRepo:     gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
-		parentRepoUrl:  c.ParentRepo,
-		preUploadSteps: preUploadSteps,
-		serverURL:      serverURL,
-		user:           user,
-		workdir:        workdir,
+	rv := &noCheckoutDEPSRepoManager{
+		childRepo:     gitiles.NewRepo(c.ChildRepo, gitcookiesPath, client),
+		childRepoUrl:  c.ChildRepo,
+		depotTools:    depotTools,
+		gclient:       path.Join(depotTools, GCLIENT),
+		includeBugs:   c.IncludeBugs,
+		includeLog:    c.IncludeLog,
+		parentRepoUrl: c.ParentRepo,
 	}
-	return rm, nil
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, rv.buildCommitMessage, rv.updateHelper)
+	if err != nil {
+		return nil, err
+	}
+	rv.noCheckoutRepoManager = ncrm
+
+	return rv, nil
 }
 
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) CommitsNotRolled() int {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-	return rm.commitsNotRolled
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to string, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+// See documentation for noCheckoutRepoManagerBuildCommitMessageFunc.
+func (rm *noCheckoutDEPSRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybots string, emails []string) (string, error) {
 	rm.infoMtx.RLock()
 	defer rm.infoMtx.RUnlock()
 
@@ -201,68 +144,10 @@ func (rm *noCheckoutDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 
 	commitMsg, err := buildCommitMsg(from, to, rm.childPath, cqExtraTrybots, rm.childRepoUrl, rm.serverURL, logStr, bugs, len(rm.nextRollCommits), rm.includeLog)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to build commit msg: %s", err)
+		return "", fmt.Errorf("Failed to build commit msg: %s", err)
 	}
 	commitMsg += "TBR=" + strings.Join(emails, ",")
-
-	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		if err := g.EditFile(ci, "DEPS", string(rm.nextRollDEPSContent)); err != nil {
-			return fmt.Errorf("Failed to edit DEPS file: %s", err)
-		}
-		return nil
-	})
-	if err != nil {
-		if ci != nil {
-			if err2 := rm.g.Abandon(ci, "Failed to create roll CL"); err != nil {
-				return 0, fmt.Errorf("Failed to create roll with: %s\nAnd failed to abandon the change with: %s", err, err2)
-			}
-		}
-		return 0, err
-	}
-
-	// Set the CQ bit as appropriate.
-	cq := gerrit.COMMITQUEUE_LABEL_SUBMIT
-	if dryRun {
-		cq = gerrit.COMMITQUEUE_LABEL_DRY_RUN
-	}
-	if err = rm.g.SetReview(ci, "", map[string]interface{}{
-		gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
-		gerrit.COMMITQUEUE_LABEL: cq,
-	}, emails); err != nil {
-		// TODO(borenet): Should we try to abandon the CL?
-		return 0, err
-	}
-
-	return ci.Issue, nil
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) FullChildHash(ctx context.Context, ref string) (string, error) {
-	c, err := rm.childRepo.GetCommit(ref)
-	if err != nil {
-		return "", err
-	}
-	return c.Hash, nil
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) LastRollRev() string {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-	return rm.lastRollRev
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) NextRollRev() string {
-	rm.infoMtx.RLock()
-	defer rm.infoMtx.RUnlock()
-	return rm.nextRollRev
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) PreUploadSteps() []PreUploadStep {
-	return rm.preUploadSteps
+	return commitMsg, nil
 }
 
 // See documentation for RepoManager interface.
@@ -279,18 +164,6 @@ func (rm *noCheckoutDEPSRepoManager) RolledPast(ctx context.Context, hash string
 	return len(commits) > 0, nil
 }
 
-// getDEPSFile downloads the DEPS file at the given ref from the given repo.
-func getDEPSFile(repo *gitiles.Repo, ref, dest string) error {
-	depsFile, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-	if err := repo.ReadFileAtRef("DEPS", ref, depsFile); err != nil {
-		return err
-	}
-	return depsFile.Close()
-}
-
 func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit, lastRollRev string) (string, error) {
 	rm.strategyMtx.RLock()
 	defer rm.strategyMtx.RUnlock()
@@ -304,54 +177,46 @@ func (rm *noCheckoutDEPSRepoManager) getNextRollRev(ctx context.Context, notRoll
 	return nextRollRev, nil
 }
 
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
+// See documentation for noCheckoutRepoManagerUpdateHelperFunc.
+func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, int, map[string]string, error) {
 	wd, err := ioutil.TempDir("", "")
 	if err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 	defer util.RemoveAll(wd)
 
-	// Find HEAD of the desired parent branch. We make sure to provide the
-	// base commit of our change, to avoid clobbering other changes to the
-	// DEPS file.
-	baseCommit, err := rm.parentRepo.GetCommit(rm.parentBranch)
-	if err != nil {
-		return err
-	}
-
 	// Download the DEPS file from the parent repo.
 	buf := bytes.NewBuffer([]byte{})
-	if err := rm.parentRepo.ReadFileAtRef("DEPS", baseCommit.Hash, buf); err != nil {
-		return err
+	if err := parentRepo.ReadFileAtRef("DEPS", baseCommit, buf); err != nil {
+		return "", "", 0, nil, err
 	}
 
 	// Use "gclient getdep" to retrieve the last roll revision.
 	depsFile := path.Join(wd, "DEPS")
 	if err := ioutil.WriteFile(depsFile, buf.Bytes(), os.ModePerm); err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 	output, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "getdep", "-r", rm.childPath)
 	if err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 	lastRollRev := strings.TrimSpace(output)
 	if len(lastRollRev) != 40 {
-		return fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
+		return "", "", 0, nil, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
 	}
 
 	// Find the not-yet-rolled child repo commits.
 	// Only consider commits on the "main" branch as roll candidates.
 	notRolled, err := rm.childRepo.LogLinear(lastRollRev, rm.childBranch)
 	if err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 	notRolledCount := len(notRolled)
 
 	// Get the next roll revision.
 	nextRollRev, err := rm.getNextRollRev(ctx, notRolled, lastRollRev)
 	if err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 	nextRollCommits := make([]*vcsinfo.LongCommit, 0, notRolledCount)
 	found := false
@@ -375,42 +240,28 @@ func (rm *noCheckoutDEPSRepoManager) Update(ctx context.Context) error {
 		Name: rm.gclient,
 		Args: args,
 	}); err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 
 	// Read the updated DEPS content.
 	newDEPSContent, err := ioutil.ReadFile(depsFile)
 	if err != nil {
-		return err
+		return "", "", 0, nil, err
 	}
 
 	rm.infoMtx.Lock()
 	defer rm.infoMtx.Unlock()
-	rm.baseCommit = baseCommit.Hash
-	rm.lastRollRev = lastRollRev
-	rm.nextRollRev = nextRollRev
-	rm.commitsNotRolled = notRolledCount
 	rm.nextRollCommits = nextRollCommits
-	rm.nextRollDEPSContent = newDEPSContent
-	return nil
+	return lastRollRev, nextRollRev, len(nextRollCommits), map[string]string{"DEPS": string(newDEPSContent)}, nil
 }
 
 // See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) User() string {
-	// No locking required because rm.user is never changed after rm is created.
-	return rm.user
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) GetFullHistoryUrl() string {
-	// No locking required because rm.g is never changed after rm is created.
-	return rm.g.Url(0) + "/q/owner:" + rm.User()
-}
-
-// See documentation for RepoManager interface.
-func (rm *noCheckoutDEPSRepoManager) GetIssueUrlBase() string {
-	// No locking required because rm.g is never changed after rm is created.
-	return rm.g.Url(0) + "/c/"
+func (rm *noCheckoutDEPSRepoManager) FullChildHash(ctx context.Context, ref string) (string, error) {
+	c, err := rm.childRepo.GetCommit(ref)
+	if err != nil {
+		return "", err
+	}
+	return c.Hash, nil
 }
 
 // See documentation for RepoManager interface.

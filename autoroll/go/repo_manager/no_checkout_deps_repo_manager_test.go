@@ -91,11 +91,15 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 
 func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 	return &NoCheckoutDEPSRepoManagerConfig{
-		ChildBranch:   "master",
-		ChildPath:     childPath,
-		GerritProject: childPath,
-		IncludeLog:    true,
-		ParentBranch:  "master",
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:  "master",
+				ChildPath:    childPath,
+				ParentBranch: "master",
+			},
+			GerritProject: childPath,
+		},
+		IncludeLog: true,
 	}
 }
 
