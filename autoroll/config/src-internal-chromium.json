@@ -1,5 +1,8 @@
 {
   "childName": "src-internal",
+  "contacts": [
+    "mmoss@google.com"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": true,
   "parentName": "Chromium",

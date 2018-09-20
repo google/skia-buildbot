@@ -1,5 +1,9 @@
 {
   "childName": "Skia",
+  "contacts": [
+    "brianosman@google.com",
+    "rmistry@google.com"
+  ],
   "isInternal": false,
   "parentName": "Flutter",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",

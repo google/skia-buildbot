@@ -1,5 +1,8 @@
 {
   "childName": "SPIRV-Headers",
+  "contacts": [
+    "dsinclair@google.com"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",
