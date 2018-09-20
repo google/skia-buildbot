@@ -16,6 +16,24 @@
       "revId": "e34ca28c89576108156b8e8afd24e16ff697a29a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61ac4918_0f4ccb62",
+        "filename": "jsfiddle/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-20T11:55:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "245c8d59_479942c5",
+      "revId": "e34ca28c89576108156b8e8afd24e16ff697a29a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
