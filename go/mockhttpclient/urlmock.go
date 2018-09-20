@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"reflect"
 	"sync"
 
+	"github.com/texttheater/golang-levenshtein/levenshtein"
 	"go.skia.org/infra/go/util"
 )
 
@@ -233,6 +235,7 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	var md *MockDialogue
 	// Unlock not deferred because we want to be able to handle multiple
 	// requests simultaneously.
+	closest := "(no mocked URLs)"
 	m.mtx.Lock()
 	if resps, ok := m.mockOnce[url]; ok {
 		if resps != nil && len(resps) > 0 {
@@ -241,10 +244,28 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 		}
 	} else if data, ok := m.mockAlways[url]; ok {
 		md = &data
+	} else {
+		// For debugging; find the closest match.
+		min := math.MaxInt32
+		for mocked, _ := range m.mockOnce {
+			d := levenshtein.DistanceForStrings([]rune(url), []rune(mocked), levenshtein.DefaultOptions)
+			if d < min {
+				min = d
+				closest = mocked
+			}
+		}
+		for mocked, _ := range m.mockAlways {
+			d := levenshtein.DistanceForStrings([]rune(url), []rune(mocked), levenshtein.DefaultOptions)
+			if d < min {
+				min = d
+				closest = mocked
+			}
+		}
+
 	}
 	m.mtx.Unlock()
 	if md == nil {
-		return nil, fmt.Errorf("Unknown URL %q", url)
+		return nil, fmt.Errorf("Unknown URL %q; closest match: %s", url, closest)
 	}
 	return md.GetResponse(r)
 }

@@ -11,6 +11,7 @@
   "afdoRepoManager": {
     "childBranch": "master",
     "childPath": "chrome/android/profiles/newest.txt",
+    "gerritProject": "chromium/src",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

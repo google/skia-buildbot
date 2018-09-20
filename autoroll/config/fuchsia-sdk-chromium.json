@@ -11,6 +11,7 @@
   "fuchsiaSDKRepoManager": {
     "childBranch": "master",
     "childPath": "build/fuchsia/sdk.sha1",
+    "gerritProject": "chromium/src",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
