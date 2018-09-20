@@ -109,7 +109,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	})
 	if err != nil {
 		if ci != nil {
-			if err2 := rm.g.Abandon(ci, "Failed to create roll CL"); err != nil {
+			if err2 := rm.g.Abandon(ci, "Failed to create roll CL"); err2 != nil {
 				return 0, fmt.Errorf("Failed to create roll with: %s\nAnd failed to abandon the change with: %s", err, err2)
 			}
 		}

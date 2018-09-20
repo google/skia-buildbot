@@ -118,7 +118,7 @@ func (rm *fuchsiaSDKRepoManager) buildCommitMessage(from, to, serverURL, cqExtra
 	if cqExtraTrybots != "" {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
-	tbr := "TBR="
+	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
 		tbr += emailStr
