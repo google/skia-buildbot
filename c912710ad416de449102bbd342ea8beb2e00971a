@@ -22,6 +22,30 @@
       "revId": "c912710ad416de449102bbd342ea8beb2e00971a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8330cfb2_ed2d4302",
+        "filename": "autoroll/config/skia-android-master.json",
+        "patchSetId": 10
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-20T14:09:03Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "89cd9f6d_b940f88b",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 37
+      },
+      "revId": "c912710ad416de449102bbd342ea8beb2e00971a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
