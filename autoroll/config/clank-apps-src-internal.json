@@ -1,5 +1,8 @@
 {
   "childName": "clank/internal/apps",
+  "contacts": [
+    "jbudorick@chromium.org"
+  ],
   "gerritURL": "https://chrome-internal-review.googlesource.com",
   "isInternal": true,
   "parentName": "src-internal",

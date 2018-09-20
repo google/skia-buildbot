@@ -1,5 +1,8 @@
 {
   "childName": "Skia",
+  "contacts": [
+    "benjaminwagner@google.com"
+  ],
   "gerritURL": "N/A",
   "isInternal": true,
   "parentName": "Google3",

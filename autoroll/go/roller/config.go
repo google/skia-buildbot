@@ -131,6 +131,9 @@ type AutoRollerConfig struct {
 
 	// User friendly name of the child repo.
 	ChildName string `json:"childName"`
+	// List of email addresses of contacts for this roller, used for sending
+	// PSAs, asking questions, etc.
+	Contacts []string `json:"contacts"`
 	// Gerrit URL the roller will be uploading issues to.
 	GerritURL string `json:"gerritURL,omitempty"`
 	// If true, the roller is only visible to Googlers.
@@ -193,6 +196,9 @@ type AutoRollerConfig struct {
 func (c *AutoRollerConfig) Validate() error {
 	if c.ChildName == "" {
 		return errors.New("ChildName is required.")
+	}
+	if len(c.Contacts) < 1 {
+		return errors.New("At least one contact is required.")
 	}
 	if c.GerritURL == "" && (c.GithubRepoOwner == "" || c.GithubRepoName == "") {
 		return errors.New("Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")

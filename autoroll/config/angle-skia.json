@@ -1,5 +1,8 @@
 {
   "childName": "ANGLE",
+  "contacts": [
+    "jmadill@google.com"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "isInternal": false,
   "parentName": "Skia",

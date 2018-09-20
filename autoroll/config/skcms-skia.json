@@ -1,5 +1,9 @@
 {
   "childName": "skcms",
+  "contacts": [
+    "brianosman@google.com",
+    "mtklein@google.com"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "isInternal": false,
   "parentName": "Skia",

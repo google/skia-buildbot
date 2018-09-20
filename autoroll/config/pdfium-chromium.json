@@ -1,5 +1,8 @@
 {
   "childName": "PDFium",
+  "contacts": [
+    "dsinclair@chromium.org"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",

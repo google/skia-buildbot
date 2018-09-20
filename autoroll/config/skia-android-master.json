@@ -1,5 +1,9 @@
 {
   "childName": "Skia",
+  "contacts": [
+    "djsollen@google.com",
+    "rmistry@google.com"
+  ],
   "gerritURL": "(none)",
   "isInternal": true,
   "parentName": "Android (master)",

@@ -1,5 +1,8 @@
 {
   "childName": "Lottie Web",
+  "contacts": [
+    "borenet@google.com"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "isInternal": false,
   "parentName": "Lottie CI",
