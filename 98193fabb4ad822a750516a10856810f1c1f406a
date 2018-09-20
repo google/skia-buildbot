@@ -16,6 +16,24 @@
       "revId": "98193fabb4ad822a750516a10856810f1c1f406a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0919e01_d8333b97",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-20T14:56:13Z",
+      "side": 0,
+      "message": "Currently, no checkout-less rollers have any pre-upload steps (since there\u0027s nowhere to run them) but I left \"support\" for them here.  I\u0027ll add an error if any are defined.",
+      "parentUuid": "ce45311d_18c1c83d",
+      "revId": "98193fabb4ad822a750516a10856810f1c1f406a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

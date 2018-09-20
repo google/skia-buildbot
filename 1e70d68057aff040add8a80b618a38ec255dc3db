@@ -22,6 +22,30 @@
       "revId": "1e70d68057aff040add8a80b618a38ec255dc3db",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9958b3e6_82ff7a98",
+        "filename": "autoroll/go/repo_manager/chromium_afdo_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-20T14:56:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ae23926_ddecf42f",
+      "range": {
+        "startLine": 78,
+        "startChar": 25,
+        "endLine": 78,
+        "endChar": 46
+      },
+      "revId": "1e70d68057aff040add8a80b618a38ec255dc3db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
