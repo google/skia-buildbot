@@ -2,11 +2,14 @@ package gevent
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
@@ -22,11 +25,12 @@ const (
 	// notificationIDAttr is the name of the custom attribute in storage events
 	// is injected to connect it with registrations issued from distEventBus.
 	notificationIDAttr = "eventNotificationID"
-
-	// storageEventPrefix is the prefix of all storage event types to
-	// distinguish them from user defined event types.
-	storageEventPrefix = "--storage-event-"
 )
+
+func init() {
+	// Register a codec for synthetic storage events.
+	RegisterCodec(eventbus.SYN_STORAGE_EVENT, util.JSONCodec(&eventbus.StorageEvent{}))
+}
 
 // codecMap holds codecs for the different event channels. Values are added
 // via the RegisterCodec function.
@@ -51,8 +55,8 @@ type distEventBus struct {
 	// storageNotifications maps [notificationID][regularExpressionStr] to a
 	// regular expression. notificationID is a unique combination of
 	// bucket/path in GCS for which we have registered notification.
-	storageNotifications map[string]map[string]*regexp.Regexp
 	storageNotifyMutex   sync.Mutex
+	storageNotifications *eventbus.NotificationsMap
 }
 
 // channelWrapper wraps each message to do channel multiplexing on top of a
@@ -78,7 +82,7 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 	ret := &distEventBus{
 		localEventBus:        eventbus.New(),
 		wrapperCodec:         util.JSONCodec(&channelWrapper{}),
-		storageNotifications: map[string]map[string]*regexp.Regexp{},
+		storageNotifications: eventbus.NewNotificationsMap(),
 		projectID:            projectID,
 		topicID:              topicName,
 	}
@@ -149,7 +153,7 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 
 	var notificationInfo *storage.Notification
 	found := false
-	notifyID := bucketName + "/" + strings.TrimLeft(objectPrefix, "/")
+	notifyID := d.storageNotifications.GetNotificationID(bucketName, objectPrefix)
 	for _, notify := range notifications {
 		if notify.TopicID == d.topic.ID() && notify.ObjectNamePrefix == objectPrefix {
 			// If we don't have the custom notification attribute we want to create new
@@ -183,26 +187,12 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 		sklog.Infof("Re-using storage notification: %s", spew.Sdump(notificationInfo))
 	}
 
-	// If no regex was provided we add a single entry.
-	regexStr := ""
-	if objectRegEx != nil {
-		regexStr = objectRegEx.String()
-	}
-	if _, ok := d.storageNotifications[notifyID]; !ok {
-		d.storageNotifications[notifyID] = map[string]*regexp.Regexp{}
-	}
-	d.storageNotifications[notifyID][regexStr] = objectRegEx
-	return getEventType(notifyID, objectRegEx), nil
+	return d.storageNotifications.Add(notifyID, objectRegEx), nil
 }
 
-// getEventType creates a unique ID from the notification ID (which is a
-// combination of bucket name and object prefix) and a regular expression.
-func getEventType(notificationID string, regEx *regexp.Regexp) string {
-	regexStr := ""
-	if regEx != nil {
-		regexStr = regEx.String()
-	}
-	return storageEventPrefix + notificationID + "/" + regexStr
+// PublishStorageEvent implements the EventBus interface.
+func (d *distEventBus) PublishStorageEvent(evtData *eventbus.StorageEvent) {
+	d.Publish(eventbus.SYN_STORAGE_EVENT, evtData, true)
 }
 
 // setupTopicSub sets up the topic and subscription.
@@ -311,7 +301,43 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 	if err != nil {
 		return nil, nil, false, fmt.Errorf("Unable to decode payload of pubsub event: %s", err)
 	}
+
+	// Check if this is synthetic storage event in which case we need to notify the right subscribers.
+	if wrapper.Channel == eventbus.SYN_STORAGE_EVENT {
+		return d.wrapSyntheticStorageEvent(wrapper, data)
+	}
+
 	return []*channelWrapper{wrapper}, data, false, nil
+}
+
+// wrapSyntheticStorageEvent takes a synthetic storage events and translates it into
+// valid storage events based on subscriptions.
+func (d *distEventBus) wrapSyntheticStorageEvent(wrapper *channelWrapper, evtData interface{}) ([]*channelWrapper, interface{}, bool, error) {
+	d.storageNotifyMutex.Lock()
+	defer d.storageNotifyMutex.Unlock()
+
+	evt := evtData.(*eventbus.StorageEvent)
+	wrappers := []*channelWrapper{}
+	eventTypes := d.storageNotifications.Matches(evt.BucketID, evt.ObjectID)
+	for _, eventType := range eventTypes {
+		newWrapper := *wrapper
+		newWrapper.Channel = eventType
+		wrappers = append(wrappers, &newWrapper)
+	}
+
+	return wrappers, evtData, false, nil
+}
+
+// objectAttrs is a helper struct to parse the object attributes that are
+// delievered with storage events.
+// Note: Using the GCS package (storage.ObjectAttrs) is not an option because
+// is does not implement parsing JSON. So we only parse the attributes we are
+// interested in.
+type objectAttrs struct {
+	Bucket  string    `json:"bucket"`
+	Name    string    `json:"name"`
+	Updated time.Time `json:"updated"`
+	MD5     string    `json:"md5Hash"` // base64 encoded MD5 hash
 }
 
 // decodeStorageMsg checks wether the given pubsub message is a notification
@@ -330,28 +356,40 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 	objectID := msg.Attributes["objectId"]
 	notificationID := msg.Attributes[notificationIDAttr]
 
-	regexes, ok := d.storageNotifications[notificationID]
-	if !ok {
+	eventTypes := d.storageNotifications.MatchesByID(notificationID, objectID)
+	if len(eventTypes) == 0 {
 		// Ignore events that have not been registered. Not all clients register for
 		// all events.
 		return nil, nil, true, nil
 	}
 
+	// Extract the object attributes.
+	attrs := &objectAttrs{}
+	if err := json.Unmarshal(msg.Data, attrs); err != nil {
+		return nil, nil, false, sklog.FmtErrorf("Unable to decode object attributes: %s", err)
+	}
+
+	// decode the MD5 hash. base64 -> bytes -> hex-string
+	md5Bytes, err := base64.StdEncoding.DecodeString(attrs.MD5)
+	if err != nil {
+		return nil, nil, false, sklog.FmtErrorf("Unable to decode base64 encoded MD5 hash (%s): %s", attrs.MD5, err)
+	}
+	md5Hash := hex.EncodeToString(md5Bytes)
+
 	data := &eventbus.StorageEvent{
 		EventType: msg.Attributes["eventType"],
 		BucketID:  bucketID,
 		ObjectID:  objectID,
-		// This attribute only appears in OBJECT_FINALIZE events in the case of an overwrite.
+		TimeStamp: attrs.Updated.Unix(),
+		MD5:       md5Hash,
+
+		// Only appears in OBJECT_FINALIZE events in the case of an overwrite.
 		OverwroteGeneration: msg.Attributes["overwroteGeneration"],
 	}
 
-	wrappers := make([]*channelWrapper, 0, len(regexes))
-	for id, oneRegEx := range regexes {
-		if id == "" || oneRegEx.Match([]byte(objectID)) {
-			wrappers = append(wrappers, &channelWrapper{
-				Channel: getEventType(notificationID, oneRegEx),
-			})
-		}
+	wrappers := make([]*channelWrapper, 0, len(eventTypes))
+	for _, eventType := range eventTypes {
+		wrappers = append(wrappers, &channelWrapper{Channel: eventType})
 	}
 	return wrappers, data, false, nil
 }

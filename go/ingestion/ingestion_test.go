@@ -5,14 +5,16 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"sync"
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/bt"
+	"go.skia.org/infra/go/eventbus"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
@@ -23,6 +25,12 @@ import (
 const (
 	LOCAL_STATUS_DIR   = "./ingestion_status"
 	RFLOCATION_CONTENT = "result file content"
+
+	PROJECT_ID      = "test-project-ingestion"
+	TEST_TOPIC      = "test-topic-ingestion-testing"
+	TEST_SUBSCRIBER = "test-subscriber-ingestion-testing"
+
+	TEST_BUCKET_ID = "test-bucket"
 )
 
 func TestPollingIngester(t *testing.T) {
@@ -32,6 +40,7 @@ func TestPollingIngester(t *testing.T) {
 
 func TestPollingIngesterWithStore(t *testing.T) {
 	testutils.LargeTest(t)
+
 	assert.NoError(t, bt.InitBigtable(projectID, instanceID, BigTableConfig))
 	store, err := NewBTIStore(projectID, instanceID, nameSpace)
 	assert.NoError(t, err)
@@ -42,9 +51,12 @@ func TestPollingIngesterWithStore(t *testing.T) {
 	testIngester(t, LOCAL_STATUS_DIR+"-polling", store)
 }
 
+// testIngester test an ingester by using a polling source. Since the implementation
+// generates (synthetic) storage events, we are also testing the event driven ingester.
 func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore) {
 	defer util.RemoveAll(statusDir)
 
+	eventBus := eventbus.New()
 	ctx := context.Background()
 	now := time.Now()
 	beginningOfTime := now.Add(-time.Hour * 24 * 10).Unix()
@@ -58,7 +70,7 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 		assert.NotEqual(t, "", h)
 	}
 
-	sources := []Source{MockSource(t, vcs)}
+	sources := []Source{MockSource(t, TEST_BUCKET_ID, "root", vcs, eventBus)}
 
 	// Instantiate the mock processor.
 	collected := map[string]int{}
@@ -77,18 +89,20 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
-		RunEvery:  config.Duration{Duration: 1 * time.Second},
+		RunEvery:  config.Duration{Duration: 5 * time.Second},
 		NCommits:  totalCommits / 2,
 		MinDays:   3,
 		StatusDir: statusDir,
 	}
 
 	// Instantiate ingester and start it.
-	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, ingestionStore)
+	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor, ingestionStore, eventBus)
 	assert.NoError(t, err)
 	assert.NoError(t, ingester.Start(ctx))
 
-	// Wait until we have collected the desired result, but no more than two seconds.
+	time.Sleep(10 * time.Second)
+
+	// Wait until we have collected the desired result, but no more than 10 seconds.
 	startTime := time.Now()
 	for {
 		mutex.Lock()
@@ -127,56 +141,86 @@ func (m *mockProcessor) Process(ctx context.Context, resultsFile ResultFileLocat
 
 type mockRFLocation struct {
 	path        string
+	bucketID    string
+	objectID    string
 	md5         string
 	lastUpdated int64
 }
 
 func (m *mockRFLocation) Open() (io.ReadCloser, error) { return nil, nil }
 func (m *mockRFLocation) Name() string                 { return m.path }
+func (m *mockRFLocation) StorageIDs() (string, string) { return m.bucketID, m.objectID }
 func (m *mockRFLocation) MD5() string                  { return m.md5 }
 func (m *mockRFLocation) TimeStamp() int64             { return m.lastUpdated }
 func (m *mockRFLocation) Content() []byte              { return []byte(RFLOCATION_CONTENT) }
 
-func rfLocation(t time.Time, fname string) ResultFileLocation {
-	path := fmt.Sprintf("root/%d/%d/%d/%d/%d/%s", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), fname)
+func rfLocation(timeStamp int64, bucketID, objectID string) ResultFileLocation {
+	path := bucketID + "/" + objectID
 	return &mockRFLocation{
+		bucketID:    bucketID,
+		objectID:    objectID,
 		path:        path,
 		md5:         fmt.Sprintf("%x", md5.Sum([]byte(path))),
-		lastUpdated: t.Unix(),
+		lastUpdated: timeStamp,
 	}
 }
 
 // mock source
 type mockSource struct {
-	data []ResultFileLocation
+	data         []ResultFileLocation
+	eventBus     eventbus.EventBus
+	bucketID     string
+	objectPrefix string
+	regExp       *regexp.Regexp
 }
 
-func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
+func MockSource(t *testing.T, bucketID string, objectPrefix string, vcs vcsinfo.VCS, eventBus eventbus.EventBus) Source {
 	hashes := vcs.From(time.Unix(0, 0))
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
 		detail, err := vcs.Details(context.Background(), h, true)
 		assert.NoError(t, err)
-		ret = append(ret, rfLocation(detail.Timestamp, fmt.Sprintf("result-file-%s", h)))
+		t := detail.Timestamp
+		objPrefix := fmt.Sprintf("%s/%d/%d/%d/%d/%d", objectPrefix, t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute())
+		objectID := fmt.Sprintf("%s/result-file-%s", objPrefix, h)
+		ret = append(ret, rfLocation(detail.Timestamp.Unix(), bucketID, objectID))
 	}
 	return &mockSource{
-		data: ret,
+		data:         ret,
+		bucketID:     bucketID,
+		objectPrefix: objectPrefix,
+		eventBus:     eventBus,
 	}
 }
 
-func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
-	endIdx := startIdx
-	for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
-	}
-	return m.data[startIdx:endIdx], nil
+func (m *mockSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	ch := make(chan ResultFileLocation)
+	go func() {
+		startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
+		endIdx := startIdx
+		for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
+		}
+		for _, entry := range m.data[startIdx:endIdx] {
+			ch <- entry
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 func (m mockSource) ID() string {
 	return "test-source"
 }
 
-func (m *mockSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (m *mockSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
+	eventType, err := m.eventBus.RegisterStorageEvents(m.bucketID, m.objectPrefix, m.regExp, nil)
+	if err != nil {
+		return err
+	}
+	m.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
+		file := evData.(*eventbus.StorageEvent)
+		resultCh <- rfLocation(file.TimeStamp, file.BucketID, file.ObjectID)
+	})
 	return nil
 }
 
@@ -196,42 +240,4 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 		t += inc
 	}
 	return MockVCS(commits, nil, nil)
-}
-
-func TestRflQueue(t *testing.T) {
-	testutils.SmallTest(t)
-	locs := []ResultFileLocation{
-		rfLocation(time.Now(), "1"),
-		rfLocation(time.Now(), "2"),
-		rfLocation(time.Now(), "3"),
-		rfLocation(time.Now(), "4"),
-		rfLocation(time.Now(), "5"),
-	}
-
-	queue := rflQueue([]ResultFileLocation{})
-	queue.push(locs[0:3])
-	queue.push(locs[3:])
-
-	assert.Equal(t, locs, []ResultFileLocation(queue))
-	queue.clear()
-	assert.Equal(t, 0, len(queue))
-}
-
-func TestIngesterNilVcs(t *testing.T) {
-	testutils.SmallTest(t)
-
-	// Instantiate ingester config.
-	conf := &sharedconfig.IngesterConfig{
-		MinDays: 3,
-	}
-
-	// Instantiate ingester and call getCommitRangeOfInterest.
-	ctx := context.Background()
-	ingester, err := NewIngester("test-ingester", conf, nil, nil, nil, nil)
-	start, end, err := ingester.getCommitRangeOfInterest(ctx)
-	assert.NoError(t, err)
-
-	// Verify that start = end - MinDays.
-	delta := -time.Duration(conf.MinDays) * time.Hour * 24
-	assert.Equal(t, time.Unix(end, 0).Add(delta).Unix(), start)
 }
