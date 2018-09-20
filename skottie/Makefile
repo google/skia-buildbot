@@ -6,6 +6,12 @@ release: app
 	npx webpack --mode=production
 	./build_release
 
+release_ci: app
+	# Don't docker pull here, as we are in the CI pipeline and it already has
+	# done the pull.
+	npx webpack --mode=production
+	./build_release
+
 serve: app
 	npx webpack-dev-server --mode=development --watch
 
