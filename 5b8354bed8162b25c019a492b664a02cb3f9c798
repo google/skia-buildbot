@@ -16,6 +16,24 @@
       "revId": "5b8354bed8162b25c019a492b664a02cb3f9c798",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e97a323_ae71c002",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 0,
+      "message": "Yes. pdfingestion is defunct and will be removed soon. Deleting it will touch a lot of files and I didn\u0027t want to increase this CL any further.",
+      "parentUuid": "6322650e_848a746c",
+      "revId": "5b8354bed8162b25c019a492b664a02cb3f9c798",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "170883e2_ca9bb25c",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1de47026_82a2b09d",
+      "range": {
+        "startLine": 13,
+        "startChar": 89,
+        "endLine": 13,
+        "endChar": 98
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14599943_e6151164",
         "filename": "go/gcs/gcs.go",
         "patchSetId": 20
@@ -39,6 +63,24 @@
       "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16f9bde3_be666e08",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 1,
+      "message": "Done\nRemoved GetLatestGCSDirs as suggested in the other comment.",
+      "parentUuid": "14599943_e6151164",
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "82e67c0a_f86b06c3",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 1,
+      "message": "Done\nMoved this to fileutil package as suggested above.",
+      "parentUuid": "9fe3d195_d4dcee90",
+      "range": {
+        "startLine": 110,
+        "startChar": 50,
+        "endLine": 110,
+        "endChar": 66
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ffd536c5_5348a28f",
         "filename": "go/ingestion/helpers.go",
         "patchSetId": 20
@@ -85,6 +151,30 @@
       "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98ee54c4_62fff951",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ffd536c5_5348a28f",
+      "range": {
+        "startLine": 343,
+        "startChar": 14,
+        "endLine": 343,
+        "endChar": 30
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "e4f7c4c2_b959e653",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 1,
+      "message": "That\u0027s possible, but has low likelihood and would not be a big problem, IMO.\nBut since this a background process that should ideally never do anything, I reverted to the old model that in each iteration I scan the time window specified in the command config file. \nThat way we are guaranteed to never miss any file. I can always lower the scan frequency if it causes too much activity.",
+      "parentUuid": "58e1a712_c6d550e0",
+      "range": {
+        "startLine": 250,
+        "startChar": 2,
+        "endLine": 250,
+        "endChar": 11
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e5c8d05_b547189a",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 20
@@ -131,6 +245,30 @@
       "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e42e449_df775a90",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 20
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-20T17:46:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e5c8d05_b547189a",
+      "range": {
+        "startLine": 324,
+        "startChar": 28,
+        "endLine": 324,
+        "endChar": 34
+      },
+      "revId": "52ffb2f2e39b5c059f111f62c8f914541277ead1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
