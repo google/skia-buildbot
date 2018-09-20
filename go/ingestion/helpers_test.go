@@ -14,7 +14,6 @@ import (
 )
 
 const (
-
 	// TEST_GCS_DIR is the directory from where to fetch GCS test data.
 	TEST_GCS_DIR = "ingest-testdata/dm-json-v1"
 
@@ -70,11 +69,8 @@ func TestCompareSources(t *testing.T) {
 	fsSource, err := NewFileSystemSource("test-fs-source", TEST_DATA_DIR)
 	assert.NoError(t, err)
 
-	gsResults, err := gsSource.Poll(START_TIME, END_TIME)
-	assert.NoError(t, err)
-
-	fsResults, err := fsSource.Poll(START_TIME, END_TIME)
-	assert.NoError(t, err)
+	gsResults := drainPollChannel(gsSource.Poll(START_TIME, END_TIME))
+	fsResults := drainPollChannel(fsSource.Poll(START_TIME, END_TIME))
 
 	assert.Equal(t, len(gsResults), len(fsResults))
 	sort.Sort(rflSlice(gsResults))
@@ -103,8 +99,7 @@ func TestCompareSources(t *testing.T) {
 func testSource(t *testing.T, src Source) {
 	testFilePaths := readTestFileNames(t)
 
-	resultFileLocations, err := src.Poll(START_TIME, END_TIME)
-	assert.NoError(t, err)
+	resultFileLocations := drainPollChannel(src.Poll(START_TIME, END_TIME))
 
 	assert.Equal(t, len(testFilePaths), len(resultFileLocations))
 	sort.Sort(rflSlice(resultFileLocations))
@@ -114,8 +109,7 @@ func testSource(t *testing.T, src Source) {
 	}
 
 	// Make sure the narrow and wide time range produce the same result.
-	allResultFileLocations, err := src.Poll(BEGINNING_OF_TIME, END_OF_TIME)
-	assert.NoError(t, err)
+	allResultFileLocations := drainPollChannel(src.Poll(BEGINNING_OF_TIME, END_OF_TIME))
 	sort.Sort(rflSlice(allResultFileLocations))
 
 	assert.Equal(t, len(resultFileLocations), len(allResultFileLocations))
@@ -139,3 +133,11 @@ type rflSlice []ResultFileLocation
 func (r rflSlice) Len() int           { return len(r) }
 func (r rflSlice) Less(i, j int) bool { return r[i].Name() < r[j].Name() }
 func (r rflSlice) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
+
+func drainPollChannel(ch <-chan ResultFileLocation) []ResultFileLocation {
+	ret := []ResultFileLocation{}
+	for rf := range ch {
+		ret = append(ret, rf)
+	}
+	return ret
+}
