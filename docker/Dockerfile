@@ -18,10 +18,10 @@ RUN mkdir -p /home/skia/golib \
 ENV GOPATH /home/skia/golib
 ENV PATH $GOPATH/bin:/home/skia/go/bin:$PATH
 
-RUN go get -u -t go.skia.org/infra/... \
-  github.com/kisielk/errcheck \
+RUN go get -u github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
   go.chromium.org/luci/client/cmd/isolate
+RUN go get -u -t go.skia.org/infra/...
 
 USER root
 
