@@ -162,7 +162,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	from := fuchsiaSDKShortVersion(rm.LastRollRev())
 	to := fuchsiaSDKShortVersion(rm.NextRollRev())
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from, to, "fake.server.com")
-	commitMsg += "TBR=reviewer@chromium.org"
+	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKRepoManager).gerritProject, subject, rm.(*fuchsiaSDKRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
