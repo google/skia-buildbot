@@ -1,5 +1,8 @@
 {
   "childName": "WebRTC",
+  "contacts": [
+    "comms-engprod-sto@google.com"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",

@@ -1,5 +1,9 @@
 {
   "childName": "SwiftShader",
+  "contacts": [
+    "benjaminwagner@google.com",
+    "halcanary@google.com"
+  ],
   "gerritURL": "https://skia-review.googlesource.com",
   "isInternal": false,
   "parentName": "Skia",

@@ -1,5 +1,8 @@
 {
   "childName": "Chromite",
+  "contacts": [
+    "bpastene@google.com"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",

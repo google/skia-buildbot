@@ -1,5 +1,8 @@
 {
   "childName": "Perfetto",
+  "contacts": [
+    "primiano@chromium.org"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",

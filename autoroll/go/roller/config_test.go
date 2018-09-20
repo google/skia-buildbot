@@ -17,6 +17,7 @@ import (
 func validBaseConfig() *AutoRollerConfig {
 	return &AutoRollerConfig{
 		ChildName:       "childName",
+		Contacts:        []string{"me@gmail.com"},
 		GerritURL:       "https://gerrit",
 		ParentName:      "parentName",
 		ParentWaterfall: "parentWaterfall",
@@ -51,6 +52,10 @@ func TestConfigs(t *testing.T) {
 	testErr(func(c *AutoRollerConfig) {
 		c.ChildName = ""
 	}, "ChildName is required.")
+
+	testErr(func(c *AutoRollerConfig) {
+		c.Contacts = []string{}
+	}, "At least one contact is required.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.GerritURL = ""

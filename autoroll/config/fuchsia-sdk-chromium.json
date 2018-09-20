@@ -1,5 +1,9 @@
 {
   "childName": "Fuchsia SDK",
+  "contacts": [
+    "jbudorick@chromium.org",
+    "cr-fuchsia+bot@chromium.org"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",

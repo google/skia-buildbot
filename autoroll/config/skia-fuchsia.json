@@ -1,5 +1,9 @@
 {
   "childName": "Skia",
+  "contacts": [
+    "brianosman@google.com",
+    "rmistry@google.com"
+  ],
   "gerritURL": "https://fuchsia-review.googlesource.com",
   "isInternal": false,
   "parentName": "Fuchsia",

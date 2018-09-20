@@ -1,5 +1,8 @@
 {
   "childName": "Catapult",
+  "contacts": [
+    "sullivan@google.com"
+  ],
   "gerritURL": "https://chromium-review.googlesource.com",
   "isInternal": false,
   "parentName": "Chromium",
