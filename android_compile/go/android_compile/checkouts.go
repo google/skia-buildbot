@@ -20,10 +20,8 @@ import (
 	// Below is a port of the exponential backoff implementation from
 	// google-http-java-client.
 	"github.com/cenkalti/backoff"
-	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/android_skia_checkout"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	sk_exec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -92,7 +90,7 @@ var (
 	checkoutsMutex sync.RWMutex
 )
 
-func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration) error {
+func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration, storageClient *storage.Client) error {
 	user, err := user.Current()
 	if err != nil {
 		return err
@@ -144,20 +142,12 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 		return fmt.Errorf("Error when updating checkouts in parallel: %s", err)
 	}
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
-	if err != nil {
-		return fmt.Errorf("Problem setting up client OAuth: %s", err)
-	}
 	// Create a Gerrit client.
-	gerritClient, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
+	gerritClient, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", nil)
 	if err != nil {
 		return fmt.Errorf("Failed to create a Gerrit client: %s", err)
 	}
 	// Get a handle to the Google Storage bucket that logs will be stored in.
-	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
-	if err != nil {
-		return fmt.Errorf("Failed to create a Google Storage API client: %s", err)
-	}
 	bucketHandle = storageClient.Bucket(COMPILE_TASK_LOGS_BUCKET)
 	return nil
 }
@@ -373,7 +363,7 @@ func addToCheckoutsChannel(checkout string) {
 // that the tree is not broken by building at Skia HEAD. Update CompileTask
 // with link to logs and whether the no patch run was successful.
 //
-func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
+func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, datastoreKey *datastore.Key, pathToCompileScript string) error {
 	incWaitingMetric()
 	// Blocking call to wait for an available checkout.
 	checkoutPath := <-availableCheckoutsChan
@@ -384,7 +374,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 	// Step 1: Find an available Android checkout and update the CompileTask
 	// with the checkout. This is done for the UI and for easier debugging.
 	task.Checkout = path.Base(checkoutPath)
-	if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+	if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 		return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 	}
 
@@ -440,7 +430,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		}
 		task.IsMasterBranch = fromMaster
 		if !task.IsMasterBranch {
-			if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+			if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 				return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 			}
 			sklog.Infof("Patch with issue %d and patchset %d is not on master branch.", task.Issue, task.PatchSet)
@@ -464,7 +454,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		}
 		task.IsMasterBranch = fromMaster
 		if !task.IsMasterBranch {
-			if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+			if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 				return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 			}
 			sklog.Infof("Hash %s is not on master branch.", task.Hash)
@@ -486,7 +476,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 	}
 	task.WithPatchSucceeded = withPatchSuccess
 	task.WithPatchLog = gsWithPatchLink
-	if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+	if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 		return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 	}
 
@@ -513,7 +503,7 @@ func RunCompileTask(ctx context.Context, task *CompileTask, datastoreKey *datast
 		updateAndroidTreeBrokenMetric(!noPatchSuccess)
 		task.NoPatchSucceeded = noPatchSuccess
 		task.NoPatchLog = gsNoPatchLink
-		if _, err := UpdateDSTask(ctx, datastoreKey, task); err != nil {
+		if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 			return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 		}
 	}
@@ -536,7 +526,7 @@ func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCom
 	defer timer.NewWithMetric(fmt.Sprintf("Time taken to compile %s:", checkoutBase), compileTimesMetric).Stop()
 
 	// Execute the compile script pointing it to the checkout.
-	command := exec.Command(pathToCompileScript, checkoutPath)
+	command := exec.Command("bash", pathToCompileScript, checkoutPath)
 	logFile, err := ioutil.TempFile(*workdir, logFilePrefix)
 	defer util.Remove(logFile.Name())
 	if err != nil {
@@ -556,11 +546,15 @@ func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCom
 	writer.ObjectAttrs.ACL = []storage.ACLRule{{Entity: "domain-google.com", Role: storage.RoleReader}}
 	defer util.Close(writer)
 
-	f, err := os.Open(logFile.Name())
-	defer f.Close()
-	// Write the actual data.
-	if _, err := io.Copy(writer, f); err != nil {
+	data, err := ioutil.ReadFile(logFile.Name())
+	compileLog := string(data)
+	// Write the logs to Google storage.
+	if _, err := io.WriteString(writer, compileLog); err != nil {
 		return compileSuccess, "", fmt.Errorf("Could not write %s to google storage: %s", logFile.Name(), err)
 	}
+	// Write to logs to sklog as well.
+	sklog.Infof("Compilation logs for %s on %s:", logFilePrefix, checkoutBase)
+	sklog.Infof("\n---------------------------------------------------\n%s\n---------------------------------------------------\n", compileLog)
+
 	return compileSuccess, fmt.Sprintf("https://storage.cloud.google.com/%s/%s", COMPILE_TASK_LOGS_BUCKET, filepath.Base(logFile.Name())), nil
 }
