@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/roller"
@@ -14,7 +15,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -24,22 +24,27 @@ import (
 
 // flags
 var (
-	configFile = flag.String("config_file", "", "Configuration file to use.")
-	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port       = flag.String("port", ":8001", "HTTP service port (e.g., ':8000')")
-	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	workdir    = flag.String("workdir", ".", "Directory to use for scratch work.")
+	configFile  = flag.String("config_file", "", "Configuration file to use.")
+	local       = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port        = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	promPort    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	webhookSalt = flag.String("webhook_request_salt", "", "Path to a file containing webhook request salt.")
+	workdir     = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
 
 func main() {
 	common.InitWithMust(
 		"google3-autoroll",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
+		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
 
 	skiaversion.MustLogVersion()
+
+	if *webhookSalt == "" {
+		sklog.Fatal("--webhook_request_salt is required.")
+	}
 
 	var cfg roller.AutoRollerConfig
 	if err := util.WithReadFile(*configFile, func(f io.Reader) error {
@@ -48,7 +53,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local)
+	ts, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -57,7 +62,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	if err := webhook.InitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT); err != nil {
+	if err := webhook.InitRequestSaltFromFile(*webhookSalt); err != nil {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
@@ -67,6 +72,10 @@ func main() {
 	}
 	arb.AddHandlers(r)
 	arb.Start(ctx, time.Minute, time.Minute)
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	h := httputils.LoggingGzipRequestResponse(r)
+	if !*local {
+		h = httputils.HealthzAndHTTPS(h)
+	}
+	http.Handle("/", h)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
