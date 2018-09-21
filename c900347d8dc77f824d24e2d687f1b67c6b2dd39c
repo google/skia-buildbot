@@ -120,6 +120,24 @@
     },
     {
       "key": {
+        "uuid": "2b2fd5d2_86d19d65",
+        "filename": "autoroll/build_google3_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-21T19:45:37Z",
+      "side": 1,
+      "message": "Right; I\u0027m saying we could use gitiles instead of a local repo and not need any workdir at all, not to mention the time taken to sync.",
+      "parentUuid": "1812fc5f_8e5b30d5",
+      "revId": "c900347d8dc77f824d24e2d687f1b67c6b2dd39c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a714adf5_71bfb8f1",
         "filename": "autoroll/go/autoroll-google3/Dockerfile",
         "patchSetId": 1
