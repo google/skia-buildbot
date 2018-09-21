@@ -41,13 +41,6 @@
         "pulld",
       ],
     },
-    "fuchsia-sdk-chromium-autoroll": {
-      "AppNames": [
-        "fuchsia-sdk-chromium-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "google3-autoroll": {
       "AppNames": [
         "autoroll-google3",

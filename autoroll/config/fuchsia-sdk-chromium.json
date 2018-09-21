@@ -9,6 +9,7 @@
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "fuchsia-sdk-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "cr-fuchsia+bot@chromium.org"
   ],
@@ -23,5 +24,13 @@
     "luci.chromium.try:fuchsia_arm64_cast_audio",
     "luci.chromium.try:fuchsia_x64_cast_audio"
   ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
   "maxRollFrequency": "24h"
 }
