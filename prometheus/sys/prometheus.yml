@@ -34,7 +34,6 @@ scrape_configs:
       - targets: ['android-o-autoroll:20000']
       - targets: ['flutter-engine-flutter-autoroll:20000']
       - targets: ['fuchsia-autoroll:20000']
-      - targets: ['fuchsia-sdk-chromium-autoroll:20000']
       - targets: ['skia-flutter-autoroll:20000']
 
   - job_name: 'autoroll-google3'
@@ -178,7 +177,6 @@ scrape_configs:
       - targets: ['android-o-autoroll:11000']
       - targets: ['flutter-engine-flutter-autoroll:11000']
       - targets: ['fuchsia-autoroll:11000']
-      - targets: ['fuchsia-sdk-chromium-autoroll:11000']
       - targets: ['google3-autoroll:11000']
       - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-master-perf:11000']

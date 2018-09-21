@@ -61,16 +61,6 @@ func Fuchsia() *gce.Instance {
 	return vm
 }
 
-func FuchsiaSDK_Chromium() *gce.Instance {
-	vm := AutoRollBase("fuchsia-sdk-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"jbudorick@chromium.org",
-		"cr-fuchsia+bot@chromium.org",
-	}
-	vm.ServiceAccount = "fuchsia-sdk-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
 func Skia_Flutter() *gce.Instance {
 	vm := AutoRollBase("skia-flutter-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -141,7 +131,6 @@ func main() {
 		"android-o":              AndroidO(),
 		"flutter-engine-flutter": FlutterEngine_Flutter(),
 		"fuchsia":                Fuchsia(),
-		"fuchsia-sdk-chromium":   FuchsiaSDK_Chromium(),
 		"google3":                Google3(),
 		"skia-flutter":           Skia_Flutter(),
 	})
