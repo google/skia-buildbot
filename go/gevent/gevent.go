@@ -2,11 +2,14 @@ package gevent
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
@@ -22,19 +25,20 @@ const (
 	// notificationIDAttr is the name of the custom attribute in storage events
 	// is injected to connect it with registrations issued from distEventBus.
 	notificationIDAttr = "eventNotificationID"
-
-	// storageEventPrefix is the prefix of all storage event types to
-	// distinguish them from user defined event types.
-	storageEventPrefix = "--storage-event-"
 )
+
+func init() {
+	// Register a codec for synthetic storage events.
+	RegisterCodec(eventbus.SYN_STORAGE_EVENT, util.JSONCodec(&eventbus.StorageEvent{}))
+}
 
 // codecMap holds codecs for the different event channels. Values are added
 // via the RegisterCodec function.
 var codecMap = sync.Map{}
 
 // RegisterCodec defines a codec for the given event channel.
-func RegisterCodec(channel string, codec util.LRUCodec) {
-	codecMap.Store(channel, codec)
+func RegisterCodec(channelID string, codec util.LRUCodec) {
+	codecMap.Store(channelID, codec)
 }
 
 // distEventBus implements the eventbus.EventBus interface on top of Cloud PubSub.
@@ -48,19 +52,17 @@ type distEventBus struct {
 	sub           *pubsub.Subscription
 	wrapperCodec  util.LRUCodec
 
-	// storageNotifications maps [notificationID][regularExpressionStr] to a
-	// regular expression. notificationID is a unique combination of
-	// bucket/path in GCS for which we have registered notification.
-	storageNotifications map[string]map[string]*regexp.Regexp
-	storageNotifyMutex   sync.Mutex
+	// storageNotifications keep track of storage events we have subscribed to.
+	// See eventbus.NotificationsMap for details.
+	storageNotifications *eventbus.NotificationsMap
 }
 
 // channelWrapper wraps each message to do channel multiplexing on top of a
 // Cloud PubSub topic.
 type channelWrapper struct {
-	Sender  string `json:"sender"`    // id of the sending node.
-	Channel string `json:"eventType"` // event channel of this message.
-	Data    []byte `json:"data"`      // payload encoded with the user supplied codec.
+	Sender    string `json:"sender"`    // id of the sending node.
+	ChannelID string `json:"channelID"` // event channel of this message.
+	Data      []byte `json:"data"`      // payload encoded with the user supplied codec.
 }
 
 // New returns an instance of eventbus.EventBus that is a node in a distributed
@@ -78,7 +80,7 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 	ret := &distEventBus{
 		localEventBus:        eventbus.New(),
 		wrapperCodec:         util.JSONCodec(&channelWrapper{}),
-		storageNotifications: map[string]map[string]*regexp.Regexp{},
+		storageNotifications: eventbus.NewNotificationsMap(),
 		projectID:            projectID,
 		topicID:              topicName,
 	}
@@ -101,17 +103,17 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 }
 
 // Publish implements the eventbus.EventBus interface.
-func (d *distEventBus) Publish(channel string, arg interface{}, globally bool) {
+func (d *distEventBus) Publish(channelID string, arg interface{}, globally bool) {
 	if globally {
 		// publish to pubsub in the background.
 		go func() {
-			codecInstance, ok := codecMap.Load(channel)
+			codecInstance, ok := codecMap.Load(channelID)
 			if !ok {
-				sklog.Errorf("Unable to publish on channel '%s'. No codec defined.", channel)
+				sklog.Errorf("Unable to publish on channel '%s'. No codec defined.", channelID)
 				return
 			}
 
-			msg, err := d.encodeMsg(channel, arg, codecInstance.(util.LRUCodec))
+			msg, err := d.encodeMsg(channelID, arg, codecInstance.(util.LRUCodec))
 			if err != nil {
 				sklog.Errorf("Error encoding outgoing message: %s", err)
 				return
@@ -125,19 +127,16 @@ func (d *distEventBus) Publish(channel string, arg interface{}, globally bool) {
 		}()
 	}
 	// Publish the event locally.
-	d.localEventBus.Publish(channel, arg, false)
+	d.localEventBus.Publish(channelID, arg, false)
 }
 
 // SubscribeAsync implements the eventbus.EventBus interface.
-func (d *distEventBus) SubscribeAsync(eventType string, callback eventbus.CallbackFn) {
-	d.localEventBus.SubscribeAsync(eventType, callback)
+func (d *distEventBus) SubscribeAsync(channelID string, callback eventbus.CallbackFn) {
+	d.localEventBus.SubscribeAsync(channelID, callback)
 }
 
 // RegisterStorageEvents implements the eventbus.EventBus interface.
 func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix string, objectRegEx *regexp.Regexp, client *storage.Client) (string, error) {
-	d.storageNotifyMutex.Lock()
-	defer d.storageNotifyMutex.Unlock()
-
 	ctx := context.TODO()
 	bucket := client.Bucket(bucketName)
 
@@ -149,7 +148,7 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 
 	var notificationInfo *storage.Notification
 	found := false
-	notifyID := bucketName + "/" + strings.TrimLeft(objectPrefix, "/")
+	notifyID := eventbus.GetNotificationID(bucketName, objectPrefix)
 	for _, notify := range notifications {
 		if notify.TopicID == d.topic.ID() && notify.ObjectNamePrefix == objectPrefix {
 			// If we don't have the custom notification attribute we want to create new
@@ -183,26 +182,12 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 		sklog.Infof("Re-using storage notification: %s", spew.Sdump(notificationInfo))
 	}
 
-	// If no regex was provided we add a single entry.
-	regexStr := ""
-	if objectRegEx != nil {
-		regexStr = objectRegEx.String()
-	}
-	if _, ok := d.storageNotifications[notifyID]; !ok {
-		d.storageNotifications[notifyID] = map[string]*regexp.Regexp{}
-	}
-	d.storageNotifications[notifyID][regexStr] = objectRegEx
-	return getEventType(notifyID, objectRegEx), nil
+	return d.storageNotifications.Add(notifyID, objectRegEx), nil
 }
 
-// getEventType creates a unique ID from the notification ID (which is a
-// combination of bucket name and object prefix) and a regular expression.
-func getEventType(notificationID string, regEx *regexp.Regexp) string {
-	regexStr := ""
-	if regEx != nil {
-		regexStr = regEx.String()
-	}
-	return storageEventPrefix + notificationID + "/" + regexStr
+// PublishStorageEvent implements the EventBus interface.
+func (d *distEventBus) PublishStorageEvent(evtData *eventbus.StorageEvent) {
+	d.Publish(eventbus.SYN_STORAGE_EVENT, evtData, true)
 }
 
 // setupTopicSub sets up the topic and subscription.
@@ -271,7 +256,7 @@ func (d *distEventBus) processReceivedMsg(ctx context.Context, msg *pubsub.Messa
 	// Publish the events locally if it hasn't been sent by this instance.
 	for _, wrapper := range wrappers {
 		if wrapper.Sender != d.clientID {
-			d.localEventBus.Publish(wrapper.Channel, data, true)
+			d.localEventBus.Publish(wrapper.ChannelID, data, true)
 		}
 	}
 }
@@ -299,9 +284,9 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 		}
 		wrapper = tempWrapper.(*channelWrapper)
 		payload = wrapper.Data
-		codecInst, ok := codecMap.Load(wrapper.Channel)
+		codecInst, ok := codecMap.Load(wrapper.ChannelID)
 		if !ok {
-			return nil, nil, false, fmt.Errorf("Unable to decode message for channel '%s'. No codec registered.", wrapper.Channel)
+			return nil, nil, false, fmt.Errorf("Unable to decode message for channel '%s'. No codec registered.", wrapper.ChannelID)
 		}
 		codec = codecInst.(util.LRUCodec)
 	}
@@ -311,7 +296,40 @@ func (d *distEventBus) decodeMsg(msg *pubsub.Message) ([]*channelWrapper, interf
 	if err != nil {
 		return nil, nil, false, fmt.Errorf("Unable to decode payload of pubsub event: %s", err)
 	}
+
+	// Check if this is a synthetic storage event in which case we need to notify the right subscribers.
+	if wrapper.ChannelID == eventbus.SYN_STORAGE_EVENT {
+		return d.wrapSyntheticStorageEvent(wrapper, data)
+	}
+
 	return []*channelWrapper{wrapper}, data, false, nil
+}
+
+// wrapSyntheticStorageEvent takes a synthetic storage event and translates it into
+// valid storage events based on subscriptions.
+func (d *distEventBus) wrapSyntheticStorageEvent(wrapper *channelWrapper, evtData interface{}) ([]*channelWrapper, interface{}, bool, error) {
+	evt := evtData.(*eventbus.StorageEvent)
+	wrappers := []*channelWrapper{}
+	channelIDs := d.storageNotifications.Matches(evt.BucketID, evt.ObjectID)
+	for _, channelID := range channelIDs {
+		newWrapper := *wrapper
+		newWrapper.ChannelID = channelID
+		wrappers = append(wrappers, &newWrapper)
+	}
+
+	return wrappers, evtData, false, nil
+}
+
+// objectAttrs is a helper struct to parse the object attributes that are
+// delivered with storage events.
+// Note: Using the GCS package (storage.ObjectAttrs) is not an option because
+// it does not implement parsing JSON. So we only parse the attributes we are
+// interested in.
+type objectAttrs struct {
+	Bucket               string    `json:"bucket"`
+	Name                 string    `json:"name"`
+	Updated              time.Time `json:"updated"`
+	Base64EncodedMD5Hash string    `json:"md5Hash"` // base64 encoded MD5 hash
 }
 
 // decodeStorageMsg checks wether the given pubsub message is a notification
@@ -323,42 +341,51 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 		return nil, nil, false, nil
 	}
 
-	d.storageNotifyMutex.Lock()
-	defer d.storageNotifyMutex.Unlock()
-
 	bucketID := msg.Attributes["bucketId"]
 	objectID := msg.Attributes["objectId"]
 	notificationID := msg.Attributes[notificationIDAttr]
 
-	regexes, ok := d.storageNotifications[notificationID]
-	if !ok {
+	channelIDs := d.storageNotifications.MatchesByID(notificationID, objectID)
+	if len(channelIDs) == 0 {
 		// Ignore events that have not been registered. Not all clients register for
 		// all events.
 		return nil, nil, true, nil
 	}
 
+	// Extract the object attributes.
+	attrs := &objectAttrs{}
+	if err := json.Unmarshal(msg.Data, attrs); err != nil {
+		return nil, nil, false, sklog.FmtErrorf("Unable to decode object attributes: %s", err)
+	}
+
+	// decode the MD5 hash: base64 -> bytes -> hex-encoded-string
+	md5Bytes, err := base64.StdEncoding.DecodeString(attrs.Base64EncodedMD5Hash)
+	if err != nil {
+		return nil, nil, false, sklog.FmtErrorf("Unable to decode base64 encoded MD5 hash (%s): %s", attrs.Base64EncodedMD5Hash, err)
+	}
+	md5HashStr := hex.EncodeToString(md5Bytes)
+
 	data := &eventbus.StorageEvent{
-		EventType: msg.Attributes["eventType"],
-		BucketID:  bucketID,
-		ObjectID:  objectID,
-		// This attribute only appears in OBJECT_FINALIZE events in the case of an overwrite.
+		GCSEventType: msg.Attributes["eventType"],
+		BucketID:     bucketID,
+		ObjectID:     objectID,
+		TimeStamp:    attrs.Updated.Unix(),
+		MD5:          md5HashStr,
+
+		// Only appears in OBJECT_FINALIZE events in the case of an overwrite.
 		OverwroteGeneration: msg.Attributes["overwroteGeneration"],
 	}
 
-	wrappers := make([]*channelWrapper, 0, len(regexes))
-	for id, oneRegEx := range regexes {
-		if id == "" || oneRegEx.Match([]byte(objectID)) {
-			wrappers = append(wrappers, &channelWrapper{
-				Channel: getEventType(notificationID, oneRegEx),
-			})
-		}
+	wrappers := make([]*channelWrapper, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		wrappers = append(wrappers, &channelWrapper{ChannelID: channelID})
 	}
 	return wrappers, data, false, nil
 }
 
 // encodeMsg wraps the given payload into an instance of channelWrapper and
 // creates the necessary pubsub message to send it to the cloud.
-func (d *distEventBus) encodeMsg(channel string, data interface{}, codec util.LRUCodec) (*pubsub.Message, error) {
+func (d *distEventBus) encodeMsg(channelID string, data interface{}, codec util.LRUCodec) (*pubsub.Message, error) {
 	payload, err := codec.Encode(data)
 	if err != nil {
 		return nil, err
@@ -366,9 +393,9 @@ func (d *distEventBus) encodeMsg(channel string, data interface{}, codec util.LR
 
 	if d.wrapperCodec != nil {
 		wrapper := &channelWrapper{
-			Sender:  d.sub.ID(),
-			Channel: channel,
-			Data:    payload,
+			Sender:    d.sub.ID(),
+			ChannelID: channelID,
+			Data:      payload,
 		}
 		var err error
 		if payload, err = d.wrapperCodec.Encode(wrapper); err != nil {

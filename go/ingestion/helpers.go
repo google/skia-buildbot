@@ -29,8 +29,14 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-// Limit the number of times the ingester tries to get a file before giving up.
-const MAX_URI_GET_TRIES = 4
+const (
+	// Limit the number of times the ingester tries to get a file before giving up.
+	MAX_URI_GET_TRIES = 4
+
+	// maxConcurrentDirPollers is the maximum number of concurrent go-routines that
+	// read from GCS and the file system when polling a range of directories.
+	maxConcurrentDirPollers = 200
+)
 
 // Constructor is the signature that has to be implemented to register a
 // Processor implementation to be instantiated by name from a config struct.
@@ -96,14 +102,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			// TODO(stephana): Remove this once we can support event driven
-			// ingestion for all ingesters.
-			var sourceEventBus eventbus.EventBus = nil
-			if id == "gold-tryjob" {
-				sourceEventBus = eventBus
-			}
-
-			oneSource, err := getSource(id, dataSource, client, sourceEventBus)
+			oneSource, err := getSource(id, dataSource, client, eventBus)
 			if err != nil {
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
@@ -117,7 +116,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 
 		// create the ingester and add it to the result.
-		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore)
+		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +136,8 @@ func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Clie
 	if dataSource.Bucket != "" {
 		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, eventBus)
 	}
-	return NewFileSystemSource(id, dataSource.Dir)
+
+	return nil, sklog.FmtErrorf("Unable to create source. At least a bucket and directory must be supplied")
 }
 
 // validIngestionFile returns true if the given file name matches basic rules.
@@ -176,24 +176,42 @@ func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Clien
 }
 
 // See Source interface.
-func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	dirs := gcs.GetLatestGCSDirs(startTime, endTime, g.rootDir)
-	retval := []ResultFileLocation{}
-	for _, dir := range dirs {
-		err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
-			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
-			if strings.Contains(filepath.Base(item.Name), "uploading") {
-				sklog.Warningf("Received temporary file from GS: %s", item.Name)
-			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
-				retval = append(retval, newGCSResultFileLocation(item, g.rootDir, g.storageClient))
-			}
-		})
+func (g *GoogleStorageSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	dirs := fileutil.GetHourlyDirs(g.rootDir, startTime, endTime)
+	ch := make(chan ResultFileLocation, maxConcurrentDirPollers)
+	concurrentPollers := make(chan bool, maxConcurrentDirPollers)
 
-		if err != nil {
-			return nil, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+	go func() {
+		var wg sync.WaitGroup
+		for _, dir := range dirs {
+			concurrentPollers <- true
+			wg.Add(1)
+
+			go func(dir string) {
+				defer func() {
+					<-concurrentPollers
+					wg.Done()
+				}()
+				err := gcs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
+					if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
+						ch <- newGCSResultFileLocation(item.Bucket,
+							item.Name,
+							item.Updated.Unix(),
+							hex.EncodeToString(item.MD5),
+							g.storageClient)
+					}
+				})
+
+				if err != nil {
+					sklog.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
+				}
+			}(dir)
 		}
-	}
-	return retval, nil
+		wg.Wait()
+		close(ch)
+	}()
+
+	return ch
 }
 
 // See Source interface.
@@ -202,7 +220,7 @@ func (g *GoogleStorageSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
+func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
 	if g.eventBus != nil {
 		eventType, err := g.eventBus.RegisterStorageEvents(g.bucket, g.rootDir, targetFileRegExp, g.storageClient)
 		if err != nil {
@@ -211,22 +229,7 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 
 		g.eventBus.SubscribeAsync(eventType, func(evData interface{}) {
 			file := evData.(*eventbus.StorageEvent)
-
-			sklog.Infof("Received storage event: %s / %s", file.BucketID, file.ObjectID)
-
-			// Fetch the object attributes.
-			objAttr, err := g.storageClient.Bucket(file.BucketID).
-				Object(file.ObjectID).
-				Attrs(context.TODO())
-			if err != nil {
-				sklog.Errorf("Unable to get handle for '%s/%s': %s", file.BucketID, file.ObjectID, err)
-				return
-			}
-			ret := []ResultFileLocation{
-				newGCSResultFileLocation(objAttr, g.rootDir, g.storageClient),
-			}
-			resultCh <- ret
-			sklog.Infof("Sent storage event result file: %s / %s", file.BucketID, file.ObjectID)
+			resultCh <- newGCSResultFileLocation(file.BucketID, file.ObjectID, file.TimeStamp, file.MD5, g.storageClient)
 		})
 	}
 	return nil
@@ -236,20 +239,18 @@ func (g *GoogleStorageSource) SetEventChannel(resultCh chan<- []ResultFileLocati
 type gsResultFileLocation struct {
 	bucket        string
 	name          string
-	relativeName  string
 	lastUpdated   int64
 	md5           string
 	storageClient *storage.Client
 	content       []byte
 }
 
-func newGCSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
+func newGCSResultFileLocation(bucketID, objectID string, lastUpdated int64, md5 string, storageClient *storage.Client) ResultFileLocation {
 	return &gsResultFileLocation{
-		bucket:        result.Bucket,
-		name:          result.Name,
-		relativeName:  strings.TrimPrefix(result.Name, rootDir+"/"),
-		lastUpdated:   result.Updated.Unix(),
-		md5:           hex.EncodeToString(result.MD5),
+		bucket:        bucketID,
+		name:          objectID,
+		lastUpdated:   lastUpdated,
+		md5:           md5,
 		storageClient: storageClient,
 	}
 }
@@ -294,6 +295,11 @@ func (g *gsResultFileLocation) Name() string {
 	return fmt.Sprintf("gs://%s/%s", g.bucket, g.name)
 }
 
+// StorageIDs implements the ResultFileLocation interface.
+func (g *gsResultFileLocation) StorageIDs() (string, string) {
+	return g.bucket, g.name
+}
+
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) MD5() string {
 	return g.md5
@@ -308,6 +314,9 @@ func (g *gsResultFileLocation) TimeStamp() int64 {
 func (g *gsResultFileLocation) Content() []byte {
 	return g.content
 }
+
+// TODO(stephana): Remove FileSystemSource since it's mostly used for testing, but
+// ingestion has now moved to being event driven, a mode that is not supported by it.
 
 // FileSystemSource implements the Source interface to read from the local
 // file system.
@@ -324,49 +333,51 @@ func NewFileSystemSource(baseName, rootDir string) (Source, error) {
 }
 
 // See Source interface.
-func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	retval := []ResultFileLocation{}
+func (f *FileSystemSource) Poll(startTime, endTime int64) <-chan ResultFileLocation {
+	retCh := make(chan ResultFileLocation, maxConcurrentDirPollers)
 
-	// although GetLatestGCSDirs is in the "gcs" package, there's nothing specific about
-	// its operation that makes it not re-usable here.
-	dirs := gcs.GetLatestGCSDirs(startTime, endTime, f.rootDir)
-	for _, dir := range dirs {
-		// Inject dir into a closure.
-		func(dir string) {
-			walkFn := func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					// We swallow the error to continue processing, but make sure it's
-					// shows up in the logs.
-					sklog.Errorf("Error walking %s: %s", path, err)
-					return nil
-				}
-				if info.IsDir() {
-					return nil
-				}
-
-				updateTimestamp := info.ModTime().Unix()
-				if validIngestionFile(path) && (updateTimestamp > startTime) {
-					rf, err := FileSystemResult(path, f.rootDir)
+	go func() {
+		// Get all the directories we should walk to get the results.
+		dirs := fileutil.GetHourlyDirs(f.rootDir, startTime, endTime)
+		for _, dir := range dirs {
+			// Inject dir into a closure.
+			func(dir string) {
+				walkFn := func(path string, info os.FileInfo, err error) error {
 					if err != nil {
-						sklog.Errorf("Unable to create file system result: %s", err)
+						// We swallow the error to continue processing, but make sure it's
+						// shows up in the logs.
+						sklog.Errorf("Error walking %s: %s", path, err)
 						return nil
 					}
-					retval = append(retval, rf)
-				}
-				return nil
-			}
+					if info.IsDir() {
+						return nil
+					}
 
-			// Only walk the tree if the top directory exists.
-			if fileutil.FileExists(dir) {
-				if err := filepath.Walk(dir, walkFn); err != nil {
-					sklog.Infof("Unable to read the local dir %s: %s", dir, err)
-					return
+					updateTimestamp := info.ModTime().Unix()
+					if validIngestionFile(path) && (updateTimestamp > startTime) {
+						rf, err := FileSystemResult(path, f.rootDir)
+						if err != nil {
+							sklog.Errorf("Unable to create file system result: %s", err)
+							return nil
+						}
+						retCh <- rf
+					}
+					return nil
 				}
-			}
-		}(dir)
-	}
 
-	return retval, nil
+				// Only walk the tree if the top directory exists.
+				if fileutil.FileExists(dir) {
+					if err := filepath.Walk(dir, walkFn); err != nil {
+						sklog.Infof("Unable to read the local dir %s: %s", dir, err)
+						return
+					}
+				}
+			}(dir)
+		}
+		close(retCh)
+	}()
+
+	return retCh
 }
 
 // See Source interface.
@@ -375,8 +386,9 @@ func (f *FileSystemSource) ID() string {
 }
 
 // SetEventChannel implements the Source interface.
-func (f *FileSystemSource) SetEventChannel(resultCh chan<- []ResultFileLocation) error {
-	return nil
+func (f *FileSystemSource) SetEventChannel(resultCh chan<- ResultFileLocation) error {
+	// Note: Events are not supported for the file system right now. Since it's mostly used for testing.
+	return sklog.FmtErrorf("FileSystemSource does not implement SetEventChannel")
 }
 
 // fsResultFileLocation implements the ResultFileLocation interface for
@@ -435,6 +447,11 @@ func (f *fsResultFileLocation) Open() (io.ReadCloser, error) {
 // see ResultFileLocation interface.
 func (f *fsResultFileLocation) Name() string {
 	return f.path
+}
+
+// StorageIDs implements the ResultFileLocation interface.
+func (f *fsResultFileLocation) StorageIDs() (string, string) {
+	return "--fsResultFileLocation", f.path
 }
 
 // see ResultFileLocation interface.
