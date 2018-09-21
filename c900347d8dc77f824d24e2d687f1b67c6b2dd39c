@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f85fd1c5_a2c0842b",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-21T18:59:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc81c78b_84e48525",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 4
+      },
+      "revId": "c900347d8dc77f824d24e2d687f1b67c6b2dd39c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0890495_2452d6c4",
         "filename": "autoroll/build_google3_release",
         "patchSetId": 1
@@ -60,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "ad414426_e44b3d79",
+        "filename": "autoroll/build_google3_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-21T18:59:47Z",
+      "side": 1,
+      "message": "Just left it since it\u0027s already here.  NewAutoRoller takes a workdir parameter.  Rather than assuming it\u0027ll never be used, I\u0027d rather just keep it.",
+      "parentUuid": "d7db6921_b895ce8d",
+      "revId": "c900347d8dc77f824d24e2d687f1b67c6b2dd39c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a714adf5_71bfb8f1",
         "filename": "autoroll/go/autoroll-google3/Dockerfile",
         "patchSetId": 1
@@ -71,6 +113,30 @@
       "writtenOn": "2018-09-21T17:40:37Z",
       "side": 1,
       "message": "Why not alpine?",
+      "range": {
+        "startLine": 1,
+        "startChar": 24,
+        "endLine": 1,
+        "endChar": 47
+      },
+      "revId": "c900347d8dc77f824d24e2d687f1b67c6b2dd39c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b71d3e7_7e5405b4",
+        "filename": "autoroll/go/autoroll-google3/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-21T18:59:47Z",
+      "side": 1,
+      "message": "It\u0027s missing a bunch of necessary things.  IIRC CIPD doesn\u0027t work on it.  basedebian includes the git CIPD package, which is needed for rollers which use git.  Incidentally, this roller shouldn\u0027t need git, since it could use gitiles, but I don\u0027t want to mess with that right now.",
+      "parentUuid": "a714adf5_71bfb8f1",
       "range": {
         "startLine": 1,
         "startChar": 24,
