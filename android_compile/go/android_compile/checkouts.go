@@ -207,6 +207,16 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 	if isMirror {
 		checkoutsMutex.Lock()
 		defer checkoutsMutex.Unlock()
+		// Prune git gc from all projects. This is done to prevent the mirror syncs from gradually
+		// slowing down over time. See skbug.com/8053 for more context.
+		pathToPruneScript := filepath.Join(*resourcesDir, "prune-mirror.sh")
+		pruneCmd := fmt.Sprintf("bash %s %s", pathToPruneScript, checkoutPath)
+		sklog.Infof("Running %s", pruneCmd)
+		if _, err := sk_exec.RunSimple(ctx, pruneCmd); err != nil {
+			errMsg := fmt.Sprintf("Failed to prune git gc from the mirror: %s", err)
+			sklog.Errorln(errMsg)
+			return errors.New(errMsg)
+		}
 	} else {
 		checkoutsMutex.RLock()
 		defer checkoutsMutex.RUnlock()
