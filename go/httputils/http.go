@@ -124,7 +124,7 @@ func NewBackOffTransport() http.RoundTripper {
 }
 
 type BackOffTransport struct {
-	http.Transport
+	Transport     http.RoundTripper
 	backOffConfig *BackOffConfig
 }
 
@@ -134,7 +134,7 @@ type ResponsePagination struct {
 	Total  int `json:"total"`
 }
 
-// NewBackOffTransport creates a BackOffTransport with the specified config.
+// NewConfiguredBackOffTransport creates a BackOffTransport with the specified config.
 //
 // Example: The default retry_interval is .5 seconds, default randomization_factor
 // is 0.5, default multiplier is 1.5 and the default max_interval is 1 minute. For
@@ -154,7 +154,7 @@ type ResponsePagination struct {
 //  10           19.210              backoff.Stop
 func NewConfiguredBackOffTransport(config *BackOffConfig) http.RoundTripper {
 	return &BackOffTransport{
-		Transport:     http.Transport{Dial: DialTimeout},
+		Transport:     &http.Transport{Dial: DialTimeout},
 		backOffConfig: config,
 	}
 }

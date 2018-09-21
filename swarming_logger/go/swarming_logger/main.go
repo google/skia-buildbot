@@ -278,7 +278,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	tp := httputils.NewBackOffTransport().(*httputils.BackOffTransport)
-	tp.Transport.Dial = func(network, addr string) (net.Conn, error) {
+	tp.Transport.(*http.Transport).Dial = func(network, addr string) (net.Conn, error) {
 		return net.DialTimeout(network, addr, 3*time.Minute)
 	}
 	wdAbs, err := filepath.Abs(*workdir)

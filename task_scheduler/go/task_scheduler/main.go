@@ -673,7 +673,7 @@ func main() {
 		swarm = swarmTestClient
 	} else {
 		tp := httputils.NewBackOffTransport().(*httputils.BackOffTransport)
-		tp.Transport.Dial = func(network, addr string) (net.Conn, error) {
+		tp.Transport.(*http.Transport).Dial = func(network, addr string) (net.Conn, error) {
 			return net.DialTimeout(network, addr, 3*time.Minute)
 		}
 		swarmClient, err := auth.NewClientWithTransport(*local, oauthCacheFile, "", tp, swarming.AUTH_SCOPE)
