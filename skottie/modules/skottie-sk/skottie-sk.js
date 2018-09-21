@@ -282,6 +282,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   }
 
   _render() {
+    console.log('rendering');
     if (this._downloadUrl)  {
       URL.revokeObjectURL(this._downloadUrl);
     }
@@ -290,6 +291,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     if (this._ui == LOADED_MODE) {
       // Don't re-start the animation while the user edits.
       if (!this._hasEdits) {
+        console.log('animating');
         $$('#container').innerHTML = '';
         this._lottie = bodymovin.loadAnimation({
           container: $$('#container'),
@@ -334,6 +336,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
           if (!this._editorLoaded) {
             return;
           }
+          console.log('On Change firing');
           this._hasEdits = true;
           onUserEdit(editorContainer, this._editor.get());
           this._render();
@@ -342,11 +345,13 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
       if (!this._editor) {
         this._editorLoaded = false;
+        this._hasEdits = true;
         editorContainer.innerHTML = '';
         this._editor = new JSONEditor(editorContainer, editorOptions);
         setupListeners(editorContainer);
       }
       if (!this._hasEdits) {
+        this._editorLoaded = false;
         // Only set the JSON when it is loaded, either because it's
         // the first time we got it from the server or because the user
         // hit applyEdits.
