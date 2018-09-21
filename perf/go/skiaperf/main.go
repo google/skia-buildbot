@@ -54,6 +54,7 @@ import (
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -356,7 +357,7 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 	}, git, false, r.FormValue("tz"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
