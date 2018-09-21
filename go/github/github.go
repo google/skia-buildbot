@@ -258,6 +258,24 @@ func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
 	return combinedStatus.Statuses, nil
 }
 
+// See https://developer.github.com/v3/checks/suites/#list-check-suites-for-a-specific-ref
+// for the API documentation.
+// ORDER IT - e1913b28af74329f1bba97911ae69e52347d7b60
+// USE A FAILED THING! FOR SEEING HOW TO RETRIGGER IT.
+// DOES TRIGGERING EVEN WORK??
+func (g *GitHub) RerunLatestCheckSuite(ref string) error {
+	suites, resp, err := g.client.Checks.ListCheckSuitesForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return fmt.Errorf("Failed doing check-suites.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from check-suites.get.", resp.StatusCode)
+	}
+	fmt.Println(suites)
+	return nil
+	// 	g.client.Checks.ReRequestCheckSuite()
+}
+
 // See https://developer.github.com/v3/issues/#get-a-single-issue
 // for the API documentation.
 func (g *GitHub) GetDescription(pullRequestNum int) (string, error) {
