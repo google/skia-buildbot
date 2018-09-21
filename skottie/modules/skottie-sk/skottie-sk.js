@@ -347,6 +347,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         setupListeners(editorContainer);
       }
       if (!this._hasEdits) {
+        this._editorLoaded = false;
         // Only set the JSON when it is loaded, either because it's
         // the first time we got it from the server or because the user
         // hit applyEdits.
