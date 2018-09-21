@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d6affde9_cadad394",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be7008dc_5011f8b3",
+      "range": {
+        "startLine": 238,
+        "startChar": 38,
+        "endLine": 238,
+        "endChar": 40
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25f17c7c_9565c84f",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 25
@@ -36,6 +60,30 @@
       "writtenOn": "2018-09-21T17:25:27Z",
       "side": 1,
       "message": "nit: All callers have already generated regexStr, so it might be simpler to pass it in.",
+      "range": {
+        "startLine": 298,
+        "startChar": 41,
+        "endLine": 298,
+        "endChar": 61
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58f2c683_522f023f",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Only one of the callers and I this also takes care of the case when regEx is nil. Otherwise I would have to add that to the callers.",
+      "parentUuid": "25f17c7c_9565c84f",
       "range": {
         "startLine": 298,
         "startChar": 41,
@@ -117,6 +165,78 @@
     },
     {
       "key": {
+        "uuid": "a0401d79_ef2826fd",
+        "filename": "go/fileutil/filepath.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34d8ce88_c3ac98ed",
+      "range": {
+        "startLine": 12,
+        "startChar": 15,
+        "endLine": 12,
+        "endChar": 20
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a978f73_7abc1b1c",
+        "filename": "go/fileutil/filepath.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c6b0779_54e34648",
+      "range": {
+        "startLine": 12,
+        "startChar": 43,
+        "endLine": 12,
+        "endChar": 48
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79222174_e1bf2d6c",
+        "filename": "go/fileutil/filepath.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a09939b6_93d8a373",
+      "range": {
+        "startLine": 12,
+        "startChar": 88,
+        "endLine": 12,
+        "endChar": 90
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "37850d6c_74ee8593",
         "filename": "go/fileutil/filepath.go",
         "patchSetId": 25
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "62773f80_b7d43b57",
+        "filename": "go/fileutil/filepath.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37850d6c_74ee8593",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 7
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb70cab7_6028f037",
         "filename": "go/fileutil/filepath_test.go",
         "patchSetId": 25
@@ -154,6 +298,24 @@
       "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75753187_8946c390",
+        "filename": "go/fileutil/filepath_test.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb70cab7_6028f037",
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "46131eb9_7ea3a81b",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "yes, but that\u0027s acceptable IMO, especially when I deploy during a time with few jobs running.\nIn the long run I\u0027d rather have clean nomenclature.",
+      "parentUuid": "91f956c9_7d493244",
+      "range": {
+        "startLine": 64,
+        "startChar": 25,
+        "endLine": 64,
+        "endChar": 34
+      },
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "683bea2e_385ccbf8",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 25
@@ -191,6 +377,24 @@
       "writtenOn": "2018-09-21T17:25:27Z",
       "side": 1,
       "message": "Just checking -- it\u0027s correct to do this when the file is ignored?",
+      "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90d03e76_e1128559",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 25
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T19:13:12Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "683bea2e_385ccbf8",
       "revId": "9fef63dd68ce318b76ae457e0885acf6c7c9e8b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
