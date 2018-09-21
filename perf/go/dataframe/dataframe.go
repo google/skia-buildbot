@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -81,10 +82,10 @@ type ColumnHeader struct {
 //
 // The name DataFrame was gratuitously borrowed from R.
 type DataFrame struct {
-	TraceSet ptracestore.TraceSet `json:"traceset"`
-	Header   []*ColumnHeader      `json:"header"`
-	ParamSet paramtools.ParamSet  `json:"paramset"`
-	Skip     int                  `json:"skip"`
+	TraceSet types.TraceSet      `json:"traceset"`
+	Header   []*ColumnHeader     `json:"header"`
+	ParamSet paramtools.ParamSet `json:"paramset"`
+	Skip     int                 `json:"skip"`
 }
 
 // BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.
@@ -101,7 +102,7 @@ func (d *DataFrame) BuildParamSet() {
 
 // TraceFilter is a function type that should return true if trace 'tr' should
 // be removed from a DataFrame. It is used in FilterOut.
-type TraceFilter func(tr ptracestore.Trace) bool
+type TraceFilter func(tr types.Trace) bool
 
 // FilterOut removes traces from d.TraceSet if the filter function 'f' returns
 // true for a trace.
@@ -239,7 +240,7 @@ func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Conte
 // NewEmpty returns a new empty DataFrame.
 func NewEmpty() *DataFrame {
 	return &DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		Header:   []*ColumnHeader{},
 		ParamSet: paramtools.ParamSet{},
 	}
@@ -254,7 +255,7 @@ func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) *Data
 	defer timer.New("NewHeaderOnly time").Stop()
 	colHeaders, _, skip := getRange(vcs, begin, end, downsample)
 	return &DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		Header:   colHeaders,
 		ParamSet: paramtools.ParamSet{},
 		Skip:     skip,
