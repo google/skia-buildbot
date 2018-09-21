@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "67247585_ce61cce2",
+        "filename": "go/httputils/http_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-21T18:39:03Z",
+      "side": 1,
+      "message": "What if t.responseCodes is never initialized?",
+      "revId": "84e79ba5111edfa64f279f4fe322d70b3a27ca76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
