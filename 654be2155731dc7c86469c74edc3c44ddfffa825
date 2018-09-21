@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "985bb208_7a8c1da6",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-21T18:27:31Z",
+      "side": 0,
+      "message": "This was unused outside this file. I repurposed it as newLegacyTokenSourceFromConfig.",
+      "range": {
+        "startLine": 209,
+        "startChar": 5,
+        "endLine": 209,
+        "endChar": 36
+      },
+      "revId": "654be2155731dc7c86469c74edc3c44ddfffa825",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c7028de4_87e3f412",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-21T18:27:31Z",
+      "side": 0,
+      "message": "Unused outside this file.",
+      "range": {
+        "startLine": 268,
+        "startChar": 5,
+        "endLine": 268,
+        "endChar": 28
+      },
+      "revId": "654be2155731dc7c86469c74edc3c44ddfffa825",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3f4c29fd_ebdcbb6e",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-21T18:27:31Z",
+      "side": 0,
+      "message": "Unused outside this file.",
+      "range": {
+        "startLine": 318,
+        "startChar": 5,
+        "endLine": 318,
+        "endChar": 30
+      },
+      "revId": "654be2155731dc7c86469c74edc3c44ddfffa825",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

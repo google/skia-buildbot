@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2671879_f6e35e01",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-21T18:27:31Z",
+      "side": 1,
+      "message": "Note that docs for the new \"TokenSource\" functions were mostly copied from similar \"Client\" functions.",
+      "revId": "6e8000556a74e674ae944d7243d9173e62cc3216",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6e196a2c_c56f1801",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-21T18:27:31Z",
+      "side": 1,
+      "message": "This is the TokenSource impl of NewClientWithTransport.",
+      "range": {
+        "startLine": 221,
+        "startChar": 5,
+        "endLine": 221,
+        "endChar": 25
+      },
+      "revId": "6e8000556a74e674ae944d7243d9173e62cc3216",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
