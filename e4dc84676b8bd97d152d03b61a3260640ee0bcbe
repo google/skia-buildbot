@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "099ce47c_257f3298",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "I have started to switch to constants that are not all uppercase. \nFor the reason kind of mentioned in Ben\u0027s link. Here are the main reasons: \n- It\u0027s really something from C-programming and might be outdated\n- We should not export internal constants\n- Any constant that is exported should be just use camel case, starting with an upercase letter. \n  That\u0027s what I see most external packages do.",
+      "parentUuid": "dd042b69_9e52efc6",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "843996fa_a260a169",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "c8ff6846_c900e17d",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "843996fa_a260a169",
+      "range": {
+        "startLine": 25,
+        "startChar": 48,
+        "endLine": 25,
+        "endChar": 53
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5d70e6d2_bc75ec6a",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -83,6 +131,30 @@
       "writtenOn": "2018-09-19T17:09:38Z",
       "side": 1,
       "message": "ubernit: .. reminds me a lot of directories (../) Consider using a prefix like \u0026# or something else w/o a pre-existing meaning.",
+      "range": {
+        "startLine": 26,
+        "startChar": 24,
+        "endLine": 26,
+        "endChar": 26
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb2f47ef_99b34d32",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "I actually chose that because it\u0027s an invalid object ID in GCS.\nhttps://cloud.google.com/storage/docs/naming\nAdded comment to that effect.",
+      "parentUuid": "5d70e6d2_bc75ec6a",
       "range": {
         "startLine": 26,
         "startChar": 24,
@@ -118,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "2401357e_feb94a9d",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "I prefer a regex because that puts the burden of compiling it on the client of the package.",
+      "parentUuid": "2c5559d4_6df91e56",
+      "range": {
+        "startLine": 66,
+        "startChar": 63,
+        "endLine": 66,
+        "endChar": 89
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "80e7a6e9_c7eed63b",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -138,6 +234,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dd5e9428_d3c592d2",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "It\u0027s not used anywhere right now, but I would like to keep it part of the interface mostly to make it obvious there are other events one might want to add. \n\nI agree eventType was overloaded and ambiguous. \nI change everything in evenbus to channelID, the only eventTypes left are GCs events and I renamed that field to GCSEventType to make it clearer.",
+      "parentUuid": "80e7a6e9_c7eed63b",
+      "range": {
+        "startLine": 78,
+        "startChar": 1,
+        "endLine": 78,
+        "endChar": 17
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -164,6 +284,30 @@
     },
     {
       "key": {
+        "uuid": "abcc1b22_141bc41e",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done\nI added documentation that it is a hex encoded string.",
+      "parentUuid": "91fe90a2_0d1d98ee",
+      "range": {
+        "startLine": 86,
+        "startChar": 15,
+        "endLine": 86,
+        "endChar": 23
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bf499e56_8841f290",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -184,6 +328,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7495149f_c8e60459",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "MD5 is what GCS provides. To my knowledge there is no support for SHA.",
+      "parentUuid": "bf499e56_8841f290",
+      "range": {
+        "startLine": 87,
+        "startChar": 1,
+        "endLine": 87,
+        "endChar": 4
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -210,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "b420873f_509c3758",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dcba3f82_32719718",
+      "range": {
+        "startLine": 111,
+        "startChar": 18,
+        "endLine": 111,
+        "endChar": 35
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "97eb0fdc_765af14a",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -230,6 +422,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87b43c80_c26c7ead",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97eb0fdc_765af14a",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 120,
+        "endChar": 15
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -279,6 +495,54 @@
     },
     {
       "key": {
+        "uuid": "e646b883_0789a8e0",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81292ca8_7e7c35d8",
+      "range": {
+        "startLine": 124,
+        "startChar": 52,
+        "endLine": 124,
+        "endChar": 56
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a30bae7d_6c258856",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3be86c7d_c74e8ae8",
+      "range": {
+        "startLine": 124,
+        "startChar": 25,
+        "endLine": 124,
+        "endChar": 30
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "588dd842_58619d21",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -299,6 +563,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f23aee2c_dfc6c6d2",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "588dd842_58619d21",
+      "range": {
+        "startLine": 140,
+        "startChar": 58,
+        "endLine": 140,
+        "endChar": 60
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -325,6 +613,30 @@
     },
     {
       "key": {
+        "uuid": "c38c60f0_1749ee8c",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8707ac56_50a3b82b",
+      "range": {
+        "startLine": 185,
+        "startChar": 47,
+        "endLine": 185,
+        "endChar": 53
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58ef0668_1778c206",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -342,6 +654,24 @@
     },
     {
       "key": {
+        "uuid": "72e1a618_e5b57859",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done\nI expanded the documentation here and for the RegisterStorageEvents function which is really where this is used. \nNote that NotificationsMap is only a helper type that is shared between the eventbus and gevent package to avoid code duplication, it\u0027s not intended to be consumed by other packages.",
+      "parentUuid": "58ef0668_1778c206",
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d8fa1e1_f2fa57cb",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -356,6 +686,24 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ee0823c_b8724eaa",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d8fa1e1_f2fa57cb",
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -382,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "42a2b9f0_d7643186",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "38c9a9f2_c6162f52",
+      "range": {
+        "startLine": 200,
+        "startChar": 27,
+        "endLine": 200,
+        "endChar": 44
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e0fcade_51762721",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -402,6 +774,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec8ed29c_04e0240d",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e0fcade_51762721",
+      "range": {
+        "startLine": 207,
+        "startChar": 76,
+        "endLine": 207,
+        "endChar": 82
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -428,6 +824,30 @@
     },
     {
       "key": {
+        "uuid": "b1a4ec67_5324fef6",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "This is used to figure out the logical channels a storage event should be sent to. \nI expanded the documentation and removed some unnecessary code.",
+      "parentUuid": "cbe0f2c8_be650c17",
+      "range": {
+        "startLine": 224,
+        "startChar": 27,
+        "endLine": 224,
+        "endChar": 38
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d855232d_f4e11a91",
         "filename": "go/eventbus/eventbus.go",
         "patchSetId": 19
@@ -448,6 +868,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09d7d705_0d1a6d68",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d855232d_f4e11a91",
+      "range": {
+        "startLine": 256,
+        "startChar": 23,
+        "endLine": 256,
+        "endChar": 94
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -474,6 +918,30 @@
     },
     {
       "key": {
+        "uuid": "f8f65726_d40d6e78",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f58fa8fd_1f461025",
+      "range": {
+        "startLine": 283,
+        "startChar": 26,
+        "endLine": 283,
+        "endChar": 39
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "02685cbc_c068ddcd",
         "filename": "go/eventbus/eventbus_test.go",
         "patchSetId": 19
@@ -494,6 +962,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17adc91f_daeb6155",
+        "filename": "go/eventbus/eventbus_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "02685cbc_c068ddcd",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 3
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -520,6 +1012,30 @@
     },
     {
       "key": {
+        "uuid": "731fe99e_aae4d41d",
+        "filename": "go/eventbus/eventbus_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2506a76a_9f6019d1",
+      "range": {
+        "startLine": 101,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 1
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60e4bbd7_3dc69a92",
         "filename": "go/eventbus/eventbus_test.go",
         "patchSetId": 19
@@ -540,6 +1056,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9adce9f1_1370d462",
+        "filename": "go/eventbus/eventbus_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60e4bbd7_3dc69a92",
+      "range": {
+        "startLine": 123,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 23
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -566,6 +1106,30 @@
     },
     {
       "key": {
+        "uuid": "de87a283_6ad94849",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aae320e_bfbdc054",
+      "range": {
+        "startLine": 106,
+        "startChar": 66,
+        "endLine": 106,
+        "endChar": 70
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "84c092da_12b2abdb",
         "filename": "go/gcs/gcs.go",
         "patchSetId": 19
@@ -586,6 +1150,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0a818a8_712344b0",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84c092da_12b2abdb",
+      "range": {
+        "startLine": 110,
+        "startChar": 22,
+        "endLine": 110,
+        "endChar": 29
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -612,6 +1200,30 @@
     },
     {
       "key": {
+        "uuid": "fad6024d_3a5b50e8",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "98ae7873_a8847245",
+      "range": {
+        "startLine": 111,
+        "startChar": 11,
+        "endLine": 111,
+        "endChar": 12
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff5f74d6_a86d08fb",
         "filename": "go/gcs/gcs.go",
         "patchSetId": 19
@@ -635,6 +1247,30 @@
     },
     {
       "key": {
+        "uuid": "fe6f9d2f_537a2bb8",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff5f74d6_a86d08fb",
+      "range": {
+        "startLine": 115,
+        "startChar": 45,
+        "endLine": 115,
+        "endChar": 51
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25ef4a44_67591428",
         "filename": "go/gcs/gcs.go",
         "patchSetId": 19
@@ -655,6 +1291,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fbdb9e4_babc979b",
+        "filename": "go/gcs/gcs.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25ef4a44_67591428",
+      "range": {
+        "startLine": 116,
+        "startChar": 26,
+        "endLine": 116,
+        "endChar": 46
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -705,6 +1365,30 @@
     },
     {
       "key": {
+        "uuid": "9c701933_f4f257f6",
+        "filename": "go/gcs/gcs_test.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "I tested the boundaries when the timestamp is exactly on the hour and modified the function so we are always guaranteed to catch the last hour. \nI am not testing anything other than hour (leapyear, etc) because that is guaranteed by setting the locale to UTC.",
+      "parentUuid": "2c000b93_f82553e6",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 64,
+        "endChar": 1
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f60b2789_78301941",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 19
@@ -725,6 +1409,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84053320_104e935c",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f60b2789_78301941",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 65
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -751,6 +1459,30 @@
     },
     {
       "key": {
+        "uuid": "403597cd_f8e31de3",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04d43f2a_4f5b2c0e",
+      "range": {
+        "startLine": 313,
+        "startChar": 55,
+        "endLine": 313,
+        "endChar": 61
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d84a620a_197e052e",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 19
@@ -762,6 +1494,30 @@
       "writtenOn": "2018-09-19T17:09:38Z",
       "side": 1,
       "message": "Add a comment specifying which types this should be.  Can we have it be strongly typed.",
+      "range": {
+        "startLine": 315,
+        "startChar": 115,
+        "endLine": 315,
+        "endChar": 126
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "999a497c_19775a81",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "It\u0027s clear from the calling location and from the very short function that this always is an instance of StorageEvent and I am passing the data through as type interface{} so that I can immediately return these return values in the calling function. See line 269 for a description of the return values.",
+      "parentUuid": "d84a620a_197e052e",
       "range": {
         "startLine": 315,
         "startChar": 115,
@@ -797,6 +1553,30 @@
     },
     {
       "key": {
+        "uuid": "35f0011a_edf56968",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60eaf954_0d61d567",
+      "range": {
+        "startLine": 332,
+        "startChar": 3,
+        "endLine": 332,
+        "endChar": 13
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4ea98348_f62b0d63",
         "filename": "go/gevent/gevent.go",
         "patchSetId": 19
@@ -817,6 +1597,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13bd2bfd_5ea263d0",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ea98348_f62b0d63",
+      "range": {
+        "startLine": 334,
+        "startChar": 3,
+        "endLine": 334,
+        "endChar": 5
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -843,6 +1647,30 @@
     },
     {
       "key": {
+        "uuid": "d7e68208_dc3c2f2f",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "I changed the name of the field to make it clearer, how it\u0027s decoded is described in line 372.",
+      "parentUuid": "8e61bd5a_c618ec50",
+      "range": {
+        "startLine": 340,
+        "startChar": 39,
+        "endLine": 340,
+        "endChar": 45
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b707a1d1_4c66c842",
         "filename": "go/ingestion/helpers.go",
         "patchSetId": 19
@@ -866,6 +1694,30 @@
     },
     {
       "key": {
+        "uuid": "aa7493f0_0b8fdab9",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b707a1d1_4c66c842",
+      "range": {
+        "startLine": 248,
+        "startChar": 0,
+        "endLine": 248,
+        "endChar": 129
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dbc564d2_aed78390",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 19
@@ -877,6 +1729,30 @@
       "writtenOn": "2018-09-19T17:09:38Z",
       "side": 1,
       "message": "nit: UPPER_CASE",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 22
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9bc21a8_16761bd7",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "See other comments for reasons why we should not write constants in all uppercase.",
+      "parentUuid": "dbc564d2_aed78390",
       "range": {
         "startLine": 33,
         "startChar": 1,
@@ -912,6 +1788,30 @@
     },
     {
       "key": {
+        "uuid": "21358d20_0b851ed4",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "See other above comments. Moved this constant to the top and added documentation.",
+      "parentUuid": "12bc3c8a_7067d635",
+      "range": {
+        "startLine": 194,
+        "startChar": 6,
+        "endLine": 194,
+        "endChar": 19
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "74c1464e_d7c85aec",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 19
@@ -935,6 +1835,30 @@
     },
     {
       "key": {
+        "uuid": "267ce16f_bad941be",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74c1464e_d7c85aec",
+      "range": {
+        "startLine": 229,
+        "startChar": 3,
+        "endLine": 229,
+        "endChar": 13
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21585eeb_d68d9de2",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 19
@@ -955,6 +1879,30 @@
       "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ab3acc0_c0e8745a",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-21T02:38:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21585eeb_d68d9de2",
+      "range": {
+        "startLine": 334,
+        "startChar": 4,
+        "endLine": 334,
+        "endChar": 22
+      },
+      "revId": "e4dc84676b8bd97d152d03b61a3260640ee0bcbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
