@@ -18,7 +18,7 @@ const template = (ele) => html`
 <header>
   <div class=title>CanvasKit Fiddle</div>
   <div class=flex></div>
-  <div class=version>CanvasKit Version: 0.0.1</div>
+  <div class=version>CanvasKit Version: 0.0.2</div>
 </header>
 
 <main>
@@ -28,7 +28,7 @@ const template = (ele) => html`
       <button class=action @click=${() => ele._run()}>Run</button>
       <button class=action @click=${() => ele._save()}>Save</button>
     </div>
-    <div id=canvasContainer></div>
+    <div id=canvasContainer><canvas width=500 height=500></canvas></div>
   </div>
 </main>
 <footer>
@@ -100,7 +100,9 @@ window.customElements.define('canvaskit-fiddle', class extends HTMLElement {
   connectedCallback() {
     this._render();
     CanvasKitInit({
-      locateFile: (file) => 'https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.1/bin/'+file,
+      // When running locally, may need to hard code to a cdn, e.g.
+      //locateFile: (file) => 'https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.2/bin/'+file,
+      locateFile: (file) => '/res/'+file,
     }).then((CanvasKit) => {
       this.CanvasKit = CanvasKit;
       if (this.content) {

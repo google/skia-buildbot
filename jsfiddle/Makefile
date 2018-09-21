@@ -15,9 +15,10 @@ package-lock.json: package.json
 
 canvaskit:
 	# Hack until canvaskit is on npm
-	mkdir modules/canvaskit
-	wget -O modules/canvaskit/skia.js https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.1/bin/skia.js
-	wget -O modules/canvaskit/skia.wasm https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.1/bin/skia.wasm
+	rm -rf modules/canvaskit
+	mkdir -p modules/canvaskit
+	wget -O modules/canvaskit/skia.js https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.2/bin/skia.js
+	wget -O modules/canvaskit/skia.wasm https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.2/bin/skia.wasm
 
 core:
 	go install -v ./go/jsfiddle
