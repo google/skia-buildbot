@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "d7db6921_b895ce8d",
+        "filename": "autoroll/build_google3_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-21T18:09:26Z",
+      "side": 1,
+      "message": "Kevin recommends an emptyDir volume, but Joe recommends using a dir in the container. /shruggie",
+      "parentUuid": "c0890495_2452d6c4",
+      "revId": "c900347d8dc77f824d24e2d687f1b67c6b2dd39c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a714adf5_71bfb8f1",
         "filename": "autoroll/go/autoroll-google3/Dockerfile",
         "patchSetId": 1
