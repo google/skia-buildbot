@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type ProcessState string
@@ -274,7 +275,7 @@ func (p *ClusterRequestProcess) Status() (ProcessState, string, error) {
 }
 
 // missing returns true if >50% of the trace is vec32.MISSING_DATA_SENTINEL.
-func missing(tr ptracestore.Trace) bool {
+func missing(tr types.Trace) bool {
 	count := 0
 	for _, x := range tr {
 		if x == vec32.MISSING_DATA_SENTINEL {
@@ -289,7 +290,7 @@ func missing(tr ptracestore.Trace) bool {
 //
 // The criteria is if there is >50% missing data on either side of the target
 // commit, which sits at the center of the trace.
-func tooMuchMissingData(tr ptracestore.Trace) bool {
+func tooMuchMissingData(tr types.Trace) bool {
 	if len(tr) < 3 {
 		return false
 	}
@@ -468,7 +469,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		return
 	}
 
-	df.TraceSet = ptracestore.TraceSet{}
+	df.TraceSet = types.TraceSet{}
 	frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
