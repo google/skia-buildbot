@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type ProcessState string
@@ -390,7 +391,7 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git *gitinfo.GitI
 		}
 		sort.Strings(keys)
 		keys = keys[:MAX_TRACES_IN_RESPONSE]
-		newTraceSet := ptracestore.TraceSet{}
+		newTraceSet := types.TraceSet{}
 		for _, key := range keys {
 			newTraceSet[key] = df.TraceSet[key]
 		}
@@ -483,7 +484,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 	}
 
 	// Convert the Rows from float64 to float32 for DataFrame.
-	ts := ptracestore.TraceSet{}
+	ts := types.TraceSet{}
 	for k, v := range rows {
 		ts[k] = v
 	}

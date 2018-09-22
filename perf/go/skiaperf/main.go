@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/bigtable"
 	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/ds"
@@ -30,30 +31,29 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
-	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/notify"
 	_ "go.skia.org/infra/perf/go/ptraceingest"
-	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -125,6 +125,8 @@ var (
 	configProvider regression.ConfigProvider
 
 	notifier *notify.Notifier
+
+	traceStore *btts.BigTableTraceStore
 )
 
 func loadTemplates() {
@@ -217,19 +219,26 @@ func Init() {
 	}
 
 	loadTemplates()
+	ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope)
+	if err != nil {
+		sklog.Fatalf("Failed to get TokenSource: %s", err)
+	}
 
 	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ptracestore.Init(*ptraceStoreDir)
 
-	freshDataFrame, err = dataframe.NewRefresher(ctx, git, ptracestore.Default, time.Minute, *dataFrameSize)
+	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, config.PERF_INGESTION_CONFIGS["nano"], ts)
+	if err != nil {
+		sklog.Fatalf("Failed to open trace store: %s", err)
+	}
+	dfb := dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
+	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfb, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
-	initIngestion(ctx)
 	cidl = cid.New(ctx, git, *gitRepoURL)
 
 	alerts.DefaultSparse = *defaultSparse
@@ -356,7 +365,7 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 	}, git, false, r.FormValue("tz"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
@@ -1008,7 +1017,25 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
-	name, _, err := ptracestore.Default.Details(&dr.CID, dr.TraceID)
+	index := int32(dr.CID.Offset)
+	tileKey := traceStore.TileKey(index)
+
+	ops, err := traceStore.GetOrderedParamSet(tileKey)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to find details")
+		return
+	}
+	p, err := query.ParseKey(dr.TraceID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid trace id")
+		return
+	}
+	encodedKey, err := ops.EncodeParamsAsString(p)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode key")
+		return
+	}
+	name, err := traceStore.GetSource(index, encodedKey)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load details")
 		return
@@ -1241,35 +1268,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
-	}
-}
-
-func initIngestion(ctx context.Context) {
-	// Initialize oauth client and start the ingesters.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
-	if err != nil {
-		sklog.Fatalf("Failed to auth: %s", err)
-	}
-
-	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	if err != nil {
-		sklog.Fatalf("Failed to create a Google Storage API client: %s", err)
-	}
-
-	// Start the ingesters.
-	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
-	if err != nil {
-		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
-	}
-
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, nil, nil)
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
-	}
-	for _, oneIngester := range ingesters {
-		if err := oneIngester.Start(ctx); err != nil {
-			sklog.Fatalf("Unable to start ingester: %s", err)
-		}
 	}
 }
 
