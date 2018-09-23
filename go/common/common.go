@@ -99,13 +99,14 @@ func Init() {
 // goes wrong. InitWithCloudLogging should be called before the program creates any go routines
 // such that all subsequent logs are properly sent to the Cloud.
 func StartCloudLogging(logName string) {
-	transport := &http.Transport{
-		Dial: httputils.FastDialTimeout,
-	}
-	c, err := auth.NewJWTServiceAccountClient("", "", transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Problem getting authenticated client: %s", err)
 	}
+	// TODO(dogben): Ok to add retries?
+	clientConfig := httputils.DefaultClientConfig().WithTokenSource(ts)
+	clientConfig.DialTimeout = httputils.FAST_DIAL_TIMEOUT
+	c := clientConfig.Client()
 	hostname, err := os.Hostname()
 	if err != nil {
 		sklog.Fatalf("Could not get hostname: %s", err)

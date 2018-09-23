@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/gce/ct/instance_types"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -51,7 +52,7 @@ func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 	}
-	httpClient := auth.ClientFromTokenSource(ts)
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	// Instantiate the swarming client.
 	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
 	if err != nil {

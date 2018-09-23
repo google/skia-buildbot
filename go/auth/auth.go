@@ -57,28 +57,20 @@ func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, er
 	}
 }
 
-// ClientFromTokenSource creates an http.Client with a BackOff transport and a
-// request timeout.
-func ClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
-	return httputils.AddMetricsToClient(&http.Client{
-		Transport: &oauth2.Transport{
+// ClientFromTokenSource creates an http.Client with the given config.
+func ClientFromTokenSource(tok oauth2.TokenSource, c httputils.ClientConfig) *http.Client {
+	return c.WrapClient(func(base http.RoundTripper) http.RoundTripper {
+		return &oauth2.Transport{
 			Source: tok,
-			Base:   httputils.NewBackOffTransport(),
-		},
-		Timeout: httputils.REQUEST_TIMEOUT,
+			Base:   base,
+		}
 	})
 }
 
 // TimeoutClientFromTokenSource creates an http.Client with a Timeout transport and a
 // request timeout.
 func TimeoutClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
-	return httputils.AddMetricsToClient(&http.Client{
-		Transport: &oauth2.Transport{
-			Source: tok,
-			Base:   &http.Transport{Dial: httputils.DialTimeout},
-		},
-		Timeout: httputils.REQUEST_TIMEOUT,
-	})
+	return ClientFromTokenSource(tok, httputils.DefaultClientConfig().WithoutRetries())
 }
 
 // asClient creates a "DefaultClient" from the result of a New*TokenSource function and
@@ -426,8 +418,8 @@ func saveToken(cacheFilePath string, tok *oauth2.Token) error {
 // NewDefaultServiceAccountClient Looks for the JWT JSON in metadata, falls
 // back to a local file names "service-account.json" if metadata isn't
 // available.
-func NewDefaultJWTServiceAccountClient(scopes ...string) (*http.Client, error) {
-	return NewJWTServiceAccountClient("", "", nil, scopes...)
+func NewDefaultJWTServiceAccountClient(c httputils.ClientConfig, scopes ...string) (*http.Client, error) {
+	return NewJWTServiceAccountClient("", "", c, scopes...)
 }
 
 // NewJWTServiceAccountClient creates a new http.Client that is loaded by first

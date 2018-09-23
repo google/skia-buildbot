@@ -193,10 +193,12 @@ func main() {
 	}
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, http.DefaultTransport, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
+	// TODO(dogben): Ok to add request/dial timeouts?
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 
 	// Get the token source from the same service account. Needed to access cloud pubsub and datastore.
 	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
