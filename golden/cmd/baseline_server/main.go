@@ -16,6 +16,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/storage"
@@ -37,10 +38,12 @@ func main() {
 	skiaversion.MustLogVersion()
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, http.DefaultTransport, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
+	// TODO(dogben): Ok to add request/dial timeouts?
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 
 	gsClientOpt := &storage.GSClientOptions{
 		BaselineGSPath: *baselineGSPath,

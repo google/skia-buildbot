@@ -13,6 +13,7 @@ import (
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -29,10 +30,11 @@ func TestBuildBucketState(t *testing.T) {
 	t.Skip()
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
-	httpClient, err := auth.NewJWTServiceAccountClient("", "", nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Otherwise try and connect to a locally running emulator.
 	cleanup := ds_testutil.InitDatastore(t,

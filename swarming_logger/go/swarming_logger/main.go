@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"math"
-	"net"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -265,32 +264,28 @@ func main() {
 		common.CloudLoggingOpt(),
 	)
 
-	logTransport := &http.Transport{
-		Dial: httputils.FastDialTimeout,
-	}
-	logHttpClient, err := auth.NewJWTServiceAccountClient("", "", logTransport, logging.LoggingWriteScope)
+	logTs, err := auth.NewJWTServiceAccountTokenSource("", "", logging.LoggingWriteScope)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	logHttpClient := httputils.DefaultClientConfig().WithFastTimeout().WithTokenSource(logTs).Client()
 
 	logClient, err := logging.New(logHttpClient)
 	if err != nil {
 		sklog.Fatal(err)
-	}
-	tp := httputils.NewBackOffTransport().(*httputils.BackOffTransport)
-	tp.Transport.(*http.Transport).Dial = func(network, addr string) (net.Conn, error) {
-		return net.DialTimeout(network, addr, 3*time.Minute)
 	}
 	wdAbs, err := filepath.Abs(*workdir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	c, err := auth.NewClientWithTransport(*local, oauthCacheFile, "", tp, swarming.AUTH_SCOPE, storage.ScopeReadWrite)
+	swarmTs, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", swarming.AUTH_SCOPE, storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	swarmClient, err := swarming.NewApiClient(c, *swarmingServer)
+	swarmClientConfig := httputils.DefaultClientConfig().WithTokenSource(swarmTs).With2xxOnly()
+	swarmClientConfig.DialTimeout = 3 * time.Minute
+	swarmClient, err := swarming.NewApiClient(swarmClientConfig.Client(), *swarmingServer)
 	if err != nil {
 		sklog.Fatal(err)
 	}

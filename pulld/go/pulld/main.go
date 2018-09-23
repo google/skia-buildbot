@@ -282,7 +282,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := auth.ClientFromTokenSource(tokenSource)
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
 	Init()
 	ctx := context.Background()

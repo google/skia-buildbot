@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -144,10 +145,11 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 		return fmt.Errorf("Error when updating checkouts in parallel: %s", err)
 	}
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	tok, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(tok).With2xxOnly()
 	// Create a Gerrit client.
 	gerritClient, err = gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", client)
 	if err != nil {
