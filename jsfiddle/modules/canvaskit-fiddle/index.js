@@ -1,2 +1,2 @@
 import './canvaskit-fiddle.js'
-import './canvaskit-fiddle.scss'
+import '../wasm-fiddle/wasm-fiddle.scss'
