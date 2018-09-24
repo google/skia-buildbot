@@ -37,7 +37,7 @@ func sync(ctx context.Context) error {
 		sklog.Errorf("git output: %q", out)
 		return fmt.Errorf("Failed to pull: %s", err)
 	}
-	sklog.Info("pulled: %q", out)
+	sklog.Infof("pulled: %q", out)
 	// git push
 	sklog.Info("push")
 	out, err = exec.RunSimple(ctx, "git push")
@@ -45,7 +45,7 @@ func sync(ctx context.Context) error {
 		sklog.Errorf("git output: %q", out)
 		return fmt.Errorf("Failed to push: %s", err)
 	}
-	sklog.Info("pushed: %q", out)
+	sklog.Infof("pushed: %q", out)
 	return nil
 }
 
