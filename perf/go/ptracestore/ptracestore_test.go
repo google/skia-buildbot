@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/constants"
+	"go.skia.org/infra/perf/go/types"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -216,7 +217,7 @@ func TestMatch(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
-	assert.Equal(t, Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
+	assert.Equal(t, types.Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
 
 	// Match both traces.
 	q, err = query.New(url.Values{
@@ -227,8 +228,8 @@ func TestMatch(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
-	assert.Equal(t, Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
-	assert.Equal(t, Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
+	assert.Equal(t, types.Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
+	assert.Equal(t, types.Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
 
 	// Query that returns only missing values, including a tile that doesn't exist.
 	commitID5 := &cid.CommitID{
@@ -240,8 +241,8 @@ func TestMatch(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
 	assert.Equal(t, 2, len(traces[",config=565,test=foo,"]))
-	assert.Equal(t, Trace{vec32.MISSING_DATA_SENTINEL, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
-	assert.Equal(t, Trace{vec32.MISSING_DATA_SENTINEL, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
+	assert.Equal(t, types.Trace{vec32.MISSING_DATA_SENTINEL, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
+	assert.Equal(t, types.Trace{vec32.MISSING_DATA_SENTINEL, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
 
 	// Match all traces with an empty query.
 	q, err = query.New(url.Values{})
@@ -251,9 +252,9 @@ func TestMatch(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(traces))
 	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
-	assert.Equal(t, Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
-	assert.Equal(t, Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
-	assert.Equal(t, Trace{5.55, 6.66, 7.77, vec32.MISSING_DATA_SENTINEL}, traces[",arch=x86,source_type=image,"])
+	assert.Equal(t, types.Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
+	assert.Equal(t, types.Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
+	assert.Equal(t, types.Trace{5.55, 6.66, 7.77, vec32.MISSING_DATA_SENTINEL}, traces[",arch=x86,source_type=image,"])
 
 	// Match none of the traces.
 	q, err = query.New(url.Values{"bar": []string{"baz"}})
@@ -277,6 +278,6 @@ func TestMatch(t *testing.T) {
 	traces, err = d.Match(commits, matches, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
-	assert.Equal(t, Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
-	assert.Equal(t, Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
+	assert.Equal(t, types.Trace{1.23, 2.34, 3.45, vec32.MISSING_DATA_SENTINEL}, traces[",config=565,test=foo,"])
+	assert.Equal(t, types.Trace{3.21, 5.43, 9.10, vec32.MISSING_DATA_SENTINEL}, traces[",config=8888,test=foo,"])
 }

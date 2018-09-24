@@ -54,6 +54,7 @@ import (
 	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -224,7 +225,9 @@ func Init() {
 	}
 	ptracestore.Init(*ptraceStoreDir)
 
-	freshDataFrame, err = dataframe.NewRefresher(ctx, git, ptracestore.Default, time.Minute, *dataFrameSize)
+	dfBuilder := dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
+
+	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
@@ -270,14 +273,14 @@ func Init() {
 		notifier = notify.New(emailAuth, *subdomain)
 	}
 
-	frameRequests = dataframe.NewRunningFrameRequests(git)
-	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting))
+	frameRequests = dataframe.NewRunningFrameRequests(git, dfBuilder)
+	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 	paramsProvider := newParamsetProvider(freshDataFrame)
 
 	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider)
+	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
 	go continuous.Run(ctx)
 }
 
@@ -356,7 +359,7 @@ func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
 		Header:   df.Header,
 		ParamSet: df.ParamSet,
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 	}, git, false, r.FormValue("tz"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load init data.")
