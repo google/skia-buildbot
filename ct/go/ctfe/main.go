@@ -314,7 +314,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
-	client = auth.ClientFromTokenSource(storageTokenSource)
+	client = httputils.DefaultClientConfig().WithTokenSource(storageTokenSource).With2xxOnly().Client()
 
 	ctx := context.Background()
 

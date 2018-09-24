@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"net"
 	"net/http"
 	"os/user"
 	"path"
@@ -615,10 +614,11 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	httpClient, err := auth.NewClient(*local, oauthCacheFile, auth.SCOPE_READ_WRITE)
+	tokenSource, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
 	// Initialize Isolate client.
 	isolateServerUrl := *isolateServer
@@ -672,14 +672,11 @@ func main() {
 		go testutils.PeriodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
-		tp := httputils.NewBackOffTransport().(*httputils.BackOffTransport)
-		tp.Transport.(*http.Transport).Dial = func(network, addr string) (net.Conn, error) {
-			return net.DialTimeout(network, addr, 3*time.Minute)
-		}
-		swarmClient, err := auth.NewClientWithTransport(*local, oauthCacheFile, "", tp, swarming.AUTH_SCOPE)
+		ts, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", swarming.AUTH_SCOPE)
 		if err != nil {
 			sklog.Fatal(err)
 		}
+		swarmClient := httputils.DefaultClientConfig().WithTokenSource(ts).WithDialTimeout(3 * time.Minute).With2xxOnly().Client()
 		swarm, err = swarming.NewApiClient(swarmClient, *swarmingServer)
 		if err != nil {
 			sklog.Fatal(err)

@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/ds/go/backup"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -34,10 +35,8 @@ func main() {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
 
-	// Don't use auth.ClientFromTokenSource() because it uses the
-	// BackOffTransport, and what we really want is a client that returns the
-	// status code on failure.
-	client := auth.TimeoutClientFromTokenSource(ts)
+	// backup package handles retries and specifically handles "resource exhausted" HTTP status code.
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	if err := backup.Step(client, *project, *bucket); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}

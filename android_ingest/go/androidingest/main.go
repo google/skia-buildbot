@@ -73,10 +73,11 @@ func Init() {
 	txLogWriteFailure = metrics2.GetCounter("tx_log_write_failure", nil)
 	uploads = metrics2.GetCounter("uploads", nil)
 	// Create a new auth'd client for androidbuildinternal.
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
-		sklog.Fatalf("Unable to create authenticated client: %s", err)
+		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(ts).Client()
 
 	if err := os.MkdirAll(*workRoot, 0755); err != nil {
 		sklog.Fatalf("Failed to create directory %q: %s", *workRoot, err)

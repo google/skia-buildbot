@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
@@ -39,8 +40,9 @@ func TestPDFProcessor(t *testing.T) {
 	ctx := context.Background()
 
 	// Get the service account client from meta data or a local config file.
-	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", auth.DEFAULT_JWT_FILENAME, storage.ScopeFullControl)
 	assert.NoError(t, err)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	cacheDir, err := fileutil.EnsureDirExists(CACHE_DIR)
 	assert.NoError(t, err)
