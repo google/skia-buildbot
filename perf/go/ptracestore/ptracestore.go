@@ -15,9 +15,9 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/constants"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -34,26 +34,6 @@ var (
 	tileNotExist = errors.New("Tile does not exist.")
 )
 
-// Trace is just a slice of float32s.
-type Trace []float32
-
-// NewTrace returns a Trace of length 'traceLen' initialized to vec32.MISSING_DATA_SENTINEL.
-func NewTrace(traceLen int) Trace {
-	ret := make([]float32, traceLen)
-	for i := range ret {
-		ret[i] = vec32.MISSING_DATA_SENTINEL
-	}
-	return ret
-}
-
-// TraceSet is a set of Trace's, keyed by trace id.
-type TraceSet map[string]Trace
-
-// Progress is a func that is called as Match works, passing in the steps
-// completed and the total number of steps, where a 'step' is applying a query
-// to a single tile.
-type Progress func(step, totalSteps int)
-
 // KeyMatches is a func that returns true if a key matches some criteria.
 // Passed to Match().
 type KeyMatches func(key string) bool
@@ -63,7 +43,6 @@ type KeyMatches func(key string) bool
 // PTraceStore doesn't know anything about git hashes or code review issue IDs,
 // that will be handled at a level above this.
 //
-// TODO(jcgregorio) How to list all the Sources?
 type PTraceStore interface {
 	// Add new values to the datastore at the given commitID.
 	//
@@ -83,7 +62,7 @@ type PTraceStore interface {
 	//
 	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
-	Match(commitIDs []*cid.CommitID, matches KeyMatches, progress Progress) (TraceSet, error)
+	Match(commitIDs []*cid.CommitID, matches KeyMatches, progress types.Progress) (types.TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -427,7 +406,7 @@ func dup(b []byte) []byte {
 // loadMatches loads values into 'traceSet' that match the 'matches' from the
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
-func loadMatches(bdb *bolt.DB, idxmap map[int]int, matches KeyMatches, traceSet TraceSet, traceLen int) error {
+func loadMatches(bdb *bolt.DB, idxmap map[int]int, matches KeyMatches, traceSet types.TraceSet, traceLen int) error {
 	defer timer.New("loadMatches time").Stop()
 
 	get := func(tx *bolt.Tx) error {
@@ -451,7 +430,7 @@ func loadMatches(bdb *bolt.DB, idxmap map[int]int, matches KeyMatches, traceSet 
 			if trace == nil {
 				// Don't make the copy until we know we are going to need it.
 				traceid := string(dup(btraceid))
-				traceSet[traceid] = NewTrace(traceLen)
+				traceSet[traceid] = types.NewTrace(traceLen)
 				trace = traceSet[traceid]
 			}
 
@@ -474,8 +453,8 @@ func loadMatches(bdb *bolt.DB, idxmap map[int]int, matches KeyMatches, traceSet 
 	return bdb.View(get)
 }
 
-func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, matches KeyMatches, progress Progress) (TraceSet, error) {
-	ret := TraceSet{}
+func (b *BoltTraceStore) Match(commitIDs []*cid.CommitID, matches KeyMatches, progress types.Progress) (types.TraceSet, error) {
+	ret := types.TraceSet{}
 	mapper := buildMapper(commitIDs)
 	i := 0
 	for _, tm := range mapper {
