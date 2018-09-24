@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
@@ -47,7 +48,7 @@ const (
 )
 
 func TestSynStorageEvents(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 
 	eventBus := New()
 
@@ -60,12 +61,25 @@ func TestSynStorageEvents(t *testing.T) {
 	jsonRegex := regexp.MustCompile(JSON_REGEX)
 	noPrefixRegExEvt, err := eventBus.RegisterStorageEvents(TEST_BUCKET, "", jsonRegex, nil)
 
-	chNoPrefix := make(chan interface{}, 100)
-	chWithPrefix := make(chan interface{}, 100)
-	chNoPrefixRegEx := make(chan interface{}, 100)
-	eventBus.SubscribeAsync(noPrefixEvt, func(e interface{}) { chNoPrefix <- e })
-	eventBus.SubscribeAsync(withPrefixEvt, func(e interface{}) { chWithPrefix <- e })
-	eventBus.SubscribeAsync(noPrefixRegExEvt, func(e interface{}) { chNoPrefixRegEx <- e })
+	// Gather the actual events fired.
+	var mutex sync.Mutex
+	var actNoPrefix, actWithPrefix, actNoPrefixRegEx []*StorageEvent
+
+	eventBus.SubscribeAsync(noPrefixEvt, func(e interface{}) {
+		mutex.Lock()
+		defer mutex.Unlock()
+		actNoPrefix = append(actNoPrefix, e.(*StorageEvent))
+	})
+	eventBus.SubscribeAsync(withPrefixEvt, func(e interface{}) {
+		mutex.Lock()
+		defer mutex.Unlock()
+		actWithPrefix = append(actWithPrefix, e.(*StorageEvent))
+	})
+	eventBus.SubscribeAsync(noPrefixRegExEvt, func(e interface{}) {
+		mutex.Lock()
+		defer mutex.Unlock()
+		actNoPrefixRegEx = append(actNoPrefixRegEx, e.(*StorageEvent))
+	})
 
 	// Gather the expectations.
 	expNoPrefix := []*StorageEvent{}
@@ -92,27 +106,22 @@ func TestSynStorageEvents(t *testing.T) {
 	}
 
 	assert.NoError(t, testutils.EventuallyConsistent(time.Second*2, func() error {
-		if len(chNoPrefix) < len(expNoPrefix) ||
-			len(chWithPrefix) < len(expWithPrefix) ||
-			len(chNoPrefixRegEx) < len(expNoPrefixRegEx) {
+		mutex.Lock()
+		defer mutex.Unlock()
+		if len(actNoPrefix) < len(expNoPrefix) ||
+			len(actWithPrefix) < len(expWithPrefix) ||
+			len(actNoPrefixRegEx) < len(expNoPrefixRegEx) {
 			return testutils.TryAgainErr
 		}
 		return nil
 	}))
-	close(chNoPrefix)
-	close(chWithPrefix)
-	close(chNoPrefixRegEx)
 
-	assertEventsMatch(t, expNoPrefix, chNoPrefix)
-	assertEventsMatch(t, expWithPrefix, chWithPrefix)
-	assertEventsMatch(t, expNoPrefixRegEx, chNoPrefixRegEx)
+	assertEventsMatch(t, expNoPrefix, actNoPrefix)
+	assertEventsMatch(t, expWithPrefix, actWithPrefix)
+	assertEventsMatch(t, expNoPrefixRegEx, actNoPrefixRegEx)
 }
 
-func assertEventsMatch(t *testing.T, expected []*StorageEvent, resultCh chan interface{}) {
-	actual := []*StorageEvent{}
-	for e := range resultCh {
-		actual = append(actual, e.(*StorageEvent))
-	}
+func assertEventsMatch(t *testing.T, expected, actual []*StorageEvent) {
 	sort.Slice(actual, func(i, j int) bool { return actual[i].ObjectID < actual[j].ObjectID })
 	sort.Slice(expected, func(i, j int) bool { return expected[i].ObjectID < expected[j].ObjectID })
 	assert.Equal(t, expected, actual)
