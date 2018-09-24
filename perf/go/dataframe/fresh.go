@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/ptracestore"
 )
 
 // Refresher keeps a fresh DataFrame of the last DEFAULT_NUM_COMMITS commits.
@@ -28,10 +27,10 @@ type Refresher struct {
 // A non-nil error will be returned if the initial DataFrame cannot be
 // populated. I.e. if NewRefresher returns w/o error than the caller
 // can be assured that Get() will return a non-nil DataFrame.
-func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, store ptracestore.PTraceStore, period time.Duration, n int) (*Refresher, error) {
+func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration, n int) (*Refresher, error) {
 	ret := &Refresher{
 		vcs:       vcs,
-		dfBuilder: NewDataFrameBuilderFromPTraceStore(vcs, store),
+		dfBuilder: dfBuilder,
 		period:    period,
 		n:         n,
 	}
