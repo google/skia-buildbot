@@ -5,6 +5,8 @@ import (
 	"flag"
 	"io"
 	"net/http"
+	"os/user"
+	"path/filepath"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -14,6 +16,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -29,7 +32,6 @@ var (
 	port        = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	promPort    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	webhookSalt = flag.String("webhook_request_salt", "", "Path to a file containing webhook request salt.")
-	workdir     = flag.String("workdir", ".", "Directory to use for scratch work.")
 )
 
 func main() {
@@ -53,12 +55,23 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_INTERNAL_NS, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
+	}
+	client := auth.ClientFromTokenSource(ts)
+
+	// The rollers use the gitcookie created by gitauth package.
+	user, err := user.Current()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+	if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
+		sklog.Fatalf("Failed to create git cookie updater: %s", err)
 	}
 
 	r := mux.NewRouter()
@@ -66,7 +79,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
-	arb, err := NewAutoRoller(ctx, *workdir, &cfg)
+	arb, err := NewAutoRoller(ctx, gitcookiesPath, &cfg, client)
 	if err != nil {
 		sklog.Fatal(err)
 	}
