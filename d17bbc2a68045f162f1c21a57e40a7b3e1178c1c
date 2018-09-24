@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6bc55d79_87b8d096",
+        "filename": "launch.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T14:11:45Z",
+      "side": 1,
+      "message": "ideally Chrome on Android.",
+      "range": {
+        "startLine": 117,
+        "startChar": 77,
+        "endLine": 117,
+        "endChar": 80
+      },
+      "revId": "d17bbc2a68045f162f1c21a57e40a7b3e1178c1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b64cfef7_a0fdef4e",
+        "filename": "launch.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T14:11:45Z",
+      "side": 1,
+      "message": "Describe and give an example of the annotations in a .yaml file that trigger the scraping.",
+      "range": {
+        "startLine": 118,
+        "startChar": 8,
+        "endLine": 119,
+        "endChar": 9
+      },
+      "revId": "d17bbc2a68045f162f1c21a57e40a7b3e1178c1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9da8c42_ba65bf3e",
+        "filename": "launch.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T14:11:45Z",
+      "side": 1,
+      "message": "add a step to run ./kube/set-backend-timeouts.sh after running an new *.skia.org endpoint.",
+      "range": {
+        "startLine": 130,
+        "startChar": 72,
+        "endLine": 130,
+        "endChar": 78
+      },
+      "revId": "d17bbc2a68045f162f1c21a57e40a7b3e1178c1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f2d2f5a_f959b389",
+        "filename": "launch.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T14:11:45Z",
+      "side": 1,
+      "message": "Add notes about the config pointing to the skia-public IP address.",
+      "range": {
+        "startLine": 131,
+        "startChar": 20,
+        "endLine": 131,
+        "endChar": 45
+      },
+      "revId": "d17bbc2a68045f162f1c21a57e40a7b3e1178c1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
