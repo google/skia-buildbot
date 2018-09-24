@@ -21,10 +21,10 @@ autoroll-be: skiaversion
 	go install -v ./go/autoroll-be
 
 autoroll-be-kube: skiaversion
-	GCO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-be-kube
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-be-kube
 
 autoroll-google3: skiaversion
-	go install -v ./go/autoroll-google3
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
@@ -86,3 +86,6 @@ push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKI
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-be
 
 push-be-kube-all: push-be-kube-internal push-be-kube-external
+
+push-google3: release-google3 pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR)
+	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-google3

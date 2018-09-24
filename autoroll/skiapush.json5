@@ -41,12 +41,6 @@
         "pulld",
       ],
     },
-    "google3-autoroll": {
-      "AppNames": [
-        "autoroll-google3",
-        "pulld",
-      ],
-    },
     "skia-flutter-autoroll": {
       "AppNames": [
         "skia-flutter-autorolld",
