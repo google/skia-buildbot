@@ -109,20 +109,6 @@ func AndroidO() *gce.Instance {
 	return AddAndroidConfigs(vm)
 }
 
-func Google3() *gce.Instance {
-	// Not using AutoRollBase because this server does not need auth.SCOPE_GERRIT.
-	vm := server.Server20170928("google3-autoroll")
-	vm.Contacts = []string{
-		"benjaminwagner@google.com",
-	}
-	vm.DataDisks[0].SizeGb = 64
-	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	vm.MachineType = gce.MACHINE_TYPE_STANDARD_2
-	vm.Metadata["owner_primary"] = "benjaminwagner"
-	vm.Metadata["owner_secondary"] = "borenet"
-	return vm
-}
-
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"afdo-chromium":          AFDOChromium(),
@@ -131,7 +117,6 @@ func main() {
 		"android-o":              AndroidO(),
 		"flutter-engine-flutter": FlutterEngine_Flutter(),
 		"fuchsia":                Fuchsia(),
-		"google3":                Google3(),
 		"skia-flutter":           Skia_Flutter(),
 	})
 }
