@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/stepfit"
 )
@@ -40,6 +41,7 @@ type Continuous struct {
 	provider       ConfigProvider
 	notifier       *notify.Notifier
 	paramsProvider ParamsetProvider
+	dfBuilder      dataframe.DataFrameBuilder
 
 	mutex   sync.Mutex // Protects current.
 	current *Current
@@ -50,7 +52,7 @@ type Continuous struct {
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, paramsProvider ParamsetProvider) *Continuous {
+func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, paramsProvider ParamsetProvider, dfBuilder dataframe.DataFrameBuilder) *Continuous {
 	return &Continuous{
 		git:            git,
 		cidl:           cidl,
@@ -61,6 +63,7 @@ func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider Conf
 		notifier:       notifier,
 		current:        &Current{},
 		paramsProvider: paramsProvider,
+		dfBuilder:      dfBuilder,
 	}
 }
 
@@ -166,7 +169,7 @@ func (c *Continuous) Run(ctx context.Context) {
 						Sparse:      cfg.Sparse,
 					}
 					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
-					resp, err := clustering2.Run(ctx, req, c.git, c.cidl)
+					resp, err := clustering2.Run(ctx, req, c.git, c.cidl, c.dfBuilder)
 					if err != nil {
 						sklog.Warningf("Failed while clustering %v %s", *req, err)
 						continue

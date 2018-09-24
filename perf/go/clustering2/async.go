@@ -19,7 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
-	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type ProcessState string
@@ -120,20 +120,20 @@ type ClusterRequestProcess struct {
 	cids       []*cid.CommitID  // The cids to run the clustering over. Calculated in calcCids.
 }
 
-func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
+func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
 	return &ClusterRequestProcess{
 		request:    req,
 		git:        git,
 		cidl:       cidl,
-		dfBuilder:  dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default),
+		dfBuilder:  dfBuilder,
 		lastUpdate: time.Now(),
 		state:      PROCESS_RUNNING,
 		message:    "Running",
 	}
 }
 
-func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup) *ClusterRequestProcess {
-	ret := newProcess(req, git, cidl)
+func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
+	ret := newProcess(req, git, cidl, dfBuilder)
 	go ret.Run(ctx)
 	return ret
 }
@@ -146,6 +146,7 @@ type RunningClusterRequests struct {
 	git                *gitinfo.GitInfo
 	cidl               *cid.CommitIDLookup
 	defaultInteresting float32 // The threshold to control if a cluster is considered interesting.
+	dfBuilder          dataframe.DataFrameBuilder
 
 	mutex sync.Mutex
 	// inProcess maps a ClusterRequest.Id() of the request to the ClusterRequestProcess
@@ -154,12 +155,13 @@ type RunningClusterRequests struct {
 }
 
 // NewRunningClusterRequests return a new RunningClusterRequests.
-func NewRunningClusterRequests(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, interesting float32) *RunningClusterRequests {
+func NewRunningClusterRequests(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder) *RunningClusterRequests {
 	fr := &RunningClusterRequests{
 		git:                git,
 		cidl:               cidl,
 		inProcess:          map[string]*ClusterRequestProcess{},
 		defaultInteresting: interesting,
+		dfBuilder:          dfBuilder,
 	}
 	go fr.background()
 	return fr
@@ -204,7 +206,7 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 		}
 	}
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newRunningProcess(ctx, req, fr.git, fr.cidl)
+		fr.inProcess[id] = newRunningProcess(ctx, req, fr.git, fr.cidl, fr.dfBuilder)
 	}
 	return id
 }
@@ -274,7 +276,7 @@ func (p *ClusterRequestProcess) Status() (ProcessState, string, error) {
 }
 
 // missing returns true if >50% of the trace is vec32.MISSING_DATA_SENTINEL.
-func missing(tr ptracestore.Trace) bool {
+func missing(tr types.Trace) bool {
 	count := 0
 	for _, x := range tr {
 		if x == vec32.MISSING_DATA_SENTINEL {
@@ -289,7 +291,7 @@ func missing(tr ptracestore.Trace) bool {
 //
 // The criteria is if there is >50% missing data on either side of the target
 // commit, which sits at the center of the trace.
-func tooMuchMissingData(tr ptracestore.Trace) bool {
+func tooMuchMissingData(tr types.Trace) bool {
 	if len(tr) < 3 {
 		return false
 	}
@@ -468,7 +470,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		return
 	}
 
-	df.TraceSet = ptracestore.TraceSet{}
+	df.TraceSet = types.TraceSet{}
 	frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to convert DataFrame to FrameResponse.")

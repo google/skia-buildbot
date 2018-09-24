@@ -20,8 +20,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/shortcut2"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type ProcessState string
@@ -90,18 +90,18 @@ type FrameRequestProcess struct {
 	percent       float32      // The percentage of the searches complete [0.0-1.0].
 }
 
-func newProcess(ctx context.Context, req *FrameRequest, git *gitinfo.GitInfo) *FrameRequestProcess {
+func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameRequest) *FrameRequestProcess {
 	numKeys := 0
 	if req.Keys != "" {
 		numKeys = 1
 	}
 	ret := &FrameRequestProcess{
-		git:           git,
+		git:           fr.git,
 		request:       req,
 		lastUpdate:    time.Now(),
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
-		dfBuilder:     NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default),
+		dfBuilder:     fr.dfBuilder,
 	}
 	go ret.Run(ctx)
 	return ret
@@ -116,14 +116,18 @@ type RunningFrameRequests struct {
 
 	git *gitinfo.GitInfo
 
+	dfBuilder DataFrameBuilder
+
 	// inProcess maps a FrameRequest.Id() of the request to the FrameRequestProcess
 	// handling that request.
 	inProcess map[string]*FrameRequestProcess
 }
 
-func NewRunningFrameRequests(git *gitinfo.GitInfo) *RunningFrameRequests {
+func NewRunningFrameRequests(git *gitinfo.GitInfo, dfBuilder DataFrameBuilder) *RunningFrameRequests {
 	fr := &RunningFrameRequests{
 		git:       git,
+		dfBuilder: dfBuilder,
+
 		inProcess: map[string]*FrameRequestProcess{},
 	}
 	go fr.background()
@@ -160,7 +164,7 @@ func (fr *RunningFrameRequests) Add(ctx context.Context, req *FrameRequest) stri
 	defer fr.mutex.Unlock()
 	id := req.Id()
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newProcess(ctx, req, fr.git)
+		fr.inProcess[id] = fr.newProcess(ctx, req)
 	}
 	return id
 }
@@ -390,7 +394,7 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git *gitinfo.GitI
 		}
 		sort.Strings(keys)
 		keys = keys[:MAX_TRACES_IN_RESPONSE]
-		newTraceSet := ptracestore.TraceSet{}
+		newTraceSet := types.TraceSet{}
 		for _, key := range keys {
 			newTraceSet[key] = df.TraceSet[key]
 		}
@@ -483,7 +487,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 	}
 
 	// Convert the Rows from float64 to float32 for DataFrame.
-	ts := ptracestore.TraceSet{}
+	ts := types.TraceSet{}
 	for k, v := range rows {
 		ts[k] = v
 	}

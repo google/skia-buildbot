@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 type mockVcs struct {
@@ -61,7 +62,7 @@ func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string,
 }
 
 type mockPTraceStore struct {
-	traceSet  ptracestore.TraceSet
+	traceSet  types.TraceSet
 	matchFail bool
 }
 
@@ -73,7 +74,7 @@ func (m mockPTraceStore) Details(commitID *cid.CommitID, traceID string) (string
 	return "", 0, nil
 }
 
-func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, progress ptracestore.Progress) (ptracestore.TraceSet, error) {
+func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, progress types.Progress) (types.TraceSet, error) {
 	if m.matchFail {
 		return nil, fmt.Errorf("Failed to retrieve traces.")
 	}
@@ -98,10 +99,10 @@ var (
 	}
 
 	store = mockPTraceStore{
-		traceSet: ptracestore.TraceSet{
-			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
-			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
-			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		traceSet: types.TraceSet{
+			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
 	}
 )
@@ -217,17 +218,17 @@ func TestBuildParamSet(t *testing.T) {
 	testutils.SmallTest(t)
 	// Test the empty case first.
 	df := &DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		ParamSet: paramtools.ParamSet{},
 	}
 	df.BuildParamSet()
 	assert.Equal(t, 0, len(df.ParamSet))
 
 	df = &DataFrame{
-		TraceSet: ptracestore.TraceSet{
-			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
-			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
-			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		TraceSet: types.TraceSet{
+			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
 		ParamSet: paramtools.ParamSet{},
 	}
@@ -244,14 +245,14 @@ func TestBuildParamSet(t *testing.T) {
 func TestFilter(t *testing.T) {
 	testutils.SmallTest(t)
 	df := &DataFrame{
-		TraceSet: ptracestore.TraceSet{
-			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
-			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
-			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		TraceSet: types.TraceSet{
+			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
 		ParamSet: paramtools.ParamSet{},
 	}
-	f := func(tr ptracestore.Trace) bool {
+	f := func(tr types.Trace) bool {
 		return tr[0] > 1.25
 	}
 	df.FilterOut(f)
@@ -259,14 +260,14 @@ func TestFilter(t *testing.T) {
 	assert.Equal(t, []string{"565"}, df.ParamSet["config"])
 
 	df = &DataFrame{
-		TraceSet: ptracestore.TraceSet{
-			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
-			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
-			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
+		TraceSet: types.TraceSet{
+			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
 		ParamSet: paramtools.ParamSet{},
 	}
-	f = func(tr ptracestore.Trace) bool {
+	f = func(tr types.Trace) bool {
 		return true
 	}
 	df.FilterOut(f)

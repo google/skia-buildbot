@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
-	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -22,42 +22,42 @@ const (
 func TestTooMuchMissingData(t *testing.T) {
 	testutils.SmallTest(t)
 	testCases := []struct {
-		value    ptracestore.Trace
+		value    types.Trace
 		expected bool
 		message  string
 	}{
 		{
-			value:    ptracestore.Trace{e, e, 1, 1, 1},
+			value:    types.Trace{e, e, 1, 1, 1},
 			expected: true,
 			message:  "missing one side",
 		},
 		{
-			value:    ptracestore.Trace{1, e, 1, 1, 1},
+			value:    types.Trace{1, e, 1, 1, 1},
 			expected: false,
 			message:  "exactly 50%",
 		},
 		{
-			value:    ptracestore.Trace{1, 1, e, 1, 1},
+			value:    types.Trace{1, 1, e, 1, 1},
 			expected: true,
 			message:  "missing midpoint",
 		},
 		{
-			value:    ptracestore.Trace{e, e, 1, 1},
+			value:    types.Trace{e, e, 1, 1},
 			expected: true,
 			message:  "missing one side - even",
 		},
 		{
-			value:    ptracestore.Trace{e, 1, 1, 1},
+			value:    types.Trace{e, 1, 1, 1},
 			expected: false,
 			message:  "exactly 50% - even",
 		},
 		{
-			value:    ptracestore.Trace{e, 1, 1},
+			value:    types.Trace{e, 1, 1},
 			expected: true,
 			message:  "Radius = 1",
 		},
 		{
-			value:    ptracestore.Trace{1},
+			value:    types.Trace{1},
 			expected: false,
 			message:  "len(tr) < 3",
 		},
@@ -178,10 +178,10 @@ func TestCidsWithData(t *testing.T) {
 		{Source: "master", Offset: 2001},
 		{Source: "master", Offset: 2002},
 	}
-	traceSet := ptracestore.TraceSet{
-		",arch=x86,config=565,":  ptracestore.Trace([]float32{e, 2.1, e}),
-		",arch=x86,config=8888,": ptracestore.Trace([]float32{e, 3.1, e}),
-		",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1, e}),
+	traceSet := types.TraceSet{
+		",arch=x86,config=565,":  types.Trace([]float32{e, 2.1, e}),
+		",arch=x86,config=8888,": types.Trace([]float32{e, 3.1, e}),
+		",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1, e}),
 	}
 	d := &dataframe.DataFrame{
 		TraceSet: traceSet,
@@ -198,7 +198,7 @@ func TestCidsWithDataEmpty(t *testing.T) {
 	testutils.SmallTest(t)
 
 	d := &dataframe.DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		Header:   []*dataframe.ColumnHeader{},
 	}
 

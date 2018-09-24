@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -28,27 +29,31 @@ const (
 type DataFrameBuilder interface {
 	// New returns a populated DataFrame of the last 50 commits or a non-nil
 	// error if there was a failure retrieving the traces.
-	New(progress ptracestore.Progress) (*DataFrame, error)
+	New(progress types.Progress) (*DataFrame, error)
 
 	// NewN returns a populated DataFrame of the last N commits or a non-nil
 	// error if there was a failure retrieving the traces.
-	NewN(progress ptracestore.Progress, n int) (*DataFrame, error)
+	NewN(progress types.Progress, n int) (*DataFrame, error)
 
 	// NewFromQueryAndRange returns a populated DataFrame of the traces that match
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
 	// periodically as the query is processed.
-	NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error)
+	NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress types.Progress) (*DataFrame, error)
 
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromKeysAndRange(keys []string, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error)
+	NewFromKeysAndRange(keys []string, begin, end time.Time, progress types.Progress) (*DataFrame, error)
 
 	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
 	// match the given time set of commits 'cids' and the query 'q'. The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress ptracestore.Progress) (*DataFrame, error)
+	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error)
+
+	// TODO Add func to count matches.
+	// TODO Add func to get merged paramset for a date range.
+	// TODO Add func to get dataframe of condensed traces of N data points ending at a given index.
 }
 
 // ptracestoreDataFrameBuilder implements DataFrameBuilder using ptracestore.
@@ -81,10 +86,10 @@ type ColumnHeader struct {
 //
 // The name DataFrame was gratuitously borrowed from R.
 type DataFrame struct {
-	TraceSet ptracestore.TraceSet `json:"traceset"`
-	Header   []*ColumnHeader      `json:"header"`
-	ParamSet paramtools.ParamSet  `json:"paramset"`
-	Skip     int                  `json:"skip"`
+	TraceSet types.TraceSet      `json:"traceset"`
+	Header   []*ColumnHeader     `json:"header"`
+	ParamSet paramtools.ParamSet `json:"paramset"`
+	Skip     int                 `json:"skip"`
 }
 
 // BuildParamSet rebuilds d.ParamSet from the keys of d.TraceSet.
@@ -101,7 +106,7 @@ func (d *DataFrame) BuildParamSet() {
 
 // TraceFilter is a function type that should return true if trace 'tr' should
 // be removed from a DataFrame. It is used in FilterOut.
-type TraceFilter func(tr ptracestore.Trace) bool
+type TraceFilter func(tr types.Trace) bool
 
 // FilterOut removes traces from d.TraceSet if the filter function 'f' returns
 // true for a trace.
@@ -166,7 +171,7 @@ func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*Column
 	return rangeImpl(commits, skip)
 }
 
-func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, store ptracestore.PTraceStore, progress ptracestore.Progress, skip int) (*DataFrame, error) {
+func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, store ptracestore.PTraceStore, progress types.Progress, skip int) (*DataFrame, error) {
 	defer timer.New("_new time").Stop()
 	traceSet, err := store.Match(commitIDs, matches, progress)
 	if err != nil {
@@ -184,12 +189,12 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptraces
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) New(progress ptracestore.Progress) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) New(progress types.Progress) (*DataFrame, error) {
 	return p.NewN(progress, DEFAULT_NUM_COMMITS)
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewN(progress ptracestore.Progress, n int) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) NewN(progress types.Progress, n int) (*DataFrame, error) {
 	colHeaders, commitIDs, skip := lastN(p.vcs, n)
 	matches := func(key string) bool {
 		return true
@@ -198,14 +203,14 @@ func (p *ptracestoreDataFrameBuilder) NewN(progress ptracestore.Progress, n int)
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress types.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromQueryAndRange time").Stop()
 	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, true)
 	return _new(colHeaders, commitIDs, q.Matches, p.store, progress, skip)
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, end time.Time, progress ptracestore.Progress) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, end time.Time, progress types.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromKeysAndRange time").Stop()
 	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, true)
 	sort.Strings(keys)
@@ -220,7 +225,7 @@ func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, 
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress ptracestore.Progress) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error) {
 	details, err := cidl.Lookup(ctx, cids)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
@@ -239,7 +244,7 @@ func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Conte
 // NewEmpty returns a new empty DataFrame.
 func NewEmpty() *DataFrame {
 	return &DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		Header:   []*ColumnHeader{},
 		ParamSet: paramtools.ParamSet{},
 	}
@@ -254,7 +259,7 @@ func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) *Data
 	defer timer.New("NewHeaderOnly time").Stop()
 	colHeaders, _, skip := getRange(vcs, begin, end, downsample)
 	return &DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		Header:   colHeaders,
 		ParamSet: paramtools.ParamSet{},
 		Skip:     skip,

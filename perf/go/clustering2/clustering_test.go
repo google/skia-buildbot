@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/ctrace2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/kmeans"
-	"go.skia.org/infra/perf/go/ptracestore"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestParamSummaries(t *testing.T) {
@@ -43,7 +43,7 @@ func TestCalcCusterSummaries(t *testing.T) {
 	rand.Seed(1)
 	now := time.Now()
 	df := &dataframe.DataFrame{
-		TraceSet: ptracestore.TraceSet{
+		TraceSet: types.TraceSet{
 			",arch=x86,config=8888,": []float32{0, 0, 1, 1, 1},
 			",arch=x86,config=565,":  []float32{0, 0, 1, 1, 1},
 			",arch=arm,config=8888,": []float32{1, 1, 1, 1, 1},
@@ -102,7 +102,7 @@ func TestCalcCusterSummariesDegenerate(t *testing.T) {
 	testutils.SmallTest(t)
 	rand.Seed(1)
 	df := &dataframe.DataFrame{
-		TraceSet: ptracestore.TraceSet{},
+		TraceSet: types.TraceSet{},
 		Header:   []*dataframe.ColumnHeader{},
 		ParamSet: paramtools.ParamSet{},
 		Skip:     0,
