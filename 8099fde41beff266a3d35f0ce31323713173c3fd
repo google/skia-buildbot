@@ -63,6 +63,46 @@
       "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e810d6c_2352f3f8",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T18:11:57Z",
+      "side": 1,
+      "message": "I think a simple recipe should be simple, ala:\n\nsteps :\u003d []Step{\n  SimpleStep(\"echo hello world\"),\n  Step{\n    Cmd: \"say hi\",\n    Pwd: \"go/test_automation\",\n  },\n}\n\nc.Do(steps)",
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a8a9991_8a577e0c",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T18:11:57Z",
+      "side": 1,
+      "message": "Is pulling resources out of CIPD and mapping them to a directory considered a step?",
+      "range": {
+        "startLine": 28,
+        "startChar": 14,
+        "endLine": 28,
+        "endChar": 17
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
