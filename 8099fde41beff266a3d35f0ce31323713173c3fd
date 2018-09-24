@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "cc70ef2d_5006cf3d",
+        "filename": "go/test_automation/emitter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T17:34:55Z",
+      "side": 1,
+      "message": "How are logs going to be streamed in real-time to StackDriver logging?\nI would expect to see an io.Reader somewhere in here.",
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2feebd79_a1ad519b",
         "filename": "run.go",
         "patchSetId": 2
