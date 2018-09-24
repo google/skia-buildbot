@@ -8,6 +8,7 @@
   "parentName": "Google3",
   "parentWaterfall": "https://goto.google.com/skia-testing-status",
   "rollerName": "google3-autoroll",
+  "serviceAccount": "autoroll-fe-internal@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],

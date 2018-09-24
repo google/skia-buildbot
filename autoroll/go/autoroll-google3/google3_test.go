@@ -13,18 +13,22 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/ds/testutil"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/jsonutils"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
 
-func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilder, func()) {
+func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, func()) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL, ds.KIND_AUTOROLL_STATUS)
 	gb := git_testutils.GitInit(t, ctx)
-	tmpDir, cleanup := testutils.TempDir(t)
-	a, err := NewAutoRoller(ctx, tmpDir, &roller.AutoRollerConfig{
+	urlmock := mockhttpclient.NewURLMock()
+	mockChild := gitiles_testutils.NewMockRepo(t, gb.RepoUrl(), git.GitDir(gb.Dir()), urlmock)
+	a, err := NewAutoRoller(ctx, "", &roller.AutoRollerConfig{
 		ChildName: "test-child",
 		Google3RepoManager: &roller.Google3FakeRepoManagerConfig{
 			ChildBranch: "master",
@@ -32,11 +36,10 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 		},
 		ParentName: "test-parent",
 		RollerName: "test-roller",
-	})
+	}, urlmock.Client())
 	assert.NoError(t, err)
 	a.Start(ctx, time.Second, time.Second)
-	return ctx, a, gb, func() {
-		cleanup()
+	return ctx, a, gb, mockChild, func() {
 		gb.Cleanup()
 	}
 }
@@ -82,7 +85,7 @@ func closeIssue(issue *autoroll.AutoRollIssue, result string) {
 }
 
 func TestStatus(t *testing.T) {
-	ctx, a, gb, cleanup := setup(t)
+	ctx, a, gb, mockChild, cleanup := setup(t)
 	defer cleanup()
 
 	commits := []string{gb.CommitGen(ctx, "a.txt")}
@@ -95,6 +98,8 @@ func TestStatus(t *testing.T) {
 	// Ensure that repo update occurs when updating status.
 	commits = append(commits, gb.CommitGen(ctx, "a.txt"))
 
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[0], commits[1])
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	status := a.status.Get()
 	assert.Equal(t, 0, status.NumFailedRolls)
@@ -121,6 +126,8 @@ func TestStatus(t *testing.T) {
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
 
 	recent := []*autoroll.AutoRollIssue{issue4, issue3, issue2, issue1}
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[0], commits[2])
 	assert.NoError(t, a.UpdateStatus(ctx, "error message", false))
 	status = a.status.Get()
 	assert.Equal(t, 2, status.NumFailedRolls)
@@ -132,13 +139,15 @@ func TestStatus(t *testing.T) {
 	deepequal.AssertDeepEqual(t, recent, status.Recent)
 
 	// Test preserving error.
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[0], commits[2])
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	status = a.status.Get()
 	assert.Equal(t, "error message", status.Error)
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
-	ctx, a, gb, cleanup := setup(t)
+	ctx, a, gb, mockChild, cleanup := setup(t)
 	defer cleanup()
 
 	commits := []string{gb.CommitGen(ctx, "a.txt"), gb.CommitGen(ctx, "a.txt"), gb.CommitGen(ctx, "a.txt")}
@@ -152,6 +161,8 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue2 := makeIssue(2, commits[1])
 	closeIssue(issue2, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue2, http.MethodPut))
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[1], commits[2])
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	deepequal.AssertDeepEqual(t, []*autoroll.AutoRollIssue{issue2, issue1}, a.status.Get().Recent)
 
@@ -160,6 +171,8 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue3, http.MethodPost))
 	issue4 := makeIssue(4, commits[2])
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPost))
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[1], commits[2])
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue3.Closed = true
 	issue3.Result = autoroll.ROLL_RESULT_FAILURE
@@ -169,6 +182,8 @@ func TestAddOrUpdateIssue(t *testing.T) {
 	issue5 := makeIssue(5, commits[2])
 	closeIssue(issue5, autoroll.ROLL_RESULT_SUCCESS)
 	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue5, http.MethodPut))
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[2], commits[2])
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	issue4.Closed = true
 	issue4.Result = autoroll.ROLL_RESULT_FAILURE
