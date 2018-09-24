@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "041bb02b_58b427ac",
+        "filename": "autoroll/config/skia-google3.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-24T18:26:38Z",
+      "side": 1,
+      "message": "Somewhat awkward, since this isn\u0027t actually the account used for rolling, but it\u0027s needed for gitcookies and seemed the most natural fit.",
+      "range": {
+        "startLine": 11,
+        "startChar": 20,
+        "endLine": 11,
+        "endChar": 78
+      },
+      "revId": "6fe570187f0c49a590b90a25e2c255b42f735445",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
