@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1b80626_4c570081",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-24T16:24:23Z",
+      "side": 1,
+      "message": "Why do you install it twice?",
+      "revId": "0c47019ee2434b8d2d8d956be707ccb0e6e18c77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
