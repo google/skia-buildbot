@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -264,7 +263,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	// Upload the CL.
 	uploadCmd := &exec.Command{
 		Dir:     rm.parentDir,
-		Env:     depot_tools.Env(rm.depotTools),
+		Env:     rm.depotToolsEnv,
 		Name:    "git",
 		Args:    []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 		Timeout: 2 * time.Minute,
@@ -298,7 +297,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
-		Env:  depot_tools.Env(rm.depotTools),
+		Env:  rm.depotToolsEnv,
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {
