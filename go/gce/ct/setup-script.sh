@@ -11,7 +11,7 @@ sudo apt-get update
 sudo apt-get -y install libosmesa-dev libexpat1-dev:i386 clang-3.6 poppler-utils netpbm python-django libgif-dev lua5.2 libnss3
 sudo easy_install -U pip
 sudo pip install setuptools --no-binary --upgrade
-sudo pip install -U crcmod
+sudo pip install -U crcmod mock
 
 # Temporarily for skbug/8219
 sudo apt-get -y install apache2 php5-cgi libapache2-mod-php5
@@ -50,7 +50,7 @@ make
 sudo make install
 # Install psutil in Python 2.7.11. See skbug.com/7293 for context.
 sudo /usr/local/lib/python2.7.11/bin/python -m ensurepip --upgrade
-sudo /usr/local/lib/python2.7.11/bin/pip install psutil httplib2
+sudo /usr/local/lib/python2.7.11/bin/pip install psutil httplib2 mock
 # Remove /usr/bin/ninja it interferences with depot_tools sometimes.
 sudo rm /usr/bin/ninja
 
