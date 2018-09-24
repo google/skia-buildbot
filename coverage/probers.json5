@@ -1,9 +1,0 @@
-{
-   "coverage-ingest": {
-     "urls": ["https://coverage.skia.org"],
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-}
