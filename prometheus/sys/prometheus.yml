@@ -48,10 +48,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-proxy:20000']
 
-  - job_name: 'coverage'
-    static_configs:
-      - targets: ['skia-coverage:20000']
-
   - job_name: 'ct_pixel_diff'
     static_configs:
       - targets: ['skia-ct-pixel-diff:20000']
