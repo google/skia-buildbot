@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
@@ -52,10 +53,11 @@ func main() {
 	common.Init()
 
 	gd := git.GitDir(*repo)
-	httpClient, err := auth.NewDefaultClient(true, swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultLegacyTokenSource(true, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	swarmApi, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
 		sklog.Fatal(err)

@@ -4,7 +4,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
@@ -22,10 +21,11 @@ var (
 func main() {
 	common.Init()
 	// Create a new auth'd client.
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", androidbuildinternal.AndroidbuildInternalScope)
 	if err != nil {
-		sklog.Fatalf("Unable to create authenticated client: %s", err)
+		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(ts).Client()
 	// Create a new API.
 	api, err := buildapi.NewAPI(client)
 	if err != nil {
