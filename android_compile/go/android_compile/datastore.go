@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 
 	"go.skia.org/infra/go/ds"
 )
@@ -91,8 +93,8 @@ func GetCompileTasks() ([]*CompileTask, []*CompileTask, error) {
 	return waitingTasks, runningTasks, nil
 }
 
-func DatastoreInit(project string, ns string) error {
-	return ds.Init(project, ns)
+func DatastoreInit(project string, ns string, ts oauth2.TokenSource) error {
+	return ds.InitWithOpt(project, ns, option.WithTokenSource(ts))
 }
 
 func GetPendingTasks() *datastore.Iterator {
