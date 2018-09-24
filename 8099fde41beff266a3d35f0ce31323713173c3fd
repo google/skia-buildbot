@@ -22,6 +22,30 @@
       "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "150df937_9496c1cc",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-24T17:26:28Z",
+      "side": 1,
+      "message": "Excessive use of mocks is a bad idea and doesn\u0027t really add anything to testing. For example: Recipes has 100% code coverage and mocks out everything it touches, and they land changes almost weekly that break our bots. Let\u0027s not make writing recipes that much harder for little to no gain.",
+      "parentUuid": "2feebd79_a1ad519b",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
