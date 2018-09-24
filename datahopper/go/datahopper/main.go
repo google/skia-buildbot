@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -68,10 +69,11 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(w, "google_storage_token.data")
-	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
+	ts, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Swarming API client.
 	swarm, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)

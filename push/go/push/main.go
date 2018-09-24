@@ -107,7 +107,7 @@ func Init() {
 	if err != nil {
 		sklog.Fatalf("Failed to create authenticated HTTP client token source: %s", err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	fastClient = NewFastTimeoutClient()
 

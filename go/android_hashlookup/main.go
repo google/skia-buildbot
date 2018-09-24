@@ -6,7 +6,6 @@ package main
 
 import (
 	"flag"
-	"net/http"
 	"os"
 	"time"
 
@@ -47,13 +46,14 @@ func main() {
 	buildID := args[2]
 	sklog.Infof("Branch, target, buildID: %s, %s, %s", branch, target, buildID)
 
+	ts, err := auth.NewLegacyTokenSource(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+	if err != nil {
+		sklog.Fatalf("Unable to create installed app oauth token source: %s", err)
+	}
 	// In this case we don't want a backoff transport since the Apiary backend
 	// seems to fail a lot, so we basically want to fall back to polling if a
 	// call fails.
-	client, err := auth.NewClientWithTransport(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
-	if err != nil {
-		sklog.Fatalf("Unable to create installed app oauth client:%s", err)
-	}
+	client := httputils.DefaultClientConfig().WithoutRetries().WithTokenSource(ts).Client()
 
 	f, err := androidbuild.New("/tmp/android-gold-ingest", client)
 	if err != nil {

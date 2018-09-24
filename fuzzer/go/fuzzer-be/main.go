@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 )
@@ -250,7 +251,7 @@ func setupOAuth(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("Failed to get token source: %s", err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	if storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client)); err != nil {
 		return fmt.Errorf("Problem authenticating to GCS: %v", err)
