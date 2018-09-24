@@ -25,7 +25,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/metrics2"
@@ -41,34 +41,32 @@ const (
 // AutoRoller provides a handler for adding/updating Rolls, translating them into AutoRollIssue for
 // storage in RecentRolls. It also manages an AutoRollStatusCache for status handlers.
 type AutoRoller struct {
-	cfg       *roller.AutoRollerConfig
-	recent    *recent_rolls.RecentRolls
-	status    *status.AutoRollStatusCache
-	childRepo *git.Repo
-	mtx       sync.Mutex
-	liveness  metrics2.Liveness
+	cfg         *roller.AutoRollerConfig
+	recent      *recent_rolls.RecentRolls
+	status      *status.AutoRollStatusCache
+	childBranch string
+	childRepo   *gitiles.Repo
+	mtx         sync.Mutex
+	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(ctx context.Context, workdir string, cfg *roller.AutoRollerConfig) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, gitcookiesPath string, cfg *roller.AutoRollerConfig, client *http.Client) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, err
 	}
 
-	childRepo, err := git.NewRepo(ctx, cfg.Google3RepoManager.ChildRepo, workdir)
-	if err != nil {
-		return nil, err
-	}
 	cache, err := status.NewCache(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, err
 	}
 	a := &AutoRoller{
-		cfg:       cfg,
-		recent:    recent,
-		status:    cache,
-		childRepo: childRepo,
-		liveness:  metrics2.NewLiveness("last_autoroll_landed"),
+		cfg:         cfg,
+		recent:      recent,
+		status:      cache,
+		childBranch: cfg.Google3RepoManager.ChildBranch,
+		childRepo:   gitiles.NewRepo(cfg.Google3RepoManager.ChildRepo, gitcookiesPath, client),
+		liveness:    metrics2.NewLiveness("last_autoroll_landed"),
 	}
 
 	if err := a.UpdateStatus(ctx, "", true); err != nil {
@@ -93,12 +91,6 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
-	// Update repo now to ensure that lastSuccessRev can be found in the repo and commitsNotRolled
-	// reflects the current state of the repo.
-	if err := a.childRepo.Update(ctx); err != nil {
-		return err
-	}
-
 	recent := a.recent.GetRecentRolls()
 	numFailures := 0
 	lastSuccessRev := ""
@@ -113,11 +105,11 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 
 	commitsNotRolled := 0
 	if lastSuccessRev != "" {
-		headRev, err := a.childRepo.RevParse(ctx, a.cfg.Google3RepoManager.ChildBranch)
+		headRev, err := a.childRepo.GetCommit(a.childBranch)
 		if err != nil {
 			return err
 		}
-		revs, err := a.childRepo.RevList(ctx, headRev, "^"+lastSuccessRev)
+		revs, err := a.childRepo.LogLinear(lastSuccessRev, headRev.Hash)
 		if err != nil {
 			return err
 		}
