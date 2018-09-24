@@ -12,7 +12,6 @@ import (
 	"text/template"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/issues"
@@ -267,7 +266,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:        dr.parentDir,
-		Env:        depot_tools.Env(dr.depotTools),
+		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
 		Name:       dr.gclient,
 		Args:       args,
@@ -279,7 +278,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	sklog.Info("Running command: gclient sync --nohooks")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:        dr.workdir,
-		Env:        depot_tools.Env(dr.depotTools),
+		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
 		Name:       "python",
 		Args:       []string{dr.gclient, "sync", "--nohooks"},
@@ -310,7 +309,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	sklog.Infof("Running command git %s", strings.Join(args, " "))
 	uploadCmd := &exec.Command{
 		Dir:        dr.parentDir,
-		Env:        depot_tools.Env(dr.depotTools),
+		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
 		Name:       "git",
 		Args:       []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
@@ -347,7 +346,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:        dr.parentDir,
-		Env:        depot_tools.Env(dr.depotTools),
+		Env:        dr.depotToolsEnv,
 		InheritEnv: true,
 		Name:       "git",
 		Args:       []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},

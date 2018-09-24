@@ -367,11 +367,12 @@ func (c *DepotToolsRepoManagerConfig) Validate() error {
 // depot_tools to manage checkouts.
 type depotToolsRepoManager struct {
 	*commonRepoManager
-	depotTools  string
-	gclient     string
-	gclientSpec string
-	parentDir   string
-	parentRepo  string
+	depotTools    string
+	depotToolsEnv []string
+	gclient       string
+	gclientSpec   string
+	parentDir     string
+	parentRepo    string
 }
 
 // Return a depotToolsRepoManager instance.
@@ -392,6 +393,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 	return &depotToolsRepoManager{
 		commonRepoManager: crm,
 		depotTools:        depotTools,
+		depotToolsEnv:     append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1"),
 		gclient:           path.Join(depotTools, GCLIENT),
 		gclientSpec:       c.GClientSpec,
 		parentDir:         parentDir,
@@ -415,7 +417,7 @@ func (r *depotToolsRepoManager) cleanParentWithRemote(ctx context.Context, remot
 	_, _ = exec.RunCwd(ctx, r.parentDir, "git", "branch", "-D", ROLL_BRANCH)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
-		Env:  depot_tools.Env(r.depotTools),
+		Env:  r.depotToolsEnv,
 		Name: "python",
 		Args: []string{r.gclient, "revert", "--nohooks"},
 	}); err != nil {
@@ -457,7 +459,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
-		Env:  depot_tools.Env(r.depotTools),
+		Env:  r.depotToolsEnv,
 		Name: "python",
 		Args: args,
 	}); err != nil {
@@ -465,7 +467,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  r.workdir,
-		Env:  depot_tools.Env(r.depotTools),
+		Env:  r.depotToolsEnv,
 		Name: "python",
 		Args: []string{r.gclient, "sync", "--nohooks"},
 	}); err != nil {

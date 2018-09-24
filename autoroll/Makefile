@@ -15,16 +15,16 @@ all: autoroll-fe autoroll-be autoroll-google3
 
 autoroll-fe: core_js elements_html skiaversion
 	ln -sf ../../res res/imp/res
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
+	GOOS=linux go install -a ./go/autoroll-fe
 
 autoroll-be: skiaversion
 	go install -v ./go/autoroll-be
 
 autoroll-be-kube: skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-be-kube
+	GOOS=linux go install -a ./go/autoroll-be-kube
 
 autoroll-google3: skiaversion
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
+	GOOS=linux go install -a ./go/autoroll-google3
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
