@@ -13,9 +13,36 @@ const (
 	// commit we will display when going through the goto redirector.
 	GOTO_RANGE = 10
 
-	// Constructor names that are used to instantiate an ingester.
-	// Note that, e.g. 'android-gold' has a different ingester, but writes
-	// to the gold dataset.
 	CONSTRUCTOR_NANO        = "nano"
 	CONSTRUCTOR_NANO_TRYBOT = "nano-trybot"
+)
+
+type IngesterConfig struct {
+	TileSize     int32
+	Project      string
+	Instance     string
+	Table        string
+	Topic        string
+	GitUrl       string
+	Subscription string
+	Bucket       string
+	RootDir      string
+	Shards       int32
+}
+
+var (
+	PERF_INGESTION_CONFIGS = map[string]*IngesterConfig{
+		"nano": &IngesterConfig{
+			TileSize:     50,
+			Project:      "skia-public",
+			Instance:     "perf-bt",
+			Table:        "skia",
+			Topic:        "perf-ingestion-skia",
+			GitUrl:       "https://skia.googlesource.com/skia",
+			Subscription: "perf-ingestion-skia",
+			Bucket:       "skia-perf",
+			RootDir:      "nano-json-v1",
+			Shards:       8,
+		},
+	}
 )
