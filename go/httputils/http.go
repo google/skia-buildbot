@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	// Below is a port of the exponential backoff implementation from
 	// google-http-java-client.
 	"github.com/cenkalti/backoff"
@@ -58,6 +60,96 @@ var (
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
+}
+
+type ClientConfig struct {
+	DialTimeout     time.Duration
+	RequestTimeout  time.Duration
+	Retries         *BackOffConfig
+	TokenSource     oauth2.TokenSource
+	Response2xxOnly bool
+	Metrics         bool
+}
+
+func DefaultClientConfig() ClientConfig {
+	return ClientConfig{
+		DialTimeout:     DIAL_TIMEOUT,
+		RequestTimeout:  REQUEST_TIMEOUT,
+		Metrics:         true,
+		Response2xxOnly: false,
+		Retries: &BackOffConfig{
+			initialInterval:     INITIAL_INTERVAL,
+			maxInterval:         MAX_INTERVAL,
+			maxElapsedTime:      MAX_ELAPSED_TIME,
+			randomizationFactor: RANDOMIZATION_FACTOR,
+			backOffMultiplier:   BACKOFF_MULTIPLIER,
+		},
+	}
+}
+
+func (c ClientConfig) WithDialTimeout(dialTimeout time.Duration) ClientConfig {
+	c.DialTimeout = dialTimeout
+	return c
+}
+
+func (c ClientConfig) WithoutMetrics() ClientConfig {
+	c.Metrics = false
+	return c
+}
+
+func (c ClientConfig) With2xxOnly() ClientConfig {
+	c.Response2xxOnly = true
+	return c
+}
+
+func (c ClientConfig) WithoutRetries() ClientConfig {
+	c.Retries = nil
+	return c
+}
+
+func (c ClientConfig) WithTokenSource(t oauth2.TokenSource) ClientConfig {
+	c.TokenSource = t
+	return c
+}
+
+// Ignores RequestTimeout.
+func (c ClientConfig) Transport() http.RoundTripper {
+	var t http.RoundTripper = http.DefaultTransport
+	if c.DialTimeout != 0 {
+		t = &http.Transport{
+			Dial: ConfiguredDialTimeout(c.DialTimeout),
+		}
+	}
+	if c.Retries != nil {
+		if c.RequestTimeout != 0 && c.Retries.maxElapsedTime > c.RequestTimeout {
+			sklog.Warningf("Setting ClientConfig.Retries.maxElapsedTime to value of ClientConfig.RequestTimeout. Was %s, now %s.", c.Retries.maxElapsedTime, c.RequestTimeout)
+			c.Retries.maxElapsedTime = c.RequestTimeout
+		}
+		t = &BackOffTransport{
+			Transport:     t,
+			backOffConfig: c.Retries,
+		}
+	}
+	if c.TokenSource != nil {
+		t = &oauth2.Transport{
+			Source: c.TokenSource,
+			Base:   t,
+		}
+	}
+	if c.Response2xxOnly {
+		t = Response2xxOnlyTransport{t}
+	}
+	if c.Metrics {
+		t = NewMetricsTransport(t)
+	}
+	return t
+}
+
+func (c ClientConfig) Client() http.Client {
+	return &http.Client{
+		Transport: c.Transport(),
+		Timeout:   c.RequestTimeout,
+	}
 }
 
 // DialTimeout is a dialer that sets a timeout.
