@@ -22,6 +22,30 @@
       "revId": "6fe570187f0c49a590b90a25e2c255b42f735445",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d3c22bc_b825e402",
+        "filename": "autoroll/config/skia-google3.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-24T19:29:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "041bb02b_58b427ac",
+      "range": {
+        "startLine": 11,
+        "startChar": 20,
+        "endLine": 11,
+        "endChar": 78
+      },
+      "revId": "6fe570187f0c49a590b90a25e2c255b42f735445",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
