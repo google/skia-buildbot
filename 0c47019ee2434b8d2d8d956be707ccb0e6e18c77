@@ -16,6 +16,24 @@
       "revId": "0c47019ee2434b8d2d8d956be707ccb0e6e18c77",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0754e13c_c66d45ab",
+        "filename": "go/gce/ct/setup-script.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-24T16:31:02Z",
+      "side": 1,
+      "message": "Because there are two different installations of python on the bots. See line 44.",
+      "parentUuid": "d1b80626_4c570081",
+      "revId": "0c47019ee2434b8d2d8d956be707ccb0e6e18c77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
