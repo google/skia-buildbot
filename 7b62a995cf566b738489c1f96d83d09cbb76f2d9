@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "671a19f5_6d53477f",
+        "filename": "go/test_automation/test_automation.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T14:42:38Z",
+      "side": 1,
+      "message": "Part of me wants to add support for nested Steps and remove Run in favor of a single \"root\" step which is parent to all others.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 17
+      },
+      "revId": "7b62a995cf566b738489c1f96d83d09cbb76f2d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
