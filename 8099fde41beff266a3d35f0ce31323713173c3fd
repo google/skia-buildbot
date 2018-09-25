@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "a0d62579_8977f4b9",
+        "filename": "go/test_automation/emitter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-25T13:47:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d5bb4261_da55e1e7",
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2feebd79_a1ad519b",
         "filename": "run.go",
         "patchSetId": 2
@@ -108,6 +126,30 @@
     },
     {
       "key": {
+        "uuid": "e45efe1c_6ed368ed",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-25T13:47:27Z",
+      "side": 1,
+      "message": "You can wrap actions, but a wrapper around \u0027os\u0027 is a waste of time.\nThat is, there\u0027s a big difference between wrapping \u0027os\u0027 and having steps that look like:\n\nfunc Step(c step.Context) error {\n   c.Report(\"starting git clone\")\n   if c.IsTesting {\n      return nil\n   }\n   ....\n}",
+      "parentUuid": "8c240236_41cedf65",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7e810d6c_2352f3f8",
         "filename": "run.go",
         "patchSetId": 2
@@ -137,6 +179,24 @@
       "side": 1,
       "message": "IMO we need to have something closer to a normal program.  With a static list of steps it\u0027s much harder to do things like use the output of one step in a subsequent step, branching (eg. if dir doesn\u0027t exist, run \"git clone\"), etc.",
       "parentUuid": "7e810d6c_2352f3f8",
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4482f8f_09fb5695",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-25T13:47:27Z",
+      "side": 1,
+      "message": "Agreed that we should support conditional flows also for complex recipes, but a simple recipe should be simple.\n\n\"branching (eg. if dir doesn\u0027t exist, run \"git clone\"), etc.\"\n\nI thought there\u0027d be a higher level \u0027step\u0027 that I would just pass the repo URL and a relative directory name and it would just do the right things to make sure it appeared there.",
+      "parentUuid": "57a4f274_2d27eb88",
       "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -178,6 +238,30 @@
       "side": 1,
       "message": "No, that\u0027s done by Swarming.",
       "parentUuid": "0a8a9991_8a577e0c",
+      "range": {
+        "startLine": 28,
+        "startChar": 14,
+        "endLine": 28,
+        "endChar": 17
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "477ecea1_5b75ce53",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-25T13:47:27Z",
+      "side": 1,
+      "message": "And the CIPD packages loaded and the directories they were copied into will be available in the recipe context?",
+      "parentUuid": "2b537195_0847a759",
       "range": {
         "startLine": 28,
         "startChar": 14,
