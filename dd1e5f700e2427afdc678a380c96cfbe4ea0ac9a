@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a328501d_f395ae86",
+        "filename": "skfe/sys/skia-nginx.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-09-25T01:28:09Z",
+      "side": 1,
+      "message": "# re-run purple jobs button on status.skia.org creates large URLs on task-scheduler.skia.org\n\n?",
+      "revId": "dd1e5f700e2427afdc678a380c96cfbe4ea0ac9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
