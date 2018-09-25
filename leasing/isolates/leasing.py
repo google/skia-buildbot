@@ -79,11 +79,14 @@ def main():
     while True:
       get_task_status_url = '%s/_/get_task_status?task=%s' % (
           args.leasing_server, args.task_id)
-      resp = urllib2.urlopen(get_task_status_url)
+      try:
+        resp = urllib2.urlopen(get_task_status_url)
+        output = json.load(resp)
+        if output['Expired']:
+          break
+      except urllib2.HTTPError as e:
+        print 'Could not contact the leasing server: %s' % e
 
-      output = json.load(resp)
-      if output['Expired']:
-        break
       time.sleep(POLLING_WAIT_TIME_SECS)
 
     print 'The lease time has expired.'
