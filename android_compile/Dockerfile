@@ -1,13 +1,29 @@
-FROM gcr.io/skia-public/basedebian:testing-slim
-#FROM debian:9.5
+# FROM gcr.io/skia-public/basedebian:testing-slim
+# PYTHONHOME=/usr/bin/ PYTHONPATH="/usr/lib/python2.7/:/usr/lib/python2.7/plat-x86_64-linux-gnu/" bash /tmp/compile.sh /mnt/pd0/checkouts/checkout_4/
+
+FROM debian:9.5
 
 USER root
 
-RUN apt-get update && apt-get install -y wget procps ccache gpg curl vim
+RUN apt-get update && apt-get install -y wget procps ccache gpg curl vim \
+    git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev \
+    gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev \
+    x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev \
+    libxml2-utils xsltproc unzip python sudo
 
-# TODO(rmistry): Is the below needed?
-# Add mounting instructions to fstab so that the ram disk remounts on reboot.
-RUN echo "tmpfs /mnt/pd0/ccache tmpfs nodev,nosuid,noexec,nodiratime,size=100G 0 0" | tee -a /etc/fstab
+# TODO(rmistry): Figure out a way to not do this hack.
+RUN ln -s /usr/lib/x86_64-linux-gnu/libncursesw.so.6.1 /usr/lib/libtinfo.so.5 \
+    && ln -s /usr/lib/x86_64-linux-gnu/libncursesw.so.6.1 /usr/lib/libncurses.so.5
+
+# TODO(rmistry): Remove this if debian:9.5 doe snot work with the python thingy.
+#Add user so we don't have to run as root (prevents us from over-writing files in /SRC)
+RUN groupadd -g 2000 skia \
+    && useradd -u 2000 -g 2000 skia \
+    && mkdir -p /home/skia \
+    && chown -R skia:skia /home/skia
+
+# TODO(rmistry): Remove this.
+# RUN echo "skia:skia" | chpasswd && adduser skia sudo
 
 USER skia
 
