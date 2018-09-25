@@ -1,9 +1,12 @@
 FROM gcr.io/skia-public/basedebian:testing-slim
-#FROM debian:9.5
 
 USER root
 
-RUN apt-get update && apt-get install -y wget procps ccache gpg curl vim
+RUN apt-get update && apt-get install -y wget procps ccache gpg curl vim \
+    git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev \
+    gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev \
+    x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev \
+    libxml2-utils xsltproc unzip python
 
 # TODO(rmistry): Is the below needed?
 # Add mounting instructions to fstab so that the ram disk remounts on reboot.
