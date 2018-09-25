@@ -119,7 +119,7 @@ export class WasmFiddle extends HTMLElement {
     // The location should be either /<fiddleType> or /<fiddleType>/<fiddlehash>
     let path = window.location.pathname;
     let hash = '';
-    const len = this.fiddleType + 2; // count of chars in /<fiddleType>/
+    const len = this.fiddleType.length + 2; // count of chars in /<fiddleType>/
     if (path.length > len) {
       hash = path.slice(len);
     }
