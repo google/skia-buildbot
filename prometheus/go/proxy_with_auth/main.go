@@ -50,9 +50,10 @@ func main() {
 	)
 	login.SimpleInitMust(*port, *local)
 
-	target, err := url.Parse(fmt.Sprintf("http://localhost%s", *targetPort))
+	targetURL := fmt.Sprintf("http://localhost%s", *targetPort)
+	target, err := url.Parse(targetURL)
 	if err != nil {
-		sklog.Fatalf("Unable to parse target URL %q: %s", targetPort, err)
+		sklog.Fatalf("Unable to parse target URL %s: %s", targetURL, err)
 	}
 
 	http.Handle("/", NewProxy(target))
