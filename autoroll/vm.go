@@ -24,15 +24,6 @@ func AutoRollBase(name, ipAddress string) *gce.Instance {
 	return vm
 }
 
-func AFDOChromium() *gce.Instance {
-	vm := AutoRollBase("afdo-chromium-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"gbiv@chromium.org",
-	}
-	vm.ServiceAccount = "afdo-chromium-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
 func AngleSkia() *gce.Instance {
 	vm := AutoRollBase("angle-skia-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -111,7 +102,6 @@ func AndroidO() *gce.Instance {
 
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"afdo-chromium":          AFDOChromium(),
 		"android-master":         AndroidMaster(),
 		"android-next":           AndroidNext(),
 		"android-o":              AndroidO(),

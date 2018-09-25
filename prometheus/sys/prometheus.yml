@@ -28,7 +28,6 @@ scrape_configs:
 
   - job_name: 'autoroll-be'
     static_configs:
-      - targets: ['afdo-chromium-autoroll:20000']
       - targets: ['android-master-autoroll:20000']
       - targets: ['android-next-autoroll:20000']
       - targets: ['android-o-autoroll:20000']
@@ -163,7 +162,6 @@ scrape_configs:
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
-      - targets: ['afdo-chromium-autoroll:11000']
       - targets: ['android-master-autoroll:11000']
       - targets: ['android-next-autoroll:11000']
       - targets: ['android-o-autoroll:11000']
