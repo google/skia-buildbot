@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d5bb4261_da55e1e7",
+        "filename": "go/test_automation/emitter.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T12:03:08Z",
+      "side": 1,
+      "message": "This struct is just for emitting step metadata (eg. to pubsub), not logs.  I didn\u0027t try to tackle log streaming yet, since it will be tricky.",
+      "parentUuid": "cc70ef2d_5006cf3d",
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2feebd79_a1ad519b",
         "filename": "run.go",
         "patchSetId": 2
@@ -66,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "8c240236_41cedf65",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T12:03:08Z",
+      "side": 1,
+      "message": "So what\u0027s the alternative?  If we don\u0027t have wrappers around \"actions\" (eg. run a command, perform a filesystem operation, etc), how will we emit step metadata when they occur?  I thought the consensus from the brainstorming doc was that steps were important to keep and that we don\u0027t just want to replace recipes with opaque Go programs.",
+      "parentUuid": "150df937_9496c1cc",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7e810d6c_2352f3f8",
         "filename": "run.go",
         "patchSetId": 2
@@ -83,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "57a4f274_2d27eb88",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T12:03:08Z",
+      "side": 1,
+      "message": "IMO we need to have something closer to a normal program.  With a static list of steps it\u0027s much harder to do things like use the output of one step in a subsequent step, branching (eg. if dir doesn\u0027t exist, run \"git clone\"), etc.",
+      "parentUuid": "7e810d6c_2352f3f8",
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0a8a9991_8a577e0c",
         "filename": "run.go",
         "patchSetId": 2
@@ -94,6 +154,30 @@
       "writtenOn": "2018-09-24T18:11:57Z",
       "side": 1,
       "message": "Is pulling resources out of CIPD and mapping them to a directory considered a step?",
+      "range": {
+        "startLine": 28,
+        "startChar": 14,
+        "endLine": 28,
+        "endChar": 17
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b537195_0847a759",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T12:03:08Z",
+      "side": 1,
+      "message": "No, that\u0027s done by Swarming.",
+      "parentUuid": "0a8a9991_8a577e0c",
       "range": {
         "startLine": 28,
         "startChar": 14,
