@@ -28,8 +28,8 @@ cd $checkout
 # Set ccache env variables.
 export CCACHE_DIR=/ccache
 export USE_CCACHE=1
-export CCACHE_EXEC=/ccache
-ccache -M 200G
+export CCACHE_EXEC=/usr/bin/ccache
+ccache -M 100G
 
 source_cmd="source ./build/envsetup.sh"
 log_step "Running $source_cmd"
