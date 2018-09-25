@@ -8,6 +8,7 @@
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "afdo-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "gbiv@chromium.org"
   ],
@@ -17,6 +18,14 @@
     "gerritProject": "chromium/src",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "0m"
 }
