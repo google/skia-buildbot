@@ -174,6 +174,30 @@
     },
     {
       "key": {
+        "uuid": "95419bd1_6bdae65d",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-25T15:07:27Z",
+      "side": 1,
+      "message": "\"Assuming we have tests for the components which get used, we shouldn\u0027t need to see every change in behavior. \"\n\n+1\n\n\"it\u0027d still be nice to monitor what\u0027s happening, eg. which commands we ran.\"\n\nRight, I don\u0027t think it\u0027s possible, or even a goal, to make this system so bullet proof we never ship a broken recipe, I\u0027d rather focus our effort on making these easy to debug when we do make a mistake.",
+      "parentUuid": "0ef24eda_ed9490c8",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7e810d6c_2352f3f8",
         "filename": "run.go",
         "patchSetId": 2
@@ -337,6 +361,30 @@
       "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ad3d6c5_2d212b47",
+        "filename": "run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-25T15:07:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2f73301f_25cb2786",
+      "range": {
+        "startLine": 28,
+        "startChar": 14,
+        "endLine": 28,
+        "endChar": 17
+      },
+      "revId": "8099fde41beff266a3d35f0ce31323713173c3fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
