@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b1a787a1_7342759c",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T17:41:37Z",
+      "side": 1,
+      "message": "Example output: https://paste.googleplex.com/5910423836557312",
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
