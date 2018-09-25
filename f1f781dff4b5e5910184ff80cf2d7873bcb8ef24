@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d5c258b_09e3d1d5",
+        "filename": "go/httputils/http_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-25T12:14:38Z",
+      "side": 1,
+      "message": "Nit: \"hang\"?",
+      "range": {
+        "startLine": 20,
+        "startChar": 45,
+        "endLine": 20,
+        "endChar": 49
+      },
+      "revId": "f1f781dff4b5e5910184ff80cf2d7873bcb8ef24",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
