@@ -49,7 +49,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 		if len(inst.ServiceAccounts) != 1 {
-			sklog.Fatal("Instances must have exactly one service account but %s has %d", name, len(inst.ServiceAccounts))
+			sklog.Fatalf("Instances must have exactly one service account but %s has %d", name, len(inst.ServiceAccounts))
 		}
 		emailsByInstance[name] = inst.ServiceAccounts[0].Email
 		if *serviceAccount != "" {
