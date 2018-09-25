@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
@@ -248,4 +249,12 @@ func TestGetIssueUrlBase(t *testing.T) {
 	assert.NoError(t, err)
 	issueUrlBase := githubClient.GetIssueUrlBase()
 	assert.Equal(t, "https://github.com/kryptonians/krypton/pull/", issueUrlBase)
+}
+
+func TestRerunLatestCheckSuite(t *testing.T) {
+	testutils.SmallTest(t)
+	githubClient, err := NewGitHub(context.Background(), "flutter", "engine", httputils.NewTimeoutClient())
+	assert.NoError(t, err)
+	err = githubClient.RerunLatestCheckSuite("e1913b28af74329f1bba97911ae69e52347d7b60")
+	assert.NoError(t, err)
 }
