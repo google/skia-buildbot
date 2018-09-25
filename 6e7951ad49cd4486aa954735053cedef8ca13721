@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bdbddcb6_aa3b9fdf",
+        "filename": "leasing/isolates/leasing.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-25T17:06:14Z",
+      "side": 1,
+      "message": "nit: modern syntax is \"urllib2.HTTPError as e\"",
+      "range": {
+        "startLine": 87,
+        "startChar": 30,
+        "endLine": 87,
+        "endChar": 32
+      },
+      "revId": "6e7951ad49cd4486aa954735053cedef8ca13721",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
