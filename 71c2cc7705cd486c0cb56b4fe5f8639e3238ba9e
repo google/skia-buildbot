@@ -22,6 +22,30 @@
       "revId": "71c2cc7705cd486c0cb56b4fe5f8639e3238ba9e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91f6853f_1904b2ea",
+        "filename": "android_compile/Dockerfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-26T12:33:58Z",
+      "side": 1,
+      "message": "Added a comment.",
+      "parentUuid": "e32b8151_b6406fce",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 15
+      },
+      "revId": "71c2cc7705cd486c0cb56b4fe5f8639e3238ba9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
