@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "034cf251_28bd16f2",
+        "filename": "perf/BIGTABLE.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "nit: \"a single table per perf instance\"\nright?",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 44
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27926571_9e54bbbf",
+        "filename": "perf/BIGTABLE.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "nit: if this is the MD5 reported from GCS, can you please say something to that effect, just to make it clear that you are not actually hashing the GCS file.\nI have had the weird experience recently that I was not able to re-compute the MD5 locally that was reported by GCS.",
+      "range": {
+        "startLine": 43,
+        "startChar": 5,
+        "endLine": 43,
+        "endChar": 46
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ec1b9db_0acbd11b",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "Nit: Make a reference to the BIGTABLE.md file about the row naming scheme (or remove that file) \nIMO this duplicate documentation will get out of sync quickly.",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 5
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cff5d29_aa1f70a3",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "Is this implementing the PTraceStore interface ?",
+      "range": {
+        "startLine": 206,
+        "startChar": 5,
+        "endLine": 206,
+        "endChar": 23
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ab2acbe_fb5d9d05",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "just: b.cacheOps",
+      "range": {
+        "startLine": 264,
+        "startChar": 4,
+        "endLine": 264,
+        "endChar": 22
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad9f872e_0ba87450",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "should that be removed ?",
+      "range": {
+        "startLine": 270,
+        "startChar": 4,
+        "endLine": 272,
+        "endChar": 3
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c98428d0_99d68d27",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "just: b.cacheOps",
+      "range": {
+        "startLine": 285,
+        "startChar": 18,
+        "endLine": 285,
+        "endChar": 36
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7f7d05f_3f8557b4",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "var mutex sync.Mutex",
+      "range": {
+        "startLine": 406,
+        "startChar": 1,
+        "endLine": 406,
+        "endChar": 22
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48bd8c48_3a53c168",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "var mutex sync.Mutex",
+      "range": {
+        "startLine": 406,
+        "startChar": 1,
+        "endLine": 406,
+        "endChar": 22
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4e7337d_83cac433",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "leftover from debugging?",
+      "range": {
+        "startLine": 586,
+        "startChar": 3,
+        "endLine": 586,
+        "endChar": 28
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88e8a654_27dabcad",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "Suggestion: This could be factored out into a infra/go/bt/testutils  package and maybe re-use InitBigTable in infra/go/bt.go",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 1
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40f7b36f_851a24f4",
+        "filename": "perf/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T17:50:10Z",
+      "side": 1,
+      "message": "nit: needed by...",
+      "range": {
+        "startLine": 20,
+        "startChar": 44,
+        "endLine": 20,
+        "endChar": 52
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
