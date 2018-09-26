@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y wget procps ccache gpg curl vim \
     git-core gnupg flex bison gperf build-essential zip curl zlib1g-dev \
     gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev \
     x11proto-core-dev libx11-dev lib32z-dev ccache libgl1-mesa-dev \
-    libxml2-utils xsltproc unzip python
+    libxml2-utils xsltproc unzip python openjdk-8-jdk
 
 # TODO(rmistry): Figure out a way to not do this hack.
 RUN ln -s /usr/lib/x86_64-linux-gnu/libncursesw.so.6.1 /usr/lib/libtinfo.so.5 \
