@@ -15,10 +15,12 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="import" href="/res/common/imp/details-summary.html" />
 
+<link rel="import" href="/res/imp/cluster2.html">
 <link rel="import" href="/res/imp/triage-status.html" />
 <link rel="import" href="/res/imp/commit-detail.html" />
 
@@ -88,6 +90,15 @@
     th {
       padding: 0 1em;
     }
+
+    cluster-summary2-sk {
+      display: block;
+      margin: 2em;
+    }
+
+    paper-dialog {
+      overflow: auto;
+    }
   </style>
   <template>
     <details-sk open="{{_statusOpen}}">
@@ -142,7 +153,15 @@
       <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
     </details-sk>
     <paper-spinner id=spinner></paper-spinner>
-    <table on-open-keys=_openKeys on-triaged=_triaged id=table>
+
+    <paper-dialog id=dialog>
+      <cluster-summary2-sk id=cluster_summary on-triaged=_triaged id=summary full_summary="[[_dialog_state.full_summary]]" triage="[[_dialog_state.triage]]"></cluster-summary2-sk>
+      <div class=buttons>
+        <button on-click=_close>Close</button>
+      </div>
+    </paper-dialog>
+
+    <table on-open-keys=_openKeys on-start-triage=_triage_start id=table>
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
@@ -241,6 +260,10 @@
         _statusOpen: {
           type: Boolean,
           value: false,
+        },
+        _dialog_state: {
+          type: Object,
+          value: function() { return {}; },
         }
       },
 
@@ -287,6 +310,9 @@
       },
 
       _updateRange: function() {
+        if (this.$.spinner.active) {
+          return
+        }
         this.set('_reg',  {});
         this.$.range.begin = this.state.begin;
         this.$.range.end = this.state.end;
@@ -311,6 +337,11 @@
       },
 
       _triaged: function(e) {
+        e.stopPropagation();
+        e.detail.alert= this._dialog_state.alert;
+        e.detail.cluster_type = this._dialog_state.cluster_type;
+        this.$.dialog.close();
+
         this.$.spinner.active = true;
         if (this._triageInProgress === true) {
           sk.errorMessage("A triage request is in progress.");
@@ -320,6 +351,9 @@
         sk.post("/_/triage/", JSON.stringify(e.detail), "application/json").then(JSON.parse).then(function(json) {
           this.$.spinner.active = false;
           this._triageInProgress = false;
+          // Jam the values back into triage, because Polymer.
+          this._dialog_state.element.set('triage.status', e.detail.triage.status);
+          this._dialog_state.element.set('triage.message', e.detail.triage.message);
           if (json.bug) {
             // Open the bug reporting page in a new window.
             window.open(json.bug, '_blank');
@@ -331,6 +365,11 @@
           this.$.spinner.active = false;
           this._triageInProgress = false;
         }.bind(this));
+      },
+
+      _triage_start: function(e) {
+        this._dialog_state = e.detail;
+        this.$.dialog.open();
       },
 
       _encQueryFrom: function(index) {
@@ -385,6 +424,11 @@
           return display_name;
         }
       },
+
+      _close: function() {
+        this.$.dialog.close();
+      },
+
 
     });
   })();
