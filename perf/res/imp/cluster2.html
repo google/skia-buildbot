@@ -251,6 +251,7 @@
             line.push([x, y]);
           }
         });
+        this.$.graph.removeAll();
         this.$.graph.addLines({special_centroid: line});
 
         // Set the tickmarks.
