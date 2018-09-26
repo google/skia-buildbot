@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7cd5b990_aed3f648",
+        "filename": "android_compile/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-26T12:35:47Z",
+      "side": 1,
+      "message": "In what way?  We really want to be using Python from CIPD as opposed to from the package manager.",
+      "range": {
+        "startLine": 1,
+        "startChar": 44,
+        "endLine": 2,
+        "endChar": 42
+      },
+      "revId": "3ebf947691d01096e2205a6aa817deacc2f79493",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
