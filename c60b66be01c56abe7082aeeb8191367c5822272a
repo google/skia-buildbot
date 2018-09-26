@@ -255,6 +255,30 @@
     },
     {
       "key": {
+        "uuid": "00cd6854_87441b5a",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T18:24:07Z",
+      "side": 1,
+      "message": "I missed the nested steps approach. SGTM.\nThere are many ways to do this and it\u0027s a very viable approach.\n\nI am happy to bow to the majority, but I feel compelled to write a dissent :-) \n\n- what you are suggesting creates a single monolithic binary (if I understand correctly) that\n  runs all steps from beginning to end. That strikes me as very hard to replicate \n  locally (which is a big problem with recipes)\n\n- If we write each step as separate Go program we can re-use just as much code since they \n  would all draw from the same library.\n\n- One of the major downsides of recipes IMO is that they mix test code and \n  domain specific code,i.e. they are riddled with if-statements to control what \n  to exclude/include in a test. This approach would continue that. \n\n- In this approach you would have to simulate steps to test the overall system. \n  If the driver code calls out to individual processes we just have to create mock \n  processes that test/control the input and output they get from the test driver.\n  We could essentially run the whole test framework on every commit without any changes\n  to it.",
+      "parentUuid": "8c8bf2e2_08676180",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 38
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1a70e70d_321f73d9",
         "filename": "run.go",
         "patchSetId": 4
@@ -337,6 +361,30 @@
       "side": 1,
       "message": "That seems like a lot of overhead.  What would we gain from it?",
       "parentUuid": "354a6e04_395121fd",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 3
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32d76f7d_6cd1cfba",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T18:24:07Z",
+      "side": 1,
+      "message": "I don\u0027t see any more overhead than this approach, just the place where exec.RunCwd is called.\nOtherwise see what I wrote above.",
+      "parentUuid": "11b371e5_165a621a",
       "range": {
         "startLine": 43,
         "startChar": 0,
