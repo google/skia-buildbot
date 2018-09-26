@@ -85,6 +85,7 @@
         <th>Alert</th>
         <th>Owner</th>
         <th></th>
+        <th></th>
       </tr>
       <template is="dom-repeat" items="{{_alerts}}">
         <tr>
@@ -94,6 +95,7 @@
           <td>{{item.alert}}</td>
           <td>{{item.owner}}</td>
           <td><iron-icon title="Delete" icon="delete" on-tap="_delete" __config="{{item}}"></iron-icon></td>
+          <td>[[_ifNotActive(item.state)]]</iron-icon></td>
         </tr>
       </template>
     </table>
@@ -224,7 +226,12 @@
 
     _isZeroLength: function(a) {
       return a.length === 0;
-    }
+    },
 
+    _ifNotActive: function(s) {
+      if (s !== 'ACTIVE') {
+        return 'Archived';
+      }
+    }
   });
 </script>
