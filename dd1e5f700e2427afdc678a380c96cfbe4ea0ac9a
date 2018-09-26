@@ -16,6 +16,24 @@
       "revId": "dd1e5f700e2427afdc678a380c96cfbe4ea0ac9a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cd6b68f_d0b6fb56",
+        "filename": "skfe/sys/skia-nginx.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T20:19:25Z",
+      "side": 1,
+      "message": "Separate CL",
+      "parentUuid": "a328501d_f395ae86",
+      "revId": "dd1e5f700e2427afdc678a380c96cfbe4ea0ac9a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
