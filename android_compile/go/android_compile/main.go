@@ -161,7 +161,7 @@ func triggerCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTas
 	}()
 }
 
-// UpdateCompileTask updates the task in both Google stroage and in Datastore.
+// UpdateCompileTask updates the task in both Google storage and in Datastore.
 func UpdateCompileTask(ctx context.Context, g *gsFileLocation, datastoreKey *datastore.Key, task *CompileTask) error {
 	if err := updateTaskInGoogleStorage(ctx, g, *task, datastoreKey.ID); err != nil {
 		return fmt.Errorf("Could not update in Google storage compile task in with ID %d: %s", datastoreKey.ID, err)
@@ -222,13 +222,13 @@ func main() {
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
 	if err != nil {
-		sklog.Fatal("Problem setting up default token source: %s", err)
+		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
 
 	// Instantiate storage client.
 	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
-		sklog.Fatal("Failed to create a Google Storage API client: %s", err)
+		sklog.Fatalf("Failed to create a Google Storage API client: %s", err)
 	}
 
 	// Initialize cloud datastore.

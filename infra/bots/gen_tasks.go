@@ -226,7 +226,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
 		Dimensions:   dimensions,
 		EnvPrefixes: map[string][]string{
-			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
+			"PATH":                    []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
 			"VPYTHON_VIRTUALENV_ROOT": []string{"${cache_dir}/vpython"},
 		},
 		ExtraTags: map[string]string{

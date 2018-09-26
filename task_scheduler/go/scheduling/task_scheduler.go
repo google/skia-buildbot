@@ -1816,7 +1816,7 @@ func (s *TaskScheduler) ValidateAndAddTask(ctx context.Context, task *db.Task) e
 		task.Created = time.Now().UTC()
 	}
 	if len(task.Commits) > 0 {
-		sklog.Warning("Ignoring Commits in ValidateAndAddTask. %v", task)
+		sklog.Warningf("Ignoring Commits in ValidateAndAddTask. %v", task)
 	}
 	task.Commits = nil
 

@@ -124,7 +124,7 @@ func (g *GCSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
 	g.Pool.ClearStaging()
 	oldBinaryFuzzNames, err := g.Cache.LoadFuzzNames(revision)
 	if err != nil {
-		sklog.Warningf("Could not read old binary fuzz names from cache.  Continuing...", err)
+		sklog.Warningf("Could not read old binary fuzz names from cache: %s\n  Continuing...", err)
 		oldBinaryFuzzNames = []string{}
 	}
 	if err := g.Cache.StorePool(g.Pool, revision); err != nil {
