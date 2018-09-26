@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/bigtable"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/paramtools"
@@ -15,9 +14,9 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
+	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
-	"golang.org/x/oauth2"
 )
 
 var (
@@ -34,34 +33,6 @@ var (
 		Shards:       8,
 	}
 )
-
-type MockTS struct{}
-
-func (t *MockTS) Token() (*oauth2.Token, error) {
-	return nil, nil
-}
-
-func createTestTable(t *testing.T) {
-	ctx := context.Background()
-	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
-	err := client.CreateTableFromConf(ctx, &bigtable.TableConf{
-		TableID: "test",
-		Families: map[string]bigtable.GCPolicy{
-			"V": bigtable.MaxVersionsPolicy(1),
-			"S": bigtable.MaxVersionsPolicy(1),
-			"D": bigtable.MaxVersionsPolicy(1),
-			"H": bigtable.MaxVersionsPolicy(1),
-		},
-	})
-	assert.NoError(t, err)
-}
-
-func cleanUpTestTable(t *testing.T) {
-	ctx := context.Background()
-	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
-	err := client.DeleteTable(ctx, "test")
-	assert.NoError(t, err)
-}
 
 func TestFromIndexCommit(t *testing.T) {
 	testutils.SmallTest(t)
@@ -109,10 +80,10 @@ func TestFromIndexCommit(t *testing.T) {
 func TestBuildTraceMapper(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
-	createTestTable(t)
-	defer cleanUpTestTable(t)
+	btts_testutils.CreateTestTable(t)
+	defer btts_testutils.CleanUpTestTable(t)
 
-	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &MockTS{}, true)
+	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
 	tileMap := buildTileMapOffsetToIndex([]int32{0, 1, 255, 256, 257}, store)
@@ -158,8 +129,8 @@ func addValusAtIndex(store *btts.BigTableTraceStore, index int32, values map[str
 func TestBuildNew(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
-	createTestTable(t)
-	defer cleanUpTestTable(t)
+	btts_testutils.CreateTestTable(t)
+	defer btts_testutils.CleanUpTestTable(t)
 
 	cfg := &config.PerfBigTableConfig{
 		TileSize:     6,
@@ -174,7 +145,7 @@ func TestBuildNew(t *testing.T) {
 		Shards:       8,
 	}
 	// Should not fail on an empty table.
-	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &MockTS{}, false)
+	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, false)
 	assert.NoError(t, err)
 	v := &mockVCS{
 		ret: []*vcsinfo.IndexCommit{
