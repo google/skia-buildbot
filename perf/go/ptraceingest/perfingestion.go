@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
@@ -43,6 +44,7 @@ func (p *perfProcessor) Process(ctx context.Context, resultsFile ingestion.Resul
 	if err != nil {
 		return err
 	}
+	defer util.Close(r)
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		return err
