@@ -14,8 +14,8 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/btts_testutils"
 	"go.skia.org/infra/perf/go/config"
-	"golang.org/x/oauth2"
 )
 
 var (
@@ -33,41 +33,13 @@ var (
 	}
 )
 
-type MockTS struct{}
-
-func (t *MockTS) Token() (*oauth2.Token, error) {
-	return nil, nil
-}
-
-func createTestTable(t *testing.T) {
-	ctx := context.Background()
-	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
-	err := client.CreateTableFromConf(ctx, &bigtable.TableConf{
-		TableID: "test",
-		Families: map[string]bigtable.GCPolicy{
-			"V": bigtable.MaxVersionsPolicy(1),
-			"S": bigtable.MaxVersionsPolicy(1),
-			"D": bigtable.MaxVersionsPolicy(1),
-			"H": bigtable.MaxVersionsPolicy(1),
-		},
-	})
-	assert.NoError(t, err)
-}
-
-func cleanUpTestTable(t *testing.T) {
-	ctx := context.Background()
-	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
-	err := client.DeleteTable(ctx, "test")
-	assert.NoError(t, err)
-}
-
 func TestBasic(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
-	createTestTable(t)
-	defer cleanUpTestTable(t)
+	btts_testutils.CreateTestTable(t)
+	defer btts_testutils.CleanUpTestTable(t)
 
-	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &MockTS{}, true)
+	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
 	// Create an OPS in a fresh tile.
@@ -103,7 +75,7 @@ func TestBasic(t *testing.T) {
 	assert.Equal(t, int32(4), latest.Offset())
 
 	// Create another instance, so it has no cache.
-	b2, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &MockTS{}, false)
+	b2, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, false)
 	assert.NoError(t, err)
 
 	// OPS for tile 4 should be a no-op since it's already in BT.
@@ -124,11 +96,11 @@ func encodeParams(t *testing.T, op *paramtools.OrderedParamSet, p paramtools.Par
 func TestTraces(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx := context.Background()
-	createTestTable(t)
-	defer cleanUpTestTable(t)
+	btts_testutils.CreateTestTable(t)
+	defer btts_testutils.CleanUpTestTable(t)
 	now := time.Now()
 
-	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &MockTS{}, true)
+	b, err := NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, true)
 	assert.NoError(t, err)
 
 	tileKey := TileKeyFromOffset(1)
