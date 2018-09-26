@@ -179,6 +179,7 @@ func (i *Ingester) Start(ctx context.Context) error {
 			case <-doneCh:
 				return
 			}
+			sklog.Infof("Event for: %q", resultFile.Name())
 
 			// get a slot in line to call Process
 			concurrentProc <- true

@@ -15,10 +15,12 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="import" href="/res/common/imp/details-summary.html" />
 
+<link rel="import" href="/res/imp/cluster2.html">
 <link rel="import" href="/res/imp/triage-status.html" />
 <link rel="import" href="/res/imp/commit-detail.html" />
 
@@ -142,7 +144,15 @@
       <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
     </details-sk>
     <paper-spinner id=spinner></paper-spinner>
-    <table on-open-keys=_openKeys on-triaged=_triaged id=table>
+
+    <paper-dialog id=dialog>
+      <cluster-summary2-sk id=cluster_summary on-triaged=_triaged id=summary full_summary="[[_dialog_state.full_summary]]" triage="[[_dialog_state.triage]]"></cluster-summary2-sk>
+      <div class=buttons>
+        <button on-click=_close>Close</button>
+      </div>
+    </paper-dialog>
+
+    <table on-open-keys=_openKeys on-triage-start=_triage_start id=table>
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
@@ -241,6 +251,10 @@
         _statusOpen: {
           type: Boolean,
           value: false,
+        },
+        _dialog_state: {
+          type: Object,
+          value: function() { return {}; },
         }
       },
 
@@ -311,6 +325,11 @@
       },
 
       _triaged: function(e) {
+        e.stopPropagation();
+        e.detail.alert= this._dialog_state.alert;
+        e.detail.cluster_type = this._dialog_state.cluster_type;
+        this.$.dialog.close();
+
         this.$.spinner.active = true;
         if (this._triageInProgress === true) {
           sk.errorMessage("A triage request is in progress.");
@@ -331,6 +350,11 @@
           this.$.spinner.active = false;
           this._triageInProgress = false;
         }.bind(this));
+      },
+
+      _triage_start: function(e) {
+        this._dialog_state = e.detail;
+        this.$.dialog.open();
       },
 
       _encQueryFrom: function(index) {
@@ -385,6 +409,11 @@
           return display_name;
         }
       },
+
+      _close: function() {
+        this.$.dialog.close();
+      },
+
 
     });
   })();
