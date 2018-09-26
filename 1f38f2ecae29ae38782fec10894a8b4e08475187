@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "77d52af7_04aa74d1",
+        "filename": "run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T15:06:02Z",
+      "side": 1,
+      "message": "I am liking this.",
+      "range": {
+        "startLine": 23,
+        "startChar": 5,
+        "endLine": 23,
+        "endChar": 9
+      },
+      "revId": "1f38f2ecae29ae38782fec10894a8b4e08475187",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7bf6ccc_f9c20fa6",
+        "filename": "run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T15:06:02Z",
+      "side": 1,
+      "message": "This was the source of my previous questions about CIPD. It would be great if for each CIPD package we had a function to call that modified the environment as that package needed. I.e. if there was a per-CIPD func we could call, something like:\n\n   env \u003d cipd.Package[GO].UpdateEnv(env)\n\nSo I don\u0027t have to remember where Go gets checked out, what env variables I need to set for it to work, etc.",
+      "revId": "1f38f2ecae29ae38782fec10894a8b4e08475187",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
