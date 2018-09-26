@@ -32,7 +32,6 @@ scrape_configs:
       - targets: ['android-next-autoroll:20000']
       - targets: ['android-o-autoroll:20000']
       - targets: ['flutter-engine-flutter-autoroll:20000']
-      - targets: ['fuchsia-autoroll:20000']
       - targets: ['skia-flutter-autoroll:20000']
 
   - job_name: 'collectd'
@@ -166,7 +165,6 @@ scrape_configs:
       - targets: ['android-next-autoroll:11000']
       - targets: ['android-o-autoroll:11000']
       - targets: ['flutter-engine-flutter-autoroll:11000']
-      - targets: ['fuchsia-autoroll:11000']
       - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-master-perf:11000']
       - targets: ['skia-android-perf:11000']
