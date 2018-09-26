@@ -372,6 +372,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		if err := g.AddComment(int(issueNum), failureComment); err != nil {
 			return nil, nil, fmt.Errorf("Could not add comment to %d: %s", issueNum, err)
 		}
+		// DO NOT CLOSE IT. LET IT RETRY.
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
@@ -518,14 +519,14 @@ func (r *githubRoll) SwitchToNormal(ctx context.Context) error {
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) RetryCQ(ctx context.Context) error {
 	// TODO(rmistry): Is there a way to retrigger travisci? if there is then
-	// do we want to?
+	// do we want to? YES
 	return nil
 }
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) RetryDryRun(ctx context.Context) error {
 	// TODO(rmistry): Is there a way to retrigger travisci? if there is then
-	// do we want to?
+	// do we want to? YES
 	return nil
 }
 
