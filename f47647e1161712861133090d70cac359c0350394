@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "da92f80e_a08e0b40",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T20:33:24Z",
+      "side": 1,
+      "message": "Renamed to \"new\".",
+      "parentUuid": "42a35dd3_d6b7b382",
+      "range": {
+        "startLine": 101,
+        "startChar": 3,
+        "endLine": 101,
+        "endChar": 7
+      },
+      "revId": "f47647e1161712861133090d70cac359c0350394",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b86c6816_dd30d79a",
         "filename": "perf/go/dfbuilder/dfbuilder.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-09-26T20:02:11Z",
       "side": 1,
       "message": "nit: not necessary since NewDataFrameBuilderFromBTTS returns an instance of DataFrameBuilder",
+      "range": {
+        "startLine": 290,
+        "startChar": 0,
+        "endLine": 292,
+        "endChar": 48
+      },
+      "revId": "f47647e1161712861133090d70cac359c0350394",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "052b380f_fcfa36e3",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T20:33:24Z",
+      "side": 1,
+      "message": "I\u0027d rather leave the explicit check in place instead of relying on an incidental check.",
+      "parentUuid": "b86c6816_dd30d79a",
       "range": {
         "startLine": 290,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "f47647e1161712861133090d70cac359c0350394",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ac7e7a6_4201abe2",
+        "filename": "perf/go/dfbuilder/dfbuilder_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T20:33:24Z",
+      "side": 1,
+      "message": "The old ptracestore tests are actually pretty thin, so that would be a change that actually beefed up the ptracestore tests, but since ptracestore is going away, it\u0027s not worth the effort.",
+      "parentUuid": "e3ff031b_f5d80df0",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "f47647e1161712861133090d70cac359c0350394",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
