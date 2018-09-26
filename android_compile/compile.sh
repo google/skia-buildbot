@@ -28,8 +28,8 @@ cd $checkout
 # Set ccache env variables.
 export CCACHE_DIR=/ccache
 export USE_CCACHE=1
-export CCACHE_EXEC=/ccache
-ccache -M 200G
+export CCACHE_EXEC=/usr/bin/ccache
+ccache -M 100G
 
 source_cmd="source ./build/envsetup.sh"
 log_step "Running $source_cmd"
@@ -42,11 +42,11 @@ eval $lunch_cmd
 log_step "ccache stats before compilations"
 ccache -s
 
-mmma_cmd="time mmma -j10 frameworks/base/core/jni"
+mmma_cmd="time mmma -j64 frameworks/base/core/jni"
 log_step "Running $mmma_cmd"
 eval $mmma_cmd
 
-mmm_skia_cmd="time mmm -j10 external/skia"
+mmm_skia_cmd="time mmm -j64 external/skia"
 log_step "Running $mmm_skia_cmd"
 eval $mmm_skia_cmd
 
