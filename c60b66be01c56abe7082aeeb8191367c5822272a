@@ -279,6 +279,30 @@
     },
     {
       "key": {
+        "uuid": "8a8729a7_9f57b50e",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-26T19:34:16Z",
+      "side": 1,
+      "message": "We discussed in person, but I\u0027m posting responses here for posterity and so that the others can see them.\n\n- what you are suggesting creates a single monolithic binary (if I understand correctly) that\n  runs all steps from beginning to end. That strikes me as very hard to replicate \n  locally (which is a big problem with recipes)\n\nThe confusion here was that \"run.go\" was poorly named and was intended to be a single example recipe, not the entrypoint to a giant uber-recipe blob.\n\nIMO recipes are hard to replicate locally not because of the recipe framework itself but because of all of the things they require (eg. isolates, CIPD packages, and caches all in specific magic locations) and because those things are not well-documented or simply obtained.  Maybe \"swarming.py reproduce\" helps with this, but I wrote in a separate comment that I\u0027d like to build a program which would take a requested task name, read tasks.json to figure out what to do, and then spin up a Docker container with all of the required dependencies in the right places.\n\n- If we write each step as separate Go program we can re-use just as much code since they \n  would all draw from the same library.\n\nI\u0027m still in disagreement about this :)  In a current recipe, each step eventually boils down to one call to subprocess.Popen.  Most of these are shelling out to git, gclient, or running tiny Python scripts which do some single OS operation.  I personally don\u0027t think such small steps really warrant having their own, separately-compiled Go program.\n\n- One of the major downsides of recipes IMO is that they mix test code and \n  domain specific code,i.e. they are riddled with if-statements to control what \n  to exclude/include in a test. This approach would continue that. \n\nYou\u0027re referring to all of the logic which determines what to pass in to, eg, dm.  That would still be a problem in any replacement for recipes.  IMO the right thing to do is to move that into gen_tasks.go and pass all dm (or nanobench or build configuration or whatever) flags as a parameter to the recipe.\n\n- In this approach you would have to simulate steps to test the overall system. \n  If the driver code calls out to individual processes we just have to create mock \n  processes that test/control the input and output they get from the test driver.\n  We could essentially run the whole test framework on every commit without any changes\n  to it.\n\nI think the recipe simulation test was a workaround for not being able to properly test recipes, presumably because of all of the aforementioned requirements for running them correctly, potential for side effects on developer/test machines, etc etc.  IMO if we properly unit test all of the components which are used in our testing framework (there really shouldn\u0027t be that many), then we can have some degree of trust for a given un-recipe, because it\u0027s just cobbled together from tested components.  So, I\u0027m thinking we do away with simulation tests altogether, write real tests for individual components, and come up with a way to test/dry-run the full programs inside a Docker container.",
+      "parentUuid": "00cd6854_87441b5a",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 38
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1a70e70d_321f73d9",
         "filename": "run.go",
         "patchSetId": 4
