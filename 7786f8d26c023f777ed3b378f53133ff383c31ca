@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c865a122_2a34c887",
+        "filename": "perf/BIGTABLE.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "034cf251_28bd16f2",
+      "range": {
+        "startLine": 7,
+        "startChar": 9,
+        "endLine": 7,
+        "endChar": 44
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27926571_9e54bbbf",
         "filename": "perf/BIGTABLE.md",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-09-26T17:50:10Z",
       "side": 1,
       "message": "nit: if this is the MD5 reported from GCS, can you please say something to that effect, just to make it clear that you are not actually hashing the GCS file.\nI have had the weird experience recently that I was not able to re-compute the MD5 locally that was reported by GCS.",
+      "range": {
+        "startLine": 43,
+        "startChar": 5,
+        "endLine": 43,
+        "endChar": 46
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1bbee6b_86e2cd42",
+        "filename": "perf/BIGTABLE.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "This is the md5 of the file name, not the contents, thus md5(\"gs://...\").",
+      "parentUuid": "27926571_9e54bbbf",
       "range": {
         "startLine": 43,
         "startChar": 5,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8e27c4a8_6d1d32b1",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ec1b9db_0acbd11b",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 5
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8cff5d29_aa1f70a3",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2018-09-26T17:50:10Z",
       "side": 1,
       "message": "Is this implementing the PTraceStore interface ?",
+      "range": {
+        "startLine": 206,
+        "startChar": 5,
+        "endLine": 206,
+        "endChar": 23
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d27eabd_c40b9473",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "No.",
+      "parentUuid": "8cff5d29_aa1f70a3",
       "range": {
         "startLine": 206,
         "startChar": 5,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "72c6fad4_739e8b66",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ab2acbe_fb5d9d05",
+      "range": {
+        "startLine": 264,
+        "startChar": 4,
+        "endLine": 264,
+        "endChar": 22
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad9f872e_0ba87450",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2018-09-26T17:50:10Z",
       "side": 1,
       "message": "should that be removed ?",
+      "range": {
+        "startLine": 270,
+        "startChar": 4,
+        "endLine": 272,
+        "endChar": 3
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cdefc80_da2f0bc0",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "This is useful logging.",
+      "parentUuid": "ad9f872e_0ba87450",
       "range": {
         "startLine": 270,
         "startChar": 4,
@@ -160,6 +304,30 @@
       "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a944c44_c138c71f",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c98428d0_99d68d27",
+      "range": {
+        "startLine": 285,
+        "startChar": 18,
+        "endLine": 285,
+        "endChar": 36
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +377,54 @@
     },
     {
       "key": {
+        "uuid": "dd69029b_825b29b7",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7f7d05f_3f8557b4",
+      "range": {
+        "startLine": 406,
+        "startChar": 1,
+        "endLine": 406,
+        "endChar": 22
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b02a319_c6d706aa",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48bd8c48_3a53c168",
+      "range": {
+        "startLine": 406,
+        "startChar": 1,
+        "endLine": 406,
+        "endChar": 22
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c4e7337d_83cac433",
         "filename": "perf/go/btts/btts.go",
         "patchSetId": 2
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "c055d8aa_2dbe8ac7",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 586,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4e7337d_83cac433",
+      "range": {
+        "startLine": 586,
+        "startChar": 3,
+        "endLine": 586,
+        "endChar": 28
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "88e8a654_27dabcad",
         "filename": "perf/go/btts/btts_test.go",
         "patchSetId": 2
@@ -243,6 +483,30 @@
       "writtenOn": "2018-09-26T17:50:10Z",
       "side": 1,
       "message": "Suggestion: This could be factored out into a infra/go/bt/testutils  package and maybe re-use InitBigTable in infra/go/bt.go",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 1
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a00a0e79_eb1dedcd",
+        "filename": "perf/go/btts/btts_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Will do on next CL which lands DataFrameBuilder and copies this code.",
+      "parentUuid": "88e8a654_27dabcad",
       "range": {
         "startLine": 41,
         "startChar": 0,
@@ -275,6 +539,30 @@
       "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "433082ff_6f0a3439",
+        "filename": "perf/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-26T18:14:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40f7b36f_851a24f4",
+      "range": {
+        "startLine": 20,
+        "startChar": 44,
+        "endLine": 20,
+        "endChar": 52
+      },
+      "revId": "7786f8d26c023f777ed3b378f53133ff383c31ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
