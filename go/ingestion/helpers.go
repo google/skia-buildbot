@@ -69,6 +69,11 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
 
+	// Make sure we have an eventbus since that is shared by ingesters and sources.
+	if eventBus == nil {
+		eventBus = eventbus.New()
+	}
+
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
 	var err error
