@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49ac0c2c_68a0f652",
+        "filename": "perf/res/imp/triage-page.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-09-26T18:06:11Z",
+      "side": 1,
+      "message": "ick",
+      "range": {
+        "startLine": 354,
+        "startChar": 10,
+        "endLine": 354,
+        "endChar": 62
+      },
+      "revId": "0d5ff3de579f2526333392effa62415b909c9af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
