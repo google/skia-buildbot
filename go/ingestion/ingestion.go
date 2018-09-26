@@ -123,11 +123,16 @@ type Ingester struct {
 // NewIngester creates a new ingester with the given id and configuration around
 // the supplied vcs (version control system), input sources and Processor instance.
 // The ingester is event driven by storage events with a background process that polls
-// the storage locations. If the given eventBus is nil or an in-memory (created via eventbus.New())
-// only polling ingestion is performed.
-// For event driven ingestion, the given eventbus must be a PubSub based eventbus, that was
-// created via the gevent.New(...) function.
+// the storage locations. The given eventBus cannot be nil and must be shared with the sources
+// that are passed. To only do polling-based ingestion use an in-memory eventbus
+// (created via eventbus.New()). To drive ingestion from storage events use a PubSub-based
+// eventbus (created via the gevent.New(...) function).
+//
 func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
+	if eventBus == nil {
+		return nil, sklog.FmtErrorf("eventBus cannot be nil")
+	}
+
 	// TODO(stephana): Remove once all instances have been moved to BigTable and
 	// all live data have moved to BT.
 	var statusDB *bolt.DB
@@ -139,11 +144,6 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		if err != nil {
 			return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
 		}
-	}
-
-	// Use an in-memory ingesters, so we are at least polling.
-	if eventBus == nil {
-		eventBus = eventbus.New()
 	}
 
 	ret := &Ingester{
