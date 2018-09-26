@@ -112,7 +112,7 @@ func TickMarks(timestamps []int64, in *time.Location) []*Tick {
 	}
 	ret := []*Tick{}
 	if len(timestamps) < 2 {
-		sklog.Warning("Insufficient number of commits: %d", len(timestamps))
+		sklog.Warningf("Insufficient number of commits: %d", len(timestamps))
 		return ret
 	}
 

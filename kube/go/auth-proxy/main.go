@@ -53,9 +53,10 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	login.InitWithAllow(*port, *local, nil, nil, allowed.NewAllowedFromList([]string{"google.com"}))
-	target, err := url.Parse(fmt.Sprintf("http://localhost%s", *targetPort))
+	targetURL := fmt.Sprintf("http://localhost%s", *targetPort)
+	target, err := url.Parse(targetURL)
 	if err != nil {
-		sklog.Fatalf("Unable to parse target URL %q: %s", targetPort, err)
+		sklog.Fatalf("Unable to parse target URL %s: %s", targetURL, err)
 	}
 
 	var h http.Handler = NewProxy(target)

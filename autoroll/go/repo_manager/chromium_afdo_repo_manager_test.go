@@ -145,11 +145,11 @@ func mockGSList(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, path stri
 			Updated:                 timestamp,
 			StorageClass:            "MULTI_REGIONAL",
 			TimeStorageClassUpdated: timestamp,
-			Size:      "12345",
-			Md5Hash:   "dsafkldkldsaf",
-			MediaLink: fakeUrl + item,
-			Crc32c:    "eiekls",
-			Etag:      "lasdfklds",
+			Size:                    "12345",
+			Md5Hash:                 "dsafkldkldsaf",
+			MediaLink:               fakeUrl + item,
+			Crc32c:                  "eiekls",
+			Etag:                    "lasdfklds",
 		})
 	}
 	respBytes, err := json.MarshalIndent(resp, "", "  ")

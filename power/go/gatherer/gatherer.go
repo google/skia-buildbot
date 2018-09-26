@@ -149,7 +149,7 @@ func (g *gatherer) update() {
 		return
 	}
 
-	sklog.Infof("Promalerts reports %d bot-related alerts: %s", len(alerts), alerts)
+	sklog.Infof("Promalerts reports %d bot-related alerts: %v", len(alerts), alerts)
 
 	// join these together to create []DownBot
 	botsWithAlerts := util.StringSet{}

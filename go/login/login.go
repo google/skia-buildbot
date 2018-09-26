@@ -442,7 +442,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		if hash == expectedHash {
 			redirect = url
 		} else {
-			sklog.Warning("Got an invalid redirect: %s != %s", hash, expectedHash)
+			sklog.Warningf("Got an invalid redirect: %s != %s", hash, expectedHash)
 		}
 	}
 	if state != cookie.Value {
