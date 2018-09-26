@@ -1,5 +1,52 @@
 /*
+<<<<<<< HEAD
 See BIGTABLE.md for tiles and traces are stored in BigTable.
+=======
+Table
+-----
+
+There is a single table that contains Traces, OrderedParamSets, the Source locations.
+
+Values used in row names:
+
+    TileKey = 2^22 - (tile number)
+       - With 256 values per tile this let's us store 1 billion values per trace.
+       - Formatted as %07d
+       - Note that this reverses the order of the tiles, i.e. new tiles have
+         smaller numbers, so that we can do a simple query to find the newest tile.
+    TraceKey = OrderedParamSet.EncodeParamsAsString()
+       - A structured key using just the offsets, e.g. ",0=1,2=102,3=1,"
+    Shard = A number, calculated from the TraceKey, that places
+         the trace in one of the shards. The total number of shards
+         is set per table.
+
+Rows, Column Families, and Columns
+----------------------------------
+
+traces:
+   - row name = Shard:TileKey:TraceKey
+
+    V - Column family stores float32 values
+      - Columns: 0, 1, 2, ..., TILE_SIZE-1
+    S - Column family stores md5 sum of the source location, written as []byte.
+        Look up the actual value of the source under the H column family.
+      - Columns: 0, 1, 2, ..., TILE_SIZE-1
+
+ops:
+   - row name = '@' + TileKey
+
+    D - Column family stores OrderedParamSets.
+      - Columns: R   - Revision (hash of stored OPS to avoid the lost update problem).
+                 OPS - The serialized Ordered ParamSet
+
+hashes:
+   - row name = '&' + md5('gs://...')
+     The md5 name of the full source location.
+
+    H - Column family stores md5 hash of source file name written as hex string.
+      - Columns: S   - Source (The full name of the source file, gs://....)
+
+>>>>>>> git squash commit for btts.
 */
 package btts
 
@@ -218,7 +265,11 @@ func (b *BigTableTraceStore) OffsetFromIndex(index int32) int32 {
 // getOps returns true if the returned value came from BT, false if it came
 // from the cache.
 func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, error) {
+<<<<<<< HEAD
 	if b.cacheOps {
+=======
+	if b.cacheOps == true {
+>>>>>>> git squash commit for btts.
 		b.mutex.RLock()
 		entry, ok := b.opsCache[tileKey.OpsRowName()]
 		b.mutex.RUnlock()
@@ -239,7 +290,11 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 		return entry, false, err
 	}
 	entry, err := NewOpsCacheEntryFromRow(row)
+<<<<<<< HEAD
 	if err == nil && b.cacheOps {
+=======
+	if err == nil && b.cacheOps == true {
+>>>>>>> git squash commit for btts.
 		b.mutex.Lock()
 		defer b.mutex.Unlock()
 		b.opsCache[tileKey.OpsRowName()] = entry
@@ -338,7 +393,11 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 		rowSet = append(rowSet, encodedKey)
 	}
 	ret := map[string][]float32{}
+<<<<<<< HEAD
 	err = b.table.ReadRows(b.ctx, rowSet, func(row bigtable.Row) bool {
+=======
+	b.table.ReadRows(b.ctx, rowSet, func(row bigtable.Row) bool {
+>>>>>>> git squash commit for btts.
 		vec := vec32.New(int(b.tileSize))
 		for _, col := range row[VALUES_FAMILY] {
 			vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -351,16 +410,23 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(VALUES_FAMILY),
 		)))
+<<<<<<< HEAD
 	if err != nil {
 		return nil, err
 	}
+=======
+>>>>>>> git squash commit for btts.
 	return ret, nil
 }
 
 // QueryTraces returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
 func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map[string][]float32, error) {
+<<<<<<< HEAD
 	var mutex sync.Mutex
+=======
+	mutex := sync.Mutex{}
+>>>>>>> git squash commit for btts.
 	ret := map[string][]float32{}
 	var g errgroup.Group
 	// Spawn one Go routine for each shard.
