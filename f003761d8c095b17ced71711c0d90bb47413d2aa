@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f5a3850_68f159d8",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-26T19:40:00Z",
+      "side": 1,
+      "message": "Need to checkoutsMutex.RUnlock() before returning here.  Or, could we move it into runInit?",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 7
+      },
+      "revId": "f003761d8c095b17ced71711c0d90bb47413d2aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
