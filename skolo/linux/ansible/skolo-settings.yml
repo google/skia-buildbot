@@ -88,6 +88,9 @@
     - name: make sudo reboot passwordless
       lineinfile: dest=/etc/sudoers line="chrome-bot ALL=NOPASSWD:/sbin/shutdown -r now"
 
+    - name: make sudo poweroff passwordless
+      lineinfile: dest=/etc/sudoers line="chrome-bot ALL=NOPASSWD:/sbin/shutdown -h now"
+
     - name: disable wifi
       command: nmcli radio wifi off
 
