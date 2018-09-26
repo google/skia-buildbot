@@ -57,6 +57,24 @@
       "revId": "1f38f2ecae29ae38782fec10894a8b4e08475187",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da4aedaa_655a54fd",
+        "filename": "run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-26T17:25:43Z",
+      "side": 1,
+      "message": "At any rate, I\u0027m starting to think a hard requirement (and useful even without a recipe replacement) is to build a tool which allows you to specify one of our tasks, reads our tasks.json file and emulates the environment which we\u0027d get for the associated Swarming task, including isolated inputs (faked somehow, or loaded from a recent result of a successful task), CIPD packages, etc, inside of a Docker container.  This would allow us to run the task locally in a way that should be roughly the same as the bots and would have no detrimental effect to developer workstations (eg. clobbering checkouts).",
+      "parentUuid": "9f37a5de_566b6144",
+      "revId": "1f38f2ecae29ae38782fec10894a8b4e08475187",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
