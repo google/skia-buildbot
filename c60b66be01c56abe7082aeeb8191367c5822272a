@@ -207,6 +207,30 @@
     },
     {
       "key": {
+        "uuid": "f19c7a90_5be8a10a",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-09-26T14:51:46Z",
+      "side": 1,
+      "message": "I\u0027m with Eric here, for every reason he said and two more:\n\n1) The structured approach is the status quo of recipes, and they always feel alien to work with.  If nothing else, this just-a-program approach is something different to try.\n\n2) If it turns out we find ourselves wanting to rewrite things to be more structured, we can always build that using code, but if we start with a recipe-like framework it can be hard to break out if we\u0027re doing something it didn\u0027t foresee.\n\nI kind of expect that with Eric\u0027s approach, we\u0027ll still end up with mostly orderly structure, but built out of shared functions and data structures that we find to be useful, and with a smattering of ad-hoc code for details that aren\u0027t really shareable.  All through a normal \"write code, learn, refactor\" process, without having to design a particular flow up front.",
+      "parentUuid": "9f7821b7_9bc36cb6",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 38
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1a70e70d_321f73d9",
         "filename": "run.go",
         "patchSetId": 4
