@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "cef8edfa_3adc3b86",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T13:49:19Z",
+      "side": 1,
+      "message": "IMO this should be an interface. If forces to keep the API to a step concise and you might also be able to implement different types of steps down the road.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 1
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cae0418_9418db36",
+        "filename": "go/test_automation/test_automation.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T13:49:19Z",
+      "side": 1,
+      "message": "Nit: why not NewStep(...) makes it clear what is returned and test_automation.New(...) gives no hint what is returned.",
+      "range": {
+        "startLine": 23,
+        "startChar": 5,
+        "endLine": 23,
+        "endChar": 8
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b1a787a1_7342759c",
         "filename": "run.go",
         "patchSetId": 4
@@ -13,6 +59,98 @@
       "writtenOn": "2018-09-25T17:41:37Z",
       "side": 1,
       "message": "Example output: https://paste.googleplex.com/5910423836557312",
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ac45b8e_dfc42fce",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T13:49:19Z",
+      "side": 1,
+      "message": "nit: this does not need to be a global variable",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 29
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e8d80bc_2973686e",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T13:49:19Z",
+      "side": 1,
+      "message": "It all depends on your overall model/approach and I might not understand what you are going for. \n\nIMO there is another higher level of abstraction missing. Let\u0027s call it a Task (since I think it coincides with what we already call a task in gen_tasks.go). Alternatively a task could also be just a sequence of steps. \n\nTask \n  |\n  |..Step 1\n  |..Step 2\n  |..Step 3\n  |..Step 4\n  ... \n\nSo you runner which I am assuming this program might look something like this:\n\n - instantiate a task and all the steps that make up the task \n - instantiate the receiver(s) \n - run all the steps where each step takes an input \n   (that could be a message or the result of a previous step) and produces a well defined \n   output\n - At the end the task has either succeeded or failed based on the return values of the \n   task",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 38
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a70e70d_321f73d9",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T13:49:19Z",
+      "side": 1,
+      "message": "what is the point of doSomething ?",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 0
+      },
+      "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "354a6e04_395121fd",
+        "filename": "run.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-26T13:49:19Z",
+      "side": 1,
+      "message": "IMO the actual task should be separated from the code that drives the tests. \nIf you had a Step interface you could implement a \u0027ShellStep\u0027 that just spawns\na subprocess, but you don\u0027t have to specify it in code. \nEach step would then be a stand alone executable that reads a certain format (JSON?) from\nstdin and produces output on stdout (also JSON?)",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 3
+      },
       "revId": "c60b66be01c56abe7082aeeb8191367c5822272a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
