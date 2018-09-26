@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
@@ -1265,7 +1266,8 @@ func initIngestion(ctx context.Context) {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, nil, nil)
+	eb := eventbus.New()
+	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, eb, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
