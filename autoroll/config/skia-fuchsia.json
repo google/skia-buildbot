@@ -9,6 +9,7 @@
   "parentName": "Fuchsia",
   "parentWaterfall": "https://fuchsia-dashboard.appspot.com/",
   "rollerName": "fuchsia-autoroll",
+  "serviceAccount": "fuchsia-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
@@ -17,6 +18,14 @@
     "childPath": "skia",
     "parentBranch": "master",
     "parentRepo": "https://fuchsia.googlesource.com/topaz.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "3h"
 }

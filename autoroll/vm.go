@@ -38,16 +38,6 @@ func FlutterEngine_Flutter() *gce.Instance {
 	return vm
 }
 
-func Fuchsia() *gce.Instance {
-	vm := AutoRollBase("fuchsia-autoroll", "" /* Use ephemeral IP */)
-	vm.Contacts = []string{
-		"brianosman@google.com",
-		"rmistry@google.com",
-	}
-	vm.ServiceAccount = "skia-fuchsia-autoroll@skia-buildbots.google.com.iam.gserviceaccount.com"
-	return vm
-}
-
 func Skia_Flutter() *gce.Instance {
 	vm := AutoRollBase("skia-flutter-autoroll", "" /* Use ephemeral IP */)
 	vm.Contacts = []string{
@@ -61,7 +51,6 @@ func Skia_Flutter() *gce.Instance {
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"flutter-engine-flutter": FlutterEngine_Flutter(),
-		"fuchsia":                Fuchsia(),
 		"skia-flutter":           Skia_Flutter(),
 	})
 }

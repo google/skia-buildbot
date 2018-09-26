@@ -6,13 +6,6 @@
         "pulld",
       ],
     },
-    "fuchsia-autoroll": {
-      "AppNames": [
-        "fuchsia-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "skia-flutter-autoroll": {
       "AppNames": [
         "skia-flutter-autorolld",
