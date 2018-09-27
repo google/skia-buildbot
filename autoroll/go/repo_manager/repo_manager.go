@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -158,6 +159,7 @@ type commonRepoManager struct {
 	childSubdir      string
 	commitsNotRolled int
 	g                gerrit.GerritInterface
+	httpClient       *http.Client
 	infoMtx          sync.RWMutex
 	lastRollRev      string
 	nextRollRev      string
@@ -172,7 +174,7 @@ type commonRepoManager struct {
 }
 
 // Returns a commonRepoManager instance.
-func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface) (*commonRepoManager, error) {
+func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client) (*commonRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -203,6 +205,7 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 		childRepo:      childRepo,
 		childSubdir:    c.ChildSubdir,
 		g:              g,
+		httpClient:     client,
 		parentBranch:   c.ParentBranch,
 		preUploadSteps: preUploadSteps,
 		serverURL:      serverURL,
@@ -376,11 +379,11 @@ type depotToolsRepoManager struct {
 }
 
 // Return a depotToolsRepoManager instance.
-func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g *gerrit.Gerrit) (*depotToolsRepoManager, error) {
+func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g *gerrit.Gerrit, client *http.Client) (*depotToolsRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client)
 	if err != nil {
 		return nil, err
 	}

@@ -57,23 +57,23 @@ func TestFlutterLicenseScripts(t *testing.T) {
 	ctx := exec.NewContext(context.Background(), mockRun.Run)
 
 	// No errors should be throw.
-	err := FlutterLicenseScripts(ctx, "testing/dir")
+	err := FlutterLicenseScripts(ctx, nil, "testing/dir")
 	assert.NoError(t, err)
 
 	// Now test for errors.
 	pubErr = errors.New("pub error")
-	err = FlutterLicenseScripts(ctx, "testing/dir")
+	err = FlutterLicenseScripts(ctx, nil, "testing/dir")
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running pub get: pub error; Stdout+Stderr:\n", err.Error())
 
 	pubErr = error(nil)
 	dartErr = errors.New("dart error")
-	err = FlutterLicenseScripts(ctx, "testing/dir")
+	err = FlutterLicenseScripts(ctx, nil, "testing/dir")
 	assert.Error(t, err)
 	assert.Equal(t, "Error when running dart license script: dart error; Stdout+Stderr:\n", err.Error())
 
 	pubErr = error(nil)
 	dartErr = error(nil)
-	err = FlutterLicenseScripts(ctx, "testing/dir")
+	err = FlutterLicenseScripts(ctx, nil, "testing/dir")
 	assert.NoError(t, err)
 }
