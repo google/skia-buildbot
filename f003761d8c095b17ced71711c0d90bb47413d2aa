@@ -22,6 +22,30 @@
       "revId": "f003761d8c095b17ced71711c0d90bb47413d2aa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4bddb20_1e690fae",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-27T12:19:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f5a3850_68f159d8",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 7
+      },
+      "revId": "f003761d8c095b17ced71711c0d90bb47413d2aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

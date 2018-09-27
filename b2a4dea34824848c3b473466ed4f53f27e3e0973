@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "36f92f54_d1c7f94f",
+        "filename": "android_compile/compile.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-27T12:19:43Z",
+      "side": 1,
+      "message": "Going back to the original -j10. Experiment with -j64 did not seem to be any faster for 5 parallel checkouts.",
+      "range": {
+        "startLine": 45,
+        "startChar": 20,
+        "endLine": 45,
+        "endChar": 24
+      },
+      "revId": "b2a4dea34824848c3b473466ed4f53f27e3e0973",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
