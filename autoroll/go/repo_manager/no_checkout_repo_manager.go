@@ -73,7 +73,7 @@ func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client)
 	if err != nil {
 		return nil, err
 	}

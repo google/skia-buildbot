@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"regexp"
@@ -33,7 +34,7 @@ git log {{.From}}..{{.To}} --no-merges --oneline
 var (
 	// Use this function to instantiate a NewGithubRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string) (RepoManager, error) = newGithubRepoManager
+	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client) (RepoManager, error) = newGithubRepoManager
 
 	githubCommitMsgTmpl = template.Must(template.New("githubCommitMsg").Parse(GITHUB_COMMIT_MSG_TMPL))
 
@@ -72,7 +73,7 @@ type githubRepoManager struct {
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string) (RepoManager, error) {
+func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -98,7 +99,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		return nil, err
 	}
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil, client)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +251,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Run the pre-upload steps.
 	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.parentRepo.Dir()); err != nil {
+		if err := s(ctx, rm.httpClient, rm.parentRepo.Dir()); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
 	}

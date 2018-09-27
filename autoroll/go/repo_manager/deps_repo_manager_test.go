@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -132,7 +133,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -184,7 +185,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	g := setupFakeGerrit(t, wd)
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy))
 	assert.NoError(t, rm.Update(ctx))
@@ -224,14 +225,14 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 	g := setupFakeGerrit(t, wd)
 	cfg := depsCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return nil
 		},
@@ -256,7 +257,7 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 		cfg := depsCfg()
 		cfg.ParentRepo = parent.RepoUrl()
 		cfg.IncludeLog = includeLog
-		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 		assert.NoError(t, err)
 		assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 		assert.NoError(t, rm.Update(ctx))
@@ -302,7 +303,7 @@ cache_dir=None
 	cfg := depsCfg()
 	cfg.GClientSpec = gclientSpec
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -341,7 +342,7 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		cfg := depsCfg()
 		cfg.IncludeBugs = true
 		cfg.ParentRepo = parent.RepoUrl()
-		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+		rm, err := NewDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 		assert.NoError(t, err)
 		assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 		assert.NoError(t, rm.Update(ctx))

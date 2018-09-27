@@ -7,6 +7,7 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,7 +21,7 @@ import (
 // PreUploadStep is a function to be run after the roll is performed but before
 // a CL is uploaded. The string parameter is the absolute path to the directory
 // of the parent repo.
-type PreUploadStep func(context.Context, string) error
+type PreUploadStep func(context.Context, *http.Client, string) error
 
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
@@ -48,10 +49,10 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 }
 
 // Train the infra expectations.
-func TrainInfra(ctx context.Context, parentRepoDir string) error {
+func TrainInfra(ctx context.Context, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	goExc, goEnv, err := go_install.EnsureGo(false, os.TempDir())
+	goExc, goEnv, err := go_install.EnsureGo(client, os.TempDir())
 	if err != nil {
 		return err
 	}
@@ -85,7 +86,7 @@ func TrainInfra(ctx context.Context, parentRepoDir string) error {
 // Run the flutter license scripts as described in
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
-func FlutterLicenseScripts(ctx context.Context, parentRepoDir string) error {
+func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir string) error {
 	sklog.Info("Running flutter license scripts.")
 	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 

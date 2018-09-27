@@ -76,6 +76,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	client := auth.ClientFromTokenSource(ts)
 	namespace := ds.AUTOROLL_NS
 	if cfg.IsInternal {
 		namespace = ds.AUTOROLL_INTERNAL_NS
@@ -183,7 +184,7 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = filepath.Join(*workdir, "recipes.cfg")
 	}
-	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, rollerName)
+	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName)
 	if err != nil {
 		sklog.Fatal(err)
 	}
