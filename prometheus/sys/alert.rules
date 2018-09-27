@@ -509,35 +509,6 @@ ALERT HighExternalQPSGoogleAPIs
     description = "QPS to www.googleapis.com is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
   }
 
-# Gerrit
-ALERT HighQPSGerritSkiaShortTerm
-  IF rate(http_request_metrics{host="skia-review.googlesource.com"}[5m]) > 5
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "Short-term QPS to Gerrit (Skia) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
-  }
-
-ALERT HighQPSGerritChromeShortTerm
-  IF rate(http_request_metrics{host="chromium-review.googlesource.com"}[5m]) > 5
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "Short-term QPS to Gerrit (Chromium) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
-  }
-
-ALERT HighQPSGerritSkiaLongTerm
-  IF rate(http_request_metrics{host="skia-review.googlesource.com"}[12h]) > 1
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "Long-term QPS to Gerrit (Skia) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
-  }
-
-ALERT HighQPSGerritChromeLongTerm
-  IF rate(http_request_metrics{host="chromium-review.googlesource.com"}[12h]) > 1
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "Long-term QPS to Gerrit (Chromium) is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
-  }
-
 # Datastore Backup
 
 ALERT Bootloop
