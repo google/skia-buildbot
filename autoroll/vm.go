@@ -1,11 +1,7 @@
 package main
 
 import (
-	"path"
-	"runtime"
-
 	"cloud.google.com/go/datastore"
-	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -62,49 +58,8 @@ func Skia_Flutter() *gce.Instance {
 	return vm
 }
 
-func AddAndroidConfigs(vm *gce.Instance) *gce.Instance {
-	vm.DataDisks[0].SizeGb = 512
-	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_16
-	vm.Scopes = append(vm.Scopes, androidbuildinternal.AndroidbuildInternalScope)
-
-	_, filename, _, _ := runtime.Caller(0)
-	dir := path.Dir(filename)
-	vm.SetupScript = path.Join(dir, "setup-script-android.sh")
-	return vm
-}
-
-func AndroidMaster() *gce.Instance {
-	vm := AutoRollBase("android-master-autoroll", "130.211.199.63" /* Needs whitelisted static IP */)
-	vm.Contacts = []string{
-		"djsollen@google.com",
-		"rmistry@google.com",
-	}
-	return AddAndroidConfigs(vm)
-}
-
-func AndroidNext() *gce.Instance {
-	vm := AutoRollBase("android-next-autoroll", "35.202.27.169" /* Needs whitelisted static IP */)
-	vm.Contacts = []string{
-		"djsollen@google.com",
-		"rmistry@google.com",
-	}
-	return AddAndroidConfigs(vm)
-}
-
-func AndroidO() *gce.Instance {
-	vm := AutoRollBase("android-o-autoroll", "104.198.73.244" /* Needs whitelisted static IP */)
-	vm.Contacts = []string{
-		"djsollen@google.com",
-		"rmistry@google.com",
-	}
-	return AddAndroidConfigs(vm)
-}
-
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"android-master":         AndroidMaster(),
-		"android-next":           AndroidNext(),
-		"android-o":              AndroidO(),
 		"flutter-engine-flutter": FlutterEngine_Flutter(),
 		"fuchsia":                Fuchsia(),
 		"skia-flutter":           Skia_Flutter(),

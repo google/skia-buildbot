@@ -90,7 +90,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
 			return newGerritAndroidRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue, arb.rollFinished)
 		}
-		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL)
+		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL, c.ServiceAccount)
 	} else if c.CopyRepoManager != nil {
 		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, workdir, g, recipesCfgFile, serverURL)
 
