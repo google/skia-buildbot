@@ -28,9 +28,6 @@ scrape_configs:
 
   - job_name: 'autoroll-be'
     static_configs:
-      - targets: ['android-master-autoroll:20000']
-      - targets: ['android-next-autoroll:20000']
-      - targets: ['android-o-autoroll:20000']
       - targets: ['flutter-engine-flutter-autoroll:20000']
       - targets: ['fuchsia-autoroll:20000']
       - targets: ['skia-flutter-autoroll:20000']
@@ -162,9 +159,13 @@ scrape_configs:
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
+<<<<<<< HEAD
+      - targets: ['afdo-chromium-autoroll:11000']
+=======
       - targets: ['android-master-autoroll:11000']
       - targets: ['android-next-autoroll:11000']
       - targets: ['android-o-autoroll:11000']
+>>>>>>> 0f913039af70755fec6461f649744f8d54b89b1b
       - targets: ['flutter-engine-flutter-autoroll:11000']
       - targets: ['fuchsia-autoroll:11000']
       - targets: ['skia-android-ingest:11000']

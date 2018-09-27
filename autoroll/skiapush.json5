@@ -1,26 +1,5 @@
 {
   "Servers": {
-    "android-master-autoroll": {
-      "AppNames": [
-        "android-master-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "android-next-autoroll": {
-      "AppNames": [
-        "android-next-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
-    "android-o-autoroll": {
-      "AppNames": [
-        "android-o-autorolld",
-        "git-cookie-authdaemon",
-        "pulld",
-      ],
-    },
     "flutter-engine-flutter-autoroll": {
       "AppNames": [
         "flutter-engine-flutter-autorolld",

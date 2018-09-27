@@ -1,14 +1,15 @@
 {
   "childName": "Skia",
+  "gerritURL": "https://googleplex-android-review.googlesource.com",
   "contacts": [
     "djsollen@google.com",
     "rmistry@google.com"
   ],
-  "gerritURL": "(none)",
   "isInternal": true,
   "parentName": "Android (O branch)",
   "parentWaterfall": "https://android-build.googleplex.com/builds/branches/git_oc-mr1-dev/grid",
   "rollerName": "android-o-autoroll",
+  "serviceAccount": "android-autoroll@skia-corp.google.com.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-robocop"
   ],
@@ -16,6 +17,14 @@
     "childBranch": "android/o-mr1-release",
     "childPath": "external/skia",
     "parentBranch": "oc-mr1-dev"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "0m"
 }
