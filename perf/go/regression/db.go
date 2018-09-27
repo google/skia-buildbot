@@ -130,9 +130,6 @@ func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) 
 func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
 	ret := map[string]*Regressions{}
 	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
-	if subset == UNTRIAGED_SUBSET {
-		q = ds.NewQuery(ds.REGRESSION).Filter("Triaged =", false)
-	}
 	it := ds.DS.Run(context.TODO(), q)
 	for {
 		dsRegression := &DSRegression{}

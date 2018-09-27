@@ -850,10 +850,10 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 //
 // Begin and End are Unix timestamps in seconds.
 type RegressionRangeRequest struct {
-	Begin       int64                   `json:"begin"`
-	End         int64                   `json:"end"`
-	Subset      regression.Subset       `json:"subset"`
-	AlertFilter alertfilter.AlertFilter `json:"alert_filter"`
+	Begin       int64             `json:"begin"`
+	End         int64             `json:"end"`
+	Subset      regression.Subset `json:"subset"`
+	AlertFilter string            `json:"alert_filter"` // Can be an alertfilter constant, or a category prefixed with "cat:".
 }
 
 // RegressionRow are all the Regression's for a specific commit. It is used in
@@ -867,8 +867,9 @@ type RegressionRow struct {
 
 // RegressionRangeResponse is the response from regressionRangeHandler.
 type RegressionRangeResponse struct {
-	Header []*alerts.Config `json:"header"`
-	Table  []*RegressionRow `json:"table"`
+	Header     []*alerts.Config `json:"header"`
+	Table      []*RegressionRow `json:"table"`
+	Categories []string         `json:"categories"`
 }
 
 // regressionRangeHandler accepts a POST'd JSON serialized RegressionRangeRequest
@@ -905,6 +906,14 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
 		return
 	}
+
+	// Build the full list of categories.
+	categorySet := util.StringSet{}
+	for _, header := range headers {
+		categorySet[header.Category] = true
+	}
+
+	// Filter down the alerts according to rr.AlertFilter.
 	if rr.AlertFilter == alertfilter.OWNER {
 		user := login.LoggedInAs(r)
 		filteredHeaders := []*alerts.Config{}
@@ -917,6 +926,19 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 			headers = filteredHeaders
 		} else {
 			sklog.Infof("User doesn't own any alerts.")
+		}
+	} else if strings.HasPrefix(rr.AlertFilter, "cat:") {
+		selectedCategory := rr.AlertFilter[4:]
+		filteredHeaders := []*alerts.Config{}
+		for _, a := range headers {
+			if a.Category == selectedCategory {
+				filteredHeaders = append(filteredHeaders, a)
+			}
+		}
+		if len(filteredHeaders) > 0 {
+			headers = filteredHeaders
+		} else {
+			sklog.Infof("No alert in that category: %q", selectedCategory)
 		}
 	}
 
@@ -964,10 +986,14 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		revCids[len(cids)-1-i] = c
 	}
 
+	categories := categorySet.Keys()
+	sort.Strings(categories)
+
 	// Build the RegressionRangeResponse.
 	ret := RegressionRangeResponse{
-		Header: headers,
-		Table:  []*RegressionRow{},
+		Header:     headers,
+		Table:      []*RegressionRow{},
+		Categories: categories,
 	}
 
 	for _, cid := range revCids {

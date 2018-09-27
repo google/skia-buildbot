@@ -69,7 +69,7 @@
     }
 
     iron-selector div {
-      width: 10em;
+      width: 30em;
       margin: 0.3em 1em;
       padding: 0.2em;
     }
@@ -132,18 +132,22 @@
         >
         <div value=all title="Show results for all commits in the time range.">All</div>
         <div value=flagged title="Show only the commits with regressions in the given time range regardless of triage status.">Regressions</div>
-        <div value=untriaged title="Show all the untriaged regressions regardless of the time range.">Untriaged</div>
+        <div value=untriaged title="Show all the untriaged regressions in the givenn time range.">Untriaged</div>
       </iron-selector>
 
       <h3>Which alerts to display.</h3>
       <iron-selector
         attr-for-selected="value"
         selected="{{state.filter}}"
-        fallback-selection="ALL"
         on-selected-item-changed="_updateRange"
         >
-        <div value=ALL title="Show all alerts.">All</div>
-        <div value=OWNER title="Show only the alerts owned by the logged in user (or all alerts if the user doesn't own any alerts).">Owner</div>
+        <div value=ALL title="Show all alerts.">Show all alerts</div>
+        <div value=OWNER title="Show only the alerts owned by the logged in
+          user (or all alerts if the user doesn't own any alerts).">Show alerts you own</div>
+        <template is="dom-repeat" items="[[_reg.categories]]">
+          <div value="cat:[[item]]" title="Show only the alerts in the
+            [[_categoryDisplay(item)]] category.">Category: [[_categoryDisplay(item)]]</div>
+        </template>
       </iron-selector>
     </details-sk>
     <details-sk>
@@ -238,10 +242,11 @@
           type: Object,
           value: function() {
             return {
-              begin: now - 4*24*60*60,
+              begin: now - 14*24*60*60, // 2 weeks.
               end: now,
               subset: "untriaged",
               filter: "ALL",
+              categories: [],
             };
           },
         },
@@ -270,6 +275,7 @@
       ready: function() {
         sk.stateReflector(this, this._updateRange.bind(this));
         this._poll();
+        this._lastBody = {};
       },
 
       _poll: function() {
@@ -313,7 +319,6 @@
         if (this.$.spinner.active) {
           return
         }
-        this.set('_reg',  {});
         this.$.range.begin = this.state.begin;
         this.$.range.end = this.state.end;
         var body = {
@@ -321,12 +326,19 @@
           end: this.state.end,
           subset: this.state.subset,
           alert_filter: this.state.filter,
+          categories: this.state.categories,
         };
+        // We need to protect from too many change events because iron-selector is awful.
+        if (JSON.stringify(this._lastBody) === JSON.stringify(body)) {
+          return
+        }
         this.$.spinner.active = true;
         this.$.table.classList.toggle("hidden", true);
         sk.post("/_/reg/", JSON.stringify(body), "application/json").then(JSON.parse).then(function(json) {
+          this._lastBody = body;
           this.$.spinner.active = false;
           this.$.table.classList.toggle("hidden", false);
+          this.set('_reg',  {});
           this.set('_reg', json);
         }.bind(this)).catch(function(msg) {
           if (msg) {
@@ -429,6 +441,12 @@
         this.$.dialog.close();
       },
 
+      _categoryDisplay: function(s) {
+        if (s === '') {
+          return '(default)'
+        }
+        return s
+      },
 
     });
   })();

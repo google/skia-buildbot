@@ -105,6 +105,8 @@
   <template>
     <h3>Display Name</h3>
     <paper-input value="{{config.display_name}}"                           label="Display Name"></paper-input>
+    <h3>Category</h3>
+    <paper-input value="{{config.category}}"                               label="Alerts will be grouped by category."></paper-input>
     <h3>Which traces should be monitored</h3>
     <query2-chooser-sk id=querychooser paramset="{{paramset}}" current_query="{{config.query}}"></query2-chooser-sk>
     <h3>What triggers an alert</h3>
