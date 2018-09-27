@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
@@ -90,6 +91,7 @@ func main() {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
 	http.Handle(IMAGE_URL_PREFIX, imgHandler)
+	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// Start the HTTP server.
 	go func() {
