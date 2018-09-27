@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/user"
 	"path"
@@ -28,7 +29,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
 
@@ -49,7 +50,7 @@ type androidRepoManager struct {
 	repoToolPath string
 }
 
-func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string) (RepoManager, error) {
+func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 
 	wd := path.Join(workdir, "android_repo")
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g, client)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +324,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Run the pre-upload steps.
 	for _, s := range r.PreUploadSteps() {
-		if err := s(ctx, r.workdir); err != nil {
+		if err := s(ctx, r.httpClient, r.workdir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}

@@ -152,7 +152,7 @@ func TestGithubRepoManager(t *testing.T) {
 
 	g, _ := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -187,7 +187,7 @@ func TestCreateNewGithubRoll(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -209,13 +209,13 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return nil
 		},
@@ -238,14 +238,14 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return expectedErr
 		},

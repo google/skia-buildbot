@@ -157,7 +157,7 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	g, _ := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -198,7 +198,7 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -233,13 +233,13 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return nil
 		},
@@ -263,14 +263,14 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return expectedErr
 		},

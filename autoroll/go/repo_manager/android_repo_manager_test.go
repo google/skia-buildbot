@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -74,7 +75,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -91,7 +92,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -159,14 +160,14 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account")
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 
 	ran := false
 	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return nil
 		},

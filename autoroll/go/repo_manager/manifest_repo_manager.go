@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,7 +22,7 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(context.Context, *ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(context.Context, *ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newManifestRepoManager
 
 	// TODO(rmistry): Make this configurable.
 	manifestFileName = filepath.Join("manifest", "skia")
@@ -44,11 +45,11 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string) (RepoManager, error) {
+func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +157,7 @@ func (mr *manifestRepoManager) CreateNewRoll(ctx context.Context, from, to strin
 
 	// Run the pre-upload steps.
 	for _, s := range mr.PreUploadSteps() {
-		if err := s(ctx, mr.parentDir); err != nil {
+		if err := s(ctx, mr.httpClient, mr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}

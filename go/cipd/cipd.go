@@ -9,10 +9,10 @@ package cipd
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
-	"go.skia.org/infra/go/auth"
 )
 
 const (
@@ -43,15 +43,11 @@ type Package struct {
 }
 
 // Run "cipd ensure" to get the correct packages in the given location.
-func Ensure(local bool, rootdir string, packages ...*Package) error {
-	httpClient, err := auth.NewDefaultClient(local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_PLUS_ME)
-	if err != nil {
-		return fmt.Errorf("Failed to create authenticated HTTP client: %s", err)
-	}
+func Ensure(client *http.Client, rootdir string, packages ...*Package) error {
 	c, err := cipd.NewClient(cipd.ClientOptions{
 		ServiceURL:          SERVICE_URL,
 		Root:                rootdir,
-		AuthenticatedClient: httpClient,
+		AuthenticatedClient: client,
 	})
 	if err != nil {
 		return fmt.Errorf("Failed to create CIPD client: %s", err)

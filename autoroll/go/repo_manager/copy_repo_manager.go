@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -34,7 +35,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewCopyRepoManager func(context.Context, *CopyRepoManagerConfig, string, *gerrit.Gerrit, string, string) (RepoManager, error) = newCopyRepoManager
+	NewCopyRepoManager func(context.Context, *CopyRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newCopyRepoManager
 )
 
 // CopyRepoManagerConfig provides configuration for the copy
@@ -71,11 +72,11 @@ type copyRepoManager struct {
 
 // newCopyRepoManager returns a RepoManager instance which rolls a dependency
 // which is copied directly into a subdir of the parent repo.
-func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string) (RepoManager, error) {
+func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +256,7 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 
 	// Run the pre-upload steps.
 	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.parentDir); err != nil {
+		if err := s(ctx, rm.httpClient, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
