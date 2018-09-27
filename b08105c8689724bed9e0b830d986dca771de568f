@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49d25079_73aeb525",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-27T13:38:21Z",
+      "side": 1,
+      "message": "It needed an authenticated http.Client before as well but it was using the legacy token source?",
+      "revId": "b08105c8689724bed9e0b830d986dca771de568f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a875549_3ad8dab3",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-27T13:38:21Z",
+      "side": 1,
+      "message": "Document http.Client here and maybe mention that it should be authenticated?",
+      "range": {
+        "startLine": 22,
+        "startChar": 20,
+        "endLine": 22,
+        "endChar": 21
+      },
+      "revId": "b08105c8689724bed9e0b830d986dca771de568f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
