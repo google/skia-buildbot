@@ -35,6 +35,7 @@ type Config struct {
 	GroupBy        string                  `json:"group_by"         datastore:",noindex"` // A key in the paramset that all Clustering should be broken up across. Key must not appear in Query.
 	Sparse         bool                    `json:"sparse"           datastore:",noindex"` // Data is sparse, so only include commits that have data.
 	MinimumNum     int                     `json:"minimum_num"      datastore:",noindex"` // How many traces need to be found interesting before an alert is fired.
+	Category       string                  `json:"category"         datastore:",noindex"` // Which category this alert falls into.
 }
 
 func (c *Config) IdAsString() string {

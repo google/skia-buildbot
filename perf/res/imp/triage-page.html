@@ -132,7 +132,7 @@
         >
         <div value=all title="Show results for all commits in the time range.">All</div>
         <div value=flagged title="Show only the commits with regressions in the given time range regardless of triage status.">Regressions</div>
-        <div value=untriaged title="Show all the untriaged regressions regardless of the time range.">Untriaged</div>
+        <div value=untriaged title="Show all the untriaged regressions in the givenn time range.">Untriaged</div>
       </iron-selector>
 
       <h3>Which alerts to display.</h3>
@@ -238,7 +238,7 @@
           type: Object,
           value: function() {
             return {
-              begin: now - 4*24*60*60,
+              begin: now - 14*24*60*60, // 2 weeks.
               end: now,
               subset: "untriaged",
               filter: "ALL",

@@ -905,6 +905,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to retrieve alert configs.")
 		return
 	}
+	// Also do category filtering here.
 	if rr.AlertFilter == alertfilter.OWNER {
 		user := login.LoggedInAs(r)
 		filteredHeaders := []*alerts.Config{}
