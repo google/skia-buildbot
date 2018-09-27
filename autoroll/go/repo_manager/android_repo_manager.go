@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	SERVICE_ACCOUNT      = "31977622648@project.gserviceaccount.com"
 	UPSTREAM_REMOTE_NAME = "remote"
 	REPO_BRANCH_NAME     = "merge"
 )
@@ -29,7 +28,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
 
@@ -50,7 +49,7 @@ type androidRepoManager struct {
 	repoToolPath string
 }
 
-func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL string) (RepoManager, error) {
+func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -58,7 +57,22 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 	if err != nil {
 		return nil, err
 	}
-	repoToolPath := path.Join(user.HomeDir, "bin", "repo")
+	repoToolDir := path.Join(user.HomeDir, "bin")
+	repoToolPath := path.Join(repoToolDir, "repo")
+	if _, err := os.Stat(repoToolDir); err != nil {
+		if err := os.MkdirAll(repoToolDir, 0755); err != nil {
+			return nil, err
+		}
+		// Download the repo tool.
+		if _, err := exec.RunCwd(ctx, repoToolDir, "wget", "https://storage.googleapis.com/git-repo-downloads/repo", "-O", repoToolPath); err != nil {
+			return nil, err
+		}
+		// Make the repo tool executable.
+		if _, err := exec.RunCwd(ctx, repoToolDir, "chmod", "a+x", repoToolPath); err != nil {
+			return nil, err
+		}
+	}
+
 	wd := path.Join(workdir, "android_repo")
 
 	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g)
@@ -95,6 +109,11 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
+	// Set color.ui=true so that the repo tool does not prompt during upload.
+	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "config", "color.ui", "true"); err != nil {
+		return err
+	}
+
 	// Fix the review config to a URL which will work outside prod.
 	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "config", "remote.goog.review", fmt.Sprintf("%s/", r.repoUrl)); err != nil {
 		return err
@@ -109,6 +128,11 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 		if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "remote", "add", UPSTREAM_REMOTE_NAME, common.REPO_SKIA); err != nil {
 			return err
 		}
+	}
+
+	// Update the remote to make sure that all new branches are available.
+	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "remote", "update", UPSTREAM_REMOTE_NAME, "--prune"); err != nil {
+		return err
 	}
 
 	// Get the last roll revision.
@@ -391,7 +415,9 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	}
 
 	// Bypass the repo upload prompt by setting autoupload config to true.
-	if _, configErr := exec.RunCwd(ctx, r.childDir, "git", "config", fmt.Sprintf("review.%s/.autoupload", r.repoUrl), "true"); configErr != nil {
+	// Strip "-review" from the upload URL else autoupload does not work.
+	uploadUrl := strings.Replace(r.repoUrl, "-review", "", 1)
+	if _, configErr := exec.RunCwd(ctx, r.childDir, "git", "config", fmt.Sprintf("review.%s/.autoupload", uploadUrl), "true"); configErr != nil {
 		util.LogErr(r.abandonRepoBranch(ctx))
 		return 0, fmt.Errorf("Could not set autoupload config: %s", configErr)
 	}
