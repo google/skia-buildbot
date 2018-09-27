@@ -50,6 +50,7 @@ var (
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
+	hang           = flag.Bool("hang", false, "If true, just hang and do nothing.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -67,6 +68,10 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
+	if *hang {
+		sklog.Infof("--hang provided; doing nothing.")
+		httputils.RunHealthCheckServer(*port)
+	}
 
 	skiaversion.MustLogVersion()
 
