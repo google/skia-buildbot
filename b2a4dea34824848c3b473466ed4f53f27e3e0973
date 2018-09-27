@@ -22,6 +22,30 @@
       "revId": "b2a4dea34824848c3b473466ed4f53f27e3e0973",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7108faf1_1b01d92e",
+        "filename": "android_compile/compile.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-27T12:22:41Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "36f92f54_d1c7f94f",
+      "range": {
+        "startLine": 45,
+        "startChar": 20,
+        "endLine": 45,
+        "endChar": 24
+      },
+      "revId": "b2a4dea34824848c3b473466ed4f53f27e3e0973",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
