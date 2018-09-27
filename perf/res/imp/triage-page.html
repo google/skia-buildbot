@@ -154,14 +154,14 @@
     </details-sk>
     <paper-spinner id=spinner></paper-spinner>
 
-    <paper-dialog id=dialog>
+    <paper-dialog id=dialog on-open-keys=_openKeys>
       <cluster-summary2-sk id=cluster_summary on-triaged=_triaged id=summary full_summary="[[_dialog_state.full_summary]]" triage="[[_dialog_state.triage]]"></cluster-summary2-sk>
       <div class=buttons>
         <button on-click=_close>Close</button>
       </div>
     </paper-dialog>
 
-    <table on-open-keys=_openKeys on-start-triage=_triage_start id=table>
+    <table on-start-triage=_triage_start id=table>
       <tr>
         <th>Commit</th>
         <template is="dom-repeat" items="[[_reg.header]]">
