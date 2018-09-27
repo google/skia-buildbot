@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -23,7 +24,7 @@ const (
 var (
 	// Use this function to instantiate a NewGithubDEPSRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string) (RepoManager, error) = newGithubDEPSRepoManager
+	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string, *http.Client) (RepoManager, error) = newGithubDEPSRepoManager
 )
 
 // GithubDEPSRepoManagerConfig provides configuration for the Github RepoManager.
@@ -47,12 +48,12 @@ type githubDEPSRepoManager struct {
 
 // newGithubDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string) (RepoManager, error) {
+func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
 	wd := path.Join(workdir, strings.TrimSuffix(path.Base(c.DepotToolsRepoManagerConfig.ParentRepo), ".git"))
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil, client)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +217,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 	// Run the pre-upload steps.
 	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.parentDir); err != nil {
+		if err := s(ctx, rm.httpClient, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
 	}

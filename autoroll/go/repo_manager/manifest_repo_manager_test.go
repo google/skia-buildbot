@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -162,7 +163,7 @@ func TestManifestRepoManager(t *testing.T) {
 	g := setupManifestFakeGerrit(t, wd)
 	cfg := manifestCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -190,7 +191,7 @@ func TestCreateNewManifestRoll(t *testing.T) {
 	g := setupManifestFakeGerrit(t, wd)
 	cfg := manifestCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -212,13 +213,13 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	g := setupManifestFakeGerrit(t, wd)
 	cfg := manifestCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com")
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, string) error {
+		func(context.Context, *http.Client, string) error {
 			ran = true
 			return nil
 		},
