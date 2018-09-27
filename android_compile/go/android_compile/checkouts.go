@@ -128,9 +128,13 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 				if _, err := fileutil.EnsureDirExists(checkoutPath); err != nil {
 					return fmt.Errorf("Error creating %s: %s", checkoutPath, err)
 				}
+				// Make sure mirror is done updating before running init on checkouts.
+				checkoutsMutex.RLock()
 				if err := runInit(ctx, checkoutPath, pathToMirrorManifest, false); err != nil {
+					checkoutsMutex.RUnlock()
 					return fmt.Errorf("Error running init on %s: %s", checkoutPath, err)
 				}
+				checkoutsMutex.RUnlock()
 			}
 		}
 		checkoutsToUpdate = append(checkoutsToUpdate, checkoutPath)
