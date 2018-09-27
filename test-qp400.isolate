@@ -1,0 +1,7 @@
+{
+  'variables': {
+    'files': [
+      'test-qp400.exe',
+    ],
+  },
+}

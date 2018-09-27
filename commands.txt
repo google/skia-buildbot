@@ -1,0 +1,5 @@
+GOOS=windows GOARCH=amd64 go build -o test-qp400.exe scripts/test-qp400.go
+python /unencrypted/workspace/luci-py/client/isolate.py archive --isolate-server=isolateserver.appspot.com --isolate=test-qp400.isolate --isolated=test-qp400.isolated
+<change second hash in test-qp400-comb.isolated>
+python /unencrypted/workspace/luci-py/client/isolateserver.py archive --isolate-server=isolateserver.appspot.com test-qp400-comb.isolated
+python /unencrypted/workspace/luci-py/client/swarming.py trigger --isolate-server=isolateserver.appspot.com --swarming=chromium-swarm.appspot.com -d pool Skia -d id <bot> --isolated=<from last step> --raw-cmd --cipd-package=skp:skia/bots/skp:version:144 --task-name=test-qp400 -- test-qp400
