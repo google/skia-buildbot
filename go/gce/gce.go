@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -128,7 +129,7 @@ func NewGCloud(project, zone, workdir string) (*GCloud, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpClient := auth.ClientFromTokenSource(tokenSource)
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 	return NewGCloudWithClient(project, zone, workdir, httpClient)
 }
 

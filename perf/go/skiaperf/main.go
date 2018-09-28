@@ -1321,10 +1321,11 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func initIngestion(ctx context.Context) {
 	// Initialize oauth client and start the ingesters.
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.ScopeReadWrite)
+	ts, err := auth.NewDefaultJWTServiceAccountTokenSource(storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -85,7 +86,7 @@ func SwarmingInit(serviceAccountFile string) error {
 	if err != nil {
 		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}
-	httpClient := auth.ClientFromTokenSource(ts)
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Public Swarming API client.
 	swarmingClientPublic, err = swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)

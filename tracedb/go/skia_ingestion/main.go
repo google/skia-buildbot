@@ -65,16 +65,11 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
+	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, storage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
-
-	// Initialize the datastore client.
-	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, storage.CloudPlatformScope)
-	if err != nil {
-		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
-	}
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().Client()
 
 	// Make sure we have a namespace.
 	if *namespace == "" {

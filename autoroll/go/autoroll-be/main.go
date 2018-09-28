@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -76,7 +77,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	namespace := ds.AUTOROLL_NS
 	if cfg.IsInternal {
 		namespace = ds.AUTOROLL_INTERNAL_NS
