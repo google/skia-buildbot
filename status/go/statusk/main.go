@@ -708,7 +708,9 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, c)
+		// remote_db relies on non-2xx status codes to communicate errors.
+		remoteDbClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, remoteDbClient)
 		if err != nil {
 			sklog.Fatalf("Failed to create remote task DB: %s", err)
 		}
