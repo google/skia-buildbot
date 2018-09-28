@@ -41,6 +41,9 @@ func TestDS(t *testing.T) {
 	assert.False(t, r.Triaged())
 
 	// Test store.
+	now := time.Unix(c.Timestamp, 0)
+	begin := now.Add(-time.Hour).Unix()
+	end := now.Add(time.Hour).Unix()
 
 	// Create a new regression.
 	isNew, err := st.SetLow(c, "foo", df, cl)
@@ -53,7 +56,7 @@ func TestDS(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Confirm new regression is present.
-	ranges, err := st.Range(0, 0, UNTRIAGED_SUBSET)
+	ranges, err := st.Range(begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 
@@ -70,9 +73,13 @@ func TestDS(t *testing.T) {
 
 	// Confirm regression is triaged.
 	err = testutils.EventuallyConsistent(time.Second, func() error {
-		ranges, err = st.Range(0, 0, UNTRIAGED_SUBSET)
+		ranges, err = st.Range(begin, end)
 		assert.NoError(t, err)
-		if len(ranges) == 0 {
+		key := ""
+		for key, _ = range ranges {
+			break
+		}
+		if ranges[key].ByAlertID["foo"].LowStatus.Status == POSITIVE {
 			return nil
 		}
 		return testutils.TryAgainErr
@@ -82,11 +89,7 @@ func TestDS(t *testing.T) {
 	count, err = st.Untriaged()
 	assert.Equal(t, count, 0)
 
-	now := time.Unix(c.Timestamp, 0)
-	begin := now.Add(-time.Hour).Unix()
-	end := now.Add(time.Hour).Unix()
-
-	ranges, err = st.Range(begin, end, ALL_SUBSET)
+	ranges, err = st.Range(begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 
@@ -94,7 +97,7 @@ func TestDS(t *testing.T) {
 	err = st.TriageHigh(c, "bar", tr)
 	assert.Error(t, err)
 
-	ranges, err = st.Range(begin, end, ALL_SUBSET)
+	ranges, err = st.Range(begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 1)
 
@@ -112,7 +115,7 @@ func TestDS(t *testing.T) {
 	}
 	err = st.Write(map[string]*Regressions{"master-000002": ranges["master-000001"]}, lookup)
 	assert.NoError(t, err)
-	ranges, err = st.Range(begin, end, ALL_SUBSET)
+	ranges, err = st.Range(begin, end)
 	assert.NoError(t, err)
 	assert.Len(t, ranges, 2)
 	_, ok = ranges["master-000002"]
