@@ -1,0 +1,284 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e0e401cf_3863c40b",
+        "filename": "go/common/with.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "As mentioned on skiabot chat, I think this needs to continue to be NewDefaultLegacyTokenSource.",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3eb5c741_24db636c",
+        "filename": "go/test_automation/builtin.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "This seems pretty complicated. Would be nice to add a unit test.",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03efae99_99731462",
+        "filename": "go/test_automation/builtin.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "If this is cross-platform, seems like this needs to be filepath. Many other places in this CL.",
+      "range": {
+        "startLine": 32,
+        "startChar": 23,
+        "endLine": 32,
+        "endChar": 27
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c29a90a9_8e3b8535",
+        "filename": "go/test_automation/builtin.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "We may want Step to be in control of stderr and stdout. Otherwise there\u0027s no real way to separate the stdout/stderr of \"important\" steps from \"infra\" steps around it.\n\nAlso Step could take care of streaming the output off-bot, behind the scenes. Using the exec package directly would make that pretty difficult.\n\nThis probably isn\u0027t something we need to figure out for the initial checkin, but probably should figure it out before rewriting all of our recipes in this framework.\n\n(OTOH, maybe streaming output to the cloud actually *should* be part of the go.skia.org/infra/go/exec package so we could use that feature everywhere. Just a thought.)",
+      "range": {
+        "startLine": 35,
+        "startChar": 18,
+        "endLine": 35,
+        "endChar": 29
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eba98e4a_39a3c593",
+        "filename": "go/test_automation/emitter.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "If this is going to cloud logging, an error rate alert would be good enough, IMO.",
+      "range": {
+        "startLine": 55,
+        "startChar": 5,
+        "endLine": 55,
+        "endChar": 42
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f00f815a_d043f775",
+        "filename": "go/test_automation/receiver.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "Just brainstorming: Receiver could have a method like\nNewStream(stepId string, streamName string) (io.Writer, error)\n\nUse something like io.MultiWriter to write to all Receivers (probably ignore all errors though).\n\nThen Step can use NewStream(s.Id, \"stdout\") and use that as exec.Command.Stdout.\n\nDebugReceiver could just return exec.WriteInfoLog / WriteErrorLog for NewStream; ReportReceiver would probably use bytes.Buffer, possibly with LimitWriter.\n\n(Most likely we would only have streams named \"stdout\" and \"stderr\", but I\u0027m thinking it might be nice e.g. for dm to have a \"verbose\" stream in addition to stderr and stdout.)",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cae0c389_51166752",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "This doc appears to be incorrect -- seems to me that it panics.",
+      "range": {
+        "startLine": 130,
+        "startChar": 30,
+        "endLine": 131,
+        "endChar": 30
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fb0fce3_894c04a7",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "Would be nice to include debug.Stack() in the error the first time we see the panic. Then panic(errIgnoreThisPanic) below and don\u0027t include the stack for parent steps.",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "359155ca_98484887",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "Maybe also capture the exit code?",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c88dc83_867beb30",
+        "filename": "go/test_automation/test_automation.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "Probably not too important yet, but before we start using this seriously, IWBN to add os.exit(...) to this method and have a shared understanding between this code and Task Scheduler about which exit codes mean SUCCESS/FAILURE/MISHAP.",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdb4b6a9_412daad0",
+        "filename": "infra/bots/build_task_drivers.sh",
+        "patchSetId": 31
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "Presumably we will want platform in this path and compile for all supported platforms. (At least we would need that for the Skia repo and it might be nice to be consistent in the Infra repo.)",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 28
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7e684ad_99b48f91",
+        "filename": "infra/bots/task_drivers/infra_tests.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "Since this is the example task driver, could you also give an example of a unit test for the task driver? It might be a bit contrived for this, but I think it\u0027s useful to see what a test would look like.",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e35934b_bed26048",
+        "filename": "infra/bots/task_drivers/infra_tests.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "It seems like this is all boilerplate that needs to be in every task driver. Maybe that\u0027s not really a problem if we\u0027re just going to copy/paste every time we add a new recipe. However, it would be nice to separate out the non-boilerplate from the boilerplate, e.g. move the \"meat\" of the code into a subroutine, make \"infra_tests\" a constant, add any non-boilerplate flags (none in this example) to a different var section, etc. Maybe even put \"// \u003d\u003d\u003d\u003d\u003d\u003d\u003d\" before/after the interesting parts so it\u0027s easy to zero in.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 2
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d206a57_c4391fc8",
+        "filename": "infra/bots/task_drivers/infra_tests.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T23:01:18Z",
+      "side": 1,
+      "message": "As mentioned in private convo, it would be nice to make CIPD packages, named caches, isolated inputs, and other inputs (e.g. lists of tests) more structured so that a task driver can tell me what it expects to be provided.\n\nE.g. I run \u0027infra_tests --metadata\u0027 and it spits out something like:\n{\n  \"flags\": {\n    \"task_name\": {\n      \"placeholder\": \"TASK_NAME\"\n    },\n    \"repo\": {\n      \"placeholder\": \"REPO\"\n    },\n    ...\n    \"workdir\": {\n      \"named_cache\": \"work\"\n    },\n    \"go\": {\n      \"asset\": \"go\",\n    },\n    ...\n  },\n  \"env\": {\n    \"path\": [\n      {\n        \"asset\": \"node\"\n      },\n      {\n        \"cipd_package\": \"infra/gsutil\"\n      },\n      {\n        \"isolated_input\": \"Housekeeper-PerCommit-BuildTaskDrivers\"\n      }\n    ]\n  }\n}\n\n(Just brainstorming; some of these are probably overkill and it\u0027s not completely clear how others would work. If we\u0027re being super crazy we could pass in the task name, e.g. \u0027skia_perf --metadata --task_name Perf-Win10-Clang-Golo-GPU-GT610-x86_64-Debug-All\u0027 would tell me it depends on Build-Win-Clang-x86_64-Debug, while \u0027skia_perf --metadata --task_name Perf-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Debug-All\u0027 would say Build-Mac-Clang-arm64-Debug-iOS.)",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 40
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
