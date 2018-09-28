@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "07d21a63_e5f9b521",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-28T13:37:46Z",
+      "side": 1,
+      "message": "Much simpler to do common powerful bash commands in a bash script. That\u0027s why there also is compile.sh:\nhttps://skia.googlesource.com/buildbot/+/master/android_compile/compile.sh",
+      "parentUuid": "6f504c16_dbaf683d",
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ababdaa0_1740a994",
         "filename": "android_compile/clean-checkout.sh",
         "patchSetId": 5
@@ -57,6 +75,30 @@
       "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e342168a_76b147cd",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-28T13:37:46Z",
+      "side": 1,
+      "message": "So the problem is sometimes some syncs fail because of 502s and leave these lock files lying around (seems to happen frequently for Android).\nWe can do it on server startup but will still run into this. I think doing a clean before every sync will make it more robust to failures.",
+      "parentUuid": "ababdaa0_1740a994",
+      "range": {
+        "startLine": 13,
+        "startChar": 13,
+        "endLine": 13,
+        "endChar": 26
+      },
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
