@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "d1096c3c_2299e3ab",
+        "filename": "ct/go/util/gs.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-28T15:21:44Z",
+      "side": 1,
+      "message": "All callers pass in nil here. I should just remove that parameter.",
+      "range": {
+        "startLine": 42,
+        "startChar": 12,
+        "endLine": 42,
+        "endChar": 28
+      },
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c07e3aa_c432da87",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 11
