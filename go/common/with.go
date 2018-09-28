@@ -144,7 +144,11 @@ func (o *cloudLoggingInitOpt) init(appName string) error {
 		if o.local != nil && *o.local {
 			return nil
 		}
-		ts, err = auth.NewDefaultLegacyTokenSource(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		ts, err := auth.NewDefaultTokenSource(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		if err != nil {
+			return fmt.Errorf("Problem getting authenticated client: %s", err)
+		}
+		c = auth.ClientFromTokenSource(ts)
 	}
 	if err != nil {
 		return fmt.Errorf("Problem getting authenticated token source: %s", err)
