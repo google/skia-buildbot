@@ -257,6 +257,30 @@
       "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1571436d_8728928a",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T15:02:22Z",
+      "side": 1,
+      "message": "Recipes use the step name as the ID of the step.  I think that was a really bad design decision because it imposed restrictions, eg. no two steps can have the same name.  In this framework I\u0027m generating IDs separately from the names.  IMO it\u0027s no problem to have anonymous steps for things that don\u0027t warrant it (eg. the env wrapper step I suggested in the above comment).  So for now, step names, environment, etc, are all optional.  We inherit env from the parent step.",
+      "parentUuid": "54e86a03_196f9b1b",
+      "range": {
+        "startLine": 91,
+        "startChar": 15,
+        "endLine": 91,
+        "endChar": 22
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
