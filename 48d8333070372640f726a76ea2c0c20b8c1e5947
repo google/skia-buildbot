@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "9487495b_27571ac5",
+        "filename": "go/common/common.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-09-28T15:24:28Z",
+      "side": 1,
+      "message": "I don\u0027t see where that happens. I see where it drops the logs when the request fails though: https://skia.googlesource.com/buildbot/+/8a3a1ae68834f27170d4f48e38c2022a0eec2cc3/go/sklog/cloud_logging.go#365",
+      "parentUuid": "4f37a9ed_1d4c3488",
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c07e3aa_c432da87",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 11
