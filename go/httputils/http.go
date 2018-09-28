@@ -119,7 +119,7 @@ func (c ClientConfig) Transport() http.RoundTripper {
 			sklog.Warningf("Setting ClientConfig.Retries.maxElapsedTime to value of ClientConfig.RequestTimeout. Was %s, now %s.", c.Retries.maxElapsedTime, c.RequestTimeout)
 			c.Retries.maxElapsedTime = c.RequestTimeout
 		}
-		t = NewConfiguredBackOffTransportAllResponses(c.Retries, t)
+		t = NewConfiguredBackOffTransport(c.Retries, t)
 	}
 	if c.TokenSource != nil {
 		t = &oauth2.Transport{
@@ -210,14 +210,6 @@ func Response2xxOnly(client *http.Client) *http.Client {
 	return client
 }
 
-// NewBackOffClient creates a new http.Client with default exponential backoff configuration. When
-// using this Client, non-2xx HTTP responses cause a non-nil error return value.
-func NewBackOffClient() *http.Client {
-	return AddMetricsToClient(&http.Client{
-		Transport: NewBackOffTransport(),
-	})
-}
-
 type BackOffConfig struct {
 	initialInterval     time.Duration
 	maxInterval         time.Duration
@@ -226,7 +218,6 @@ type BackOffConfig struct {
 	backOffMultiplier   float64
 }
 
-// DefaultBackOffConfig creates a config as documented for NewConfiguredBackOffTransport.
 func DefaultBackOffConfig() *BackOffConfig {
 	return &BackOffConfig{
 		initialInterval:     INITIAL_INTERVAL,
@@ -235,15 +226,6 @@ func DefaultBackOffConfig() *BackOffConfig {
 		randomizationFactor: RANDOMIZATION_FACTOR,
 		backOffMultiplier:   BACKOFF_MULTIPLIER,
 	}
-}
-
-// NewBackOffTransport creates a BackOffTransport with default values. Look at
-// NewConfiguredBackOffTransport for an example of how the values impact behavior. When
-// using this RoundTripper, non-2xx HTTP responses cause a non-nil error return value.
-func NewBackOffTransport() http.RoundTripper {
-	config := DefaultBackOffConfig()
-	base := &http.Transport{Dial: DialTimeout}
-	return Response2xxOnlyTransport{NewConfiguredBackOffTransportAllResponses(config, base)}
 }
 
 type BackOffTransport struct {
@@ -257,8 +239,8 @@ type ResponsePagination struct {
 	Total  int `json:"total"`
 }
 
-// NewConfiguredBackOffTransportAllResponses creates a BackOffTransport with the specified config,
-// wrapping the given base RoundTripper.
+// NewConfiguredBackOffTransport creates a BackOffTransport with the specified config, wrapping the
+// given base RoundTripper.
 //
 // Example: The default retry_interval is .5 seconds, default randomization_factor
 // is 0.5, default multiplier is 1.5 and the default max_interval is 1 minute. For
@@ -276,7 +258,7 @@ type ResponsePagination struct {
 //  8             8.538              [4.269, 12.807]
 //  9            12.807              [6.403, 19.210]
 //  10           19.210              backoff.Stop
-func NewConfiguredBackOffTransportAllResponses(config *BackOffConfig, base http.RoundTripper) http.RoundTripper {
+func NewConfiguredBackOffTransport(config *BackOffConfig, base http.RoundTripper) http.RoundTripper {
 	return &BackOffTransport{
 		Transport:     base,
 		backOffConfig: config,
