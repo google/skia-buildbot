@@ -16,6 +16,47 @@
       "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6f504c16_dbaf683d",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T13:29:07Z",
+      "side": 1,
+      "message": "Why not put this in a Go utility function?",
+      "parentUuid": "5127cc7b_445852ee",
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ababdaa0_1740a994",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T13:29:07Z",
+      "side": 1,
+      "message": "If this is anything like index.lock, we shouldn\u0027t just delete it without knowing what\u0027s going on. Deleting lockfiles should be a one-time thing that we do on server (or docker container) startup.",
+      "range": {
+        "startLine": 13,
+        "startChar": 13,
+        "endLine": 13,
+        "endChar": 26
+      },
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
