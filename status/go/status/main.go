@@ -703,7 +703,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	c := auth.ClientFromTokenSource(ts)
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Create LKGR object.
 	lkgrObj, err = lkgr.New(ctx)

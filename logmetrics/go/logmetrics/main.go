@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/logmetrics/go/config"
@@ -73,10 +74,11 @@ func main() {
 		common.CloudLoggingOpt(),
 	)
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(logging.LoggingReadScope)
+	ts, err := auth.NewDefaultJWTServiceAccountTokenSource(logging.LoggingReadScope)
 	if err != nil {
 		sklog.Fatalf("Failed to create service account client: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	loggingService, err = logging.New(client)
 	if err != nil {
 		sklog.Fatalf("Failed to create logging client: %s", err)

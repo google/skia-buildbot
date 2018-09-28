@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -36,10 +37,11 @@ func NewAutoscaler(projectId, zone, workdir string, minInstanceNum, maxInstanceN
 	}
 
 	// Create the GCloud object.
-	httpClient, err := auth.NewClient(false, "", compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+	ts, err := auth.NewDefaultLegacyTokenSource(false, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
 		return nil, err
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	g, err := gce.NewGCloudWithClient(projectId, zone, wdAbs, httpClient)
 	if err != nil {
 		return nil, err
