@@ -86,10 +86,11 @@ func New() (*Server, error) {
 	var allow allowed.Allow
 	var assign allowed.Allow
 	if !*local {
-		client, err := auth.NewJWTServiceAccountClient("", *chromeInfraAuthJWT, nil, auth.SCOPE_USERINFO_EMAIL)
+		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
 		if err != nil {
 			return nil, err
 		}
+		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 		allow, err = allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
 			return nil, err
