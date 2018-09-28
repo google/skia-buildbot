@@ -227,10 +227,11 @@ func setupOAuth(ctx context.Context) error {
 		return fmt.Errorf("Problem setting up server OAuth: %s", err)
 	}
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	storageClient, err = storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {

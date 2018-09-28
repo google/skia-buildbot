@@ -68,7 +68,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	authedClient = auth.ClientFromTokenSource(tokenSource)
+	authedClient = httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 	sklog.Info("Got authenticated client.")
 
 	r := mux.NewRouter()

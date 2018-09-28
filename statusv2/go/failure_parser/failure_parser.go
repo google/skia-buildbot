@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -191,10 +192,11 @@ type FailureParser struct {
 
 // New returns a FailureParser instance.
 func New(taskDb db.RemoteDB) (*FailureParser, error) {
-	httpClient, err := auth.NewClient(false, "google_storage_token.data", swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultLegacyTokenSource(false, swarming.AUTH_SCOPE)
 	if err != nil {
 		return nil, err
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	s, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
 		return nil, err

@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -175,7 +176,7 @@ func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.MasterT
 // or by querying meta data in the cloud.
 func GetHTTPClient(t assert.TestingT) *http.Client {
 	// Get the service account client from meta data or a local config file.
-	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", auth.DEFAULT_JWT_FILENAME, storage.ScopeFullControl)
 	assert.NoError(t, err)
-	return client
+	return httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 }

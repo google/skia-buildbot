@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/push/go/trigger"
@@ -62,7 +63,7 @@ func main() {
 
 	// Create the needed clients.
 	tokenSource := auth.NewGCloudTokenSource("")
-	client := auth.ClientFromTokenSource(tokenSource)
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 	store, err := storage.New(client)
 	if err != nil {
 		sklog.Fatalf("Failed to create storage service client: %s", err)

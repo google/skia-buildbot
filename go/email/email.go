@@ -9,6 +9,7 @@ import (
 	ttemplate "text/template"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	gmail "google.golang.org/api/gmail/v1"
 )
@@ -76,10 +77,11 @@ func GetViewActionMarkup(link, name, description string) (string, error) {
 
 // NewGMail returns a new GMail object which is authorized to send email.
 func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
-	client, err := auth.NewClientFromIdAndSecret(clientId, clientSecret, tokenCacheFile, gmail.GmailComposeScope)
+	ts, err := auth.NewTokenSourceFromIdAndSecret(clientId, clientSecret, tokenCacheFile, gmail.GmailComposeScope)
 	if err != nil {
 		return nil, err
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	service, err := gmail.New(client)
 	if err != nil {
 		return nil, err

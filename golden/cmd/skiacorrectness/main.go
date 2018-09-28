@@ -192,17 +192,14 @@ func main() {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
-	// Get the client to be used to access GCS and the Monorail issue tracker.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, http.DefaultTransport, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	// Get the token source for the service account with access to GCS, the Monorail issue tracker,
+	// cloud pubsub, and datastore.
+	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
-
-	// Get the token source from the same service account. Needed to access cloud pubsub and datastore.
-	tokenSource, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope)
-	if err != nil {
-		sklog.Fatalf("Failed to authenticate service account to get token source: %s", err)
-	}
+	// TODO(dogben): Ok to add request/dial timeouts?
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
 
 	// serviceName uniquely identifies this host and app and is used as ID for other services.
 	nodeName, err := gevent.GetNodeName(appName, *local)

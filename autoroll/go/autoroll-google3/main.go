@@ -62,7 +62,7 @@ func main() {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_INTERNAL_NS, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatal(err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// The rollers use the gitcookie created by gitauth package.
 	user, err := user.Current()

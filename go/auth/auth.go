@@ -294,7 +294,7 @@ type skoloTokenSource struct {
 
 func newSkoloTokenSource() oauth2.TokenSource {
 	return oauth2.ReuseTokenSource(nil, &skoloTokenSource{
-		client: httputils.NewBackOffClient(),
+		client: httputils.DefaultClientConfig().With2xxOnly().Client(),
 	})
 }
 
@@ -467,10 +467,8 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 	} else {
 		body = []byte(jwt)
 	}
-	tokenClient := &http.Client{
-		Transport: httputils.NewBackOffTransport(),
-		Timeout:   httputils.REQUEST_TIMEOUT,
-	}
+	// TODO(dogben): Ok to add metrics?
+	tokenClient := httputils.DefaultClientConfig().Client()
 	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
 	jwtConfig, err := google.JWTConfigFromJSON(body, scopes...)
 	if err != nil {

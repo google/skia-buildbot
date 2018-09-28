@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/sklog"
 )
@@ -35,10 +36,11 @@ func main() {
 	}
 	mode := args[0]
 
-	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewDefaultJWTServiceAccountTokenSource("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	tracker = issues.NewMonorailIssueTracker(client)
 	switch mode {
 	case "query":

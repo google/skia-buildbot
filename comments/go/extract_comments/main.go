@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/comments/go/extract"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -45,10 +46,11 @@ func main() {
 	var w io.WriteCloser = os.Stdout
 	if *dest != "" {
 		if strings.HasPrefix(*dest, "gs://") {
-			client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+			ts, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
 			if err != nil {
 				sklog.Fatalf("Problem setting up client OAuth: %s", err)
 			}
+			client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 			c, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 			if err != nil {
 				sklog.Fatalf("Problem authenticating: %s", err)

@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -124,7 +125,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	client := auth.ClientFromTokenSource(tokenSource)
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {

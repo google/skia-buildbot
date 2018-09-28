@@ -16,6 +16,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
@@ -115,7 +116,7 @@ func New(local bool) (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)

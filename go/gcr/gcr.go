@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 )
@@ -86,12 +86,12 @@ type Client struct {
 // imageName - The name of the image, e.g. docserver.
 func NewClient(tokenSource oauth2.TokenSource, projectId, imageName string) *Client {
 	gcrTokenSource := &gcrTokenSource{
-		client:    auth.ClientFromTokenSource(tokenSource),
+		client:    httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client(),
 		projectId: projectId,
 		imageName: imageName,
 	}
 	return &Client{
-		client:    auth.ClientFromTokenSource(gcrTokenSource),
+		client:    httputils.DefaultClientConfig().WithTokenSource(gcrTokenSource).With2xxOnly().Client(),
 		projectId: projectId,
 		imageName: imageName,
 	}

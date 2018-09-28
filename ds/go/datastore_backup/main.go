@@ -6,7 +6,6 @@ package main
 
 import (
 	"flag"
-	"net/http"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -34,13 +33,12 @@ func main() {
 		common.CloudLoggingOpt(),
 	)
 
-	// Don't use auth.NewDefaultJWTServiceAccountClient because it uses the
-	// BackOffTransport, and what we really want is a client that returns the
-	// status code on failure.
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, datastore.ScopeDatastore)
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
+	// backup package handles retries and specifically handles "resource exhausted" HTTP status code.
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	if err := backup.Step(client, PROJECT, BUCKET); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}

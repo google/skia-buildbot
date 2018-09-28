@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/paramtools"
@@ -105,10 +106,11 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	}
 
 	// Instantiate the Gerrit API client.
-	client, err := auth.NewJWTServiceAccountClient("", svcAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
 	if err != nil {

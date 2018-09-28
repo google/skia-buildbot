@@ -295,10 +295,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalln("Failed to read config file: ", err)
 	}
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewJWTServiceAccountTokenSource("", "", "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	go monitorIssueTracker(client)
 
 	liveness := metrics2.NewLiveness("probes")

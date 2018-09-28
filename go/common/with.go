@@ -3,10 +3,11 @@ package common
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 	"runtime"
 	"sort"
+
+	"golang.org/x/oauth2"
 
 	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
@@ -131,26 +132,24 @@ func (o *cloudLoggingInitOpt) preinit(appName string) error {
 
 func (o *cloudLoggingInitOpt) init(appName string) error {
 	glog.Info("cloudlogging init")
-	transport := &http.Transport{
-		Dial: httputils.FastDialTimeout,
-	}
 	var err error
-	var c *http.Client
+	var ts oauth2.TokenSource
 	if !o.useDefaultAuth {
 		path := ""
 		if o.serviceAccountPath != nil {
 			path = *(o.serviceAccountPath)
 		}
-		c, err = auth.NewJWTServiceAccountClient("", path, transport, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		ts, err = auth.NewJWTServiceAccountTokenSource("", path, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	} else {
 		if o.local != nil && *o.local {
 			return nil
 		}
-		c, err = auth.NewDefaultClient(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		ts, err = auth.NewDefaultLegacyTokenSource(*o.local, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	}
 	if err != nil {
-		return fmt.Errorf("Problem getting authenticated client: %s", err)
+		return fmt.Errorf("Problem getting authenticated token source: %s", err)
 	}
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().WithDialTimeout(httputils.FAST_DIAL_TIMEOUT).Client()
 	metricLookup := map[string]metrics2.Counter{}
 	for _, sev := range sklog.AllSeverities {
 		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev, "log_group": o.logGrouping, "log_source": appName})

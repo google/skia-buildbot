@@ -111,10 +111,11 @@ func powercycledBotsHandler(w http.ResponseWriter, r *http.Request) {
 
 func setupGatherer() error {
 	oauthCacheFile := path.Join(*resourcesDir, "google_storage_token.data")
-	authedClient, err := auth.NewClient(*local, oauthCacheFile, skswarming.AUTH_SCOPE)
+	ts, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", skswarming.AUTH_SCOPE)
 	if err != nil {
-		return fmt.Errorf("Could not set up autheticated HTTP client: %s", err)
+		return fmt.Errorf("Could not set up autheticated token source: %s", err)
 	}
+	authedClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	es, err := skswarming.NewApiClient(authedClient, "chromium-swarm.appspot.com")
 	if err != nil {

@@ -94,7 +94,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 	// Set up the Google storage client.
 	if client == nil {
-		client = httputils.NewBackOffClient()
+		client = httputils.DefaultClientConfig().With2xxOnly().Client()
 	}
 
 	// for each defined ingester create an instance.

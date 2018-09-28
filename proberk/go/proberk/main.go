@@ -374,7 +374,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	authClient := auth.ClientFromTokenSource(ts)
+	authClient := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().With2xxOnly().Client()
 	authClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
