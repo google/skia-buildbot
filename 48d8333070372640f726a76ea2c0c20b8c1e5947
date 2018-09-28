@@ -60,6 +60,24 @@
     },
     {
       "key": {
+        "uuid": "3857d99a_5efac236",
+        "filename": "go/common/common.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-28T15:35:24Z",
+      "side": 1,
+      "message": "Ah, OK, but let\u0027s not add retries to keep the behavior the same.",
+      "parentUuid": "9487495b_27571ac5",
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c07e3aa_c432da87",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 11
