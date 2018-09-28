@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/oauth2"
+
 	// Below is a port of the exponential backoff implementation from
 	// google-http-java-client.
 	"github.com/cenkalti/backoff"
@@ -58,6 +60,109 @@ var (
 func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
+}
+
+// ClientConfig represents options for the behavior of an http.Client. Each field, when set,
+// modifies the default http.Client behavior.
+//
+// Example:
+// client := DefaultClientConfig().WithoutRetries().Client()
+type ClientConfig struct {
+	// DialTimeout, if non-zero, sets the http.Transport's dialer to a net.DialTimeout with the
+	// specified timeout.
+	DialTimeout time.Duration
+
+	// RequestTimeout, if non-zero, sets the http.Client.Timeout. The timeout applies until the
+	// response body is fully read. See more details in the docs for http.Client.Timeout.
+	RequestTimeout time.Duration
+
+	// Retries, if non-nil, uses a BackOffTransport to automatically retry requests until receiving a
+	// non-5xx response, as specified by the BackOffConfig. See more details in the docs for
+	// NewConfiguredBackOffTransport.
+	Retries *BackOffConfig
+
+	// TokenSource, if non-nil, uses a oauth2.Transport to authenticate all requests with the
+	// specified TokenSource. See auth package for functions to create a TokenSource.
+	TokenSource oauth2.TokenSource
+
+	// Response2xxOnly, if true, transforms non-2xx HTTP responses to an error return value.
+	Response2xxOnly bool
+
+	// Metrics, if true, logs each request to metrics.
+	Metrics bool
+}
+
+// DefaultClientConfig returns a ClientConfig with reasonable defaults.
+//  - Timeouts are DIAL_TIMEOUT and REQUEST_TIMEOUT.
+//  - Retries are enabled with the values from DefaultBackOffConfig().
+//  - Non-2xx responses are not considered errors.
+//  - Metrics are enabled.
+func DefaultClientConfig() ClientConfig {
+	return ClientConfig{
+		DialTimeout:     DIAL_TIMEOUT,
+		RequestTimeout:  REQUEST_TIMEOUT,
+		Retries:         DefaultBackOffConfig(),
+		Response2xxOnly: false,
+		Metrics:         true,
+	}
+}
+
+// WithDialTimeout returns a new ClientConfig with the DialTimeout set as specified.
+func (c ClientConfig) WithDialTimeout(dialTimeout time.Duration) ClientConfig {
+	c.DialTimeout = dialTimeout
+	return c
+}
+
+// With2xxOnly returns a new ClientConfig where non-2xx responses cause an error.
+func (c ClientConfig) With2xxOnly() ClientConfig {
+	c.Response2xxOnly = true
+	return c
+}
+
+// WithoutRetries returns a new ClientConfig where requests are not retried.
+func (c ClientConfig) WithoutRetries() ClientConfig {
+	c.Retries = nil
+	return c
+}
+
+// WithTokenSource returns a new ClientConfig where requests are authenticated with the given
+// TokenSource.
+func (c ClientConfig) WithTokenSource(t oauth2.TokenSource) ClientConfig {
+	c.TokenSource = t
+	return c
+}
+
+// Client returns a new http.Client as configured by the ClientConfig.
+func (c ClientConfig) Client() *http.Client {
+	var t http.RoundTripper = http.DefaultTransport
+	if c.DialTimeout != 0 {
+		t = &http.Transport{
+			Dial: ConfiguredDialTimeout(c.DialTimeout),
+		}
+	}
+	if c.Retries != nil {
+		if c.RequestTimeout != 0 && c.Retries.maxElapsedTime > c.RequestTimeout {
+			sklog.Warningf("Setting ClientConfig.Retries.maxElapsedTime to value of ClientConfig.RequestTimeout. Was %s, now %s.", c.Retries.maxElapsedTime, c.RequestTimeout)
+			c.Retries.maxElapsedTime = c.RequestTimeout
+		}
+		t = NewConfiguredBackOffTransportAllResponses(c.Retries, t)
+	}
+	if c.TokenSource != nil {
+		t = &oauth2.Transport{
+			Source: c.TokenSource,
+			Base:   t,
+		}
+	}
+	if c.Response2xxOnly {
+		t = Response2xxOnlyTransport{t}
+	}
+	if c.Metrics {
+		t = NewMetricsTransport(t)
+	}
+	return &http.Client{
+		Transport: t,
+		Timeout:   c.RequestTimeout,
+	}
 }
 
 // DialTimeout is a dialer that sets a timeout.
@@ -143,18 +248,24 @@ type BackOffConfig struct {
 	backOffMultiplier   float64
 }
 
-// NewBackOffTransport creates a BackOffTransport with default values. Look at
-// NewConfiguredBackOffTransport for an example of how the values impact behavior. When
-// using this RoundTripper, non-2xx HTTP responses cause a non-nil error return value.
-func NewBackOffTransport() http.RoundTripper {
-	config := &BackOffConfig{
+// DefaultBackOffConfig creates a config as documented for NewConfiguredBackOffTransport.
+func DefaultBackOffConfig() *BackOffConfig {
+	return &BackOffConfig{
 		initialInterval:     INITIAL_INTERVAL,
 		maxInterval:         MAX_INTERVAL,
 		maxElapsedTime:      MAX_ELAPSED_TIME,
 		randomizationFactor: RANDOMIZATION_FACTOR,
 		backOffMultiplier:   BACKOFF_MULTIPLIER,
 	}
-	return Response2xxOnlyTransport{NewConfiguredBackOffTransportAllResponses(config)}
+}
+
+// NewBackOffTransport creates a BackOffTransport with default values. Look at
+// NewConfiguredBackOffTransport for an example of how the values impact behavior. When
+// using this RoundTripper, non-2xx HTTP responses cause a non-nil error return value.
+func NewBackOffTransport() http.RoundTripper {
+	config := DefaultBackOffConfig()
+	base := &http.Transport{Dial: DialTimeout}
+	return Response2xxOnlyTransport{NewConfiguredBackOffTransportAllResponses(config, base)}
 }
 
 type BackOffTransport struct {
@@ -168,7 +279,8 @@ type ResponsePagination struct {
 	Total  int `json:"total"`
 }
 
-// NewConfiguredBackOffTransport creates a BackOffTransport with the specified config.
+// NewConfiguredBackOffTransportAllResponses creates a BackOffTransport with the specified config,
+// wrapping the given base RoundTripper.
 //
 // Example: The default retry_interval is .5 seconds, default randomization_factor
 // is 0.5, default multiplier is 1.5 and the default max_interval is 1 minute. For
@@ -186,9 +298,9 @@ type ResponsePagination struct {
 //  8             8.538              [4.269, 12.807]
 //  9            12.807              [6.403, 19.210]
 //  10           19.210              backoff.Stop
-func NewConfiguredBackOffTransportAllResponses(config *BackOffConfig) http.RoundTripper {
+func NewConfiguredBackOffTransportAllResponses(config *BackOffConfig, base http.RoundTripper) http.RoundTripper {
 	return &BackOffTransport{
-		Transport:     &http.Transport{Dial: DialTimeout},
+		Transport:     base,
 		backOffConfig: config,
 	}
 }
