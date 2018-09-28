@@ -223,8 +223,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
 	if eventBus != nil {
-		waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
+		found := waitForChanLen(t, callbackCh, 1)
+		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
 	}
 
 	foundExps, err := store.Get()
@@ -250,8 +250,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
 	if eventBus != nil {
-		waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
+		found := waitForChanLen(t, callbackCh, 1)
+		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
 	}
 
 	foundExps, err = store.Get()
@@ -264,8 +264,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	emptyChanges := map[string]types.TestClassification{}
 	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
 	if eventBus != nil {
-		waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{}, <-callbackCh)
+		found := waitForChanLen(t, callbackCh, 1)
+		assert.Equal(t, []string{}, found[0])
 	}
 	checkLogEntry(t, store, emptyChanges)
 
@@ -280,8 +280,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.removeChange(removeDigests_1))
 	if eventBus != nil {
-		waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
+		found := waitForChanLen(t, callbackCh, 1)
+		assert.Equal(t, []string{TEST_1, TEST_2}, found[0])
 	}
 
 	foundExps, err = store.Get()
@@ -293,8 +293,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	removeDigests_2 := map[string]types.TestClassification{TEST_1: {DIGEST_12: types.UNTRIAGED}}
 	assert.NoError(t, store.removeChange(removeDigests_2))
 	if eventBus != nil {
-		waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{TEST_1}, <-callbackCh)
+		found := waitForChanLen(t, callbackCh, 1)
+		assert.Equal(t, []string{TEST_1}, found[0])
 	}
 
 	foundExps, err = store.Get()
@@ -303,8 +303,8 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 
 	assert.NoError(t, store.removeChange(map[string]types.TestClassification{}))
 	if eventBus != nil {
-		waitForChanLen(t, callbackCh, 1)
-		assert.Equal(t, []string{}, <-callbackCh)
+		found := waitForChanLen(t, callbackCh, 1)
+		assert.Equal(t, []string{}, found[0])
 	}
 
 	// Make sure we added the correct number of triage log entries.
@@ -376,13 +376,24 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus eventb
 	}
 }
 
-func waitForChanLen(t *testing.T, ch chan []string, targetLen int) {
+// waitForChan removes 'targetLen' elements from the channel and returns them.
+// If the given number of items are not returned within one second the test fails.
+func waitForChanLen(t *testing.T, ch chan []string, targetLen int) [][]string {
+	ret := make([][]string, 0, targetLen)
 	assert.NoError(t, testutils.EventuallyConsistent(time.Second, func() error {
-		if len(ch) != targetLen {
+		select {
+		case ele := <-ch:
+			ret = append(ret, ele)
+		default:
+			break
+		}
+
+		if len(ret) != targetLen {
 			return testutils.TryAgainErr
 		}
 		return nil
 	}))
+	return ret
 }
 
 func parseID(t *testing.T, idStr string) int64 {
