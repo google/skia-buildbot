@@ -588,17 +588,6 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetHttpClient returns a http.Client which performs authenticated requests as
-// the logged-in user.
-func GetHttpClient(r *http.Request) *http.Client {
-	s, err := getSession(r)
-	if err != nil {
-		sklog.Errorf("Failed to get session state; falling back to default http client.")
-		return httputils.NewTimeoutClient()
-	}
-	return httputils.AddMetricsToClient(oauthConfig.Client(oauth2.NoContext, s.Token))
-}
-
 // ForceAuth is middleware that enforces authentication
 // before the wrapped handler is called. oauthCallbackPath is the
 // URL path that the user is redirected to at the end of the auth flow.
