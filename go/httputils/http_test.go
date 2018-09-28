@@ -17,9 +17,6 @@ import (
 func TestResponse2xxOnly(t *testing.T) {
 	testutils.SmallTest(t)
 
-	// TODO(stephana): Remove once this doesn't hang anymore.
-	t.Skip()
-
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code, err := strconv.Atoi(r.URL.Query().Get("code"))
 		assert.NoError(t, err)
@@ -37,13 +34,11 @@ func TestResponse2xxOnly(t *testing.T) {
 		}
 	}
 	c := s.Client()
-	test(c, http.StatusProcessing, false)
 	test(c, http.StatusOK, false)
 	test(c, http.StatusNotModified, false)
 	test(c, http.StatusNotFound, false)
 	test(c, http.StatusServiceUnavailable, false)
 	c = Response2xxOnly(c)
-	test(c, http.StatusProcessing, true)
 	test(c, http.StatusOK, false)
 	test(c, http.StatusNotModified, true)
 	test(c, http.StatusNotFound, true)
@@ -117,7 +112,6 @@ func TestBackoffTransport2xxOnly(t *testing.T) {
 	}
 	// No retries.
 	test([]int{http.StatusOK}, false)
-	test([]int{http.StatusProcessing}, true)
 	test([]int{http.StatusNotModified}, true)
 	test([]int{http.StatusNotFound}, true)
 	// Some retries before non-retriable status code.
@@ -175,7 +169,6 @@ func TestBackoffTransportAllResponses(t *testing.T) {
 	}
 	// No retries.
 	test([]int{http.StatusOK})
-	test([]int{http.StatusProcessing})
 	test([]int{http.StatusNotModified})
 	test([]int{http.StatusNotFound})
 	// Some retries before non-retriable status code.
