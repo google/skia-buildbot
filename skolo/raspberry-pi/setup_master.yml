@@ -31,6 +31,11 @@
     - file: path=/var/log/logserver mode=0777 state=directory
     - file: path=/var/pulld mode=0777 state=directory
 
+    - name: Ensure resolvconf program is not installed
+      apt: name=resolvconf state=absent
+    - name: Configure DNS with /etc/resolv.conf.
+      copy: src=resolv.conf dest=/etc/resolv.conf owner=root group=root mode=0644
+
     - name: Get collectd config situated
       copy: src=collectd.conf dest=/etc/collectd/collectd.conf owner=root group=root mode=0644
 
@@ -44,7 +49,7 @@
       user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
 
     #http://docs.ansible.com/ansible/intro_getting_started.html#host-key-checking
-    - name: Disabling host key host key checking
+    - name: Disabling host key checking
       file: path=/etc/ansible/ansible.cfg mode=0777 state=touch
     - lineinfile: dest=/etc/ansible/ansible.cfg line="[defaults]"
     - lineinfile: dest=/etc/ansible/ansible.cfg line="host_key_checking = False" insertafter="\[defaults\]"
