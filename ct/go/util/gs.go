@@ -19,6 +19,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -38,23 +39,26 @@ type GcsUtil struct {
 }
 
 // NewGcsUtil initializes and returns a utility for CT interations with Google
-// Storage. If client is nil then auth.NewClient is invoked.
+// Storage. If client is nil then a client is created either from ClientSecretPath or with the
+// default token source.
 func NewGcsUtil(client *http.Client) (*GcsUtil, error) {
 	if client == nil {
-		var authErr error
+		clientConfig := httputils.DefaultClientConfig().With2xxOnly()
 		// If ClientSecretPath exists then assume that we do not use the default token source.
 		if _, err := os.Stat(ClientSecretPath); err == nil {
-			client, err = auth.NewClientWithTransport(true, GCSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
+			ts, err := auth.NewLegacyTokenSource(true, GCSTokenPath, ClientSecretPath, auth.SCOPE_FULL_CONTROL)
+			if err != nil {
+				return nil, err
+			}
+			clientConfig = clientConfig.WithTokenSource(ts)
 		} else {
 			ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_FULL_CONTROL)
 			if err != nil {
 				return nil, fmt.Errorf("Problem setting up default token source: %s", err)
 			}
-			client = auth.ClientFromTokenSource(ts)
+			clientConfig = clientConfig.WithTokenSource(ts)
 		}
-		if authErr != nil {
-			return nil, authErr
-		}
+		client = clientConfig.Client()
 	}
 	client.Timeout = HTTP_CLIENT_TIMEOUT
 	service, err := storage.New(client)

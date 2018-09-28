@@ -691,7 +691,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	c := auth.ClientFromTokenSource(ts)
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Create LKGR object.
 	lkgrObj, err = lkgr.New(ctx)
@@ -719,10 +719,11 @@ func main() {
 		}
 	}
 
-	criaClient, err := auth.NewJWTServiceAccountClient("", *chromeInfraAuthJWT, nil, auth.SCOPE_USERINFO_EMAIL)
+	criaTs, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	criaClient := httputils.DefaultClientConfig().WithTokenSource(criaTs).With2xxOnly().Client()
 	adminAllowed, err := allowed.NewAllowedFromChromeInfraAuth(criaClient, AUTH_GROUP_ADMIN_RIGHTS)
 	if err != nil {
 		sklog.Fatal(err)

@@ -198,7 +198,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	ss, err = sheets.New(client)
 	if err != nil {
 		sklog.Fatalf("Failed to create Sheets client: %s", err)
