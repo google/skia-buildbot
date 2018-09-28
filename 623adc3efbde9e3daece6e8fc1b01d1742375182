@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "12f2959c_26bd1f80",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T14:57:02Z",
+      "side": 1,
+      "message": "Yes, it\u0027d be the name of the task.  Once I figure out how to get all of the cloud logging stuff connected I\u0027ll come up with a better scheme for initializing everything.  Personally I\u0027d like to move it all into test_automation.New (maybe rename it to Init).",
+      "parentUuid": "496895c4_f3d00813",
+      "range": {
+        "startLine": 26,
+        "startChar": 2,
+        "endLine": 26,
+        "endChar": 19
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ad95ac67_e708b5a4",
         "filename": "infra_tests.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2018-09-28T14:49:29Z",
       "side": 1,
       "message": "/bikeshed \"e.g. Small, Race, etc\"",
+      "range": {
+        "startLine": 35,
+        "startChar": 14,
+        "endLine": 35,
+        "endChar": 40
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca8845e7_f164dc9d",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T14:57:02Z",
+      "side": 1,
+      "message": "Yep, but just wanted to mimic the existing recipe as closely as possible in this first iteration, for comparison\u0027s sake.",
+      "parentUuid": "ad95ac67_e708b5a4",
       "range": {
         "startLine": 35,
         "startChar": 14,
@@ -157,6 +205,54 @@
         "startChar": 15,
         "endLine": 91,
         "endChar": 22
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e875c3df_93e8ec8d",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T14:57:02Z",
+      "side": 1,
+      "message": "We can do this:\n\ns.Step().Env(env).Do(func(s *Step)error {\n    // Here are all of the steps that need env.\n})\n\nThe \"downside\" is that you\u0027d get an intermediate umbrella step which has those as sub-steps.  IMO it\u0027s reasonable to organize steps with common properties that way.  Also, a Step inherits the environment of its parent.  So, we could do this higher up and then not need to re-specify it.",
+      "parentUuid": "815da7a6_e3447d14",
+      "range": {
+        "startLine": 91,
+        "startChar": 46,
+        "endLine": 91,
+        "endChar": 55
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8c07e7b_80ae9821",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T14:57:02Z",
+      "side": 1,
+      "message": "It\u0027s calling into exec.RunCwd, which is why it\u0027s named that way.  Interpret it as \"Run this command in the given current working directory\"",
+      "parentUuid": "81841911_d721361a",
+      "range": {
+        "startLine": 91,
+        "startChar": 56,
+        "endLine": 91,
+        "endChar": 62
       },
       "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
