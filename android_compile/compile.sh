@@ -52,3 +52,6 @@ eval $mmm_skia_cmd
 
 log_step "ccache stats after compilations"
 ccache -s
+
+log_step "backing up ccache"
+time rsync -ar /ccache/ /mnt/pd0/ccache_backup/
