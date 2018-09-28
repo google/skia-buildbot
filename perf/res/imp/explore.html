@@ -163,6 +163,7 @@
           both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
         <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
         <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
+        <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
         <div>
           <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
           <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
@@ -643,19 +644,60 @@
     // Note that removing a trace doesn't work if the trace came from a
     // formula that returns multiple traces. This is a known issue that
     // isn't currently worth solving.
+    //
+    // Returns the Promise that's creating the shortcut, or undefined if
+    // there isn't a shortcut to create.
     _reShortCut: function(keys) {
         if (keys.length == 0) {
           this.state.keys = "";
           this.state.queries = [];
-          return
+          return undefined
         }
         var state = {
           keys: keys,
         };
-        sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+        return sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
           this.state.keys = json.id;
           this.state.queries = [];
         }.bind(this));
+    },
+
+    // Create a shortcut for all of the traces currently being displayed.
+    //
+    // Returns the Promise that's creating the shortcut, or undefined if
+    // there isn't a shortcut to create.
+    _shortcutAll: function() {
+      var toShortcut = [];
+
+      Object.keys(this._dataframe.traceset).forEach(function(key) {
+        if (key[0] == ",") {
+          toShortcut.push(key);
+        }
+      });
+
+      return this._reShortCut(toShortcut);
+    },
+
+    // Apply norm() to all the traces currently being displayed.
+    _normalize: function() {
+      let promise = this._shortcutAll();
+      if (!promise) {
+        sk.errorMessage("No traces to normalize.");
+        return
+      }
+      promise.then(() => {
+        let f = `norm(shortcut("${this.state.keys}"))`
+        this._removeAll();
+        let body = {
+          begin: this.state.begin,
+          end: this.state.end,
+          formulas: [f],
+        };
+        this.state.formulas.push(f);
+        this._requestFrame(body, (json) => {
+          this._addTraces(json, true, false);
+        });
+      });
     },
 
     _removeHighlighted: function() {
