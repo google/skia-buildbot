@@ -99,63 +99,70 @@
     paper-dialog {
       overflow: auto;
     }
+
+    header {
+      display: flex;
+      flex-flow: row wrap;
+    }
   </style>
   <template>
-    <details-sk open="{{_statusOpen}}">
-      <summary-sk>
-        <h2>Status</h2>
-      </summary-sk>
-      <div id=status>
-        <p>The current work on detecting regressions:</p>
-        <table>
-          <tr>
-            <th>Alert</th>
-            <td><a href="/a/?[[_currentState.alert.id]]"><query-summary-sk selection="[[_currentState.alert.query]]"></query-summary-sk></a></td>
-          </tr>
-          <tr>
-            <th>Commit</th>
-            <td><commit-detail-sk cid="[[_currentState.commit]]"></commit-detail-sk></td>
-          </tr>
-        </table>
-      </div>
-    </details-sk>
-    <details-sk open>
-      <summary-sk>
-        <h2 id="filter">Filter</h2>
-      </summary-sk>
-      <h3>Which regressions to display.</h3>
-      <iron-selector
-        attr-for-selected="value"
-        selected="{{state.subset}}"
-        fallback-selection="untriaged"
-        on-selected-item-changed="_updateRange"
-        >
-        <div value=all title="Show results for all commits in the time range.">All</div>
-        <div value=flagged title="Show only the commits with regressions in the given time range regardless of triage status.">Regressions</div>
-        <div value=untriaged title="Show all the untriaged regressions in the givenn time range.">Untriaged</div>
-      </iron-selector>
+    <header>
+      <details-sk>
+        <summary-sk>
+          <h2 id="filter">Filter</h2>
+        </summary-sk>
+        <h3>Which commits to display.</h3>
+        <iron-selector
+          attr-for-selected="value"
+          selected="{{state.subset}}"
+          fallback-selection="untriaged"
+          on-selected-item-changed="_updateRange"
+          >
+          <div value=all title="Show results for all commits in the time range.">All</div>
+          <div value=flagged title="Show only the commits with regressions in the given time range regardless of triage status.">Regressions</div>
+          <div value=untriaged title="Show only commits with untriaged regressions in the given time range.">Untriaged</div>
+        </iron-selector>
 
-      <h3>Which alerts to display.</h3>
-      <iron-selector
-        attr-for-selected="value"
-        selected="{{state.filter}}"
-        on-selected-item-changed="_updateRange"
-        >
-        <div value=ALL title="Show all alerts.">Show all alerts</div>
-        <div value=OWNER title="Show only the alerts owned by the logged in
-          user (or all alerts if the user doesn't own any alerts).">Show alerts you own</div>
-        <template is="dom-repeat" items="[[_reg.categories]]">
-          <div value="cat:[[item]]" title="Show only the alerts in the
-            [[_categoryDisplay(item)]] category.">Category: [[_categoryDisplay(item)]]</div>
-        </template>
-      </iron-selector>
-    </details-sk>
-    <details-sk>
-      <summary-sk>
-        <h2 id="range">Range</h2>
-      </summary-sk>
-      <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
-    </details-sk>
+        <h3>Which alerts to display.</h3>
+        <iron-selector
+          attr-for-selected="value"
+          selected="{{state.filter}}"
+          on-selected-item-changed="_updateRange"
+          >
+          <div value=ALL title="Show all alerts.">Show all alerts</div>
+          <div value=OWNER title="Show only the alerts owned by the logged in
+            user (or all alerts if the user doesn't own any alerts).">Show alerts you own</div>
+          <template is="dom-repeat" items="[[_reg.categories]]">
+            <div value="cat:[[item]]" title="Show only the alerts in the
+              [[_categoryDisplay(item)]] category.">Category: [[_categoryDisplay(item)]]</div>
+          </template>
+        </iron-selector>
+      </details-sk>
+      <details-sk>
+        <summary-sk>
+          <h2 id="range">Range</h2>
+        </summary-sk>
+        <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+      </details-sk>
+      <details-sk open="{{_statusOpen}}">
+        <summary-sk>
+          <h2>Status</h2>
+        </summary-sk>
+        <div id=status>
+          <p>The current work on detecting regressions:</p>
+          <table>
+            <tr>
+              <th>Alert</th>
+              <td><a href="/a/?[[_currentState.alert.id]]"><query-summary-sk selection="[[_currentState.alert.query]]"></query-summary-sk></a></td>
+            </tr>
+            <tr>
+              <th>Commit</th>
+              <td><commit-detail-sk cid="[[_currentState.commit]]"></commit-detail-sk></td>
+            </tr>
+          </table>
+        </div>
+      </details-sk>
+    </header>
     <paper-spinner id=spinner></paper-spinner>
 
     <paper-dialog id=dialog on-open-keys=_openKeys>
