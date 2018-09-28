@@ -48,6 +48,29 @@
     },
     {
       "key": {
+        "uuid": "0946a555_6d17fbd7",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-28T14:52:42Z",
+      "side": 1,
+      "message": "This contains utilities for us to use? like recipe_modules?\nThey will probably grow large eventually. Would it be easier to find things we needed if we named them git_automation / file_automation / something_better ?",
+      "range": {
+        "startLine": 44,
+        "startChar": 11,
+        "endLine": 44,
+        "endChar": 26
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81841911_d721361a",
         "filename": "infra_tests.go",
         "patchSetId": 7
@@ -111,6 +134,29 @@
         "startChar": 56,
         "endLine": 91,
         "endChar": 62
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54e86a03_196f9b1b",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-28T14:52:42Z",
+      "side": 1,
+      "message": "I am assuming every step needs a name, maybe it should be a required argument. instead of \".Name(...)\".\n\".Env(env)\" is debatable as a required argument because you do not always need to specify an env.",
+      "range": {
+        "startLine": 91,
+        "startChar": 15,
+        "endLine": 91,
+        "endChar": 22
       },
       "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
