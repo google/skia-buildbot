@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "4f37a9ed_1d4c3488",
+        "filename": "go/common/common.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-28T15:22:19Z",
+      "side": 1,
+      "message": "No, don\u0027t do retries, the logging package will keep failed logs around and then on the next tick try to re-upload the previously failed logs and the new logs that arrived in the interim.",
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c07e3aa_c432da87",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 11
@@ -42,6 +59,23 @@
         "endLine": 196,
         "endChar": 152
       },
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c63a58b4_7cb84fc9",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-09-28T15:22:19Z",
+      "side": 1,
+      "message": "Prober shouldn\u0027t do retries.",
       "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
