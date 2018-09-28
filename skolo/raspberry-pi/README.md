@@ -32,6 +32,11 @@ ansible-playbook -i "localhost," -c local setup_master.yml
 sudo cp master.interfaces /etc/network/interfaces
 sudo chmod 0644 /etc/network/interfaces
 ```
+
+Note that the above will configure a static IP for the machine that the router
+DNS will not know about unless specifically configured. You can still ssh at
+192.168.1.99 or 192.168.1.98.
+
 At this point, the steps get a bit hard to script, but we are nearly done.
 Bootstrap pulld by downloading a recent .deb and installing it with `sudo dpkg -i pulld.deb`
 I also suggest putting the jump host's ssh public key in ~/.ssh/authorized_keys.
