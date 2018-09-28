@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "45aae557_8e1bd97e",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T14:40:13Z",
+      "side": 1,
+      "message": "Personally, I don\u0027t think it\u0027s simpler, since you have to ship the script around rather than have everything in one binary.  But if this is the way you prefer it, then SGTM.",
+      "parentUuid": "07d21a63_e5f9b521",
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ababdaa0_1740a994",
         "filename": "android_compile/clean-checkout.sh",
         "patchSetId": 5
@@ -90,6 +108,30 @@
       "side": 1,
       "message": "So the problem is sometimes some syncs fail because of 502s and leave these lock files lying around (seems to happen frequently for Android).\nWe can do it on server startup but will still run into this. I think doing a clean before every sync will make it more robust to failures.",
       "parentUuid": "ababdaa0_1740a994",
+      "range": {
+        "startLine": 13,
+        "startChar": 13,
+        "endLine": 13,
+        "endChar": 26
+      },
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b21b05b7_035e606e",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T14:40:13Z",
+      "side": 1,
+      "message": "Git should clean up the lockfiles when it\u0027s finished, even if the server gives an error like 502.  The lockfiles should only be present if a git command is interrupted (or if, as intended, there is already another git process messing with the directory).  Are we sure that there aren\u0027t conflicting processes or something?",
+      "parentUuid": "e342168a_76b147cd",
       "range": {
         "startLine": 13,
         "startChar": 13,
