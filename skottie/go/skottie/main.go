@@ -68,7 +68,7 @@ func New() (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get token source: %s", err)
 	}
-	client := auth.ClientFromTokenSource(ts)
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)

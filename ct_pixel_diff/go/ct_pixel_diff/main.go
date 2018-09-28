@@ -96,10 +96,11 @@ func main() {
 	loadTemplates()
 
 	// Get the client to be used to access GCS.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Set up the DiffStore.
 	mapper := dynamicdiff.NewPixelDiffStoreMapper(&dynamicdiff.DynamicDiffMetrics{})
