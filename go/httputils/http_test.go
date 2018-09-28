@@ -83,9 +83,8 @@ func TestBackoffTransport2xxOnly(t *testing.T) {
 		randomizationFactor: RANDOMIZATION_FACTOR,
 		backOffMultiplier:   BACKOFF_MULTIPLIER,
 	}
-	bt := NewConfiguredBackOffTransportAllResponses(config)
 	wrapped := &MockRoundTripper{}
-	bt.(*BackOffTransport).Transport = wrapped
+	bt := NewConfiguredBackOffTransportAllResponses(config, wrapped)
 	bt = Response2xxOnlyTransport{bt}
 
 	// test takes a slice of response codes for the server to respond with (the last being repeated),
@@ -142,9 +141,8 @@ func TestBackoffTransportAllResponses(t *testing.T) {
 		randomizationFactor: RANDOMIZATION_FACTOR,
 		backOffMultiplier:   BACKOFF_MULTIPLIER,
 	}
-	bt := NewConfiguredBackOffTransportAllResponses(config)
 	wrapped := &MockRoundTripper{}
-	bt.(*BackOffTransport).Transport = wrapped
+	bt := NewConfiguredBackOffTransportAllResponses(config, wrapped)
 
 	// test takes a slice of response codes for the server to respond with (the last being repeated)
 	// and verifies that the response code from BackoffTransport is equal to the final value in codes.

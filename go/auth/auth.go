@@ -260,12 +260,7 @@ func newLegacyTokenSourceFromConfig(local bool, config *oauth2.Config, oauthCach
 	}
 
 	if local {
-		// TODO(dogben): Check if this is what we want.
-		tokenClient := &http.Client{
-			Transport: httputils.NewBackOffTransport(),
-			Timeout:   httputils.REQUEST_TIMEOUT,
-		}
-		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, httputils.DefaultClientConfig().Client())
 		return newCachingTokenSource(oauthCacheFile, ctx, config)
 	}
 	// Are we running on GCE?
