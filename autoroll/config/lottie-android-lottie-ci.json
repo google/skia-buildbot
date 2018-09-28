@@ -1,0 +1,38 @@
+{
+  "childName": "Lottie Android",
+  "contacts": [
+    "borenet@google.com"
+  ],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Lottie CI",
+  "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
+  "rollerName": "lottie-android-lottie-ci-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "borenet@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "lottie-android",
+    "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git",
+    "gerritProject": "lottie-ci",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m",
+  "safetyThrottle": {
+    "attemptCount": 0,
+    "timeWindow": "1h"
+  }
+}
