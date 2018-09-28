@@ -216,6 +216,18 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		defer checkoutsMutex.RUnlock()
 	}
 
+	// Clean checkout before syncing.
+	pathToCleanCheckoutScript := filepath.Join(*resourcesDir, "clean-checkout.sh")
+	cleanCheckoutCmd := fmt.Sprintf("bash %s %s", pathToCleanCheckoutScript, checkoutPath)
+	sklog.Infof("Running %s", cleanCheckoutCmd)
+	cleanCheckoutOutput, err := sk_exec.RunSimple(ctx, cleanCheckoutCmd)
+	if err != nil {
+		errMsg := fmt.Sprintf("Failed to clean checkout: %s", err)
+		sklog.Errorln(errMsg)
+		return errors.New(errMsg)
+	}
+	sklog.Infof("Output: %s", cleanCheckoutOutput)
+
 	updateFunc := func() error {
 		checkoutBase := path.Base(checkoutPath)
 		sklog.Infof("Started updating %s", checkoutBase)
