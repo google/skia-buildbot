@@ -237,10 +237,11 @@ func main() {
 
 	h := srv.applySecurityWrappers(r)
 	if !*local {
-		client, err := auth.NewJWTServiceAccountClient("", *chromeInfraAuthJWT, nil, auth.SCOPE_USERINFO_EMAIL)
+		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
 		if err != nil {
 			sklog.Fatal(err)
 		}
+		client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 		allow, err := allowed.NewAllowedFromChromeInfraAuth(client, *authGroup)
 		if err != nil {
 			sklog.Fatal(err)

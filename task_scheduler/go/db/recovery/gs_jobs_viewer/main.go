@@ -18,6 +18,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/recovery"
@@ -34,10 +35,11 @@ func main() {
 	common.Init()
 
 	// Authenticated HTTP client.
-	httpClient, err := auth.NewClient(true, "", auth.SCOPE_READ_ONLY)
+	ts, err := auth.NewDefaultLegacyTokenSource(true, auth.SCOPE_READ_ONLY)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	ctx := context.Background()
 	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))

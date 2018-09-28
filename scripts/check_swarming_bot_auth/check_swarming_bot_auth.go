@@ -10,6 +10,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 )
@@ -43,10 +44,11 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
-	httpClient, err := auth.NewClientWithTransport(true, oauthCacheFile, "client_secret_skia-buildbots.json", nil, swarming.AUTH_SCOPE)
+	ts, err := auth.NewLegacyTokenSource(true, oauthCacheFile, "client_secret_skia-buildbots.json", swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatalf("Could not authenticate. Did you get the swarming client_secret and put it in %s? : %s", *workdir, err)
 	}
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Swarming API client.
 	swarmApi, err := swarming.NewApiClient(httpClient, *server)
