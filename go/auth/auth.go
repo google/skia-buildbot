@@ -57,49 +57,6 @@ func NewDefaultTokenSource(local bool, scopes ...string) (oauth2.TokenSource, er
 	}
 }
 
-// ClientFromTokenSource creates an http.Client with a BackOff transport and a
-// request timeout.
-func ClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
-	return httputils.AddMetricsToClient(&http.Client{
-		Transport: &oauth2.Transport{
-			Source: tok,
-			Base:   httputils.NewBackOffTransport(),
-		},
-		Timeout: httputils.REQUEST_TIMEOUT,
-	})
-}
-
-// TimeoutClientFromTokenSource creates an http.Client with a Timeout transport and a
-// request timeout.
-func TimeoutClientFromTokenSource(tok oauth2.TokenSource) *http.Client {
-	return httputils.AddMetricsToClient(&http.Client{
-		Transport: &oauth2.Transport{
-			Source: tok,
-			Base:   &http.Transport{Dial: httputils.DialTimeout},
-		},
-		Timeout: httputils.REQUEST_TIMEOUT,
-	})
-}
-
-// asClient creates a "DefaultClient" from the result of a New*TokenSource function and
-// optionally a transport.
-// TODO(dogben): Remove when this package provides only TokenSources, not Clients.
-func asClient(tok oauth2.TokenSource, err error, transport http.RoundTripper) (*http.Client, error) {
-	if err != nil {
-		return nil, err
-	}
-	if transport == nil {
-		transport = httputils.NewBackOffTransport()
-	}
-	return httputils.AddMetricsToClient(&http.Client{
-		Transport: &oauth2.Transport{
-			Source: tok,
-			Base:   transport,
-		},
-		Timeout: httputils.REQUEST_TIMEOUT,
-	}), nil
-}
-
 // NewDefaultLegacyTokenSource creates a new OAuth 2.0 token source with all the defaults for the
 // given scopes. If local is true then a 3-legged flow is initiated, otherwise the GCE Service
 // Account is used if running in GCE, and the Skolo access token provider is used if running in
@@ -109,29 +66,6 @@ func asClient(tok oauth2.TokenSource, err error, transport http.RoundTripper) (*
 // The default OAuth token store filename is "google_storage_token.data".
 func NewDefaultLegacyTokenSource(local bool, scopes ...string) (oauth2.TokenSource, error) {
 	return NewLegacyTokenSource(local, "", "", scopes...)
-}
-
-// NewDefaultClient creates a new OAuth 2.0 authorized client with all the
-// defaults for the given scopes. If local is true then a 3-legged flow is
-// initiated, otherwise the GCE Service Account is used if running in GCE, and
-// the Skolo access token provider is used if running in Skolo.
-//
-// The default OAuth config filename is "client_secret.json".
-// The default OAuth token store filename is "google_storage_token.data".
-func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
-	tok, err := NewDefaultLegacyTokenSource(local, scopes...)
-	return asClient(tok, err, nil)
-}
-
-// NewClient creates a new OAuth 2.0 authorized client with all the defaults
-// for the given scopes, and the given token store filename. If local is true
-// then a 3-legged flow is initiated, otherwise the GCE Service Account is
-// used.
-//
-// The default OAuth config filename is "client_secret.json".
-func NewClient(local bool, oauthCacheFile string, scopes ...string) (*http.Client, error) {
-	tok, err := NewLegacyTokenSource(local, oauthCacheFile, "", scopes...)
-	return asClient(tok, err, nil)
 }
 
 type gcloudTokenSource struct {
@@ -205,15 +139,8 @@ func NewTokenSourceFromIdAndSecret(clientId, clientSecret, oauthCacheFile string
 	return newLegacyTokenSourceFromConfig(true, config, oauthCacheFile)
 }
 
-// NewClientFromIdAndSecret creates a new OAuth 2.0 authorized client with all the defaults
-// for the given scopes, and the given token store filename.
-func NewClientFromIdAndSecret(clientId, clientSecret, oauthCacheFile string, scopes ...string) (*http.Client, error) {
-	tok, err := NewTokenSourceFromIdAndSecret(clientId, clientSecret, oauthCacheFile, scopes...)
-	return asClient(tok, err, nil)
-}
-
 // NewLegacyTokenSource creates a new OAuth 2.0 token source. If local is true then a 3-legged flow
-// is initiated, otherwise the GCE Service Account is used if running in GCE, and he Skolo access
+// is initiated, otherwise the GCE Service Account is used if running in GCE, and the Skolo access
 // token provider is used if running in Skolo.
 //
 // The OAuth tokens will be stored in oauthCacheFile.
@@ -236,18 +163,6 @@ func NewLegacyTokenSource(local bool, oauthCacheFile string, oauthConfigFile str
 	}
 
 	return newLegacyTokenSourceFromConfig(local, config, oauthCacheFile)
-}
-
-// NewClientWithTransport creates a new OAuth 2.0 authorized client. If local
-// is true then a 3-legged flow is initiated, otherwise the GCE Service Account
-// is used.
-//
-// The OAuth tokens will be stored in oauthCacheFile.
-// The OAuth config will come from oauthConfigFile.
-// The transport will be used. If nil then httputils.NewBackOffTransport() is used.
-func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
-	tok, err := NewLegacyTokenSource(local, oauthCacheFile, oauthConfigFile, scopes...)
-	return asClient(tok, err, transport)
 }
 
 // newLegacyTokenSourceFromConfig creates an new OAuth 2.0 token source for the given config.
@@ -421,26 +336,6 @@ func saveToken(cacheFilePath string, tok *oauth2.Token) error {
 		}
 	}
 	return nil
-}
-
-// NewDefaultServiceAccountClient Looks for the JWT JSON in metadata, falls
-// back to a local file names "service-account.json" if metadata isn't
-// available.
-func NewDefaultJWTServiceAccountClient(scopes ...string) (*http.Client, error) {
-	return NewJWTServiceAccountClient("", "", nil, scopes...)
-}
-
-// NewJWTServiceAccountClient creates a new http.Client that is loaded by first
-// attempting to load the JWT JSON Service Account data from GCE Project Level
-// metadata, and if that fails falls back to loading the data from a local
-// file.
-//
-//   metadataname - The name of the GCE project level metadata key that holds the JWT JSON. If empty a default is used.
-//   filename - The name of the local file that holds the JWT JSON. If empty a default is used.
-//   transport - A transport. If nil then a default is used.
-func NewJWTServiceAccountClient(metadataname, filename string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
-	tok, err := NewJWTServiceAccountTokenSource(metadataname, filename, scopes...)
-	return asClient(tok, err, transport)
 }
 
 // NewJWTServiceAccountTokenSource creates a new oauth2.TokenSource that
