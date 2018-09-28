@@ -1001,13 +1001,21 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 			Id:      cid,
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
 		}
+		count := 0
 		if r, ok := regMap[cid.ID()]; ok {
 			for i, h := range headers {
 				key := h.IdAsString()
 				if reg, ok := r.ByAlertID[key]; ok {
+					if rr.Subset == regression.UNTRIAGED_SUBSET && reg.HighStatus.Status != regression.UNTRIAGED && reg.LowStatus.Status != regression.UNTRIAGED {
+						continue
+					}
 					row.Columns[i] = reg
+					count += 1
 				}
 			}
+		}
+		if count == 0 && rr.Subset != regression.ALL_SUBSET {
+			continue
 		}
 		ret.Table = append(ret.Table, row)
 	}
