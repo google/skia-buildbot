@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "60ae6cd7_552b8a3d",
+        "filename": "infra_tests.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-09-28T15:02:51Z",
+      "side": 1,
+      "message": "Sure. We could just add sub-packages of test_automation (which IMO should be renamed once we know what we want to call it).",
+      "parentUuid": "0946a555_6d17fbd7",
+      "range": {
+        "startLine": 44,
+        "startChar": 11,
+        "endLine": 44,
+        "endChar": 26
+      },
+      "revId": "623adc3efbde9e3daece6e8fc1b01d1742375182",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "81841911_d721361a",
         "filename": "infra_tests.go",
         "patchSetId": 7
