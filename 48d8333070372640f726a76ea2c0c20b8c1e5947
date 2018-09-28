@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c07e3aa_c432da87",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-28T15:16:35Z",
+      "side": 1,
+      "message": "The superfluous call to auth.NewJWTServiceAccountTokenSource below should be removed.",
+      "range": {
+        "startLine": 196,
+        "startChar": 0,
+        "endLine": 196,
+        "endChar": 152
+      },
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df6096e5_8f4e5727",
+        "filename": "tracedb/go/skia_ingestion/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-09-28T15:16:35Z",
+      "side": 1,
+      "message": "This should be removed and the above \u0027ts\u0027 should be tokenSrc",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 107
+      },
+      "revId": "48d8333070372640f726a76ea2c0c20b8c1e5947",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
