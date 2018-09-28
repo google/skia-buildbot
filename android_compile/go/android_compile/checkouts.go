@@ -36,6 +36,8 @@ import (
 const (
 	CHECKOUTS_TOPLEVEL_DIR = "checkouts"
 	CHECKOUT_DIR_PREFIX    = "checkout"
+	CCACHE_DIR             = "/ccache"
+	CCACHE_BACKUP_DIR_NAME = "ccache_backup"
 
 	ANDROID_MANIFEST_URL = "https://googleplex-android.googlesource.com/a/platform/manifest"
 	ANDROID_SKIA_URL     = "https://googleplex-android.googlesource.com/a/platform/external/skia"
@@ -82,8 +84,9 @@ var (
 
 	gerritClient *gerrit.Gerrit
 
-	repoToolPath string
-	pathToMirror string
+	repoToolPath       string
+	pathToMirror       string
+	pathToCcacheBackup string
 
 	// RWMutex for handling checkouts. The mirror will acquire a Lock()
 	// while the other local checkouts will acquire a RLock().
@@ -97,6 +100,18 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	}
 	repoToolPath = path.Join(user.HomeDir, "bin", "repo")
 	ctx := context.Background()
+
+	// Make sure ccache backup is restored (if it exists).
+	pathToCcacheBackup = filepath.Join(workdir, CCACHE_BACKUP_DIR_NAME)
+	restoreOutput, err := os.Stat(pathToCcacheBackup)
+	if err == nil {
+		rsyncCmd := fmt.Sprintf("rsync -ar %s/ %s/", pathToCcacheBackup, CCACHE_DIR)
+		sklog.Infof("Restoring backup with: %s", rsyncCmd)
+		if _, err := sk_exec.RunCwd(ctx, "", rsyncCmd); err != nil {
+			return fmt.Errorf("Failed to restore ccache backup: %s", err)
+		}
+		sklog.Info("Output: %s", restoreOutput)
+	}
 
 	// Make sure the mirror directory is created and initialized.
 	pathToMirror = filepath.Join(workdir, CHECKOUTS_TOPLEVEL_DIR, "mirror")
@@ -571,6 +586,15 @@ func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCom
 	// Write to logs to sklog as well.
 	sklog.Infof("Compilation logs for %s on %s:", logFilePrefix, checkoutBase)
 	sklog.Infof("\n---------------------------------------------------\n%s\n---------------------------------------------------\n", compileLog)
+
+	// Backup ccache dir after compilation.
+	rsyncCmd := fmt.Sprintf("rsync -ar %s/ %s/", CCACHE_DIR, pathToCcacheBackup)
+	sklog.Infof("Backing up ccache with: %s", rsyncCmd)
+	backupOutput, err := sk_exec.RunCwd(ctx, checkoutPath, rsyncCmd)
+	if err != nil {
+		return compileSuccess, "", fmt.Errorf("Failed to backup ccache: %s", err)
+	}
+	sklog.Info("Output: %s", backupOutput)
 
 	return compileSuccess, fmt.Sprintf("https://storage.cloud.google.com/%s/%s", COMPILE_TASK_LOGS_BUCKET, filepath.Base(logFile.Name())), nil
 }
