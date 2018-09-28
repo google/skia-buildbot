@@ -125,9 +125,8 @@ func (s *Store) Write(regressions map[string]*Regressions, lookup DetailLookup) 
 	return nil
 }
 
-// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range,
-// or for all time if subset is UNTRIAGED_SUBSET.
-func (s *Store) Range(begin, end int64, subset Subset) (map[string]*Regressions, error) {
+// Range returns a map from cid.ID()'s to *Regressions that exist in the given time range
+func (s *Store) Range(begin, end int64) (map[string]*Regressions, error) {
 	ret := map[string]*Regressions{}
 	q := ds.NewQuery(ds.REGRESSION).Filter("TS >=", begin).Filter("TS <", end)
 	it := ds.DS.Run(context.TODO(), q)
