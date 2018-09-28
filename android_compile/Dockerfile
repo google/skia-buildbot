@@ -34,6 +34,9 @@ ENV PATH /home/skia/bin:$PATH
 # Set git configs required for the repo tool to not prompt.
 RUN git config --global color.ui true
 
+# Restore ccache backup.
+RUN rsync -ar /mnt/pd0/ccache_backup/ /ccache/
+
 COPY . /
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8.0-openjdk-amd64
