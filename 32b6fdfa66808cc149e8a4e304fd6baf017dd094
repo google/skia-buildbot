@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5127cc7b_445852ee",
+        "filename": "android_compile/clean-checkout.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-09-28T13:20:10Z",
+      "side": 1,
+      "message": "In the future this might also contain other commands like:\nfind . -type d -name \".git\" -execdir nice -n 19 ionice -c3 git gc --aggressive --prune \\;\n\nto speed up syncs.",
+      "revId": "32b6fdfa66808cc149e8a4e304fd6baf017dd094",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
