@@ -65,6 +65,14 @@ func New() *Regressions {
 	}
 }
 
+// Triaged returns true if triaged.
+func (r *Regression) Triaged() bool {
+	ret := true
+	ret = ret && (r.HighStatus.Status != UNTRIAGED)
+	ret = ret && (r.LowStatus.Status != UNTRIAGED)
+	return ret
+}
+
 // SetLow sets the cluster for a low regression.
 //
 // Returns true if this is a new regression.

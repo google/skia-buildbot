@@ -61,6 +61,12 @@ import (
 const (
 	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
 	FROM_ADDRESS           = "alertserver@skia.org"
+
+	// REGRESSION_COUNT_DURATION is how far back we look for regression in the /_/reg/count endpoint.
+	REGRESSION_COUNT_DURATION = -14 * 24 * time.Hour
+
+	// DEFAULT_ALERT_CATEGORY is the category that will be used by the /_/alerts/ endpoint.
+	DEFAULT_ALERT_CATEGORY = "Prod"
 )
 
 var (
@@ -340,7 +346,7 @@ type AlertsStatus struct {
 }
 
 func alertsHandler(w http.ResponseWriter, r *http.Request) {
-	count, err := continuous.Untriaged()
+	count, err := regressionCount(DEFAULT_ALERT_CATEGORY)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load untriaged count.")
 		return
@@ -829,18 +835,49 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	rr := &RegressionRangeRequest{
-		Subset: regression.UNTRIAGED_SUBSET,
+// regressionCount returns the number of commits that have regressions for alerts
+// in the given category. The time range of commits is REGRESSION_COUNT_DURATION.
+func regressionCount(category string) (int, error) {
+	configs, err := configProvider()
+	if err != nil {
+		return 0, err
 	}
 
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(rr.Begin, rr.End, rr.Subset)
+	end := time.Now()
+	begin := end.Add(REGRESSION_COUNT_DURATION)
+	regMap, err := regStore.Range(begin.Unix(), end.Unix())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load regressions.")
+		return 0, err
 	}
-	if err := json.NewEncoder(w).Encode(struct{ Count int }{Count: len(regMap)}); err != nil {
+	count := 0
+	for _, regs := range regMap {
+		for _, cfg := range configs {
+			if reg, ok := regs.ByAlertID[cfg.IdAsString()]; ok {
+				if cfg.Category == category && !reg.Triaged() {
+					// If any alert for the commit is in the category and is untriaged then we count that row only once.
+					count += 1
+					break
+				}
+			}
+		}
+	}
+	return count, nil
+}
+
+// regressionCountHandler returns a JSON object with the number of untriaged
+// alerts that appear in the REGRESSION_COUNT_DURATION. The category
+// can be supplied by the 'cat' query parameter and defaults to "".
+func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	category := r.FormValue("cat")
+
+	count, err := regressionCount(category)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to count regressions.")
+	}
+
+	if err := json.NewEncoder(w).Encode(struct{ Count int }{Count: count}); err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
@@ -895,7 +932,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Query for Regressions in the range.
-	regMap, err := regStore.Range(rr.Begin, rr.End, rr.Subset)
+	regMap, err := regStore.Range(rr.Begin, rr.End)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve clusters.")
 		return
@@ -1006,7 +1043,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 			for i, h := range headers {
 				key := h.IdAsString()
 				if reg, ok := r.ByAlertID[key]; ok {
-					if rr.Subset == regression.UNTRIAGED_SUBSET && reg.HighStatus.Status != regression.UNTRIAGED && reg.LowStatus.Status != regression.UNTRIAGED {
+					if rr.Subset == regression.UNTRIAGED_SUBSET && reg.Triaged() {
 						continue
 					}
 					row.Columns[i] = reg
