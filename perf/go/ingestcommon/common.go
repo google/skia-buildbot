@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	"go.skia.org/infra/go/util"
 )
 
 // BenchResult represents a single test result.
@@ -41,11 +39,9 @@ func (b *BenchData) IsGerritIssue() bool {
 	return (b.Issue != "") && (b.PatchStorage == "gerrit")
 }
 
-// parseBenchDataFromReader parses the stream out of the io.ReadCloser
-// into BenchData and closes the reader.
-func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
-	defer util.Close(r)
-
+// parseBenchDataFromReader parses the stream out of the io.Reader into
+// BenchData. The caller is responsible for calling Close on the reader.
+func ParseBenchDataFromReader(r io.Reader) (*BenchData, error) {
 	dec := json.NewDecoder(r)
 	benchData := &BenchData{}
 	if err := dec.Decode(benchData); err != nil {
