@@ -26,7 +26,7 @@ checkout=$1
 cd $checkout
 
 # Set ccache env variables.
-export CCACHE_DIR=/ccache
+export CCACHE_DIR=/mnt/pd0/ccache
 export USE_CCACHE=1
 export CCACHE_EXEC=/usr/bin/ccache
 ccache -M 100G
