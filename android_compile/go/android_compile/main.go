@@ -218,6 +218,7 @@ func main() {
 	if *projectID == "" || *topic == "" || *subscriberName == "" {
 		sklog.Fatalf("project_id, topic and subscriber flags must all be set.")
 	}
+	//httputils.RunHealthCheckServer(*port)
 
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
