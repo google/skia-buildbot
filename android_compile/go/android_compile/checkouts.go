@@ -98,6 +98,16 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	repoToolPath = path.Join(user.HomeDir, "bin", "repo")
 	ctx := context.Background()
 
+	// Make sure ccache directory exists.
+	pathToCcache := filepath.Join(workdir, "ccache")
+	if _, err := os.Stat(pathToCcache); err != nil {
+		if os.IsNotExist(err) {
+			if _, err := fileutil.EnsureDirExists(pathToCcache); err != nil {
+				return fmt.Errorf("Error creating %s: %s", pathToCcache, err)
+			}
+		}
+	}
+
 	// Make sure the mirror directory is created and initialized.
 	pathToMirror = filepath.Join(workdir, CHECKOUTS_TOPLEVEL_DIR, "mirror")
 	if _, err := os.Stat(pathToMirror); err != nil {
