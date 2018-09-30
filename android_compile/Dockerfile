@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y wget procps ccache gpg curl vim \
 RUN ln -s /usr/lib/x86_64-linux-gnu/libncursesw.so.6.1 /usr/lib/libtinfo.so.5 \
     && ln -s /usr/lib/x86_64-linux-gnu/libncursesw.so.6.1 /usr/lib/libncurses.so.5
 
-#Add user so we don't have to run as root (prevents us from over-writing files in /SRC)
+# Add user so we don't have to run as root (prevents us from over-writing files in /SRC)
 RUN groupadd -g 2000 skia \
     && useradd -u 2000 -g 2000 skia \
     && mkdir -p /home/skia \
