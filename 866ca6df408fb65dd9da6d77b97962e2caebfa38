@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "45252e0d_af61c973",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 654,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-01T11:16:24Z",
+      "side": 1,
+      "message": "nit trailing semicolon.",
+      "range": {
+        "startLine": 654,
+        "startChar": 25,
+        "endLine": 654,
+        "endChar": 26
+      },
+      "revId": "866ca6df408fb65dd9da6d77b97962e2caebfa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d206a713_81a588bf",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 673,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-01T11:16:24Z",
+      "side": 1,
+      "message": "nit \u003d\u003d\u003d",
+      "range": {
+        "startLine": 673,
+        "startChar": 19,
+        "endLine": 673,
+        "endChar": 21
+      },
+      "revId": "866ca6df408fb65dd9da6d77b97962e2caebfa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cfa4f4d_da071fd5",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-01T11:16:24Z",
+      "side": 1,
+      "message": "Maybe it\u0027s just me, but I think I\u0027ve had trouble with let in Polymer.  Possibly the vulcanize step, but if it works for you, fine.",
+      "range": {
+        "startLine": 683,
+        "startChar": 6,
+        "endLine": 683,
+        "endChar": 9
+      },
+      "revId": "866ca6df408fb65dd9da6d77b97962e2caebfa38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
