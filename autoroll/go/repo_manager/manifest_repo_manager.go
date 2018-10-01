@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strings"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
@@ -198,7 +197,7 @@ TEST=CQ
 	// Upload the CL to Gerrit.
 	uploadCmd := &exec.Command{
 		Dir:  mr.parentDir,
-		Env:  depot_tools.Env(mr.depotTools),
+		Env:  mr.depotToolsEnv,
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f", "-v", "-v"},
 	}
@@ -224,7 +223,7 @@ TEST=CQ
 	jsonFile := path.Join(tmp, "issue.json")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  mr.parentDir,
-		Env:  depot_tools.Env(mr.depotTools),
+		Env:  mr.depotToolsEnv,
 		Name: "git",
 		Args: []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
 	}); err != nil {
