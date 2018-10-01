@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54581494_0a887ce8",
+        "filename": "ct/go/scripts/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-01T16:45:27Z",
+      "side": 1,
+      "message": "Comment removed by: Ravi Mistry",
+      "revId": "a64590d9bb4083cfe48e3272033bd623bdc3e2c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
