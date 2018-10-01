@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3716352d_2de3e059",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-01T12:42:30Z",
+      "side": 1,
+      "message": "Nit: None of the checks are necessary when using os.MkdirAll; if the dir already exists, it finishes without error.",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 2
+      },
+      "revId": "d7a657167b726ec89d139d3d25a19b0c0a67e94f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
