@@ -8,12 +8,12 @@ copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
-${INSTALL} --mode=644 -T ./go/autoroll-fe/Dockerfile      ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}-kube    ${ROOT}/usr/local/bin/${APPNAME}
-${INSTALL} --mode=644 -T ./res/js/core.js                 ${ROOT}/usr/local/share/autoroll/res/js/core.js
-${INSTALL} --mode=644 -T ./res/vul/elements.html          ${ROOT}/usr/local/share/autoroll/res/vul/elements.html
-cp -r                    ./templates                      ${ROOT}/usr/local/share/autoroll/templates
-cp -r                    ./config                         ${ROOT}/usr/local/share/autoroll/config
+${INSTALL} --mode=644 -T ./go/autoroll-fe/Dockerfile ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}    ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./res/js/core.js            ${ROOT}/usr/local/share/autoroll/res/js/core.js
+${INSTALL} --mode=644 -T ./res/vul/elements.html     ${ROOT}/usr/local/share/autoroll/res/vul/elements.html
+cp -r                    ./templates                 ${ROOT}/usr/local/share/autoroll/templates
+cp -r                    ./config                    ${ROOT}/usr/local/share/autoroll/config
 }
 
 source ../bash/docker_build.sh
