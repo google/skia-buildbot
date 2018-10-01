@@ -415,7 +415,7 @@ func main() {
 					sklog.Error(err)
 				}
 			})
-			arbStrategy, err := strategy.NewStrategyHistory(ctx, cfg.RollerName, "", nil)
+			arbStrategy, err := strategy.NewStrategyHistory(ctx, cfg.RollerName, "", arbStatus.Get().ValidStrategies)
 			if err != nil {
 				sklog.Fatal(err)
 			}
