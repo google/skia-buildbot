@@ -73,6 +73,18 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 
+func (g *GStorageClient) WriteBaseLineForCommit(baseLine *baseline.CommitableBaseLine) (string, error) {
+	writeFn := func(w *gstorage.Writer) error {
+		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
+			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
+		}
+		return nil
+	}
+
+	outPath := g.getBaselinePath(baseLine.Issue)
+	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
+}
+
 // ReadBaseline returns the baseline for the given issue from GCS.
 func (g *GStorageClient) ReadBaseline(issueID int64) (*baseline.CommitableBaseLine, error) {
 	baselinePath := g.getBaselinePath(issueID)

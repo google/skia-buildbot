@@ -71,20 +71,6 @@ func (e *Expectations) SetTestExpectation(testName string, digest string, label 
 	e.Tests[testName][digest] = label
 }
 
-// RemoveDigests removes the given digests from the expectations.
-// The key in the input is the test name.
-func (e *Expectations) RemoveDigests(digests map[string][]string) {
-	for testName, digests := range digests {
-		for _, digest := range digests {
-			delete(e.Tests[testName], digest)
-		}
-
-		if len(e.Tests[testName]) == 0 {
-			delete(e.Tests, testName)
-		}
-	}
-}
-
 func (e *Expectations) DeepCopy() *Expectations {
 	m := make(map[string]types.TestClassification, len(e.Tests))
 	for k, v := range e.Tests {
@@ -93,26 +79,6 @@ func (e *Expectations) DeepCopy() *Expectations {
 	return &Expectations{
 		Tests: m,
 	}
-}
-
-// Delta returns the additions and removals that are necessary to
-// get from e to right. The results can be passed directly to the
-// AddChange and removeChange functions of the ExpectationsStore.
-func (e *Expectations) Delta(right *Expectations) (*Expectations, map[string][]string) {
-	addExp := subtract(right, e, nil)
-	removeExp := subtract(e, right, addExp.Tests)
-
-	// Copy the testnames and digests into the output.
-	ret := make(map[string][]string, len(removeExp.Tests))
-	for testName, digests := range removeExp.Tests {
-		temp := make([]string, 0, len(digests))
-		for digest := range digests {
-			temp = append(temp, digest)
-		}
-		ret[testName] = temp
-	}
-
-	return addExp, ret
 }
 
 // Returns a copy of expA with all values removed that also appear in expB.
