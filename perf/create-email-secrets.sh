@@ -1,4 +1,4 @@
-# Create the secrets needed for notifier to send email.
+# Create the secrets needed for perf to send email.
 set -e
 
 if [ "$#" -ne 1 ]; then
@@ -17,7 +17,7 @@ source ../bash/ramdisk.sh
 
 # Enable the gmail API for your project and create a client secret for this applicaiton.
 # Then download the client_secret.json file.
-echo "Download client_secret.json for notifier to /tmp/ramdisk."
+echo "Download client_secret.json for perf to /tmp/ramdisk."
 read -r -p "Press enter to continue..." key
 
 # Then run 'three_legged_flow' in this directory and when prompted authorize
@@ -25,7 +25,7 @@ read -r -p "Press enter to continue..." key
 go install ../email/go/three_legged_flow
 cd /tmp/ramdisk
 three_legged_flow --scopes=https://mail.google.com/
-kubectl create secret generic notifier-${EMAIL}-secrets \
+kubectl create secret generic perf-${EMAIL}-secrets \
   --from-file=./client_secret.json \
   --from-file=./client_token.json \
   --dry-run -o yaml | kubectl apply -f -
