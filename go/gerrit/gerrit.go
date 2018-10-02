@@ -116,7 +116,7 @@ func (c ChangeInfo) IsClosed() bool {
 		c.Status == CHANGE_STATUS_MERGED)
 }
 
-// Owner gathers the owner information of a ChangeInfo instance. Some fields ommitted.
+// Owner gathers the owner information of a ChangeInfo instance. Some fields omitted.
 type Owner struct {
 	Email string `json:"email"`
 }
@@ -179,13 +179,13 @@ type GerritInterface interface {
 	SendToCQ(*ChangeInfo, string) error
 	SendToDryRun(*ChangeInfo, string) error
 	SetCommitMessage(*ChangeInfo, string) error
-	SetReview(*ChangeInfo, string, map[string]interface{}, []string) error
+	SetReview(*ChangeInfo, string, map[string]interface{}, []string, map[string]interface{}) error
 	SetTopic(string, int64) error
 	TurnOnAuthenticatedGets()
 	Url(int64) string
 }
 
-// Gerrit is an object used for iteracting with the issue tracker.
+// Gerrit is an object used for interacting with the issue tracker.
 type Gerrit struct {
 	client               *http.Client
 	buildbucketClient    *buildbucket.Client
@@ -338,7 +338,7 @@ func fixupChangeInfo(ci *ChangeInfo) *ChangeInfo {
 }
 
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
-// the partial data returned by Gerrit's search endpoint.
+// the partial data returned by Gerrits search endpoint.
 func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	url := fmt.Sprintf(URL_TMPL_CHANGE, issue)
 	fullIssue := &ChangeInfo{}
@@ -360,21 +360,9 @@ func (c *ChangeInfo) GetPatchsetIDs() []int64 {
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
 func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
-	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
-	resp, err := g.client.Get(url)
+	body, err := g.httpGetBody(fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision))
 	if err != nil {
-		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
-	}
-	if resp.StatusCode == 404 {
-		return "", fmt.Errorf("Issue not found: %s", url)
-	}
-	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
-	}
-	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Could not read response body: %s", err)
+		return "", sklog.FmtErrorf("Error retrieving body: %s", err)
 	}
 
 	data, err := base64.StdEncoding.DecodeString(string(body))
@@ -390,6 +378,28 @@ func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
 	return patch, nil
 }
 
+// See https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#commit-info
+type CommitInfo struct {
+	Commit  string        `json:"commit"`
+	Parents []*CommitInfo `json:"parents"`
+}
+
+// GetCommit retrieves the commit that corresponds to the given patch. See:
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-commit
+func (g *Gerrit) GetCommit(issue int64, revision string) (*CommitInfo, error) {
+	body, err := g.httpGetBody(fmt.Sprintf("%s/changes/%d/revisions/%s/commit", g.url, issue, revision))
+	if err != nil {
+		return nil, sklog.FmtErrorf("Error retrieving body: %s", err)
+	}
+
+	ret := &CommitInfo{}
+	if err := json.Unmarshal(body, ret); err != nil {
+		return nil, sklog.FmtErrorf("Error parsing JSON: %s", err)
+	}
+
+	return ret, nil
+}
+
 type reviewer struct {
 	Reviewer string `json:"reviewer"`
 }
@@ -397,7 +407,8 @@ type reviewer struct {
 // setReview calls the Set Review endpoint of the Gerrit API to add messages and/or set labels for
 // the latest patchset.
 // API documentation: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#set-review
-func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string) error {
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-input
+func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]interface{}, reviewers []string, reviewInfoFields map[string]interface{}) error {
 	postData := map[string]interface{}{
 		"message": message,
 		"labels":  labels,
@@ -412,41 +423,47 @@ func (g *Gerrit) SetReview(issue *ChangeInfo, message string, labels map[string]
 		}
 		postData["reviewers"] = revs
 	}
+
+	for key, val := range reviewInfoFields {
+		postData[key] = val
+	}
+
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
 	return g.postJson(fmt.Sprintf("/a/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
+// https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#review-input
 func (g *Gerrit) AddComment(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{}, nil, nil)
 }
 
 // Utility methods for interacting with the COMMITQUEUE_LABEL.
 
 func (g *Gerrit) SendToDryRun(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_DRY_RUN}, nil, nil)
 }
 
 func (g *Gerrit) SendToCQ(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_SUBMIT}, nil, nil)
 }
 
 func (g *Gerrit) RemoveFromCQ(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{COMMITQUEUE_LABEL: COMMITQUEUE_LABEL_NONE}, nil, nil)
 }
 
 // Utility methods for interacting with the CODEREVIEW_LABEL.
 
 func (g *Gerrit) Approve(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_APPROVE}, nil, nil)
 }
 
 func (g *Gerrit) NoScore(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_NONE}, nil, nil)
 }
 
 func (g *Gerrit) DisApprove(issue *ChangeInfo, message string) error {
-	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil)
+	return g.SetReview(issue, message, map[string]interface{}{CODEREVIEW_LABEL: CODEREVIEW_LABEL_DISAPPROVE}, nil, nil)
 }
 
 // Abandon abandons the issue with the given message.
@@ -499,12 +516,31 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 	parts := strings.SplitN(string(body), "\n", 2)
 
 	if len(parts) != 2 {
-		return fmt.Errorf("Reponse invalid format.")
+		return fmt.Errorf("Response invalid format.")
 	}
 	if err := json.Unmarshal([]byte(parts[1]), &rv); err != nil {
 		return fmt.Errorf("Failed to decode JSON: %s", err)
 	}
 	return nil
+}
+
+func (g *Gerrit) httpGetBody(url string) ([]byte, error) {
+	resp, err := g.client.Get(url)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Failed to GET %s: %s", url, err)
+	}
+	if resp.StatusCode == 404 {
+		return nil, sklog.FmtErrorf("Issue not found: %s", url)
+	}
+	if resp.StatusCode >= 400 {
+		return nil, sklog.FmtErrorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
+	}
+	defer util.Close(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Could not read response body: %s", err)
+	}
+	return body, nil
 }
 
 func (g *Gerrit) post(suburl string, b []byte) error {
