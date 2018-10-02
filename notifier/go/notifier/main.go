@@ -3,10 +3,8 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -18,7 +16,6 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/prometheus/go/alertmanager"
 )
 
@@ -105,9 +102,8 @@ type Installed struct {
 }
 
 func main() {
-
 	common.InitWithMust(
-		"alertmanager-webhooks",
+		"notifier",
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
@@ -122,35 +118,8 @@ func main() {
 			return string(b)
 		}
 	}
-
-	// Init email.
-	var cfg Installed
-	err := util.WithReadFile(*emailClientSecretFile, func(f io.Reader) error {
-		return json.NewDecoder(f).Decode(&cfg)
-	})
-	if err != nil {
-		sklog.Fatalf("Failed to read client secrets from %q: %s", *emailClientSecretFile, err)
-	}
-	// Create a copy of the token cache file since mounted secrets are read-only.
-	if !*local {
-		fout, err := ioutil.TempFile("", "")
-		if err != nil {
-			sklog.Fatalf("Unable to create temp file %q: %s", fout.Name(), err)
-		}
-		err = util.WithReadFile(*emailTokenCacheFile, func(fin io.Reader) error {
-			_, err := io.Copy(fout, fin)
-			if err != nil {
-				err = fout.Close()
-			}
-			return err
-		})
-		if err != nil {
-			sklog.Fatalf("Failed to write token cache file from %q to %q: %s", *emailTokenCacheFile, fout.Name(), err)
-		}
-		*emailTokenCacheFile = fout.Name()
-	}
-
-	emailAuth, err = email.NewGMail(cfg.Installed.ClientID, cfg.Installed.ClientSecret, *emailTokenCacheFile)
+	var err error
+	emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
 	if err != nil {
 		sklog.Fatalf("Failed to create email auth: %v", err)
 	}

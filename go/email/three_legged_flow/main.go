@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -26,20 +27,11 @@ var (
 	scopes = flag.String("scopes", "", "A comma separated list of scopes.")
 )
 
-type ClientConfig struct {
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-}
-
-type Installed struct {
-	Installed ClientConfig `json:"installed"`
-}
-
 func main() {
 	common.Init()
 	ctx := context.Background()
 
-	var cfg Installed
+	var cfg email.ClientSecrets
 	err := util.WithReadFile("client_secret.json", func(f io.Reader) error {
 		return json.NewDecoder(f).Decode(&cfg)
 	})

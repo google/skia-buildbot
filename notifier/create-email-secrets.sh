@@ -22,7 +22,7 @@ read -r -p "Press enter to continue..." key
 
 # Then run 'three_legged_flow' in this directory and when prompted authorize
 # as the email passed in to create the client_token.json file.
-go install ./go/three_legged_flow
+go install ../go/email/three_legged_flow
 cd /tmp/ramdisk
 three_legged_flow --scopes=https://mail.google.com/
 kubectl create secret generic notifier-${EMAIL}-secrets \
