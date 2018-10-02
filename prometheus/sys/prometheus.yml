@@ -14,10 +14,6 @@ rule_files:
   - "absent.rules"
 
 scrape_configs:
-  - job_name: 'android_compile'
-    static_configs:
-      - targets: ['android-compile:20000']
-
   - job_name: 'androidingest'
     static_configs:
       - targets: ['skia-android-ingest:20000']

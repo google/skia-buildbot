@@ -18,3 +18,34 @@ groups:
       severity: warning
     annotations:
       description: 'The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h'
+
+# Android Compile Server
+  - alert: AndroidCompileTooManyWaitingTasks
+    expr: android_compile_waiting_tasks{app="android-compile"} >= 5
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'Too many waiting android compile tasks'
+      description: 'There are 5 or more waiting android compile tasks. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#queue_too_long'
+
+  - alert: AndroidCompileTreeBroken
+    expr: android_compile_tree_broken{app="android-compile"} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'Android tree might be broken'
+      description: 'Android tree might be broken. Both withpatch and nopatch runs failed on android compile server. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#android_tree_broken'
+
+  - alert: AndroidCompileInfraFailure
+    expr: android_compile_infra_failure{app="android-compile"} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: 'Infra failure in android compile bot'
+      description: 'Infra failure in android compile bot. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#infra_failure'
