@@ -425,7 +425,6 @@ Another option is to have users provide two CLs and use the UI to show their
 diffs on common traces.
 
 
-
 Startup and config
 ------------------
 Running skia perf is done via push. See ../push for more details.
@@ -444,3 +443,12 @@ is in:
 Installation
 ------------
 See the README file.
+
+Ingestion
+---------
+
+Topic naming conventions:
+  * <app name>-<function>-<instance>
+  * perf-ingestion-skia
+
+
