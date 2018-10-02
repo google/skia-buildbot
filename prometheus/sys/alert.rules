@@ -102,34 +102,6 @@ ALERT TooManyOpenFDs
     description = "Too many open file handles on {{ $labels.host }}.",
   }
 
-# Android Compile Server
-ALERT AndroidCompileTooManyWaitingTasks
-  IF android_compile_waiting_tasks{instance="android-compile:20000",job="android_compile"} >= 5
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    summary = "Too many waiting tasks on android-compile.skia.org",
-    description = "There are 5 or more waiting tasks on android-compile.skia.org. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#queue_too_long"
-  }
-
-ALERT AndroidCompileTreeBroken
-  IF android_compile_waiting_tasks{instance="android-compile:20000",job="android_compile"} > 0
-  FOR 5m
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    summary = "Android tree is broken",
-    description = "Android tree is broken. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#android_tree_broken"
-  }
-
-ALERT AndroidCompileInfraFailure
-  IF android_compile_infra_failure{instance="android-compile:20000",job="android_compile"} > 0
-  FOR 5m
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    summary = "Infra failure in Android compile bot",
-    description = "Infra failure in Android compile bot. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#infra_failure"
-  }
-
 # Perf
 ALERT AndroidIngestFailures
   IF rate(process_failures[1h]) > 0
