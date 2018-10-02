@@ -1,0 +1,15 @@
+#!/bin/bash
+APP_NAME=sheriff_emails
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+${INSTALL} --mode=644 -T Dockerfile                 ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/s${APP_NAME} ${ROOT}/usr/local/bin/${APP_NAME}
+}
+
+source ../../bash/docker_build.sh

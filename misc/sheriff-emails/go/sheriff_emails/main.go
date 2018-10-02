@@ -7,14 +7,13 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -64,20 +63,28 @@ const (
 
 var (
 	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	emailTokenPath   = flag.String("email_token_path", "", "The file where the email token can be found.")
 	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://skia-tree-status.appspot.com/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-sheriff"}
 	gpuWranglerShift = &ShiftType{shiftName: "GPU Wrangler", schedulesLink: "http://skia-tree-status.appspot.com/gpu-sheriff", documentationLink: "https://skia.org/dev/sheriffing/gpu", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-gpu-sheriff"}
 	robocopShift     = &ShiftType{shiftName: "Android Robocop", schedulesLink: "http://skia-tree-status.appspot.com/robocop", documentationLink: "https://skia.org/dev/sheriffing/android", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-robocop"}
 	trooperShift     = &ShiftType{shiftName: "Infra Trooper", schedulesLink: "http://skia-tree-status.appspot.com/trooper", documentationLink: "https://skia.org/dev/sheriffing/trooper", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-trooper"}
 	allShiftTypes    = []*ShiftType{skiaSheriffShift, gpuWranglerShift, robocopShift, trooperShift}
+
+	emailClientSecretFile = flag.String("email_client_secret_file", "", "OAuth client secret JSON file for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "", "OAuth token cache file for sending email.")
 )
 
+type ClientConfig struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+type Installed struct {
+	Installed ClientConfig `json:"installed"`
+}
+
 // sendEmail sends an email with the specified header and body to the recipients.
-func sendEmail(tokenPath string, recipients []string, senderDisplayName, subject, body, markup string) error {
-	gmail, err := email.NewGMail(
-		"292895568497-u2m421dk2htq171bfodi9qoqtb5smuea.apps.googleusercontent.com",
-		"jv-g54CaPS783QV6H8SdagYn",
-		tokenPath)
+func sendEmail(emailClientId, emailClientSecret, emailTokenPath string, recipients []string, senderDisplayName, subject, body, markup string) error {
+	gmail, err := email.NewGMail(emailClientId, emailClientSecret, emailTokenPath)
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
@@ -90,26 +97,33 @@ func sendEmail(tokenPath string, recipients []string, senderDisplayName, subject
 func main() {
 	common.Init()
 
-	tokenPath := *emailTokenPath
-	if tokenPath == "" {
-		if *local {
-			sklog.Error("Must specify --email_token_path")
-			return
-		} else {
-			// Look in metadata for email token.
-			cachedGMailToken := metadata.Must(metadata.ProjectGet(ROTATIONS_GMAIL_CACHED_TOKEN))
-			tokenFile, err := ioutil.TempFile("", "sheriff-emails")
-			if err != nil {
-				sklog.Error("Could not create temp file")
-				return
-			}
-			tokenPath = tokenFile.Name()
-			defer util.Remove(tokenPath)
-			if err := ioutil.WriteFile(tokenPath, []byte(cachedGMailToken), os.ModePerm); err != nil {
-				sklog.Fatalf("Failed to cache token: %s", err)
-			}
-		}
+	var cfg Installed
+	err := util.WithReadFile(*emailClientSecretFile, func(f io.Reader) error {
+		return json.NewDecoder(f).Decode(&cfg)
+	})
+	if err != nil {
+		sklog.Fatalf("Failed to read client secrets from %q: %s", emailClientSecretFile, err)
 	}
+	// Create a copy of the token cache file since mounted secrets are read-only
+	// and the access token will need to be updated for the oauth2 flow.
+	fout, err := ioutil.TempFile("", "")
+	if err != nil {
+		sklog.Fatalf("Unable to create temp file: %s", err)
+	}
+	err = util.WithReadFile(*emailTokenCacheFile, func(fin io.Reader) error {
+		_, err := io.Copy(fout, fin)
+		if err != nil {
+			err = fout.Close()
+		}
+		return err
+	})
+	if err != nil {
+		sklog.Fatalf("Failed to write token cache file from %q to %q: %s", emailTokenCacheFile, fout.Name(), err)
+	}
+
+	emailClientId := cfg.Installed.ClientID
+	emailClientSecret := cfg.Installed.ClientSecret
+	emailTokenPath := fout.Name()
 
 	defer sklog.Flush()
 
@@ -132,6 +146,12 @@ func main() {
 			continue
 		}
 		sheriffUsername := strings.Split(string(sheriffEmail), "@")[0]
+
+		// REMOVE THIS!!!! ONLY FOR TESTING!
+		sklog.Infof("REAL SHERIFF IS: %s", sheriffUsername)
+		sklog.Info("USING rmistry instead!")
+		sheriffEmail = "rmistry@google.com"
+		sheriffUsername = "rmistry"
 
 		emailTemplateParsed := template.Must(template.New("sheriff_email").Parse(EMAIL_TEMPLATE))
 		emailBytes := new(bytes.Buffer)
@@ -161,7 +181,7 @@ func main() {
 			return
 		}
 		senderDisplayName := fmt.Sprintf("%s Rotation", shiftType.shiftName)
-		if err := sendEmail(tokenPath, []string{sheriffEmail, EXTRA_RECIPIENT}, senderDisplayName, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
+		if err := sendEmail(emailClientId, emailClientSecret, emailTokenPath, []string{sheriffEmail, EXTRA_RECIPIENT}, senderDisplayName, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
 			sklog.Fatalf("Error sending email to sheriff: %s", err)
 		}
 	}
