@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "89a57927_f6a20a77",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-02T14:04:22Z",
+      "side": 0,
+      "message": "This was wrong. It should have been android_compile_tree_broken.",
+      "range": {
+        "startLine": 116,
+        "startChar": 5,
+        "endLine": 116,
+        "endChar": 34
+      },
+      "revId": "627c1ea1f26cf6ff7634f22c461970f2f3f3d173",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
