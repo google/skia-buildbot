@@ -6,10 +6,11 @@ ssl_session_cache shared:SSL:10m;
 ssl_certificate         /etc/nginx/ssl/skia_org.pem;
 ssl_certificate_key     /etc/nginx/ssl/skia_org.key;
 
-proxy_connect_timeout       5m;
-proxy_send_timeout          5m;
-proxy_read_timeout          5m;
-send_timeout                5m;
+# Keep these marginally longer than the 600s we keep the GCE HTTPS Load Balancer.
+proxy_connect_timeout       620s;
+proxy_send_timeout          620s;
+proxy_read_timeout          620s;
+send_timeout                620s;
 
 # Include the proxied host into the combined log format.
 log_format combined_proxy '$remote_addr - $remote_user [$time_local] '
