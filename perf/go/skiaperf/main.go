@@ -21,15 +21,18 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/bigtable"
 	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 
@@ -38,18 +41,18 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/notify"
 	_ "go.skia.org/infra/perf/go/ptraceingest"
 	"go.skia.org/infra/perf/go/ptracestore"
@@ -93,7 +96,9 @@ var (
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	noemail               = flag.Bool("noemail", false, "Do not send emails.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
+	emailClientSecretFile = flag.String("email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
+	emailTokenCacheFile   = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
 	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	interesting           = flag.Float64("interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
@@ -111,6 +116,8 @@ var (
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	stepUpOnly            = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
 	subdomain             = flag.String("subdomain", "perf", "The public subdomain of the server, i.e. 'perf' for perf.skia.org.")
+	kubernetes            = flag.Bool("kubernetes", false, "If true then we are running on kubernetes.")
+	bigTableConfig        = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
 )
 
 var (
@@ -133,6 +140,12 @@ var (
 	configProvider regression.ConfigProvider
 
 	notifier *notify.Notifier
+
+	traceStore *btts.BigTableTraceStore
+
+	emailAuth *email.GMail
+
+	btConfig *config.PerfBigTableConfig
 )
 
 func loadTemplates() {
@@ -215,8 +228,19 @@ func Init() {
 	if !*local && !util.In(*namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_MASTER_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
-	if err := ds.Init(*projectName, *namespace); err != nil {
+
+	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadOnly)
+	if err != nil {
+		sklog.Fatalf("Failed to get TokenSource: %s", err)
+	}
+
+	if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
+	}
+
+	storageClient, err = storage.NewClient(ctx, option.WithTokenSource(ts))
+	if err != nil {
+		sklog.Fatalf("Failed to authenicate to cloud storage: %s", err)
 	}
 
 	clusterAlgo, err := clustering2.ToClusterAlgo(*algo)
@@ -225,58 +249,77 @@ func Init() {
 	}
 
 	loadTemplates()
-
 	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	ptracestore.Init(*ptraceStoreDir)
 
-	dfBuilder := dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
+	var ok bool
+	if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
+		sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
+	}
+
+	var dfBuilder dataframe.DataFrameBuilder
+	if *kubernetes {
+		ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope)
+		if err != nil {
+			sklog.Fatalf("Failed to get TokenSource: %s", err)
+		}
+		traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
+		if err != nil {
+			sklog.Fatalf("Failed to open trace store: %s", err)
+		}
+		dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
+	} else {
+		dfBuilder = dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
+		initIngestion(ctx)
+	}
 
 	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
-	initIngestion(ctx)
 	cidl = cid.New(ctx, git, *gitRepoURL)
 
 	alerts.DefaultSparse = *defaultSparse
 
 	alertStore = alerts.NewStore()
 
-	// TODO(jcgregorio) From here to emailAuth should be rolled up into its own object.
-	// TODO(jcgregorio) The 'from' email address should also be passed in since it's tied to the auth token.
-	usr, err := user.Current()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	tokenFile, err := filepath.Abs(usr.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	emailClientId := *emailClientIdFlag
-	emailClientSecret := *emailClientSecretFlag
-	if !*local {
-		emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-		emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-		cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
-		err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
-		if err != nil {
-			sklog.Fatalf("Failed to cache token: %s", err)
-		}
-	}
-
 	if !*noemail {
-		if *local && (emailClientId == "" || emailClientSecret == "") {
-			sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
+		if *kubernetes {
+			emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
+			if err != nil {
+				sklog.Fatalf("Failed to create email auth: %v", err)
+			}
+		} else {
+			usr, err := user.Current()
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			tokenFile, err := filepath.Abs(usr.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			emailClientId := *emailClientIdFlag
+			emailClientSecret := *emailClientSecretFlag
+			if !*local {
+				emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
+				emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
+				cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
+				err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
+				if err != nil {
+					sklog.Fatalf("Failed to cache token: %s", err)
+				}
+			}
+			if *local && (emailClientId == "" || emailClientSecret == "") {
+				sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
+			}
+			emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
+			if err != nil {
+				sklog.Fatalf("Failed to create email auth: %v", err)
+			}
 		}
-		emailAuth, err := email.NewGMail(emailClientId, emailClientSecret, tokenFile)
-		if err != nil {
-			sklog.Fatalf("Failed to create email auth: %v", err)
-		}
-
 		notifier = notify.New(emailAuth, *subdomain)
 	}
 
@@ -1083,11 +1126,39 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
-	name, _, err := ptracestore.Default.Details(&dr.CID, dr.TraceID)
+
+	var err error
+	name := ""
+	if *kubernetes {
+		index := int32(dr.CID.Offset)
+		tileKey := traceStore.TileKey(index)
+		ops, err := traceStore.GetOrderedParamSet(tileKey)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to find details")
+			return
+		}
+		p, err := query.ParseKey(dr.TraceID)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Invalid trace id")
+			return
+		}
+		encodedKey, err := ops.EncodeParamsAsString(p)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to encode key")
+			return
+		}
+		name, err = traceStore.GetSource(index, encodedKey)
+	} else {
+		name, _, err = ptracestore.Default.Details(&dr.CID, dr.TraceID)
+	}
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load details")
 		return
 	}
+
+	bucket := btConfig.Bucket
+	name = "gs://" + bucket + "/" + name
+	sklog.Infof("Full URL to source: %q", name)
 	u, err := url.Parse(name)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse source file location.")
@@ -1099,11 +1170,11 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sklog.Infof("Host: %q Path: %q", u.Host, u.Path)
 	reader, err := storageClient.Bucket(u.Host).Object(u.Path[1:]).NewReader(context.Background())
-	defer util.Close(reader)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get reader for source file location")
 		return
 	}
+	defer util.Close(reader)
 	if includeResults {
 		if _, err := io.Copy(w, reader); err != nil {
 			sklog.Errorf("Failed to copy JSON file to HTTP stream: %s", err)
@@ -1384,11 +1455,12 @@ func main() {
 	common.InitWithMust(
 		"skiaperf",
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 
 	Init()
-	login.SimpleInitMust(*port, *local)
+	if !*local {
+		login.SimpleInitMust(*port, *local)
+	}
 
 	// Resources are served directly.
 	router := mux.NewRouter()
