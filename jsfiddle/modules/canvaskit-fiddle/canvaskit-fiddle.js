@@ -11,7 +11,7 @@ const template = (ele) => html`
 <header>
   <div class=title>CanvasKit Fiddle</div>
   <div class=flex></div>
-  <div class=version>CanvasKit Version: 0.0.2</div>
+  <div class=version>CanvasKit Version: 0.0.3</div>
 </header>
 
 <main>
