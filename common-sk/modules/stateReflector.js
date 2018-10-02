@@ -36,9 +36,13 @@ export function stateReflector(getState, setState) {
   // The default state of the stateHolder. Used to calculate diffs to state.
   let defaultState = object.deepCopy(getState());
 
+  // Have we done an initial read from the the existing query params.
+  let loaded = false;
+
   // stateFromURL should be called when the URL has changed, it updates
   // the state via setState() and triggers the callback.
   const stateFromURL = () => {
+    loaded = true;
     let delta = query.toObject(window.location.search.slice(1), defaultState);
     setState(object.applyDelta(delta, defaultState));
   }
@@ -51,6 +55,10 @@ export function stateReflector(getState, setState) {
 
   // Return a function to call when the state has changed to force reflection into the URL.
   return () => {
+    // Don't overwrite the query params until we have done the initial load from them.
+    if (!loaded) {
+      return;
+    }
     let q = query.fromObject(object.getDelta(getState(), defaultState));
     history.pushState(null, '', window.location.origin + window.location.pathname + '?' +  q);
   };
