@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	storage "cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/ds"
@@ -229,13 +230,19 @@ func Init() {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadOnly)
+	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadOnly, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
 
-	if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
-		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
+	if *kubernetes {
+		if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
+			sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
+		}
+	} else {
+		if err := ds.Init(*projectName, *namespace); err != nil {
+			sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
+		}
 	}
 
 	storageClient, err = storage.NewClient(ctx, option.WithTokenSource(ts))
@@ -271,6 +278,7 @@ func Init() {
 		}
 		dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 	} else {
+		ptracestore.Init(*ptraceStoreDir)
 		dfBuilder = dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
 		initIngestion(ctx)
 	}
