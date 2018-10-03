@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/perf/go/clustering2"
 )
 
@@ -50,14 +52,96 @@ func (c *Config) StringToId(s string) {
 	}
 }
 
+func (c *Config) GroupedBy() []string {
+	ret := []string{}
+	for _, s := range strings.Split(c.GroupBy, ",") {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		ret = append(ret, s)
+	}
+	return ret
+}
+
+type KeyValue struct {
+	Key   string
+	Value string
+}
+
+type Combination []KeyValue
+
+func equal(sliceA, sliceB []int) bool {
+	for i, a := range sliceA {
+		if a != sliceB[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func inc(a, limits []int) []int {
+	ret := make([]int, len(a))
+	_ = copy(ret, a)
+	for i := len(a) - 1; i >= 0; i-- {
+		ret[i] = ret[i] + 1
+		if ret[i] <= limits[i] {
+			break
+		}
+		ret[i] = 0
+	}
+	return ret
+}
+
+func toCombination(offsets []int, keys []string, ps paramtools.ParamSet) (Combination, error) {
+	ret := Combination{}
+	for i, offset := range offsets {
+		key := keys[i]
+		values, ok := ps[key]
+		if !ok {
+			return nil, fmt.Errorf("Key %q not found in ParamSet %#v", key, ps)
+		}
+		ret = append(ret, KeyValue{
+			Key:   key,
+			Value: values[offset],
+		})
+	}
+	return ret, nil
+}
+
+func (c *Config) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error) {
+	limits := []int{}
+	keys := c.GroupedBy()
+	for _, key := range keys {
+		limits = append(limits, len(ps[key])-1)
+	}
+	ret := []Combination{}
+	zeroes := make([]int, len(limits))
+	cfg := make([]int, len(limits))
+	for {
+		comb, err := toCombination(cfg, keys, ps)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to build combination: %s", err)
+		}
+		ret = append(ret, comb)
+		cfg = inc(cfg, limits)
+		if equal(cfg, zeroes) {
+			break
+		}
+	}
+	return ret, nil
+}
+
 func (c *Config) Validate() error {
 	parsed, err := url.ParseQuery(c.Query)
 	if err != nil {
 		return fmt.Errorf("Invalid Config: Invalid Query: %s", err)
 	}
 	if c.GroupBy != "" {
-		if _, ok := parsed[c.GroupBy]; ok {
-			return fmt.Errorf("Invalid Config: GroupBy must not appear in Query: %q %q ", c.GroupBy, c.Query)
+		for _, groupParam := range c.GroupedBy() {
+			if _, ok := parsed[groupParam]; ok {
+				return fmt.Errorf("Invalid Config: GroupBy must not appear in Query: %q %q ", c.GroupBy, c.Query)
+			}
 		}
 	}
 	if c.StepUpOnly {

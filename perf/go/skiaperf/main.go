@@ -1458,9 +1458,7 @@ func main() {
 	)
 
 	Init()
-	if !*local {
-		login.SimpleInitMust(*port, *local)
-	}
+	login.SimpleInitMust(*port, *local)
 
 	// Resources are served directly.
 	router := mux.NewRouter()

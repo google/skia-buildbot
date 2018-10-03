@@ -139,8 +139,11 @@
     <h3>Who owns this alert</h3>
     <paper-input id=owner value="{{config.owner}}"                         label="Email address of owner."></paper-input>
     <h3>Group By</h3>
-    <span class=label>Group clusters by this parameter.</span>
-    <iron-selector id=groupby attr-for-selected="value" selected="{{config.group_by}}" fallback-selection=>
+    <span class=label>Group clusters by these parameters. (Multiselect)</span>
+    <iron-selector id=groupby multi attr-for-selected="value"
+      selected-values="[[_groupsFrom(config)]]"
+      on-selected-values-changed=_groupByChanged
+      fallback-selection=>
       <div value="" title="No grouping.">(none)</div>
       <template is="dom-repeat" items="{{_paramkeys}}">
         <div value="[[item]]">[[item]]</div>
@@ -217,6 +220,18 @@
         sk.errorMessage(msg);
         this.$.alertSpinner.active = false;
       }.bind(this));
+    },
+
+    _groupByChanged: function(e) {
+      if (e.target.selectedValues) {
+        this.config.group_by = e.target.selectedValues.join(',');
+      }
+    },
+
+    _groupsFrom: function(config) {
+      if (config.group_by) {
+        return config.group_by.split(',');
+      }
     },
 
     _configChange: function() {
