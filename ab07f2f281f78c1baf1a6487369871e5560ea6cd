@@ -16,6 +16,24 @@
       "revId": "ab07f2f281f78c1baf1a6487369871e5560ea6cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "022f0421_b6805473",
+        "filename": "go/go_install/go_install.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-03T15:09:02Z",
+      "side": 1,
+      "message": "Added a comment which should make things clearer.  WDYT?",
+      "parentUuid": "2257b526_5168c67b",
+      "revId": "ab07f2f281f78c1baf1a6487369871e5560ea6cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
