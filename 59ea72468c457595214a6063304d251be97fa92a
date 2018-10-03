@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63e7a5d5_e30f3619",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-03T14:53:15Z",
+      "side": 1,
+      "message": "All this looks the same as skia\u0027s gen_tasks.go.",
+      "revId": "59ea72468c457595214a6063304d251be97fa92a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
