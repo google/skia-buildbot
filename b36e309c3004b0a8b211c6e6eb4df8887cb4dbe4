@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b0f5296_6f7d1478",
+        "filename": "perf/go/btts_query_example/main.go",
+        "patchSetId": 111
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-03T14:50:06Z",
+      "side": 1,
+      "message": "super nit: space between imports",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 28
+      },
+      "revId": "b36e309c3004b0a8b211c6e6eb4df8887cb4dbe4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
