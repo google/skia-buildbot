@@ -137,7 +137,8 @@ func (c *Continuous) Run(ctx context.Context) {
 				}
 				sklog.Infof("About to cluster for: %#v", *cfg)
 				queries := []string{cfg.Query}
-				if cfg.GroupBy != "" {
+				groupedBy := cfg.GroupedBy()
+				if len(groupedBy) != 0 {
 					paramset := c.paramsProvider()
 					paramValues, ok := paramset[cfg.GroupBy]
 					if !ok {
