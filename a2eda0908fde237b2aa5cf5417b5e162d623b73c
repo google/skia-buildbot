@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "286472bc_83f21e8e",
+        "filename": "autoroll/config/skia-go_deps-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-03T18:15:39Z",
+      "side": 1,
+      "message": "AFAIK we have never used underscores in the config file / roller name.\nI was a proponent of using names like lottie_web-lottie_ci instead of lottie-web-lottie-ci but that is not the convention we chose.\nWe could say we will use underscores to describe the \"kind\" of role, but would still be confusing.",
+      "range": {
+        "startLine": 10,
+        "startChar": 22,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "a2eda0908fde237b2aa5cf5417b5e162d623b73c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
