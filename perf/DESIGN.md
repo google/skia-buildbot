@@ -425,7 +425,6 @@ Another option is to have users provide two CLs and use the UI to show their
 diffs on common traces.
 
 
-
 Startup and config
 ------------------
 Running skia perf is done via push. See ../push for more details.
@@ -444,3 +443,17 @@ is in:
 Installation
 ------------
 See the README file.
+
+Ingestion
+---------
+
+Ingestion is now event driven, using PubSub events from GCS as files
+are written. The naming convention for those PubSub topics is:
+
+    <app name>-<function>-<instance>
+
+For example, for Perf ingestion of Skia data the topic will be:
+
+    perf-ingestion-skia
+
+
