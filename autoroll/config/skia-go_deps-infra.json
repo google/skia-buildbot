@@ -1,0 +1,32 @@
+{
+  "childName": "Skia Assets",
+  "contacts": [
+    "borenet@google.com"
+  ],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Infra Assets",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "skia-go_deps-infra-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.google.com.iam.gserviceaccount.com",
+  "sheriff": [
+    "borenet@google.com"
+  ],
+  "assetRepoManager": {
+    "asset": "go_deps",
+    "childBranch": "master",
+    "childRepo": "https://skia.googlesource.com/skia.git",
+    "gerritProject": "buildbot",
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/buildbot.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
