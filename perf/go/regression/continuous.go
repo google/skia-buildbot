@@ -137,21 +137,23 @@ func (c *Continuous) Run(ctx context.Context) {
 				}
 				sklog.Infof("About to cluster for: %#v", *cfg)
 				queries := []string{cfg.Query}
-				if cfg.GroupBy != "" {
+				if len(cfg.GroupBy) != 0 {
 					paramset := c.paramsProvider()
-					paramValues, ok := paramset[cfg.GroupBy]
-					if !ok {
-						sklog.Errorf("Failed to find param values for %q", cfg.GroupBy)
+					allCombinations, err := cfg.GroupCombinations(paramset)
+					if err != nil {
+						sklog.Errorf("Failed to build GroupBy combinations: %s", err)
 						continue
 					}
 					queries = []string{}
-					for _, value := range paramValues {
+					for _, combo := range allCombinations {
 						parsed, err := url.ParseQuery(cfg.Query)
 						if err != nil {
 							sklog.Errorf("Found invalid query %q: %s", cfg.Query, err)
 							continue
 						}
-						parsed[cfg.GroupBy] = []string{value}
+						for _, kv := range combo {
+							parsed[kv.Key] = []string{kv.Value}
+						}
 						queries = append(queries, parsed.Encode())
 					}
 				}
