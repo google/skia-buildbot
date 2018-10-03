@@ -7,6 +7,11 @@
       ],
       "trigger": "on demand"
     },
+    "Housekeeper-PerCommit-IsolateGoDeps": {
+      "tasks": [
+        "Housekeeper-PerCommit-IsolateGoDeps"
+      ]
+    },
     "Infra-PerCommit-Large": {
       "tasks": [
         "Infra-PerCommit-Large"
@@ -199,6 +204,29 @@
       },
       "isolate": "infrabots.isolate"
     },
+    "Housekeeper-PerCommit-IsolateGoDeps": {
+      "cipd_packages": [
+        {
+          "name": "skia/bots/go_deps",
+          "path": "go_deps",
+          "version": "version:20"
+        }
+      ],
+      "command": [
+        "/bin/cp",
+        "-rL",
+        "go_deps",
+        "${ISOLATED_OUTDIR}"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-9.4",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highmem-2"
+      ],
+      "isolate": "empty.isolate"
+    },
     "Infra-PerCommit-Large": {
       "caches": [
         {
@@ -313,7 +341,8 @@
         "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BundleRecipes"
+        "Housekeeper-PerCommit-BundleRecipes",
+        "Housekeeper-PerCommit-IsolateGoDeps"
       ],
       "dimensions": [
         "pool:Skia",
@@ -442,7 +471,8 @@
         "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BundleRecipes"
+        "Housekeeper-PerCommit-BundleRecipes",
+        "Housekeeper-PerCommit-IsolateGoDeps"
       ],
       "dimensions": [
         "pool:Skia",
@@ -576,7 +606,8 @@
         "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BundleRecipes"
+        "Housekeeper-PerCommit-BundleRecipes",
+        "Housekeeper-PerCommit-IsolateGoDeps"
       ],
       "dimensions": [
         "pool:Skia",
@@ -706,7 +737,8 @@
         "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       ],
       "dependencies": [
-        "Housekeeper-PerCommit-BundleRecipes"
+        "Housekeeper-PerCommit-BundleRecipes",
+        "Housekeeper-PerCommit-IsolateGoDeps"
       ],
       "dimensions": [
         "pool:Skia",
