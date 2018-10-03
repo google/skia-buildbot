@@ -271,6 +271,7 @@ func Init() {
 		}
 		dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 	} else {
+		ptracestore.Init(*ptraceStoreDir)
 		dfBuilder = dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
 		initIngestion(ctx)
 	}
@@ -1458,9 +1459,7 @@ func main() {
 	)
 
 	Init()
-	if !*local {
-		login.SimpleInitMust(*port, *local)
-	}
+	login.SimpleInitMust(*port, *local)
 
 	// Resources are served directly.
 	router := mux.NewRouter()
