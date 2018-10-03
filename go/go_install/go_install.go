@@ -15,17 +15,28 @@ import (
 
 // EnsureGo ensures that the Go installation is obtained from CIPD at the
 // correct version and returns the path to the go binary and the relevant
-// environment variables or any errors which occurred.
-func EnsureGo(client *http.Client, workdir string) (string, map[string]string, error) {
+// environment variables or any errors which occurred. If includeDeps is true,
+// also installs the go_deps CIPD package which contains all dependencies for
+// the go.skia.org/infra repository as of the last update of that package.
+func EnsureGo(client *http.Client, workdir string, includeDeps bool) (string, map[string]string, error) {
 	root := path.Join(workdir, "cipd")
-	if err := cipd.Ensure(client, root, cipd.PkgGo); err != nil {
+	pkgs := []*cipd.Package{cipd.PkgGo}
+	if includeDeps {
+		pkgs = append(pkgs, cipd.PkgGoDEPS)
+	}
+	if err := cipd.Ensure(client, root, pkgs...); err != nil {
 		return "", nil, fmt.Errorf("Failed to ensure Go CIPD package: %s", err)
 	}
-	goPath := path.Join(workdir, "gopath")
-	if err := os.MkdirAll(goPath, os.ModePerm); err != nil {
-		return "", nil, fmt.Errorf("Failed to create GOPATH: %s", err)
+	// Set the GOPATH to be the destination of the go_deps CIPD package.
+	// If we aren't installing that package, we need to create the dir so
+	// that "go get" works properly.
+	goPath := path.Join(workdir, cipd.PkgGoDEPS.Dest)
+	if !includeDeps {
+		if err := os.MkdirAll(goPath, os.ModePerm); err != nil {
+			return "", nil, fmt.Errorf("Failed to create GOPATH: %s", err)
+		}
 	}
-	goRoot := path.Join(root, "go", "go")
+	goRoot := path.Join(root, cipd.PkgGo.Dest, "go")
 	goBin := path.Join(goRoot, "bin")
 	return path.Join(goBin, "go"), map[string]string{
 		"GOPATH": goPath,
