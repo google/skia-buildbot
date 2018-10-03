@@ -27,8 +27,8 @@
     "skia.primary:Housekeeper-PerCommit-InfraTests"
   ],
   "kubernetes": {
-    "cpu": "8",
-    "memory": "64Gi",
+    "cpu": "1",
+    "memory": "8Gi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
