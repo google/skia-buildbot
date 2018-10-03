@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"go.skia.org/infra/perf/go/clustering2"
 )
@@ -48,6 +49,18 @@ func (c *Config) StringToId(s string) {
 	} else {
 		c.ID = i
 	}
+}
+
+func (c *Config) GroupedBy() []string {
+	ret := []string{}
+	for _, s := range strings.Split(c.GroupBy, ",") {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		ret = append(ret, s)
+	}
+	return ret
 }
 
 func (c *Config) Validate() error {

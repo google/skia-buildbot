@@ -35,5 +35,43 @@ func TestValidate(t *testing.T) {
 	assert.NoError(t, a.Validate())
 	a.Query = "bar=baz&foo=quux"
 	assert.Error(t, a.Validate())
+}
 
+func TestGroupedBy(t *testing.T) {
+	testCases := []struct {
+		value    string
+		expected []string
+		message  string
+	}{
+		{
+			value:    "model",
+			expected: []string{"model"},
+			message:  "Simple",
+		},
+		{
+			value:    "model,branch",
+			expected: []string{"model", "branch"},
+			message:  "Two",
+		},
+		{
+			value:    ",model , branch, \n",
+			expected: []string{"model", "branch"},
+			message:  "Two with extra junk.",
+		},
+		{
+			value:    " \n",
+			expected: []string{},
+			message:  "Just whitespace",
+		},
+		{
+			value:    "",
+			expected: []string{},
+			message:  "empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		cfg := &Config{GroupBy: tc.value}
+		assert.Equal(t, tc.expected, cfg.GroupedBy(), tc.message)
+	}
 }
