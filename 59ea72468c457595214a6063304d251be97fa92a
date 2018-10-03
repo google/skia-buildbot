@@ -16,6 +16,24 @@
       "revId": "59ea72468c457595214a6063304d251be97fa92a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4d174658_d7e1d6b2",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-03T14:57:13Z",
+      "side": 1,
+      "message": "Yep, it\u0027s pretty much copy/paste.  It should probably move into a shared utility at some point.",
+      "parentUuid": "63e7a5d5_e30f3619",
+      "revId": "59ea72468c457595214a6063304d251be97fa92a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
