@@ -271,6 +271,7 @@ func Init() {
 		}
 		dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 	} else {
+		ptracestore.Init(*ptraceStoreDir)
 		dfBuilder = dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
 		initIngestion(ctx)
 	}
