@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2257b526_5168c67b",
+        "filename": "go/go_install/go_install.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-03T15:03:34Z",
+      "side": 1,
+      "message": "Nit: It looks weird using cipd.PkgGoDEPS.Dest here even when includeDeps is false. I don\u0027t know what a better approach is. Maybe making \"gopath\" a constant and also using it in PdgGoDEPS and here.",
+      "revId": "ab07f2f281f78c1baf1a6487369871e5560ea6cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
