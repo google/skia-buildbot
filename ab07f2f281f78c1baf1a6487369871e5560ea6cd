@@ -34,6 +34,24 @@
       "revId": "ab07f2f281f78c1baf1a6487369871e5560ea6cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d73e4858_1bf9f58d",
+        "filename": "go/go_install/go_install.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-03T15:14:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "022f0421_b6805473",
+      "revId": "ab07f2f281f78c1baf1a6487369871e5560ea6cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
