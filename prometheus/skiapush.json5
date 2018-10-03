@@ -4,7 +4,6 @@
       "AppNames": [
         "prometheus",
         "prometheus-config",
-        "sheriff-emails",
         "pulld",
         "alert-to-pubsub",
       ],
