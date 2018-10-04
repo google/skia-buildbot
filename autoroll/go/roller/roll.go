@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/travisci"
+	"go.skia.org/infra/go/util"
 )
 
 type RollImpl interface {
@@ -294,9 +295,10 @@ type githubRoll struct {
 	rm               repo_manager.RepoManager
 	t                *travisci.TravisCI
 	checksNum        int
+	checksWaitFor    []string
 }
 
-func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
+func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int, checksWaitFor []string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
@@ -323,11 +325,19 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 			case github.CHECK_STATE_PENDING:
 				// Still pending.
 			case github.CHECK_STATE_FAILURE:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_FAILURE
+				if util.In(*check.Context, checksWaitFor) {
+					sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Context, github.CHECK_STATE_FAILURE)
+				} else {
+					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+					testResult = autoroll.TRYBOT_RESULT_FAILURE
+				}
 			case github.CHECK_STATE_ERROR:
-				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
-				testResult = autoroll.TRYBOT_RESULT_FAILURE
+				if util.In(*check.Context, checksWaitFor) {
+					sklog.Infof("%s has state %s. Waiting for it to succeed.", *check.Context, github.CHECK_STATE_FAILURE)
+				} else {
+					testStatus = autoroll.TRYBOT_STATUS_COMPLETED
+					testResult = autoroll.TRYBOT_RESULT_FAILURE
+				}
 			case github.CHECK_STATE_SUCCESS:
 				testStatus = autoroll.TRYBOT_STATUS_COMPLETED
 				testResult = autoroll.TRYBOT_RESULT_SUCCESS
@@ -395,8 +405,8 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, checksNum int, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum)
+func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, checksNum int, checksWaitFor []string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +417,7 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoMa
 		recent:      recent,
 		checksNum:   checksNum,
 		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum)
+			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor)
 		},
 		rm: rm,
 	}, nil

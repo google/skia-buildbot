@@ -103,12 +103,12 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	} else if c.GithubRepoManager != nil {
 		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client)
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
-			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, c.GithubChecksNum, arb.rollFinished)
+			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, c.GithubChecksNum, c.GithubChecksWaitFor, arb.rollFinished)
 		}
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client)
 		retrieveRoll = func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
-			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, c.GithubChecksNum, arb.rollFinished)
+			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, c.GithubChecksNum, c.GithubChecksWaitFor, arb.rollFinished)
 		}
 	} else if c.ManifestRepoManager != nil {
 		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL, client)

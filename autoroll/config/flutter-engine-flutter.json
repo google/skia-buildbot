@@ -15,6 +15,9 @@
   "githubRepoOwner": "flutter",
   "githubRepoName": "flutter",
   "githubChecksNum": 11,
+  "githubChecksWaitFor": [
+    "flutter-build"
+  ],
   "githubRepoManager": {
     "childBranch": "master",
     "childPath": "engine",
