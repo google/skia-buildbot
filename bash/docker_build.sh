@@ -38,6 +38,10 @@
 
 set -x -e
 
+# Useful variables used by build_* scripts.
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+
 if [ -z "$ROOT" ]; then
   ROOT=`mktemp -d`
 fi
