@@ -10,4 +10,6 @@ fi
 checkout=$1
 cd $checkout
 
+# Delete both index.lock and shallow.lock files.
+find . -name index.lock -exec echo "Going to delete " {} \; -exec rm {} \;
 find . -name shallow.lock -exec echo "Going to delete " {} \; -exec rm {} \;
