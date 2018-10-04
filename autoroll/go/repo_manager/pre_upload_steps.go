@@ -12,11 +12,14 @@ import (
 	"path"
 	"path/filepath"
 
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
 	"go.skia.org/infra/go/sklog"
 )
+
+var cipdRoot = path.Join(os.TempDir(), "cipd")
 
 // PreUploadStep is a function to be run after the roll is performed but before
 // a CL is uploaded. The http.Client should be authenticated for use by
@@ -27,6 +30,7 @@ type PreUploadStep func(context.Context, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
+		"GoGenerate":            GoGenerate,
 		"TrainInfra":            TrainInfra,
 		"FlutterLicenseScripts": FlutterLicenseScripts,
 	}[s]
@@ -53,7 +57,7 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 func TrainInfra(ctx context.Context, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
-	_, goEnv, err := go_install.EnsureGo(client, os.TempDir(), true)
+	_, goEnv, err := go_install.EnsureGo(client, cipdRoot, true)
 	if err != nil {
 		return err
 	}
@@ -144,5 +148,44 @@ func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir st
 	}
 
 	sklog.Info("Done running flutter license scripts.")
+	return nil
+}
+
+// Run "go generate ./..."
+func GoGenerate(ctx context.Context, client *http.Client, parentRepoDir string) error {
+	// TODO(borenet): Should we plumb through --local and --workdir?
+	sklog.Info("Installing Go...")
+	goExc, goEnv, err := go_install.EnsureGo(client, cipdRoot, true)
+	if err != nil {
+		return err
+	}
+
+	// Also install the protoc asset. Use a different CIPD root dir to
+	// prevent conflicts with the Go packages.
+	protocRoot := path.Join(os.TempDir(), "cipd_protoc")
+	if err := cipd.Ensure(client, protocRoot, cipd.PkgProtoc); err != nil {
+		return err
+	}
+
+	envSlice := make([]string, 0, len(goEnv))
+	for k, v := range goEnv {
+		if k == "PATH" {
+			// Construct PATH by adding protoc and the required PATH
+			// entries for Go on to the existing PATH.
+			v = path.Join(protocRoot, cipd.PkgProtoc.Dest, "bin") + ":" + v + ":" + os.Getenv("PATH")
+		}
+		envSlice = append(envSlice, fmt.Sprintf("%s=%s", k, v))
+	}
+
+	// Run go generate.
+	sklog.Info("Running 'go generate ./...'")
+	if _, err := exec.RunCommand(ctx, &exec.Command{
+		Name: goExc,
+		Args: []string{"generate", "./..."},
+		Dir:  parentRepoDir,
+		Env:  envSlice,
+	}); err != nil {
+		return err
+	}
 	return nil
 }
