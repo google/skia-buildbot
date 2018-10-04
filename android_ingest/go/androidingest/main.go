@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/android_ingest/go/parser"
 	"go.skia.org/infra/android_ingest/go/recent"
 	"go.skia.org/infra/android_ingest/go/upload"
+	"go.skia.org/infra/go/allowed"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -42,7 +43,7 @@ const (
 
 // flags
 var (
-	branch       = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
+	branch       = flag.String("branch", "master", "The name of the master branch, i.e. the branch that doesn't get its name added to the key.")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -73,7 +74,7 @@ func Init() {
 	txLogWriteFailure = metrics2.GetCounter("tx_log_write_failure", nil)
 	uploads = metrics2.GetCounter("uploads", nil)
 	// Create a new auth'd client for androidbuildinternal.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", "", androidbuildinternal.AndroidbuildInternalScope)
+	ts, err := auth.NewDefaultTokenSource(*local, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite)
 	if err != nil {
 		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}
@@ -106,11 +107,7 @@ func Init() {
 	}
 	process.Start(ctx)
 
-	storageTs, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
-	if err != nil {
-		sklog.Fatalf("Problem setting up client OAuth: %s", err)
-	}
-	storageHttpClient := httputils.DefaultClientConfig().WithTokenSource(storageTs).With2xxOnly().Client()
+	storageHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(storageHttpClient))
 	if err != nil {
 		sklog.Fatalf("Problem creating storage client: %s", err)
@@ -227,16 +224,22 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // redirectHandler handles the links that we added to the git repo and redirects
-// them to the source android-build dashboard.
+// them to the source android-build dashboard. An optional query parameter of 'branch'
+// will determine the branch. If not supplied the first branch in branches is used.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
+	redirBranch := r.FormValue("branch")
+	if redirBranch == "" {
+		redirBranch = *branch
+	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", *branch, id, id), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", redirBranch, id, id), http.StatusFound)
 }
 
 // rangeRedirectHandler handles the commit range links that we added to cluster-summary2-sk and redirects
-// them to the android-build dashboard.
+// them to the android-build dashboard. An optional query parameter of 'branch'
+// will determine the branch. If not supplied the first branch in branches is used.
 func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	begin := mux.Vars(r)["begin"]
@@ -257,7 +260,11 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, *branch, endID), http.StatusFound)
+	redirBranch := r.FormValue("branch")
+	if redirBranch == "" {
+		redirBranch = *branch
+	}
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, redirBranch, endID), http.StatusFound)
 }
 
 func loadTemplates() {
@@ -273,7 +280,6 @@ func main() {
 	common.InitWithMust(
 		filepath.Base(os.Args[0]),
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag must be supplied.")
@@ -281,7 +287,9 @@ func main() {
 	if *repoUrl == "" {
 		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
-	login.SimpleInitMust(*port, *local)
+	if !*local {
+		login.InitWithAllow(*port, *local, nil, nil, allowed.Googlers())
+	}
 
 	Init()
 
@@ -291,11 +299,15 @@ func main() {
 	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
 	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
 	r.HandleFunc("/", MainHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	h := httputils.LoggingGzipRequestResponse(r)
+	if !*local {
+		h = login.RestrictViewer(h)
+		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+		h = httputils.HealthzAndHTTPS(h)
+	}
+
+	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
