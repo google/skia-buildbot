@@ -46,6 +46,30 @@
       "revId": "a2eda0908fde237b2aa5cf5417b5e162d623b73c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51bdce84_8cd8b1e4",
+        "filename": "autoroll/config/skia-go_deps-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-04T12:33:32Z",
+      "side": 1,
+      "message": "Doesn\u0027t bother me too much, just wanted to point out that it is the first usage of underscore in rollerName.",
+      "parentUuid": "fbe3a51f_834a06a6",
+      "range": {
+        "startLine": 10,
+        "startChar": 22,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "a2eda0908fde237b2aa5cf5417b5e162d623b73c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
