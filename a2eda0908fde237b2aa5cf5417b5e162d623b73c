@@ -22,6 +22,30 @@
       "revId": "a2eda0908fde237b2aa5cf5417b5e162d623b73c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fbe3a51f_834a06a6",
+        "filename": "autoroll/config/skia-go_deps-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-04T11:18:40Z",
+      "side": 1,
+      "message": "I used go_deps because that\u0027s the name of the asset.  I can change it if you want.  FTR this matters less than it used to, because we no longer have https://${rollerName}.skia.org",
+      "parentUuid": "286472bc_83f21e8e",
+      "range": {
+        "startLine": 10,
+        "startChar": 22,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "a2eda0908fde237b2aa5cf5417b5e162d623b73c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
