@@ -14,6 +14,7 @@
   "githubRepoOwner": "flutter",
   "githubRepoName": "engine",
   "githubChecksNum": 4,
+  "githubChecksWaitFor": [],
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/skia",
