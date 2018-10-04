@@ -35,6 +35,15 @@ test: testgo
 testgo:
 	go test ./go/...
 
+.PHONY: buildk
+buildk:
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/androidingest
+	./build_docker_release
+
+.PHONY: pushk
+pushk: buildk
+	pushk androidingest
+
 .PHONY: push
 push: build
 	./build_release "`git log -n1 --format=%s`"
