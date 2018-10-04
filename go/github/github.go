@@ -258,6 +258,118 @@ func (g *GitHub) GetChecks(ref string) ([]github.RepoStatus, error) {
 	return combinedStatus.Statuses, nil
 }
 
+// Getting 404 from suites request for a suite ID is the main problem.
+// Does it have to be a github app?
+// Is there something else that this is missing?
+// Cannot find anybody complaining about 404s by Googling.
+
+// See https://developer.github.com/v3/checks/suites/#list-check-suites-for-a-specific-ref
+// and https://developer.github.com/v3/checks/suites/#rerequest-check-suite
+// for the API documentation.
+// e1913b28af74329f1bba97911ae69e52347d7b60 (flutter/engine)  PR: https://github.com/flutter/engine/pull/6275  (is in pending state)
+// 903ee7255d1468deaddd712aa4ea4bb13d241afc (flutter/flutter) PR: https://github.com/flutter/flutter/pull/22280 (has tree failure)
+// 478a7ef724d98aca96c8769443e73b634c16da52 (flutter/flutter) PR: https://github.com/flutter/flutter/pull/22672 (has non tree failure)
+func (g *GitHub) RerunLatestCheckSuite(ref string) error {
+	suites, resp, err := g.client.Checks.ListCheckSuitesForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return fmt.Errorf("Failed doing check-suites.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from check-suites.get.", resp.StatusCode)
+	}
+	if len(suites.CheckSuites) == 0 {
+		return fmt.Errorf("Could not find any check suites for %s.", ref)
+	}
+	//fmt.Println(suites)
+	fmt.Println("===============================")
+	s := suites.CheckSuites[len(suites.CheckSuites)-1]
+	fmt.Println(s.GetID())
+	fmt.Println(s.GetStatus())
+	fmt.Println(s.GetConclusion())
+	fmt.Println(s.GetURL())
+	fmt.Println("===============================")
+	fmt.Println("===============================")
+	//// Rerun the latest check suite.
+	//latestSuiteID := suites.CheckSuites[len(suites.CheckSuites)-1].GetID()
+	//fmt.Println(latestSuiteID)
+
+	//rerunResp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, latestSuiteID)
+	//if err != nil {
+	//	return fmt.Errorf("Failed doing check-suites/rerequest: %s", err)
+	//}
+	//if rerunResp.StatusCode != http.StatusOK {
+	//	return fmt.Errorf("Unexpected status code %d from check-suites/rerequest.", rerunResp.StatusCode)
+	//}
+
+	checkRuns, resp, err := g.client.Checks.ListCheckRunsForRef(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	if err != nil {
+		return fmt.Errorf("Failed doing check-runs.get: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from check-runs.get.", resp.StatusCode)
+	}
+	if len(checkRuns.CheckRuns) == 0 {
+		return fmt.Errorf("Could not find any check runs for %s.", ref)
+	}
+	//fmt.Println(checkRuns)
+
+	rerunSuiteID := int64(0)
+	for _, c := range checkRuns.CheckRuns {
+		fmt.Println(c.GetID())
+		fmt.Println(c.GetName())
+		fmt.Println(c.GetConclusion())
+		fmt.Println(c.GetCheckSuite().GetID())
+		fmt.Println("------------")
+		if c.GetConclusion() == "failure" {
+			// RERUN??????????
+			rerunSuiteID = c.GetCheckSuite().GetID()
+		}
+		//rerunSuiteID = c.GetCheckSuite().GetID()
+	}
+
+	fmt.Println(rerunSuiteID)
+	if rerunSuiteID != 0 {
+		rerunResp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, s.GetID())
+		if err != nil {
+			return fmt.Errorf("Failed doing check-suites/rerequest: %s", err)
+		}
+		if rerunResp.StatusCode != http.StatusOK {
+			return fmt.Errorf("Unexpected status code %d from check-suites/rerequest.", rerunResp.StatusCode)
+		}
+	}
+
+	//combinedStatus, resp, err := g.client.Repositories.GetCombinedStatus(g.ctx, g.RepoOwner, g.RepoName, ref, nil)
+	//if err != nil {
+	//	return fmt.Errorf("Failed doing repos.get: %s", err)
+	//}
+	//if resp.StatusCode != http.StatusOK {
+	//	return fmt.Errorf("Unexpected status code %d from repos.get.", resp.StatusCode)
+	//}
+	//fmt.Println("STATUSES!!!")
+	//for _, s := range combinedStatus.Statuses {
+	//	fmt.Println(s.GetID())
+	//	fmt.Println(s.GetState())
+	//	fmt.Println(s.GetURL())
+	//	fmt.Println(s.GetDescription())
+	//}
+
+	//// Rerun the checkRuns that failed???
+	//latestSuiteID := suites.CheckSuites[len(suites.CheckSuites)-1].GetID()
+	//fmt.Println(latestSuiteID)
+
+	//rerunResp, err := g.client.Checks.ReRequestCheckSuite(g.ctx, g.RepoOwner, g.RepoName, latestSuiteID)
+	//if err != nil {
+	//	return fmt.Errorf("Failed doing check-suites/rerequest: %s", err)
+	//}
+	//if rerunResp.StatusCode != http.StatusOK {
+	//	return fmt.Errorf("Unexpected status code %d from check-suites/rerequest.", rerunResp.StatusCode)
+	//}
+
+	//g.client.Checks.ListCheckRunsForRef()
+
+	return nil
+}
+
 // See https://developer.github.com/v3/issues/#get-a-single-issue
 // for the API documentation.
 func (g *GitHub) GetDescription(pullRequestNum int) (string, error) {
