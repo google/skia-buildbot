@@ -10,4 +10,4 @@ USER skia:skia
 
 COPY . /
 
-ENV PATH="/cipd/git/bin:/cipd/python/bin:${PATH}"
+ENV PATH="/cipd/git/bin:/cipd/python/bin:/cipd/python:${PATH}"
