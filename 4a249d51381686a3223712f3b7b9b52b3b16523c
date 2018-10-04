@@ -22,6 +22,30 @@
       "revId": "4a249d51381686a3223712f3b7b9b52b3b16523c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e076277_a065f979",
+        "filename": "sheriff_emails/go/sheriff_emails/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-04T12:25:31Z",
+      "side": 1,
+      "message": "It is written to the temp file which is a copy of the read-only mounted secret.\nEither way I found that this logic is now in a utility func, so using that now.",
+      "parentUuid": "5ea84420_a95502e1",
+      "range": {
+        "startLine": 108,
+        "startChar": 12,
+        "endLine": 108,
+        "endChar": 68
+      },
+      "revId": "4a249d51381686a3223712f3b7b9b52b3b16523c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
