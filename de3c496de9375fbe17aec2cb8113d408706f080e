@@ -22,6 +22,30 @@
       "revId": "de3c496de9375fbe17aec2cb8113d408706f080e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07dff1e5_c2b54b09",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-04T14:42:22Z",
+      "side": 1,
+      "message": "IIRC it was for the same reason that GerritURL is here. Eventually there should be a separate code review config where we can specify gerrit / github / something else. Or we should just move those things into RepoManagerConfigs.",
+      "parentUuid": "e8968af3_45ad0e3f",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 68
+      },
+      "revId": "de3c496de9375fbe17aec2cb8113d408706f080e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
