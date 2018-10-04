@@ -2,7 +2,6 @@ build:
 	go install -v ./go/webhook_proxy
 	go install -v ./go/proxy_with_auth
 	go install -v ./go/absent
-	go install -v ./../misc/./go/sheriff_emails/...
 	absent
 
 prom:
@@ -48,11 +47,6 @@ push_skolo: build prom
 	pushcli prometheus-jumphost-linux-01    jumphost-linux-01
 	pushcli prometheus-jumphost-win-02      jumphost-win-02
 	pushcli prometheus-jumphost-win-03      jumphost-win-03
-
-push_sheriff_emails: build
-	./build_sheriff_emails_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli sheriff-emails skia-prom
 
 push_graphite_exporter: graphite_exporter
 	./build_graphite_exporter_release "`git log -n1 --format=%s`"

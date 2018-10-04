@@ -1,9 +1,0 @@
-[Unit]
-Description=Weekly job to email the different Skia sheriffs
-
-[Timer]
-OnCalendar=Fri *-*-* 13:00:00
-Persistent=false
-
-[Install]
-WantedBy=multi-user.target
