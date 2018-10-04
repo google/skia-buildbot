@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47bf9805_abeaf1f1",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-04T17:22:18Z",
+      "side": 1,
+      "message": "Assuming this is accidental.",
+      "range": {
+        "startLine": 78,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 16
+      },
+      "revId": "dafc8bb7ef8d8df4e0464a85838a21d7e954b76f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
