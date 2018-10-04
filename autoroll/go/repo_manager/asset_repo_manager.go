@@ -47,7 +47,6 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 If the roll is causing failures, please contact the current sheriff, who should
 be CC'd on the roll, and stop the roller if necessary.
 
-CQ_INCLUDE_TRYBOTS={{.CqExtraTrybots}}
 TBR={{.Emails}}
 `
 )
@@ -123,23 +122,25 @@ func (rm *assetRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybo
 
 	// Build the commit message.
 	data := struct {
-		Asset          string
-		CqExtraTrybots string
-		Emails         string
-		From           string
-		ServerURL      string
-		To             string
+		Asset     string
+		Emails    string
+		From      string
+		ServerURL string
+		To        string
 	}{
-		Asset:          rm.asset,
-		CqExtraTrybots: cqExtraTrybots,
-		Emails:         strings.Join(emails, ","),
-		From:           from,
-		ServerURL:      serverURL,
-		To:             to,
+		Asset:     rm.asset,
+		Emails:    strings.Join(emails, ","),
+		From:      from,
+		ServerURL: serverURL,
+		To:        to,
 	}
 	var buf bytes.Buffer
 	if err := commitMsgTmplAssets.Execute(&buf, data); err != nil {
 		return "", err
+	}
+	msg := buf.String()
+	if cqExtraTrybots != "" {
+		msg += fmt.Sprintf("\nCQ_INCLUDE_TRYBOTS=%s", cqExtraTrybots)
 	}
 	return buf.String(), nil
 }
@@ -269,13 +270,6 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
 	}
 	uploadCmd.Args = append(uploadCmd.Args, "--gerrit")
-	tbr := "\nTBR="
-	if emails != nil && len(emails) > 0 {
-		emailStr := strings.Join(emails, ",")
-		tbr += emailStr
-		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
-	}
-	commitMsg += tbr
 	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	// Upload the CL.
