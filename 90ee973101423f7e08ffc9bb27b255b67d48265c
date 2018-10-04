@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ffd90efd_7c74bb85",
+        "filename": "android_ingest/create-android-ingest-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-04T15:11:34Z",
+      "side": 1,
+      "message": "This doesn\u0027t need to be corp, since Android is involved?",
+      "range": {
+        "startLine": 6,
+        "startChar": 15,
+        "endLine": 6,
+        "endChar": 24
+      },
+      "revId": "90ee973101423f7e08ffc9bb27b255b67d48265c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
