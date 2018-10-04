@@ -35,6 +35,13 @@ var (
 		Name:    "skia/bots/go_deps",
 		Version: fmt.Sprintf("version:%s", PKG_VERSIONS_FROM_ASSETS["go_deps"]),
 	}
+
+	// CIPD package containing the Google Protocol Buffer compiler.
+	PkgProtoc = &Package{
+		Dest:    "protoc",
+		Name:    "skia/bots/protoc",
+		Version: fmt.Sprintf("version:%s", PKG_VERSIONS_FROM_ASSETS["protoc"]),
+	}
 )
 
 // Package describes a CIPD package.
@@ -50,7 +57,9 @@ type Package struct {
 	Version string
 }
 
-// Run "cipd ensure" to get the correct packages in the given location.
+// Run "cipd ensure" to get the correct packages in the given location. Note
+// that any previously-installed packages in the given rootdir will be removed
+// if not specified again.
 func Ensure(client *http.Client, rootdir string, packages ...*Package) error {
 	c, err := cipd.NewClient(cipd.ClientOptions{
 		ServiceURL:          SERVICE_URL,

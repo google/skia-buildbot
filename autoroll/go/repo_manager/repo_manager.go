@@ -379,7 +379,7 @@ type depotToolsRepoManager struct {
 }
 
 // Return a depotToolsRepoManager instance.
-func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g *gerrit.Gerrit, client *http.Client) (*depotToolsRepoManager, error) {
+func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client) (*depotToolsRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
