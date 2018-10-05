@@ -230,7 +230,13 @@ func Init() {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadOnly, datastore.ScopeDatastore)
+	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore}
+
+	if *kubernetes {
+		scopes = append(scopes, bigtable.Scope)
+	}
+
+	ts, err := auth.NewDefaultTokenSource(*local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
