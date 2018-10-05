@@ -1087,3 +1087,22 @@ func SafeAtoi(n string) int {
 type Validator interface {
 	Validate() error
 }
+
+// MultiWriter is like io.MultiWriter but attempts to write to all of the given
+// io.Writers, even if writing to one fails.
+type MultiWriter []io.Writer
+
+// See documentation for io.Writer.
+func (mw MultiWriter) Write(b []byte) (int, error) {
+	var rv int
+	var rvErr error
+	for _, w := range mw {
+		n, err := w.Write(b)
+		if err != nil {
+			rvErr = err
+		} else {
+			rv = n
+		}
+	}
+	return rv, rvErr
+}
