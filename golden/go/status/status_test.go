@@ -82,7 +82,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		tilePair, err := storages.GetLastTileTrimmed()
 		assert.NoError(t, err)
 
-		changes := map[string]types.TestClassification{}
+		changes := types.TestExp{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
 		for _, trace := range tilePair.Tile.Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {

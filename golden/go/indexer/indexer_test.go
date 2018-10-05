@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -111,8 +110,8 @@ func TestIndexer(t *testing.T) {
 	assert.NotEqual(t, idxOne, idxTwo)
 }
 
-func getChanges(t *testing.T, tile *tiling.Tile) map[string]types.TestClassification {
-	ret := map[string]types.TestClassification{}
+func getChanges(t *testing.T, tile *tiling.Tile) types.TestExp {
+	ret := types.TestExp{}
 	labelVals := []types.Label{types.POSITIVE, types.NEGATIVE}
 	for _, trace := range tile.Traces {
 		if rand.Float32() > 0.5 {
@@ -148,7 +147,7 @@ func BenchmarkIndexer(b *testing.B) {
 	changes, err := expStore.Get()
 	assert.NoError(b, err)
 
-	sklog.Infof("Got %d tests", len(changes.Tests))
+	changesTestExp := changes.TestExp()
 
 	// Wait for the indexTests to complete when we change the expectations.
 	var wg sync.WaitGroup
@@ -156,7 +155,7 @@ func BenchmarkIndexer(b *testing.B) {
 	storages.EventBus.SubscribeAsync(EV_INDEX_UPDATED, func(state interface{}) {
 		wg.Done()
 	})
-	assert.NoError(b, storages.ExpectationsStore.AddChange(changes.Tests, ""))
+	assert.NoError(b, storages.ExpectationsStore.AddChange(changesTestExp, ""))
 	wg.Wait()
 }
 
