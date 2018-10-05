@@ -73,6 +73,18 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 
+func (g *GStorageClient) WriteBaseLineForCommit(baseLine *baseline.CommitableBaseLine) (string, error) {
+	writeFn := func(w *gstorage.Writer) error {
+		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
+			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
+		}
+		return nil
+	}
+
+	outPath := g.getBaselinePath(baseLine.Issue)
+	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
+}
+
 // ReadBaseline returns the baseline for the given issue from GCS.
 func (g *GStorageClient) ReadBaseline(issueID int64) (*baseline.CommitableBaseLine, error) {
 	baselinePath := g.getBaselinePath(issueID)
@@ -85,7 +97,7 @@ func (g *GStorageClient) ReadBaseline(issueID int64) (*baseline.CommitableBaseLi
 	if err != nil {
 		// If the item doesn't exist we return an empty baseline
 		if err == gstorage.ErrObjectNotExist {
-			return &baseline.CommitableBaseLine{Baseline: map[string]types.TestClassification{}}, nil
+			return &baseline.CommitableBaseLine{Baseline: types.TestExp{}}, nil
 		}
 		return nil, sklog.FmtErrorf("Error fetching attributes of baseline file: %s", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.opencensus.io/trace"
+
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -267,6 +268,89 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 		Digest:  ret[0],
 		Commits: tile.Commits,
 	}, nil
+}
+
+func (s *SearchAPI) CreateBaseline(ctx context.Context, issueID, patchsetID int64) error {
+	ctx, span := trace.StartSpan(ctx, "search/CreateBaseline")
+	defer span.End()
+
+	// // Load the issue and patchset => base expectations
+	// issue, err := b.tryjobStore.GetIssue(issueID, true)
+	// if err != nil {
+	// 	return sklog.FmtErrorf("Error retrieving issue: %s", err)
+	// }
+
+	// patchset := issue.FindPatchset(patchsetID)
+
+	// Set up the query that is used to filter the digests with values used by extractIssueDigests.
+	// We only want configurations that are not ignored
+	q := &Query{
+		Issue:          issueID,
+		Patchsets:      []int64{patchsetID},
+		IncludeIgnores: false,
+		Pos:            true,
+	}
+	idx := s.ixr.GetIndex()
+	// Build the intermediate map to compare against the tile
+	issueInter := srInterMap{}
+
+	// // Adjust the add function to exclude digests already in the master branch
+	// addFn := ret.add
+	// if !q.IncludeMaster {
+	// 	talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+	// 	addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+	// 		// Include the digest if either the test or the digest is not in the master tile.
+	// 		if _, ok := talliesByTest[test][digest]; !ok {
+	// 			ret.add(test, digest, traceID, trace, params)
+	// 		}
+	// 	}
+	// }
+
+	expStore := s.storages.IssueExpStoreFactory(issueID)
+	issueExp, err := expStore.Get()
+	if err != nil {
+		return sklog.FmtErrorf("Error retrieving expectations for isssue %d: %s", issueID, err)
+	}
+
+	issue, err := s.extractIssueDigests(ctx, q, idx, ExpSlice{issueExp}, issueInter.add)
+	if err != nil {
+		return sklog.FmtErrorf("Error extracting digests from tryjob results: %s", err)
+	}
+
+	masterInter, err := s.getMasterDigests(issue, patchsetID)
+	if err != nil {
+		return sklog.FmtErrorf("Error getting the ")
+	}
+
+	_ = s.getBaseline(masterInter, issueInter)
+
+	// Write the baseline to the TryjobStore (attach it to the patchset)
+
+	// Push the baseline to Gerrit
+
+	return nil
+}
+
+func (s *SearchAPI) getMasterDigests(issue *tryjobstore.Issue, patchsetID int64) (srInterMap, error) {
+	patchset := issue.FindPatchset(patchsetID)
+	if patchset == nil || patchset.ParentCommit == "" {
+		return nil, sklog.FmtErrorf("Unable to find patchset %d or its parent commit in issue %d", patchsetID, issue.ID)
+	}
+
+	_, err := s.storages.GetExpectationsForCommit(patchset.ParentCommit)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Unable to find base expectations for commit %s. Got error: %s", err)
+	}
+
+	// tile :=
+	// 	s.storages.Git
+
+	// ret := srInterMap{}
+	return nil, nil
+}
+
+func (s *SearchAPI) getBaseline(masterDigests, issueDigests srInterMap) types.Expectations {
+	return types.NewExpectations(nil)
 }
 
 // getExpectationsFromQuery returns a slice of expectations that should be
