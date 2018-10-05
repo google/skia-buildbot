@@ -105,6 +105,10 @@ func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
 	vm.SetupScript = path.Join(dir, "setup-script-linux.sh")
+	// See https://cloud.google.com/compute/docs/instances/enable-nested-virtualization-vm-instances
+	// We need this to run the Android Emulator on the VM (e.g. from Docker).
+	// This requires Haswell or newer Linux instances.
+	vm.BootDisk.Licenses = append(vm.BootDisk.Licenses, "projects/vm-options/global/licenses/enable-vmx")
 	return vm
 }
 

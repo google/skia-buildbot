@@ -243,6 +243,11 @@ func (g *GCloud) CheckOperation(op *compute.Operation, err error) error {
 
 // Disk is a struct describing a disk resource in GCE.
 type Disk struct {
+	// Special keys, for example, "projects/vm-options/global/licenses/enable-vmx"
+	// enables the use of nested virtualization. Nested virtualization is
+	// required for Docker instances to virtualize an Android emulator.
+	Licenses []string
+
 	// The name of the disk.
 	Name string
 
@@ -271,9 +276,10 @@ type Disk struct {
 func (g *GCloud) CreateDisk(disk *Disk, ignoreExists bool) error {
 	sklog.Infof("Creating disk %q", disk.Name)
 	d := &compute.Disk{
-		Name:   disk.Name,
-		SizeGb: disk.SizeGb,
-		Type:   fmt.Sprintf("zones/%s/diskTypes/%s", g.zone, disk.Type),
+		Name:     disk.Name,
+		SizeGb:   disk.SizeGb,
+		Type:     fmt.Sprintf("zones/%s/diskTypes/%s", g.zone, disk.Type),
+		Licenses: disk.Licenses,
 	}
 	if disk.SourceImage != "" && disk.SourceSnapshot != "" {
 		return fmt.Errorf("Only one of SourceImage and SourceSnapshot may be used.")
