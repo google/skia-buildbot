@@ -29,7 +29,7 @@ cd $checkout
 export CCACHE_DIR=/mnt/pd0/ccache
 export USE_CCACHE=1
 export CCACHE_EXEC=/usr/bin/ccache
-ccache -M 100G
+ccache -M 500G
 
 source_cmd="source ./build/envsetup.sh"
 log_step "Running $source_cmd"
