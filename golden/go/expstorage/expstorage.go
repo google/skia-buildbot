@@ -22,129 +22,15 @@ func init() {
 	gevent.RegisterCodec(EV_EXPSTORAGE_CHANGED, util.JSONCodec(&EventExpectationChange{}))
 }
 
-// Wraps the set of expectations and provides methods to manipulate them.
-type Expectations struct {
-	Tests map[string]types.TestClassification `json:"tests"`
-}
-
-// Classification returns the classification for a single digest, returning
-// types.UNTRIAGED if that test or digest is unknown to Expectations.
-func (e *Expectations) Classification(test, digest string) types.Label {
-	if label, ok := e.Tests[test][digest]; ok {
-		return label
-	}
-	return types.UNTRIAGED
-}
-
-func NewExpectations() *Expectations {
-	return &Expectations{
-		Tests: map[string]types.TestClassification{},
-	}
-}
-
-// Add tests and their labeled digests.
-func (e *Expectations) AddDigests(testDigests map[string]types.TestClassification) {
-	for testName, digests := range testDigests {
-		if _, ok := e.Tests[testName]; !ok {
-			e.Tests[testName] = map[string]types.Label{}
-		}
-		for digest, label := range digests {
-			// UNTRIAGED is the default value and we don't need to store it
-			if label == types.UNTRIAGED {
-				delete(e.Tests[testName], digest)
-			} else {
-				e.Tests[testName][digest] = label
-			}
-		}
-		// In case we had only assigned UNTRIAGED values
-		if len(e.Tests[testName]) == 0 {
-			delete(e.Tests, testName)
-		}
-	}
-}
-
-// SetTestExpectation sets the label (expectation) for a single test/digest pair.
-func (e *Expectations) SetTestExpectation(testName string, digest string, label types.Label) {
-	if _, ok := e.Tests[testName]; !ok {
-		e.Tests[testName] = map[string]types.Label{}
-	}
-	e.Tests[testName][digest] = label
-}
-
-// RemoveDigests removes the given digests from the expectations.
-// The key in the input is the test name.
-func (e *Expectations) RemoveDigests(digests map[string][]string) {
-	for testName, digests := range digests {
-		for _, digest := range digests {
-			delete(e.Tests[testName], digest)
-		}
-
-		if len(e.Tests[testName]) == 0 {
-			delete(e.Tests, testName)
-		}
-	}
-}
-
-func (e *Expectations) DeepCopy() *Expectations {
-	m := make(map[string]types.TestClassification, len(e.Tests))
-	for k, v := range e.Tests {
-		m[k] = v.DeepCopy()
-	}
-	return &Expectations{
-		Tests: m,
-	}
-}
-
-// Delta returns the additions and removals that are necessary to
-// get from e to right. The results can be passed directly to the
-// AddChange and removeChange functions of the ExpectationsStore.
-func (e *Expectations) Delta(right *Expectations) (*Expectations, map[string][]string) {
-	addExp := subtract(right, e, nil)
-	removeExp := subtract(e, right, addExp.Tests)
-
-	// Copy the testnames and digests into the output.
-	ret := make(map[string][]string, len(removeExp.Tests))
-	for testName, digests := range removeExp.Tests {
-		temp := make([]string, 0, len(digests))
-		for digest := range digests {
-			temp = append(temp, digest)
-		}
-		ret[testName] = temp
-	}
-
-	return addExp, ret
-}
-
-// Returns a copy of expA with all values removed that also appear in expB.
-func subtract(expA, expB *Expectations, exclude map[string]types.TestClassification) *Expectations {
-	ret := make(map[string]types.TestClassification, len(expA.Tests))
-	for testName, digests := range expA.Tests {
-		for digest, labelA := range digests {
-			if _, ok := exclude[testName][digest]; !ok {
-				if labelB, ok := expB.Tests[testName][digest]; !ok || (labelB != labelA) {
-					if found, ok := ret[testName]; !ok {
-						ret[testName] = map[string]types.Label{digest: labelA}
-					} else {
-						found[digest] = labelA
-					}
-				}
-			}
-		}
-	}
-	return &Expectations{
-		Tests: ret,
-	}
-}
-
 // Defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
 	// expectations map are the test names.
-	Get() (exp *Expectations, err error)
+	Get() (exp types.Expectations, err error)
 
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
-	AddChange(changes map[string]types.TestClassification, userId string) error
+	AddChange(changes types.TestExp, userId string) error
 
 	// QueryLog allows to paginate through the changes in the expectations.
 	// If details is true the result will include a list of triage operations
@@ -155,7 +41,7 @@ type ExpectationsStore interface {
 	// original change to the label they had before the change was applied.
 	// A new entry is added to the log with a reference to the change that was
 	// undone.
-	UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error)
+	UndoChange(changeID int64, userID string) (types.TestExp, error)
 
 	// Clear deletes all expectations in this ExpectationsStore. This is mostly
 	// used for testing, but also to delete the expectations for a Gerrit issue.
@@ -165,7 +51,7 @@ type ExpectationsStore interface {
 	// removeChange removes the given digests from the expectations store.
 	// The key in changes is the test name which maps to a list of digests
 	// to remove. Used for testing only.
-	removeChange(changes map[string]types.TestClassification) error
+	removeChange(changes types.TestExp) error
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -188,8 +74,8 @@ type TriageLogEntry struct {
 	UndoChangeID int64           `json:"undoChangeId"`
 }
 
-func (t *TriageLogEntry) GetChanges() map[string]types.TestClassification {
-	ret := map[string]types.TestClassification{}
+func (t *TriageLogEntry) GetChanges() types.TestExp {
+	ret := types.TestExp{}
 	for _, d := range t.Details {
 		label := types.LabelFromString(d.Label)
 		if found, ok := ret[d.TestName]; !ok {
@@ -203,8 +89,8 @@ func (t *TriageLogEntry) GetChanges() map[string]types.TestClassification {
 
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
-	expectations *Expectations
-	readCopy     *Expectations
+	expectations types.Expectations
+	readCopy     types.Expectations
 	eventBus     eventbus.EventBus
 
 	// Protects expectations.
@@ -222,7 +108,7 @@ func NewMemExpectationsStore(eventBus eventbus.EventBus) ExpectationsStore {
 
 // ------------- In-memory implementation
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) Get() (*Expectations, error) {
+func (m *MemExpectationsStore) Get() (types.Expectations, error) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -230,46 +116,41 @@ func (m *MemExpectationsStore) Get() (*Expectations, error) {
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClassification, userId string) error {
+func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	for testName, digests := range changedTests {
-		if _, ok := m.expectations.Tests[testName]; !ok {
-			m.expectations.Tests[testName] = map[string]types.Label{}
-		}
-		for d, label := range digests {
-			m.expectations.Tests[testName][d] = label
-		}
-	}
-
+	m.expectations.AddTestExp(changedTests)
 	if m.eventBus != nil {
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
 	}
 
-	m.readCopy = m.expectations.DeepCopy()
+	m.readCopy = types.NewExpectations(m.expectations.TestExp())
 	return nil
 }
 
 // removeChange, see ExpectationsStore interface.
-func (m *MemExpectationsStore) removeChange(changedDigests map[string]types.TestClassification) error {
+func (m *MemExpectationsStore) removeChange(changedDigests types.TestExp) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
+	testExp := m.expectations.TestExp()
 	for testName, digests := range changedDigests {
 		for digest := range digests {
-			delete(m.expectations.Tests[testName], digest)
-			if len(m.expectations.Tests[testName]) == 0 {
-				delete(m.expectations.Tests, testName)
+			delete(testExp[testName], digest)
+			if len(testExp[testName]) == 0 {
+				delete(testExp, testName)
 			}
 		}
 	}
+	// Replace the current expectations.
+	m.expectations = types.NewExpectations(testExp)
 
 	if m.eventBus != nil {
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID), true)
 	}
 
-	m.readCopy = m.expectations.DeepCopy()
+	m.readCopy = types.NewExpectations(m.expectations.TestExp())
 	return nil
 }
 
@@ -280,7 +161,7 @@ func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 }
 
 // See  ExpectationsStore interface.
-func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
+func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (types.TestExp, error) {
 	sklog.Fatal("MemExpectation store does not support undo.")
 	return nil, nil
 }
@@ -289,7 +170,7 @@ func (m *MemExpectationsStore) UndoChange(changeID int64, userID string) (map[st
 func (m *MemExpectationsStore) Clear() error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	m.expectations = NewExpectations()
-	m.readCopy = NewExpectations()
+	m.expectations = types.NewExpectations(nil)
+	m.readCopy = types.NewExpectations(nil)
 	return nil
 }
