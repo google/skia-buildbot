@@ -167,14 +167,18 @@ func (rm *assetRepoManager) Update(ctx context.Context) error {
 		return err
 	}
 
-	// Obtain the hash of the current child HEAD.
-	childHead, err := rm.childRepo.RevParse(ctx, rm.childBranch)
+	// Obtain the hash of the current parent and child HEADs.
+	parentHead, err := git.GitDir(rm.parentDir).RevParse(ctx, "origin/"+rm.parentBranch)
+	if err != nil {
+		return err
+	}
+	childHead, err := rm.childRepo.RevParse(ctx, "origin/"+rm.childBranch)
 	if err != nil {
 		return err
 	}
 
 	// Read the asset versions from both repos.
-	lastRollRev, err := readAssetVersion(ctx, git.GitDir(rm.parentDir), rm.parentBranch, rm.asset)
+	lastRollRev, err := readAssetVersion(ctx, git.GitDir(rm.parentDir), parentHead, rm.asset)
 	if err != nil {
 		return err
 	}
