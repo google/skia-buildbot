@@ -230,7 +230,13 @@ func Init() {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeReadOnly, datastore.ScopeDatastore)
+	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore}
+
+	if *kubernetes {
+		scopes = append(scopes, bigtable.Scope)
+	}
+
+	ts, err := auth.NewDefaultTokenSource(*local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
@@ -335,11 +341,13 @@ func Init() {
 	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
-	paramsProvider := newParamsetProvider(freshDataFrame)
+	/*
+		paramsProvider := newParamsetProvider(freshDataFrame)
 
-	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
-	go continuous.Run(ctx)
+		// Start running continuous clustering looking for regressions.
+			continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
+			go continuous.Run(ctx)
+	*/
 }
 
 // activityHandler serves the HTML for the /activitylog/ page.
@@ -1519,7 +1527,10 @@ func main() {
 	if *internalOnly {
 		h = internalOnlyHandler(h)
 	}
-	h = httputils.LoggingGzipRequestResponse(h)
+	if !*local {
+		h = httputils.LoggingGzipRequestResponse(h)
+		h = httputils.HealthzAndHTTPS(h)
+	}
 	http.Handle("/", h)
 
 	sklog.Infoln("Ready to serve.")
