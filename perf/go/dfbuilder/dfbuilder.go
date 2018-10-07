@@ -95,6 +95,7 @@ func buildTileMapOffsetToIndex(indices []int32, store *btts.BigTableTraceStore) 
 			traceMap[store.OffsetFromIndex(sourceIndex)] = int32(targetIndex)
 		}
 	}
+	sklog.Infof("tileMapOffsetToIndex: %#v", ret)
 	return ret
 }
 
@@ -127,6 +128,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
 		g.Go(func() error {
+			defer timer.New("btts_by_tile").Stop()
 			// Get the OPS, which we need to encode the query, and decode the traceids of the results.
 			ops, err := b.store.GetOrderedParamSet(tileKey)
 			if err != nil {
@@ -164,8 +166,8 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 				if !ok {
 					trace = types.NewTrace(len(indices))
 				}
-				for offset, value := range tileTrace {
-					trace[traceMap[int32(offset)]] = value
+				for srcIndex, dstIndex := range traceMap {
+					trace[dstIndex] = tileTrace[srcIndex]
 				}
 				traceSet[key] = trace
 			}
