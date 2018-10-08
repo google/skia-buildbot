@@ -8,8 +8,7 @@ and common-sk libraries.
 Design
 ------
 
-jsdoc is a simple program that periodically checks out the **latest** version of the
-Skia infra repo, makes the documentation and demo pages for select folders
+jsdoc is a simple program that serves up the documentation and demo pages for select folders
 and serves them over HTTP.
 
 jsdoc runs in a Docker container (See the [Dockerfile](./Dockerfile)).
