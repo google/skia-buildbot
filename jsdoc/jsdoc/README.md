@@ -9,5 +9,4 @@ be accessed below:
 
   * [elements-sk](/elements-sk/)
       * [full list of icon elements](/elements-sk/icon-sk.html)
-  * [common-sk](/common-sk/)
 
