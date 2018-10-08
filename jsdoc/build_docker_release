@@ -6,9 +6,26 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+make docs
+cd ../common-sk
+make demos
+cd ../jsdoc
+
+rm -rf ./dist
+mkdir ./dist
+cd ./dist
+git clone https://github.com/google/elements-sk.git
+cd ./elements-sk
+make release
+cd ../..
+pwd
+
 INSTALL="install -D --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile    ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/${APPNAME}
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}        ${ROOT}/${APPNAME}
+(cd ../jsdoc/out            && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/docs/{}" \;)
+(cd ../common-sk/dist       && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/common-sk/{}" \;)
+(cd ./dist/elements-sk/dist && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/elements-sk/{}" \;)
 }
 
 source ../bash/docker_build.sh
