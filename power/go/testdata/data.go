@@ -2,9 +2,8 @@ package testdata
 
 import (
 	"encoding/json"
-	"testing"
 
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/testutils"
 )
@@ -24,7 +23,7 @@ const (
 
 // MockBotAndId creates a *swarming.SwarmingRpcsBotInfo using the matching JSON
 // file in ./testdata
-func MockBotAndId(t *testing.T, filename, id string) *swarming.SwarmingRpcsBotInfo {
+func MockBotAndId(t testutils.TestingT, filename, id string) *swarming.SwarmingRpcsBotInfo {
 	j, err := testutils.ReadFile(filename)
 	assert.NoError(t, err, "There was a problem reading in the test data")
 	var s swarming.SwarmingRpcsBotInfo

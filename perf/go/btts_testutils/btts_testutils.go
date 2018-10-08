@@ -2,14 +2,14 @@ package btts_testutils
 
 import (
 	"context"
-	"testing"
 
 	"cloud.google.com/go/bigtable"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"golang.org/x/oauth2"
 )
 
-func CreateTestTable(t *testing.T) {
+func CreateTestTable(t testutils.TestingT) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
 	err := client.CreateTableFromConf(ctx, &bigtable.TableConf{
@@ -24,7 +24,7 @@ func CreateTestTable(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func CleanUpTestTable(t *testing.T) {
+func CleanUpTestTable(t testutils.TestingT) {
 	ctx := context.Background()
 	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
 	err := client.DeleteTable(ctx, "test")

@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
@@ -74,7 +73,7 @@ var (
 
 // setup prepares the tests to run. Returns the created temporary dir,
 // TryJobIntegrator instance, and URLMock instance.
-func setup(t *testing.T) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
+func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testutils.GitBuilder, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 
 	ctx := context.Background()
@@ -134,7 +133,7 @@ func setup(t *testing.T) (context.Context, *TryJobIntegrator, *git_testutils.Git
 	}
 }
 
-func Params(t *testing.T, builder, project, revision, server, issue, patchset string) buildbucket.Parameters {
+func Params(t testutils.TestingT, builder, project, revision, server, issue, patchset string) buildbucket.Parameters {
 	p := buildbucket.Parameters{
 		BuilderName: builder,
 		Properties: buildbucket.Properties{
@@ -151,7 +150,7 @@ func Params(t *testing.T, builder, project, revision, server, issue, patchset st
 	return p
 }
 
-func Build(t *testing.T, now time.Time) *buildbucket_api.ApiCommonBuildMessage {
+func Build(t testutils.TestingT, now time.Time) *buildbucket_api.ApiCommonBuildMessage {
 	return &buildbucket_api.ApiCommonBuildMessage{
 		Bucket:            BUCKET_TESTING,
 		CreatedBy:         "tests",
@@ -197,7 +196,7 @@ type heartbeatResp struct {
 	Error   *errMsg `json:"error,omitempty"`
 }
 
-func MockHeartbeats(t *testing.T, mock *mockhttpclient.URLMock, now time.Time, jobs []*db.Job, resps map[string]*heartbeatResp) {
+func MockHeartbeats(t testutils.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*db.Job, resps map[string]*heartbeatResp) {
 	// Create the request data.
 	expiry := fmt.Sprintf("%d", now.Add(LEASE_DURATION).Unix()*1000000)
 	heartbeats := make([]*heartbeat, 0, len(jobs))

@@ -2,10 +2,10 @@ package testutils
 
 import (
 	"context"
-	"testing"
 	"time"
 
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/testutils"
 )
 
 const (
@@ -24,7 +24,7 @@ const (
 //
 // Returns the GitBuilder instance for the test repo, along with the commit
 // hashes for c1 and c2.
-func SetupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, string, string) {
+func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBuilder, string, string) {
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 

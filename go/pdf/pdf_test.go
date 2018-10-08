@@ -48,7 +48,7 @@ func filesEqual(path1, path2 string) bool {
 	return 0 == bytes.Compare(checksum1, checksum2)
 }
 
-func readImg(t assert.TestingT, path string) *image.NRGBA {
+func readImg(t testutils.TestingT, path string) *image.NRGBA {
 	infile, err := os.Open(path)
 	assert.Nil(t, err)
 	defer testutils.AssertCloses(t, infile)
@@ -62,7 +62,7 @@ func readImg(t assert.TestingT, path string) *image.NRGBA {
 	return ret
 }
 
-func imagesEqual(t assert.TestingT, path1, path2 string) {
+func imagesEqual(t testutils.TestingT, path1, path2 string) {
 	img_1 := readImg(t, path1)
 	img_2 := readImg(t, path2)
 

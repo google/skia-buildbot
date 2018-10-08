@@ -12,7 +12,6 @@ import (
 	"path"
 	"runtime"
 	"strings"
-	"testing"
 	"time"
 
 	"cloud.google.com/go/compute/metadata"
@@ -57,6 +56,27 @@ var (
 	TryAgainErr = errors.New("Trying Again")
 )
 
+// TestingT is an interface which is compatible with testing.T and testing.B,
+// used so that we don't have to import the "testing" package except in _test.go
+// files.
+type TestingT interface {
+	Error(...interface{})
+	Errorf(string, ...interface{})
+	Fail()
+	FailNow()
+	Failed() bool
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+	Helper()
+	Log(...interface{})
+	Logf(string, ...interface{})
+	Name() string
+	Skip(...interface{})
+	SkipNow()
+	Skipf(string, ...interface{})
+	Skipped() bool
+}
+
 // ShouldRun determines whether the test should run based on the provided flags.
 func ShouldRun(testType string) bool {
 	if *uncategorized {
@@ -82,7 +102,7 @@ func ShouldRun(testType string) bool {
 // SmallTest is a function which should be called at the beginning of a small
 // test: A test (under 2 seconds) with no dependencies on external databases,
 // networks, etc.
-func SmallTest(t *testing.T) {
+func SmallTest(t TestingT) {
 	if !ShouldRun(SMALL_TEST) {
 		t.Skip("Not running small tests.")
 	}
@@ -91,8 +111,8 @@ func SmallTest(t *testing.T) {
 // MediumTest is a function which should be called at the beginning of an
 // medium-sized test: a test (2-15 seconds) which has dependencies on external
 // databases, networks, etc.
-func MediumTest(t *testing.T) {
-	if !ShouldRun(MEDIUM_TEST) || testing.Short() {
+func MediumTest(t TestingT) {
+	if !ShouldRun(MEDIUM_TEST) {
 		t.Skip("Not running medium tests.")
 	}
 }
@@ -101,8 +121,8 @@ func MediumTest(t *testing.T) {
 // test: a test (> 15 seconds) with significant reliance on external
 // dependencies which makes it too slow or flaky to run as part of the normal
 // test suite.
-func LargeTest(t *testing.T) {
-	if !ShouldRun(LARGE_TEST) || testing.Short() {
+func LargeTest(t TestingT) {
+	if !ShouldRun(LARGE_TEST) {
 		t.Skip("Not running large tests.")
 	}
 }
@@ -180,35 +200,35 @@ func MustReadJsonFile(filename string, dest interface{}) {
 
 // WriteFile writes the given contents to the given file path, reporting any
 // error.
-func WriteFile(t assert.TestingT, filename, contents string) {
+func WriteFile(t TestingT, filename, contents string) {
 	assert.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
 // CloseInTest takes an ioutil.Closer and Closes it, reporting any error.
-func CloseInTest(t assert.TestingT, c io.Closer) {
+func CloseInTest(t TestingT, c io.Closer) {
 	if err := c.Close(); err != nil {
 		t.Errorf("Failed to Close(): %v", err)
 	}
 }
 
 // AssertCloses takes an ioutil.Closer and asserts that it closes.
-func AssertCloses(t assert.TestingT, c io.Closer) {
+func AssertCloses(t TestingT, c io.Closer) {
 	assert.NoError(t, c.Close())
 }
 
 // Remove attempts to remove the given file and asserts that no error is returned.
-func Remove(t assert.TestingT, fp string) {
+func Remove(t TestingT, fp string) {
 	assert.NoError(t, os.Remove(fp))
 }
 
 // RemoveAll attempts to remove the given directory and asserts that no error is returned.
-func RemoveAll(t assert.TestingT, fp string) {
+func RemoveAll(t TestingT, fp string) {
 	assert.NoError(t, os.RemoveAll(fp))
 }
 
 // TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
 // function to defer.
-func TempDir(t assert.TestingT) (string, func()) {
+func TempDir(t TestingT) (string, func()) {
 	d, err := ioutil.TempDir("", "testutils")
 	assert.NoError(t, err)
 	return d, func() {
@@ -217,27 +237,27 @@ func TempDir(t assert.TestingT) (string, func()) {
 }
 
 // MarshalJSON encodes the given interface to a JSON string.
-func MarshalJSON(t *testing.T, i interface{}) string {
+func MarshalJSON(t TestingT, i interface{}) string {
 	b, err := json.Marshal(i)
 	assert.NoError(t, err)
 	return string(b)
 }
 
 // MarshalIndentJSON encodes the given interface to an indented JSON string.
-func MarshalIndentJSON(t *testing.T, i interface{}) string {
+func MarshalIndentJSON(t TestingT, i interface{}) string {
 	b, err := json.MarshalIndent(i, "", "  ")
 	assert.NoError(t, err)
 	return string(b)
 }
 
 // AssertErrorContains asserts that the given error contains the given string.
-func AssertErrorContains(t *testing.T, err error, substr string) {
+func AssertErrorContains(t TestingT, err error, substr string) {
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), substr))
 }
 
 // Return the path to the root of the checkout.
-func GetRepoRoot(t *testing.T) string {
+func GetRepoRoot(t TestingT) string {
 	root, err := repo_root.Get()
 	assert.NoError(t, err)
 	return root
@@ -264,7 +284,7 @@ func EventuallyConsistent(duration time.Duration, f func() error) error {
 }
 
 // LocalOnlyTest will skip the test if it is bein run on GCE.
-func LocalOnlyTest(t *testing.T) {
+func LocalOnlyTest(t TestingT) {
 	if metadata.OnGCE() {
 		t.Skipf("Test is only run locally.")
 	}

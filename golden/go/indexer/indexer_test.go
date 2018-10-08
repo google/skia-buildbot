@@ -160,7 +160,7 @@ func BenchmarkIndexer(b *testing.B) {
 	wg.Wait()
 }
 
-func setupStorages(t assert.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
+func setupStorages(t testutils.TestingT, ctx context.Context) (*storage.Storage, expstorage.ExpectationsStore) {
 	flag.Parse()
 
 	// Set up the diff store, the event bus and the DB connection.

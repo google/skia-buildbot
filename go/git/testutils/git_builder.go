@@ -18,7 +18,7 @@ import (
 
 // GitBuilder creates commits and branches in a git repo.
 type GitBuilder struct {
-	t      assert.TestingT
+	t      testutils.TestingT
 	dir    string
 	branch string
 }
@@ -26,7 +26,7 @@ type GitBuilder struct {
 // GitInit creates a new git repo in a temporary directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
 // current branch will be master.
-func GitInit(t assert.TestingT, ctx context.Context) *GitBuilder {
+func GitInit(t testutils.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
@@ -36,7 +36,7 @@ func GitInit(t assert.TestingT, ctx context.Context) *GitBuilder {
 // GitInit creates a new git repo in the specified directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
 // current branch will be master.
-func GitInitWithDir(t assert.TestingT, ctx context.Context, dir string) *GitBuilder {
+func GitInitWithDir(t testutils.TestingT, ctx context.Context, dir string) *GitBuilder {
 	g := &GitBuilder{
 		t:      t,
 		dir:    dir,

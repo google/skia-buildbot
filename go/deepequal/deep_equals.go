@@ -38,6 +38,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/pmezard/go-difflib/difflib"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 )
 
 // During deepValueEqual, must keep track of checks that are
@@ -295,7 +296,7 @@ func DeepEqual(x, y interface{}) bool {
 var superVerbose = false
 
 // AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
-func AssertDeepEqual(t assert.TestingT, expected, actual interface{}) {
+func AssertDeepEqual(t testutils.TestingT, expected, actual interface{}) {
 	if !DeepEqual(expected, actual) {
 		// The formatting is inspired by stretchr/testify's assert.Equal() output.
 		extra := ""
@@ -366,7 +367,7 @@ var spewConfig = spew.ConfigState{
 // have a zero value and none of the direct fields point to the same object.
 // This catches regressions where a new field is added without adding that field
 // to the Copy method. Arguments must be structs.
-func AssertCopy(t assert.TestingT, a, b interface{}) {
+func AssertCopy(t testutils.TestingT, a, b interface{}) {
 	AssertDeepEqual(t, a, b)
 
 	// Check that all fields are non-zero.
