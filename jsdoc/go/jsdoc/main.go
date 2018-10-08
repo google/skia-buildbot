@@ -64,6 +64,7 @@ func step() error {
 		Dir:         path.Join(*elementsGitRepoDir),
 		InheritPath: false,
 		LogStdout:   true,
+		LogStderr:   true,
 	}
 
 	if err := exec.Run(ctx, buildElementDemoCmd); err != nil {
