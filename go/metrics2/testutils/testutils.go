@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"sort"
 	"strings"
-	"testing"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -19,7 +18,7 @@ import (
 // being calculated and sent. This approach was found to be less awkward
 // than using mocks and is decenly performant.
 // See datahopper/bot_metrics/bots_test.go for an example use.
-func GetRecordedMetric(t *testing.T, metricName string, tags map[string]string) string {
+func GetRecordedMetric(t assert.TestingT, metricName string, tags map[string]string) string {
 	req := httptest.NewRequest("GET", "/metrics", nil)
 	rw := httptest.NewRecorder()
 	promhttp.HandlerFor(prometheus.DefaultRegisterer.(*prometheus.Registry), promhttp.HandlerOpts{
