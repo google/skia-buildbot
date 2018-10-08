@@ -46,6 +46,30 @@
       "revId": "00d905100e35b5e20c6015569daab191d260d273",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66dfae2e_15ac48d9",
+        "filename": "jsdoc/jsdoc/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-08T19:19:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af7d4947_68643694",
+      "range": {
+        "startLine": 1,
+        "startChar": 19,
+        "endLine": 1,
+        "endChar": 26
+      },
+      "revId": "00d905100e35b5e20c6015569daab191d260d273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
