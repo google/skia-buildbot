@@ -84,14 +84,6 @@ groups:
     annotations:
       abbr: '{{ $labels.instance }}'
       description: '{{ $labels.device }} on {{ $labels.instance }} in pool {{ $labels.cloud_google_com_gke_nodepool }} is more than 90% full.'
-  - alert: JSDocLiveness
-    expr: liveness_build_s{app="jsdoc"}/60 > 120
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: 'JSDoc documentation building is failing.'
-      description: '{{ $labels.instance }} has failed to rebuild documentation for the last 2 hours. https://skia.googlesource.com/buildbot/%2B/master/jsdoc/PROD.md#build_liveness'
 
   - alert: AutoRollBackendErrorRate
     expr: rate(num_log_lines{level="ERROR",log_source="autoroll-be"}[1h]) > 0.001

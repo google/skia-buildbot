@@ -6,9 +6,30 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+
+# rm -rf ./dist
+# mkdir ./dist
+# cd ./dist
+# git clone https://github.com/google/elements-sk.git
+# git clone https://skia.googlesource.com/buildbot/
+# cd ./elements-sk
+# make release
+# rm -rf node_modules
+# cd ../buildbot/jsdoc
+# make docs
+# rm -rf node_modules
+# cd ../common-sk
+# make demos
+# rm -rf node_modules
+# cd ../../..
+# pwd
+
 INSTALL="install -D --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile    ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/${APPNAME}
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}        ${ROOT}/${APPNAME}
+(cd ./dist/buildbot/jsdoc/out      && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/docs/{}" \;)
+(cd ./dist/buildbot/common-sk/dist && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/common-sk/{}" \;)
+(cd ./dist/elements-sk/dist        && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/elements-sk/{}" \;)
 }
 
 source ../bash/docker_build.sh

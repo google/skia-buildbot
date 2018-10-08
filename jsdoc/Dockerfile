@@ -10,6 +10,4 @@ COPY . /
 USER skia
 
 ENTRYPOINT ["/jsdoc"]
-CMD ["--logtostderr", "--port=:8000", "--prom_port=:20000", \
-     "--infra_git_repo_dir=/tmp/buildbot", \
-     "--elements_git_repo_dir=/tmp/elements-sk"]
+CMD ["--logtostderr", "--port=:8000", "--prom_port=:20000", "--local"]
