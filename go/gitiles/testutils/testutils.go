@@ -10,22 +10,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/testutils"
 )
 
 type MockRepo struct {
 	c    *mockhttpclient.URLMock
 	repo git.GitDir
-	t    *testing.T
+	t    testutils.TestingT
 	url  string
 }
 
-func NewMockRepo(t *testing.T, url string, repo git.GitDir, c *mockhttpclient.URLMock) *MockRepo {
+func NewMockRepo(t testutils.TestingT, url string, repo git.GitDir, c *mockhttpclient.URLMock) *MockRepo {
 	return &MockRepo{
 		c:    c,
 		repo: repo,
