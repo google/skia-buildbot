@@ -101,6 +101,7 @@ func (d *DataFrame) BuildParamSet() {
 	for _, values := range paramSet {
 		sort.Strings(values)
 	}
+	paramSet.Normalize()
 	d.ParamSet = paramSet
 }
 
