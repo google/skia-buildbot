@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71ccf828_46d9e85d",
+        "filename": "jsdoc/jsdoc/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-08T19:14:36Z",
+      "side": 1,
+      "message": "Also remove?",
+      "range": {
+        "startLine": 1,
+        "startChar": 19,
+        "endLine": 1,
+        "endChar": 26
+      },
+      "revId": "00d905100e35b5e20c6015569daab191d260d273",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
