@@ -1,10 +1,12 @@
 package types
 
 import (
+	"crypto/md5"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io"
+	"sync"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
@@ -282,4 +284,42 @@ func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) 
 		Scale:     rawTile.Scale,
 		TileIndex: rawTile.Scale,
 	}, nil
+}
+
+type TileHash struct {
+	ColumnHashes []string
+	MasterHash   string
+}
+
+func HashGoldTile(tile *tiling.Tile) *TileHash {
+	traceIDs := make([]string, 0, len(tile.Traces))
+	for traceID := range tile.Traces {
+		traceIDs = append(traceIDs, traceID)
+	}
+
+	var wg sync.WaitGroup
+	columnHashes := make([]string, len(tile.Commits))
+	colHashBytes := make([][]byte, len(tile.Commits))
+	for idx := range tile.Commits {
+		wg.Add(1)
+		go func(idx int) {
+			colHash := md5.New()
+			for _, id := range traceIDs {
+				colHash.Write([]byte(tile.Traces[id].(*GoldenTrace).Values[idx]))
+			}
+			colHashBytes[idx] = colHash.Sum(nil)
+			columnHashes[idx] = string(colHashBytes[idx])
+		}(idx)
+	}
+	wg.Wait()
+
+	masterHash := md5.New()
+	for _, colHash := range colHashBytes {
+		masterHash.Write(colHash)
+	}
+
+	return &TileHash{
+		ColumnHashes: columnHashes,
+		MasterHash:   string(masterHash.Sum(nil)),
+	}
 }
