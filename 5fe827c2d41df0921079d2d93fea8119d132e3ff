@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "acb7ff6f_1c0db32c",
+        "filename": "scripts/find_import_paths.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-08T14:08:26Z",
+      "side": 1,
+      "message": "find_import_paths.py -\u003e find_go_import_paths.py to make clear",
+      "revId": "5fe827c2d41df0921079d2d93fea8119d132e3ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b779d82_690948c2",
+        "filename": "scripts/find_import_paths.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-08T14:08:26Z",
+      "side": 1,
+      "message": "Add module level documentation explaining why this was written (I\u0027m curious what it\u0027s purpose is as well).",
+      "revId": "5fe827c2d41df0921079d2d93fea8119d132e3ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dfcc495_a5e54f1d",
+        "filename": "scripts/find_import_paths.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-08T14:08:26Z",
+      "side": 1,
+      "message": "Why is cache.get(current_pkg) not sufficient?",
+      "range": {
+        "startLine": 32,
+        "startChar": 30,
+        "endLine": 32,
+        "endChar": 41
+      },
+      "revId": "5fe827c2d41df0921079d2d93fea8119d132e3ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "512a9644_cb9bca03",
+        "filename": "scripts/find_import_paths.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-08T14:08:26Z",
+      "side": 1,
+      "message": "target_pkg? or find_pkg as you used below",
+      "range": {
+        "startLine": 79,
+        "startChar": 54,
+        "endLine": 79,
+        "endChar": 57
+      },
+      "revId": "5fe827c2d41df0921079d2d93fea8119d132e3ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0948452f_f9cb0dbb",
+        "filename": "scripts/find_import_paths.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-08T14:08:26Z",
+      "side": 1,
+      "message": "start_pkg maybe more descriptive.",
+      "range": {
+        "startLine": 79,
+        "startChar": 46,
+        "endLine": 79,
+        "endChar": 51
+      },
+      "revId": "5fe827c2d41df0921079d2d93fea8119d132e3ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
