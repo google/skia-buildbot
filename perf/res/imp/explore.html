@@ -135,7 +135,7 @@
       width: 100%;
       display: inline-grid;
       grid-template-columns: auto 20%;
-      grid-template-rows: 40% auto;
+      grid-template-rows: auto auto;
       grid-template-areas:
         "graph buttons"
         "tabs tabs";
@@ -163,12 +163,12 @@
           both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
         <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
         <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
-        <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
         <div>
           <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
           <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
         </div>
         <paper-checkbox checked="{{_show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
+        <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
       </div>
 
       <div id=tabs class="flex">

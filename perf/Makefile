@@ -12,12 +12,19 @@ VULCANIZE1=true
 .PHONY: build
 build: skiaperf web ptracequery ingest_json_validator
 
+buildk: web
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
+	./build_docker_release
+
 build-perf-ingest:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-ingest
 	./build_perf_ingest_release
 
 push-perf-ingest: build-perf-ingest
 	pushk perf-ingest
+
+pushk: buildk skia-public
+	pushk skiaperf
 
 .PHONY: validate
 validate: ingest_json_validator
@@ -86,3 +93,4 @@ tags:
 	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
 
 include ../webtools/webtools.mk
+include ../make/clusters.mk
