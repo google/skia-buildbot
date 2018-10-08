@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"path"
-	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbucket"
@@ -24,11 +23,11 @@ type MockGerrit struct {
 	Gerrit    *gerrit.Gerrit
 	Mock      *mockhttpclient.URLMock
 	isAndroid bool
-	t         *testing.T
+	t         testutils.TestingT
 }
 
 // NewGerrit returns a mocked Gerrit instance.
-func NewGerrit(t *testing.T, workdir string, isAndroid bool) *MockGerrit {
+func NewGerrit(t testutils.TestingT, workdir string, isAndroid bool) *MockGerrit {
 	gitcookies := path.Join(workdir, "gitcookies_fake")
 	testutils.WriteFile(t, gitcookies, FAKE_GITCOOKIES)
 
