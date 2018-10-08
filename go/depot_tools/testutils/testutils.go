@@ -5,7 +5,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"testing"
 
 	assert "github.com/stretchr/testify/require"
 
@@ -14,7 +13,7 @@ import (
 )
 
 // GetDepotTools returns the path to depot_tools, syncing it if necessary.
-func GetDepotTools(t *testing.T, ctx context.Context) string {
+func GetDepotTools(t testutils.TestingT, ctx context.Context) string {
 	// Find the recipes cfg file, assuming we're in a checkout.
 	root := testutils.GetRepoRoot(t)
 	recipesCfgFile := filepath.Join(root, "infra/config/recipes.cfg")

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/testutils"
 )
 
 // MockRepoManager is a struct used for mocking out the AutoRoller's
@@ -25,11 +25,11 @@ type MockRepoManager struct {
 	rollIntoAndroid     bool
 	skiaHead            string
 	mtx                 sync.RWMutex
-	t                   *testing.T
+	t                   testutils.TestingT
 }
 
 // NewRepoManager returns a MockRepoManager instance.
-func NewRepoManager(t *testing.T, rollIntoAndroid bool) *MockRepoManager {
+func NewRepoManager(t testutils.TestingT, rollIntoAndroid bool) *MockRepoManager {
 	return &MockRepoManager{
 		mockFullChildHashes: map[string]string{},
 		rolledPast:          map[string]bool{},
@@ -39,7 +39,7 @@ func NewRepoManager(t *testing.T, rollIntoAndroid bool) *MockRepoManager {
 }
 
 // MockRepoManagers fakes out the New*RepoManager functions.
-func MockDEPSRepoManager(t *testing.T) {
+func MockDEPSRepoManager(t testutils.TestingT) {
 	repo_manager.NewDEPSRepoManager = func(context.Context, *repo_manager.DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, false), nil
 	}

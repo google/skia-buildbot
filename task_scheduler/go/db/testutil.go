@@ -21,14 +21,14 @@ import (
 
 const DEFAULT_TEST_REPO = "go-on-now.git"
 
-// AssertDeepEqual does a deep equals comparison using the assert.TestingT interface.
+// AssertDeepEqual does a deep equals comparison using the testutils.TestingT interface.
 //
 // Callers of these tests utils should assign a value to AssertDeepEqual beforehand, e.g.:
 //
 //	AssertDeepEqual = deepequal.AssertDeepEqual
 //
 // This is necessary to break the hard linking of this file to the "testing" module.
-var AssertDeepEqual func(t assert.TestingT, expected, actual interface{})
+var AssertDeepEqual func(t testutils.TestingT, expected, actual interface{})
 
 func MakeTestTask(ts time.Time, commits []string) *Task {
 	return &Task{
@@ -58,7 +58,7 @@ func makeJob(ts time.Time) *Job {
 }
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
-func TestTaskDB(t assert.TestingT, db TaskDB) {
+func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	_, err := db.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -214,7 +214,7 @@ func TestTaskDB(t assert.TestingT, db TaskDB) {
 }
 
 // Test that a TaskDB properly tracks its maximum number of users.
-func TestTaskDBTooManyUsers(t assert.TestingT, db TaskDB) {
+func TestTaskDBTooManyUsers(t testutils.TestingT, db TaskDB) {
 	// Max out the number of modified-tasks users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedTasks()
@@ -226,7 +226,7 @@ func TestTaskDBTooManyUsers(t assert.TestingT, db TaskDB) {
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
-func TestTaskDBConcurrentUpdate(t assert.TestingT, db TaskDB) {
+func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	// Insert a task.
 	t1 := MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
@@ -275,7 +275,7 @@ func TestTaskDBConcurrentUpdate(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when no errors or retries.
-func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -327,7 +327,7 @@ func testUpdateTasksWithRetriesSimple(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when there are some retries, but eventual success.
-func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -378,7 +378,7 @@ func testUpdateTasksWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when f returns an error.
-func testUpdateTasksWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -402,7 +402,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when PutTasks returns an error.
-func testUpdateTasksWithRetriesErrorInPutTasks(t assert.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	callCount := 0
@@ -425,7 +425,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when retries are exhausted.
-func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -458,7 +458,7 @@ func testUpdateTasksWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
-func testUpdateTaskWithRetriesSimple(t assert.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -490,7 +490,7 @@ func testUpdateTaskWithRetriesSimple(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
-func testUpdateTaskWithRetriesSuccess(t assert.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -527,7 +527,7 @@ func testUpdateTaskWithRetriesSuccess(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when f returns an error.
-func testUpdateTaskWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -561,7 +561,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when retries are exhausted.
-func testUpdateTaskWithRetriesExhausted(t assert.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -600,7 +600,7 @@ func testUpdateTaskWithRetriesExhausted(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
-func testUpdateTaskWithRetriesTaskNotFound(t assert.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
@@ -625,7 +625,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t assert.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
-func TestUpdateTasksWithRetries(t assert.TestingT, db TaskDB) {
+func TestUpdateTasksWithRetries(t testutils.TestingT, db TaskDB) {
 	testUpdateTasksWithRetriesSimple(t, db)
 	testUpdateTasksWithRetriesSuccess(t, db)
 	testUpdateTasksWithRetriesErrorInFunc(t, db)
@@ -639,7 +639,7 @@ func TestUpdateTasksWithRetries(t assert.TestingT, db TaskDB) {
 }
 
 // TestJobDB performs basic tests on an implementation of JobDB.
-func TestJobDB(t assert.TestingT, db JobDB) {
+func TestJobDB(t testutils.TestingT, db JobDB) {
 	_, err := db.GetModifiedJobs("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -783,7 +783,7 @@ func TestJobDB(t assert.TestingT, db JobDB) {
 }
 
 // Test that a JobDB properly tracks its maximum number of users.
-func TestJobDBTooManyUsers(t assert.TestingT, db JobDB) {
+func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB) {
 	// Max out the number of modified-jobs users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedJobs()
@@ -795,7 +795,7 @@ func TestJobDBTooManyUsers(t assert.TestingT, db JobDB) {
 
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
-func TestJobDBConcurrentUpdate(t assert.TestingT, db JobDB) {
+func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 	// Insert a job.
 	j1 := makeJob(time.Now())
 	assert.NoError(t, db.PutJob(j1))
@@ -844,7 +844,7 @@ func TestJobDBConcurrentUpdate(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when no errors or retries.
-func testUpdateJobsWithRetriesSimple(t assert.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -896,7 +896,7 @@ func testUpdateJobsWithRetriesSimple(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when there are some retries, but eventual success.
-func testUpdateJobsWithRetriesSuccess(t assert.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -948,7 +948,7 @@ func testUpdateJobsWithRetriesSuccess(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when f returns an error.
-func testUpdateJobsWithRetriesErrorInFunc(t assert.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -972,7 +972,7 @@ func testUpdateJobsWithRetriesErrorInFunc(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when PutJobs returns an error.
-func testUpdateJobsWithRetriesErrorInPutJobs(t assert.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	callCount := 0
@@ -995,7 +995,7 @@ func testUpdateJobsWithRetriesErrorInPutJobs(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when retries are exhausted.
-func testUpdateJobsWithRetriesExhausted(t assert.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -1028,7 +1028,7 @@ func testUpdateJobsWithRetriesExhausted(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when no errors or retries.
-func testUpdateJobWithRetriesSimple(t assert.TestingT, db JobDB) {
+func testUpdateJobWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1058,7 +1058,7 @@ func testUpdateJobWithRetriesSimple(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when there are some retries, but eventual success.
-func testUpdateJobWithRetriesSuccess(t assert.TestingT, db JobDB) {
+func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1095,7 +1095,7 @@ func testUpdateJobWithRetriesSuccess(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when f returns an error.
-func testUpdateJobWithRetriesErrorInFunc(t assert.TestingT, db JobDB) {
+func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1129,7 +1129,7 @@ func testUpdateJobWithRetriesErrorInFunc(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when retries are exhausted.
-func testUpdateJobWithRetriesExhausted(t assert.TestingT, db JobDB) {
+func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
@@ -1168,7 +1168,7 @@ func testUpdateJobWithRetriesExhausted(t assert.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries and UpdateJobWithRetries.
-func TestUpdateJobsWithRetries(t assert.TestingT, db JobDB) {
+func TestUpdateJobsWithRetries(t testutils.TestingT, db JobDB) {
 	testUpdateJobsWithRetriesSimple(t, db)
 	testUpdateJobsWithRetriesSuccess(t, db)
 	testUpdateJobsWithRetriesErrorInFunc(t, db)
@@ -1222,7 +1222,7 @@ func makeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment
 }
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.
-func TestCommentDB(t assert.TestingT, db CommentDB) {
+func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	now := time.Now()
 
 	// Empty db.
@@ -1424,7 +1424,7 @@ func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
 	return func(string, string) (time.Time, error) { return ts, nil }
 }
 
-func TestTaskDBGetTasksFromDateRangeByRepo(t assert.TestingT, db TaskDB) {
+func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	r1 := common.REPO_SKIA
 	r2 := common.REPO_SKIA_INFRA
 	r3 := common.REPO_CHROMIUM
@@ -1454,7 +1454,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t assert.TestingT, db TaskDB) {
 	}
 }
 
-func TestTaskDBGetTasksFromWindow(t assert.TestingT, db TaskDB) {
+func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 	now := time.Now()
 	timeWindow := 24 * time.Hour
 	// Offset commit timestamps for different repos to ensure that we get

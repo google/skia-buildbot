@@ -14,6 +14,7 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -213,4 +214,20 @@ func FindImportPaths(ctx context.Context, startPkg, findPkg string) ([][]string,
 		return foundPaths, nil
 	}
 	return helper(startPkg)
+}
+
+// FindImporters returns a slice of package names indicating which packages
+// under go.skia.org/infra/... directly import the given package.
+func FindImporters(ctx context.Context, findPkg string) ([]string, error) {
+	allPkgs, err := LoadAllPackageData(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rv := []string{}
+	for name, pkg := range allPkgs {
+		if util.In(findPkg, pkg.Imports) {
+			rv = append(rv, name)
+		}
+	}
+	return rv, nil
 }
