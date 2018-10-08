@@ -4,15 +4,12 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"net/http"
 	"path"
 	"time"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -37,51 +34,53 @@ var (
 func step() error {
 	ctx := context.Background()
 
-	if _, err := gitinfo.CloneOrUpdate(ctx, *infraGitRepoURL, *infraGitRepoDir, false); err != nil {
-		return fmt.Errorf("Failed to clone buildbot repo: %s", err)
-	}
-	if _, err := gitinfo.CloneOrUpdate(ctx, *elementsGitRepoURL, *elementsGitRepoDir, false); err != nil {
-		return fmt.Errorf("Failed to clone elements-sk repo: %s", err)
-	}
+	/*
+		if _, err := gitinfo.CloneOrUpdate(ctx, *infraGitRepoURL, *infraGitRepoDir, false); err != nil {
+			return fmt.Errorf("Failed to clone buildbot repo: %s", err)
+		}
+		if _, err := gitinfo.CloneOrUpdate(ctx, *elementsGitRepoURL, *elementsGitRepoDir, false); err != nil {
+			return fmt.Errorf("Failed to clone elements-sk repo: %s", err)
+		}
 
-	// Build docs.
-	buildDocsCmd := &exec.Command{
-		Name:        "make",
-		Args:        []string{"docs"},
-		Dir:         path.Join(*infraGitRepoDir, "jsdoc"),
-		InheritPath: false,
-		LogStdout:   true,
-	}
+		// Build docs.
+		buildDocsCmd := &exec.Command{
+			Name:        "make",
+			Args:        []string{"docs"},
+			Dir:         path.Join(*infraGitRepoDir, "jsdoc"),
+			InheritPath: false,
+			LogStdout:   true,
+		}
 
-	if err := exec.Run(ctx, buildDocsCmd); err != nil {
-		return fmt.Errorf("Failed building docs: %s", err)
-	}
+		if err := exec.Run(ctx, buildDocsCmd); err != nil {
+			return fmt.Errorf("Failed building docs: %s", err)
+		}
 
-	// Build element-sk demo.
-	buildElementDemoCmd := &exec.Command{
-		Name:        "make",
-		Args:        []string{"release"},
-		Dir:         path.Join(*elementsGitRepoDir),
-		InheritPath: false,
-		LogStdout:   true,
-	}
+		// Build element-sk demo.
+		buildElementDemoCmd := &exec.Command{
+			Name:        "make",
+			Args:        []string{"release"},
+			Dir:         path.Join(*elementsGitRepoDir),
+			InheritPath: false,
+			LogStdout:   true,
+		}
 
-	if err := exec.Run(ctx, buildElementDemoCmd); err != nil {
-		return fmt.Errorf("Failed building element demos: %s", err)
-	}
+		if err := exec.Run(ctx, buildElementDemoCmd); err != nil {
+			return fmt.Errorf("Failed building element demos: %s", err)
+		}
 
-	// Build common-sk demo pages.
-	buildCommonDemoCmd := &exec.Command{
-		Name:        "make",
-		Args:        []string{"demos"},
-		Dir:         path.Join(*infraGitRepoDir, "common-sk"),
-		InheritPath: false,
-		LogStdout:   true,
-	}
+		// Build common-sk demo pages.
+		buildCommonDemoCmd := &exec.Command{
+			Name:        "make",
+			Args:        []string{"demos"},
+			Dir:         path.Join(*infraGitRepoDir, "common-sk"),
+			InheritPath: false,
+			LogStdout:   true,
+		}
 
-	if err := exec.Run(ctx, buildCommonDemoCmd); err != nil {
-		return fmt.Errorf("Failed building common-sk demos: %s", err)
-	}
+		if err := exec.Run(ctx, buildCommonDemoCmd); err != nil {
+			return fmt.Errorf("Failed building common-sk demos: %s", err)
+		}
+	*/
 
 	liveness.Reset()
 	return nil

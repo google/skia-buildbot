@@ -8,7 +8,10 @@ copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile    ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/${APPNAME}
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}        ${ROOT}/${APPNAME}
+${INSTALL_DIR}           ./dist/buildbot/jsdoc/out       ${ROOT}/usr/local/share/${APPNAME}/docs
+${INSTALL_DIR}           ./dist/buildbot/common-sk/dist  ${ROOT}/usr/local/share/${APPNAME}/common-sk
+${INSTALL_DIR}           ./dist/elements-sk/dist         ${ROOT}/usr/local/share/${APPNAME}/elements-sk
 }
 
 source ../bash/docker_build.sh
