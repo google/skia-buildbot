@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3fbbc147_4ed036a1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-08T18:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "96c057e8_dd82056e",
+      "revId": "f66ba383b4163407b254db05674b64bfb2f6935f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "90114569_4220ba84",
         "filename": "scripts/find_go_import_paths/find_go_import_paths.go",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2018-10-08T18:37:25Z",
       "side": 1,
       "message": "Looks weird that you are not using the ret of GetAllPackageData and instead relying on it\u0027s caching behavior (which is not obvious in the function name or it\u0027s documentation).\nWe could rename it to CacheAllPackageData and remove the ret.\nOr/And\nCreate a struct imports with all methods in it so it is obvious that CacheAllPackageData and FindImportPaths are tied together.",
+      "revId": "f66ba383b4163407b254db05674b64bfb2f6935f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9897e32d_c8340630",
+        "filename": "scripts/find_go_import_paths/find_go_import_paths.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-08T18:47:16Z",
+      "side": 1,
+      "message": "Changed to LoadAllPackageData, indicating that the data is cached in the docstring.",
+      "parentUuid": "90114569_4220ba84",
       "revId": "f66ba383b4163407b254db05674b64bfb2f6935f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
