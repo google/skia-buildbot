@@ -16,6 +16,24 @@
       "revId": "a2963d5fdcfaa6f8d462c8ea4b25aac693a2acb1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "146041bb_80a5513a",
+        "filename": "perf/go/perf-copy-datastore/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-09T19:27:47Z",
+      "side": 1,
+      "message": "I tried generalizing using interface{} for the type but couldn\u0027t get that work.",
+      "parentUuid": "20bab9ce_27367b19",
+      "revId": "a2963d5fdcfaa6f8d462c8ea4b25aac693a2acb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
