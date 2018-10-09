@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d92f74e_febd0ee8",
+        "filename": "perf/go/perf-force-ingest/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-09T14:07:30Z",
+      "side": 1,
+      "message": "FYI: There is a function that splits GCS paths \n  https://github.com/google/skia-buildbot/blob/master/go/gcs/gcs.go#L222\nthat have the form \u003cbucket_name\u003e/some/path \nWe could add stripping the \u0027gs://\u0027 prefix there and use the nomenclature across apps.",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 31,
+        "endChar": 118
+      },
+      "revId": "4350eb948253117f885305555d63abc0fb83f70b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
