@@ -85,7 +85,7 @@ func (s *Storage) PushMasterBaseline(tile *tiling.Tile) error {
 }
 
 // getMasterBaseline retrieves the master baseline based on the given tile.
-func (s *Storage) getMasterBaseline(tile *tiling.Tile) (*expstorage.Expectations, *baseline.CommitableBaseLine, error) {
+func (s *Storage) getMasterBaseline(tile *tiling.Tile) (types.Expectations, *baseline.CommitableBaseLine, error) {
 	exps, err := s.ExpectationsStore.Get()
 	if err != nil {
 		return nil, nil, sklog.FmtErrorf("Unable to retrieve expectations: %s", err)
@@ -149,7 +149,7 @@ func (s *Storage) FetchBaseline(issueID int64) (*baseline.CommitableBaseLine, er
 	}
 
 	if issueBaseline != nil {
-		masterBaseline.Baseline.Merge(issueBaseline.Baseline)
+		masterBaseline.Baseline.Update(issueBaseline.Baseline)
 	}
 	return masterBaseline, nil
 }
@@ -222,7 +222,7 @@ func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.TilePai
 
 // DrainChangeChannel removes everything from the channel thats currently
 // buffered or ready to be read.
-func DrainChangeChannel(ch <-chan map[string]types.TestClassification) {
+func DrainChangeChannel(ch <-chan types.TestExp) {
 Loop:
 	for {
 		select {
@@ -398,7 +398,7 @@ func (s *Storage) checkCommitableIssues(tile *tiling.Tile) {
 						return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
 					}
 
-					if err := baseline.CommitIssueBaseline(issueID, longCommit.Author, issueExps.Tests, s.TryjobStore, s.ExpectationsStore); err != nil {
+					if err := baseline.CommitIssueBaseline(issueID, longCommit.Author, issueExps.TestExp(), s.TryjobStore, s.ExpectationsStore); err != nil {
 						return sklog.FmtErrorf("Error retrieving details for commit %s. Got error: %s", commit.Hash, err)
 					}
 					return nil

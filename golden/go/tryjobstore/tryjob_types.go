@@ -166,8 +166,10 @@ func (is *Issue) newer(right interface{}) bool {
 // PatchsetDetails accumulates information about one patchset and the connected
 // tryjobs.
 type PatchsetDetail struct {
-	ID      int64     `json:"id"`
-	Tryjobs []*Tryjob `json:"tryjobs"   datastore:"-"`
+	ID           int64     `json:"id"`
+	Commit       string    `json:"commit"`
+	ParentCommit string    `json:"parentCommit"`
+	Tryjobs      []*Tryjob `json:"tryjobs"   datastore:"-"`
 }
 
 // Tryjob captures information about a tryjob in BuildBucket.
