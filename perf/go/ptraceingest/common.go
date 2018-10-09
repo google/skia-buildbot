@@ -28,6 +28,9 @@ func getValueMap(b *ingestcommon.BenchData) map[string]float32 {
 	for testName, allConfigs := range b.Results {
 		for configName, result := range allConfigs {
 			key := util.CopyStringMap(b.Key)
+			if key == nil {
+				key = map[string]string{}
+			}
 			key["test"] = testName
 			key["config"] = configName
 			util.AddParams(key, b.Options)
