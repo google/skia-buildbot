@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"net/url"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -27,6 +28,7 @@ var (
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	start      = flag.String("start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
 	end        = flag.String("end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
+	prefix     = flag.String("prefix", "gs://skia-perf/nano-json-v1", "The bucket and root directory to scan for files.")
 )
 
 func main() {
@@ -71,14 +73,21 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	dirs := fileutil.GetHourlyDirs(cfg.RootDir, startTime.Unix(), endTime.Unix())
+	u, err := url.Parse(*prefix)
+	if err != nil {
+		sklog.Fatalf("Failed to parse the --prefix flag: %s", err)
+	}
+
+	dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime.Unix(), endTime.Unix())
 	for _, dir := range dirs {
-		err := gcs.AllFilesInDir(gcsClient, cfg.Bucket, dir, func(item *storage.ObjectAttrs) {
+		sklog.Infof("Directory: %q", dir)
+		err := gcs.AllFilesInDir(gcsClient, u.Host, dir, func(item *storage.ObjectAttrs) {
 			// The PubSub event data is a JSON serialized storage.ObjectAttrs object.
 			// See https://cloud.google.com/storage/docs/pubsub-notifications#payload
+			sklog.Infof("File: %q", item.Name)
 			b, err := json.Marshal(storage.ObjectAttrs{
 				Name:   item.Name,
-				Bucket: cfg.Bucket,
+				Bucket: u.Host,
 			})
 			if err != nil {
 				sklog.Errorf("Failed to serialize event: %s", err)

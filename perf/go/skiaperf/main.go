@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -1170,8 +1169,6 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bucket := btConfig.Bucket
-	name = "gs://" + bucket + "/" + name
 	sklog.Infof("Full URL to source: %q", name)
 	u, err := url.Parse(name)
 	if err != nil {
@@ -1189,24 +1186,20 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer util.Close(reader)
-	if includeResults {
-		if _, err := io.Copy(w, reader); err != nil {
-			sklog.Errorf("Failed to copy JSON file to HTTP stream: %s", err)
-		}
-	} else {
-		res := map[string]interface{}{}
-		if err := json.NewDecoder(reader).Decode(&res); err != nil {
-			httputils.ReportError(w, r, err, "Failed to decode JSON source file")
-			return
-		}
+	res := map[string]interface{}{}
+	if err := json.NewDecoder(reader).Decode(&res); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON source file")
+		return
+	}
+	if !includeResults {
 		delete(res, "results")
-		if b, err := json.MarshalIndent(res, "", "  "); err != nil {
-			httputils.ReportError(w, r, err, "Failed to re-encode JSON source file")
-			return
-		} else {
-			if _, err := w.Write(b); err != nil {
-				sklog.Errorf("Failed to write JSON source file: %s", err)
-			}
+	}
+	if b, err := json.MarshalIndent(res, "", "  "); err != nil {
+		httputils.ReportError(w, r, err, "Failed to re-encode JSON source file")
+		return
+	} else {
+		if _, err := w.Write(b); err != nil {
+			sklog.Errorf("Failed to write JSON source file: %s", err)
 		}
 	}
 }
