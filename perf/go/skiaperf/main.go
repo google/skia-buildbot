@@ -775,11 +775,16 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Could not look up last git hash.")
 		return
 	}
-	begin := index - config.GOTO_RANGE
+	delta := config.GOTO_RANGE
+	// If redirecting to the Triage page then always show just a single commit.
+	if dest == "t" {
+		delta = 0
+	}
+	begin := index - delta
 	if begin < 0 {
 		begin = 0
 	}
-	end := index + config.GOTO_RANGE
+	end := index + delta
 	if end > lastIndex {
 		end = lastIndex
 	}
