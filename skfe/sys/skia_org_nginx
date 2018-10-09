@@ -1090,28 +1090,6 @@ server {
 }
 
 
-#####   internal.skia.org   ###########################
-server {
-    listen      443;
-    server_name internal.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/internal.access.log;
-    error_log /var/log/nginx/internal.error.log error;
-
-    location / {
-        proxy_pass http://skia-internal:8000;
-        proxy_set_header Host $host;
-    }
-}
-
-server {
-    listen      80;
-    server_name internal.skia.org;
-    return 301 https://internal.skia.org$request_uri;
-}
-
 #####   cs.skia.org (REDIRECT)   ###########################
 server {
     listen 443;

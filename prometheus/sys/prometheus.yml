@@ -166,7 +166,6 @@ scrape_configs:
       - targets: ['skia-fuzzer-fe:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
-      - targets: ['skia-internal:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-perf:11000']
