@@ -15,16 +15,8 @@
 			"MetricName": "nano-ingest",
 			"Sources": [
 				{
-					"Bucket": "skia-perf",
-					"Dir": "ct/10k",
-				},
-				{
-					"Bucket": "skia-perf",
-					"Dir": "nano-json-v1",
-				},
-				{
-					"Bucket": "skia-calmbench",
-					"Dir": "calmbench-v1",
+				"Bucket": "skia-perf",
+					"Dir": "buildstats-json-v1",
 				},
 			],
 		},
