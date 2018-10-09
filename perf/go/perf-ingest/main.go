@@ -260,7 +260,8 @@ func main() {
 				defer util.Close(reader)
 				sklog.Info(attrs.Name)
 				// Pull data out of file and write it into BigTable.
-				err = processSingleFile(ctx, store, vcs, attrs.Name, reader, attrs.Created)
+				fullName := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
+				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created)
 				if err := reader.Close(); err != nil {
 					sklog.Errorf("Failed to close: %s", err)
 				}

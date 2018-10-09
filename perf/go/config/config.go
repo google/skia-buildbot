@@ -28,8 +28,6 @@ type PerfBigTableConfig struct {
 	Topic        string
 	GitUrl       string
 	Subscription string
-	Bucket       string
-	RootDir      string
 	Shards       int32
 }
 
@@ -47,8 +45,6 @@ var (
 			Topic:        "perf-ingestion-skia",
 			GitUrl:       "https://skia.googlesource.com/skia",
 			Subscription: "perf-ingestion-skia",
-			Bucket:       "skia-perf",
-			RootDir:      "nano-json-v1",
 			Shards:       8,
 		},
 	}
