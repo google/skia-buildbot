@@ -21,31 +21,39 @@ const (
 //
 // May eventually move to a separate config file.
 type PerfBigTableConfig struct {
-	TileSize     int32
-	Project      string
-	Instance     string
-	Table        string
-	Topic        string
-	GitUrl       string
-	Subscription string
-	Shards       int32
+	TileSize int32
+	Project  string
+	Instance string
+	Table    string
+	Topic    string
+	GitUrl   string
+	Shards   int32
 }
 
 const (
-	NANO = "nano"
+	NANO    = "nano"
+	ANDROID = "android"
 )
 
 var (
 	PERF_BIGTABLE_CONFIGS = map[string]*PerfBigTableConfig{
 		NANO: &PerfBigTableConfig{
-			TileSize:     50,
-			Project:      "skia-public",
-			Instance:     "perf-bt",
-			Table:        "skia",
-			Topic:        "perf-ingestion-skia",
-			GitUrl:       "https://skia.googlesource.com/skia",
-			Subscription: "perf-ingestion-skia",
-			Shards:       8,
+			TileSize: 50,
+			Project:  "skia-public",
+			Instance: "perf-bt",
+			Table:    "skia",
+			Topic:    "perf-ingestion-skia",
+			GitUrl:   "https://skia.googlesource.com/skia",
+			Shards:   8,
+		},
+		ANDROID: &PerfBigTableConfig{
+			TileSize: 256,
+			Project:  "skia-public",
+			Instance: "perf-bt",
+			Table:    "android",
+			Topic:    "perf-ingestion-android",
+			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
+			Shards:   8,
 		},
 	}
 )
