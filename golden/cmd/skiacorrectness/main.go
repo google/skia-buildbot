@@ -352,6 +352,9 @@ func main() {
 		Git:                  git,
 	}
 
+	// Initialize the Baseliner instance from the values set above.
+	storages.InitBaseliner()
+
 	// Load the whitelist if there is one and disable querying for issues.
 	if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
 		if err := storages.LoadWhiteList(*pubWhiteList); err != nil {
