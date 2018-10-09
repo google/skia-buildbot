@@ -30,6 +30,10 @@
 					"Bucket": "skia-calmbench",
 					"Dir": "calmbench-v1",
 				},
+				{
+					"Bucket": "skia-perf",
+					"Dir": "buildstats-json-v1",
+				},
 			],
 		},
 	}

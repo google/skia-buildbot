@@ -86,4 +86,5 @@ Notes
     contain data that will replace data that has appeared in an older file.
     Where 'older' and 'newer' are defined in terms of the data/time in the GCS
     file path.
-
+  * See [./sys/perf.json5] and [./create-ingestion-pubsub-topics.sh] for configuring the
+    ingestion of new data.
