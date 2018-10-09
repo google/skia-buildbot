@@ -27,8 +27,6 @@ var (
 		Topic:        "",
 		GitUrl:       "",
 		Subscription: "",
-		Bucket:       "",
-		RootDir:      "",
 		Shards:       8,
 	}
 )

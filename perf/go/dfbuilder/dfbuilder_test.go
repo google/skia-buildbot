@@ -28,8 +28,6 @@ var (
 		Topic:        "",
 		GitUrl:       "",
 		Subscription: "",
-		Bucket:       "",
-		RootDir:      "",
 		Shards:       8,
 	}
 )
@@ -140,8 +138,6 @@ func TestBuildNew(t *testing.T) {
 		Topic:        "",
 		GitUrl:       "",
 		Subscription: "",
-		Bucket:       "",
-		RootDir:      "",
 		Shards:       8,
 	}
 	// Should not fail on an empty table.
