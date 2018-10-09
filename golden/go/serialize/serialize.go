@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -25,7 +24,7 @@ import (
 // a Gold instance and a sample from a live instance.
 type Sample struct {
 	Tile         *tiling.Tile
-	Expectations *expstorage.Expectations
+	Expectations types.Expectations
 	IgnoreRules  []*ignore.IgnoreRule
 }
 
@@ -56,7 +55,9 @@ func (s *Sample) Serialize(w io.Writer) error {
 // DeserializeSample returns a new instance of Sample from the given reader. It
 // is the inverse operation of Sample.Searialize.
 func DeserializeSample(r io.Reader) (*Sample, error) {
-	ret := &Sample{}
+	ret := &Sample{
+		Expectations: types.NewExpectations(nil),
+	}
 
 	expBytes, err := readBytesWithLength(r)
 	if err != nil {
@@ -86,7 +87,7 @@ func DeserializeSample(r io.Reader) (*Sample, error) {
 func (s *Sample) UnmarshalJSON(data []byte) error {
 	var dummy struct {
 		Tile         json.RawMessage
-		Expectations *expstorage.Expectations
+		Expectations types.Expectations
 		IgnoreRules  []*ignore.IgnoreRule
 	}
 	var err error

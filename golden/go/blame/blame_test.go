@@ -115,7 +115,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, &BlameDistribution{Freq: []int{0}}, blamer.GetBlame("bar", DI_6, commits))
 
 	// Classify some digests and re-calculate.
-	changes := map[string]types.TestClassification{
+	changes := types.TestExp{
 		"foo": map[string]types.Label{DI_1: types.POSITIVE, DI_2: types.NEGATIVE},
 		"bar": map[string]types.Label{DI_4: types.POSITIVE, DI_6: types.NEGATIVE},
 	}
@@ -241,7 +241,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	})
 
 	// Change the classification of one test and trigger the recalculation.
-	changes := map[string]types.TestClassification{
+	changes := types.TestExp{
 		oneTestName: map[string]types.Label{oneDigest: types.POSITIVE},
 	}
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
@@ -271,7 +271,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	// that the blamelists are correct.
 	storages.DigestStore.(*mocks.MockDigestStore).FirstSeen = time.Now().Unix()
 
-	changes = map[string]types.TestClassification{}
+	changes = types.TestExp{}
 	choices := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
 	forEachTestDigestDo(tile, func(testName, digest string) {
 		targetTest := changes[testName]
