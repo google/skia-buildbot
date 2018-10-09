@@ -20,14 +20,13 @@ import (
 
 var (
 	cfg = &config.PerfBigTableConfig{
-		TileSize:     256,
-		Project:      "test",
-		Instance:     "test",
-		Table:        "test",
-		Topic:        "",
-		GitUrl:       "",
-		Subscription: "",
-		Shards:       8,
+		TileSize: 256,
+		Project:  "test",
+		Instance: "test",
+		Table:    "test",
+		Topic:    "",
+		GitUrl:   "",
+		Shards:   8,
 	}
 )
 
