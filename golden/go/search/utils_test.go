@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp *expstorage.Expectations, buf *bytes.Buffer) int {
+func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qStr string, exp types.Expectations, buf *bytes.Buffer) int {
 	q := &Query{}
 
 	// We ignore incorrect queries. They are tested somewhere else.
@@ -74,7 +74,7 @@ func checkQuery(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, qSt
 	return 1
 }
 
-func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp *expstorage.Expectations) util.StringSet {
+func getTargetDigests(t assert.TestingT, q *Query, tile *tiling.Tile, exp types.Expectations) util.StringSet {
 	// Account for a given commit range.
 	startIdx := 0
 	endIdx := tile.LastCommitIndex()
@@ -145,7 +145,7 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 	tileBuilder := mocks.NewMockTileBuilderFromTile(t, sample.Tile)
 	eventBus := eventbus.New()
 	expStore := expstorage.NewMemExpectationsStore(eventBus)
-	err := expStore.AddChange(sample.Expectations.Tests, "testuser")
+	err := expStore.AddChange(sample.Expectations.TestExp(), "testuser")
 	assert.NoError(t, err)
 
 	storages := &storage.Storage{
@@ -158,6 +158,7 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 		DiffStore: mocks.NewMockDiffStore(),
 		EventBus:  eventBus,
 	}
+	storages.InitBaseliner()
 
 	ixr, err := indexer.New(storages, 10*time.Minute)
 	assert.NoError(t, err)
@@ -180,9 +181,10 @@ func loadSample(t assert.TestingT, fileName string, randomize bool) *serialize.S
 	return sample
 }
 
-func randomizeTile(tile *tiling.Tile, exp *expstorage.Expectations) *tiling.Tile {
+func randomizeTile(tile *tiling.Tile, exp types.Expectations) *tiling.Tile {
 	allDigestSet := util.StringSet{}
-	for _, digests := range exp.Tests {
+	testExp := exp.TestExp()
+	for _, digests := range testExp {
 		for d := range digests {
 			allDigestSet[d] = true
 		}

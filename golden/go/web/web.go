@@ -548,10 +548,10 @@ func (wh *WebHandlers) JsonTriageHandler(w http.ResponseWriter, r *http.Request)
 	}
 	sklog.Infof("Triage request: %#v", req)
 
-	var tc map[string]types.TestClassification
+	var tc types.TestExp
 
 	// Build the expectations change request from the list of digests passed in.
-	tc = make(map[string]types.TestClassification, len(req.TestDigestStatus))
+	tc = make(types.TestExp, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		labeledDigests := make(map[string]types.Label, len(digests))
 		for d, label := range digests {
@@ -1029,7 +1029,7 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	baseline, err := wh.Storages.FetchBaseline(issueID)
+	baseline, err := wh.Storages.Baseliner.FetchBaseline(issueID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
