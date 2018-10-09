@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dbe4b780_3381349a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-09T14:21:21Z",
+      "side": 1,
+      "message": "Nit.",
+      "range": {
+        "startLine": 13,
+        "startChar": 64,
+        "endLine": 13,
+        "endChar": 65
+      },
+      "revId": "cada557dc2af8cfdb5736370dd6b195e2d71bf7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2346fd0b_86d18383",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-09T14:21:21Z",
+      "side": 1,
+      "message": "I\u0027m assuming that tests in gerrit_test.go pass after setting RUN_GERRIT_TESTS\u003dTrue.",
+      "range": {
+        "startLine": 362,
+        "startChar": 17,
+        "endLine": 362,
+        "endChar": 25
+      },
+      "revId": "cada557dc2af8cfdb5736370dd6b195e2d71bf7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e98ed4af_61665827",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-09T14:21:21Z",
+      "side": 1,
+      "message": "Add a testutils.SmallTest(t) for this in gerrit_test.go ?",
+      "range": {
+        "startLine": 391,
+        "startChar": 17,
+        "endLine": 391,
+        "endChar": 26
+      },
+      "revId": "cada557dc2af8cfdb5736370dd6b195e2d71bf7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
