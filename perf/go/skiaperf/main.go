@@ -1170,8 +1170,6 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bucket := btConfig.Bucket
-	name = "gs://" + bucket + "/" + name
 	sklog.Infof("Full URL to source: %q", name)
 	u, err := url.Parse(name)
 	if err != nil {
