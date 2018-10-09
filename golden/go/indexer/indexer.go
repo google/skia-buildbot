@@ -228,7 +228,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	}
 
 	// When the master expecations change, update the blamer and its dependents.
-	expCh := make(chan map[string]types.TestClassification)
+	expCh := make(chan types.TestExp)
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
 		expCh <- e.(*expstorage.EventExpectationChange).TestChanges
@@ -242,7 +242,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	go func() {
 		var tilePair *types.TilePair
 		for {
-			testChanges := []map[string]types.TestClassification{}
+			testChanges := []types.TestExp{}
 
 			// See if there is a tile or changed tests.
 			tilePair = nil
@@ -290,7 +290,7 @@ func (ixr *Indexer) indexTilePair(tilePair *types.TilePair) error {
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
-func (ixr *Indexer) indexTests(testChanges []map[string]types.TestClassification) {
+func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 	// Get all the testnames
 	testNames := util.StringSet{}
 	for _, testChange := range testChanges {
@@ -334,7 +334,7 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 // writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
 // the updated baseline to disk.
 func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
-	if !ixr.storages.CanWriteBaseline() {
+	if !ixr.storages.Baseliner.CanWriteBaseline() {
 		return
 	}
 
@@ -345,7 +345,7 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 	}
 
 	idx := ixr.GetIndex()
-	if err := ixr.storages.PushIssueBaseline(issueID, idx.GetTile(false), idx.tallies); err != nil {
+	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.GetTile(false), idx.tallies); err != nil {
 		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
 		return
 	}
@@ -440,13 +440,13 @@ func writeKnownHashesList(state interface{}) error {
 func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
 
-	if !idx.storages.CanWriteBaseline() {
+	if !idx.storages.Baseliner.CanWriteBaseline() {
 		return nil
 	}
 
 	// Write the baseline asynchronously.
 	go func() {
-		if err := idx.storages.PushMasterBaseline(idx.GetTile(false)); err != nil {
+		if err := idx.storages.Baseliner.PushMasterBaselines(idx.GetTile(false)); err != nil {
 			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
 		}
 	}()

@@ -183,26 +183,26 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	}
 
 	// Add changes to the issue
-	allChanges := expstorage.NewExpectations()
+	allChanges := types.NewExpectations(nil)
 	expLogEntries := []*expstorage.TriageLogEntry{}
 	userName := "jdoe@example.com"
 	expStore := expStoreFactory(issueID)
 	for i := 0; i < 5; i++ {
 		triageDetails := []*expstorage.TriageDetail{}
-		changes := expstorage.NewExpectations()
+		changes := types.TestExp{}
 		for testCount := 0; testCount < 5; testCount++ {
 			testName := fmt.Sprintf("test-%04d", testCount)
 			for digestCount := 0; digestCount < 5; digestCount++ {
 				digest := fmt.Sprintf("digest-%04d-%04d", testCount, digestCount)
 				label := types.Label((i + testCount + digestCount) % 3)
-				changes.SetTestExpectation(testName, digest, label)
+				changes.AddDigest(testName, digest, label)
 				triageDetails = append(triageDetails, &expstorage.TriageDetail{
 					TestName: testName, Digest: digest, Label: label.String(),
 				})
 			}
 		}
-		assert.NoError(t, expStore.AddChange(changes.Tests, userName))
-		allChanges.AddDigests(changes.Tests)
+		assert.NoError(t, expStore.AddChange(changes, userName))
+		allChanges.AddTestExp(changes)
 		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
 			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
 		})
@@ -220,19 +220,22 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	assert.Equal(t, 5, len(logEntries))
 
 	// Flip all expectations to untriaged.
-	for _, digests := range foundExp.Tests {
+	foundTestExp := foundExp.TestExp()
+	for _, digests := range foundTestExp {
 		for digest := range digests {
 			digests[digest] = types.UNTRIAGED
 		}
 	}
 
-	assert.NoError(t, expStore.AddChange(foundExp.Tests, userName))
+	assert.NoError(t, expStore.AddChange(foundTestExp, userName))
 	time.Sleep(3 * time.Second)
 	untriagedExp, err := expStore.Get()
 	assert.NoError(t, err)
-	for testName, digests := range foundExp.Tests {
+	untriagedTestExp := untriagedExp.TestExp()
+
+	for testName, digests := range foundTestExp {
 		for digest, label := range digests {
-			assert.Equal(t, label, untriagedExp.Tests[testName][digest])
+			assert.Equal(t, label, untriagedTestExp[testName][digest])
 		}
 	}
 
