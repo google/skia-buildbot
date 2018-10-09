@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20bab9ce_27367b19",
+        "filename": "perf/go/perf-copy-datastore/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-09T18:19:35Z",
+      "side": 1,
+      "message": "You could extract this into a function and pass in kind and type since they are all doing the same thing.\nCould also extract the function and put in go/ds for use by other copy datastore scripts.",
+      "revId": "a2963d5fdcfaa6f8d462c8ea4b25aac693a2acb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
