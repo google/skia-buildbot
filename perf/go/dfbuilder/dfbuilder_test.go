@@ -21,14 +21,13 @@ import (
 
 var (
 	cfg = &config.PerfBigTableConfig{
-		TileSize:     256,
-		Project:      "test",
-		Instance:     "test",
-		Table:        "test",
-		Topic:        "",
-		GitUrl:       "",
-		Subscription: "",
-		Shards:       8,
+		TileSize: 256,
+		Project:  "test",
+		Instance: "test",
+		Table:    "test",
+		Topic:    "",
+		GitUrl:   "",
+		Shards:   8,
 	}
 )
 
@@ -131,14 +130,13 @@ func TestBuildNew(t *testing.T) {
 	defer btts_testutils.CleanUpTestTable(t)
 
 	cfg := &config.PerfBigTableConfig{
-		TileSize:     6,
-		Project:      "test",
-		Instance:     "test",
-		Table:        "test",
-		Topic:        "",
-		GitUrl:       "",
-		Subscription: "",
-		Shards:       8,
+		TileSize: 6,
+		Project:  "test",
+		Instance: "test",
+		Table:    "test",
+		Topic:    "",
+		GitUrl:   "",
+		Shards:   8,
 	}
 	// Should not fail on an empty table.
 	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, false)
