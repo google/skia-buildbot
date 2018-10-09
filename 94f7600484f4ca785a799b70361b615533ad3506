@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6f9a6cc_e712c0c2",
+        "filename": "golden/go/expstorage/expstorage.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-09T14:46:28Z",
+      "side": 0,
+      "message": "Did this not need to get ported?  Or did I miss it?",
+      "range": {
+        "startLine": 101,
+        "startChar": 23,
+        "endLine": 101,
+        "endChar": 28
+      },
+      "revId": "94f7600484f4ca785a799b70361b615533ad3506",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
