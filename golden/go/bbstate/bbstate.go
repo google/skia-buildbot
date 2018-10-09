@@ -14,6 +14,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	bb_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
+	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
@@ -404,13 +405,29 @@ func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.I
 		issue = &tryjobstore.Issue{}
 	}
 
-	b.setIssueDetails(issueID, changeInfo, issue)
+	commitInfos := make([]*gerrit.CommitInfo, len(changeInfo.Revisions))
+	var egroup errgroup.Group
+	for idx, rev := range changeInfo.Patchsets {
+		func(idx int, rev *gerrit.Revision) {
+			egroup.Go(func() error {
+				var err error
+				commitInfos[idx], err = b.gerritAPI.GetCommit(issueID, rev.ID)
+				return err
+			})
+		}(idx, rev)
+	}
+
+	if err := egroup.Wait(); err != nil {
+		return nil, sklog.FmtErrorf("Error retrieving commit info for issue %d: %s", issueID, err)
+	}
+
+	b.setIssueDetails(issueID, changeInfo, commitInfos, issue)
 	return issue, nil
 }
 
 // setIssueDetails set the properties of the given IssueDetails from the values
 // in the Gerrit ChangeInfo.
-func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.ChangeInfo, issue *tryjobstore.Issue) {
+func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.ChangeInfo, commitInfos []*gerrit.CommitInfo, issue *tryjobstore.Issue) {
 	issue.ID = issueID
 	issue.Subject = changeInfo.Subject
 	issue.Owner = changeInfo.Owner.Email
@@ -420,10 +437,24 @@ func (b *BuildBucketState) setIssueDetails(issueID int64, changeInfo *gerrit.Cha
 
 	// extract the patchset detail.
 	psDetails := make([]*tryjobstore.PatchsetDetail, 0, len(changeInfo.Patchsets))
-	for _, revision := range changeInfo.Patchsets {
-		psDetails = append(psDetails, &tryjobstore.PatchsetDetail{ID: revision.Number})
+	for idx, revision := range changeInfo.Patchsets {
+		psDetails = append(psDetails, &tryjobstore.PatchsetDetail{
+			ID:           revision.Number,
+			Commit:       revision.ID,
+			ParentCommit: getParentCommit(commitInfos[idx]),
+		})
 	}
 	issue.UpdatePatchsets(psDetails)
+}
+
+// getParentCommit robustly returns the parent commit from the given CommitInfo instance. If that's
+// not possible, the empty string is returned.
+func getParentCommit(commitInfo *gerrit.CommitInfo) string {
+	if commitInfo == nil || len(commitInfo.Parents) == 0 {
+		return ""
+	}
+
+	return commitInfo.Parents[0].Commit
 }
 
 // pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
