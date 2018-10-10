@@ -2,12 +2,15 @@ package task_driver
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"cloud.google.com/go/logging"
+	"cloud.google.com/go/pubsub"
 	"github.com/golang/glog"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -257,4 +260,37 @@ func (r *CloudLoggingReceiver) LogStream(stepId, logId, severity string) (io.Wri
 		},
 		severity: logging.ParseSeverity(severity),
 	}, nil
+}
+
+// PubSubReceiver is a Receiver which sends step metadata through Cloud Pubsub.
+// It does not send logs.
+type PubSubReceiver struct {
+	topic *pubsub.Topic
+}
+
+// NewPubSubReceiver returns a PubSubReceiver instance.
+func NewPubSubReceiver(topic *pubsub.Topic) (Receiver, error) {
+	return &PubSubReceiver{
+		topic: topic,
+	}, nil
+}
+
+// See documentation for Receiver interface.
+func (r *PubSubReceiver) HandleMessage(m *Message) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("Failed to encode message: %s", err)
+	}
+	// Send the message synchronously.
+	ctx := context.Background()
+	_, err = r.topic.Publish(ctx, &pubsub.Message{
+		Data: b,
+	}).Get(ctx)
+	return err
+}
+
+// See documentation for Receiver interface.
+func (r *PubSubReceiver) LogStream(_, _, _ string) (io.Writer, error) {
+	// PubSubReceiver does not send logs.
+	return ioutil.Discard, nil
 }

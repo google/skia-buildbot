@@ -6,12 +6,14 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"golang.org/x/oauth2"
 	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -92,10 +94,19 @@ func Init(projectId, taskId, taskName, output *string, local *bool) (*Step, erro
 	if err != nil {
 		return nil, err
 	}
+	pubsubClient, err := pubsub.NewClient(ctx, *projectId, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	pubSub, err := NewPubSubReceiver(pubsubClient.Topic(PUBSUB_TOPIC))
+	if err != nil {
+		return nil, err
+	}
 	report := newReportReceiver(*output)
 	receivers := map[string]Receiver{
 		"CloudLoggingReceiver": cloudLogging,
 		"DebugReceiver":        &DebugReceiver{},
+		"PubSubReceiver":       pubSub,
 		"ReportReceiver":       report,
 	}
 	emitter := newStepEmitter(*taskId, receivers)
