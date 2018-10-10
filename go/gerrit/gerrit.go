@@ -116,7 +116,7 @@ func (c ChangeInfo) IsClosed() bool {
 		c.Status == CHANGE_STATUS_MERGED)
 }
 
-// Owner gathers the owner information of a ChangeInfo instance. Some fields ommitted.
+// Owner gathers the owner information of a ChangeInfo instance. Some fields omitted.
 type Owner struct {
 	Email string `json:"email"`
 }
@@ -185,7 +185,7 @@ type GerritInterface interface {
 	Url(int64) string
 }
 
-// Gerrit is an object used for iteracting with the issue tracker.
+// Gerrit is an object used for interacting with the issue tracker.
 type Gerrit struct {
 	client               *http.Client
 	buildbucketClient    *buildbucket.Client
@@ -388,6 +388,26 @@ func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
 	}
 	patch := tokens[1]
 	return patch, nil
+}
+
+// CommitInfo captures information about the commit of a revision (patchset)
+// See https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#commit-info
+type CommitInfo struct {
+	Commit  string        `json:"commit"`
+	Parents []*CommitInfo `json:"parents"`
+}
+
+// GetCommit retrieves the commit that corresponds to the patch identified by issue and revision.
+// It allows to retrieve the parent commit on which the given patchset is based on.
+// See: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-commit
+func (g *Gerrit) GetCommit(issue int64, revision string) (*CommitInfo, error) {
+	path := fmt.Sprintf("/changes/%d/revisions/%s/commit", issue, revision)
+	ret := &CommitInfo{}
+	err := g.get(path, ret, nil)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 type reviewer struct {

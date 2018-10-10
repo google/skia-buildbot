@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -40,16 +39,14 @@ func (m MockDiffStore) Get(priority int64, dMain string, dRest []string) (map[st
 func TestClosestDigest(t *testing.T) {
 	testutils.SmallTest(t)
 	diffStore := MockDiffStore{}
-	exp := &expstorage.Expectations{
-		Tests: map[string]types.TestClassification{
-			"foo": map[string]types.Label{
-				"aaa": types.POSITIVE,
-				"bbb": types.NEGATIVE,
-				"ccc": types.UNTRIAGED,
-				"ddd": types.UNTRIAGED,
-				"eee": types.POSITIVE,
-				"ggg": types.POSITIVE,
-			},
+	testExp := types.TestExp{
+		"foo": map[string]types.Label{
+			"aaa": types.POSITIVE,
+			"bbb": types.NEGATIVE,
+			"ccc": types.UNTRIAGED,
+			"ddd": types.UNTRIAGED,
+			"eee": types.POSITIVE,
+			"ggg": types.POSITIVE,
 		},
 	}
 	tallies := tally.Tally{
@@ -59,6 +56,7 @@ func TestClosestDigest(t *testing.T) {
 		"ddd": 2,
 		"eee": 2,
 	}
+	exp := types.NewExpectations(testExp)
 
 	// First test against a test that has positive digests.
 	c := ClosestDigest("foo", "fff", exp, tallies, diffStore, types.POSITIVE)
