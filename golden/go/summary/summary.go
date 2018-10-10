@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
@@ -290,13 +289,14 @@ func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool,
 }
 
 // makeSummary returns a Summary for the given digests.
-func (s *Summaries) makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
+func (s *Summaries) makeSummary(name string, e types.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0
 	diamDigests := []string{}
 	untHashes := []string{}
-	if expectations, ok := e.Tests[name]; ok {
+	testExp := e.TestExp()
+	if expectations, ok := testExp[name]; ok {
 		for _, digest := range digests {
 			if dtype, ok := expectations[digest]; ok {
 				switch dtype {

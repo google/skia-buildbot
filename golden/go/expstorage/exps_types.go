@@ -31,11 +31,11 @@ type ExpChange struct {
 // and should be ignored.
 type EventExpectationChange struct {
 	IssueID     int64
-	TestChanges map[string]types.TestClassification
+	TestChanges types.TestExp
 }
 
 // evExpChange creates a new instance of EventExptationChange.
-func evExpChange(changes map[string]types.TestClassification, issueID int64) *EventExpectationChange {
+func evExpChange(changes types.TestExp, issueID int64) *EventExpectationChange {
 	return &EventExpectationChange{
 		TestChanges: changes,
 		IssueID:     issueID,

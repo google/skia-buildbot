@@ -108,7 +108,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 	lastTS := int64(-1)
 	nPages := int(math.Ceil(float64(total) / float64(pageSize)))
 	sklog.Infof("Found %d change records. Fetching %d pages", total, nPages)
-	importChanges := make([]map[string]types.TestClassification, 0, total)
+	importChanges := make([]types.TestExp, 0, total)
 	importKeys := make([]*datastore.Key, 0, total)
 
 	// Iterate over the expectation changes in the sql expectations store
@@ -121,7 +121,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 
 		var wg sync.WaitGroup
 		startTime := time.Now()
-		newEntries := make([]map[string]types.TestClassification, len(logEntries))
+		newEntries := make([]types.TestExp, len(logEntries))
 		newKeys := make([]*datastore.Key, len(logEntries))
 		for i := 0; i < len(logEntries); i++ {
 			entry := logEntries[i]
@@ -158,9 +158,9 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 	}
 
 	// Accumulate the expecations from what we have loaded from the SQL store.
-	localExps := expstorage.NewExpectations()
+	localExps := types.NewExpectations(nil)
 	for i := len(importChanges) - 1; i >= 0; i-- {
-		localExps.AddDigests(importChanges[i])
+		localExps.AddTestExp(importChanges[i])
 	}
 
 	// Get the expectations of the SQL store.
@@ -171,10 +171,10 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 
 	// Compare the sql expectations to the locally computed expectations
 	sklog.Infof("Doing by test comparison")
-	lt := localExps.Tests
+	lt := localExps.TestExp()
 	testFailures := 0
 	digestFailures := 0
-	for testName, digests := range sqlExpectations.Tests {
+	for testName, digests := range sqlExpectations.TestExp() {
 		found, ok := lt[testName]
 		sklog.Infof("%s   %v", testName, ok)
 		if !ok {
@@ -214,7 +214,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 	}
 
 	// Store the calculated expectations in the cloud datastore.
-	if err := cloudExpStore.PutExpectations(calcExps.Tests); err != nil {
+	if err := cloudExpStore.PutExpectations(calcExps.TestExp()); err != nil {
 		sklog.Fatalf("Error writing expectations: %s", err)
 	}
 

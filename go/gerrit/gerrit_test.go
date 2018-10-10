@@ -450,3 +450,19 @@ func TestExtractIssueFromCommit(t *testing.T) {
 	_, err = api.ExtractIssueFromCommit("")
 	assert.Error(t, err)
 }
+
+func TestGetCommit(t *testing.T) {
+	skipTestIfRequired(t)
+
+	// Fetch the parent for the given issueID and revision.
+	issueID := int64(52160)
+	revision := "91740d74af689d53b9fa4d172544e0d5620de9bd"
+	expectedParent := "aaab3c73575d5502ae345dd71cf8748c2070ffda"
+
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	assert.NoError(t, err)
+
+	commitInfo, err := api.GetCommit(issueID, revision)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedParent, commitInfo.Parents[0].Commit)
+}

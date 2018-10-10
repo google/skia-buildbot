@@ -149,7 +149,7 @@ func TestCalcSummaries(t *testing.T) {
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},
 	}
 
-	assert.NoError(t, storages.ExpectationsStore.AddChange(map[string]types.TestClassification{
+	assert.NoError(t, storages.ExpectationsStore.AddChange(types.TestExp{
 		"foo": map[string]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,

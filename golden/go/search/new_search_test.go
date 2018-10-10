@@ -6,14 +6,13 @@ import (
 	"net/url"
 	"testing"
 
-	"go.skia.org/infra/golden/go/expstorage"
-
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -57,7 +56,7 @@ func TestSearch(t *testing.T) {
 	}
 }
 
-func testQueryCommitRange(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, tile *tiling.Tile, exp *expstorage.Expectations, startHash, endHash string) {
+func testQueryCommitRange(t assert.TestingT, api *SearchAPI, idx *indexer.SearchIndex, tile *tiling.Tile, exp types.Expectations, startHash, endHash string) {
 	var buf bytes.Buffer
 	paramQuery := url.QueryEscape("source_type=gm")
 	qStr := fmt.Sprintf("query=%s&fbegin=%s&fend=%s&unt=true&pos=true&neg=true&head=true", paramQuery, startHash, endHash)

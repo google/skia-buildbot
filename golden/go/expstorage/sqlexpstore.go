@@ -36,7 +36,7 @@ func NewSQLExpectationStore(vdb *database.VersionedDB) ExpectationsStore {
 }
 
 // See ExpectationsStore interface.
-func (s *SQLExpectationsStore) Get() (exp *Expectations, err error) {
+func (s *SQLExpectationsStore) Get() (exp types.Expectations, err error) {
 	// Load the newest record from the database.
 	const stmt = `SELECT t1.name, t1.digest, t1.label
 	         FROM exp_test_change AS t1
@@ -53,25 +53,19 @@ func (s *SQLExpectationsStore) Get() (exp *Expectations, err error) {
 	}
 	defer util.Close(rows)
 
-	result := map[string]types.TestClassification{}
+	result := types.TestExp{}
 	for rows.Next() {
 		var testName, digest, label string
 		if err = rows.Scan(&testName, &digest, &label); err != nil {
 			return nil, err
 		}
-		if _, ok := result[testName]; !ok {
-			result[testName] = types.TestClassification(map[string]types.Label{})
-		}
-		result[testName][digest] = types.LabelFromString(label)
+		result.AddDigest(testName, digest, types.LabelFromString(label))
 	}
-
-	return &Expectations{
-		Tests: result,
-	}, nil
+	return types.NewExpectations(result), nil
 }
 
 // See ExpectationsStore interface.
-func (s *SQLExpectationsStore) AddChange(changedTests map[string]types.TestClassification, userId string) error {
+func (s *SQLExpectationsStore) AddChange(changedTests types.TestExp, userId string) error {
 	return s.AddChangeWithTimeStamp(changedTests, userId, 0, util.TimeStampMs())
 }
 
@@ -80,7 +74,7 @@ func (s *SQLExpectationsStore) AddChange(changedTests map[string]types.TestClass
 
 // AddChangeWithTimeStamp adds changed tests to the database with the
 // given time stamp. This is primarily for migration purposes.
-func (s *SQLExpectationsStore) AddChangeWithTimeStamp(changedTests map[string]types.TestClassification, userId string, undoID int64, timeStamp int64) (retErr error) {
+func (s *SQLExpectationsStore) AddChangeWithTimeStamp(changedTests types.TestExp, userId string, undoID int64, timeStamp int64) (retErr error) {
 	defer timer.New("adding exp change").Stop()
 
 	// Count the number of values to add.
@@ -170,7 +164,7 @@ func insertWithPrep(insertStmt string, tx *sql.Tx, valsArr ...[]interface{}) err
 }
 
 // removeChange, see ExpectationsStore interface.
-func (s *SQLExpectationsStore) removeChange(changedDigests map[string]types.TestClassification) (retErr error) {
+func (s *SQLExpectationsStore) removeChange(changedDigests types.TestExp) (retErr error) {
 	defer timer.New("removing exp change").Stop()
 
 	const markRemovedStmt = `UPDATE exp_test_change
@@ -205,7 +199,7 @@ func (s *SQLExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 
 // getExpectationsAt returns the changes that are necessary to restore the values
 // at the given triage change.
-func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (map[string]types.TestClassification, error) {
+func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (types.TestExp, error) {
 	const stmtTmpl = `
 		SELECT tc.name AS name, tc.digest AS digest, tc.label AS label
 		FROM exp_change AS ec, exp_test_change AS tc
@@ -216,11 +210,11 @@ func (s *SQLExpectationsStore) getExpectationsAt(changeInfo *TriageLogEntry) (ma
 		ORDER BY ec.ts ASC`
 
 	if len(changeInfo.Details) == 0 {
-		return map[string]types.TestClassification{}, nil
+		return types.TestExp{}, nil
 	}
 
 	// Extract the digests that we are interested in.
-	ret := map[string]types.TestClassification{}
+	ret := types.TestExp{}
 	listArgs := []interface{}{changeInfo.TS, changeInfo.TS}
 	placeHolders := []string{}
 	for _, d := range changeInfo.Details {
@@ -354,7 +348,7 @@ func (s *SQLExpectationsStore) queryChanges(offset, size int, changeID int64, de
 }
 
 // See  ExpectationsStore interface.
-func (s *SQLExpectationsStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
+func (s *SQLExpectationsStore) UndoChange(changeID int64, userID string) (types.TestExp, error) {
 	changeInfo, err := s.loadChangeEntry(changeID)
 	if err != nil {
 		return nil, err
@@ -442,7 +436,7 @@ func NewCachingExpectationStore(store ExpectationsStore, eventBus eventbus.Event
 }
 
 // See ExpectationsStore interface.
-func (c *CachingExpectationStore) Get() (exp *Expectations, err error) {
+func (c *CachingExpectationStore) Get() (exp types.Expectations, err error) {
 	if c.refresh {
 		c.refresh = false
 		tempExp, err := c.store.Get()
@@ -450,7 +444,7 @@ func (c *CachingExpectationStore) Get() (exp *Expectations, err error) {
 			return nil, err
 		}
 
-		if err = c.cache.AddChange(tempExp.Tests, ""); err != nil {
+		if err = c.cache.AddChange(tempExp.TestExp(), ""); err != nil {
 			return nil, err
 		}
 	}
@@ -458,7 +452,7 @@ func (c *CachingExpectationStore) Get() (exp *Expectations, err error) {
 }
 
 // See ExpectationsStore interface.
-func (c *CachingExpectationStore) AddChange(changedTests map[string]types.TestClassification, userId string) error {
+func (c *CachingExpectationStore) AddChange(changedTests types.TestExp, userId string) error {
 	if err := c.store.AddChange(changedTests, userId); err != nil {
 		return err
 	}
@@ -472,8 +466,8 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 	changedTests := evtChangedTests.(*EventExpectationChange).TestChanges
 
 	// Split the changes into removal and addition.
-	forRemoval := make(map[string]types.TestClassification, len(changedTests))
-	forAddition := make(map[string]types.TestClassification, len(changedTests))
+	forRemoval := make(types.TestExp, len(changedTests))
+	forAddition := make(types.TestExp, len(changedTests))
 	for test, digests := range changedTests {
 		for digest, label := range digests {
 			if label == types.UNTRIAGED {
@@ -507,7 +501,7 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 }
 
 // removeChange implements the ExpectationsStore interface.
-func (c *CachingExpectationStore) removeChange(changedDigests map[string]types.TestClassification) error {
+func (c *CachingExpectationStore) removeChange(changedDigests types.TestExp) error {
 	if err := c.store.removeChange(changedDigests); err != nil {
 		return err
 	}
@@ -523,7 +517,7 @@ func (c *CachingExpectationStore) QueryLog(offset, size int, details bool) ([]*T
 }
 
 // See  ExpectationsStore interface.
-func (c *CachingExpectationStore) UndoChange(changeID int64, userID string) (map[string]types.TestClassification, error) {
+func (c *CachingExpectationStore) UndoChange(changeID int64, userID string) (types.TestExp, error) {
 	changedTests, err := c.store.UndoChange(changeID, userID)
 	if err != nil {
 		return nil, err

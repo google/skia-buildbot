@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
+
+	"go.skia.org/infra/golden/go/ignore"
 
 	assert "github.com/stretchr/testify/require"
 
@@ -138,16 +141,8 @@ func TestIntsToBytes(t *testing.T) {
 
 func TestSerializeTile(t *testing.T) {
 	testutils.LargeTest(t)
-	testDataDir := TEST_DATA_DIR
-	testutils.RemoveAll(t, testDataDir)
-	assert.NoError(t, gcs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
-	defer testutils.RemoveAll(t, testDataDir)
-
-	f, err := os.Open(TEST_DATA_PATH)
-	assert.NoError(t, err)
-
-	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
-	assert.NoError(t, err)
+	tile, cleanupFn := getTestTile(t)
+	defer cleanupFn()
 
 	var buf bytes.Buffer
 	digestToInt, err := writeDigests(&buf, tile.Traces)
@@ -169,12 +164,61 @@ func TestSerializeTile(t *testing.T) {
 	assert.Equal(t, len(tile.Traces), len(foundTile.Traces))
 	assert.Equal(t, tile.Commits, foundTile.Commits)
 
-	// NOTE(stephana): Not comparing ParamSet because it is inconsitent with
+	// NOTE(stephana): Not comparing ParamSet because it is inconsistent with
 	// the parameters of the traces.
 
 	for id, trace := range tile.Traces {
 		foundTrace, ok := foundTile.Traces[id]
 		assert.True(t, ok)
 		assert.Equal(t, trace, foundTrace)
+	}
+}
+
+func TestDeSerializeSample(t *testing.T) {
+	testutils.LargeTest(t)
+	tile, cleanupFn := getTestTile(t)
+	defer cleanupFn()
+
+	testExp := types.TestExp{
+		"test-01": map[string]types.Label{"d_01": types.POSITIVE, "d_02": types.NEGATIVE},
+		"test-02": map[string]types.Label{"d_03": types.UNTRIAGED, "d_04": types.POSITIVE},
+	}
+
+	inOneHour := time.Now().Add(time.Hour).UTC()
+	ignoreRules := []*ignore.IgnoreRule{
+		ignore.NewIgnoreRule("test-rule", inOneHour, "dev=true", "Some comment !"),
+		ignore.NewIgnoreRule("test-rule-2", inOneHour, "dev=false", "Another comment !"),
+	}
+
+	sample := &Sample{
+		Tile:         tile,
+		Expectations: types.NewExpectations(testExp),
+		IgnoreRules:  ignoreRules,
+	}
+
+	var buf bytes.Buffer
+	assert.NoError(t, sample.Serialize(&buf))
+
+	foundSample, err := DeserializeSample(&buf)
+	assert.NoError(t, err)
+
+	// Tile (de)serialization is tested above.
+	assert.Equal(t, sample.IgnoreRules, foundSample.IgnoreRules)
+	assert.Equal(t, sample.Expectations, foundSample.Expectations)
+}
+
+func getTestTile(t *testing.T) (*tiling.Tile, func()) {
+	testDataDir := TEST_DATA_DIR
+	testutils.RemoveAll(t, testDataDir)
+	assert.NoError(t, gcs.DownloadTestDataFile(t, TEST_DATA_STORAGE_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH))
+
+	f, err := os.Open(TEST_DATA_PATH)
+	assert.NoError(t, err)
+
+	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
+	assert.NoError(t, err)
+
+	return tile, func() {
+		defer testutils.RemoveAll(t, testDataDir)
 	}
 }

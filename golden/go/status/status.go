@@ -99,7 +99,7 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 }
 
 func (s *StatusWatcher) calcAndWatchStatus() error {
-	expChanges := make(chan map[string]types.TestClassification)
+	expChanges := make(chan types.TestExp)
 	s.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})

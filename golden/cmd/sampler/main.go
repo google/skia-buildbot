@@ -105,7 +105,7 @@ func sampleTile(tile *tiling.Tile, sampleSize int, queryStr string, nTests int) 
 }
 
 // writeSample writes sample to disk.
-func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstorage.Expectations, ignoreStore ignore.IgnoreStore) {
+func writeSample(outputFileName string, tile *tiling.Tile, expectations types.Expectations, ignoreStore ignore.IgnoreStore) {
 	sample := &serialize.Sample{
 		Tile:         tile,
 		Expectations: expectations,
@@ -170,7 +170,7 @@ func writeSample(outputFileName string, tile *tiling.Tile, expectations *expstor
 }
 
 // load retrieves the last tile, the expectations and the ignore store.
-func load(ctx context.Context, dsNamespace string) (*tiling.Tile, *expstorage.Expectations, ignore.IgnoreStore) {
+func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectations, ignore.IgnoreStore) {
 	// Set up flags and the database.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 	common.Init()
