@@ -111,7 +111,6 @@ scrape_configs:
 
   - job_name: 'skiaperf'
     static_configs:
-      - targets: ['skia-perf:20000']
       - targets: ['skia-android-perf:20000']
         labels:
           subdomain: android-perf
@@ -168,7 +167,6 @@ scrape_configs:
       - targets: ['skia-gold-prod:11000']
       - targets: ['skia-monitoring:11000']
       - targets: ['skia-monitoring:11000']
-      - targets: ['skia-perf:11000']
       - targets: ['skia-prom:11000']
       - targets: ['skia-proxy:11000']
       - targets: ['skia-push:11000']
