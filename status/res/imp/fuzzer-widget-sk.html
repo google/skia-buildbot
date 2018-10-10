@@ -46,6 +46,9 @@
         padding: 4px;
         margin: 5px;
       }
+      .report {
+        font-size: 0.85em;
+      }
     </style>
 
     <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
@@ -59,6 +62,9 @@
         <a href="https://fuzzer.skia.org" target="_blank" class="tr">
           <div class="td">Medium Priority</div>
           <div class="td number"><span class="value">[[_results.medium]]</span></div>
+        </a>
+        <a href$="[[_makeReportURL()]]" target="_blank" rel="noopener" class="tr report">
+          Coverage Report
         </a>
       </div>
     </template>
@@ -85,6 +91,23 @@
 
     ready: function() {
       this._reload();
+    },
+
+    _makeReportURL: function() {
+      // Get the analysis from yesterday
+      var yesterday = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
+      // add 1 because in JS months are 0 indexed.
+      var month = (yesterday.getMonth() + 1);
+      if (month <= 9) {
+        month = "0" + month;
+      }
+      var day = yesterday.getDate();
+      if (day <= 9) {
+        day = "0" + day;
+      }
+      var datestr = "" + yesterday.getFullYear() + month + day;
+      return "https://storage.googleapis.com/oss-fuzz-coverage/skia/reports/" + datestr +
+             "/linux/src/skia/report.html";
     },
 
     _reload: function() {
