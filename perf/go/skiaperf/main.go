@@ -261,14 +261,14 @@ func Init() {
 	}
 
 	loadTemplates()
-	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	var ok bool
 	if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
 		sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
+	}
+
+	git, err = gitinfo.CloneOrUpdate(ctx, btConfig.GitUrl, *gitRepoDir, false)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	var dfBuilder dataframe.DataFrameBuilder
@@ -293,7 +293,7 @@ func Init() {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
-	cidl = cid.New(ctx, git, *gitRepoURL)
+	cidl = cid.New(ctx, git, btConfig.GitUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
