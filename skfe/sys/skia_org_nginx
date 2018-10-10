@@ -1628,10 +1628,10 @@ server {
     return 301 https://jsfiddle.skia.org$request_uri;
 }
 
-#####   android-master-perf2.skia.org.skia.org   ###########################
+#####   android-master-perf2.skia.org   ###########################
 server {
     listen      443;
-    server_name android-master-perf2.skia.org.skia.org;
+    server_name android-master-perf2.skia.org;
 
     ssl on;
 
@@ -1645,6 +1645,6 @@ server {
 }
 server {
     listen      80;
-    server_name android-master-perf2.skia.org.skia.org;
-    return 301 https://android-master-perf2.skia.org.skia.org$request_uri;
+    server_name android-master-perf2.skia.org;
+    return 301 https://android-master-perf2.skia.org$request_uri;
 }
