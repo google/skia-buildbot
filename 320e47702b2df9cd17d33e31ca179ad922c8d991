@@ -1,0 +1,169 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ec73e4b_a574921a",
+        "filename": "go/task_driver/emitter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "Make a type MessageType and make all the MSG_TYPE_STEP_* const\u0027s instances of that type.",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad59b604_3b618cbd",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "Why \u0026err?",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4bfb0a2_7f8b6edd",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "The .Start()\nerr :\u003d ....\n.Done(err)\n\nis going to get tedious, and is much easier to understand in the Do format:\n\ns.Step().Infra().Env(env).Name(\"named infra step with env\").Do(func (s *Step) error {\n  return nil\n})\n\nI think this is easier to read.",
+      "range": {
+        "startLine": 70,
+        "startChar": 69,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d22bc647_58906d2f",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "if err :\u003d s.Do(RunStepFunc); err !\u003d nil {\n  sklog.Fatal(err)\n}",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bddb272_5b0e2f86",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "If this is called within a Do() like I suggested above, then you don\u0027t need Start() and Done().",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37b46d48_d01617da",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "if _, err :\u003d exec.RunSimple(s.Ctx(), \"echo helloworld\"); err !\u003d nil {\n  return err\n}",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "816cb696_c0ae08a6",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "if _, err :\u003d s.HttpClient(nil).Get(\"http://www.google.com\"); err !\u003d nil {\n  return err\n}",
+      "range": {
+        "startLine": 153,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 0
+      },
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db2356ad_b5654e73",
+        "filename": "go/task_driver/receiver.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "Why not use the same functionality that fluentd uses and differentiate between regular logs and structured logs, i.e. structured logs are simply single log lines that can be parsed as valid JSON. If we do that then HandleMessage goes away, as those are just become structured logs.",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4717acd_24b04ebb",
+        "filename": "go/task_driver/step.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-10T20:03:53Z",
+      "side": 1,
+      "message": "Why is err a *error?",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
