@@ -8,6 +8,7 @@
   "parentName": "Flutter",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
   "rollerName": "skia-flutter-autoroll",
+  "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
@@ -25,6 +26,19 @@
     "parentRepo": "git@github.com:flutter/engine.git",
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10",
+    "secrets": [                                                                  
+      "flutter-engine-ssh-publickey",                                             
+      "flutter-engine-ssh-privatekey",                                            
+      "flutter-engine-github-token"                                               
+    ]
   },
   "maxRollFrequency": "3h"
 }
