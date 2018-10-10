@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
@@ -69,6 +70,35 @@ func main() {
 	)
 	defer common.Defer()
 	if *hang {
+		//// Setup the required SSH key if it is not local and if the file does
+		//// not already exist.
+		//if !*local {
+		//	user, err := user.Current()
+		//	if err != nil {
+		//		sklog.Fatal(err)
+		//	}
+		//	sshKeySrc := filepath.Join(github.SSH_KEY_SERVER_PATH, github.SSH_KEY_FILENAME)
+		//	sshKeyDestDir := filepath.Join(user.HomeDir, ".ssh")
+		//	sshKeyDest := filepath.Join(sshKeyDestDir, github.SSH_KEY_FILENAME)
+		//	if _, err := os.Stat(sshKeyDest); os.IsNotExist(err) {
+		//		b, err := ioutil.ReadFile(sshKeySrc)
+		//		if err != nil {
+		//			sklog.Fatalf("Could not read from %s: %s", sshKeySrc, err)
+		//		}
+		//		if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
+		//			sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
+		//		}
+		//		if err := ioutil.WriteFile(sshKeyDest, b, 0600); err != nil {
+		//			sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
+		//		}
+		//	}
+		//	//// My theory is that I do not need this for the APi calls. Lets see if I am coirrect.
+		//	//// Test connection to github.
+		//	//if err := github.TestGitHubConnection(context.Background()); err != nil {
+		//	//	sklog.Fatalf("Could not test github connection: %s", err)
+		//	//}
+		//}
+
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
 	}
@@ -182,16 +212,45 @@ func main() {
 		}
 		g.TurnOnAuthenticatedGets()
 	} else {
-		gToken := ""
-		if *local {
-			gBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.GITHUB_TOKEN_LOCAL_FILENAME))
-			if err != nil {
-				sklog.Fatalf("Couldn't find githubToken in the local file %s: %s.", github.GITHUB_TOKEN_LOCAL_FILENAME, err)
+		// Setup the required SSH key if it is not local and if the file does
+		// not already exist.
+		if !*local {
+			sshKeySrc := filepath.Join(github.SSH_KEY_SERVER_PATH, github.SSH_KEY_FILENAME)
+			sshKeyDestDir := filepath.Join(user.HomeDir, ".ssh")
+			sshKeyDest := filepath.Join(sshKeyDestDir, github.SSH_KEY_FILENAME)
+			if _, err := os.Stat(sshKeyDest); os.IsNotExist(err) {
+				b, err := ioutil.ReadFile(sshKeySrc)
+				if err != nil {
+					sklog.Fatalf("Could not read from %s: %s", sshKeySrc, err)
+				}
+				if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
+					sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
+				}
+				if err := ioutil.WriteFile(sshKeyDest, b, 0600); err != nil {
+					sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
+				}
+				fmt.Println("CREATING SSH KEY!!!!!!!!!!!!!!!!!!!!!!!")
+				fmt.Println("CREATING SSH KEY!!!!!!!!!!!!!!!!!!!!!!!")
+				fmt.Println("CREATING SSH KEY!!!!!!!!!!!!!!!!!!!!!!!")
+				fmt.Println("CREATING SSH KEY!!!!!!!!!!!!!!!!!!!!!!!")
 			}
-			gToken = strings.TrimSpace(string(gBody))
-		} else {
-			gToken = metadata.Must(metadata.Get(github.GITHUB_TOKEN_METADATA_KEY))
+			//// My theory is that I do not need this for the APi calls. Lets see if I am coirrect.
+			//// Test connection to github.
+			if err := github.TestGitHubConnection(ctx); err != nil {
+				// TODO(rmistry): What to do about this???
+				// sklog.Fatalf("Could not test github connection: %s", err)
+			}
 		}
+		// Instantiate githubClient using the github token secret.
+		pathToGithubToken := path.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
+		if *local {
+			pathToGithubToken = path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
+		}
+		gBody, err := ioutil.ReadFile(pathToGithubToken)
+		if err != nil {
+			sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
+		}
+		gToken := strings.TrimSpace(string(gBody))
 		githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
 		githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient)
 		if err != nil {

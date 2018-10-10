@@ -97,6 +97,8 @@ func parseConfigHelper(confMap map[string]interface{}, ret map[string]interface{
 			} else {
 				val = "false"
 			}
+		case []interface{}:
+			ret[k] = t
 		case map[string]interface{}:
 			subMap := map[string]interface{}{}
 			if err := parseConfigHelper(t, subMap); err != nil {
