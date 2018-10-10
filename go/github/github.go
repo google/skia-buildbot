@@ -26,8 +26,11 @@ import (
 )
 
 const (
-	GITHUB_TOKEN_METADATA_KEY   = "github_token"
-	GITHUB_TOKEN_LOCAL_FILENAME = "github_token"
+	GITHUB_TOKEN_METADATA_KEY = "github_token"
+	GITHUB_TOKEN_FILENAME     = "github_token"
+	GITHUB_TOKEN_SERVER_PATH  = "/var/secrets/github-token"
+	SSH_KEY_FILENAME          = "id_rsa"
+	SSH_KEY_SERVER_PATH       = "/var/secrets/ssh-key"
 
 	MERGE_METHOD_SQUASH = "squash"
 	MERGE_METHOD_REBASE = "rebase"
@@ -71,6 +74,16 @@ func NewGitHub(ctx context.Context, repoOwner, repoName string, httpClient *http
 		ctx:        ctx,
 	}, nil
 }
+
+//// TestGitHubConnection tests connection to github by running
+//// "ssh -T git@github.com -oStrictHostKeyChecking=no"
+//// It returns an error if the above command fails.
+//func TestGitHubConnection(ctx context.Context) error {
+//	if _, err := exec.RunCwd(ctx, "", "ssh", "-T", "git@github.com", "-oStrictHostKeyChecking=no"); err != nil {
+//		return fmt.Errorf("Error when testing github connection: %s", err)
+//	}
+//	return nil
+//}
 
 // See https://developer.github.com/v3/issues/comments/#create-a-comment
 // for the API documentation.
