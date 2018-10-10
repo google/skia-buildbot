@@ -177,6 +177,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("Failed while querying: %s", err)
 	}
+	paramSet.Normalize()
 	d := &dataframe.DataFrame{
 		TraceSet: traceSet,
 		Header:   colHeaders,
