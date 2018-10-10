@@ -1,14 +1,17 @@
 package task_driver
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 
-	"cloud.google.com/go/logging"
 	"github.com/pborman/uuid"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const (
@@ -21,7 +24,7 @@ const (
 
 var (
 	// Auth scopes required for all task_drivers.
-	SCOPES = []string{logging.WriteScope}
+	SCOPES = []string{compute.CloudPlatformScope}
 )
 
 // run represents a full test automation run.
@@ -54,20 +57,54 @@ func Init(projectId, taskId, taskName, output *string, local *bool) (*Step, erro
 		return nil, fmt.Errorf("Task name is required.")
 	}
 
+	ctx := context.Background()
+
+	// Initialize Cloud Logging.
+	var ts oauth2.TokenSource
+	if *local {
+		var err error
+		ts, err = auth.NewDefaultTokenSource(*local, SCOPES...)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		ts, err = auth.NewLUCIContextTokenSource(SCOPES...)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
+		}
+	}
+	labels := map[string]string{
+		"taskId":   *taskId,
+		"taskName": *taskName,
+	}
+	logger, err := sklog.NewCloudLogger(ctx, *projectId, *taskId, ts, labels)
+	if err != nil {
+		return nil, err
+	}
+	sklog.SetLogger(logger)
+
 	// Dump environment variables.
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))
 
 	// Connect receivers.
+	cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
+	if err != nil {
+		return nil, err
+	}
 	report := newReportReceiver(*output)
 	receivers := map[string]Receiver{
-		"DebugReceiver":  &DebugReceiver{},
-		"ReportReceiver": report,
+		"CloudLoggingReceiver": cloudLogging,
+		"DebugReceiver":        &DebugReceiver{},
+		"ReportReceiver":       report,
 	}
 	emitter := newStepEmitter(*taskId, receivers)
 
 	// Set up and return the root-level Step.
 	r := &run{
-		done:    func() {},
+		done: func() {
+			logger.Flush()
+		},
 		emitter: emitter,
 		report:  report,
 	}
