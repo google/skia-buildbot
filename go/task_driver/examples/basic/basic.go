@@ -1,5 +1,13 @@
 package main
 
+/*
+   Basic Task Driver example.
+
+   Run like this:
+
+   $ go run ./basic.go --logtostderr --project_id=skia-swarming-bots --task_name=basic_example -o - --local
+*/
+
 import (
 	"errors"
 	"flag"
@@ -12,14 +20,6 @@ import (
 	"go.skia.org/infra/go/task_driver"
 	"go.skia.org/infra/go/task_driver/lib/os_steps"
 )
-
-/*
-	Basic Task Driver example.
-
-	Run like this:
-
-	$ go run ./basic.go --logtostderr --project_id=skia-swarming-bots --task_name=basic_example -o - --local
-*/
 
 var (
 	// Required flags for all TaskDrivers.
