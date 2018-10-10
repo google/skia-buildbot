@@ -100,7 +100,6 @@ var (
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	emailTokenCacheFile   = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
 	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoURL            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	interesting           = flag.Float64("interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly          = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder              = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
@@ -261,14 +260,14 @@ func Init() {
 	}
 
 	loadTemplates()
-	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
 	var ok bool
 	if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
 		sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
+	}
+
+	git, err = gitinfo.CloneOrUpdate(ctx, btConfig.GitUrl, *gitRepoDir, false)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	var dfBuilder dataframe.DataFrameBuilder
@@ -293,7 +292,7 @@ func Init() {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
-	cidl = cid.New(ctx, git, *gitRepoURL)
+	cidl = cid.New(ctx, git, btConfig.GitUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
