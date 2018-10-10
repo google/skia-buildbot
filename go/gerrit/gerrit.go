@@ -360,21 +360,9 @@ func (c *ChangeInfo) GetPatchsetIDs() []int64 {
 // GetPatch returns the formatted patch for one revision. Documentation is here:
 // https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-patch
 func (g *Gerrit) GetPatch(issue int64, revision string) (string, error) {
-	url := fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision)
-	resp, err := g.client.Get(url)
+	body, err := g.httpGetBody(fmt.Sprintf("%s/changes/%d/revisions/%s/patch", g.url, issue, revision))
 	if err != nil {
-		return "", fmt.Errorf("Failed to GET %s: %s", url, err)
-	}
-	if resp.StatusCode == 404 {
-		return "", fmt.Errorf("Issue not found: %s", url)
-	}
-	if resp.StatusCode >= 400 {
-		return "", fmt.Errorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
-	}
-	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Could not read response body: %s", err)
+		return "", sklog.FmtErrorf("Error retrieving body: %s", err)
 	}
 
 	data, err := base64.StdEncoding.DecodeString(string(body))
@@ -407,6 +395,30 @@ func (g *Gerrit) GetCommit(issue int64, revision string) (*CommitInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	return ret, nil
+}
+
+// CommitInfo captures information about the commit of a revision (patchset)
+// See https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#commit-info
+type CommitInfo struct {
+	Commit  string        `json:"commit"`
+	Parents []*CommitInfo `json:"parents"`
+}
+
+// GetCommit retrieves the commit that corresponds to the patch identified by issue and revision.
+// It allows to retrieve the parent commit on which the given patchset is based on.
+// See: https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#get-commit
+func (g *Gerrit) GetCommit(issue int64, revision string) (*CommitInfo, error) {
+	body, err := g.httpGetBody(fmt.Sprintf("%s/changes/%d/revisions/%s/commit", g.url, issue, revision))
+	if err != nil {
+		return nil, sklog.FmtErrorf("Error retrieving body: %s", err)
+	}
+
+	ret := &CommitInfo{}
+	if err := json.Unmarshal(body, ret); err != nil {
+		return nil, sklog.FmtErrorf("Error parsing JSON: %s", err)
+	}
+
 	return ret, nil
 }
 
@@ -525,6 +537,26 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 		return fmt.Errorf("Failed to decode JSON: %s", err)
 	}
 	return nil
+}
+
+// httpGetBody requests the given URL and returns body of the response as a byte slice.
+func (g *Gerrit) httpGetBody(url string) ([]byte, error) {
+	resp, err := g.client.Get(url)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Failed to GET %s: %s", url, err)
+	}
+	if resp.StatusCode == 404 {
+		return nil, sklog.FmtErrorf("Issue not found: %s", url)
+	}
+	if resp.StatusCode >= 400 {
+		return nil, sklog.FmtErrorf("Error retrieving %s: %d %s", url, resp.StatusCode, resp.Status)
+	}
+	defer util.Close(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Could not read response body: %s", err)
+	}
+	return body, nil
 }
 
 func (g *Gerrit) post(suburl string, b []byte) error {
