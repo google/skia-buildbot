@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "deea61f9_e405bd32",
+        "filename": "go/task_driver/emitter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "I think we are beyond the point of name bikeshedding but IIRC you did not initially like \"task\" because it is overloaded in different places. What made you want to go back to it? (just curious)\n\nAlso, instead of putting it under infra/go/... should the framework be in it\u0027s own top-level directory?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0abbcb02_2745b626",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "What are you calling things that use the framework (like this example)? root-level steps with sub-steps?",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 26
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0dd09963_d9c9773d",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "Different usages of the framework could have additional flags. Is that correct?\n\nIf this is \"Required flags for all TaskDrivers\" should it be defined in a common place like common_flags.go / required_flags.go or something like that? MustInit and basic.go could then be documented to mention it.",
+      "range": {
+        "startLine": 24,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 38
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "197e4525_355dbf5f",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "Can you explain somewhere what happens when there is no name specified?",
+      "range": {
+        "startLine": 87,
+        "startChar": 30,
+        "endLine": 87,
+        "endChar": 66
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da06d41a_4e22db97",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "This still creates a sub-step to the root-level step s, right?\nWould it be more explicit to call it s.SubStep() ?",
+      "range": {
+        "startLine": 117,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 13
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29670930_31364660",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "hah",
+      "range": {
+        "startLine": 137,
+        "startChar": 4,
+        "endLine": 137,
+        "endChar": 10
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "188dfe62_8e7db9e2",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "Should Google Storage interactions be in it\u0027s own category since they are pretty common?",
+      "range": {
+        "startLine": 168,
+        "startChar": 4,
+        "endLine": 168,
+        "endChar": 9
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e0440dd_15d29a02",
+        "filename": "go/task_driver/step.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T14:10:48Z",
+      "side": 1,
+      "message": "What changes when a step is Infra?\nShould it throw a special type of error?",
+      "range": {
+        "startLine": 90,
+        "startChar": 3,
+        "endLine": 90,
+        "endChar": 10
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
