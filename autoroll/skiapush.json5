@@ -6,11 +6,5 @@
         "pulld",
       ],
     },
-    "skia-flutter-autoroll": {
-      "AppNames": [
-        "skia-flutter-autorolld",
-        "pulld",
-      ],
-    },
   }
 }

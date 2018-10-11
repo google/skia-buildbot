@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitauth"
@@ -182,16 +183,35 @@ func main() {
 		}
 		g.TurnOnAuthenticatedGets()
 	} else {
-		gToken := ""
-		if *local {
-			gBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.GITHUB_TOKEN_LOCAL_FILENAME))
-			if err != nil {
-				sklog.Fatalf("Couldn't find githubToken in the local file %s: %s.", github.GITHUB_TOKEN_LOCAL_FILENAME, err)
+		pathToGithubToken := path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
+		if !*local {
+			pathToGithubToken = path.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
+			// Setup the required SSH key from secrets if we are not running
+			// locally and if the file does not already exist.
+			sshKeySrc := filepath.Join(github.SSH_KEY_SERVER_PATH, github.SSH_KEY_FILENAME)
+			sshKeyDestDir := filepath.Join(user.HomeDir, ".ssh")
+			sshKeyDest := filepath.Join(sshKeyDestDir, github.SSH_KEY_FILENAME)
+			if _, err := os.Stat(sshKeyDest); os.IsNotExist(err) {
+				b, err := ioutil.ReadFile(sshKeySrc)
+				if err != nil {
+					sklog.Fatalf("Could not read from %s: %s", sshKeySrc, err)
+				}
+				if _, err := fileutil.EnsureDirExists(sshKeyDestDir); err != nil {
+					sklog.Fatalf("Could not create %s: %s", sshKeyDest, err)
+				}
+				if err := ioutil.WriteFile(sshKeyDest, b, 0600); err != nil {
+					sklog.Fatalf("Could not write to %s: %s", sshKeyDest, err)
+				}
 			}
-			gToken = strings.TrimSpace(string(gBody))
-		} else {
-			gToken = metadata.Must(metadata.Get(github.GITHUB_TOKEN_METADATA_KEY))
+			// Make sure github is added to known_hosts.
+			github.AddToKnownHosts(ctx)
 		}
+		// Instantiate githubClient using the github token secret.
+		gBody, err := ioutil.ReadFile(pathToGithubToken)
+		if err != nil {
+			sklog.Fatalf("Couldn't find githubToken in %s: %s.", pathToGithubToken, err)
+		}
+		gToken := strings.TrimSpace(string(gBody))
 		githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
 		githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient)
 		if err != nil {

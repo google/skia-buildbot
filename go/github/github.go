@@ -23,11 +23,17 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
+
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
-	GITHUB_TOKEN_METADATA_KEY   = "github_token"
-	GITHUB_TOKEN_LOCAL_FILENAME = "github_token"
+	GITHUB_TOKEN_METADATA_KEY = "github_token"
+	GITHUB_TOKEN_FILENAME     = "github_token"
+	GITHUB_TOKEN_SERVER_PATH  = "/var/secrets/github-token"
+	SSH_KEY_FILENAME          = "id_rsa"
+	SSH_KEY_SERVER_PATH       = "/var/secrets/ssh-key"
 
 	MERGE_METHOD_SQUASH = "squash"
 	MERGE_METHOD_REBASE = "rebase"
@@ -70,6 +76,16 @@ func NewGitHub(ctx context.Context, repoOwner, repoName string, httpClient *http
 		httpClient: httpClient,
 		ctx:        ctx,
 	}, nil
+}
+
+// AddToKnownHosts adds github.com to .ssh/known_hosts. Without this,
+// interactions with github do not work.
+func AddToKnownHosts(ctx context.Context) {
+	// From https://serverfault.com/questions/132970/can-i-automatically-add-a-new-host-to-known-hosts
+	// Not throwing error below because github does not provide shell access
+	// and thus always returns an error.
+	_, err := exec.RunCwd(ctx, "", "ssh", "-T", "git@github.com", "-oStrictHostKeyChecking=no")
+	sklog.Info(err)
 }
 
 // See https://developer.github.com/v3/issues/comments/#create-a-comment
