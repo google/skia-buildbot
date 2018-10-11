@@ -34,6 +34,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fec5f0f8_0fc5389a",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-11T19:31:08Z",
+      "side": 1,
+      "message": "\" I like that we propagate errors upward through steps in the same way that we propagate them in normal Go programs \"\n\nI agree, which is why I dislike defer td.FinishStep(ctx, \u0026err), or defer s.Done(\u0026err) as it was named in the last\niteration.\n\n\nI think FinishStep and Done are trying to do too much, both recording the sub-step we\u0027re at and also error reporting.\n\nThe code would be much simpler if recording steps was one process and returning errors just followed normal Go flow, i.e.:\n\nfunc someStep() error {\n  defer td.StartStep(\"Foo\").Done()\n\n  return nil\n}\n\nAnd count on calls to sklog.Errorf() to record errors.\n\nIf that\u0027s the way it worked then I\u0027d be fine with checking error responses from Do().",
+      "parentUuid": "f3a9c4c6_4cbb58e4",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
