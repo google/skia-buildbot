@@ -3,6 +3,7 @@ package shortcut2
 import (
 	"bytes"
 	"encoding/json"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,15 +32,10 @@ func TestShortcut(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", id)
 
-	// Read it back, confirm it is unchanged.
+	// Read it back, confirm it is unchanged, except for being sorted.
 	sh2, err := Get(id)
 	assert.NoError(t, err)
+	assert.NotEqual(t, sh, sh2)
+	sort.Strings(sh.Keys)
 	assert.Equal(t, sh, sh2)
-
-	err = Write("1234", sh)
-	assert.NoError(t, err)
-	sh3, err := Get("1234")
-	assert.NoError(t, err)
-	assert.Equal(t, sh, sh3)
-
 }
