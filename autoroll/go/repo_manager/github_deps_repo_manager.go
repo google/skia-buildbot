@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -198,7 +197,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, to)}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.parentDir,
-		Env:  depot_tools.Env(rm.depotTools),
+		Env:  rm.depotToolsEnv,
 		Name: rm.gclient,
 		Args: args,
 	}); err != nil {
@@ -208,7 +207,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	// Make third_party/ match the new DEPS.
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  rm.depsRepoManager.parentDir,
-		Env:  depot_tools.Env(rm.depotTools),
+		Env:  rm.depotToolsEnv,
 		Name: rm.gclient,
 		Args: []string{"sync"},
 	}); err != nil {
