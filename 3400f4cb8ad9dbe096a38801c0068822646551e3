@@ -16,6 +16,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3a9c4c6_4cbb58e4",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T18:30:59Z",
+      "side": 1,
+      "message": "Because we may not want to exit with an overall failure in the case of a single step failure.  For example, we will probably want to implement retries for git operations.  Some steps (eg. os_steps.Stat) return an error that isn\u0027t necessarily indicative of any problem at all.  For some errors, we may want to bubble them upward but not before we perform some other steps (eg. uploading DM results even if DM fails).  I like that we propagate errors upward through steps in the same way that we propagate them in normal Go programs: return the error if we can\u0027t handle it at this level, and if the error bubbles all the way to the top, the program dies.\n\nI guess I could add a MustDo() wrapper around Do() for those times when we do want that behavior?",
+      "parentUuid": "14f88326_41981b45",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
