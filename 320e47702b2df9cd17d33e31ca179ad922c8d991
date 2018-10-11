@@ -306,6 +306,24 @@
     },
     {
       "key": {
+        "uuid": "2f531234_94759465",
+        "filename": "go/task_driver/receiver.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-11T20:11:19Z",
+      "side": 1,
+      "message": "Determining lines is just using bufio.NewScanner.\nDetermining if they need to try to be parsed as JSON is just checking if the first char of a line is \u0027{\u0027.\nEmitting the messages as JSON will allow us to leverage structured messages in StackDriver logging.\nConverting to PubSub events could be a separate program, that is you can pump all logs through PubSub and have a program that just finds the correctly shaped structured events and generates new PubSub events from them: https://cloud.google.com/logging/docs/export/using_exported_logs#pubsub-overview Which is better since it keeps the PubSub scope out of our tasks.",
+      "parentUuid": "e67edbf1_203be873",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b4717acd_24b04ebb",
         "filename": "go/task_driver/step.go",
         "patchSetId": 1
