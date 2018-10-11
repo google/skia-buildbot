@@ -70,6 +70,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1efb53ee_cd660484",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-11T20:03:21Z",
+      "side": 1,
+      "message": "\"I don\u0027t believe that we we\u0027ll be able to correctly parse error logs and actually attribute the correct errors to the correct steps.\"\n\nWriting to a stream such as stdout is an append, which is atomic, so order will be preserved.\n\n\"What if we return the error without logging anything?\"\n\nOn some level that\u0027s a bug in the recipe.\n\nBut let\u0027s back up, we want:\n 1. The ability to write regular Go code.\n 2. We want to know the step an error occurred at.\n 3. But we still want the ability for a step to respond or recover from an error and continue successfully.\n\nSimply returning an \u0027error\u0027 from every func covers 1 and 3, the only problem is 2, so why don\u0027t we\nemulate what we do in httputils with ReportError which handles both returning a \u0027safe\u0027 string to the user\nbut also logs the details contained in the \u0027error\u0027, i.e. add a \n\n  return td.Failed(ctx, err)\n\nOr we could count on the orderedness of the logs and failing to call sklog.Error* is considered\na bug that needs to be fixed.",
+      "parentUuid": "b9d924d4_6b064040",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
