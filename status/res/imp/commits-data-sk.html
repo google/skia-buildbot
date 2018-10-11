@@ -125,7 +125,7 @@
     // both issue and patchStorage.
     function findIssueAndReviewTool(commit) {
       // See if it is a Gerrit CL.
-      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/([0-9]*)/g;
+      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/c\/([0-9]*)/g;
       var gerritTokens = gerritRE.exec(commit.body);
       if (gerritTokens) {
         return {
