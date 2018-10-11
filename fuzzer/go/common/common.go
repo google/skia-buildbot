@@ -103,6 +103,14 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "Pathop", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
+	"api_pathop": {
+		PrettyName:          "API - PolyUtils",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "jvanverth",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "PolyUtils", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"color_deserialize": {
 		PrettyName:          "SkColorSpace - Deserialize",
 		Status:              STABLE_FUZZER,
