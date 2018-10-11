@@ -17,10 +17,9 @@ import (
 const (
 	MAX_STEP_NAME_CHARS = 100
 
-	STEP_RESULT_SUCCESS     = "SUCCESS"
-	STEP_RESULT_FAILED      = "FAILED"
-	STEP_RESULT_EXCEPTION   = "EXCEPTION"
-	STEP_RESULT_NOT_STARTED = "NOT_STARTED"
+	STEP_RESULT_SUCCESS   = "SUCCESS"
+	STEP_RESULT_FAILED    = "FAILED"
+	STEP_RESULT_EXCEPTION = "EXCEPTION"
 )
 
 // StepProperties are basic properties of a Step.
@@ -32,13 +31,6 @@ type StepProperties struct {
 	Parent  string   `json:"parent,omitempty"`
 }
 
-// Step represents a single action taken inside of a test automation run.
-type Step struct {
-	*StepProperties
-	result *StepResult
-	run    *run
-}
-
 // StepResult contains the results of a Step.
 type StepResult struct {
 	Result string `json:"result"`
@@ -46,142 +38,134 @@ type StepResult struct {
 }
 
 // Return a Step instance.
-func newStep(id string, r *run, parent *Step) *Step {
-	s := &Step{
-		StepProperties: &StepProperties{
-			Id: id,
-		},
-		result: &StepResult{
-			Result: STEP_RESULT_NOT_STARTED,
-			Error:  "Step not yet started.",
-		},
-		run: r,
+func newStep(ctx context.Context, id string, parent *StepProperties, opts []StepOption) context.Context {
+	s := &StepProperties{
+		Id: id,
 	}
 	if parent != nil {
-		s.StepProperties.Env = parent.StepProperties.Env
+		// Steps inherit their environment from their parent step.
+		s.Env = parent.Env
 		s.Parent = parent.Id
 	}
-	return s
-}
-
-// Create a new Step.
-func (s *Step) Step() *Step {
-	// TODO(borenet): Come up with a more systematic ID.
-	return newStep(uuid.New(), s.run, s)
-}
-
-// Apply the given name to the Step.
-func (s *Step) Name(name string) *Step {
-	if s.IsRunning() || s.IsDone() {
-		panic("Cannot modify a Step once it is running.")
+	for _, opt := range opts {
+		opt.Apply(s)
 	}
+	ctx = setStep(ctx, s)
+	ctx = execCtx(ctx)
+	getRun(ctx).emitter.Start(s)
+	return ctx
+}
+
+// StepOption is an interface used to apply optional properties to a step.
+type StepOption interface {
+	Apply(s *StepProperties)
+}
+
+// Opts collects StepOptions into a slice.
+func Opts(opts ...StepOption) []StepOption {
+	return opts
+}
+
+// nameOption assigns a name to the step.
+type nameOption string
+
+// See documentation for StepOption interface.
+func (o nameOption) Apply(s *StepProperties) {
+	s.Name = string(o)
+}
+
+// Name returns a StepOption which applies the given name to the step.
+func Name(name string) StepOption {
 	if len(name) > MAX_STEP_NAME_CHARS {
 		name = name[:MAX_STEP_NAME_CHARS]
 	}
-	s.StepProperties.Name = name
-	return s
+	return nameOption(name)
 }
 
-// Mark the Step as infra-specific.
-func (s *Step) Infra() *Step {
-	if s.IsRunning() || s.IsDone() {
-		panic("Cannot modify a Step once it is running.")
-	}
+// infraOption marks the step as infra-specific.
+type infraOption struct{}
+
+// See documentation for StepOption interface.
+func (o *infraOption) Apply(s *StepProperties) {
 	s.IsInfra = true
-	return s
 }
 
-// Apply the given environment variables to all commands run within this Step.
-// Note that this does NOT apply the variables to the environment of this
-// process, just of subprocesses spawned using s.Ctx().
-func (s *Step) Env(env []string) *Step {
-	if s.IsRunning() || s.IsDone() {
-		panic("Cannot modify a Step once it is running.")
-	}
-	s.StepProperties.Env = env // TODO(borenet): Merge environments?
-	return s
+// Infra returns a StepOption which marks the step as infra-specific.
+func Infra() StepOption {
+	return &infraOption{}
 }
 
-// Start the Step.
-func (s *Step) Start() *Step {
-	if s.IsRunning() {
-		panic("Start() called on step which is already running.")
-	}
-	s.run.emitter.Start(s)
-	s.result = nil
-	return s
+// envOption applies the given environment variables to all commands run within
+// this Step.
+type envOption []string
+
+// See documentation for StepOption interface.
+func (o envOption) Apply(s *StepProperties) {
+	// TODO(borenet): Should we merge environments?
+	s.Env = o
 }
 
-// Return true iff the Step has been started and has not yet finished.
-func (s *Step) IsRunning() bool {
-	return s.result == nil
+// Env returns a StepOption which applies the given environment variables to
+// all commands run within this Step. Note that this does NOT apply the
+// variables to the environment of this process, just of subprocesses spawned
+// using the context.
+func Env(env []string) StepOption {
+	return envOption(env)
 }
 
-// Return true iff the step has already finished.
-func (s *Step) IsDone() bool {
-	return s.result != nil && s.result.Result != STEP_RESULT_NOT_STARTED
-}
-
-// Mark the Step as finished with the given StepResult. After finish() is
-// called, no more work can be associated with this Step.
-func (s *Step) finish(res *StepResult) {
-	if !s.IsRunning() {
-		panic("finish() called on Step which is not running")
-	}
-	s.result = res
-	s.run.emitter.Finish(s.Id, s.result)
+// Create a Step.
+func StartStep(ctx context.Context, opts ...StepOption) context.Context {
+	s := getStep(ctx)
+	return newStep(ctx, uuid.New(), s, opts)
 }
 
 // Mark the Step as finished. If the step has already been finished, eg. via
 // Fail(), no action is taken. This is intended to be used in a defer, eg.
 //
 //	s := r.Step().Start()
-//	defer s.Done(&err)
+//	defer s.StepFinished(&err)
 //
-// After Done() is called, no more work can be associated with this Step.
-func (s *Step) Done(err *error) {
-	defer func() {
-		if s.Id == STEP_ID_ROOT {
-			s.run.Done()
-		}
-	}()
-	if r := recover(); r != nil {
-		s.finish(&StepResult{
+// After StepFinished() is called, no more work can be associated with this Step.
+func FinishStep(ctx context.Context, err *error) {
+	finishStep(ctx, err, recover())
+}
+
+// finishStep is a helper function for StepFinished which is also used by
+// RunFinished to set the result of the root step.
+func finishStep(ctx context.Context, err *error, recovered interface{}) {
+	props := getStep(ctx)
+	e := getRun(ctx).emitter
+	if recovered != nil {
+		e.Finish(props.Id, &StepResult{
 			Result: STEP_RESULT_EXCEPTION,
-			Error:  fmt.Sprintf("Caught panic: %s", r),
+			Error:  fmt.Sprintf("Caught panic: %s", recovered),
 		})
-		panic(r)
-	} else if s.IsRunning() {
-		if err != nil && *err != nil {
-			s.finish(&StepResult{
-				Result: STEP_RESULT_FAILED,
-				Error:  (*err).Error(),
-			})
-		} else {
-			s.finish(&StepResult{
-				Result: STEP_RESULT_SUCCESS,
-			})
-		}
+		panic(recovered)
+	}
+	if err != nil && *err != nil {
+		e.Finish(props.Id, &StepResult{
+			Result: STEP_RESULT_FAILED,
+			Error:  (*err).Error(),
+		})
 	} else {
-		panic("Done() called on Step which is not running")
+		e.Finish(props.Id, &StepResult{
+			Result: STEP_RESULT_SUCCESS,
+		})
 	}
 }
 
-// Attach the given Data to this Step. The Step must be running.
-func (s *Step) Data(d interface{}) *Step {
-	if !s.IsRunning() {
-		panic("Data() called on Step which is not running")
-	}
-	s.run.emitter.AddStepData(s.Id, d)
-	return s
+// Attach the given StepData to this Step.
+func StepData(ctx context.Context, d interface{}) {
+	props := getStep(ctx)
+	getRun(ctx).emitter.AddStepData(props.Id, d)
 }
 
 // Do is a convenience function which runs the given function as a Step. It
-// handles calls to Start() and Done() as appropriate.
-func (s *Step) Do(fn func(*Step) error) (err error) {
-	s.Start()
-	defer s.Done(&err)
-	return fn(s)
+// handles creation of the sub-step and calling StepFinished() for you.
+func Do(ctx context.Context, opts []StepOption, fn func(context.Context) error) (err error) {
+	ctx = StartStep(ctx, opts...)
+	defer FinishStep(ctx, &err)
+	return fn(ctx)
 }
 
 // execData is extra Step data generated when executing commands through the
@@ -201,11 +185,12 @@ type logData struct {
 
 // Create an io.Writer that will act as a log stream for this Step. Callers
 // probably want to use a higher-level method instead.
-func (s *Step) NewLogStream(name, severity string) io.Writer {
+func NewLogStream(ctx context.Context, name, severity string) io.Writer {
+	props := getStep(ctx)
 	id := uuid.New() // TODO(borenet): Come up with a better ID.
-	stream := s.run.emitter.LogStream(s.Id, id, severity)
+	stream := getRun(ctx).emitter.LogStream(props.Id, id, severity)
 	// Emit step data for the log stream.
-	s.Data(&logData{
+	StepData(ctx, &logData{
 		Name:     name,
 		Id:       id,
 		Severity: severity,
@@ -215,26 +200,24 @@ func (s *Step) NewLogStream(name, severity string) io.Writer {
 
 // Return a context.Context associated with this Step. Any calls to exec which
 // use this Context will be attached to the Step.
-func (s *Step) Ctx() context.Context {
-	if !s.IsRunning() {
-		panic("Ctx() called on Step which is not running")
-	}
-	return exec.NewContext(context.Background(), func(cmd *exec.Command) error {
+func execCtx(ctx context.Context) context.Context {
+	return exec.NewContext(ctx, func(cmd *exec.Command) error {
 		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
-		return s.Step().Name(name).Do(func(s *Step) error {
+		return Do(ctx, Opts(Name(name)), func(ctx context.Context) error {
+			props := getStep(ctx)
 			// Inherit env from the step unless it's explicitly provided.
 			// TODO(borenet): Should we merge instead?
 			if cmd.Env == nil {
-				cmd.Env = s.StepProperties.Env
+				cmd.Env = props.Env
 			}
 
 			// Set up stdout and stderr streams.
-			stdout := s.NewLogStream("stdout", sklog.INFO)
+			stdout := NewLogStream(ctx, "stdout", sklog.INFO)
 			if cmd.Stdout != nil {
 				stdout = util.MultiWriter([]io.Writer{cmd.Stdout, stdout})
 			}
 			cmd.Stdout = stdout
-			stderr := s.NewLogStream("stderr", sklog.ERROR)
+			stderr := NewLogStream(ctx, "stderr", sklog.ERROR)
 			if cmd.Stderr != nil {
 				stderr = util.MultiWriter([]io.Writer{cmd.Stderr, stderr})
 			}
@@ -245,7 +228,7 @@ func (s *Step) Ctx() context.Context {
 				Cmd: append([]string{cmd.Name}, cmd.Args...),
 				Env: cmd.Env,
 			}
-			s.Data(d)
+			StepData(ctx, d)
 
 			// Run the command.
 			return exec.DefaultRun(cmd)
@@ -256,8 +239,8 @@ func (s *Step) Ctx() context.Context {
 // httpTransport is an http.RoundTripper which wraps another http.RoundTripper
 // to record data about the requests it sends.
 type httpTransport struct {
-	s  *Step
-	rt http.RoundTripper
+	ctx context.Context
+	rt  http.RoundTripper
 }
 
 // httpRequestData is Step data describing an http.Request. Notably, it does not
@@ -277,15 +260,15 @@ type httpResponseData struct {
 // See documentation for http.RoundTripper.
 func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
-	return resp, t.s.Step().Name(req.URL.String()).Do(func(s *Step) error {
-		s.Data(&httpRequestData{
+	return resp, Do(t.ctx, Opts(Name(req.URL.String())), func(ctx context.Context) error {
+		StepData(ctx, &httpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
 		})
 		var err error
 		resp, err = t.rt.RoundTrip(req)
 		if resp != nil {
-			s.Data(&httpResponseData{
+			StepData(ctx, &httpResponseData{
 				StatusCode: resp.StatusCode,
 			})
 		}
@@ -295,10 +278,7 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // Return an http.Client which wraps the given http.Client to record data about
 // the requests it sends.
-func (s *Step) HttpClient(c *http.Client) *http.Client {
-	if !s.IsRunning() {
-		panic("HttpClient called on Step which is not running")
-	}
+func HttpClient(ctx context.Context, c *http.Client) *http.Client {
 	if c == nil {
 		c = http.DefaultClient // TODO(borenet): Use backoff client?
 	}
@@ -306,30 +286,8 @@ func (s *Step) HttpClient(c *http.Client) *http.Client {
 		c.Transport = http.DefaultTransport
 	}
 	c.Transport = &httpTransport{
-		s:  s,
-		rt: c.Transport,
+		ctx: ctx,
+		rt:  c.Transport,
 	}
 	return c
-}
-
-// RunCwd is a convenience wrapper around exec.RunCwd which runs the given
-// command as a Step. It handles calls to Start() and Done() as appropriate.
-// TODO(borenet): Is this really needed?
-func (s *Step) RunCwd(cwd string, command ...string) (string, error) {
-	return exec.RunCwd(s.Ctx(), cwd, command...)
-}
-
-// RunCommand is a convenience wrapper around exec.Run which runs the given
-// Command as a Step. It handles calls to Start() and Done() as appropriate.
-// TODO(borenet): Is this really needed?
-func (s *Step) RunCommand(cmd *exec.Command) error {
-	return exec.Run(s.Ctx(), cmd)
-}
-
-// RunSimple is a convenience wrapper around exec.RunSimple which runs the given
-// command string as a Step. It handles calls to Start() and Done() as
-// appropriate.
-// TODO(borenet): Is this really needed?
-func (s *Step) RunSimple(command string) (string, error) {
-	return exec.RunSimple(s.Ctx(), command)
 }

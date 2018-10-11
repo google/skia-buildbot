@@ -18,6 +18,7 @@ type Receiver interface {
 	// Handle the given message.
 	HandleMessage(*Message) error
 	LogStream(stepId string, logId string, severity string) (io.Writer, error)
+	Close() error
 }
 
 // DebugReceiver just dumps the messages straight to the log (stdout/stderr, not
@@ -50,6 +51,12 @@ func (r *DebugReceiver) LogStream(stepId, logId, severity string) (io.Writer, er
 		return os.Stderr, nil
 	}
 	return os.Stdout, nil
+}
+
+// See documentation for Receiver interface.
+func (r *DebugReceiver) Close() error {
+	glog.Info("Run finished.")
+	return nil
 }
 
 // StepReport is a struct used to collect information about a given step.
@@ -147,8 +154,9 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 	return nil
 }
 
-// Write the report in JSON format to the given Writer.
-func (r *ReportReceiver) Report() error {
+// See documentation for Receiver interface.
+func (r *ReportReceiver) Close() error {
+	// Write the report to the desired output.
 	var w io.Writer
 	if r.output == "" {
 		return nil

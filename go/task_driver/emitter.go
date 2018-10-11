@@ -83,11 +83,11 @@ func (e *stepEmitter) send(msg *Message) {
 }
 
 // Send a Message indicating that a new Step has started.
-func (e *stepEmitter) Start(s *Step) {
+func (e *stepEmitter) Start(props *StepProperties) {
 	msg := &Message{
 		Type:   MSG_TYPE_STEP_STARTED,
-		StepId: s.Id,
-		Step:   s.StepProperties,
+		StepId: props.Id,
+		Step:   props,
 	}
 	e.send(msg)
 }
@@ -124,4 +124,14 @@ func (e *stepEmitter) LogStream(stepId, logId, severity string) io.Writer {
 		writers = append(writers, w)
 	}
 	return util.MultiWriter(writers)
+}
+
+// Close the stepEmitter.
+func (e *stepEmitter) Close() error {
+	for _, r := range e.receivers {
+		if err := r.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
