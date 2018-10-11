@@ -167,9 +167,9 @@ func main() {
 	} else {
 		gToken := ""
 		if *local {
-			gBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.GITHUB_TOKEN_LOCAL_FILENAME))
+			gBody, err := ioutil.ReadFile(path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME))
 			if err != nil {
-				sklog.Fatalf("Couldn't find githubToken in the local file %s: %s.", github.GITHUB_TOKEN_LOCAL_FILENAME, err)
+				sklog.Fatalf("Couldn't find githubToken in the local file %s: %s.", github.GITHUB_TOKEN_FILENAME, err)
 			}
 			gToken = strings.TrimSpace(string(gBody))
 		} else {
