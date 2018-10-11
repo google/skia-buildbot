@@ -44,6 +44,10 @@ spec:
               mountPath: /var/secrets/google
             - name: autoroll-email-creds
               mountPath: /var/secrets/autoroll-email-creds
+            {{- range $index, $secret := .kubernetes.secrets}}
+            - name: {{$secret.name}}
+              mountPath: {{$secret.mountPath}}
+            {{- end}}
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
               value: /var/secrets/google/key.json
@@ -67,6 +71,11 @@ spec:
         - name: autoroll-email-creds
           secret:
             secretName: autoroll-email-creds
+        {{- range $index, $secret := .kubernetes.secrets}}
+        - name: {{$secret.name}}
+          secret:
+            secretName: {{$secret.name}}
+        {{- end}}
   volumeClaimTemplates:
     - metadata:
         name: autoroll-be-{{.rollerName}}-storage
