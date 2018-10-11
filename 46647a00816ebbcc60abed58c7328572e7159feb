@@ -22,6 +22,30 @@
       "revId": "46647a00816ebbcc60abed58c7328572e7159feb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12e10273_9d76714c",
+        "filename": "autoroll/config/dart-flutter-engine.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T18:51:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4e23af6c_5e4f4885",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 24
+      },
+      "revId": "46647a00816ebbcc60abed58c7328572e7159feb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
