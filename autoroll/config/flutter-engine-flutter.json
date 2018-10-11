@@ -8,13 +8,14 @@
   "parentName": "Flutter",
   "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
   "rollerName": "flutter-engine-flutter-autoroll",
+  "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
     "rmistry@google.com",
     "liyuqian@google.com"
   ],
   "githubRepoOwner": "flutter",
   "githubRepoName": "flutter",
-  "githubChecksNum": 11,
+  "githubChecksNum": 13,
   "githubChecksWaitFor": [
     "flutter-build"
   ],
@@ -32,6 +33,24 @@
       "flutter/%s/dart-sdk-linux-x64.zip",
       "flutter/%s/dart-sdk-darwin-x64.zip",
       "flutter/%s/dart-sdk-windows-x64.zip"
+    ]
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10",
+    "secrets": [
+      {
+        "name": "flutter-github-token",
+        "mountPath": "/var/secrets/github-token"
+      },
+      {
+        "name": "flutter-ssh-key",
+        "mountPath": "/var/secrets/ssh-key"
+      }
     ]
   },
   "maxRollFrequency": "0m"
