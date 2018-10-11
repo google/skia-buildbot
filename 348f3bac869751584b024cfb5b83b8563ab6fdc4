@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "d20714fe_d0aae831",
+        "filename": "autoroll/setup-script-internal.sh",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:51:25Z",
+      "side": 0,
+      "message": "Agreed, we no longer need setup scripts with Docker.",
+      "parentUuid": "84babfb0_a50b9586",
+      "revId": "348f3bac869751584b024cfb5b83b8563ab6fdc4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f3c3119_c9867ce7",
         "filename": "autoroll/vm.go",
         "patchSetId": 10
@@ -30,6 +48,24 @@
       "writtenOn": "2018-10-11T12:35:19Z",
       "side": 0,
       "message": "I think this is no longer needed.\nflutter-engine-flutter roller to k8s will immediately follow this change.",
+      "revId": "348f3bac869751584b024cfb5b83b8563ab6fdc4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b38da610_967e9a9c",
+        "filename": "autoroll/vm.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:51:25Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "2f3c3119_c9867ce7",
       "revId": "348f3bac869751584b024cfb5b83b8563ab6fdc4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false

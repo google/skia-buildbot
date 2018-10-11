@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d143d15_0e9908ba",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:51:25Z",
+      "side": 1,
+      "message": "This could be slightly simplified with:\n\npathToGithubToken :\u003d path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)\nif !*local {\n    pathToGithubToken \u003d path.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)\n\n    sshKeySrc :\u003d ...\n    ...\n\n}",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 3
+      },
+      "revId": "9089cbe63598bfad8ddeeec93cf3a5a53e884288",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
