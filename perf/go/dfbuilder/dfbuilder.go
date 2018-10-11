@@ -103,7 +103,7 @@ func buildTileMapOffsetToIndex(indices []int32, store *btts.BigTableTraceStore) 
 // The progress callback is triggered once for every tile.
 func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
 	// TODO tickle progress as each Go routine completes.
-	defer timer.New("btts_new").Stop()
+	defer timer.New("dfbuilder_new").Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
 	mapper := buildTileMapOffsetToIndex(indices, b.store)
 
@@ -127,7 +127,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
 		g.Go(func() error {
-			defer timer.New("btts_by_tile").Stop()
+			defer timer.New("dfbuilder_by_tile").Stop()
 			// Get the OPS, which we need to encode the query, and decode the traceids of the results.
 			ops, err := b.store.GetOrderedParamSet(tileKey)
 			if err != nil {
