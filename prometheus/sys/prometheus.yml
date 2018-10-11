@@ -22,10 +22,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-android-ingest:20001']
 
-  - job_name: 'autoroll-be'
-    static_configs:
-      - targets: ['flutter-engine-flutter-autoroll:20000']
-
   - job_name: 'collectd'
     static_configs:
       - targets: ['skia-monitoring:20002']
@@ -152,7 +148,6 @@ scrape_configs:
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
-      - targets: ['flutter-engine-flutter-autoroll:11000']
       - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-master-perf:11000']
       - targets: ['skia-android-perf:11000']
