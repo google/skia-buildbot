@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ab8b241c_4b1ae42b",
+        "filename": "go/task_driver/emitter.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "I never found anything I liked better.  I\u0027m happy to continue the discussion, but it looked like everyone was out of ideas and I wanted to go ahead and land something before my experimental CL got too large.\n\nI guess we could put it in its own top-level directory.  I didn\u0027t do that because it\u0027s not one of our servers, but maybe it\u0027s important enough to warrant it?",
+      "parentUuid": "deea61f9_e405bd32",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0abbcb02_2745b626",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-10-11T14:10:48Z",
       "side": 1,
       "message": "What are you calling things that use the framework (like this example)? root-level steps with sub-steps?",
+      "range": {
+        "startLine": 16,
+        "startChar": 1,
+        "endLine": 16,
+        "endChar": 26
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17b2a563_11476d76",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "At the moment they\u0027re called Task Drivers.  The framework is called the task driver framework.  Again, I\u0027m not married to the name.",
+      "parentUuid": "0abbcb02_2745b626",
       "range": {
         "startLine": 16,
         "startChar": 1,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e00957eb_5a3f5eb2",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "That\u0027s correct.  I\u0027ve thought about declaring these in the task_driver package, but my recent experience trying to dig through Chrome Infra code (which makes extensive use of CLI and flag helpers) has been extremely frustrating since it\u0027s very non-obvious which flags are actually part of the program.  One of the central ideas of this framework is that I want the individual task drivers to be as simple and readable as possible.",
+      "parentUuid": "0dd09963_d9c9773d",
+      "range": {
+        "startLine": 24,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 38
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "197e4525_355dbf5f",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2018-10-11T14:10:48Z",
       "side": 1,
       "message": "Can you explain somewhere what happens when there is no name specified?",
+      "range": {
+        "startLine": 87,
+        "startChar": 30,
+        "endLine": 87,
+        "endChar": 66
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67f920b4_bb98ed89",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "The step is just anonymous in that case.  Unlike in recipes, where the name is the ID of the step (which caused all kinds of problems, eg. names have to be unique and URL-safe or their logs disappear), IMO names should be optional for simple steps.",
+      "parentUuid": "197e4525_355dbf5f",
       "range": {
         "startLine": 87,
         "startChar": 30,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "b86b172c_9f3b5677",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "Yes, that would be more explicit.  It would also be more typing, and I want to avoid that.",
+      "parentUuid": "da06d41a_4e22db97",
+      "range": {
+        "startLine": 117,
+        "startChar": 1,
+        "endLine": 117,
+        "endChar": 13
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "29670930_31364660",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2018-10-11T14:10:48Z",
       "side": 1,
       "message": "hah",
+      "range": {
+        "startLine": 137,
+        "startChar": 4,
+        "endLine": 137,
+        "endChar": 10
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ce3e872a_0098fedc",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "29670930_31364660",
       "range": {
         "startLine": 137,
         "startChar": 4,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "72a36d14_a1b0ecd9",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "IMO that falls under HTTP requests, and since they\u0027d be done using the HTTP client I don\u0027t think there\u0027s any need to call them out separately.",
+      "parentUuid": "188dfe62_8e7db9e2",
+      "range": {
+        "startLine": 168,
+        "startChar": 4,
+        "endLine": 168,
+        "endChar": 9
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3e0440dd_15d29a02",
         "filename": "go/task_driver/step.go",
         "patchSetId": 3
@@ -174,6 +342,30 @@
       "writtenOn": "2018-10-11T14:10:48Z",
       "side": 1,
       "message": "What changes when a step is Infra?\nShould it throw a special type of error?",
+      "range": {
+        "startLine": 90,
+        "startChar": 3,
+        "endLine": 90,
+        "endChar": 10
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "166f83cf_a558e2aa",
+        "filename": "go/task_driver/step.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T14:25:16Z",
+      "side": 1,
+      "message": "Nothing changes on the framework side.  In our other infrastructure we\u0027ll see that the step was marked infra and failed (and therefore encountered an infra failure) and we can do whatever we want to do about it there (eg. trigger alerts, display the step as purple in the UI, etc).",
+      "parentUuid": "3e0440dd_15d29a02",
       "range": {
         "startLine": 90,
         "startChar": 3,
