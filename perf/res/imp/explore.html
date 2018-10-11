@@ -167,7 +167,7 @@
           <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
           <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
         </div>
-        <paper-checkbox checked="{{_show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
+        <paper-checkbox on-click=_zeroChanged checked="{{state.show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
         <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
       </div>
 
@@ -245,6 +245,7 @@
           queries: [],
           keys: "",  // The id of the shortcut to a list of trace keys.
           xbaroffset: -1, // The offset of the commit in the repo.
+          show_zero: true,
         }; },
       },
       // The [begin, end] timestamps of the region
@@ -376,6 +377,7 @@
       sk.stateReflector(this,  function() {
         this.$.range.begin = this.state.begin;
         this.$.range.end = this.state.end;
+        this._zeroChanged();
         this._rangeChangeImpl(this.state.begin, this.state.end);
       }.bind(this));
     },
@@ -480,7 +482,7 @@
       if (!this._dataframe.header) {
         return;
       }
-      if (this._show_zero) {
+      if (this.state.show_zero) {
         var line = [];
         for (var i = 0; i < this._dataframe.header.length; i++) {
           line.push([i, 0]);
@@ -503,7 +505,7 @@
       var lines = {};
 
       // Add in the 0-trace.
-      if (this._show_zero) {
+      if (this.state.show_zero) {
         dataframe.traceset[this.ZERO_NAME] = Array(dataframe.header.length).fill(0);
       }
 
