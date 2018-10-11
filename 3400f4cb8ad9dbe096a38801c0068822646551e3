@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "14f88326_41981b45",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-11T18:24:43Z",
+      "side": 1,
+      "message": "The Context based approach seems much better. The only thing that still seems awkward is this need to \ncheck the error response from Do(). Why not do what the Go standard testing library does and have\nDo() panic if the func returns a non nil error and have the top level StartRun catch that panic?",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
