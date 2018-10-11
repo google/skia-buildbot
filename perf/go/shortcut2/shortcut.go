@@ -28,7 +28,7 @@ func Insert(r io.Reader) (string, error) {
 	sort.Strings(shortcut.Keys)
 	h := md5.New()
 	for _, s := range shortcut.Keys {
-		io.WriteString(h, s)
+		_, _ = io.WriteString(h, s)
 	}
 
 	key := ds.NewKey(ds.SHORTCUT)
