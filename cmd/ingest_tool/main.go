@@ -4,26 +4,20 @@ package main
 // ingesters and stores them in traceDB backends.
 
 import (
-	"context"
-	"crypto/md5"
 	"flag"
-	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/config"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/ingestion"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 // Command line flags.
@@ -33,7 +27,6 @@ var (
 	projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 	targetGCSPath      = flag.String("gs_path", "", "GS path, where the files to be ingested are located. Format: <bucket>/<path>.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
-	nDays              = flag.Int("n_days", 10, "Duration to ingest.")
 )
 
 func main() {
@@ -63,56 +56,19 @@ func main() {
 		sklog.Fatalf("Unable to create global event client. Got error: %s", err)
 	}
 
+	// Set up the source, but don't plug in the eventbus since we don't want to listen to
+	// storage events.
 	bucketID, objectPrefix := gcs.SplitGSPath(*targetGCSPath)
-	source, err := ingestion.NewGoogleStorageSource("polling-bucket", bucketID, objectPrefix, client, eventBus)
+	source, err := ingestion.NewGoogleStorageSource("polling-bucket", bucketID, objectPrefix, client, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to open storage source: %s", err)
 	}
 
-	ingesterConf := sharedconfig.IngesterConfig{
-		RunEvery: config.Duration{
-			Duration: 12 * time.Hour,
-		},
-		MinDays: *nDays,
+	startTS := int64(0)
+	endTS := int64(0)
+	for rf := range source.Poll(startTS, endTS) {
+		bucketID, objectID := rf.StorageIDs()
+		eventBus.PublishStorageEvent(eventbus.NewStorageEvent(bucketID, objectID, rf.TimeStamp(), rf.MD5()))
+		sklog.Infof("Triggered: %s", rf.Name())
 	}
-
-	sources := []ingestion.Source{source}
-	processor := &BenchProcessor{}
-
-	ingester, err := ingestion.NewIngester("bench-ingester", &ingesterConf, nil, sources, processor, nil, eventBus)
-	if err != nil {
-		sklog.Fatalf("Unable to create ingester: %s", err)
-	}
-
-	if err := ingester.Start(context.TODO()); err != nil {
-		sklog.Fatalf("Error starting ingester: %s", err)
-	}
-
-	// Run the ingester forever.
-	select {}
-}
-
-type BenchProcessor struct {
-	fileCount int
-}
-
-func (b *BenchProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
-	r, err := resultsFile.Open()
-	if err != nil {
-		return err
-	}
-	defer util.Close(r)
-
-	md5Hash := md5.New()
-	bytesWritten, err := io.Copy(md5Hash, r)
-	if err != nil {
-		return err
-	}
-
-	sklog.Infof("Processed %s (%x, %d)", resultsFile.Name(), md5Hash.Sum(nil), bytesWritten)
-	b.fileCount++
-	if b.fileCount%1000 == 0 {
-		sklog.Info("Processed %d files", b.fileCount)
-	}
-	return nil
 }
