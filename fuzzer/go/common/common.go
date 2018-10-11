@@ -103,7 +103,7 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "Pathop", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
-	"api_pathop": {
+	"api_polyutils": {
 		PrettyName:          "API - PolyUtils",
 		Status:              EXPERIMENTAL_FUZZER,
 		Groomer:             "jvanverth",
