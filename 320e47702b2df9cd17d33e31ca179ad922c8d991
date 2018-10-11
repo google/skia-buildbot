@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ea76907b_48b72522",
+        "filename": "go/task_driver/emitter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ec73e4b_a574921a",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad59b604_3b618cbd",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2018-10-10T20:03:53Z",
       "side": 1,
       "message": "Why \u0026err?",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54600085_95ceb3e3",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Arguments to deferred funcs get evaluated in the defer statement, not when the func is called.  In the case the function-scoped step, we have to pass a pointer or the error passed to Done will always be nil.  That allows us to do this:\n\nfunc(s *Step) (err error) {\n    s \u003d s.Step().Start()\n    defer s.Done(\u0026err)\n\n    ...\n}\n\ninstead of this:\n\nfunc(s *Step) (err error) {\n    s \u003d s.Step().Start()\n    defer func() {\n        s.Done(err)\n    }()\n\n    ...\n}",
+      "parentUuid": "ad59b604_3b618cbd",
       "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "4a8e281b_fe22c7b6",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Agreed.  Do() and the function-scoped step shown below are the recommended usages.  I was trying to introduce the basic building blocks of Steps first, but what I should\u0027ve done was introduce the most basic *usage* first. I changed these first couple of examples to use Do() and added a later section recommending against this usage pattern (ie. storing a new step as a local variable and calling Done() outside of a defer).",
+      "parentUuid": "b4bfb0a2_7f8b6edd",
+      "range": {
+        "startLine": 70,
+        "startChar": 69,
+        "endLine": 72,
+        "endChar": 17
+      },
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d22bc647_58906d2f",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 1
@@ -70,6 +130,24 @@
       "writtenOn": "2018-10-10T20:03:53Z",
       "side": 1,
       "message": "if err :\u003d s.Do(RunStepFunc); err !\u003d nil {\n  sklog.Fatal(err)\n}",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b641ad07_2235a72d",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Not necessary, since RunStepFunc defines its own step.",
+      "parentUuid": "d22bc647_58906d2f",
       "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "0d2ee9b3_b36bdf9d",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "I think the function-scoped usage is nicer than Do() for anything but very small chunks of work.  Do() will result in multiple levels of indent and IMO will be harder to read.  FTR Do() is pretty much what I had written in my first patch set of the original experimentation CL.  Once I started getting into writing \"real\" sets of steps with non-trivial amounts of work, it was much harder to read.",
+      "parentUuid": "0bddb272_5b0e2f86",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "37b46d48_d01617da",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 1
@@ -107,6 +203,24 @@
       "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c56a27bc_735a640a",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37b46d48_d01617da",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -133,6 +247,30 @@
     },
     {
       "key": {
+        "uuid": "db6ec0ed_6f9c2311",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "816cb696_c0ae08a6",
+      "range": {
+        "startLine": 153,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 0
+      },
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db2356ad_b5654e73",
         "filename": "go/task_driver/receiver.go",
         "patchSetId": 1
@@ -150,6 +288,24 @@
     },
     {
       "key": {
+        "uuid": "e67edbf1_203be873",
+        "filename": "go/task_driver/receiver.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "I like having these be separate calls because it places the burden of differentiating between types of messages on the emitter rather than the receiver.  Otherwise, for example, the ReportReceiver would need to determine whether the message is valid JSON (including potentially buffering to ensure that it has received the entire string of bytes which makes up the message) in order to decide whether it\u0027s dealing with step metadata or logs, which are treated differently.  Another example is the PubSubReceiver (coming in a subsequent CL) which just drops all logs on the floor but sends pubsub messages for step metadata.",
+      "parentUuid": "db2356ad_b5654e73",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b4717acd_24b04ebb",
         "filename": "go/task_driver/step.go",
         "patchSetId": 1
@@ -161,6 +317,24 @@
       "writtenOn": "2018-10-10T20:03:53Z",
       "side": 1,
       "message": "Why is err a *error?",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "344bd031_b96a4ddd",
+        "filename": "go/task_driver/step.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T12:00:20Z",
+      "side": 1,
+      "message": "Per my other comment, we can\u0027t defer step.Done() without using a pointer.",
+      "parentUuid": "b4717acd_24b04ebb",
       "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
