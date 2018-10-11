@@ -1,6 +1,7 @@
 package task_driver
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -24,15 +26,9 @@ var (
 	SCOPES = []string{logging.WriteScope}
 )
 
-// run represents a full test automation run.
-type run struct {
-	done    func()
-	emitter *stepEmitter
-	report  *ReportReceiver
-}
-
-// Init begins a new test automation run.
-func Init(projectId, taskId, taskName, output *string, local *bool) (*Step, error) {
+// StartRunWithErr begins a new test automation run, returning any error which
+// occurs.
+func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (context.Context, error) {
 	common.Init()
 
 	// TODO(borenet): Catch SIGINT, SIGKILL and report.
@@ -66,28 +62,44 @@ func Init(projectId, taskId, taskName, output *string, local *bool) (*Step, erro
 	emitter := newStepEmitter(*taskId, receivers)
 
 	// Set up and return the root-level Step.
-	r := &run{
-		done:    func() {},
-		emitter: emitter,
-		report:  report,
-	}
-	rv := newStep(STEP_ID_ROOT, r, nil).Start()
-	return rv, nil
+	ctx := newRun(emitter)
+	return ctx, nil
 }
 
-// MustInit begins a new test automation run, panicking if any setup fails.
-func MustInit(projectId, taskId, taskName, output *string, local *bool) *Step {
-	s, err := Init(projectId, taskId, taskName, output, local)
+// StartRun begins a new test automation run, panicking if any setup fails.
+func StartRun(projectId, taskId, taskName, output *string, local *bool) context.Context {
+	ctx, err := StartRunWithErr(projectId, taskId, taskName, output, local)
 	if err != nil {
 		sklog.Fatalf("Failed task_driver.Init(): %s", err)
 	}
-	return s
+	return ctx
 }
 
-// Perform any cleanup work for the run.
-func (r *run) Done() {
-	defer r.done()
-	if err := r.report.Report(); err != nil {
-		sklog.Fatal(err)
+// Perform any cleanup work for the run. Should be deferred in main().
+func FinishRun(ctx context.Context, err *error) {
+	defer getRun(ctx).done()
+
+	// Mark the root step as finished.
+	finishStep(ctx, err, recover())
+}
+
+// run represents a full test automation run.
+type run struct {
+	done    func()
+	emitter *stepEmitter
+}
+
+// newRun returns a context.Context representing a Task Driver run, including
+// creation of a root step.
+func newRun(e *stepEmitter) context.Context {
+	r := &run{
+		done: func() {
+			util.Close(e)
+		},
+		emitter: e,
 	}
+	ctx := context.Background()
+	ctx = setRun(ctx, r)
+	ctx = newStep(ctx, STEP_ID_ROOT, nil, nil)
+	return ctx
 }

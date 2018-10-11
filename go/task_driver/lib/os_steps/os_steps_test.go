@@ -12,7 +12,7 @@ import (
 
 func TestOsSteps(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := task_driver.InitForTesting(t)
+	tr := task_driver.StartTestRun(t)
 	defer tr.Cleanup()
 
 	// Root-level step.
@@ -59,7 +59,7 @@ func TestOsSteps(t *testing.T) {
 	assert.True(t, os.IsNotExist(err))
 
 	// Ensure that we got the expected step results.
-	results := tr.Finish(nil)
+	results := tr.FinishRun(false, nil)
 	assert.Equal(t, len(results.Steps), len(expect))
 	for idx, stepResult := range results.Steps {
 		assert.Equal(t, stepResult.Result, expect[idx])

@@ -5,6 +5,7 @@ package os_steps
 */
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -12,9 +13,9 @@ import (
 )
 
 // Stat is a wrapper for os.Stat.
-func Stat(s *task_driver.Step, path string) (os.FileInfo, error) {
+func Stat(ctx context.Context, path string) (os.FileInfo, error) {
 	var rv os.FileInfo
-	return rv, s.Step().Infra().Name(fmt.Sprintf("Stat %s", path)).Do(func(*task_driver.Step) error {
+	return rv, task_driver.Do(ctx, task_driver.Opts(task_driver.Infra(), task_driver.Name(fmt.Sprintf("Stat %s", path))), func(context.Context) error {
 		fi, err := os.Stat(path)
 		rv = fi
 		return err
@@ -22,15 +23,15 @@ func Stat(s *task_driver.Step, path string) (os.FileInfo, error) {
 }
 
 // MkdirAll is a wrapper for os.MkdirAll.
-func MkdirAll(s *task_driver.Step, path string) (err error) {
-	return s.Step().Infra().Name(fmt.Sprintf("MkdirAll %s", path)).Do(func(*task_driver.Step) error {
+func MkdirAll(ctx context.Context, path string) (err error) {
+	return task_driver.Do(ctx, task_driver.Opts(task_driver.Infra(), task_driver.Name(fmt.Sprintf("MkdirAll %s", path))), func(context.Context) error {
 		return os.MkdirAll(path, os.ModePerm)
 	})
 }
 
 // RemoveAll is a wrapper for os.RemoveAll.
-func RemoveAll(s *task_driver.Step, path string) (err error) {
-	return s.Step().Infra().Name(fmt.Sprintf("RemoveAll %s", path)).Do(func(*task_driver.Step) error {
+func RemoveAll(ctx context.Context, path string) (err error) {
+	return task_driver.Do(ctx, task_driver.Opts(task_driver.Infra(), task_driver.Name(fmt.Sprintf("RemoveAll %s", path))), func(context.Context) error {
 		return os.RemoveAll(path)
 	})
 }
