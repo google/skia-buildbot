@@ -22,6 +22,30 @@
       "revId": "9089cbe63598bfad8ddeeec93cf3a5a53e884288",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1357f0e8_987ef577",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-11T13:11:08Z",
+      "side": 1,
+      "message": "Done. Also removed this roller from push and prometheus.",
+      "parentUuid": "4d143d15_0e9908ba",
+      "range": {
+        "startLine": 186,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 3
+      },
+      "revId": "9089cbe63598bfad8ddeeec93cf3a5a53e884288",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
