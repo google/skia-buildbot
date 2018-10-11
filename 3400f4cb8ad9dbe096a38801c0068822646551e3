@@ -52,6 +52,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9d924d4_6b064040",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-11T19:42:43Z",
+      "side": 1,
+      "message": "I think turning a returned error into a failed step is central to making this work.  I don\u0027t believe that we we\u0027ll be able to correctly parse error logs and actually attribute the correct errors to the correct steps.  What if we return the error without logging anything?  If we follow our typical convention, we\u0027ll get a root-level failure with no information about which step actually failed.",
+      "parentUuid": "fec5f0f8_0fc5389a",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
