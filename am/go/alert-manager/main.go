@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -162,6 +163,13 @@ func New() (*Server, error) {
 	}
 	srv.loadTemplates()
 
+	// The set of clusters we expect to get data from.
+	livenesses := map[string]metrics2.Liveness{
+		"skia-public":               metrics2.NewLiveness("alive", map[string]string{"location": "skia-public"}),
+		"skia-corp":                 metrics2.NewLiveness("alive", map[string]string{"location": "skia-corp"}),
+		"google.com:skia-buildbots": metrics2.NewLiveness("alive", map[string]string{"location": "google.com:skia-buildbots"}),
+	}
+
 	// Process all incoming PubSub requests.
 	go func() {
 		for {
@@ -174,6 +182,11 @@ func New() (*Server, error) {
 				}
 				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
 					sklog.Infof("healthz received: %q", m[alerts.LOCATION])
+					if l, ok := livenesses[m[alerts.LOCATION]]; ok {
+						l.Reset()
+					} else {
+						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
+					}
 				} else {
 					if _, err := srv.incidentStore.AlertArrival(m); err != nil {
 						sklog.Errorf("Error processing alert: %s", err)
