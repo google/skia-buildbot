@@ -255,39 +255,6 @@ ALERT IssueTrackerLiveness
     description = "Issue tracker ingestion has failed to run in at least 30 minutes."
   }
 
-# Autoroller
-
-ALERT AutoRollBackendErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="autoroll-be"}[1h]) > 0.001
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate"
-  }
-
-ALERT AutoRollLastTransition
-  IF liveness_last_successful_autoroll_tick_s{roller!="skia-flutter-autoroll"} > 10*60
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll"
-  }
-
-# skia-flutter-autoroll takes a long time to transition because it's pre-upload
-# scripts run flutter's license script which can take around 20 minutes.
-ALERT AutoRollLastTransition
-  IF liveness_last_successful_autoroll_tick_s{roller="skia-flutter-autoroll"} > 30*60
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "Autoroll on {{ $labels.instance }} has failed to transition for more than 30 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll"
-  }
-
-ALERT AutoRollGetSheriffFailed
-  IF autoroll_get_sheriff_success == 0
-  FOR 2h
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "Autoroll on {{ $labels.instance }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll"
-  }
-
 # Gold
 
 ALERT GoldIgnoreMonitoring
