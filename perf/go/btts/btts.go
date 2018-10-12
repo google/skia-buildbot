@@ -51,7 +51,7 @@ const (
 	MAX_MUTATIONS = 100000
 
 	TIMEOUT       = 1 * time.Minute
-	WRITE_TIMEOUT = 2 * time.Minute
+	WRITE_TIMEOUT = 10 * time.Minute
 )
 
 // TileKey is the identifier for each tile held in BigTable.
