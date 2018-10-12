@@ -4,4 +4,6 @@ package constants
 const (
 	// COMMITS_PER_TILE is the number of commits that are stored per ptracestore tile.
 	COMMITS_PER_TILE = 50
+
+	MIN_SSE = 10e-6
 )
