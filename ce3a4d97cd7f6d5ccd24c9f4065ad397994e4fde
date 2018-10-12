@@ -22,6 +22,30 @@
       "revId": "ce3a4d97cd7f6d5ccd24c9f4065ad397994e4fde",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba4841af_c04bf974",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-12T15:46:29Z",
+      "side": 1,
+      "message": "Done.\n\nAlso reduced repetition by constructing livenesses in a loop.",
+      "parentUuid": "23f1c481_603ea8b6",
+      "range": {
+        "startLine": 169,
+        "startChar": 92,
+        "endLine": 169,
+        "endChar": 101
+      },
+      "revId": "ce3a4d97cd7f6d5ccd24c9f4065ad397994e4fde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
