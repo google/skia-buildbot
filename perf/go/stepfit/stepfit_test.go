@@ -16,22 +16,22 @@ func TestStepFit(t *testing.T) {
 	}{
 		{
 			value:    []float32{0, 0, 1, 1, 1},
-			expected: &StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH},
+			expected: &StepFit{TurningPoint: 2, StepSize: -1, Status: HIGH, Regression: -100000},
 			message:  "Simple Step Up",
 		},
 		{
 			value:    []float32{1, 1, 0, 0, 0},
-			expected: &StepFit{TurningPoint: 2, StepSize: 1, Status: LOW},
+			expected: &StepFit{TurningPoint: 2, StepSize: 1, Status: LOW, Regression: 100000},
 			message:  "Simple Step Down",
 		},
 		{
 			value:    []float32{1, 1, 1, 1, 1},
-			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING},
+			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING, Regression: -2.7105057e-19},
 			message:  "No step",
 		},
 		{
 			value:    []float32{},
-			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING},
+			expected: &StepFit{TurningPoint: 0, StepSize: -1, Status: UNINTERESTING, Regression: 0},
 			message:  "Empty",
 		},
 	}
@@ -46,6 +46,9 @@ func TestStepFit(t *testing.T) {
 		}
 		if got.TurningPoint != want.TurningPoint {
 			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.TurningPoint, want.TurningPoint, tc.message)
+		}
+		if got.Regression != want.Regression {
+			t.Errorf("Failed StepFit Got %#v Want %#v: %s", got.Regression, want.Regression, tc.message)
 		}
 	}
 	// With a huge interesting value everything should be uninteresting.
