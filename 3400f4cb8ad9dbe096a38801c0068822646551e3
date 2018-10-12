@@ -225,6 +225,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f09a52b7_c6707b5d",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T15:55:49Z",
+      "side": 1,
+      "message": "Why go back to pre-context?  We can still do concurrency with contexts, as long as they\u0027re passed around properly, and IMO it\u0027s much more natural for a context to be passed to every function call than passing a Step everywhere.  Plus, if we did add a context to sklog, we\u0027d be able to just pass the same context through.",
+      "parentUuid": "97b31057_4c8df467",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
