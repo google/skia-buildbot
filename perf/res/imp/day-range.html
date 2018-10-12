@@ -89,7 +89,7 @@ href="/res/imp/bower_components/app-datepicker/app-datepicker-dialog.html">
         // The data-changed event doesn't get fired if you select 'today', so
         // we have to cover that corner case by looking at the dialog close
         // event.
-        if (this.$.beginPicker.date != this.beginDate) {
+        if (this.$.beginPicker.inputDate != this.beginDate) {
           this.begin = this._toUnix(this.$.beginPicker.date);
           this._triggerEvent();
         }
@@ -99,7 +99,7 @@ href="/res/imp/bower_components/app-datepicker/app-datepicker-dialog.html">
         // The data-changed event doesn't get fired if you select 'today', so
         // we have to cover that corner case by looking at the dialog close
         // event.
-        if (this.$.endPicker.date != this.endDate) {
+        if (this.$.endPicker.inputDate != this.endDate) {
           this.end = this._toUnix(this.$.endPicker.date);
           this._triggerEvent();
         }
