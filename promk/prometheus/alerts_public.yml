@@ -70,13 +70,13 @@ groups:
       abbr: 'CQ trybot running for too long.'
       description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQTrybotDurationError%22'
   - alert: CQWatcherTrybotsCount
-    expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 35
+    expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 50
     labels:
       category: infra
       severity: warning
     annotations:
       abbr: 'Too many CQ trybots triggered by CL.'
-      description: 'There are more than 35 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQCLsCountError%22'
+      description: 'There are more than 50 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQCLsCountError%22'
 
   # Fuzzer
   - alert: FuzzerUploadQueue
