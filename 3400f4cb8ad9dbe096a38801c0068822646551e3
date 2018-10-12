@@ -88,6 +88,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97b8f3c6_034a712a",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T12:14:50Z",
+      "side": 1,
+      "message": "Another feature I was hoping to support was concurrency.  Or rather, I\u0027d like to write the framework in a way that doesn\u0027t restrict that feature.  If we might have multiple simultaneous steps, we can\u0027t do something like this:\n\nfunc someStep() error {\n    defer td.StartStep(\"Foo\").Done()\n\n    if err :\u003d doSomething(); err !\u003d nil {\n        td.FailCurrentStep(err)\n        return err\n    }\n    return nil\n}\n\nInstead, we need to pass the context around to ensure that the failure gets attributed to the right step.  I just wanted to be clear about why I didn\u0027t include any global current step and why I don\u0027t want to rely on log ordering.  So we have something like this:\n\nfunc someStep(ctx context.Context) error {\n    ctx \u003d td.StartStep(ctx)\n    defer td.EndStep(ctx)\n\n    if err :\u003d doSomething(ctx); err !\u003d nil {\n        td.FailStep(ctx, err)\n        return err\n    }\n    return nil\n}\n\nI think that\u0027s okay.  I\u0027m just afraid that people will forget to call FailStep, which is why I went to such lengths to pass the error pointer into the deferred EndStep.",
+      "parentUuid": "1efb53ee_cd660484",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
