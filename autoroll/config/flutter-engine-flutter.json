@@ -10,7 +10,6 @@
   "rollerName": "flutter-engine-flutter-autoroll",
   "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "rmistry@google.com",
     "liyuqian@google.com"
   ],
   "githubRepoOwner": "flutter",
