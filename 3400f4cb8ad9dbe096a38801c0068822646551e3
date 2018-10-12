@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "53d433d2_d84460e5",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T14:59:02Z",
+      "side": 1,
+      "message": "Yeah, I think this is the one thing that got worse when switching to use context.  Especially in the case of Do(), where I would have rather used variadic arguments, but that would have required putting the step properties after the passed-in func, which would be really unreadable in the case of longer funcs:\n\nerr \u003d td.Do(ctx, func(ctx context.Context) error {\n   // Lots of lines here\n}, td.Infra(), td.Env(env), td.Name(...))\n\nWe do have a StepProperties struct which contains all of this information.  Maybe I can just change StartStep and Do to take a StepProperties instance and add builder funcs on to StepProperties. For example:\n\nerr \u003d td.Do(ctx, td.Props().Infra().Env(env).Name(\"named infra step with env\"), func(ctx context.Context) error {\n...\n\nI\u0027ll play with that idea a bit.",
+      "parentUuid": "b677cf5e_f54c4616",
+      "range": {
+        "startLine": 78,
+        "startChar": 21,
+        "endLine": 78,
+        "endChar": 25
+      },
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14f88326_41981b45",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 1
