@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4936fb9d_11c6d733",
+        "filename": "golden/go/baseline/mergeable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-12T20:26:40Z",
+      "side": 1,
+      "message": "Done\nChanged to \u0027exactly one\u0027 and enforced in read function. We can always relax that later.",
+      "parentUuid": "b6e240c8_3a7a68a4",
+      "range": {
+        "startLine": 22,
+        "startChar": 50,
+        "endLine": 22,
+        "endChar": 77
+      },
+      "revId": "ab7d5b8c01c3907169458da649ff4df505fa6a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e89025ad_4818fe0e",
         "filename": "golden/go/baseline/mergeable.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "ab7d5b8c01c3907169458da649ff4df505fa6a70",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a836c729_24851d0b",
+        "filename": "golden/go/baseline/mergeable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-12T20:26:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e89025ad_4818fe0e",
+      "range": {
+        "startLine": 188,
+        "startChar": 53,
+        "endLine": 188,
+        "endChar": 57
+      },
+      "revId": "ab7d5b8c01c3907169458da649ff4df505fa6a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
