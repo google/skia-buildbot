@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/constants"
 )
 
 const (
@@ -64,7 +65,12 @@ func GetStepFitAtMid(trace []float32, interesting float32) *StepFit {
 		}
 	}
 	lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
-	regression := stepSize / lse
+	var regression float32
+	if lse < constants.MIN_SSE {
+		regression = stepSize / constants.MIN_SSE
+	} else {
+		regression = stepSize / lse
+	}
 	status := UNINTERESTING
 	if regression > interesting {
 		status = LOW
