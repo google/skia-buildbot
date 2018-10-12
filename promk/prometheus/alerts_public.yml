@@ -124,6 +124,16 @@ groups:
       abbr: skia-public
       description: 'A backup of Cloud Datastore has not succeeded in the last 25 hours. https://skia.googlesource.com/buildbot/%2B/master/ds/PROD.md#backup_not_done'
 
+# alert-to-pubsub liveness
+  - alert: AlertToPubSubLiveness
+    expr: min(liveness_alive_s) by (location) > 90
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: alert-to-pubsub
+      description: 'alert-to-pubsub has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/master/am/PROD.md#alert_to_pubsub'
+
 # CT
 # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
   - alert: CTPollerHealthCheck
