@@ -240,9 +240,11 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 
 	// This query will only encode for one tile and should still succeed.
-	df, err = builder.NewFromKeysAndRange([]string{",arch=riscv,"}, now, now, nil)
+	q, err = query.New(url.Values{"arch": []string{"riscv"}})
 	assert.NoError(t, err)
-	assert.Len(t, df.TraceSet, 0)
+	df, err = builder.NewFromQueryAndRange(now, now, q, nil)
+	assert.NoError(t, err)
+	assert.Len(t, df.TraceSet, 1)
 	assert.Len(t, df.Header, 8)
 }
 
