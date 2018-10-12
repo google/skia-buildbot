@@ -239,6 +239,30 @@
     },
     {
       "key": {
+        "uuid": "cd574a32_ae517585",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-12T16:36:14Z",
+      "side": 1,
+      "message": "Did you forget to upload a patchset?",
+      "parentUuid": "cb361d73_b5289646",
+      "range": {
+        "startLine": 24,
+        "startChar": 4,
+        "endLine": 24,
+        "endChar": 38
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "197e4525_355dbf5f",
         "filename": "go/task_driver/examples/basic/basic.go",
         "patchSetId": 3
@@ -331,6 +355,30 @@
       "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d8ff253_e45ae179",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-12T16:36:14Z",
+      "side": 1,
+      "message": "\u003e The infra task driver (in an upcoming CL, but also was present in the initial experiment: https://skia-review.googlesource.com/c/buildbot/+/156233/44/infra/bots/task_drivers/infra_tests/infra_tests.go#100) has a step whose purpose is just to set the environment for its sub-steps.  I guess we could give it a name like \"set environment\" but it\u0027s more typing for little to no benefit.  Once we get to the point where we\u0027re displaying steps in a UI we may find that anonymous steps are hard to represent.  At that point we can make names mandatory if necessary.\n\n\"Once we get to the point where we\u0027re displaying steps in a UI we may find that anonymous steps are hard to represent.\"\nRight, that is exactly what I am afraid of.\nI look at this like setting silence descriptions: unless they are mandatory, majority of silences will not have descriptions. Hopefully people do not create majority of steps with no names.\n\n\"At that point we can make names mandatory if necessary.\"\nSGTM",
+      "parentUuid": "f163dfa4_55ed20dd",
+      "range": {
+        "startLine": 87,
+        "startChar": 30,
+        "endLine": 87,
+        "endChar": 66
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -535,6 +583,30 @@
       "side": 1,
       "message": "Are you talking about adding library functions to help with GCS stuff?  If so, yeah, that seems reasonable to me.  I just didn\u0027t think it warranted an extra section in this particular example.",
       "parentUuid": "64b5e275_ddc7a7c1",
+      "range": {
+        "startLine": 168,
+        "startChar": 4,
+        "endLine": 168,
+        "endChar": 9
+      },
+      "revId": "9a53274257a50255a3cbbf1f5d3a8ea2a37d17a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ddc4ae45_a273096e",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-12T16:36:14Z",
+      "side": 1,
+      "message": "Yes, library functions to help with GCS.\nNot having it here is fine, we can add later as needed.",
+      "parentUuid": "a8ab96be_9916c206",
       "range": {
         "startLine": 168,
         "startChar": 4,
