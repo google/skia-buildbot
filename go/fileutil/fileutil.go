@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -147,16 +148,21 @@ func ReadLines(path string) ([]string, error) {
 		return nil, err
 	}
 	defer util.Close(file)
+	return ReadLinesFromReader(file)
+}
 
+// ReadLinesFromReader reads the content of r as lines.
+// It returns the lines without the trailing '\n' characters.
+func ReadLinesFromReader(r io.Reader) ([]string, error) {
 	result := []string{}
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		result = append(result, scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
-	return result, err
+	return result, nil
 }
 
 // CountLines opens the given path and counts the number of lines in the file.
