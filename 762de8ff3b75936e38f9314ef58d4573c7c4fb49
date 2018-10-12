@@ -46,6 +46,30 @@
       "revId": "762de8ff3b75936e38f9314ef58d4573c7c4fb49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f6e3dc7_0918f0e3",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T14:53:20Z",
+      "side": 1,
+      "message": "Ah, right. 50 SGTM",
+      "parentUuid": "33e73160_15e4edc8",
+      "range": {
+        "startLine": 73,
+        "startChar": 82,
+        "endLine": 73,
+        "endChar": 84
+      },
+      "revId": "762de8ff3b75936e38f9314ef58d4573c7c4fb49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
