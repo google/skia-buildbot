@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "15309f14_cf1d4295",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T14:34:30Z",
+      "side": 1,
+      "message": "There are currently 33 try jobs on the Skia CQ, and presubmit always runs twice, so we have effectively 34.  Can we make the limit to 70 or so instead?  It\u0027s pretty common that 24 hours passes between a CQ dry run and a CQ+2, which results in re-running all of the trybots again.  It\u0027d be nice not to trigger an alert in this case.",
+      "range": {
+        "startLine": 73,
+        "startChar": 82,
+        "endLine": 73,
+        "endChar": 84
+      },
+      "revId": "762de8ff3b75936e38f9314ef58d4573c7c4fb49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
