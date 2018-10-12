@@ -142,6 +142,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88d895be_6d63334d",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T13:50:54Z",
+      "side": 1,
+      "message": "... Another grievance I have is that glog.Fatal() doesn\u0027t actually create a panic.  It dumps the stacktrace and then does os.Exit(255).  Therefore, deferred funcs do not run, and it\u0027s impossible to recover or flush any non-sklog cloud loggers, close open files, etc etc.",
+      "parentUuid": "9e5c52bd_3a6ad8a7",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
