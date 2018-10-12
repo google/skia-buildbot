@@ -124,6 +124,24 @@
       "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e5c52bd_3a6ad8a7",
+        "filename": "go/task_driver/examples/basic/basic.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T13:40:37Z",
+      "side": 1,
+      "message": "Yeah, I hadn\u0027t worked that out yet.  My CL for cloud logging created its own logger for subprocess logs and step metadata and used labels to attach the step ID to every log entry.  A better solution is probably to add a LogContext to the sklog package which allows you to provide extra information, eg. labels, and then gets passed in to subsequent calls to sklog, eg.\n\npackage sklog\n\nfunc NewContext(ctx context.Context, labels map[string]string) context.Context {\n    ...\n}\n\nfunc InfoCtx(ctx context.Context, ...) {\n  getLogger(ctx).Info(...)\n}\n\n...\n\nfunc Info(...) {\n  defaultLogger.Info(...)\n}\n\n... or we make a giant sweeping change to always pass a context to sklog, or we add a logger type and use that instead of package-level Info() etc.",
+      "parentUuid": "4cc483b7_ab57d6d9",
+      "revId": "3400f4cb8ad9dbe096a38801c0068822646551e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
