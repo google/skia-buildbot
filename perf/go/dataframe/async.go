@@ -80,6 +80,8 @@ type FrameRequestProcess struct {
 	// dfBuilder builds DataFrame's.
 	dfBuilder DataFrameBuilder
 
+	ctx context.Context
+
 	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
 	lastUpdate    time.Time    // The last time this process was updated.
@@ -102,6 +104,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 		dfBuilder:     fr.dfBuilder,
+		ctx:           ctx,
 	}
 	go ret.Run(ctx)
 	return ret
@@ -283,7 +286,7 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 		df = NewHeaderOnly(p.git, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(ctx, df, p.git, true, p.request.TZ)
+	resp, err := ResponseFromDataFrame(p.ctx, df, p.git, true, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return

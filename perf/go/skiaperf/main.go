@@ -333,6 +333,8 @@ func Init() {
 			}
 		}
 		notifier = notify.New(emailAuth, *subdomain)
+	} else {
+		notifier = notify.New(notify.NoEmail{}, *subdomain)
 	}
 
 	frameRequests = dataframe.NewRunningFrameRequests(git, dfBuilder)
@@ -535,7 +537,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := FrameStartResponse{
-		ID: frameRequests.Add(context.Background(), fr),
+		ID: frameRequests.Add(r.Context(), fr),
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
