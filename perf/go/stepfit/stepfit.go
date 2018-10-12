@@ -12,6 +12,9 @@ const (
 	LOW           = "Low"
 	HIGH          = "High"
 	UNINTERESTING = "Uninteresting"
+
+	// MIN_SSE is the minimum sum squares error we'll accept.
+	MIN_SSE = 10e-6
 )
 
 // StepFit stores information on the best Step Function fit on a trace.
@@ -64,7 +67,12 @@ func GetStepFitAtMid(trace []float32, interesting float32) *StepFit {
 		}
 	}
 	lse = float32(math.Sqrt(float64(lse))) / float32(len(trace))
-	regression := stepSize / lse
+	var regression float32
+	if lse < MIN_SSE {
+		regression = stepSize / MIN_SSE
+	} else {
+		regression = stepSize / lse
+	}
 	status := UNINTERESTING
 	if regression > interesting {
 		status = LOW
