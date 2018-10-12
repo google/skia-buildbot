@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"regexp"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -41,6 +42,14 @@ var (
 // Email sending interface. Note that email.GMail implements this interface.
 type Email interface {
 	Send(from string, to []string, subject string, body string) error
+}
+
+// NoEmail implements Email but only logs the information without sending email.
+type NoEmail struct{}
+
+func (n NoEmail) Send(from string, to []string, subject string, body string) error {
+	sklog.Infof("Not sending email: From: %q To: %q Subject: %q Body: %q", from, to, subject, body)
+	return nil
 }
 
 // Notifier sends notifications.
