@@ -46,6 +46,30 @@
       "revId": "ce3a4d97cd7f6d5ccd24c9f4065ad397994e4fde",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6507d03_d38aaef6",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-12T16:19:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ba4841af_c04bf974",
+      "range": {
+        "startLine": 169,
+        "startChar": 92,
+        "endLine": 169,
+        "endChar": 101
+      },
+      "revId": "ce3a4d97cd7f6d5ccd24c9f4065ad397994e4fde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
