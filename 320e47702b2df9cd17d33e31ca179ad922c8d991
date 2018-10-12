@@ -324,6 +324,24 @@
     },
     {
       "key": {
+        "uuid": "a2efd3da_afc00299",
+        "filename": "go/task_driver/receiver.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-12T15:32:07Z",
+      "side": 1,
+      "message": "Makes sense.  I\u0027ll remove emitter and receiver from the picture for now and just log the messages.",
+      "parentUuid": "2f531234_94759465",
+      "revId": "320e47702b2df9cd17d33e31ca179ad922c8d991",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b4717acd_24b04ebb",
         "filename": "go/task_driver/step.go",
         "patchSetId": 1
