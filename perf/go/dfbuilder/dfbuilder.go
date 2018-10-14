@@ -140,6 +140,14 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 				// Not an error, we just won't match anything in this tile.
 				return nil
 			}
+			if !q.Empty() && r.String() == "" {
+				// Not an error, we just won't match anything in this tile. This
+				// condition occurs if a new key appears from one tile to the next, in
+				// which case Regexp(ops) returns "" for the Tile that's never seen the
+				// key.
+				sklog.Info("Query matches all traces, which we'll ignore.")
+				return nil
+			}
 			// Query for matching traces in the given tile.
 			traces, err := b.store.QueryTraces(tileKey, r)
 			if err != nil {

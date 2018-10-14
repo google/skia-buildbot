@@ -254,6 +254,11 @@ func New(q url.Values) (*Query, error) {
 	return &Query{params: params}, nil
 }
 
+// Empty returns true of the Query is empty, i.e. it will match any trace.
+func (q *Query) Empty() bool {
+	return len(q.params) == 0
+}
+
 // Matches returns true if the given structured key matches the query.
 func (q *Query) Matches(s string) bool {
 	// Search forward in the given structured key. Since q.params are in
