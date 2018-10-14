@@ -235,14 +235,16 @@ func TestBuildNew(t *testing.T) {
 
 	// Add a value that only appears in one of the tiles.
 	err = addValusAtIndex(store, 7, map[string]float32{
-		",arch=riscv,config=8888,": 3.0,
+		",config=8888,model=Pixel,": 3.0,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
 
 	// This query will only encode for one tile and should still succeed.
-	df, err = builder.NewFromKeysAndRange([]string{",arch=riscv,"}, now, now, nil)
+	q, err = query.New(url.Values{"model": []string{"Pixel"}})
 	assert.NoError(t, err)
-	assert.Len(t, df.TraceSet, 0)
+	df, err = builder.NewFromQueryAndRange(now, now, q, nil)
+	assert.NoError(t, err)
+	assert.Len(t, df.TraceSet, 1)
 	assert.Len(t, df.Header, 8)
 }
 
