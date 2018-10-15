@@ -17,10 +17,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"google.golang.org/api/option"
-	gstorage "google.golang.org/api/storage/v1"
-	"google.golang.org/grpc"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -52,6 +48,9 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web"
+	"google.golang.org/api/option"
+	gstorage "google.golang.org/api/storage/v1"
+	"google.golang.org/grpc"
 )
 
 const (

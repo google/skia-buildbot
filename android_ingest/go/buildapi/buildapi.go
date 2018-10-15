@@ -8,9 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 

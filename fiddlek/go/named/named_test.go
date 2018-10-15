@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/fiddlek/go/store"
 	"go.skia.org/infra/go/testutils"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type namedMock struct {

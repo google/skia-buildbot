@@ -11,11 +11,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 	"time"
-
-	_ "net/http/pprof"
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"

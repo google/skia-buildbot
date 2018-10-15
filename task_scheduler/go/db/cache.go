@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/task_scheduler/go/window"
-
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (

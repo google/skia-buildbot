@@ -13,7 +13,6 @@ import (
 	"time"
 
 	github_api "github.com/google/go-github/github"
-
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/gerrit"

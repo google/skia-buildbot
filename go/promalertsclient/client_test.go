@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestSunnyDayNoFilter(t *testing.T) {

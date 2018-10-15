@@ -8,13 +8,12 @@ import (
 	"net/http"
 
 	gstorage "cloud.google.com/go/storage"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/types"
+	"google.golang.org/api/option"
 )
 
 // GSClientOptions is used to define input parameters to the GStorageClient.

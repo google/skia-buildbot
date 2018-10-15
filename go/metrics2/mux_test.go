@@ -3,10 +3,9 @@ package metrics2
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 )
 
 func testClient(t *testing.T, c Client) {

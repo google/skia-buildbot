@@ -9,13 +9,12 @@ import (
 	"net/url"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 const (

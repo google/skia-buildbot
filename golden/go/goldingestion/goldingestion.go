@@ -6,10 +6,9 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/config"

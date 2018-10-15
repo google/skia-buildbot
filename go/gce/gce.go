@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	compute "google.golang.org/api/compute/v0.beta"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -23,6 +21,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	compute "google.golang.org/api/compute/v0.beta"
 )
 
 const (

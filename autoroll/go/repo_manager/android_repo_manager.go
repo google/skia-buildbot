@@ -11,14 +11,13 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
-
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct_pixel_diff/go/dynamicdiff"
 	"go.skia.org/infra/go/fileutil"

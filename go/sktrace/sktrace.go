@@ -7,9 +7,8 @@ import (
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"go.opencensus.io/trace"
-	"golang.org/x/oauth2"
-
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2"
 )
 
 // TODO(stephana): Re-add Jaeger as a local option when the Go package is stable

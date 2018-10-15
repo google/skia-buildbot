@@ -5,11 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var (

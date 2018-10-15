@@ -11,10 +11,9 @@ import (
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/rtcache"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 )

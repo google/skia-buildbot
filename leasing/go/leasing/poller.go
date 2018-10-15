@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"google.golang.org/api/iterator"
 )
 
 // populateRunningTask updates the provided Task struct with a new state, botId, lease start/end times,

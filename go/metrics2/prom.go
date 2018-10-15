@@ -7,10 +7,9 @@ import (
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/util"
-
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.skia.org/infra/go/util"
 )
 
 var (

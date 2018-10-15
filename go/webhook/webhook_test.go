@@ -7,11 +7,10 @@ import (
 	"net/url"
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
-
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 const (

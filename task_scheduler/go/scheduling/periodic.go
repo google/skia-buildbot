@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 )

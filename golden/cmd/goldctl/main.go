@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"go.skia.org/infra/golden/go/jsonio"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/golden/go/jsonio"
 )
 
 var (

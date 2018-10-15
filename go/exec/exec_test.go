@@ -12,11 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/testutils"
-
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/testutils"
 )
 
 // Copied from go.skia.org/infra/go/util/util.go to avoid recursive dependency.

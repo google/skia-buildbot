@@ -6,13 +6,12 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 // Create a db.JobDB and jobEventDB.

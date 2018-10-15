@@ -14,11 +14,10 @@ import (
 	"net/url"
 	"path/filepath"
 	"runtime"
-	"text/template"
-	"time"
-
 	"strconv"
 	"strings"
+	"text/template"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/fiorix/go-web/autogzip"

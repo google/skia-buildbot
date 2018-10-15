@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
