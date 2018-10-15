@@ -10,9 +10,8 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/go/ds"
+	"google.golang.org/api/iterator"
 )
 
 type CleanupFunc func()

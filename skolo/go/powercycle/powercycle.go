@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
-
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )

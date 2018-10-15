@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/android_ingest/go/buildapi"
 	"go.skia.org/infra/android_ingest/go/lookup"
 	"go.skia.org/infra/android_ingest/go/poprepo"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Process periodically queries the android build api and looks for new

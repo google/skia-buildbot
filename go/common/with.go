@@ -7,14 +7,13 @@ import (
 	"runtime"
 	"sort"
 
-	"golang.org/x/oauth2"
-
 	"github.com/golang/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2"
 )
 
 // Opt represents the initialization parameters for a single init service, where

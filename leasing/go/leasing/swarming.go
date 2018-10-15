@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"

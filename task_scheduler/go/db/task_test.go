@@ -10,7 +10,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"

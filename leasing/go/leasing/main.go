@@ -20,8 +20,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
@@ -31,6 +29,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/iterator"
 )
 
 const (

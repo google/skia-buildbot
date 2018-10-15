@@ -1,22 +1,19 @@
 package diffstore
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"testing"
 
-	"go.skia.org/infra/golden/go/diff"
-
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/types"
-
-	"fmt"
 )
 
 const (

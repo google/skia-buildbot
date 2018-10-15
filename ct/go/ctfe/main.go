@@ -17,8 +17,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
@@ -42,6 +40,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
+	"google.golang.org/api/option"
 )
 
 var (

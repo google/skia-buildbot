@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestStateMachine(t *testing.T) {

@@ -3,10 +3,9 @@ package paramtools
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParamsNew(t *testing.T) {

@@ -14,12 +14,11 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	bb_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
-	"golang.org/x/sync/errgroup"
-
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"golang.org/x/sync/errgroup"
 )
 
 // BuildBucketDBSync fetches issue and build information from the relevant services.

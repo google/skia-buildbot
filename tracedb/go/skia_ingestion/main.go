@@ -14,9 +14,6 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"google.golang.org/api/option"
-	storage "google.golang.org/api/storage/v1"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
@@ -29,6 +26,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	_ "go.skia.org/infra/golden/go/goldingestion"
+	"google.golang.org/api/option"
+	storage "google.golang.org/api/storage/v1"
 )
 
 // Command line flags.

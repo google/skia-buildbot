@@ -4,12 +4,10 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/prometheus/client_golang/prometheus"
+	assert "github.com/stretchr/testify/require"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestClean(t *testing.T) {

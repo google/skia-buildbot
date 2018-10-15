@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"go.skia.org/infra/go/util"
-
 	"github.com/boltdb/bolt"
+	"go.skia.org/infra/go/util"
 )
 
 // EventDB is an interface used for storing Events in a BoltDB.

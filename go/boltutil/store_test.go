@@ -7,7 +7,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )

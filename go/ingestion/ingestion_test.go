@@ -11,11 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/eventbus"
-
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/config"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"

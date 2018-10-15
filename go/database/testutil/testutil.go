@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/testutils"

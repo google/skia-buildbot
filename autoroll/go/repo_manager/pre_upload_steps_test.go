@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 )

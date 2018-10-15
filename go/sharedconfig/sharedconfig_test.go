@@ -4,9 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/testutils"
-
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestIngesterJson5Config(t *testing.T) {
