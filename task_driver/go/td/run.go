@@ -6,11 +6,13 @@ import (
 	"os"
 	"strings"
 
-	"cloud.google.com/go/logging"
 	"github.com/pborman/uuid"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const (
@@ -23,7 +25,7 @@ const (
 
 var (
 	// Auth scopes required for all task_drivers.
-	SCOPES = []string{logging.WriteScope}
+	SCOPES = []string{compute.CloudPlatformScope}
 )
 
 // StartRunWithErr begins a new test automation run, returning any error which
@@ -50,14 +52,46 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		return nil, fmt.Errorf("Task name is required.")
 	}
 
+	ctx := context.Background()
+
+	// Initialize Cloud Logging.
+	var ts oauth2.TokenSource
+	if *local {
+		var err error
+		ts, err = auth.NewDefaultTokenSource(*local, SCOPES...)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		ts, err = auth.NewLUCIContextTokenSource(SCOPES...)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
+		}
+	}
+	labels := map[string]string{
+		"taskId":   *taskId,
+		"taskName": *taskName,
+	}
+	logger, err := sklog.NewCloudLogger(ctx, *projectId, *taskId, ts, labels)
+	if err != nil {
+		return nil, err
+	}
+	sklog.SetLogger(logger)
+
 	// Dump environment variables.
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))
 
 	// Connect receivers.
+	cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
+	if err != nil {
+		return nil, err
+	}
 	report := newReportReceiver(*output)
 	receivers := map[string]Receiver{
-		"DebugReceiver":  &DebugReceiver{},
-		"ReportReceiver": report,
+		"CloudLoggingReceiver": cloudLogging,
+		"DebugReceiver":        &DebugReceiver{},
+		"ReportReceiver":       report,
 	}
 	emitter := newStepEmitter(*taskId, receivers)
 
@@ -98,7 +132,6 @@ func newRun(e *stepEmitter, taskName string) context.Context {
 		},
 		emitter: e,
 	}
-	ctx := context.Background()
 	ctx = setRun(ctx, r)
 	ctx = newStep(ctx, STEP_ID_ROOT, nil, Name(taskName))
 	return ctx
