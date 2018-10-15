@@ -32,8 +32,12 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 	}
 	props.Id = id
 	if parent != nil {
-		// Steps inherit their environment from their parent step.
-		props.Environ = parent.Environ
+		// If empty, steps inherit their environment from their parent
+		// step.
+		// TODO(borenet): Should we merge environments?
+		if len(props.Environ) == 0 {
+			props.Environ = parent.Environ
+		}
 
 		// Steps inherit the infra status of their parent.
 		// TODO(borenet): What if we want to have a parent which is an
@@ -109,11 +113,20 @@ func Do(ctx context.Context, props *StepProperties, fn func(context.Context) err
 	return nil
 }
 
-// execData is extra Step data generated when executing commands through the
-// exec package.
-type execData struct {
-	Cmd []string `json:"command"`
-	Env []string `json:"env,omitempty"`
+// Fatal is a substitute for sklog.Fatal which logs an error and panics.
+// sklog.Fatal does not panic but calls os.Exit, which prevents the Task Driver
+// from properly reporting errors.
+func Fatal(msg ...interface{}) {
+	sklog.Error(msg...)
+	panic(fmt.Sprint(msg...))
+}
+
+// Fatalf is a substitute for sklog.Fatalf which logs an error and panics.
+// sklog.Fatalf does not panic but calls os.Exit, which prevents the Task Driver
+// from properly reporting errors.
+func Fatalf(format string, v ...interface{}) {
+	sklog.Errorf(format, v...)
+	panic(fmt.Sprintf(format, v...))
 }
 
 // logData is extra Step data generated for log streams.
@@ -139,6 +152,13 @@ func NewLogStream(ctx context.Context, name, severity string) io.Writer {
 	return stream
 }
 
+// execData is extra Step data generated when executing commands through the
+// exec package.
+type execData struct {
+	Cmd []string `json:"command"`
+	Env []string `json:"env,omitempty"`
+}
+
 // Return a context.Context associated with this Step. Any calls to exec which
 // use this Context will be attached to the Step.
 func execCtx(ctx context.Context) context.Context {
@@ -148,7 +168,7 @@ func execCtx(ctx context.Context) context.Context {
 			props := getStep(ctx)
 			// Inherit env from the step unless it's explicitly provided.
 			// TODO(borenet): Should we merge instead?
-			if cmd.Env == nil {
+			if len(cmd.Env) == 0 {
 				cmd.Env = props.Environ
 			}
 
