@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "62f592bd_04655cd8",
+        "filename": "task_driver/examples/basic/basic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-15T13:30:56Z",
+      "side": 1,
+      "message": "Document that\nfmt.Sprintf(\"%s_%s\", hostname, uuid.New())\nis used as taskId if local is true\n\nOR\n\nDo not override taskId if local is true and remove the line from run.go because it might be confusing for developer to provide a taskId when running locally only to have it overridden.\nUpdate line 21 in that case.",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 6
+      },
+      "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49f2ff9a_157ba74c",
+        "filename": "task_driver/examples/basic/basic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-15T13:30:56Z",
+      "side": 1,
+      "message": "is this still true?",
+      "range": {
+        "startLine": 38,
+        "startChar": 60,
+        "endLine": 39,
+        "endChar": 45
+      },
+      "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f0ab3ac_7acd3061",
+        "filename": "task_driver/examples/basic/basic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-15T13:30:56Z",
+      "side": 1,
+      "message": "Do you also want to provide an example of running steps in goroutines?",
+      "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
