@@ -3,9 +3,8 @@ package store
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestMedia(t *testing.T) {

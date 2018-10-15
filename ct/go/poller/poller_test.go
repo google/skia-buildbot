@@ -13,7 +13,8 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
-
+	expect "github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -29,9 +30,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	skutil "go.skia.org/infra/go/util"
-
-	expect "github.com/stretchr/testify/assert"
-	assert "github.com/stretchr/testify/require"
 )
 
 // CommonCols without TsStarted or TsCompleted set.

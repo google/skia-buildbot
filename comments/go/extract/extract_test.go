@@ -3,9 +3,8 @@ package extract
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 )
 
 // testCode is fragments of C++ code we should be able to extract

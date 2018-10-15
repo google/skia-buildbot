@@ -5,13 +5,12 @@ import (
 	"strings"
 	"sync"
 
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/trie"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 const (

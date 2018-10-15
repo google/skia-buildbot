@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
 )

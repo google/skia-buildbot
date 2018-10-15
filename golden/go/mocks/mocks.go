@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/eventbus"

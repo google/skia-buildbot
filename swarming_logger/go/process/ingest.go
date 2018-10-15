@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/sync/syncmap"
-
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/metrics2"
@@ -16,6 +14,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"golang.org/x/sync/syncmap"
 )
 
 /*

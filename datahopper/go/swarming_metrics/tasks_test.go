@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -16,9 +18,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/perfclient"
-
-	assert "github.com/stretchr/testify/require"
-	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 func makeTask(id, name string, created, started, completed time.Time, dims map[string]string, extraTags map[string]string, botOverhead, downloadOverhead, uploadOverhead time.Duration) *swarming_api.SwarmingRpcsTaskRequestMetadata {

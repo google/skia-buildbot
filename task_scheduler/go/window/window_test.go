@@ -8,7 +8,6 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"

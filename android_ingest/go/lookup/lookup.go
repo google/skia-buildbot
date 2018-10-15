@@ -8,9 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Cache keeps a cache of recent, at least four weeks, worth of buildids and

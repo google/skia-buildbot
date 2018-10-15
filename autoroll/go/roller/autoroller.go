@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"

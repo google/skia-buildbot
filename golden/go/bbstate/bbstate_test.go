@@ -6,8 +6,6 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	gstorage "google.golang.org/api/storage/v1"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	ds_testutil "go.skia.org/infra/go/ds/testutil"
@@ -18,6 +16,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	gstorage "google.golang.org/api/storage/v1"
 )
 
 // TODO(stephana): Factor out BuildBucketState into an interface to make it

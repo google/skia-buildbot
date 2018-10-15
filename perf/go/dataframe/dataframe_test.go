@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"

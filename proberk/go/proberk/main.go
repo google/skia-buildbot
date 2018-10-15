@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"

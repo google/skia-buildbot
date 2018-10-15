@@ -16,10 +16,8 @@ import (
 	"strings"
 
 	"github.com/pmezard/go-difflib/difflib"
-
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/sklog"
 )
 
 var (

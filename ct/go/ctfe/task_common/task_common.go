@@ -18,8 +18,6 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"google.golang.org/api/iterator"
-
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
@@ -28,6 +26,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
+	"google.golang.org/api/iterator"
 )
 
 const (

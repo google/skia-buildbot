@@ -3,9 +3,8 @@ package powercycle
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 )
 
 var deviceIDs = []string{}

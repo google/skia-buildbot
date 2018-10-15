@@ -7,11 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils"
 	testsize "go.skia.org/infra/go/testutils"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAdd(t *testing.T) {

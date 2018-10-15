@@ -15,8 +15,6 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
@@ -27,6 +25,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"google.golang.org/api/option"
 )
 
 const (

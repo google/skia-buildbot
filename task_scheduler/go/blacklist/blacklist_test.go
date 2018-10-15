@@ -7,13 +7,12 @@ import (
 	"path"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestAddRemove(t *testing.T) {

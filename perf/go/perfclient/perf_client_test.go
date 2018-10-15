@@ -7,13 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/mockgcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/ingestcommon"
-
-	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 )
 
 var ctx = mock.AnythingOfType("*context.emptyCtx")

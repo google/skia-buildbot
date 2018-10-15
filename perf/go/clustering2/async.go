@@ -10,11 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
-
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"

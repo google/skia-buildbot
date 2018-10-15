@@ -3,10 +3,9 @@ package find_breaks
 import (
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestFindFailures(t *testing.T) {

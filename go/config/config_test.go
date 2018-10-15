@@ -8,11 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/testutils"
-
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/testutils"
 )
 
 type TestInnerConfig struct {

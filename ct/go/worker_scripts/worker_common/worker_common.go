@@ -8,11 +8,10 @@ import (
 	"flag"
 	"os"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 

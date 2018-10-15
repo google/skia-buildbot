@@ -7,7 +7,6 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/types"

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 )

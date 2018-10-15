@@ -13,10 +13,9 @@ import (
 	"strconv"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 

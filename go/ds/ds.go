@@ -7,13 +7,12 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-	"golang.org/x/sync/errgroup"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
 
 // Global constants.

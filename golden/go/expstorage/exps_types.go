@@ -2,7 +2,6 @@ package expstorage
 
 import (
 	"cloud.google.com/go/datastore"
-
 	"go.skia.org/infra/golden/go/types"
 )
 

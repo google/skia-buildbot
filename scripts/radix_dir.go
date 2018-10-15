@@ -5,10 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/sklog"
 )
 
 func main() {

@@ -3,12 +3,11 @@ package scheduling
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCopyTaskCandidate(t *testing.T) {

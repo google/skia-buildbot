@@ -11,13 +11,12 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/vcsinfo"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
 
 const (

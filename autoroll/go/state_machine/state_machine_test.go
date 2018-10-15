@@ -6,13 +6,12 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 const (

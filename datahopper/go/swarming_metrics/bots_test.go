@@ -6,15 +6,13 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-
-	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/metrics2"
 	metrics_util "go.skia.org/infra/go/metrics2/testutils"
+	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/testutils"
 )
 
 const (

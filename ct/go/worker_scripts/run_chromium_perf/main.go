@@ -10,17 +10,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
-
-	"go.skia.org/infra/go/sklog"
-
-	"strings"
 
 	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
 

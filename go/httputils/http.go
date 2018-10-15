@@ -17,16 +17,14 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/oauth2"
-
-	// Below is a port of the exponential backoff implementation from
-	// google-http-java-client.
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2" // Below is a port of the exponential backoff implementation from
+	// google-http-java-client.
 )
 
 const (

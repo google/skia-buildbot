@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	exec_testutils "go.skia.org/infra/go/exec/testutils"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestGitDetails(t *testing.T) {

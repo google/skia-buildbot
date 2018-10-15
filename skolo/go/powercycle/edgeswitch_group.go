@@ -9,10 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/ssh"
-
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/crypto/ssh"
 )
 
 const (

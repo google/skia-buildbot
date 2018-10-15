@@ -10,11 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
-
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func TestBasic(t *testing.T) {

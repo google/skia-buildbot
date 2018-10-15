@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/huin/goserial"
-
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"

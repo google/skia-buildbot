@@ -5,12 +5,11 @@ import (
 	"sort"
 	"sync"
 
-	compute "google.golang.org/api/compute/v0.beta"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
+	compute "google.golang.org/api/compute/v0.beta"
 )
 
 // Interface useful for mocking.

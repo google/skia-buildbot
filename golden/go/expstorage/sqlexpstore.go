@@ -6,14 +6,13 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/sync/errgroup"
-
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // insertChunkSize is the number of records to insert with a single insert statement. The value

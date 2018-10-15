@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/go/ds"
+	"google.golang.org/api/iterator"
 )
 
 // Activity stores information on one user action activity. This corresponds to

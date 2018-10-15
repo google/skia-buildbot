@@ -10,13 +10,12 @@ import (
 	"html/template"
 	ttemplate "html/template"
 	"net/http"
+	_ "net/http/pprof"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
-
-	_ "net/http/pprof"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/fiddlek/go/named"

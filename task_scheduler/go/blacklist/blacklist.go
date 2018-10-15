@@ -8,9 +8,8 @@ import (
 	"regexp"
 	"sync"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 

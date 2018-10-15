@@ -14,9 +14,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 )

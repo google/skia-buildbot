@@ -7,17 +7,15 @@ import (
 	"sort"
 	"sync/atomic"
 
-	"go.skia.org/infra/golden/go/expstorage"
-
 	"cloud.google.com/go/datastore"
-	"golang.org/x/sync/errgroup"
-
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 const (

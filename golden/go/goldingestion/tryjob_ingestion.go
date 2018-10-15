@@ -9,11 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/golden/go/expstorage"
-
 	"github.com/golang/glog"
-	gstorage "google.golang.org/api/storage/v1"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
@@ -27,8 +23,10 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	gstorage "google.golang.org/api/storage/v1"
 )
 
 // Define configuration options to be used in the config file under

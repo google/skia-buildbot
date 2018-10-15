@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
-
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"

@@ -15,13 +15,12 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
+	"google.golang.org/api/iterator"
 )
 
 var (

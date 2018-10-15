@@ -3,11 +3,10 @@ package regression
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRegressions(t *testing.T) {

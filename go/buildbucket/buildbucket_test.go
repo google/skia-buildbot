@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"

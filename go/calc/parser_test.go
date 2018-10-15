@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vec32"

@@ -5,12 +5,11 @@ import (
 	"path"
 	"runtime"
 
-	logging "google.golang.org/api/logging/v2"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
+	logging "google.golang.org/api/logging/v2"
 )
 
 func FuzzerBase(name string) *gce.Instance {

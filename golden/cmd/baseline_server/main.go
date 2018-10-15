@@ -9,17 +9,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.skia.org/infra/golden/go/web"
-
 	"github.com/gorilla/mux"
-	gstorage "google.golang.org/api/storage/v1"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/web"
+	gstorage "google.golang.org/api/storage/v1"
 )
 
 // Command line flags.

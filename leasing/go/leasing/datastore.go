@@ -9,10 +9,9 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/datastore"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
+	"google.golang.org/api/option"
 )
 
 func DatastoreInit(project string, ns string) error {

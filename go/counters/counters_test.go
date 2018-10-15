@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 // mockTime is a struct used for faking the passage of time. It keeps a current

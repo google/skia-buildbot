@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/ingestcommon"
 )

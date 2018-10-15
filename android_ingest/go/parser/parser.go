@@ -11,7 +11,6 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/perf/go/ingestcommon"
 )
 

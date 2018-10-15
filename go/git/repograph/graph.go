@@ -14,10 +14,9 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sklog"
-
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )

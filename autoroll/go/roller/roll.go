@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	github_api "github.com/google/go-github/github"
-
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"

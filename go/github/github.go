@@ -23,7 +23,6 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
-
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 )

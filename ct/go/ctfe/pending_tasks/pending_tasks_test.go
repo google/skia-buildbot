@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
-
+	expect "github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -14,9 +15,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/testutils"
-
-	expect "github.com/stretchr/testify/assert"
-	assert "github.com/stretchr/testify/require"
 )
 
 func getCommonCols(kind ds.Kind) task_common.CommonCols {

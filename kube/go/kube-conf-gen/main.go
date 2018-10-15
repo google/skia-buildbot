@@ -12,10 +12,9 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/davecgh/go-spew/spew"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/sklog"
-
-	"go.skia.org/infra/go/common"
 )
 
 // Command line flags.

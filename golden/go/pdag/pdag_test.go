@@ -8,10 +8,9 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 // The simulated duration of each function in ms.

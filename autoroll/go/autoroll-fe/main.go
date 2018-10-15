@@ -23,8 +23,6 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
-	"google.golang.org/api/option"
-
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
@@ -39,6 +37,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/option"
 )
 
 var (

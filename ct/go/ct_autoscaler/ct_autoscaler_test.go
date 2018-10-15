@@ -3,11 +3,10 @@ package ct_autoscaler
 import (
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gce/autoscaler"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 func TestRegisterGCETask(t *testing.T) {

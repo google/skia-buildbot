@@ -11,11 +11,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
+	"go.skia.org/infra/go/ds"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-
-	"go.skia.org/infra/go/ds"
 )
 
 type CompileTask struct {

@@ -10,7 +10,6 @@ import (
 	"path"
 
 	"github.com/boltdb/bolt"
-
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"

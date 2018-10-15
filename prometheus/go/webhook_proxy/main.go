@@ -13,7 +13,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
-
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"

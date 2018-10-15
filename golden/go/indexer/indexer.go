@@ -7,15 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/golden/go/tryjobstore"
-
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -24,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )

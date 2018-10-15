@@ -7,13 +7,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-
-	"strings"
 )
 
 const (

@@ -36,11 +36,10 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/iterator"
 )
 
 // ssiProcessFn is a function that is executed to produce the output for a custom tag.

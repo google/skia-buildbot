@@ -3,9 +3,8 @@ package validation
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestIsValidDigest(t *testing.T) {

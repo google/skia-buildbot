@@ -7,11 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, []string) {

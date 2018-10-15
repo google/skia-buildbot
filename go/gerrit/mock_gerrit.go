@@ -2,7 +2,6 @@ package gerrit
 
 import (
 	"github.com/stretchr/testify/mock"
-
 	"go.skia.org/infra/go/buildbucket"
 )
 

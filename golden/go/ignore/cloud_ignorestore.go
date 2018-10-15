@@ -6,13 +6,12 @@ import (
 	"sync/atomic"
 
 	"cloud.google.com/go/datastore"
-	"golang.org/x/sync/errgroup"
-
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/dsutil"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // cloudIgnoreStore implements the IgnoreStore interface

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/deepequal"

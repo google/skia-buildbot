@@ -7,7 +7,6 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"

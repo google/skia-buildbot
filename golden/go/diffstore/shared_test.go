@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/mocks"

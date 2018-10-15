@@ -16,11 +16,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
-
-	// Below is a port of the exponential backoff implementation from
-	// google-http-java-client.
 	"github.com/cenkalti/backoff"
-
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cleanup"
 	sk_exec "go.skia.org/infra/go/exec"

@@ -13,7 +13,6 @@ import (
 
 	github_api "github.com/google/go-github/github"
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"

@@ -3,9 +3,8 @@ package types
 import (
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/testutils"
 )
 
 func TestOptions(t *testing.T) {
