@@ -9,6 +9,7 @@ import (
 
 	"cloud.google.com/go/logging"
 	"github.com/golang/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -228,4 +229,67 @@ func (r *ReportReceiver) LogStream(stepId, logId, severity string) (io.Writer, e
 	}
 	step.logs[logId] = buf
 	return buf, nil
+}
+
+// CloudLoggingReceiver is a Receiver which sends step metadata and logs to
+// Cloud Logging.
+type CloudLoggingReceiver struct {
+	// logger is a handle to the Logger used for the entire test run.
+	logger *logging.Logger
+}
+
+// Return a new CloudLoggingReceiver. This initializes Cloud Logging for the
+// entire test run.
+func NewCloudLoggingReceiver(logger *logging.Logger) (*CloudLoggingReceiver, error) {
+	return &CloudLoggingReceiver{
+		logger: logger,
+	}, nil
+}
+
+// See documentation for Receiver interface.
+func (r *CloudLoggingReceiver) HandleMessage(m *Message) error {
+	// TODO(borenet): When should we LogSync, or Flush? If the program
+	// crashes or is killed, we'll want to have already flushed the logs.
+	r.logger.Log(logging.Entry{
+		Payload:  m,
+		Severity: logging.ParseSeverity(sklog.DEBUG),
+	})
+	return nil
+}
+
+// cloudLogsWriter is an io.Writer which writes to Cloud Logging.
+type cloudLogsWriter struct {
+	logger   *logging.Logger
+	labels   map[string]string
+	severity logging.Severity
+}
+
+// See documentation for io.Writer.
+func (w *cloudLogsWriter) Write(b []byte) (int, error) {
+	// TODO(borenet): Should we buffer until we see a newline?
+	// TODO(borenet): When should we LogSync, or Flush? If the program
+	// crashes or is killed, we'll want to have already flushed the logs.
+	w.logger.Log(logging.Entry{
+		Labels:   w.labels,
+		Payload:  string(b),
+		Severity: w.severity,
+	})
+	return len(b), nil
+}
+
+// See documentation for Receiver interface.
+func (r *CloudLoggingReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+	return &cloudLogsWriter{
+		logger: r.logger,
+		labels: map[string]string{
+			"logId":  logId,
+			"stepId": stepId,
+		},
+		severity: logging.ParseSeverity(severity),
+	}, nil
+}
+
+// See documentation for Receiver interface.
+func (r *CloudLoggingReceiver) Close() error {
+	return r.logger.Flush()
 }
