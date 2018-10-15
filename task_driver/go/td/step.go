@@ -32,6 +32,8 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 	}
 	props.Id = id
 	if parent != nil {
+		s.Parent = parent.Id
+
 		// Steps inherit their environment from their parent step.
 		props.Environ = parent.Environ
 
