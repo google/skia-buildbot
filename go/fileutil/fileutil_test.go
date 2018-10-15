@@ -4,9 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.skia.org/infra/go/testutils"
-
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 )
 
 const (

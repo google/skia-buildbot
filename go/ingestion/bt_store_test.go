@@ -3,9 +3,8 @@ package ingestion
 import (
 	"testing"
 
-	"go.skia.org/infra/go/bt"
-
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/testutils"
 )
 

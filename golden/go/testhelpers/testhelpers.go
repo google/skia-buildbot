@@ -4,9 +4,8 @@ import (
 	"net"
 
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-
 	"go.skia.org/infra/go/trace/service"
+	"google.golang.org/grpc"
 )
 
 // StartTestTraceDBServer starts up a traceDB server for testing. It stores its

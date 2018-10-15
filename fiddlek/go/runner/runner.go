@@ -16,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/fiddlek/go/linenumbers"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -24,9 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-
-	"go.skia.org/infra/fiddlek/go/linenumbers"
-	"go.skia.org/infra/fiddlek/go/types"
 )
 
 const (

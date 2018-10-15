@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/datastore"
-
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"

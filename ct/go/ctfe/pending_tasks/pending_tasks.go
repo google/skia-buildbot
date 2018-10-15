@@ -14,8 +14,6 @@ import (
 	"text/template"
 
 	"github.com/gorilla/mux"
-	"google.golang.org/api/iterator"
-
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
@@ -30,6 +28,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
+	"google.golang.org/api/iterator"
 )
 
 var (

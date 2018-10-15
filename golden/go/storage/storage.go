@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
-	"golang.org/x/sync/errgroup"
-
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/gitinfo"
@@ -28,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 // Storage is a container struct for the various storage objects we are using.

@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/eventbus"
-
-	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"

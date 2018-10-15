@@ -11,12 +11,11 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	sheets "google.golang.org/api/sheets/v4"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	sheets "google.golang.org/api/sheets/v4"
 )
 
 const (

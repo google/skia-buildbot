@@ -10,14 +10,13 @@ import (
 	"sync"
 	"time"
 
+	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-
-	swarmingapi "go.chromium.org/luci/common/api/swarming/swarming/v1"
 )
 
 /*

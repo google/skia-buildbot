@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"os"
 
-	"google.golang.org/grpc"
-
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
+	"google.golang.org/grpc"
 )
 
 var (

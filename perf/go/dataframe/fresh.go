@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/vcsinfo"
 )
 

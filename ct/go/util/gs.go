@@ -14,14 +14,13 @@ import (
 	"sync"
 	"time"
 
-	"google.golang.org/api/googleapi"
-	storage "google.golang.org/api/storage/v1"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/googleapi"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (

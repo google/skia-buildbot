@@ -3,10 +3,9 @@ package alerts
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConfig(t *testing.T) {

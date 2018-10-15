@@ -8,11 +8,10 @@ import (
 	"runtime"
 	"strings"
 
-	"go.skia.org/infra/go/util"
-
 	"github.com/gorilla/mux"
 	expect "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/util"
 )
 
 // muxClient implements http.RoundTripper and sends requests to a mux.Router.

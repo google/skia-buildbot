@@ -10,11 +10,10 @@ import (
 	"os"
 	"time"
 
-	"go.skia.org/infra/go/sklog"
-
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/ptracestore"
