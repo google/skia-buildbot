@@ -10,7 +10,22 @@
         "skia-e-linux-016": 4,
         "skia-e-linux-017": 5,
         "skia-e-linux-018": 6,
-        "test-relay": 7
+        "skia-e-linux-024": 7,
+        "skia-e-linux-025": 8
+      }
+    },
+
+    "mpower.04": {
+      address: "192.168.2.138:22",
+      user: "ubnt",
+      ports: {
+        "skia-e-linux-026": 1,
+        "skia-e-linux-027": 2,
+        "skia-e-linux-028": 3,
+        "skia-e-linux-029": 4,
+        "skia-e-linux-030": 5,
+        "skia-e-linux-031": 6,
+        "skia-e-linux-032": 7
       }
     }
   }
