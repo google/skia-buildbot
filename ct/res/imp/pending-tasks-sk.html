@@ -95,8 +95,13 @@
 
           <!-- Swarming logs col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{ pendingTask.SwarmingLogs }}">
-              <a href="{{ pendingTask.SwarmingLogs }}" target="_blank">Swarming Logs</a>
+            <template is="dom-if" if="{{ pendingTask.FutureDate }}">
+              N/A
+            </template>
+            <template is="dom-if" if="{{ !pendingTask.FutureDate }}">
+              <template is="dom-if" if="{{ pendingTask.SwarmingLogs }}">
+                <a href="{{ pendingTask.SwarmingLogs }}" target="_blank">Swarming Logs</a>
+              </template>
             </template>
           </td>
 
