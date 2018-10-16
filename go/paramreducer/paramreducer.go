@@ -99,7 +99,9 @@ func (r *Reducer) Reduce() paramtools.ParamSet {
 		}
 		values := ss.Keys()
 		sort.Strings(values)
-		ret[full_k] = values
+		if len(values) > 0 {
+			ret[full_k] = values
+		}
 	}
 	return ret
 }

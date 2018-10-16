@@ -93,6 +93,7 @@ var (
 	commitRangeURL        = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
+	doClustering          = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
 	noemail               = flag.Bool("noemail", false, "Do not send emails.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFile = flag.String("email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
@@ -349,7 +350,9 @@ func Init() {
 
 	// Start running continuous clustering looking for regressions.
 	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
-	go continuous.Run(ctx)
+	if *doClustering {
+		go continuous.Run(ctx)
+	}
 }
 
 // activityHandler serves the HTML for the /activitylog/ page.
@@ -596,21 +599,35 @@ func frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type CountRequest struct {
+	Q     string `json:"q"`
+	Begin int    `json:"begin"`
+	End   int    `json:"end"`
+}
+
 // countHandler takes the POST'd query and runs that against the current
 // dataframe and returns how many traces match the query.
 func countHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := r.ParseForm(); err != nil {
+
+	var cr CountRequest
+	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode JSON.")
+		return
+	}
+
+	u, err := url.ParseQuery(cr.Q)
+	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid URL query.")
 		return
 	}
-	q, err := query.New(r.Form)
+	q, err := query.New(u)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Invalid query.")
 		return
 	}
 	df := freshDataFrame.Get()
-	reducer, err := paramreducer.New(r.Form, df.ParamSet)
+	reducer, err := paramreducer.New(u, df.ParamSet)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to calculate new paramset.")
 		return

@@ -16,6 +16,7 @@ func TestReducer(t *testing.T) {
 		",config=565,cpu=x86,res=count,",
 		",config=565,cpu=arm,res=cov,",
 		",config=gles,cpu=arm,res=bytes,",
+		",foo=bar,",
 	}
 	full := paramtools.NewParamSet()
 	for _, key := range keys {
@@ -56,6 +57,13 @@ func TestReducer(t *testing.T) {
 			query:    url.Values{},
 			expected: full,
 			message:  "Empty query",
+		},
+		{
+			query: url.Values{
+				"foo": []string{"bar"},
+			},
+			expected: paramtools.ParamSet{"foo": []string{"bar"}},
+			message:  "Drop key if no values.",
 		},
 	}
 

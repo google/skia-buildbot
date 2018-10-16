@@ -372,7 +372,12 @@
         return
       }
       this._countInProgress = true;
-      sk.post("/_/count/", this.$.query.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(json) {
+      let body = {
+        q: this.$.query.current_query,
+        begin: this.state.begin,
+        end: this.state.end,
+      };
+      sk.post("/_/count/", JSON.stringify(body)).then(JSON.parse).then(function(json) {
         this._countInProgress = false;
         this.$.matches.textContent = json.count;
         if (json.paramset) {
