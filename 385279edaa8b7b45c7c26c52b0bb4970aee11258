@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "898a1dc4_b19ff863",
+        "filename": "go/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-16T21:07:02Z",
+      "side": 1,
+      "message": "Might be a good place for https://github.com/hashicorp/go-multierror",
+      "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a19732e_e42adb6c",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-16T21:07:02Z",
+      "side": 1,
+      "message": "I thought emitters and receivers were going away in favor of just logs + structured logs, or is that in a later CL?",
+      "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fafbc7f_fb1722ac",
+        "filename": "task_driver/go/td/step_properties.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-16T21:07:02Z",
+      "side": 1,
+      "message": "Should either be \n\nfunc (p *StepProperties) Name(name string) *StepProperties \n\nor \n\nfunc New(name string) *StepProperties",
+      "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
