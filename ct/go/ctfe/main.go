@@ -129,7 +129,9 @@ func runServer(serverURL string) {
 
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
 	h = login.RestrictViewer(h)
-	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	if !*local {
+		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)
 
@@ -296,8 +298,12 @@ func main() {
 		}
 	}
 
-	allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)
-	login.InitWithAllow(*port, *local, nil, nil, allow)
+	if *local {
+		login.InitWithAllow(*port, *local, nil, nil, nil)
+	} else {
+		allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)
+		login.InitWithAllow(*port, *local, nil, nil, allow)
+	}
 
 	// Initialize the datastore.
 	dsTokenSource, err := auth.NewDefaultTokenSource(*local, "https://www.googleapis.com/auth/datastore")
