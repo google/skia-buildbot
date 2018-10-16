@@ -440,8 +440,8 @@
       if (!this.state) {
         return
       }
-      this.state.begin = begin;
-      this.state.end = end;
+      this.$.range.begin = this.state.begin = begin;
+      this.$.range.end = this.state.end = end;
       if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == "") {
         return
       }
@@ -466,7 +466,12 @@
         return
       }
       this._countInProgress = true;
-      sk.post("/_/count/", this.$.query.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(json) {
+      let body = {
+        q: this.$.query.current_query,
+        begin: this.state.begin,
+        end: this.state.end,
+      };
+      sk.post("/_/count/", JSON.stringify(body)).then(JSON.parse).then(function(json) {
         this._countInProgress = false;
         this.$.matches.textContent = json.count;
 
