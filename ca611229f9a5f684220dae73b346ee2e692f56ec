@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "92b35386_749abe05",
+        "filename": "task_driver/examples/basic/basic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T13:50:39Z",
+      "side": 1,
+      "message": "Yes, if cloud logs are connected and the same ID is used (eg. if a developer copy/pastes a command), then we\u0027ll clobber the real task.\n\nTesting is the responsibility of the author.  Generally, task drivers should be composed of well-tested library components.  Task drivers which are just a series of steps based on library components shouldn\u0027t need their own tests.  Any non-trivial additional components should have their own tests.  Simulation testing ala recipes is a non-goal.",
+      "parentUuid": "d93e9c4b_bf6942e2",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 6
+      },
+      "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49f2ff9a_157ba74c",
         "filename": "task_driver/examples/basic/basic.go",
         "patchSetId": 5
