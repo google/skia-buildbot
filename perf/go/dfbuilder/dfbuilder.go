@@ -60,6 +60,26 @@ func lastNCommits(vcs vcsinfo.VCS, n int) ([]*dataframe.ColumnHeader, []int32, i
 	return fromIndexCommit(vcs.LastNIndex(n), 0)
 }
 
+// fromIndexRange returns the headers and indices for all the commits
+// between beginIndex and endIndex inclusive.
+func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex int32) ([]*dataframe.ColumnHeader, []int32, int, error) {
+	headers := []*dataframe.ColumnHeader{}
+	indices := []int32{}
+	for i := beginIndex; i <= endIndex; i++ {
+		commit, err := vcs.ByIndex(ctx, int(i))
+		if err != nil {
+			return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
+		}
+		headers = append(headers, &dataframe.ColumnHeader{
+			Source:    "master",
+			Offset:    int64(i),
+			Timestamp: commit.Timestamp.Unix(),
+		})
+		indices = append(indices, i)
+	}
+	return headers, indices, 0, nil
+}
+
 // fromTimeRange returns the slices of ColumnHeader and int32. The slices
 // are for the commits that fall in the given time range [begin, end).
 //
@@ -295,6 +315,50 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 		indices = append(indices, int32(d.Offset))
 	}
 	return b.new(colHeaders, indices, q, progress, 0)
+}
+
+func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, error) {
+	var err error
+	endIndex := 0
+
+	hashes := b.vcs.From(end)
+	if len(hashes) > 0 {
+		endIndex, err = b.vcs.IndexOf(ctx, hashes[0])
+		if err != nil {
+			return 0, fmt.Errorf("Failed loading end commit: %s", err)
+		}
+	} else {
+		commits := b.vcs.LastNIndex(1)
+		if len(commits) == 0 {
+			return 0, fmt.Errorf("Failed to find an end commit.")
+		}
+		endIndex = commits[0].Index
+	}
+	return int32(endIndex), nil
+}
+
+func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	endIndex, err := b.findIndexForTime(ctx, end)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	var total int32
+	ret := dataframe.NewEmpty()
+
+	for total < n {
+		// Be optimistic and assume that the data is already dense and query for 'n'
+		// columns worth of data until we get a response that has no data, or we have
+		// 'n' values in our traces.
+		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, endIndex-n+1, endIndex)
+		if err != nil {
+			return nil, fmt.Errorf("Failed building index range: %s", err)
+		}
+		_, err = b.new(headers, indices, q, progress, skip)
+
+		endIndex -= n
+	}
+
+	return ret, nil
 }
 
 // Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.
