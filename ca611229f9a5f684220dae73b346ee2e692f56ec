@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d93e9c4b_bf6942e2",
+        "filename": "task_driver/examples/basic/basic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-17T13:27:16Z",
+      "side": 1,
+      "message": "Curious about the uniqueness of the IDs. Are you worried about local runs accidentally overriding production data when recipes are run locally (because it will go through the same e2e flow as production)?\n\nIn recipe tests predetermined test data is used, how will task drivers be tested? is it the responsibility of the author to write comprehensive unit tests with their own mocks?",
+      "parentUuid": "aea0d9cc_c75937a6",
+      "range": {
+        "startLine": 30,
+        "startChar": 1,
+        "endLine": 30,
+        "endChar": 6
+      },
+      "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49f2ff9a_157ba74c",
         "filename": "task_driver/examples/basic/basic.go",
         "patchSetId": 5
@@ -128,6 +152,24 @@
       "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26164a28_857e16b2",
+        "filename": "task_driver/examples/basic/basic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-17T13:27:16Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "cc405bd2_e0dca83e",
+      "revId": "ca611229f9a5f684220dae73b346ee2e692f56ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
