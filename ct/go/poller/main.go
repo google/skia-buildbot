@@ -241,6 +241,7 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 		"--metric_name=" + task.MetricName,
 		"--analysis_output_link=" + task.AnalysisOutputLink,
 		"--benchmark_extra_args=" + task.BenchmarkArgs,
+		"--value_column_name=" + task.ValueColumnName,
 		"--run_id=" + runId,
 		"--logtostderr",
 		"--email_client_secret_file=" + *master_common.EmailClientSecretFile,

@@ -1,6 +1,6 @@
-page_set,stories,name,avg,unit,run_index
-alexa1_1,http://www.facebook.com/,pixels_recorded,1172655,pixels,0
-alexa1_1,http://www.facebook.com/,rasterize_time,2.359,ms,0
-alexa1_1,http://www.facebook.com/,record_time,0.743,ms,0
-alexa1_1,http://www.facebook.com/,pixels_rasterized,1310720,pixels,0
-alexa1_1,http://www.facebook.com/,trace,abc,,0
+page_set,stories,name,avg,unit,run_index,pct_001
+alexa1_1,http://www.facebook.com/,pixels_recorded,1172655,pixels,0,2
+alexa1_1,http://www.facebook.com/,rasterize_time,2.359,ms,0,
+alexa1_1,http://www.facebook.com/,record_time,0.743,ms,0,
+alexa1_1,http://www.facebook.com/,pixels_rasterized,1310720,pixels,0,4
+alexa1_1,http://www.facebook.com/,trace,abc,,0,
