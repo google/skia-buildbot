@@ -297,5 +297,32 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 	return b.new(colHeaders, indices, q, progress, 0)
 }
 
+func (b *builder) findIndexForTime(end time.Time) (int, error) {
+	var err error
+	endIndex := 0
+
+	hashes := b.vcs.From(end)
+	if len(hashes) > 0 {
+		endIndex, err = b.vcs.IndexOf(b.ctx, hashes[0])
+		if err != nil {
+			return nil, fmt.Errorf("Failed loading end commit: %s", err)
+		}
+	} else {
+		commits := LastNIndex(1)
+		if len(commits) == 0 {
+			return nil, fmt.Errorf("Failed to find an end commit.")
+		}
+		endIndex = commits[0].Index
+	}
+}
+
+func (b *builder) NewNFromQuery(progress types.Progress, n int, end time.Time) (*dataframe.DataFrame, error) {
+	endIndex, err := b.findIndexForTime(end)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	return nil, fmt.Errorf("Not Implemented.")
+}
+
 // Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.
 var _ dataframe.DataFrameBuilder = (*builder)(nil)
