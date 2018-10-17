@@ -4,8 +4,8 @@ import (
 	"io"
 	"time"
 
+	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -14,10 +14,18 @@ const (
 	MSG_TYPE_STEP_DATA      MessageType = "STEP_DATA"
 	MSG_TYPE_STEP_FAILED    MessageType = "STEP_FAILED"
 	MSG_TYPE_STEP_EXCEPTION MessageType = "STEP_EXCEPTION"
+
+	DATA_TYPE_LOG           DataType = "log"
+	DATA_TYPE_COMMAND       DataType = "command"
+	DATA_TYPE_HTTP_REQUEST  DataType = "httpRequest"
+	DATA_TYPE_HTTP_RESPONSE DataType = "httpResponse"
 )
 
 // MessageType indicates the type of a Message.
 type MessageType string
+
+// DataType indicates the type of a piece of data attached to a step.
+type DataType string
 
 // Message is a struct used to send step metadata to Receivers.
 type Message struct {
@@ -48,36 +56,32 @@ type Message struct {
 	// Data is arbitrary additional data about the step. Required for
 	// MSG_TYPE_STEP_DATA.
 	Data interface{} `json:"data,omitempty"`
+
+	// DataType describes the contents of Data. Required for
+	// MSG_TYPE_STEP_DATA.
+	DataType DataType `json:"dataType,omitempty"`
 }
 
 // stepEmitter is used to send metadata about steps to various Receivers.
 type stepEmitter struct {
-	receivers map[string]Receiver
-	taskId    string
+	receiver Receiver
+	taskId   string
 }
 
 // newStepEmitter returns a stepEmitter instance.
-func newStepEmitter(taskId string, receivers map[string]Receiver) *stepEmitter {
+func newStepEmitter(taskId string, r Receiver) *stepEmitter {
 	return &stepEmitter{
-		receivers: receivers,
-		taskId:    taskId,
+		receiver: r,
+		taskId:   taskId,
 	}
 }
 
-// Send the given message to all receivers. Does not return an error, even if
+// Send the given message to the receiver. Does not return an error, even if
 // sending fails.
 func (e *stepEmitter) send(msg *Message) {
 	msg.TaskId = e.taskId
 	msg.Timestamp = time.Now().UTC()
-	g := util.NewNamedErrGroup()
-	for k, v := range e.receivers {
-		receiver := v
-		g.Go(k, func() error {
-			err := receiver.HandleMessage(msg)
-			return err
-		})
-	}
-	if err := g.Wait(); err != nil {
+	if err := e.receiver.HandleMessage(msg); err != nil {
 		// Just log the error but don't return it.
 		// TODO(borenet): How do we handle this?
 		sklog.Error(err)
@@ -95,11 +99,12 @@ func (e *stepEmitter) Start(props *StepProperties) {
 }
 
 // Send a Message with additional data for the current step.
-func (e *stepEmitter) AddStepData(id string, d interface{}) {
+func (e *stepEmitter) AddStepData(id string, typ DataType, d interface{}) {
 	msg := &Message{
-		Type:   MSG_TYPE_STEP_DATA,
-		StepId: id,
-		Data:   d,
+		Type:     MSG_TYPE_STEP_DATA,
+		StepId:   id,
+		Data:     d,
+		DataType: typ,
 	}
 	e.send(msg)
 }
@@ -135,24 +140,23 @@ func (e *stepEmitter) Finish(id string) {
 }
 
 // Open a log stream.
-func (e *stepEmitter) LogStream(stepId, logId, severity string) io.Writer {
-	writers := make([]io.Writer, 0, len(e.receivers))
-	for _, r := range e.receivers {
-		w, err := r.LogStream(stepId, logId, severity)
-		if err != nil {
-			panic(err)
-		}
-		writers = append(writers, w)
+func (e *stepEmitter) LogStream(stepId, logName, severity string) io.Writer {
+	logId := uuid.New() // TODO(borenet): Come up with a better ID.
+	rv, err := e.receiver.LogStream(stepId, logId, severity)
+	if err != nil {
+		panic(err)
 	}
-	return util.MultiWriter(writers)
+
+	// Emit step data for the log stream.
+	e.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
+		Name:     logName,
+		Id:       logId,
+		Severity: severity,
+	})
+	return rv
 }
 
 // Close the stepEmitter.
 func (e *stepEmitter) Close() error {
-	for _, r := range e.receivers {
-		if err := r.Close(); err != nil {
-			return err
-		}
-	}
-	return nil
+	return e.receiver.Close()
 }
