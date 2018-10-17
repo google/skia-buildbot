@@ -140,6 +140,23 @@
   },
   {
     "cmd": [
+      "python",
+      "-u",
+      "[START_DIR]/go_deps/src/go.skia.org/infra/scripts/find_missing_go_deps.py",
+      "--json"
+    ],
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOPATH": "[START_DIR]/go_deps",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "Find missing Go DEPS",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
       "go",
       "run",
       "./run_unittests.go",
