@@ -41,6 +41,7 @@ var (
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
+	valueColumnName    = flag.String("value_column_name", util.DEFAULT_VALUE_COLUMN_NAME, "Which column's entry to use as field values when combining CSVs.")
 )
 
 func metricsAnalysis() error {
@@ -166,7 +167,7 @@ func metricsAnalysis() error {
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		// Construct path to CT's python scripts.
 		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, gs, *startRange, true /* handleStrings */, false /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, *valueColumnName, gs, *startRange, true /* handleStrings */, false /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
