@@ -80,6 +80,8 @@ const (
 
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = ""
+	// Default value column name to use when merging CSVs.
+	DEFAULT_VALUE_COLUMN_NAME = "avg"
 
 	// Use live sites flag.
 	USE_LIVE_SITES_FLAGS = "--use-live-sites"
