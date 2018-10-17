@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a62dbe11_ebb45f9b",
+        "filename": "go/util/util.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1096,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-17T12:55:28Z",
+      "side": 1,
+      "message": "nit- Might want to mention the use of multierror in the docs.",
+      "revId": "48091bf9e99afbdf6a40a1b42ea3eaadcaf1e514",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
