@@ -109,9 +109,6 @@ scrape_configs:
       - targets: ['skia-android-perf:20000']
         labels:
           subdomain: android-perf
-      - targets: ['skia-android-master-perf:20000']
-        labels:
-          subdomain: android-master-perf
 
   - job_name: 'status'
     static_configs:
@@ -149,7 +146,6 @@ scrape_configs:
   - job_name: 'pulld'
     static_configs:
       - targets: ['skia-android-ingest:11000']
-      - targets: ['skia-android-master-perf:11000']
       - targets: ['skia-android-perf:11000']
       - targets: ['skia-ct-pixel-diff:11000']
       - targets: ['skia-datahopper2:11000']
