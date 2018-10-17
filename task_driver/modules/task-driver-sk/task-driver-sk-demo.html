@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>task-driver-sk demo</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" charset="utf-8">
+      // This bit of script loads the custom elements v1 polyfill, but only if required.
+      if (!window.customElements) {
+        var newScript = document.createElement('script');
+        newScript.src = "https://cdnjs.cloudflare.com/ajax/libs/custom-elements/1.0.8/custom-elements.min.js";
+        document.write(newScript.outerHTML);
+      }
+    </script>
+</head>
+<body>
+  <h1>task-driver-sk demo</h1>
+  <task-driver-sk id="ele"></task-driver-sk>
+  <script type="text/javascript" charset="utf-8">
+    let ele = document.getElementById('ele');
+    ele.data = JSON.parse(`{
+  "id": "20181015T144327.216548285Z_0000000000928d15",
+  "name": "Infra-Experimental-Small",
+  "isInfra": false,
+  "result": "FAILURE",
+  "started": "2018-10-15T18:18:59.612614835Z",
+  "finished": "2018-10-15T18:26:41.128509361Z",
+  "steps": [
+    {
+      "id": "a39d5d1f-ac79-4892-9736-8482273ffd34",
+      "name": "MkdirAll /mnt/pd0/s/w/ir/go_deps/src",
+      "isInfra": true,
+      "parent": "root",
+      "result": "SUCCESS",
+      "started": "2018-10-15T18:18:59.612935194Z",
+      "finished": "2018-10-15T18:18:59.613081068Z"
+    },
+    {
+      "id": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+      "name": "Ensure Git Checkout",
+      "isInfra": true,
+      "parent": "root",
+      "result": "SUCCESS",
+      "started": "2018-10-15T18:18:59.613278937Z",
+      "finished": "2018-10-15T18:19:38.939272066Z",
+      "steps": [
+        {
+          "id": "491f738e-ed37-45a4-b875-91423e2f9c21",
+          "name": "Stat /mnt/pd0/s/w/ir/go_deps/src/go.skia.org/infra",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "FAILURE",
+          "started": "2018-10-15T18:18:59.613443993Z",
+          "finished": "2018-10-15T18:18:59.613836158Z"
+        },
+        {
+          "id": "45ddbabc-893a-463f-8728-bac97ae868fb",
+          "name": "Stat /mnt/pd0/s/w/ir/go_deps/src/go.skia.org/infra/.git",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:18:59.614055436Z",
+          "finished": "2018-10-15T18:18:59.614168531Z"
+        },
+        {
+          "id": "e379d903-ec38-4d49-90e1-2e45173c3682",
+          "name": "git status",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:18:59.614411315Z",
+          "finished": "2018-10-15T18:19:35.980079195Z",
+          "logs": [
+            {
+              "id": "d15574e5-1fcb-4e19-8a97-d48ba6d36780",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "1cced43e-3c17-4056-b4f5-ff775d8e5717",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ],
+          "data": [
+            {
+              "command": [
+                "git",
+                "status"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0d5d3d91-514a-4ef3-a4da-324de767bfa7",
+          "name": "git remote -v",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:35.980379648Z",
+          "finished": "2018-10-15T18:19:35.987462381Z",
+          "logs": [
+            {
+              "id": "22e98c0c-e380-4f80-ab99-aac9d4c052e8",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "336fb8d8-5a2c-4808-8956-30cd1802f3f2",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ],
+          "data": [
+            {
+              "command": [
+                "git",
+                "remote",
+                "-v"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "6edbc18b-36b7-4fb8-91e7-412c1071790c",
+          "name": "git rev-parse HEAD",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:35.987633485Z",
+          "finished": "2018-10-15T18:19:35.994294115Z",
+          "data": [
+            {
+              "command": [
+                "git",
+                "rev-parse",
+                "HEAD"
+              ]
+            }
+          ],
+          "logs": [
+            {
+              "id": "62969259-1aa8-4a6f-b42a-44177c6cd528",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "eebb03f5-1648-4ed0-80a2-5a83cfa12225",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ]
+        },
+        {
+          "id": "fadd0ed8-dcd6-480d-89e1-823414309573",
+          "name": "Stat /mnt/pd0/s/w/ir/go_deps/src/go.skia.org/infra",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:35.99442713Z",
+          "finished": "2018-10-15T18:19:35.994563953Z"
+        },
+        {
+          "id": "2eadf91c-bf5a-466a-91d5-7d9bb119c816",
+          "name": "git fetch --prune origin",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:35.994709927Z",
+          "finished": "2018-10-15T18:19:37.651045052Z",
+          "logs": [
+            {
+              "id": "5f73eac2-c93b-4c07-b1f7-a7a4121cbe91",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "82355a36-e6ea-493a-9e14-3e418daf70b6",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ],
+          "data": [
+            {
+              "command": [
+                "git",
+                "fetch",
+                "--prune",
+                "origin"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "8fa3a5cf-e885-45fc-aede-f4567c9dee10",
+          "name": "git reset --hard HEAD",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:37.651237508Z",
+          "finished": "2018-10-15T18:19:37.686120096Z",
+          "logs": [
+            {
+              "id": "49bef081-1a7f-4cfc-b45a-9b4da2bee426",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "d111d14b-be87-4d30-ad0b-42bc3883a9c6",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ],
+          "data": [
+            {
+              "command": [
+                "git",
+                "reset",
+                "--hard",
+                "HEAD"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "08af9220-248e-407f-87bd-4e759eacd85c",
+          "name": "git clean -d -f",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:37.686322128Z",
+          "finished": "2018-10-15T18:19:37.7085503Z",
+          "logs": [
+            {
+              "id": "2f9d477d-5600-46e6-ae54-9e10ccb7e624",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "28c266f1-0467-4ffe-b91c-f7bfcb5953c8",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ],
+          "data": [
+            {
+              "command": [
+                "git",
+                "clean",
+                "-d",
+                "-f"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "180662d7-2ade-4111-affa-7a4efdb01c83",
+          "name": "git checkout master -f",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:37.708794027Z",
+          "finished": "2018-10-15T18:19:37.741572627Z",
+          "data": [
+            {
+              "command": [
+                "git",
+                "checkout",
+                "master",
+                "-f"
+              ]
+            },
+            {
+              "id": "8d1a2455-facb-47f9-8216-65ee06444ea1",
+              "name": "stdout",
+              "severity": "INFO"
+            },
+            {
+              "id": "7e6a6144-0619-4f28-92b9-d70f9bfbb071",
+              "name": "stderr",
+              "severity": "ERROR"
+            }
+          ]
+        },
+        {
+          "id": "fb8c7310-5200-42c1-bfbc-e181c92a25eb",
+          "name": "git reset --hard origin/master",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:37.741792366Z",
+          "finished": "2018-10-15T18:19:37.803002912Z",
+          "data": [
+            {
+              "id": "118ddbab-e036-4702-b378-b075403ad519",
+              "name": "stdout",
+              "severity": "INFO"
+            },
+            {
+              "id": "f2050133-d4ca-43dd-b2dd-4ecfcebea2cc",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "command": [
+                "git",
+                "reset",
+                "--hard",
+                "origin/master"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "3aae46dd-bd56-4d54-93ef-2d1dbef6672e",
+          "name": "git fetch https://skia.googlesource.com/buildbot refs/changes/07/161107/9",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:37.803272374Z",
+          "finished": "2018-10-15T18:19:38.667980632Z",
+          "data": [
+            {
+              "id": "799e50de-e5fb-4226-818b-1474a415d427",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "c0e0aac7-b322-4ec8-8547-026566cd8959",
+              "name": "stdout",
+              "severity": "INFO"
+            },
+            {
+              "command": [
+                "git",
+                "fetch",
+                "https://skia.googlesource.com/buildbot",
+                "refs/changes/07/161107/9"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "97307f53-14da-4103-bf7c-a91645fcd679",
+          "name": "git reset --hard FETCH_HEAD",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:38.668176414Z",
+          "finished": "2018-10-15T18:19:38.756415101Z",
+          "data": [
+            {
+              "id": "41695b18-69f5-4360-990d-7a88221c6ac8",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "command": [
+                "git",
+                "reset",
+                "--hard",
+                "FETCH_HEAD"
+              ]
+            },
+            {
+              "id": "82c08fe2-f1df-4791-ab60-05df7a36d8cc",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ]
+        },
+        {
+          "id": "e62c7cf2-7748-4155-aaa6-7de035aa682a",
+          "name": "git rebase ca63fe546e6ee90f15563a6fcf663d1905c68e46",
+          "isInfra": true,
+          "parent": "dd66f6e5-5b0d-4e92-8eed-244f1ea508e7",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:38.756633298Z",
+          "finished": "2018-10-15T18:19:38.93910323Z",
+          "data": [
+            {
+              "id": "6a672073-62a9-4e0c-a73a-ad5542583596",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "command": [
+                "git",
+                "rebase",
+                "ca63fe546e6ee90f15563a6fcf663d1905c68e46"
+              ]
+            },
+            {
+              "id": "cc2fd9ed-0d5a-409a-bc8d-ec68a4f91a0b",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "2859b3f7-8f31-47ea-981b-87cb6c192f78",
+      "name": "Set Go Environment",
+      "isInfra": false,
+      "environment": [
+        "CHROME_HEADLESS=1",
+        "GOROOT=/mnt/pd0/s/w/ir/go/go",
+        "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+        "GIT_USER_AGENT=git/1.9.1",
+        "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+        "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+        "TMPDIR="
+      ],
+      "parent": "root",
+      "result": "FAILURE",
+      "started": "2018-10-15T18:19:38.939393057Z",
+      "finished": "2018-10-15T18:26:41.128415592Z",
+      "steps": [
+        {
+          "id": "eb3d4573-b658-4343-8af5-c748b32640b0",
+          "name": "which go",
+          "isInfra": false,
+          "environment": [
+            "CHROME_HEADLESS=1",
+            "GOROOT=/mnt/pd0/s/w/ir/go/go",
+            "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+            "GIT_USER_AGENT=git/1.9.1",
+            "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+            "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+            "TMPDIR="
+          ],
+          "parent": "2859b3f7-8f31-47ea-981b-87cb6c192f78",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:38.939579676Z",
+          "finished": "2018-10-15T18:19:38.941030945Z",
+          "data": [
+            {
+              "id": "bbcd2eae-a613-4fa5-881e-ee7a2279b160",
+              "name": "stdout",
+              "severity": "INFO"
+            },
+            {
+              "id": "1e62407a-60a3-477c-8e4c-b95b0f0c5437",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "command": [
+                "which",
+                "go"
+              ],
+              "env": [
+                "CHROME_HEADLESS=1",
+                "GOROOT=/mnt/pd0/s/w/ir/go/go",
+                "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+                "GIT_USER_AGENT=git/1.9.1",
+                "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+                "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+                "TMPDIR="
+              ]
+            }
+          ]
+        },
+        {
+          "id": "4abcc390-09be-4bad-996a-d0ff9f0a5964",
+          "name": "go version",
+          "isInfra": false,
+          "environment": [
+            "CHROME_HEADLESS=1",
+            "GOROOT=/mnt/pd0/s/w/ir/go/go",
+            "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+            "GIT_USER_AGENT=git/1.9.1",
+            "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+            "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+            "TMPDIR="
+          ],
+          "parent": "2859b3f7-8f31-47ea-981b-87cb6c192f78",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:38.94120211Z",
+          "finished": "2018-10-15T18:19:38.95401216Z",
+          "data": [
+            {
+              "id": "792d454b-482c-4ee1-9bf4-6af21b94b422",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "command": [
+                "go",
+                "version"
+              ],
+              "env": [
+                "CHROME_HEADLESS=1",
+                "GOROOT=/mnt/pd0/s/w/ir/go/go",
+                "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+                "GIT_USER_AGENT=git/1.9.1",
+                "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+                "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+                "TMPDIR="
+              ]
+            },
+            {
+              "id": "1ccc52d7-dca4-468c-b3a1-ea810e3f641d",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ]
+        },
+        {
+          "id": "6bb12043-3384-48e4-b74a-da3fb55ba29d",
+          "name": "sudo npm i -g bower@1.8.2",
+          "isInfra": false,
+          "environment": [
+            "CHROME_HEADLESS=1",
+            "GOROOT=/mnt/pd0/s/w/ir/go/go",
+            "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+            "GIT_USER_AGENT=git/1.9.1",
+            "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+            "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+            "TMPDIR="
+          ],
+          "parent": "2859b3f7-8f31-47ea-981b-87cb6c192f78",
+          "result": "SUCCESS",
+          "started": "2018-10-15T18:19:38.954282298Z",
+          "finished": "2018-10-15T18:19:46.819966016Z",
+          "data": [
+            {
+              "command": [
+                "sudo",
+                "npm",
+                "i",
+                "-g",
+                "bower@1.8.2"
+              ],
+              "env": [
+                "CHROME_HEADLESS=1",
+                "GOROOT=/mnt/pd0/s/w/ir/go/go",
+                "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+                "GIT_USER_AGENT=git/1.9.1",
+                "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+                "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+                "TMPDIR="
+              ]
+            },
+            {
+              "id": "9e3d5df7-eb3d-4c38-8908-633288f18639",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "8e16c5bc-141f-482c-ae55-5ea28ee48060",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ]
+        },
+        {
+          "id": "5ba37fcd-7c36-4a8f-8d5b-539976b19cfe",
+          "name": "go run ./run_unittests.go --alsologtostderr --small",
+          "isInfra": false,
+          "environment": [
+            "CHROME_HEADLESS=1",
+            "GOROOT=/mnt/pd0/s/w/ir/go/go",
+            "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+            "GIT_USER_AGENT=git/1.9.1",
+            "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+            "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+            "TMPDIR="
+          ],
+          "parent": "2859b3f7-8f31-47ea-981b-87cb6c192f78",
+          "result": "FAILURE",
+          "started": "2018-10-15T18:19:46.82016975Z",
+          "finished": "2018-10-15T18:26:41.128121763Z",
+          "data": [
+            {
+              "command": [
+                "go",
+                "run",
+                "./run_unittests.go",
+                "--alsologtostderr",
+                "--small"
+              ],
+              "env": [
+                "CHROME_HEADLESS=1",
+                "GOROOT=/mnt/pd0/s/w/ir/go/go",
+                "GOPATH=/mnt/pd0/s/w/ir/go_deps",
+                "GIT_USER_AGENT=git/1.9.1",
+                "PATH=/mnt/pd0/s/w/ir/go/go/bin:/mnt/pd0/s/w/ir/go_deps/bin:/mnt/pd0/s/w/ir/gcloud_linux/bin:/mnt/pd0/s/w/ir/protoc/bin:/mnt/pd0/s/w/ir/node/node/bin:/b/s/w/ir/cipd_bin_packages:/b/s/w/ir/cipd_bin_packages/bin:/b/s/w/ir/go/go/bin:/b/s/cipd_cache/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/mnt/pd0/s/w/ir/depot_tools",
+                "SKIABOT_TEST_DEPOT_TOOLS=/mnt/pd0/s/w/ir/depot_tools",
+                "TMPDIR="
+              ]
+            }
+          ],
+          "logs": [
+            {
+              "id": "c85d1151-c8b3-42e1-9f55-996ce7039781",
+              "name": "stderr",
+              "severity": "ERROR"
+            },
+            {
+              "id": "33318c5a-6672-48db-97f6-ff0c6598ba29",
+              "name": "stdout",
+              "severity": "INFO"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}`);
+  </script>
+</body>
+</html>

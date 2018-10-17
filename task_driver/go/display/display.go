@@ -18,11 +18,13 @@ import (
 // Step represents one step in a single run of a Task Driver.
 type Step struct {
 	*td.StepProperties
-	Result   td.StepResult  `json:"result,omitempty"`
-	Errors   []string       `json:"errors,omitempty"`
-	Started  time.Time      `json:"started,omitempty"`
-	Finished time.Time      `json:"finished,omitempty"`
-	Data     []*db.StepData `json:"data,omitempty"`
+	Result   td.StepResult `json:"result,omitempty"`
+	Errors   []string      `json:"errors,omitempty"`
+	Started  time.Time     `json:"started,omitempty"`
+	Finished time.Time     `json:"finished,omitempty"`
+
+	Data []*db.StepData `json:"data,omitempty"`
+	Logs []*td.LogData  `json:"logs,omitempty"`
 
 	Steps []*Step `json:"steps,omitempty"`
 }
@@ -69,9 +71,19 @@ func TaskDriverForDisplay(t *db.TaskDriver) (*TaskDriver, error) {
 			// TODO(borenet): We should do our best to display anyway.
 			return fmt.Errorf("Unknown step %s", id)
 		}
-		var data []*db.StepData
-		if orig.Data != nil {
-			data = append(make([]*db.StepData, 0, len(orig.Data)), orig.Data...)
+		data := []*db.StepData{}
+		logs := []*td.LogData{}
+		for _, d := range orig.Data {
+			if d.Type == td.DATA_TYPE_LOG {
+				logData, ok := d.Data.(*td.LogData)
+				if !ok {
+					// TODO(borenet): We should do our best to display anyway.
+					return fmt.Errorf("Data has type %q but does not contain a LogData instance!", td.DATA_TYPE_LOG)
+				}
+				logs = append(logs, logData)
+			} else {
+				data = append(data, d)
+			}
 		}
 		s := &Step{
 			StepProperties: orig.Properties.Copy(),
