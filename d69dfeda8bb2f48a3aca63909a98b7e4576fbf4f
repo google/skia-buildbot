@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "72be5f60_d3c6dc3c",
+        "filename": "scripts/find_missing_go_deps.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-17T14:03:33Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 3,
+        "startChar": 12,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "d69dfeda8bb2f48a3aca63909a98b7e4576fbf4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0eac6c7f_0127e2f5",
+        "filename": "scripts/find_missing_go_deps.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-17T14:03:33Z",
+      "side": 1,
+      "message": "nit",
+      "revId": "d69dfeda8bb2f48a3aca63909a98b7e4576fbf4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
