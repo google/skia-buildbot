@@ -6,16 +6,23 @@ import (
 	"os"
 	"strings"
 
-	"cloud.google.com/go/logging"
 	"github.com/pborman/uuid"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const (
 	// PubSub topic name.
 	PUBSUB_TOPIC = "task-driver"
+
+	// Log ID for all Task Drivers. Logs are labeled with task ID and step
+	// ID as well, and those labels should be used for filtering in most
+	// cases.
+	LOG_ID = "task-driver"
 
 	// Special ID of the root step.
 	STEP_ID_ROOT = "root"
@@ -23,7 +30,7 @@ const (
 
 var (
 	// Auth scopes required for all task_drivers.
-	SCOPES = []string{logging.WriteScope}
+	SCOPES = []string{compute.CloudPlatformScope}
 )
 
 // StartRunWithErr begins a new test automation run, returning any error which
@@ -50,19 +57,51 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		return nil, fmt.Errorf("Task name is required.")
 	}
 
+	ctx := context.Background()
+
+	// Initialize Cloud Logging.
+	var ts oauth2.TokenSource
+	if *local {
+		var err error
+		ts, err = auth.NewDefaultTokenSource(*local, SCOPES...)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		ts, err = auth.NewLUCIContextTokenSource(SCOPES...)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
+		}
+	}
+	labels := map[string]string{
+		"taskId":   *taskId,
+		"taskName": *taskName,
+	}
+	logger, err := sklog.NewCloudLogger(ctx, *projectId, LOG_ID, ts, labels)
+	if err != nil {
+		return nil, err
+	}
+	sklog.SetLogger(logger)
+
 	// Dump environment variables.
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))
 
 	// Connect receivers.
+	cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
+	if err != nil {
+		return nil, err
+	}
 	report := newReportReceiver(*output)
 	receivers := map[string]Receiver{
-		"DebugReceiver":  &DebugReceiver{},
-		"ReportReceiver": report,
+		"CloudLoggingReceiver": cloudLogging,
+		"DebugReceiver":        &DebugReceiver{},
+		"ReportReceiver":       report,
 	}
 	emitter := newStepEmitter(*taskId, receivers)
 
 	// Set up and return the root-level Step.
-	ctx := newRun(emitter, *taskName)
+	ctx = newRun(ctx, emitter, *taskName)
 	return ctx, nil
 }
 
@@ -91,14 +130,13 @@ type run struct {
 
 // newRun returns a context.Context representing a Task Driver run, including
 // creation of a root step.
-func newRun(e *stepEmitter, taskName string) context.Context {
+func newRun(ctx context.Context, e *stepEmitter, taskName string) context.Context {
 	r := &run{
 		done: func() {
 			util.Close(e)
 		},
 		emitter: e,
 	}
-	ctx := context.Background()
 	ctx = setRun(ctx, r)
 	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName))
 	return ctx
