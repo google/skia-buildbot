@@ -27,5 +27,5 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "3h"
+  "maxRollFrequency": "0m"
 }
