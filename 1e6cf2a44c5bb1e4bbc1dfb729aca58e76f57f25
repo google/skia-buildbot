@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13aeb3b9_05a20cdf",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-17T12:00:11Z",
+      "side": 1,
+      "message": "nit: needs some documentation",
+      "range": {
+        "startLine": 602,
+        "startChar": 0,
+        "endLine": 607,
+        "endChar": 0
+      },
+      "revId": "1e6cf2a44c5bb1e4bbc1dfb729aca58e76f57f25",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
