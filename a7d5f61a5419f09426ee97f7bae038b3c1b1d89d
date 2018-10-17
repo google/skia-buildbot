@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1248976f_c4908403",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-17T18:47:48Z",
+      "side": 1,
+      "message": "Doesn\u0027t this go against the security mantra of having the service account have the minimum access needed?",
+      "range": {
+        "startLine": 392,
+        "startChar": 3,
+        "endLine": 392,
+        "endChar": 68
+      },
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfe03097_13b12149",
+        "filename": "go/sklog/cloud_logging_v2.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-17T18:47:48Z",
+      "side": 1,
+      "message": "So google.golang.org/api/logging/v2 is deprecated? Shouldn\u0027t we just fix the main sklog package to use the non-deprecated package?",
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08093ce6_d5a40529",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-17T18:47:48Z",
+      "side": 1,
+      "message": "I haven\u0027t been a fan of emitter/receiver but couldn\u0027t articulate why, until I saw this code.\n\nemitter isn\u0027t really an emitter, it translates from task specific events into generic Messages, but it also knows there will be multiple receivers, which it shouldn\u0027t really care about. I.e. There should be a MultiReceiver, just like you have a util.MultiWriter, and newStepEmitter should take a single Receiver.",
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
