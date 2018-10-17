@@ -210,6 +210,10 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
 	assert.Len(t, df.TraceSet[",arch=arm,config=8888,"], 8)
 
+	// A dense response from NewNFromQuery().
+	df, err = builder.NewNFromQuery(ctx, time.Now(), q, 3, nil)
+	assert.NoError(t, err)
+
 	// NewFromQueryAndRange where query doesn't encode.
 	q, err = query.New(url.Values{"config": []string{"nvpr"}})
 	assert.NoError(t, err)
