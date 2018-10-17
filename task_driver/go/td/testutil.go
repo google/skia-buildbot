@@ -28,7 +28,7 @@ func StartTestRun(t testutils.TestingT) *TestingRun {
 	})
 	return &TestingRun{
 		t:       t,
-		ctx:     newRun(emitter, "fake-test-task"),
+		ctx:     newRun(context.Background(), emitter, "fake-test-task"),
 		wd:      wd,
 		report:  report,
 		cleanup: cleanup,
