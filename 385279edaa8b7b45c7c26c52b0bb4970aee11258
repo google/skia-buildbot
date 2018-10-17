@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "76b065d0_5806d00c",
+        "filename": "go/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 1098,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T11:42:45Z",
+      "side": 1,
+      "message": "Slick!",
+      "parentUuid": "898a1dc4_b19ff863",
+      "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5a19732e_e42adb6c",
         "filename": "task_driver/go/td/run.go",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2018-10-16T21:07:02Z",
       "side": 1,
       "message": "I thought emitters and receivers were going away in favor of just logs + structured logs, or is that in a later CL?",
+      "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a1e0b23_5c04364a",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T11:42:45Z",
+      "side": 1,
+      "message": "I was planning to remove them in a subsequent CL, but I\u0027m finding them very useful for testing, and my logging CL still uses them.  Let\u0027s discuss their usage in that CL, which is waiting in the wings.",
+      "parentUuid": "5a19732e_e42adb6c",
       "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -50,6 +86,24 @@
       "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ce87256_918df34b",
+        "filename": "task_driver/go/td/step_properties.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T11:42:45Z",
+      "side": 1,
+      "message": "Changed to func Props(name string) *StepProperties",
+      "parentUuid": "6fafbc7f_fb1722ac",
+      "revId": "385279edaa8b7b45c7c26c52b0bb4970aee11258",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
