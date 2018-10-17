@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/zeebo/bencode"
 	"go.skia.org/infra/go/sklog"
 )
@@ -1086,4 +1087,24 @@ func SafeAtoi(n string) int {
 // Validator is an interface which has a Validate() method.
 type Validator interface {
 	Validate() error
+}
+
+// MultiWriter is like io.MultiWriter but attempts to write to all of the given
+// io.Writers, even if writing to one fails.
+type MultiWriter []io.Writer
+
+// See documentation for io.Writer. Uses a multierror.Error to summarize any and
+// all errors returned by each of the io.Writers.
+func (mw MultiWriter) Write(b []byte) (int, error) {
+	var rv int
+	var rvErr error
+	for _, w := range mw {
+		n, err := w.Write(b)
+		if err != nil {
+			rvErr = multierror.Append(rvErr, err)
+		} else {
+			rv = n
+		}
+	}
+	return rv, rvErr
 }
