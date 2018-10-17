@@ -6,6 +6,7 @@
 # Recipe for Skia Infra.
 
 
+import json
 import re
 
 
@@ -121,6 +122,20 @@ def RunSteps(api):
     env['BIGTABLE_EMULATOR_HOST'] = 'localhost:8892'
     env['PUBSUB_EMULATOR_HOST'] = 'localhost:8893'
 
+  # Determine if any dependencies are missing from the go_deps asset. This
+  # happens whenever we add a dependency on a new package and will be resolved
+  # automatically the next time that go_deps is rolled. For now, explicitly sync
+  # the missing dependencies.
+  with api.context(env=env):
+    script = infra_dir.join('scripts', 'find_missing_go_deps.py')
+    output = api.python('Find missing Go DEPS',
+                        script=script,
+                        args=['--json'],
+                        stdout=api.raw_io.output()).stdout.rstrip()
+    if output:
+      for pkg in json.loads(output):
+        api.step('Sync missing %s' % pkg, cmd=['go', 'get', pkg])
+
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
   env['TMPDIR'] = None
@@ -184,4 +199,14 @@ def GenTests(api):
       api.test('Infra-PerCommit-Race') +
       api.properties(buildername='Infra-PerCommit-Race',
                      path_config='kitchen')
+  )
+  yield (
+      api.test('missing_deps') +
+      api.properties(buildername='Infra-PerCommit-Small',
+                     path_config='kitchen') +
+    api.step_data('Find missing Go DEPS',
+        stdout=api.raw_io.output('''[
+  "github.com/hashicorp/go-multierror",
+  "github.com/cenkalti/backoff"
+]'''))
   )

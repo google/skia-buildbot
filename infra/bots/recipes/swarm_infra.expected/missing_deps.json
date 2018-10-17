@@ -29,10 +29,8 @@
       "[CLEANUP]/bot_update",
       "--output_json",
       "/path/to/tmp/json",
-      "--patch_ref",
-      "https://skia.googlesource.com/buildbot.git@refs/changes/34/1234/1",
       "--revision",
-      "infra@HEAD"
+      "infra@origin/master"
     ],
     "cwd": "[START_DIR]/go_deps/src/go.skia.org",
     "env_prefixes": {
@@ -47,7 +45,7 @@
       "@@@STEP_LOG_LINE@json.output@{@@@",
       "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
       "@@@STEP_LOG_LINE@json.output@  \"fixed_revisions\": {@@@",
-      "@@@STEP_LOG_LINE@json.output@    \"infra\": \"HEAD\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"infra\": \"origin/master\"@@@",
       "@@@STEP_LOG_LINE@json.output@  }, @@@",
       "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
       "@@@STEP_LOG_LINE@json.output@    \"infra\": {@@@",
@@ -156,6 +154,36 @@
     },
     "name": "Find missing Go DEPS",
     "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "go",
+      "get",
+      "github.com/hashicorp/go-multierror"
+    ],
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOPATH": "[START_DIR]/go_deps",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "Sync missing github.com/hashicorp/go-multierror"
+  },
+  {
+    "cmd": [
+      "go",
+      "get",
+      "github.com/cenkalti/backoff"
+    ],
+    "env": {
+      "CHROME_HEADLESS": "1",
+      "GIT_USER_AGENT": "git/1.9.1",
+      "GOPATH": "[START_DIR]/go_deps",
+      "GOROOT": "[START_DIR]/go/go",
+      "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>"
+    },
+    "name": "Sync missing github.com/cenkalti/backoff"
   },
   {
     "cmd": [
