@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e3e2f526_f55cd2a7",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T19:49:22Z",
+      "side": 1,
+      "message": "Yes, but we still have the restriction going the other direction, ie. the service account still has to be given the rights it actually tries to exercise.  In this case, we\u0027d need to whitelist individual scopes in the LUCI token server config, requiring an update and push every time they changed.  It seemed far simpler to use the already-whitelisted CloudPlatform scope and just rely on the fact that we only actually grant the necessary accesses to our service accounts.",
+      "parentUuid": "1248976f_c4908403",
+      "range": {
+        "startLine": 392,
+        "startChar": 3,
+        "endLine": 392,
+        "endChar": 68
+      },
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bfe03097_13b12149",
         "filename": "go/sklog/cloud_logging_v2.go",
         "patchSetId": 7
@@ -36,6 +60,24 @@
       "writtenOn": "2018-10-17T18:47:48Z",
       "side": 1,
       "message": "So google.golang.org/api/logging/v2 is deprecated? Shouldn\u0027t we just fix the main sklog package to use the non-deprecated package?",
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72e12a92_09a81c14",
+        "filename": "go/sklog/cloud_logging_v2.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T19:49:22Z",
+      "side": 1,
+      "message": "Yes, but I didn\u0027t want this CL to change ALL of our apps.  I can follow up with a separate CL to do that if you\u0027d like.",
+      "parentUuid": "bfe03097_13b12149",
       "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -56,6 +98,24 @@
       "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70751c26_a0657ead",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-17T19:49:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "08093ce6_d5a40529",
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
