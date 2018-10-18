@@ -359,6 +359,7 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold f
 			high.ParamSummaries = getParamSummariesForKeys(high.Keys)
 			ret.Clusters = append(ret.Clusters, high)
 		}
+		// Now that we've calculated the ParamSummaries we can create a shortcut for all the keys.
 		return ret, nil
 	} else {
 		return nil, fmt.Errorf("Unknown clustering algorithm: %s", algo)

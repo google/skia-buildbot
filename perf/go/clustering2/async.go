@@ -468,6 +468,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		p.reportError(err, "Invalid clustering.")
 		return
 	}
+	fixupClusterKeys(summary)
 
 	df.TraceSet = types.TraceSet{}
 	frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
