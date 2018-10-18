@@ -168,6 +168,7 @@
           <span title="Number of commits skipped between each point displayed." hidden="[[_isZero(_dataframe.skip)]]" id=skip>[[_dataframe.skip]]</span>
         </div>
         <paper-checkbox on-click=_zeroChanged checked="{{state.show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
+        <paper-checkbox on-click=_autoRefreshChanged checked="{{state.auto_refresh}}" title="Auto-refresh the data displayed in the graph.">Auto-Refresh</paper-checkbox>
         <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
       </div>
 
@@ -246,6 +247,7 @@
           keys: "",  // The id of the shortcut to a list of trace keys.
           xbaroffset: -1, // The offset of the commit in the repo.
           show_zero: true,
+          auto_refresh: false,
         }; },
       },
       // The [begin, end] timestamps of the region
@@ -269,11 +271,17 @@
         type: Number,
         value: sk.perf.num_shift,
       },
+      _refreshId: {
+        type: Number,
+        value: -1,
+      }
     },
 
 
     ready: function() {
       this.ZERO_NAME = "special_zero";
+
+      this.REFRESH_TIMEOUT = 30*1000; // milliseconds
 
       // Populate the query element.
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -378,6 +386,7 @@
         this.$.range.begin = this.state.begin;
         this.$.range.end = this.state.end;
         this._zeroChanged();
+        this._autoRefreshChanged();
         this._rangeChangeImpl(this.state.begin, this.state.end);
       }.bind(this));
     },
@@ -499,6 +508,33 @@
         this.$.plot.deleteLine(this.ZERO_NAME);
       }
       this.$.plot.resetAxes();
+    },
+
+    _autoRefreshChanged: function() {
+      if (!this.state.auto_refresh) {
+        if (this._refreshId != -1) {
+          clearInterval(this._refreshId);
+        }
+      } else {
+        this._refreshId = setInterval(() => this._autoRefresh(), this.REFRESH_TIMEOUT);
+      }
+    },
+
+    _autoRefresh: function() {
+      var body = {
+        begin: this.state.begin,
+        end: this.state.end,
+        formulas: this.state.formulas,
+        queries: this.state.queries,
+        keys: this.state.keys,
+      };
+      var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
+      this._requestFrame(body, (json) => {
+        this.$.plot.removeAll();
+        this._lines = [];
+        this._addTraces(json, false, switchToTab);
+        this.$.zoom_range.disabled = true;
+      });
     },
 
     // _addTraces adds the traces to the graph in the serialized SearchResults
@@ -844,6 +880,8 @@
       if (this._requestId != "") {
         sk.errorMessage("There is a pending query already running.");
         return
+      } else {
+        this._requestId = "About to make request";
       }
       this.$.spinner.active = true;
 
