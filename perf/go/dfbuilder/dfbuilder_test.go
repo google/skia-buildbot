@@ -2,6 +2,7 @@ package dfbuilder
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"testing"
 	"time"
@@ -143,14 +144,14 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	v := &mockVCS{
 		ret: []*vcsinfo.IndexCommit{
-			&vcsinfo.IndexCommit{Index: 0},
-			&vcsinfo.IndexCommit{Index: 1},
-			&vcsinfo.IndexCommit{Index: 2},
-			&vcsinfo.IndexCommit{Index: 3},
-			&vcsinfo.IndexCommit{Index: 4},
-			&vcsinfo.IndexCommit{Index: 5},
-			&vcsinfo.IndexCommit{Index: 6},
-			&vcsinfo.IndexCommit{Index: 7},
+			&vcsinfo.IndexCommit{Index: 0, Hash: "123"},
+			&vcsinfo.IndexCommit{Index: 1, Hash: "223"},
+			&vcsinfo.IndexCommit{Index: 2, Hash: "323"},
+			&vcsinfo.IndexCommit{Index: 3, Hash: "423"},
+			&vcsinfo.IndexCommit{Index: 4, Hash: "523"},
+			&vcsinfo.IndexCommit{Index: 5, Hash: "623"},
+			&vcsinfo.IndexCommit{Index: 6, Hash: "723"},
+			&vcsinfo.IndexCommit{Index: 7, Hash: "823"},
 		},
 	}
 	builder := NewDataFrameBuilderFromBTTS(v, store)
@@ -210,6 +211,25 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
 	assert.Len(t, df.TraceSet[",arch=arm,config=8888,"], 8)
 
+	// A dense response from NewNFromQuery().
+	df, err = builder.NewNFromQuery(ctx, time.Now(), q, 4, nil)
+	assert.NoError(t, err)
+	assert.Len(t, df.TraceSet, 2)
+	assert.Len(t, df.Header, 3)
+	assert.Equal(t, df.Header[0].Offset, int64(0))
+	assert.Equal(t, df.Header[1].Offset, int64(1))
+	assert.Equal(t, df.Header[2].Offset, int64(7))
+	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][0], float32(1.2))
+	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][1], float32(1.3))
+	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][2], float32(1.0))
+
+	df, err = builder.NewNFromQuery(ctx, time.Now(), q, 2, nil)
+	assert.NoError(t, err)
+	assert.Len(t, df.TraceSet, 2)
+	assert.Len(t, df.Header, 1)
+	assert.Equal(t, df.Header[0].Offset, int64(7))
+	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][0], float32(1.0))
+
 	// NewFromQueryAndRange where query doesn't encode.
 	q, err = query.New(url.Values{"config": []string{"nvpr"}})
 	assert.NoError(t, err)
@@ -255,7 +275,7 @@ type mockVCS struct {
 }
 
 func (m *mockVCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
-	if N > len(m.ret) {
+	if N > len(m.ret)-1 {
 		return m.ret
 	}
 	return m.ret[len(m.ret)-N:]
@@ -265,13 +285,26 @@ func (m *mockVCS) Range(begin time.Time, end time.Time) []*vcsinfo.IndexCommit {
 	return m.ret
 }
 
+func (m *mockVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
+	if N >= len(m.ret) || N < 0 {
+		return nil, fmt.Errorf("Index out of range.")
+	}
+	c := m.ret[N]
+	ret := &vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
+			Hash: c.Hash,
+		},
+		Timestamp: c.Timestamp,
+	}
+	return ret, nil
+}
+
 func (m *mockVCS) Update(ctx context.Context, pull bool, allBranches bool) error { return nil }
 func (m *mockVCS) From(start time.Time) []string                                 { return []string{} }
 func (m *mockVCS) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
-func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error)           { return 0, nil }
-func (m *mockVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) { return nil, nil }
+func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) { return 0, nil }
 func (m *mockVCS) GetFile(ctx context.Context, fileName string, commitHash string) (string, error) {
 	return "", nil
 }

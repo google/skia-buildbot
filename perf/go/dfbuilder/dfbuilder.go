@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -58,6 +59,26 @@ func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.Column
 // Returns 0 for 'skip', the number of commits skipped.
 func lastNCommits(vcs vcsinfo.VCS, n int) ([]*dataframe.ColumnHeader, []int32, int) {
 	return fromIndexCommit(vcs.LastNIndex(n), 0)
+}
+
+// fromIndexRange returns the headers and indices for all the commits
+// between beginIndex and endIndex inclusive.
+func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex int32) ([]*dataframe.ColumnHeader, []int32, int, error) {
+	headers := []*dataframe.ColumnHeader{}
+	indices := []int32{}
+	for i := beginIndex; i <= endIndex; i++ {
+		commit, err := vcs.ByIndex(ctx, int(i))
+		if err != nil {
+			return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
+		}
+		headers = append(headers, &dataframe.ColumnHeader{
+			Source:    "master",
+			Offset:    int64(i),
+			Timestamp: commit.Timestamp.Unix(),
+		})
+		indices = append(indices, i)
+	}
+	return headers, indices, 0, nil
 }
 
 // fromTimeRange returns the slices of ColumnHeader and int32. The slices
@@ -295,6 +316,124 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 		indices = append(indices, int32(d.Offset))
 	}
 	return b.new(colHeaders, indices, q, progress, 0)
+}
+
+// findIndexForTime finds the index of the closest commit <= 'end'.
+func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, error) {
+	var err error
+	endIndex := 0
+
+	hashes := b.vcs.From(end)
+	if len(hashes) > 0 {
+		endIndex, err = b.vcs.IndexOf(ctx, hashes[0])
+		if err != nil {
+			return 0, fmt.Errorf("Failed loading end commit: %s", err)
+		}
+	} else {
+		commits := b.vcs.LastNIndex(1)
+		if len(commits) == 0 {
+			return 0, fmt.Errorf("Failed to find an end commit.")
+		}
+		endIndex = commits[0].Index
+	}
+	return int32(endIndex), nil
+}
+
+// See DataFrameBuilder.
+func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	// endIndex is the index in the trace store that we are currently searching up to.
+	endIndex, err := b.findIndexForTime(ctx, end)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	ret := dataframe.NewEmpty()
+	var total int32 // total number of commits we've added to ret so far.
+	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
+
+	for total < n {
+		// Be optimistic and assume that the data is already dense and query for 'n'
+		// columns worth of data until we get a response that has no data, or we have
+		// 'n' values in our traces.
+
+		// Don't search for negative indices.
+		if endIndex-n+1 < 0 {
+			break
+		}
+
+		// Query for traces.
+		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, endIndex-n+1, endIndex)
+		if err != nil {
+			return nil, fmt.Errorf("Failed building index range: %s", err)
+		}
+		df, err := b.new(headers, indices, q, nil, skip)
+		if err != nil {
+			return nil, fmt.Errorf("Failed while querying: %s", err)
+		}
+
+		// If there are no matches then we're done.
+		if len(df.TraceSet) == 0 {
+			break
+		}
+
+		// Total up the number of data points we have for each commit.
+		counts := make([]int, len(df.Header))
+		for _, tr := range df.TraceSet {
+			for i, x := range tr {
+				if x != vec32.MISSING_DATA_SENTINEL {
+					counts[i] += 1
+				}
+			}
+		}
+
+		// If we have no data for any commit then we are done.
+		done := true
+		for _, count := range counts {
+			if count > 0 {
+				done = false
+				break
+			}
+		}
+		if done {
+			break
+		}
+
+		ret.ParamSet.AddParamSet(df.ParamSet)
+
+		// For each commit that has data, copy the data from df into ret.
+		// Move backwards down the trace since we are building the result from 'end' backwards.
+		for i := len(counts) - 1; i >= 0; i-- {
+			if counts[i] > 0 {
+				ret.Header = append([]*dataframe.ColumnHeader{df.Header[i]}, ret.Header...)
+				for key, sourceTrace := range df.TraceSet {
+					if _, ok := ret.TraceSet[key]; !ok {
+						ret.TraceSet[key] = vec32.New(int(n))
+					}
+					ret.TraceSet[key][n-1-total] = sourceTrace[i]
+				}
+				total += 1
+
+				// If we've added enough commits to ret then we are done.
+				if total == n {
+					break
+				}
+			}
+		}
+
+		if progress != nil {
+			progress(steps, steps+1)
+		}
+		steps += 1
+		endIndex -= n
+	}
+
+	if total < n {
+		// Trim down the traces so they are the same length as ret.Header.
+		for key, tr := range ret.TraceSet {
+			ret.TraceSet[key] = tr[n-total:]
+		}
+	}
+
+	return ret, nil
 }
 
 // Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.

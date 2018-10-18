@@ -51,9 +51,13 @@ type DataFrameBuilder interface {
 	// callback is called periodically as the query is processed.
 	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error)
 
+	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
+	// points ending at the given 'end' time.
+	NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*DataFrame, error)
+
 	// TODO Add func to count matches.
 	// TODO Add func to get merged paramset for a date range.
-	// TODO Add func to get dataframe of condensed traces of N data points ending at a given index.
+
 }
 
 // ptracestoreDataFrameBuilder implements DataFrameBuilder using ptracestore.
@@ -240,6 +244,11 @@ func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Conte
 		})
 	}
 	return _new(colHeaders, cids, q.Matches, p.store, progress, 0)
+}
+
+// See DataFrameBuilder.
+func (p *ptracestoreDataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*DataFrame, error) {
+	return nil, fmt.Errorf("Not Implemented.")
 }
 
 // NewEmpty returns a new empty DataFrame.
