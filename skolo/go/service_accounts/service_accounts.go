@@ -77,7 +77,7 @@ var (
 
 // ServiceAccount is a struct representing a service account.
 type ServiceAccount struct {
-	Project  string
-	Email    string
-	Nickname string
+	Project  string `json:"project"`
+	Email    string `json:"email"`
+	Nickname string `json:"nick"`
 }

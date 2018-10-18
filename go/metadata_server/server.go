@@ -1,4 +1,4 @@
-package metadata
+package metadata_server
 
 import (
 	"bytes"
@@ -13,10 +13,13 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
+	compute "google.golang.org/api/compute/v1"
 )
 
 // ProjectMetadata is an interface which supports retrieval of project-level
@@ -48,37 +51,44 @@ func ValidateToken(tok *oauth2.Token) error {
 	return nil
 }
 
+type TokenProvider interface {
+	Get() (*oauth2.Token, error)
+}
+
 // ServiceAccountToken is a struct used for caching an access token for a
 // service account.
 type ServiceAccountToken struct {
 	filename string
 	tok      *oauth2.Token
 	mtx      sync.RWMutex
+	updateFn func() (*oauth2.Token, error)
+	tokenSrc oauth2.TokenSource
 }
 
 // NewServiceAccountToken returns a ServiceAccountToken based on the contents
 // of the given file.
-func NewServiceAccountToken(fp string) (*ServiceAccountToken, error) {
+func NewServiceAccountToken(fp string, isKeyFile bool) (*ServiceAccountToken, error) {
 	rv := &ServiceAccountToken{
 		filename: fp,
+	}
+	// Set the update function whether the provided file is a file containing a cached token
+	// or a service account keyfile.
+	rv.updateFn = rv.readTokenFromFile
+	if isKeyFile {
+		var err error
+		rv.tokenSrc, err = auth.NewJWTServiceAccountTokenSource("#bogus", fp, compute.CloudPlatformScope, auth.SCOPE_USERINFO_EMAIL)
+		if err != nil {
+			return nil, err
+		}
+		rv.updateFn = rv.fetchToken
 	}
 	return rv, rv.Update()
 }
 
 // UpdateFromFile updates the ServiceAccountToken from the given file.
 func (t *ServiceAccountToken) Update() error {
-	// Read the token from the file.
-	contents, err := ioutil.ReadFile(t.filename)
+	tok, err := t.updateFn()
 	if err != nil {
-		return err
-	}
-	tok := new(oauth2.Token)
-	if err := json.NewDecoder(bytes.NewReader(contents)).Decode(tok); err != nil {
-		return err
-	}
-
-	// Validate the token.
-	if err := ValidateToken(tok); err != nil {
 		return err
 	}
 
@@ -90,16 +100,32 @@ func (t *ServiceAccountToken) Update() error {
 	return nil
 }
 
+func (t *ServiceAccountToken) readTokenFromFile() (*oauth2.Token, error) {
+	// Read the token from the file.
+	contents, err := ioutil.ReadFile(t.filename)
+	if err != nil {
+		return nil, err
+	}
+	tok := new(oauth2.Token)
+	if err := json.NewDecoder(bytes.NewReader(contents)).Decode(tok); err != nil {
+		return nil, err
+	}
+
+	// Validate the token.
+	if err := ValidateToken(tok); err != nil {
+		return nil, err
+	}
+	return tok, nil
+}
+
+func (t *ServiceAccountToken) fetchToken() (*oauth2.Token, error) {
+	return nil, nil
+}
+
 // Get returns the current value of the access token.
 func (t *ServiceAccountToken) Get() (*oauth2.Token, error) {
 	t.mtx.RLock()
 	defer t.mtx.RUnlock()
-
-	// Ensure that the token is valid.
-	if err := ValidateToken(t.tok); err != nil {
-		return nil, err
-	}
-
 	return t.tok, nil
 }
 
@@ -162,8 +188,8 @@ func makeProjectMetadataHandler(pm ProjectMetadata) func(http.ResponseWriter, *h
 
 // mdHandler adds a handler to the given router for the specified metadata endpoint.
 func mdHandler(r *mux.Router, level string, handler http.HandlerFunc) {
-	path := fmt.Sprintf(METADATA_SUB_URL_TMPL, level, "{key}")
-	r.HandleFunc(path, handler).Headers(HEADER_MD_FLAVOR_KEY, HEADER_MD_FLAVOR_VAL)
+	path := fmt.Sprintf(metadata.METADATA_SUB_URL_TMPL, level, "{key}")
+	r.HandleFunc(path, handler).Headers(metadata.HEADER_MD_FLAVOR_KEY, metadata.HEADER_MD_FLAVOR_VAL)
 	sklog.Infof("%s: %s", level, path)
 }
 
@@ -195,9 +221,9 @@ func getMyIP() ([]string, error) {
 
 // SetupServer adds handlers to the given router which mimic the API of the GCE
 // metadata server.
-func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMapping map[string]*ServiceAccountToken) {
-	mdHandler(r, LEVEL_INSTANCE, makeInstanceMetadataHandler(im))
-	mdHandler(r, LEVEL_PROJECT, makeProjectMetadataHandler(pm))
+func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMapping map[string]TokenProvider) {
+	mdHandler(r, metadata.LEVEL_INSTANCE, makeInstanceMetadataHandler(im))
+	mdHandler(r, metadata.LEVEL_PROJECT, makeProjectMetadataHandler(pm))
 
 	myIpAddrs, err := getMyIP()
 	if err != nil {
@@ -206,10 +232,10 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMa
 
 	// The service account token path does not quite follow the pattern of
 	// the other two metadata types.
-	r.HandleFunc(TOKEN_PATH, func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc(metadata.TOKEN_PATH, func(w http.ResponseWriter, r *http.Request) {
 		// Find the token for this requester.
 		ipAddr := strings.Split(r.RemoteAddr, ":")[0]
-		var tok *ServiceAccountToken
+		var tok TokenProvider
 		if t, ok := tokenMapping[ipAddr]; ok {
 			// 1. We have a token specifically for this IP address.
 			tok = t
