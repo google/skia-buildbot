@@ -1,4 +1,4 @@
-FROM debian:testing
+FROM debian:stretch
 # FROM debian:testing-slim slim broke early Sept 2018.
 
 RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
