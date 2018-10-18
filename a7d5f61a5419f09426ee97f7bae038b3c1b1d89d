@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "b1abc300_c4505608",
+        "filename": "go/auth/auth.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-18T12:45:53Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e3e2f526_f55cd2a7",
+      "range": {
+        "startLine": 392,
+        "startChar": 3,
+        "endLine": 392,
+        "endChar": 68
+      },
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bfe03097_13b12149",
         "filename": "go/sklog/cloud_logging_v2.go",
         "patchSetId": 7
@@ -78,6 +102,24 @@
       "side": 1,
       "message": "Yes, but I didn\u0027t want this CL to change ALL of our apps.  I can follow up with a separate CL to do that if you\u0027d like.",
       "parentUuid": "bfe03097_13b12149",
+      "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e60b942_ea9223b2",
+        "filename": "go/sklog/cloud_logging_v2.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-18T12:45:53Z",
+      "side": 1,
+      "message": "Yes, a separate follow-on CL would be best.",
+      "parentUuid": "72e12a92_09a81c14",
       "revId": "a7d5f61a5419f09426ee97f7bae038b3c1b1d89d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true

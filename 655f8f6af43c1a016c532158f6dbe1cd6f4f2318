@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20b94fa8_eaea6e3f",
+        "filename": "task_driver/go/td/emitter.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-18T12:45:53Z",
+      "side": 1,
+      "message": "There\u0027s not much left to emitter, it could be folded into \u0027run\u0027 which is also very small. Just an idea.",
+      "revId": "655f8f6af43c1a016c532158f6dbe1cd6f4f2318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
