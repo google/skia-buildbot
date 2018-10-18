@@ -521,6 +521,8 @@
     },
 
     _autoRefresh: function() {
+      // Update end to be now.
+      this.state.end = Math.floor(Date.now()/1000);
       var body = {
         begin: this.state.begin,
         end: this.state.end,
