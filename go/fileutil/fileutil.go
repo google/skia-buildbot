@@ -2,8 +2,10 @@ package fileutil
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha1"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -169,12 +171,34 @@ func CountLines(path string) (int, error) {
 	defer util.Close(file)
 
 	numLines := 0
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
+	// Using ReadLine instead of Scanner and ReadString because it can handle
+	// lines longer than 65536 characters.
+	r := bufio.NewReader(file)
+	for {
+		var buffer bytes.Buffer
+
+		var l []byte
+		var isPrefix bool
+		for {
+			l, isPrefix, err = r.ReadLine()
+			buffer.Write(l)
+			// If we've reached the end of the line, stop reading.
+			if !isPrefix {
+				break
+			}
+			// If we're just at the EOF, break
+			if err != nil {
+				break
+			}
+		}
+		if err == io.EOF {
+			break
+		}
 		numLines++
 	}
-	if err := scanner.Err(); err != nil {
+	if err != io.EOF {
 		return -1, err
 	}
-	return numLines, err
+
+	return numLines, nil
 }
