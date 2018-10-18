@@ -103,6 +103,7 @@ const (
 	PAGE_SETS_PARAMETERS_POST_URI = "_/page_sets/"
 	CL_DATA_POST_URI              = "_/cl_data"
 	BENCHMARKS_PLATFORMS_POST_URI = "_/benchmarks_platforms/"
+	IS_ADMIN_POST_URI             = "_/is_admin/"
 
 	RESULTS_URI = "/results/"
 

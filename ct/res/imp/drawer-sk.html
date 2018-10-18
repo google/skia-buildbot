@@ -44,25 +44,29 @@
         Correctness
       </paper-item>
 
-      <paper-item data-href="/capture_skps/">
-        <iron-icon icon="image:photo-camera" class="right_padded"></iron-icon>
-        SkPictures
-      </paper-item>
-
       <paper-item data-href="/lua_script/">
         <iron-icon icon="cloud" class="right_padded"></iron-icon>
         Lua Scripts
       </paper-item>
 
-      <paper-item data-href="/chromium_builds/">
-        <iron-icon icon="shopping-cart" class="right_padded"></iron-icon>
-        Builds
-      </paper-item>
+      <template is="dom-if" if="{{isAdmin}}">
 
-      <paper-item data-href="/admin_tasks/">
-        <iron-icon icon="social:person" class="right_padded"></iron-icon>
-        Admin Tasks
-      </paper-item>
+        <paper-item data-href="/capture_skps/">
+          <iron-icon icon="image:photo-camera" class="right_padded"></iron-icon>
+          SkPictures
+        </paper-item>
+
+        <paper-item data-href="/chromium_builds/">
+          <iron-icon icon="shopping-cart" class="right_padded"></iron-icon>
+          Builds
+        </paper-item>
+
+        <paper-item data-href="/admin_tasks/">
+          <iron-icon icon="social:person" class="right_padded"></iron-icon>
+          Admin Tasks
+        </paper-item>
+
+      </template>
 
       <paper-item data-href="/queue/">
         <iron-icon icon="reorder" class="right_padded"></iron-icon>
@@ -96,6 +100,10 @@
         type: String,
         value: "",
         observer: "selectedChanged",
+      },
+      isAdmin: {
+        type: Boolean,
+        value: false,
       },
       sizeOfQueue: {
         type: Number,
@@ -135,6 +143,14 @@
       this.initSelected();
       this.initSizeOfQueue();
       this.initSizeOfUserQueue();
+      this.initIsAdmin();
+    },
+
+    initIsAdmin: function() {
+      var is_admin_url = "/_/is_admin/"
+      sk.post(is_admin_url).then(JSON.parse).then(function(json) {
+        this.isAdmin = json.isAdmin;
+      }.bind(this)).catch(sk.errorMessage);
     },
 
     initSizeOfQueue: function() {
