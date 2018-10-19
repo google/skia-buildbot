@@ -56,6 +56,7 @@ type DatastoreTask struct {
 	CatapultPatchGSPath string
 	RawOutput           string
 	ValueColumnName     string
+	CCList              []string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -73,6 +74,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.ValueColumnName = task.ValueColumnName
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.Description = task.Description
+	taskVars.CCList = task.CCList
 
 	var err error
 	taskVars.CustomTraces, err = ctutil.GetPatchFromStorage(task.CustomTracesGSPath)
@@ -138,15 +140,16 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	MetricName         string `json:"metric_name"`
-	CustomTraces       string `json:"custom_traces"`
-	AnalysisTaskId     string `json:"analysis_task_id"`
-	AnalysisOutputLink string `json:"analysis_output_link"`
-	BenchmarkArgs      string `json:"benchmark_args"`
-	Description        string `json:"desc"`
-	ChromiumPatch      string `json:"chromium_patch"`
-	CatapultPatch      string `json:"catapult_patch"`
-	ValueColumnName    string `json:"value_column_name"`
+	MetricName         string   `json:"metric_name"`
+	CustomTraces       string   `json:"custom_traces"`
+	AnalysisTaskId     string   `json:"analysis_task_id"`
+	AnalysisOutputLink string   `json:"analysis_output_link"`
+	BenchmarkArgs      string   `json:"benchmark_args"`
+	Description        string   `json:"desc"`
+	ChromiumPatch      string   `json:"chromium_patch"`
+	CatapultPatch      string   `json:"catapult_patch"`
+	ValueColumnName    string   `json:"value_column_name"`
+	CCList             []string `json:"cc_list"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -199,6 +202,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		ValueColumnName:    task.ValueColumnName,
 		BenchmarkArgs:      task.BenchmarkArgs,
 		Description:        task.Description,
+		CCList:             task.CCList,
 
 		CustomTracesGSPath:  customTracesGSPath,
 		ChromiumPatchGSPath: chromiumPatchGSPath,
