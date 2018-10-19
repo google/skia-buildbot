@@ -151,6 +151,9 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 		"--service_account_file=" + *master_common.ServiceAccountFile,
 		fmt.Sprintf("--local=%t", *master_common.Local),
 	}
+	for _, cc := range task.GetCommonCols().CCList {
+		args = append(args, "--cc_list=", cc)
+	}
 	return executeAndPrintTaskOutput(ctx, "run_chromium_analysis_on_workers", runId, args)
 }
 
@@ -205,6 +208,9 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 		"--service_account_file=" + *master_common.ServiceAccountFile,
 		fmt.Sprintf("--local=%t", *master_common.Local),
 	}
+	for _, cc := range task.GetCommonCols().CCList {
+		args = append(args, "--cc_list=", cc)
+	}
 	return executeAndPrintTaskOutput(ctx, "run_chromium_perf_on_workers", runId, args)
 }
 
@@ -248,6 +254,9 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
 		"--service_account_file=" + *master_common.ServiceAccountFile,
 		fmt.Sprintf("--local=%t", *master_common.Local),
+	}
+	for _, cc := range task.GetCommonCols().CCList {
+		args = append(args, "--cc_list=", cc)
 	}
 	return executeAndPrintTaskOutput(ctx, "metrics_analysis_on_workers", runId, args)
 }
