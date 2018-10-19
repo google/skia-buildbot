@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -397,6 +398,16 @@ func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWi
 	return cids, nil
 }
 
+func fixupClusterKeys(summary *ClusterSummaries) error {
+	var err error
+	for _, cs := range summary.Clusters {
+		if cs.Shortcut, err = shortcut2.InsertShortcut(&shortcut2.Shortcut{Keys: cs.Keys}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Run does the work in a ClusterRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *ClusterRequestProcess) Run(ctx context.Context) {
@@ -466,6 +477,10 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 	summary, err := CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting, p.request.Algo)
 	if err != nil {
 		p.reportError(err, "Invalid clustering.")
+		return
+	}
+	if err := fixupClusterKeys(summary); err != nil {
+		p.reportError(err, "Failed to clean up cluster keys.")
 		return
 	}
 
