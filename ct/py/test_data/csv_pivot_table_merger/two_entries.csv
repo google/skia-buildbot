@@ -1,7 +1,7 @@
-page_set,stories,name,avg,run_index,unit
-,,a,a1.1,0,
-,,b,b1.1,0,
-,,c,c1.1,0,
-,,a,a1.2,1,
-,,b,b1.2,1,
-,,c,c1.2,1,
+page_set,stories,name,avg,run_index,unit,pct_001
+,,a,a1.1,0,,
+,,b,b1.1,0,,
+,,c,c1.1,0,,
+,,a,a1.2,1,,
+,,b,b1.2,1,,
+,,c,c1.2,1,,

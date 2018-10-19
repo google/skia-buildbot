@@ -182,6 +182,7 @@ func pendingMetricsAnalysisTask() MetricsAnalysisTask {
 			MetricName:          "loadingMetric",
 			AnalysisOutputLink:  "http://test/outputlink",
 			BenchmarkArgs:       "benchmarkargs",
+			ValueColumnName:     "pct_001",
 			Description:         "description",
 			ChromiumPatchGSPath: "patches/abc.patch",
 			CatapultPatchGSPath: "patches/xyz.path",
@@ -206,12 +207,13 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "metrics_analysis_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 12)
+	expect.Equal(t, len(cmd.Args), 13)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--metric_name=loadingMetric")
 	expect.Contains(t, cmd.Args, "--analysis_output_link=http://test/outputlink")
+	expect.Contains(t, cmd.Args, "--value_column_name=pct_001")
 	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
 	expect.Contains(t, cmd.Args, "--logtostderr")
 	expect.Contains(t, cmd.Args, "--local=false")

@@ -41,6 +41,7 @@ var (
 
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
 	analysisOutputLink = flag.String("analysis_output_link", "", "Cloud trace links will be gathered from this specified CT analysis run Id. If not specified, trace links will be read from ${TMPDIR}/<run_id>.traces.csv")
+	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 
 	taskCompletedSuccessfully = false
 
@@ -139,6 +140,11 @@ func main() {
 		return
 	}
 
+	// Use defaults.
+	if *valueColumnName == "" {
+		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
+	}
+
 	tracesFileName := *runID + ".traces.csv"
 	tracesFilePath := filepath.Join(os.TempDir(), tracesFileName)
 	if *analysisOutputLink != "" {
@@ -192,9 +198,10 @@ func main() {
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
-		"RUN_ID":         *runID,
-		"BENCHMARK_ARGS": *benchmarkExtraArgs,
-		"METRIC_NAME":    *metricName,
+		"RUN_ID":            *runID,
+		"BENCHMARK_ARGS":    *benchmarkExtraArgs,
+		"METRIC_NAME":       *metricName,
+		"VALUE_COLUMN_NAME": *valueColumnName,
 	}
 	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, 12*time.Hour, 3*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {

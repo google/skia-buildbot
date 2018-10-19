@@ -246,10 +246,10 @@ func runChromiumPerf() error {
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, util.DEFAULT_VALUE_COLUMN_NAME, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
-		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, util.DEFAULT_VALUE_COLUMN_NAME, gs, *startRange, true /* handleStrings */, true /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}
 	}

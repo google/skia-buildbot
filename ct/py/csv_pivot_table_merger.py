@@ -19,7 +19,6 @@ import sys
 
 TELEMETRY_PAGE_NAME_KEY = 'stories'
 TELEMETRY_FIELD_NAME_KEY = 'name'
-TELEMETRY_FIELD_VALUE_KEY = 'avg'
 TELEMETRY_FIELD_UNITS_KEY = 'unit'
 # Special handling for traceURLs. See skbug.com/7212.
 TELEMETRY_TRACE_URLS_KEY = 'traceUrls'
@@ -30,13 +29,15 @@ OUTPUT_PAGE_NAME_KEY = 'page_name'
 class CsvMerger(object):
   """Class that merges many CSV files into a single file."""
 
-  def __init__(self, csv_dir, output_csv_name, handle_strings):
+  def __init__(self, csv_dir, output_csv_name, value_column_name,
+               handle_strings):
     """Constructs a CsvMerge instance."""
     self._input_csv_files = sorted([
         os.path.join(csv_dir, f) for f in
         glob.glob(os.path.join(csv_dir, '*.csv'))
         if os.path.getsize(os.path.join(csv_dir, f))])
     self._output_csv_name = os.path.join(csv_dir, output_csv_name)
+    self._value_column_name = value_column_name
     self._handle_strings = handle_strings
 
   def _GetFieldNameFromRow(self, row):
@@ -82,7 +83,7 @@ class CsvMerger(object):
     fieldname_to_values = {}
     for row in rows:
       page_name = row[TELEMETRY_PAGE_NAME_KEY]
-      value = row[TELEMETRY_FIELD_VALUE_KEY]
+      value = row[self._value_column_name]
       fieldname = self._GetFieldNameFromRow(row)
       fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
 
@@ -182,6 +183,9 @@ if '__main__' == __name__:
       help='The name of the resultant merged CSV. It will be outputted to the '
            '--csv_dir')
   option_parser.add_option(
+      'avg', '--value_column_name',
+      help='Which columns entry to use as field values when combining CSVs.')
+  option_parser.add_option(
       '', '--handle_strings', action="store_true", default=False,
       help='If this option is False then rows with string values are dropped')
   options, unused_args = option_parser.parse_args()
@@ -189,4 +193,5 @@ if '__main__' == __name__:
     option_parser.error('Must specify both csv_dir and output_csv_name')
 
   sys.exit(CsvMerger(options.csv_dir, options.output_csv_name,
+                     options.value_column_name,
                      options.handle_strings).Merge())

@@ -1,4 +1,4 @@
-page_set,stories,name,avg,unit,run_index
-alexa3_3,http://www.gmail.com,pixels_recorded,,pixels,0
-alexa3_3,http://www.gmail.com,rasterize_time,1,ms,0
-alexa3_3,http://www.gmail.com,pixels_rasterized,1,pixels,0
+page_set,stories,name,avg,unit,run_index,pct_001
+alexa3_3,http://www.gmail.com,pixels_recorded,,pixels,0,
+alexa3_3,http://www.gmail.com,rasterize_time,1,ms,0,
+alexa3_3,http://www.gmail.com,pixels_rasterized,1,pixels,0,

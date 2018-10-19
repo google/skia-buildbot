@@ -137,6 +137,12 @@
                 <td class="nowrap">Metric Name:</td>
                 <td class="nowrap">{{metricsAnalysisTask.MetricName}}</td>
               </tr>
+              <template is="dom-if" if="{{metricsAnalysisTask.ValueColumnName}}">
+                <tr>
+                  <td class="nowrap">Value Column:</td>
+                  <td class="nowrap">{{metricsAnalysisTask.ValueColumnName}}</td>
+                </tr>
+              </template>
               <template is="dom-if" if="{{metricsAnalysisTask.AnalysisOutputLink}}">
                 <tr>
                   <td class="nowrap">Analysis Task Id:</td>

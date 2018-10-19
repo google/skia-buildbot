@@ -55,6 +55,7 @@ type DatastoreTask struct {
 	ChromiumPatchGSPath string
 	CatapultPatchGSPath string
 	RawOutput           string
+	ValueColumnName     string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -69,6 +70,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.MetricName = task.MetricName
 	taskVars.AnalysisTaskId = task.AnalysisTaskId
 	taskVars.AnalysisOutputLink = task.AnalysisOutputLink
+	taskVars.ValueColumnName = task.ValueColumnName
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.Description = task.Description
 
@@ -144,6 +146,7 @@ type AddTaskVars struct {
 	Description        string `json:"desc"`
 	ChromiumPatch      string `json:"chromium_patch"`
 	CatapultPatch      string `json:"catapult_patch"`
+	ValueColumnName    string `json:"value_column_name"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -193,6 +196,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		MetricName:         task.MetricName,
 		AnalysisTaskId:     task.AnalysisTaskId,
 		AnalysisOutputLink: task.AnalysisOutputLink,
+		ValueColumnName:    task.ValueColumnName,
 		BenchmarkArgs:      task.BenchmarkArgs,
 		Description:        task.Description,
 

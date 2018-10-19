@@ -1,5 +1,5 @@
-page_set,stories,name,avg,unit,run_index,traceUrls
-alexa2_2,http://www.google.com,pixels_recorded,,pixels,0,https://console.developers.google.com/m/cloudstorage/b/traceurl1
-alexa2_2,http://www.google.com,rasterize_time,1,ms,0,https://console.developers.google.com/m/cloudstorage/b/traceurl1
-alexa2_2,http://www.google.com,pixels_rasterized,1,pixels,0,https://console.developers.google.com/m/cloudstorage/b/traceurl2
-alexa2_2,http://www.google.com,trace,abc,,0,https://console.developers.google.com/m/cloudstorage/b/traceurl3
+page_set,stories,name,avg,unit,run_index,traceUrls,pct_001
+alexa2_2,http://www.google.com,pixels_recorded,,pixels,0,https://console.developers.google.com/m/cloudstorage/b/traceurl1,
+alexa2_2,http://www.google.com,rasterize_time,1,ms,0,https://console.developers.google.com/m/cloudstorage/b/traceurl1,
+alexa2_2,http://www.google.com,pixels_rasterized,1,pixels,0,https://console.developers.google.com/m/cloudstorage/b/traceurl2,
+alexa2_2,http://www.google.com,trace,abc,,0,https://console.developers.google.com/m/cloudstorage/b/traceurl3,
