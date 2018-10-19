@@ -159,6 +159,12 @@
                   </td>
                 </tr>
               </template>
+              <template is="dom-if" if="{{metricsAnalysisTask.CCList}}">
+                <tr>
+                  <td>CC List:</td>
+                  <td>{{metricsAnalysisTask.CCList}}</td>
+                </tr>
+              </template>
             </table>
           </td>
 

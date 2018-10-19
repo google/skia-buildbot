@@ -183,6 +183,12 @@
                 <td>ParallelRun:</td>
                 <td>{{chromiumAnalysisTask.RunInParallel}}</td>
               </tr>
+              <template is="dom-if" if="{{chromiumAnalysisTask.CCList}}">
+                <tr>
+                  <td>CC List:</td>
+                  <td>{{chromiumAnalysisTask.CCList}}</td>
+                </tr>
+              </template>
             </table>
           </td>
 

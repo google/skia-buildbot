@@ -213,6 +213,16 @@
       </tr>
 
       <tr>
+        <td>
+          Notifications CC list (optional)<br/>
+          Comma-separated values expected
+        </td>
+        <td>
+          <paper-input value="" id="cc_list" label="" class="long-field"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
         <td>Description</td>
         <td>
           <paper-input value="" id="desc" label="Description is required" class="long-field"></paper-input>
@@ -394,6 +404,9 @@
        params["v8_patch"] = this.$.v8_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
+       if (this.$.cc_list.value) {
+         params["cc_list"] = this.$.cc_list.value.split(",")
+       }
        params["run_in_parallel"] = this.$.run_in_parallel.selected == "run_in_parallel_True";
        params["platform"] = this.$.target_platform.selected;
        params["run_on_gce"] = this.$.run_on_gce.selected == "run_on_gce_True";

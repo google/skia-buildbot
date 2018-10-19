@@ -63,6 +63,7 @@ type DatastoreTask struct {
 	Results              string
 	NoPatchRawOutput     string
 	WithPatchRawOutput   string
+	CCList               []string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -83,6 +84,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BrowserArgsNoPatch = task.BrowserArgsNoPatch
 	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
 	taskVars.Description = task.Description
+	taskVars.CCList = task.CCList
 
 	var err error
 	taskVars.CustomWebpages, err = ctutil.GetPatchFromStorage(task.CustomWebpagesGSPath)
@@ -165,22 +167,23 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	Benchmark            string `json:"benchmark"`
-	Platform             string `json:"platform"`
-	PageSets             string `json:"page_sets"`
-	CustomWebpages       string `json:"custom_webpages"`
-	RepeatRuns           string `json:"repeat_runs"`
-	RunInParallel        string `json:"run_in_parallel"`
-	BenchmarkArgs        string `json:"benchmark_args"`
-	BrowserArgsNoPatch   string `json:"browser_args_nopatch"`
-	BrowserArgsWithPatch string `json:"browser_args_withpatch"`
-	Description          string `json:"desc"`
-	ChromiumPatch        string `json:"chromium_patch"`
-	BlinkPatch           string `json:"blink_patch"`
-	SkiaPatch            string `json:"skia_patch"`
-	CatapultPatch        string `json:"catapult_patch"`
-	BenchmarkPatch       string `json:"benchmark_patch"`
-	V8Patch              string `json:"v8_patch"`
+	Benchmark            string   `json:"benchmark"`
+	Platform             string   `json:"platform"`
+	PageSets             string   `json:"page_sets"`
+	CustomWebpages       string   `json:"custom_webpages"`
+	RepeatRuns           string   `json:"repeat_runs"`
+	RunInParallel        string   `json:"run_in_parallel"`
+	BenchmarkArgs        string   `json:"benchmark_args"`
+	BrowserArgsNoPatch   string   `json:"browser_args_nopatch"`
+	BrowserArgsWithPatch string   `json:"browser_args_withpatch"`
+	Description          string   `json:"desc"`
+	CCList               []string `json:"cc_list"`
+	ChromiumPatch        string   `json:"chromium_patch"`
+	BlinkPatch           string   `json:"blink_patch"`
+	SkiaPatch            string   `json:"skia_patch"`
+	CatapultPatch        string   `json:"catapult_patch"`
+	BenchmarkPatch       string   `json:"benchmark_patch"`
+	V8Patch              string   `json:"v8_patch"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -241,6 +244,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BrowserArgsNoPatch:   task.BrowserArgsNoPatch,
 		BrowserArgsWithPatch: task.BrowserArgsWithPatch,
 		Description:          task.Description,
+		CCList:               task.CCList,
 
 		CustomWebpagesGSPath: customWebpagesGSPath,
 		ChromiumPatchGSPath:  chromiumPatchGSPath,

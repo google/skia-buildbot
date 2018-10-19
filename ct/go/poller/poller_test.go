@@ -81,6 +81,7 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 			Description:          "description",
 			ChromiumPatchGSPath:  "patches/abc.patch",
 			SkiaPatchGSPath:      "patches/xyz.patch",
+			CCList:               []string{"superman@krypton.com"},
 		},
 	}
 }
@@ -112,7 +113,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	expect.Equal(t, "run_chromium_perf_on_workers", cmd.Name)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org,superman@krypton.com")
 	expect.Contains(t, cmd.Args, "--benchmark_name=benchmark")
 	expect.Contains(t, cmd.Args, "--target_platform=Linux")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
@@ -186,6 +187,7 @@ func pendingMetricsAnalysisTask() MetricsAnalysisTask {
 			Description:         "description",
 			ChromiumPatchGSPath: "patches/abc.patch",
 			CatapultPatchGSPath: "patches/xyz.path",
+			CCList:              []string{"superman@krypton.com", "jorel@krypton.com"},
 		},
 	}
 }
@@ -210,7 +212,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	expect.Equal(t, len(cmd.Args), 13)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
-	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
+	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org,superman@krypton.com,jorel@krypton.com")
 	expect.Contains(t, cmd.Args, "--metric_name=loadingMetric")
 	expect.Contains(t, cmd.Args, "--analysis_output_link=http://test/outputlink")
 	expect.Contains(t, cmd.Args, "--value_column_name=pct_001")
