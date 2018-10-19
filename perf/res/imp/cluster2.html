@@ -26,15 +26,12 @@
 
   Events:
     open-keys - An event that is fired when the user clicks the "View on
-      dashboard" button that contains a list of keys, and the timestamp range of
+      dashboard" button that contains the shortcut id, and the timestamp range of
       traces in the details that should be opened in the explorer, and the xbar
       location specified as a serialized cid.CommitID, for example:
 
       {
-        "keys":[
-          ",arch=x86_64,bench_type=skandroidcodec,compiler=Clang,...",
-          ",arch=arm,bench_type=skandroidcodec,compiler=Clang,...",
-        ],
+        shortcut: "X1129832198312",
         begin: 1476982874,
         end: 1476987166,
         xbar: {"source":"master","offset":24750,"timestamp":1476985844},
@@ -315,7 +312,6 @@
 
       _openShortcut: function (e) {
         this.fire('open-keys', {
-          keys: this._summary.keys.slice(0, 50),
           shortcut: this._summary.shortcut,
           begin: this._frame.dataframe.header[0].timestamp,
           end: this._frame.dataframe.header[this._frame.dataframe.header.length-1].timestamp+1,

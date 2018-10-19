@@ -48,8 +48,8 @@ type ClusterSummary struct {
 	// The keys are sorted so that the ones at the beginning of the list are
 	// closest to the centroid.
 	//
-	// TODO(jcgregorio) Remove from serialization once everyone has migrated to using Shortcut.
-	Keys []string `json:"keys"`
+	// Note: This value is not serialized to JSON.
+	Keys []string `json:"-"`
 
 	// Shortcut is the id of a shortcut for the above Keys.
 	Shortcut string `json:"shortcut"`
