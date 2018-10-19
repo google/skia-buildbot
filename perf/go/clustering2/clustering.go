@@ -48,6 +48,11 @@ type ClusterSummary struct {
 	// closest to the centroid.
 	Keys []string `json:"keys"`
 
+	// Shortcut is the id of a shortcut for the above Keys.
+	//
+	// TODO(jcgregorio) Eventually remove Keys and just use Shortcut everywhere.
+	Shortcut string `json:"shortcut"`
+
 	// ParamSummaries is a summary of all the parameters in the cluster.
 	ParamSummaries map[string][]ValueWeight `json:"param_summaries"`
 
@@ -359,6 +364,7 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold f
 			high.ParamSummaries = getParamSummariesForKeys(high.Keys)
 			ret.Clusters = append(ret.Clusters, high)
 		}
+		// Now that we've calculated the ParamSummaries we can create a shortcut for all the keys.
 		return ret, nil
 	} else {
 		return nil, fmt.Errorf("Unknown clustering algorithm: %s", algo)
