@@ -801,7 +801,7 @@ func GetRunBenchmarkOutput(b bytes.Buffer) (string, error) {
 	return b.String(), nil
 }
 
-func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GcsUtil, startRange int, handleStrings, addRanks bool, pageRankToAdditionalFields map[string]map[string]string) error {
+func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyFiles, runID, remoteDir, valueColumnName string, gs *GcsUtil, startRange int, handleStrings, addRanks bool, pageRankToAdditionalFields map[string]map[string]string) error {
 	// Move all results into a single directory.
 	fileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
@@ -842,7 +842,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 					for i := range headers {
 						if headers[i] == "name" {
 							valueLine[i] = h
-						} else if headers[i] == "avg" {
+						} else if headers[i] == valueColumnName {
 							valueLine[i] = v
 						} else if headers[i] == "stories" && addRanks {
 							valueLine[i] = pageNameWithRank
@@ -866,6 +866,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 		pathToCsvMerger,
 		"--csv_dir=" + localOutputDir,
 		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
+		"--value_column_name=" + valueColumnName,
 	}
 	if handleStrings {
 		args = append(args, "--handle_strings")
