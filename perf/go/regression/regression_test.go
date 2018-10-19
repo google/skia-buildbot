@@ -55,5 +55,5 @@ func TestRegressions(t *testing.T) {
 	// Try serializing to JSON.
 	b, err := r.JSON()
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"keys\":null,\"shortcut\":\"\",\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"high\":{\"centroid\":null,\"keys\":null,\"shortcut\":\"\",\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"frame\":{\"dataframe\":null,\"ticks\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"positive\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"negative\",\"message\":\"See bug #foo.\"}}}}", string(b))
+	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"high\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"frame\":{\"dataframe\":null,\"ticks\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"positive\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"negative\",\"message\":\"See bug #foo.\"}}}}", string(b))
 }
