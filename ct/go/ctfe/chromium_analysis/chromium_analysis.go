@@ -63,6 +63,7 @@ type DatastoreTask struct {
 	RunOnGCE             bool
 	RawOutput            string
 	MatchStdoutTxt       string
+	CCList               []string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -110,6 +111,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.Platform = task.Platform
 	taskVars.RunOnGCE = task.RunOnGCE
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
+	taskVars.CCList = task.CCList
 	return taskVars, nil
 }
 
@@ -160,21 +162,22 @@ func addTaskView(w http.ResponseWriter, r *http.Request) {
 type AddTaskVars struct {
 	task_common.AddTaskCommonVars
 
-	Benchmark      string `json:"benchmark"`
-	PageSets       string `json:"page_sets"`
-	CustomWebpages string `json:"custom_webpages"`
-	BenchmarkArgs  string `json:"benchmark_args"`
-	BrowserArgs    string `json:"browser_args"`
-	Description    string `json:"desc"`
-	ChromiumPatch  string `json:"chromium_patch"`
-	SkiaPatch      string `json:"skia_patch"`
-	CatapultPatch  string `json:"catapult_patch"`
-	BenchmarkPatch string `json:"benchmark_patch"`
-	V8Patch        string `json:"v8_patch"`
-	RunInParallel  bool   `json:"run_in_parallel"`
-	Platform       string `json:"platform"`
-	RunOnGCE       bool   `json:"run_on_gce"`
-	MatchStdoutTxt string `json:"match_stdout_txt"`
+	Benchmark      string   `json:"benchmark"`
+	PageSets       string   `json:"page_sets"`
+	CustomWebpages string   `json:"custom_webpages"`
+	BenchmarkArgs  string   `json:"benchmark_args"`
+	BrowserArgs    string   `json:"browser_args"`
+	Description    string   `json:"desc"`
+	ChromiumPatch  string   `json:"chromium_patch"`
+	SkiaPatch      string   `json:"skia_patch"`
+	CatapultPatch  string   `json:"catapult_patch"`
+	BenchmarkPatch string   `json:"benchmark_patch"`
+	V8Patch        string   `json:"v8_patch"`
+	RunInParallel  bool     `json:"run_in_parallel"`
+	Platform       string   `json:"platform"`
+	RunOnGCE       bool     `json:"run_on_gce"`
+	MatchStdoutTxt string   `json:"match_stdout_txt"`
+	CCList         []string `json:"cc_list"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -238,6 +241,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		Platform:       task.Platform,
 		RunOnGCE:       task.RunOnGCE,
 		MatchStdoutTxt: task.MatchStdoutTxt,
+		CCList:         task.CCList,
 	}
 	return t, nil
 }

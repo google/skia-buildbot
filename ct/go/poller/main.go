@@ -132,8 +132,10 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 		defer skutil.Remove(patchPath)
 	}
 
+	emails := []string{task.Username}
+	emails = append(emails, task.CCList...)
 	args := []string{
-		"--emails=" + task.Username,
+		"--emails=" + strings.Join(emails, ","),
 		"--description=" + task.Description,
 		"--task_id=" + strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"--pageset_type=" + task.PageSets,
@@ -185,8 +187,10 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 		defer skutil.Remove(patchPath)
 	}
 
+	emails := []string{task.Username}
+	emails = append(emails, task.CCList...)
 	args := []string{
-		"--emails=" + task.Username,
+		"--emails=" + strings.Join(emails, ","),
 		"--description=" + task.Description,
 		"--task_id=" + strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"--pageset_type=" + task.PageSets,
@@ -234,8 +238,10 @@ func (task *MetricsAnalysisTask) Execute(ctx context.Context, getPatchFunc GetPa
 		defer skutil.Remove(patchPath)
 	}
 
+	emails := []string{task.Username}
+	emails = append(emails, task.CCList...)
 	args := []string{
-		"--emails=" + task.Username,
+		"--emails=" + strings.Join(emails, ","),
 		"--description=" + task.Description,
 		"--task_id=" + strconv.FormatInt(task.DatastoreKey.ID, 10),
 		"--metric_name=" + task.MetricName,
