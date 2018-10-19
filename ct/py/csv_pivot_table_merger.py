@@ -183,7 +183,7 @@ if '__main__' == __name__:
       help='The name of the resultant merged CSV. It will be outputted to the '
            '--csv_dir')
   option_parser.add_option(
-      'avg', '--value_column_name',
+      '', '--value_column_name', default='avg',
       help='Which columns entry to use as field values when combining CSVs.')
   option_parser.add_option(
       '', '--handle_strings', action="store_true", default=False,
