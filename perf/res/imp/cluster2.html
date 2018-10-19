@@ -316,6 +316,7 @@
       _openShortcut: function (e) {
         this.fire('open-keys', {
           keys: this._summary.keys.slice(0, 50),
+          shortcut: this._summary.shortcut,
           begin: this._frame.dataframe.header[0].timestamp,
           end: this._frame.dataframe.header[this._frame.dataframe.header.length-1].timestamp+1,
           xbar: this._summary.step_point,
