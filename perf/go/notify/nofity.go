@@ -107,7 +107,7 @@ func (n *Notifier) Send(c *cid.CommitDetail, alert *alerts.Config, cl *clusterin
 	if err != nil {
 		return err
 	}
-	subject := fmt.Sprintf("Regression found for %q", c.Message)
+	subject := fmt.Sprintf("%s - Regression found for %q", alert.DisplayName, c.Message)
 	if err := n.email.Send(FROM_ADDRESS, splitEmails(alert.Alert), subject, body); err != nil {
 		return fmt.Errorf("Failed to send email: %s", err)
 	}
