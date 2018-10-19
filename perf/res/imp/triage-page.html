@@ -299,18 +299,13 @@
       },
 
       _openKeys: function(e) {
-        var state = {
-          keys: e.detail.keys,
+        var query = {
+          keys:       e.shortcut,
+          begin:      e.detail.begin,
+          end:        e.detail.end,
+          xbaroffset: e.detail.xbar.offset
         };
-        sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-          var query = {
-            keys:       json.id,
-            begin:      e.detail.begin,
-            end:        e.detail.end,
-            xbaroffset: e.detail.xbar.offset
-          };
-          window.open('/e/?' + sk.query.fromObject(query), '_blank');
-        }.bind(this));
+        window.open('/e/?' + sk.query.fromObject(query), '_blank');
       },
 
       _rangeChange: function(e) {

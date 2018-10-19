@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/perf/go/ctrace2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/kmeans"
+	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
@@ -46,7 +47,12 @@ type ClusterSummary struct {
 	//
 	// The keys are sorted so that the ones at the beginning of the list are
 	// closest to the centroid.
+	//
+	// TODO(jcgregorio) Remove from serialization once everyone has migrated to using Shortcut.
 	Keys []string `json:"keys"`
+
+	// Shortcut is the id of a shortcut for the above Keys.
+	Shortcut string `json:"shortcut"`
 
 	// ParamSummaries is a summary of all the parameters in the cluster.
 	ParamSummaries map[string][]ValueWeight `json:"param_summaries"`
@@ -261,6 +267,17 @@ func FilterTail(trace []float32, quantile float64, multiplier float64, slack flo
 	}
 }
 
+// shortcutFromKeys stores a new shortcut for each cluster based on its Keys.
+func shortcutFromKeys(summary *ClusterSummaries) error {
+	var err error
+	for _, cs := range summary.Clusters {
+		if cs.Shortcut, err = shortcut2.InsertShortcut(&shortcut2.Shortcut{Keys: cs.Keys}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
 func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold float32, progress Progress, interesting float32, algo ClusterAlgo) (*ClusterSummaries, error) {
 	if algo == KMEANS_ALGO {
@@ -290,6 +307,9 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold f
 		clusterSummaries := getClusterSummaries(observations, centroids, df.Header, interesting)
 		clusterSummaries.K = k
 		clusterSummaries.StdDevThreshold = stddevThreshold
+		if err := shortcutFromKeys(clusterSummaries); err != nil {
+			return nil, fmt.Errorf("Failed to write shortcut for keys: %s", err)
+		}
 		return clusterSummaries, nil
 	} else if algo == STEPFIT_ALGO || algo == TAIL_ALGO {
 
@@ -358,6 +378,9 @@ func CalculateClusterSummaries(df *dataframe.DataFrame, k int, stddevThreshold f
 		if high.Num > 0 {
 			high.ParamSummaries = getParamSummariesForKeys(high.Keys)
 			ret.Clusters = append(ret.Clusters, high)
+		}
+		if err := shortcutFromKeys(ret); err != nil {
+			return nil, fmt.Errorf("Failed to write shortcut for keys: %s", err)
 		}
 		return ret, nil
 	} else {

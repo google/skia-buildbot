@@ -25,6 +25,12 @@ func Insert(r io.Reader) (string, error) {
 	if err := json.NewDecoder(r).Decode(shortcut); err != nil {
 		return "", fmt.Errorf("Unable to read shortcut body: %s", err)
 	}
+	return InsertShortcut(shortcut)
+}
+
+// Insert adds the shortcut content into the database. The id of the shortcut
+// is returned.
+func InsertShortcut(shortcut *Shortcut) (string, error) {
 	sort.Strings(shortcut.Keys)
 	h := md5.New()
 	for _, s := range shortcut.Keys {

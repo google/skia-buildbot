@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/ctrace2"
@@ -38,7 +40,11 @@ func TestParamSummaries(t *testing.T) {
 }
 
 func TestCalcCusterSummaries(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
+
+	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
+	defer cleanup()
+
 	rand.Seed(1)
 	now := time.Now()
 	df := &dataframe.DataFrame{
