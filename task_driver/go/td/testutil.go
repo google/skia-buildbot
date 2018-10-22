@@ -23,12 +23,9 @@ func StartTestRun(t testutils.TestingT) *TestingRun {
 	wd, cleanup := testutils.TempDir(t)
 	output := filepath.Join(wd, "output.json")
 	report := newReportReceiver(output)
-	emitter := newStepEmitter("fake-task-id", map[string]Receiver{
-		"ReportReceiver": report,
-	})
 	return &TestingRun{
 		t:       t,
-		ctx:     newRun(emitter, "fake-test-task"),
+		ctx:     newRun(context.Background(), report, "fake-task-id", "fake-test-task"),
 		wd:      wd,
 		report:  report,
 		cleanup: cleanup,
@@ -41,7 +38,7 @@ func (r *TestingRun) EndRun(expectPanic bool, err *error) *StepReport {
 }
 
 func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *StepReport) {
-	defer getRun(r.ctx).done()
+	defer testutils.AssertCloses(r.t, getRun(r.ctx))
 	if expectPanic {
 		assert.NotNil(r.t, recovered)
 	} else {

@@ -50,7 +50,7 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 	}
 	ctx = setStep(ctx, props)
 	ctx = execCtx(ctx)
-	getRun(ctx).emitter.Start(props)
+	getRun(ctx).Start(props)
 	return ctx
 }
 
@@ -69,7 +69,7 @@ func StartStep(ctx context.Context, props *StepProperties) context.Context {
 //
 func FailStep(ctx context.Context, err error) error {
 	props := getStep(ctx)
-	getRun(ctx).emitter.Failed(props.Id, err)
+	getRun(ctx).Failed(props.Id, err)
 	return err
 }
 
@@ -88,7 +88,7 @@ func EndStep(ctx context.Context) {
 // RunFinished to set the result of the root step.
 func finishStep(ctx context.Context, recovered interface{}) {
 	props := getStep(ctx)
-	e := getRun(ctx).emitter
+	e := getRun(ctx)
 	if recovered != nil {
 		e.Exception(props.Id, fmt.Errorf("Caught panic: %s", recovered))
 		defer panic(recovered)
@@ -97,9 +97,9 @@ func finishStep(ctx context.Context, recovered interface{}) {
 }
 
 // Attach the given StepData to this Step.
-func StepData(ctx context.Context, d interface{}) {
+func StepData(ctx context.Context, typ DataType, d interface{}) {
 	props := getStep(ctx)
-	getRun(ctx).emitter.AddStepData(props.Id, d)
+	getRun(ctx).AddStepData(props.Id, typ, d)
 }
 
 // Do is a convenience function which runs the given function as a Step. It
@@ -129,8 +129,8 @@ func Fatalf(format string, v ...interface{}) {
 	panic(fmt.Sprintf(format, v...))
 }
 
-// logData is extra Step data generated for log streams.
-type logData struct {
+// LogData is extra Step data generated for log streams.
+type LogData struct {
 	Name     string `json:"name"`
 	Id       string `json:"id"`
 	Severity string `json:"severity"`
@@ -141,20 +141,12 @@ type logData struct {
 // probably want to use a higher-level method instead.
 func NewLogStream(ctx context.Context, name, severity string) io.Writer {
 	props := getStep(ctx)
-	id := uuid.New() // TODO(borenet): Come up with a better ID.
-	stream := getRun(ctx).emitter.LogStream(props.Id, id, severity)
-	// Emit step data for the log stream.
-	StepData(ctx, &logData{
-		Name:     name,
-		Id:       id,
-		Severity: severity,
-	})
-	return stream
+	return getRun(ctx).LogStream(props.Id, name, severity)
 }
 
-// execData is extra Step data generated when executing commands through the
+// ExecData is extra Step data generated when executing commands through the
 // exec package.
-type execData struct {
+type ExecData struct {
 	Cmd []string `json:"command"`
 	Env []string `json:"env,omitempty"`
 }
@@ -185,11 +177,11 @@ func execCtx(ctx context.Context) context.Context {
 			cmd.Stderr = stderr
 
 			// Collect step metadata about the command.
-			d := &execData{
+			d := &ExecData{
 				Cmd: append([]string{cmd.Name}, cmd.Args...),
 				Env: cmd.Env,
 			}
-			StepData(ctx, d)
+			StepData(ctx, DATA_TYPE_COMMAND, d)
 
 			// Run the command.
 			return exec.DefaultRun(cmd)
@@ -204,17 +196,17 @@ type httpTransport struct {
 	rt  http.RoundTripper
 }
 
-// httpRequestData is Step data describing an http.Request. Notably, it does not
+// HttpRequestData is Step data describing an http.Request. Notably, it does not
 // include the request body or headers, to avoid leaking auth tokens or other
 // sensitive information.
-type httpRequestData struct {
+type HttpRequestData struct {
 	Method string   `json:"method,omitempty"`
 	URL    *url.URL `json:"url,omitempty"`
 }
 
-// httpResponseData is Step data describing an http.Response. Notably, it does
+// HttpResponseData is Step data describing an http.Response. Notably, it does
 // not include the response body, to avoid leaking sensitive information.
-type httpResponseData struct {
+type HttpResponseData struct {
 	StatusCode int `json:"status,omitempty"`
 }
 
@@ -222,14 +214,14 @@ type httpResponseData struct {
 func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var resp *http.Response
 	return resp, Do(t.ctx, Props(req.URL.String()), func(ctx context.Context) error {
-		StepData(ctx, &httpRequestData{
+		StepData(ctx, DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
 		})
 		var err error
 		resp, err = t.rt.RoundTrip(req)
 		if resp != nil {
-			StepData(ctx, &httpResponseData{
+			StepData(ctx, DATA_TYPE_HTTP_RESPONSE, &HttpResponseData{
 				StatusCode: resp.StatusCode,
 			})
 		}
