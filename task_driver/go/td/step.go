@@ -160,7 +160,7 @@ func execCtx(ctx context.Context) context.Context {
 			props := getStep(ctx)
 			// Inherit env from the step unless it's explicitly provided.
 			// TODO(borenet): Should we merge instead?
-			if cmd.Env == nil {
+			if len(cmd.Env) == 0 {
 				cmd.Env = props.Environ
 			}
 

@@ -6,6 +6,10 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 )
 
+const (
+	ISSUE_SHORT_LENGTH = 2
+)
+
 // Patch describes a patch which may be applied to a code checkout.
 type Patch struct {
 	Issue     string `json:"issue"`
@@ -61,6 +65,19 @@ func (s RepoState) Valid() bool {
 // IsTryJob returns true iff the RepoState includes a patch.
 func (s RepoState) IsTryJob() bool {
 	return s.Patch.Full()
+}
+
+// GetPatchRef returns the ref for the tryjob patch, if the RepoState includes
+// a patch, and "" otherwise.
+func (s RepoState) GetPatchRef() string {
+	if s.IsTryJob() {
+		issueShort := s.Issue
+		if len(issueShort) > ISSUE_SHORT_LENGTH {
+			issueShort = issueShort[len(s.Issue)-ISSUE_SHORT_LENGTH:]
+		}
+		return fmt.Sprintf("refs/changes/%s/%s/%s", issueShort, s.Issue, s.Patchset)
+	}
+	return ""
 }
 
 // GetCommit returns the repograph.Commit referenced by s, or an error if it

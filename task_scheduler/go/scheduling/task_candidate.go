@@ -143,15 +143,6 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 	}
 }
 
-// getPatchRef returns a ref name for the patch if applicable, or the empty
-// string.
-func getPatchRef(issue, issueShort, patchSet string) string {
-	if issue != "" && issueShort != "" && patchSet != "" {
-		return fmt.Sprintf("refs/changes/%s/%s/%s", issueShort, issue, patchSet)
-	}
-	return ""
-}
-
 // getPatchStorage returns "gerrit" or "" based on the Server URL.
 func getPatchStorage(server string) string {
 	if server == "" {
@@ -163,17 +154,17 @@ func getPatchStorage(server string) string {
 // replaceVars replaces variable names with their values in a given string.
 func replaceVars(c *taskCandidate, s, taskId string) string {
 	issueShort := ""
-	if len(c.Issue) < specs.ISSUE_SHORT_LENGTH {
+	if len(c.Issue) < db.ISSUE_SHORT_LENGTH {
 		issueShort = c.Issue
 	} else {
-		issueShort = c.Issue[len(c.Issue)-specs.ISSUE_SHORT_LENGTH:]
+		issueShort = c.Issue[len(c.Issue)-db.ISSUE_SHORT_LENGTH:]
 	}
 	replacements := map[string]string{
 		specs.VARIABLE_BUILDBUCKET_BUILD_ID: strconv.FormatInt(c.BuildbucketBuildId, 10),
 		specs.VARIABLE_CODEREVIEW_SERVER:    c.Server,
 		specs.VARIABLE_ISSUE:                c.Issue,
 		specs.VARIABLE_ISSUE_SHORT:          issueShort,
-		specs.VARIABLE_PATCH_REF:            getPatchRef(c.Issue, issueShort, c.Patchset),
+		specs.VARIABLE_PATCH_REF:            c.RepoState.GetPatchRef(),
 		specs.VARIABLE_PATCH_REPO:           c.PatchRepo,
 		specs.VARIABLE_PATCH_STORAGE:        getPatchStorage(c.Server),
 		specs.VARIABLE_PATCHSET:             c.Patchset,

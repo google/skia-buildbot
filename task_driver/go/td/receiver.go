@@ -32,7 +32,6 @@ func (r MultiReceiver) HandleMessage(m *Message) error {
 	for _, rec := range r {
 		receiver := rec
 		name := fmt.Sprint(reflect.TypeOf(receiver))
-		sklog.Fatal(name)
 		g.Go(name, func() error {
 			return receiver.HandleMessage(m)
 		})
