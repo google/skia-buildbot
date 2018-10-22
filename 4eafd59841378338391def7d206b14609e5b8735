@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71a18eb7_2cfc8374",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-22T15:50:13Z",
+      "side": 1,
+      "message": "All the setup for Go should be broken out into its own func.",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "177fe3b9_bd6d3366",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-22T15:50:13Z",
+      "side": 1,
+      "message": "*repo \u003d strings.TrimSuffic(*repo, \".git\")",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da981c31_b6af5b21",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-22T15:50:13Z",
+      "side": 1,
+      "message": "Why is PATH uppercase but \u0027env\u0027 below lowercase?",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "402f6b61_687cb19b",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-22T15:50:13Z",
+      "side": 1,
+      "message": "So issueShort is just shortened by ISSUE_SHORT_LENGTH? I do not understand this code.",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
