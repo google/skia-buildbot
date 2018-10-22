@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 
 	"cloud.google.com/go/logging"
 	"github.com/golang/glog"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -19,6 +21,49 @@ type Receiver interface {
 	HandleMessage(*Message) error
 	LogStream(stepId string, logId string, severity string) (io.Writer, error)
 	Close() error
+}
+
+// MultiReceiver is a Receiver which multiplexes messages to multiple Receivers.
+type MultiReceiver []Receiver
+
+// See documentation for Receiver interface.
+func (r MultiReceiver) HandleMessage(m *Message) error {
+	g := util.NewNamedErrGroup()
+	for _, rec := range r {
+		receiver := rec
+		name := fmt.Sprint(reflect.TypeOf(receiver))
+		sklog.Fatal(name)
+		g.Go(name, func() error {
+			return receiver.HandleMessage(m)
+		})
+	}
+	return g.Wait()
+}
+
+// See documentation for Receiver interface.
+func (r MultiReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+	writers := make([]io.Writer, 0, len(r))
+	for _, rec := range r {
+		w, err := rec.LogStream(stepId, logId, severity)
+		if err != nil {
+			return nil, err
+		}
+		writers = append(writers, w)
+	}
+	return util.MultiWriter(writers), nil
+}
+
+// See documentation for Receiver interface.
+func (r MultiReceiver) Close() error {
+	g := util.NewNamedErrGroup()
+	for _, rec := range r {
+		receiver := rec
+		name := fmt.Sprint(reflect.TypeOf(receiver))
+		g.Go(name, func() error {
+			return receiver.Close()
+		})
+	}
+	return g.Wait()
 }
 
 // DebugReceiver just dumps the messages straight to the log (stdout/stderr, not
@@ -197,7 +242,7 @@ func (r *ReportReceiver) Close() error {
 	// instance.
 	r.root.Recurse(func(s *StepReport) bool {
 		for _, data := range s.Data {
-			d, ok := data.(*logData)
+			d, ok := data.(*LogData)
 			if ok {
 				if logBuf, ok := s.logs[d.Id]; ok {
 					d.Log = logBuf.String()
@@ -228,4 +273,67 @@ func (r *ReportReceiver) LogStream(stepId, logId, severity string) (io.Writer, e
 	}
 	step.logs[logId] = buf
 	return buf, nil
+}
+
+// CloudLoggingReceiver is a Receiver which sends step metadata and logs to
+// Cloud Logging.
+type CloudLoggingReceiver struct {
+	// logger is a handle to the Logger used for the entire test run.
+	logger *logging.Logger
+}
+
+// Return a new CloudLoggingReceiver. This initializes Cloud Logging for the
+// entire test run.
+func NewCloudLoggingReceiver(logger *logging.Logger) (*CloudLoggingReceiver, error) {
+	return &CloudLoggingReceiver{
+		logger: logger,
+	}, nil
+}
+
+// See documentation for Receiver interface.
+func (r *CloudLoggingReceiver) HandleMessage(m *Message) error {
+	// TODO(borenet): When should we LogSync, or Flush? If the program
+	// crashes or is killed, we'll want to have already flushed the logs.
+	r.logger.Log(logging.Entry{
+		Payload:  m,
+		Severity: logging.ParseSeverity(sklog.DEBUG),
+	})
+	return nil
+}
+
+// cloudLogsWriter is an io.Writer which writes to Cloud Logging.
+type cloudLogsWriter struct {
+	logger   *logging.Logger
+	labels   map[string]string
+	severity logging.Severity
+}
+
+// See documentation for io.Writer.
+func (w *cloudLogsWriter) Write(b []byte) (int, error) {
+	// TODO(borenet): Should we buffer until we see a newline?
+	// TODO(borenet): When should we LogSync, or Flush? If the program
+	// crashes or is killed, we'll want to have already flushed the logs.
+	w.logger.Log(logging.Entry{
+		Labels:   w.labels,
+		Payload:  string(b),
+		Severity: w.severity,
+	})
+	return len(b), nil
+}
+
+// See documentation for Receiver interface.
+func (r *CloudLoggingReceiver) LogStream(stepId, logId, severity string) (io.Writer, error) {
+	return &cloudLogsWriter{
+		logger: r.logger,
+		labels: map[string]string{
+			"logId":  logId,
+			"stepId": stepId,
+		},
+		severity: logging.ParseSeverity(severity),
+	}, nil
+}
+
+// See documentation for Receiver interface.
+func (r *CloudLoggingReceiver) Close() error {
+	return r.logger.Flush()
 }

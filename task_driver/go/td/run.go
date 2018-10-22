@@ -3,19 +3,28 @@ package td
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
+	"time"
 
-	"cloud.google.com/go/logging"
 	"github.com/pborman/uuid"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const (
 	// PubSub topic name.
 	PUBSUB_TOPIC = "task-driver"
+
+	// Log ID for all Task Drivers. Logs are labeled with task ID and step
+	// ID as well, and those labels should be used for filtering in most
+	// cases.
+	LOG_ID = "task-driver"
 
 	// Special ID of the root step.
 	STEP_ID_ROOT = "root"
@@ -23,7 +32,7 @@ const (
 
 var (
 	// Auth scopes required for all task_drivers.
-	SCOPES = []string{logging.WriteScope}
+	SCOPES = []string{compute.CloudPlatformScope}
 )
 
 // StartRunWithErr begins a new test automation run, returning any error which
@@ -50,19 +59,50 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		return nil, fmt.Errorf("Task name is required.")
 	}
 
+	ctx := context.Background()
+
+	// Initialize Cloud Logging.
+	var ts oauth2.TokenSource
+	if *local {
+		var err error
+		ts, err = auth.NewDefaultTokenSource(*local, SCOPES...)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		ts, err = auth.NewLUCIContextTokenSource(SCOPES...)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
+		}
+	}
+	labels := map[string]string{
+		"taskId":   *taskId,
+		"taskName": *taskName,
+	}
+	logger, err := sklog.NewCloudLogger(ctx, *projectId, LOG_ID, ts, labels)
+	if err != nil {
+		return nil, err
+	}
+	sklog.SetLogger(logger)
+
 	// Dump environment variables.
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))
 
 	// Connect receivers.
-	report := newReportReceiver(*output)
-	receivers := map[string]Receiver{
-		"DebugReceiver":  &DebugReceiver{},
-		"ReportReceiver": report,
+	cloudLogging, err := NewCloudLoggingReceiver(logger.Logger())
+	if err != nil {
+		return nil, err
 	}
-	emitter := newStepEmitter(*taskId, receivers)
+	report := newReportReceiver(*output)
+	receiver := MultiReceiver([]Receiver{
+		cloudLogging,
+		&DebugReceiver{},
+		report,
+	})
 
 	// Set up and return the root-level Step.
-	ctx := newRun(emitter, *taskName)
+	ctx = newRun(ctx, receiver, *taskId, *taskName)
 	return ctx, nil
 }
 
@@ -77,7 +117,7 @@ func StartRun(projectId, taskId, taskName, output *string, local *bool) context.
 
 // Perform any cleanup work for the run. Should be deferred in main().
 func EndRun(ctx context.Context) {
-	defer getRun(ctx).done()
+	defer util.Close(getRun(ctx))
 
 	// Mark the root step as finished.
 	finishStep(ctx, recover())
@@ -85,21 +125,103 @@ func EndRun(ctx context.Context) {
 
 // run represents a full test automation run.
 type run struct {
-	done    func()
-	emitter *stepEmitter
+	receiver Receiver
+	taskId   string
 }
 
 // newRun returns a context.Context representing a Task Driver run, including
 // creation of a root step.
-func newRun(e *stepEmitter, taskName string) context.Context {
+func newRun(ctx context.Context, rec Receiver, taskId, taskName string) context.Context {
 	r := &run{
-		done: func() {
-			util.Close(e)
-		},
-		emitter: e,
+		receiver: rec,
+		taskId:   taskId,
 	}
-	ctx := context.Background()
 	ctx = setRun(ctx, r)
 	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName))
 	return ctx
+}
+
+// Send the given message to the receiver. Does not return an error, even if
+// sending fails.
+func (r *run) send(msg *Message) {
+	msg.TaskId = r.taskId
+	msg.Timestamp = time.Now().UTC()
+	if err := r.receiver.HandleMessage(msg); err != nil {
+		// Just log the error but don't return it.
+		// TODO(borenet): How do we handle this?
+		sklog.Error(err)
+	}
+}
+
+// Send a Message indicating that a new step has started.
+func (r *run) Start(props *StepProperties) {
+	msg := &Message{
+		Type:   MSG_TYPE_STEP_STARTED,
+		StepId: props.Id,
+		Step:   props,
+	}
+	r.send(msg)
+}
+
+// Send a Message with additional data for the current step.
+func (r *run) AddStepData(id string, typ DataType, d interface{}) {
+	msg := &Message{
+		Type:     MSG_TYPE_STEP_DATA,
+		StepId:   id,
+		Data:     d,
+		DataType: typ,
+	}
+	r.send(msg)
+}
+
+// Send a Message indicating that the current step has failed with the given
+// error.
+func (r *run) Failed(id string, err error) {
+	msg := &Message{
+		Type:   MSG_TYPE_STEP_FAILED,
+		StepId: id,
+		Error:  err.Error(),
+	}
+	r.send(msg)
+}
+
+// Send a Message indicating that the current step has failed exceptionally.
+func (r *run) Exception(id string, err error) {
+	msg := &Message{
+		Type:   MSG_TYPE_STEP_EXCEPTION,
+		StepId: id,
+		Error:  err.Error(),
+	}
+	r.send(msg)
+}
+
+// Send a Message indicating that the current step has finished.
+func (r *run) Finish(id string) {
+	msg := &Message{
+		Type:   MSG_TYPE_STEP_FINISHED,
+		StepId: id,
+	}
+	r.send(msg)
+}
+
+// Open a log stream.
+func (r *run) LogStream(stepId, logName, severity string) io.Writer {
+	logId := uuid.New() // TODO(borenet): Come up with a better ID.
+	rv, err := r.receiver.LogStream(stepId, logId, severity)
+	if err != nil {
+		panic(err)
+	}
+
+	// Emit step data for the log stream.
+	r.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
+		Name:     logName,
+		Id:       logId,
+		Severity: severity,
+	})
+	return rv
+}
+
+// Close the run.
+func (r *run) Close() error {
+	return r.receiver.Close()
 }
