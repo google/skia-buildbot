@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "958abc4a_ef1c34e0",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-22T18:04:53Z",
+      "side": 1,
+      "message": "Yes, they should not specify that tag.  Unfortunately, it\u0027s set unconditionally by the task scheduler on all of our tasks.  Rather than add a UseMilo task spec property, or do some hackiness to try to detect whether we should use the tag, I\u0027d like to leave it alone until we\u0027re completely transitioned.  Instead, let\u0027s have status point to either the new front end or swarming as appropriate.",
+      "parentUuid": "560f5566_fce99c09",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e47ef9d3_a371019e",
         "filename": "infra/bots/gen_tasks.go",
         "patchSetId": 14
@@ -59,6 +77,24 @@
     },
     {
       "key": {
+        "uuid": "fb7ac502_b8922978",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-22T18:04:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71a18eb7_2cfc8374",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "177fe3b9_bd6d3366",
         "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
         "patchSetId": 14
@@ -73,6 +109,24 @@
       "revId": "4eafd59841378338391def7d206b14609e5b8735",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b978da2_1e3be80c",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-22T18:04:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "177fe3b9_bd6d3366",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -93,6 +147,24 @@
     },
     {
       "key": {
+        "uuid": "0d42c7d9_b841f743",
+        "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-22T18:04:53Z",
+      "side": 1,
+      "message": "To avoid conflicting with the \"path\" package, and to be clear that this is referring to the PATH environment variable, as opposed to some arbitrary path on the machine.",
+      "parentUuid": "da981c31_b6af5b21",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "402f6b61_687cb19b",
         "filename": "task_scheduler/go/db/repo_state.go",
         "patchSetId": 14
@@ -104,6 +176,24 @@
       "writtenOn": "2018-10-22T15:50:13Z",
       "side": 1,
       "message": "So issueShort is just shortened by ISSUE_SHORT_LENGTH? I do not understand this code.",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47a6a6ab_637179b6",
+        "filename": "task_scheduler/go/db/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-22T18:04:53Z",
+      "side": 1,
+      "message": "Yes, the patch ref consist of three components, the first of which is the last 2 digits of the issue number, followed by the full issue number, and then the full patchset number.",
+      "parentUuid": "402f6b61_687cb19b",
       "revId": "4eafd59841378338391def7d206b14609e5b8735",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
