@@ -46,9 +46,9 @@ mmma_cmd="time mmma -j10 frameworks/base/core/jni"
 log_step "Running $mmma_cmd"
 eval $mmma_cmd
 
-mmm_skia_cmd="time mmm -j10 external/skia"
-log_step "Running $mmm_skia_cmd"
-eval $mmm_skia_cmd
+# mmm_skia_cmd="time mmm -j10 external/skia"
+# log_step "Running $mmm_skia_cmd"
+# eval $mmm_skia_cmd
 
 log_step "ccache stats after compilations"
 ccache -s
