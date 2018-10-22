@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b764039f_5e4006fe",
+        "filename": "infra/bots/build_task_drivers.sh",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-22T15:14:30Z",
+      "side": 1,
+      "message": "In the future this will need to get more complex as we have to build multiple task drivers for multiple platforms.  I still haven\u0027t worked out the best way to do that, since we won\u0027t want to package all of those builds together, but also probably don\u0027t want to have one build task for every task driver x platform combo.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "b288d4d2d1fd416ed4a204bcb42cf6fe27cc57af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
