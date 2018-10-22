@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	BUNDLE_RECIPES_NAME = "Housekeeper-PerCommit-BundleRecipes"
+	BUILD_TASK_DRIVERS_NAME = "Housekeeper-PerCommit-BuildTaskDrivers"
+	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-9.4"
@@ -58,6 +59,7 @@ var (
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
 		"Infra-PerCommit-Race",
+		"Infra-Experimental-Small",
 	}
 
 	// Versions of the following copied from
@@ -213,6 +215,24 @@ func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+// buildTaskDrivers generates the task to compile the task driver code to run on
+// all platforms.
+func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
+	b.MustAddTask(BUILD_TASK_DRIVERS_NAME, &specs.TaskSpec{
+		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("go_deps")),
+		Command: []string{
+			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
+		},
+		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		EnvPrefixes: map[string][]string{
+			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate: "whole_repo.isolate",
+	})
+	return BUILD_TASK_DRIVERS_NAME
+
+}
+
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
 // recipe.
 func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
@@ -357,19 +377,62 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
+func experimental(b *specs.TasksCfgBuilder, name string) string {
+	cipd := append([]*specs.CipdPackage{}, CIPD_PKGS_GIT...)
+	cipd = append(cipd, CIPD_PKGS_GSUTIL...)
+	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("node"))
+
+	machineType := MACHINE_TYPE_MEDIUM
+	if strings.Contains(name, "Large") {
+		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
+		machineType = MACHINE_TYPE_LARGE
+	}
+
+	t := &specs.TaskSpec{
+		CipdPackages: cipd,
+		Command: []string{
+			"./infra_tests",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--repo", specs.PLACEHOLDER_REPO,
+			"--revision", specs.PLACEHOLDER_REVISION,
+			"--patch_issue", specs.PLACEHOLDER_ISSUE,
+			"--patch_set", specs.PLACEHOLDER_PATCHSET,
+			"--patch_server", specs.PLACEHOLDER_CODEREVIEW_SERVER,
+			"--workdir", ".",
+			"--alsologtostderr",
+		},
+		Dependencies: []string{BUILD_TASK_DRIVERS_NAME, ISOLATE_GO_DEPS_NAME},
+		Dimensions:   linuxGceDimensions(machineType),
+		EnvPrefixes: map[string][]string{
+			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Isolate:        "empty.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	b.MustAddTask(name, t)
+	return name
+}
+
 // process generates Tasks and Jobs for the given Job name.
 func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
 	deps := []string{}
 
-	// Infra tests.
-	if strings.Contains(name, "Infra-PerCommit") {
-		deps = append(deps, infra(b, name))
-	}
-	// Presubmit.
-	if strings.Contains(name, "Presubmit") {
-		priority = 1
-		deps = append(deps, presubmit(b, name))
+	// Experimental recipe-less tasks.
+	if strings.Contains(name, "Experimental") {
+		deps = append(deps, experimental(b, name))
+	} else {
+		// Infra tests.
+		if strings.Contains(name, "Infra-PerCommit") {
+			deps = append(deps, infra(b, name))
+		}
+		// Presubmit.
+		if strings.Contains(name, "Presubmit") {
+			priority = 1
+			deps = append(deps, presubmit(b, name))
+		}
 	}
 	// Isolate CIPD assets.
 	if _, ok := ISOLATE_ASSET_MAPPING[name]; ok {
@@ -394,6 +457,7 @@ func main() {
 
 	// Create Tasks and Jobs.
 	bundleRecipes(b)
+	buildTaskDrivers(b)
 	for _, name := range JOBS {
 		process(b, name)
 	}
