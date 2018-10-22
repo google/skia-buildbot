@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "560f5566_fce99c09",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-22T16:21:28Z",
+      "side": 1,
+      "message": "Should these tasks not specify the tag: \"milo_host\"\n(I think that is what makes swarming try to put a milo page)",
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e47ef9d3_a371019e",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-22T16:21:28Z",
+      "side": 1,
+      "message": "Try running trybot without it?",
+      "range": {
+        "startLine": 411,
+        "startChar": 57,
+        "endLine": 411,
+        "endChar": 79
+      },
+      "revId": "4eafd59841378338391def7d206b14609e5b8735",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "71a18eb7_2cfc8374",
         "filename": "infra/bots/task_drivers/infra_tests/infra_tests.go",
         "patchSetId": 14
