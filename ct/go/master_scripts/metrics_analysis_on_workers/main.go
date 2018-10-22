@@ -42,6 +42,7 @@ var (
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
 	analysisOutputLink = flag.String("analysis_output_link", "", "Cloud trace links will be gathered from this specified CT analysis run Id. If not specified, trace links will be read from ${TMPDIR}/<run_id>.traces.csv")
 	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
+	taskPriority       = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 
 	taskCompletedSuccessfully = false
 
@@ -203,7 +204,7 @@ func main() {
 		"METRIC_NAME":       *metricName,
 		"VALUE_COLUMN_NAME": *valueColumnName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, 12*time.Hour, 3*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return

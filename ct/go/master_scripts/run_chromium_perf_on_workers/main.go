@@ -42,6 +42,7 @@ var (
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
 	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
+	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
 
 	taskCompletedSuccessfully = false
 
@@ -263,7 +264,7 @@ func main() {
 	var hardTimeout = time.Duration(skutil.MinInt(12**repeatBenchmark, util.MAX_SWARMING_HARD_TIMEOUT_HOURS)) * time.Hour
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, *master_common.ServiceAccountFile, hardTimeout, 1*time.Hour, util.USER_TASKS_PRIORITY, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, *master_common.ServiceAccountFile, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
