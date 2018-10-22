@@ -184,6 +184,12 @@
                 <td>ParallelRun:</td>
                 <td>{{chromiumPerfTask.RunInParallel}}</td>
               </tr>
+              <template is="dom-if" if="{{chromiumPerfTask.TaskPriority}}">
+                <tr>
+                  <td>TaskPriority:</td>
+                  <td>{{chromiumPerfTask.TaskPriority}}</td>
+                </tr>
+              </template>
               <template is="dom-if" if="{{chromiumPerfTask.CCList}}">
                 <tr>
                   <td>CC List:</td>

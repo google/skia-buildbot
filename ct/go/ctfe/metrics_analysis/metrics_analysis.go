@@ -57,6 +57,7 @@ type DatastoreTask struct {
 	RawOutput           string
 	ValueColumnName     string
 	CCList              []string
+	TaskPriority        int
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -75,6 +76,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BenchmarkArgs = task.BenchmarkArgs
 	taskVars.Description = task.Description
 	taskVars.CCList = task.CCList
+	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 
 	var err error
 	taskVars.CustomTraces, err = ctutil.GetPatchFromStorage(task.CustomTracesGSPath)
@@ -150,6 +152,7 @@ type AddTaskVars struct {
 	CatapultPatch      string   `json:"catapult_patch"`
 	ValueColumnName    string   `json:"value_column_name"`
 	CCList             []string `json:"cc_list"`
+	TaskPriority       string   `json:"task_priority"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -208,6 +211,11 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		ChromiumPatchGSPath: chromiumPatchGSPath,
 		CatapultPatchGSPath: catapultPatchGSPath,
 	}
+	taskPriority, err := strconv.Atoi(task.TaskPriority)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int: %s", task.TaskPriority, err)
+	}
+	t.TaskPriority = taskPriority
 	return t, nil
 }
 

@@ -34,5 +34,14 @@
       <error-toast-sk></error-toast-sk>
     </paper-header-panel>
 
+    <script type="text/javascript" charset="utf-8">
+       (function() {
+         sk.post('/_/task_priorities/').then(JSON.parse).then(function(json) {
+           $$$('metrics-analysis-sk').taskPrioritiesToDesc = json["task_priorities"];
+           $$$('metrics-analysis-sk').taskPriorities = Object.keys(json["task_priorities"]);
+         }).catch(sk.errorMessage);
+       })();
+    </script>
+
   </body>
 </html>

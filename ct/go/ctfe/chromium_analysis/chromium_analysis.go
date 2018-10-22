@@ -64,6 +64,7 @@ type DatastoreTask struct {
 	RawOutput            string
 	MatchStdoutTxt       string
 	CCList               []string
+	TaskPriority         int
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -112,6 +113,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.RunOnGCE = task.RunOnGCE
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
 	taskVars.CCList = task.CCList
+	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 	return taskVars, nil
 }
 
@@ -178,6 +180,7 @@ type AddTaskVars struct {
 	RunOnGCE       bool     `json:"run_on_gce"`
 	MatchStdoutTxt string   `json:"match_stdout_txt"`
 	CCList         []string `json:"cc_list"`
+	TaskPriority   string   `json:"task_priority"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -243,6 +246,11 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		MatchStdoutTxt: task.MatchStdoutTxt,
 		CCList:         task.CCList,
 	}
+	taskPriority, err := strconv.Atoi(task.TaskPriority)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int: %s", task.TaskPriority, err)
+	}
+	t.TaskPriority = taskPriority
 	return t, nil
 }
 
