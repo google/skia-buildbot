@@ -1,0 +1,146 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b67d6133_1c4bfff1",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Would having a LastUpdated time.Time field be useful?",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fccf8a46_9ba5db71",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Nit: Confusing to me to have Data be both in StepData and in Step. Maybe the one in Step can be called StepData?",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42aa8c37_b41cb29e",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Nit: Is TaskDriverRun a better name?\nTaskDriver originally made me think you were putting information about the actual task driver into DB (not of a single run of it).",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 13
+      },
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b694067f_b65f30f8",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "If you add a mutex to each TaskDriver/TaskDriverRun then you could use that to make it thread-safe?",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e04af73_b5031151",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Should we check if the step is already marked as started and complain if it is?\nSimilar comment for MSG_TYPE_STEP_FINISHED below.",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baaabded_aa22c954",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Could you have a race condition here if MSG_TYPE_STEP_FINISHED and MSG_TYPE_STEP_FAILED are received at the same time?\nI just saw your race condition comment below, that probably also applies to finished as well.",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d49080e_2ed443bc",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Should we check here that it is marked as started and not finished",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a912a8d8_785a0087",
+        "filename": "task_driver/go/display/display.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T13:59:24Z",
+      "side": 1,
+      "message": "Nit: Having this named the same as the Step struct in task_driver/go/db is a little confusing. Same for TaskDriver below. Maybe StepDisplay and TaskDriverDisplay?",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
