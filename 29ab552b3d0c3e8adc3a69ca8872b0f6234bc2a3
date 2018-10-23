@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "bc97c0f2_ef92e88f",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "I\u0027m not sure.  I don\u0027t need it for this early experimental implementation, but we can add it later if we need it.",
+      "parentUuid": "b67d6133_1c4bfff1",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fccf8a46_9ba5db71",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2018-10-23T13:59:24Z",
       "side": 1,
       "message": "Nit: Confusing to me to have Data be both in StepData and in Step. Maybe the one in Step can be called StepData?",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8001caf8_b075150d",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "IMO that adds unnecessary typing:\nfor _, d :\u003d range step.Data {\n\nvs\n\nfor _, d :\u003d range step.StepData {",
+      "parentUuid": "fccf8a46_9ba5db71",
       "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "63d3275e_5ea328a0",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42aa8c37_b41cb29e",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 13
+      },
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b694067f_b65f30f8",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -70,6 +130,24 @@
       "writtenOn": "2018-10-23T13:59:24Z",
       "side": 1,
       "message": "If you add a mutex to each TaskDriver/TaskDriverRun then you could use that to make it thread-safe?",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "993b42b2_1b5bcc20",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "That would depend on the implementation of the DB.  In all cases except the in-memory \"db\", I\u0027d expect that we\u0027d be reading a serialized version of the task driver and thus would end up with a different instance of the mutex for each copy of the same task driver, which wouldn\u0027t help anything.",
+      "parentUuid": "b694067f_b65f30f8",
       "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "bb426d04_d4f4cf3d",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "No, since pubsub messages may arrive more than once.",
+      "parentUuid": "2e04af73_b5031151",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "baaabded_aa22c954",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -104,6 +200,24 @@
       "writtenOn": "2018-10-23T13:59:24Z",
       "side": 1,
       "message": "Could you have a race condition here if MSG_TYPE_STEP_FINISHED and MSG_TYPE_STEP_FAILED are received at the same time?\nI just saw your race condition comment below, that probably also applies to finished as well.",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9dfc7054_97e9f647",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "db.UpdateTaskDriver is supposed to serialize accesses to a given TaskDriver, so we shouldn\u0027t need to worry about the race in lines 124-125.",
+      "parentUuid": "baaabded_aa22c954",
       "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -127,6 +241,24 @@
     },
     {
       "key": {
+        "uuid": "fb785336_f863b052",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "No, pubsub messages may arrive out of order, so we need to be able to end up with the same data structure regardless of in what order we receive the messages.",
+      "parentUuid": "9d49080e_2ed443bc",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a912a8d8_785a0087",
         "filename": "task_driver/go/display/display.go",
         "patchSetId": 5
@@ -141,6 +273,24 @@
       "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6af88284_ce0b1f47",
+        "filename": "task_driver/go/display/display.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:50:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a912a8d8_785a0087",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
