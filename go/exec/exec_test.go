@@ -409,3 +409,20 @@ func TestMockRun(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "baz")
 }
+
+func TestRunCommand(t *testing.T) {
+	testutils.SmallTest(t)
+	ctx := context.Background()
+	// Without a thread-safe io.Writer for Command.CombinedOutput, this test
+	// fails "go test -race" and the output does not consistently match the
+	// expectation.
+	buf := &bytes.Buffer{}
+	output, err := RunCommand(ctx, &Command{
+		Name:   "python",
+		Args:   []string{"-c", "print 'hello world'"},
+		Stdout: buf,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "hello world\n", output)
+	assert.Equal(t, output, buf.String())
+}

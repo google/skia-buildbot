@@ -21,6 +21,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -1107,4 +1108,24 @@ func (mw MultiWriter) Write(b []byte) (int, error) {
 		}
 	}
 	return rv, rvErr
+}
+
+// ThreadSafeWriter wraps an io.Writer and provides thread safety.
+type ThreadSafeWriter struct {
+	w   io.Writer
+	mtx sync.Mutex
+}
+
+// See documentation for io.Writer.
+func (w *ThreadSafeWriter) Write(b []byte) (int, error) {
+	w.mtx.Lock()
+	defer w.mtx.Unlock()
+	return w.w.Write(b)
+}
+
+// NewThreadSafeWriter returns a ThreadSafeWriter which wraps the given Writer.
+func NewThreadSafeWriter(w io.Writer) io.Writer {
+	return &ThreadSafeWriter{
+		w: w,
+	}
 }
