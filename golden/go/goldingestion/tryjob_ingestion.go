@@ -185,6 +185,12 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 			sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
 			return ingestion.IgnoreResultsFileErr
 		}
+
+		// If the issue is nil, that means it could not be found, but it's absence has already been
+		// accounted for in an error message and we ignore this file.
+		if issue == nil {
+			return ingestion.IgnoreResultsFileErr
+		}
 	}
 
 	// Add the Githash of the underlying result.
