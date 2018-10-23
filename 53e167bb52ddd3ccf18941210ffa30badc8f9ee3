@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "3d4219b3_d7f92e16",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T15:01:14Z",
+      "side": 1,
+      "message": "I may have completely misunderstood the problem, correct me if I am wrong: There is a race condition that happens when we use CombinedOutput + specify a Stdout/Stdin.\n\nMaybe we should do this only when command.Stdout or command.Stdin are !\u003d nil to prevent slowness when not required?\n\nAlso, making sure you have seen the comment for CombinedOutput (which might have to be updated depending on what you change):\n\t// Sends the combined stdout and stderr of the command to this Writer, in addition to\n\t// Stdout and Stderr. Only one goroutine will write at a time. Note: the Go runtime seems to\n\t// combine stdout and stderr into one stream as long as LogStdout and LogStderr are false\n\t// and Stdout and Stderr are nil. Otherwise, the stdout and stderr of the command could be\n\t// arbitrarily reordered when written to CombinedOutput.\n\tCombinedOutput io.Writer",
+      "revId": "53e167bb52ddd3ccf18941210ffa30badc8f9ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d9734734_1d48d21c",
         "filename": "go/exec/exec_test.go",
         "patchSetId": 1
