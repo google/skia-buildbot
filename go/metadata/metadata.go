@@ -169,14 +169,6 @@ func Must(s string, err error) string {
 	return s
 }
 
-// NSQDTestServerAddr returns the address of a test NSQD server used for testing. If
-// not running in GCE, this is the local machine.
-func NSQDTestServerAddr() string {
-	server := ProjectGetWithDefault(NSQ_TEST_SERVER, "127.0.0.1")
-	sklog.Errorf("Got test NSQ server: %s", server)
-	return fmt.Sprintf("%s:4150", server)
-}
-
 // GetToken returns a default service account token.
 func GetToken() (*oauth2.Token, error) {
 	tokString, err := getUrl(TOKEN_URL)
