@@ -312,7 +312,16 @@ func (c *execContext) Run(command *Command) error {
 // return an error if the command exited with a non-zero status or there is any other error.
 func (c *execContext) runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
-	command.CombinedOutput = &output
+	// We use a ThreadSafeWriter here because command.CombinedOutput may get
+	// wrapped with an io.MultiWriter if the caller set command.Stdout or
+	// command.Stderr, or if either command.LogStdout or command.LogStderr
+	// is true. In that case, the os/exec package will not be able to
+	// determine that CombinedOutput is shared between stdout and stderr and
+	// it will spin up an extra goroutine to write to it, causing a data
+	// race. We could be smarter and only use the ThreadSafeWriter when we
+	// know that this will be the case, but relies too much on our knowledge
+	// of the current os/exec implementation.
+	command.CombinedOutput = util.NewThreadSafeWriter(&output)
 	// Setting Verbose to Silent to maintain previous behavior.
 	command.Verbose = Silent
 	err := c.Run(command)
