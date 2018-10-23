@@ -243,7 +243,7 @@ func main() {
 		sklog.Errorf("Error encountered when calculating number of pages: %s", err)
 		return
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "pixel_diff", util.PIXEL_DIFF_ISOLATE, *runID, *master_common.ServiceAccountFile, 3*time.Hour, 1*time.Hour, util.USER_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "pixel_diff", util.PIXEL_DIFF_ISOLATE, *runID, *master_common.ServiceAccountFile, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_MEDIUM, MAX_PAGES_PER_SWARMING_BOT, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

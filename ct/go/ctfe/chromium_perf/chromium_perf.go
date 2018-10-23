@@ -64,6 +64,7 @@ type DatastoreTask struct {
 	NoPatchRawOutput     string
 	WithPatchRawOutput   string
 	CCList               []string
+	TaskPriority         int
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -85,6 +86,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.BrowserArgsWithPatch = task.BrowserArgsWithPatch
 	taskVars.Description = task.Description
 	taskVars.CCList = task.CCList
+	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
 
 	var err error
 	taskVars.CustomWebpages, err = ctutil.GetPatchFromStorage(task.CustomWebpagesGSPath)
@@ -178,12 +180,14 @@ type AddTaskVars struct {
 	BrowserArgsWithPatch string   `json:"browser_args_withpatch"`
 	Description          string   `json:"desc"`
 	CCList               []string `json:"cc_list"`
-	ChromiumPatch        string   `json:"chromium_patch"`
-	BlinkPatch           string   `json:"blink_patch"`
-	SkiaPatch            string   `json:"skia_patch"`
-	CatapultPatch        string   `json:"catapult_patch"`
-	BenchmarkPatch       string   `json:"benchmark_patch"`
-	V8Patch              string   `json:"v8_patch"`
+	TaskPriority         string   `json:"task_priority"`
+
+	ChromiumPatch  string `json:"chromium_patch"`
+	BlinkPatch     string `json:"blink_patch"`
+	SkiaPatch      string `json:"skia_patch"`
+	CatapultPatch  string `json:"catapult_patch"`
+	BenchmarkPatch string `json:"benchmark_patch"`
+	V8Patch        string `json:"v8_patch"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -264,6 +268,11 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		return nil, fmt.Errorf("%s is not int64: %s", task.RepeatRuns, err)
 	}
 	t.RepeatRuns = repeatRuns
+	taskPriority, err := strconv.Atoi(task.TaskPriority)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not int: %s", task.TaskPriority, err)
+	}
+	t.TaskPriority = taskPriority
 	return t, nil
 }
 

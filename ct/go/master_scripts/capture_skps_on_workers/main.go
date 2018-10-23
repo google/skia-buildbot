@@ -157,7 +157,7 @@ func main() {
 		"RUN_ID":              *runID,
 		"SKPINFO_REMOTE_PATH": skpinfoRemotePath,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, *master_common.ServiceAccountFile, 3*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, *master_common.ServiceAccountFile, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

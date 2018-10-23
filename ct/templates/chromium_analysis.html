@@ -41,6 +41,10 @@
            $$$('chromium-analysis-sk').platformsToDesc = json["platforms"];
            $$$('chromium-analysis-sk').platforms = Object.keys(json["platforms"]);
          }).catch(sk.errorMessage);
+         sk.post('/_/task_priorities/').then(JSON.parse).then(function(json) {
+           $$$('chromium-analysis-sk').taskPrioritiesToDesc = json["task_priorities"];
+           $$$('chromium-analysis-sk').taskPriorities = Object.keys(json["task_priorities"]);
+         }).catch(sk.errorMessage);
          ctfe.pageSets.getPageSets().then(function(pageSets) {
            $$$('chromium-analysis-sk').pageSets = pageSets;
          }).catch(sk.errorMessage);

@@ -188,6 +188,7 @@ func pendingMetricsAnalysisTask() MetricsAnalysisTask {
 			ChromiumPatchGSPath: "patches/abc.patch",
 			CatapultPatchGSPath: "patches/xyz.path",
 			CCList:              []string{"superman@krypton.com", "jorel@krypton.com"},
+			TaskPriority:        100,
 		},
 	}
 }
@@ -209,7 +210,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	assert.Len(t, mockRun.Commands(), 1)
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "metrics_analysis_on_workers", cmd.Name)
-	expect.Equal(t, len(cmd.Args), 13)
+	expect.Equal(t, len(cmd.Args), 14)
 	expect.Contains(t, cmd.Args, "--task_id=42")
 	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org,superman@krypton.com,jorel@krypton.com")
@@ -217,6 +218,7 @@ func TestMetricsAnalysisExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--analysis_output_link=http://test/outputlink")
 	expect.Contains(t, cmd.Args, "--value_column_name=pct_001")
 	expect.Contains(t, cmd.Args, "--benchmark_extra_args=benchmarkargs")
+	expect.Contains(t, cmd.Args, "--task_priority=100")
 	expect.Contains(t, cmd.Args, "--logtostderr")
 	expect.Contains(t, cmd.Args, "--local=false")
 	runId := getRunId(t, cmd)
