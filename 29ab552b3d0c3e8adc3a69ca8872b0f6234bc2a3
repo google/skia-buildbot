@@ -177,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "120e8596_5e0115bc",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T17:13:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "77253e17_fa204d8a",
+      "range": {
+        "startLine": 99,
+        "startChar": 10,
+        "endLine": 102,
+        "endChar": 6
+      },
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e04af73_b5031151",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
