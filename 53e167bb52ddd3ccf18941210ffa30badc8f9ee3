@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c121e049_7a8c8d6b",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T16:26:42Z",
+      "side": 1,
+      "message": "The race condition occurs due to the io.Copy which is run in a goroutine here: https://golang.org/src/os/exec/exec.go#L278\n\nOur exec package uses an io.MultiWriter to wrap multiple io.Writers if two of the following are true:\n1. We called a function which uses CombinedOutput\n2. The caller supplied its own Writer\n3. The caller set LogStdout/LogStderr\n\nIn this case, #1 and #2 are true for cmd.Stdout, so we pass an io.MultiWriter in for cmd.Stdout, but only #1 is true for cmd.Stderr, so we just pass CombinedOutput in for cmd.Stderr.\n\nThere is a check to prevent the race condition here: https://golang.org/src/os/exec/exec.go#L251\nBut since it checks the pointer value, and we wrapped CombinedOutput in a MultiWriter, it doesn\u0027t find CombinedOutput during the check, so the second goroutine is spawned and the race ensues.\n\nI guess we could try to \"game\" the os/exec package by determining whether we\u0027re wrapping more than one Writer and use the ThreadSafeWriter for CombinedOutput in that case.  That seems a little too dependent on os/exec implementation though.",
+      "parentUuid": "3d4219b3_d7f92e16",
+      "revId": "53e167bb52ddd3ccf18941210ffa30badc8f9ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d9734734_1d48d21c",
         "filename": "go/exec/exec_test.go",
         "patchSetId": 1
