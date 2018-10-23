@@ -8,7 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"html/template"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -30,48 +33,121 @@ const (
 
 var (
 	// Flags.
-	host     = flag.String("host", "localhost", "HTTP service host")
-	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port     = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	project  = flag.String("project_id", "", "GCE Project ID")
-	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	host         = flag.String("host", "localhost", "HTTP service host")
+	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	project      = flag.String("project_id", "", "GCE Project ID")
+	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the \"dist\" subdirectory of the current directory will be used.")
 
 	// Database used for storing and retrieving Task Drivers.
 	d db.DB
+
+	// HTML templates.
+	tdTemplate *template.Template = nil
 )
 
-// jsonTaskDriverHandler returns the JSON representation of the requested Task Driver.
-func jsonTaskDriverHandler(w http.ResponseWriter, r *http.Request) {
+// getTaskDriver returns a display.TaskDriverRun instance for the given
+// request. If anything went wrong, returns nil and writes an error to the
+// ResponseWriter.
+func getTaskDriver(w http.ResponseWriter, r *http.Request) *display.TaskDriverRunDisplay {
 	id, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "No task driver ID in request path.", http.StatusBadRequest)
-		return
+		return nil
 	}
 	td, err := d.GetTaskDriver(id)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve task driver.")
-		return
+		return nil
 	}
 	if td == nil {
 		http.Error(w, "No task driver exists with the given ID.", http.StatusNotFound)
-		return
+		return nil
 	}
 	disp, err := display.TaskDriverForDisplay(td)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to format task driver for response.")
+		return nil
+	}
+	return disp
+}
+
+// taskDriverHandler handles requests for an individual Task Driver.
+func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
+	disp := getTaskDriver(w, r)
+	if disp == nil {
+		// Any error was handled by getTaskDriver.
 		return
 	}
+
+	if *local {
+		// reload during local development
+		loadTemplates()
+	}
+	b, err := json.Marshal(disp)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+	page := struct {
+		TaskName string
+		TaskJson string
+	}{
+		TaskName: disp.Name,
+		TaskJson: string(b),
+	}
+	w.Header().Set("Content-Type", "text/html")
+	if err := tdTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, r, err, "Server could not load page")
+		return
+	}
+}
+
+// jsonTaskDriverHandler returns the JSON representation of the requested Task Driver.
+func jsonTaskDriverHandler(w http.ResponseWriter, r *http.Request) {
+	disp := getTaskDriver(w, r)
+	if disp == nil {
+		// Any error was handled by getTaskDriver.
+		return
+	}
+
 	if err := json.NewEncoder(w).Encode(disp); err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return
 	}
 }
 
+func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(*resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		p := r.URL.Path
+		r.URL.Path = strings.TrimPrefix(p, "/res")
+		if strings.HasSuffix(p, "wasm") {
+			// WASM won't do a streaming-compile if the mime-type isn't set
+			w.Header().Set("Content-Type", "application/wasm")
+		}
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
+// Load the HTML pages.
+func loadTemplates() {
+	tdTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "task-driver-index.html"),
+	))
+}
+
 // Run the web server.
 func runServer(ctx context.Context, serverURL string) {
+	loadTemplates()
 	r := mux.NewRouter()
+	r.HandleFunc("/td/{id}", taskDriverHandler)
 	r.HandleFunc("/json/td/{id}", jsonTaskDriverHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler()).Methods("GET")
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
