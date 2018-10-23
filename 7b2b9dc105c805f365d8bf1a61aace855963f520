@@ -16,6 +16,24 @@
       "revId": "7b2b9dc105c805f365d8bf1a61aace855963f520",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1ea43f0_504952e8",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T18:35:32Z",
+      "side": 1,
+      "message": "It would be unusual, but not impossible.  Exception occurs when we catch a panic, failure occurs when someone calls td.FailStep().  There is nothing preventing a caller from calling FailStep() multiple times for a given step, even though it would be bad practice to do so.  Similarly, there is nothing preventing a caller from running FailStep() and then doing something else which causes a panic within the same step.  Again, this would probably be due to some bad practice, but panicking within the task driver run wouldn\u0027t solve anything since we\u0027d still end up with a failure and an exception.",
+      "parentUuid": "d398b2da_7e341f68",
+      "revId": "7b2b9dc105c805f365d8bf1a61aace855963f520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

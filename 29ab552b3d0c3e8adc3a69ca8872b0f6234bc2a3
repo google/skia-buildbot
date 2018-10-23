@@ -208,6 +208,24 @@
     },
     {
       "key": {
+        "uuid": "ec0c11dd_e4d35f6e",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T18:35:32Z",
+      "side": 1,
+      "message": "This comment is only really true if the DB does not actually serialize updates to each task driver.  That\u0027s a difficult requirement to satisfy, so I left this comment here in case we decide to relax that requirement and handle it elsewhere.",
+      "parentUuid": "3154ee69_dd4c79b4",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77253e17_fa204d8a",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
