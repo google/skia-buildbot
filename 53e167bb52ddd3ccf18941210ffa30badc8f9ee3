@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9734734_1d48d21c",
+        "filename": "go/exec/exec_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T14:45:54Z",
+      "side": 1,
+      "message": "The race is only detected for Command.CombinedOutput when we pass in an additional io.Writer.",
+      "range": {
+        "startLine": 423,
+        "startChar": 2,
+        "endLine": 423,
+        "endChar": 14
+      },
+      "revId": "53e167bb52ddd3ccf18941210ffa30badc8f9ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbda8cfa_d994815b",
+        "filename": "go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-23T14:45:54Z",
+      "side": 1,
+      "message": "It concerns me that this will be slow when we run commands with lots of output.  Maybe we should consider warning against the use of exec.Command.CombinedOutput and all of its descendants (ie. most of the exec package helpers) for any long-running/chatty commands?",
+      "range": {
+        "startLine": 1121,
+        "startChar": 0,
+        "endLine": 1122,
+        "endChar": 21
+      },
+      "revId": "53e167bb52ddd3ccf18941210ffa30badc8f9ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
