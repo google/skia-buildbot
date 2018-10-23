@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d398b2da_7e341f68",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "Can you remind me how we would get both a failure and an exception for a step?\nIs every step with an exception also a failure?",
+      "revId": "7b2b9dc105c805f365d8bf1a61aace855963f520",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

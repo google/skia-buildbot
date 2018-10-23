@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "fb9b501f_47076beb",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bc97c0f2_ef92e88f",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fccf8a46_9ba5db71",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -69,6 +87,24 @@
       "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7af8dd23_00fa207a",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "K, I think personal preference wins here.",
+      "parentUuid": "8001caf8_b075150d",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -154,6 +190,24 @@
     },
     {
       "key": {
+        "uuid": "3154ee69_dd4c79b4",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "Yea I was only thinking about the in-memory DB. Would be nice to solve the race condition someway but I have no ideas.",
+      "parentUuid": "993b42b2_1b5bcc20",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77253e17_fa204d8a",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -236,6 +290,24 @@
     },
     {
       "key": {
+        "uuid": "c559c85b_1d73591e",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "Ah right. I forgot about \"Typically, Cloud Pub/Sub delivers each message once and in the order in which it was published. However, messages may sometimes be delivered out of order or more than once.\"",
+      "parentUuid": "bb426d04_d4f4cf3d",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baaabded_aa22c954",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -271,6 +343,24 @@
     },
     {
       "key": {
+        "uuid": "04a24ecc_ff98f842",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9dfc7054_97e9f647",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9d49080e_2ed443bc",
         "filename": "task_driver/go/db/db.go",
         "patchSetId": 5
@@ -303,6 +393,24 @@
       "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfb1cb03_887d4ca4",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-23T17:58:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fb785336_f863b052",
+      "revId": "29ab552b3d0c3e8adc3a69ca8872b0f6234bc2a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
