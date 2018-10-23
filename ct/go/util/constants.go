@@ -171,9 +171,9 @@ const (
 	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chrome-swarming.appspot.com/tasklist?l=500&c=name&c=created_ts&c=bot&c=duration&c=state&f=runid:%s&st=1262304000000"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "&f=name:%s"
 	// Priorities
-	USER_TASKS_PRIORITY         = swarming.RECOMMENDED_PRIORITY
-	ADMIN_TASKS_PRIORITY        = swarming.RECOMMENDED_PRIORITY + 10 // Use lower priority for admin tasks because they can be long runned and we do not want to starve user jobs.
-	LONG_RUNNING_TASKS_PRIORITY = swarming.RECOMMENDED_PRIORITY + 10 // To prevent long running tasks from starving user jobs.
+	TASKS_PRIORITY_HIGH   = swarming.RECOMMENDED_PRIORITY
+	TASKS_PRIORITY_MEDIUM = swarming.RECOMMENDED_PRIORITY + 10
+	TASKS_PRIORITY_LOW    = swarming.RECOMMENDED_PRIORITY + 20
 )
 
 type PagesetTypeInfo struct {
@@ -313,6 +313,12 @@ var (
 	SupportedPlatformsToDesc = map[string]string{
 		PLATFORM_LINUX:   "Linux (Ubuntu14.04 machines)",
 		PLATFORM_ANDROID: "Android (N5X devices)",
+	}
+
+	TaskPrioritiesToDesc = map[int]string{
+		TASKS_PRIORITY_HIGH:   "High priority",
+		TASKS_PRIORITY_MEDIUM: "Medium priority",
+		TASKS_PRIORITY_LOW:    "Low priority",
 	}
 
 	// Swarming machine dimensions.

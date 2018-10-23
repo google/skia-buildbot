@@ -115,7 +115,7 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, nil, "Please login with google or chromium account to add tasks")
+		httputils.ReportError(w, r, nil, "Please login with google account to add tasks")
 		return
 	}
 	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
@@ -493,7 +493,7 @@ func canRedoTask(task Task, r *http.Request) (bool, error) {
 
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, nil, "Please login with google or chromium account to delete tasks")
+		httputils.ReportError(w, r, nil, "Please login with google account to delete tasks")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -515,7 +515,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, nil, "Please login with google or chromium account to redo tasks")
+		httputils.ReportError(w, r, nil, "Please login with google account to redo tasks")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -715,6 +715,18 @@ func benchmarksPlatformsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func taskPrioritiesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	data := map[string]interface{}{
+		"task_priorities": ctutil.TaskPrioritiesToDesc,
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
 func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	data := map[string]interface{}{
@@ -730,5 +742,6 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.TASK_PRIORITIES_POST_URI, taskPrioritiesHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_POST_URI, isAdminHandler).Methods("POST")
 }

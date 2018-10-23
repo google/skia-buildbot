@@ -159,6 +159,12 @@
                   </td>
                 </tr>
               </template>
+              <template is="dom-if" if="{{metricsAnalysisTask.TaskPriority}}">
+                <tr>
+                  <td>TaskPriority:</td>
+                  <td>{{metricsAnalysisTask.TaskPriority}}</td>
+                </tr>
+              </template>
               <template is="dom-if" if="{{metricsAnalysisTask.CCList}}">
                 <tr>
                   <td>CC List:</td>
