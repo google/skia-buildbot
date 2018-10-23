@@ -1,5 +1,7 @@
 package td
 
+import "go.skia.org/infra/go/util"
+
 // StepProperties are basic properties of a step.
 type StepProperties struct {
 	// ID of the step. This is set by the framework and should not be set
@@ -41,4 +43,18 @@ func (p *StepProperties) Infra() *StepProperties {
 func (p *StepProperties) Env(env []string) *StepProperties {
 	p.Environ = env
 	return p
+}
+
+// Copy returns a deep copy of the StepProperties.
+func (p *StepProperties) Copy() *StepProperties {
+	if p == nil {
+		return nil
+	}
+	return &StepProperties{
+		Id:      p.Id,
+		Name:    p.Name,
+		IsInfra: p.IsInfra,
+		Environ: util.CopyStringSlice(p.Environ),
+		Parent:  p.Parent,
+	}
 }
