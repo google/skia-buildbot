@@ -467,7 +467,7 @@ type DiffServiceClient interface {
 	WarmDiffs(ctx context.Context, in *WarmDiffsRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Same functionality asSee UnavailableDigests in the diff.DiffStore interface.
 	UnavailableDigests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UnavailableDigestsResponse, error)
-	// Same functionality asSee PurgeDigestset in the diff.DiffStore interface.
+	//Same functionality asSee PurgeDigestset in the diff.DiffStore interface.
 	PurgeDigests(ctx context.Context, in *PurgeDigestsRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Ping is used to test connection.
 	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -545,7 +545,7 @@ type DiffServiceServer interface {
 	WarmDiffs(context.Context, *WarmDiffsRequest) (*Empty, error)
 	// Same functionality asSee UnavailableDigests in the diff.DiffStore interface.
 	UnavailableDigests(context.Context, *Empty) (*UnavailableDigestsResponse, error)
-	// Same functionality asSee PurgeDigestset in the diff.DiffStore interface.
+	//Same functionality asSee PurgeDigestset in the diff.DiffStore interface.
 	PurgeDigests(context.Context, *PurgeDigestsRequest) (*Empty, error)
 	// Ping is used to test connection.
 	Ping(context.Context, *Empty) (*Empty, error)
