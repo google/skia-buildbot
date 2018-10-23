@@ -55,6 +55,14 @@ type FuzzerInfo struct {
 // centralized location to add a new fuzzer, i.e. adding an entry and information here, combined
 // with modifying the fuzzer-be.service should be sufficient to add a new fuzzer into the system.
 var fuzzers = map[string]FuzzerInfo{
+	"android_codec": {
+		PrettyName:          "Android Codec",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "scroggo",
+		ExtraBugLabels:      []string{"Area-ImageDecoder"},
+		ArgsAfterExecutable: []string{"--type", "android_codec", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"api_draw_functions": {
 		PrettyName:          "API - CanvasDrawFunctions",
 		Status:              STABLE_FUZZER,
@@ -119,6 +127,22 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "color_deserialize", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
+	"image_decode": {
+		PrettyName:          "General Image Decode",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "scroggo",
+		ExtraBugLabels:      []string{"Area-ImageDecoder"},
+		ArgsAfterExecutable: []string{"--type", "image_decode", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
+	"image_decode_incremental": {
+		PrettyName:          "Incremental Image Decode",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "scroggo",
+		ExtraBugLabels:      []string{"Area-ImageDecoder"},
+		ArgsAfterExecutable: []string{"--type", "image_decode_incremental", "--bytes"},
+		GenerationArgs:      defaultGenerationArgs,
+	},
 	"image_filter_deserialize": {
 		PrettyName:          "FilterFuzz Stub",
 		Status:              EXPERIMENTAL_FUZZER,
@@ -129,7 +153,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"jpeg_encoder": {
 		PrettyName:          "JPEG encoder",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "scroggo",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "JPEGEncoder", "--bytes"},
@@ -189,7 +213,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"png_encoder": {
 		PrettyName:          "PNG encoder",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "scroggo",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "PNGEncoder", "--bytes"},
@@ -237,7 +261,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"skottie_json": {
 		PrettyName:          "Skottie from JSON",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "fmalita",
 		ExtraBugLabels:      []string{},
 		ArgsAfterExecutable: []string{"--type", "skottie_json", "--bytes"},
@@ -261,7 +285,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"webp_encoder": {
 		PrettyName:          "WEBP encoder",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "scroggo",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "WEBPEncoder", "--bytes"},
