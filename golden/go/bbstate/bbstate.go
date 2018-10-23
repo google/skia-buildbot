@@ -25,7 +25,9 @@ import (
 // This defines the interfaces of BuildBucketState and is used to mock it in tests.
 type BuildIssueSync interface {
 	// SyncIssueTryjob forces a synchronous fetch of the issue information from
-	// Gerrit and the Tryjob information from the build system.
+	// Gerrit and the Tryjob information from the build system. Return values of
+	// (nil, nil, nil) indicate that we received a "not found" (404) return status
+	// when requesting the issue from Gerrit.
 	SyncIssueTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error)
 }
 
@@ -148,6 +150,10 @@ func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjo
 
 	// Update the tryjob information.
 	if err := b.updateTryjobState(tryjob); err != nil {
+		// If we got a 404 from Gerrit we signal this back to caller with a nil result.
+		if err == gerrit.ErrNotFound {
+			return nil, nil, nil
+		}
 		return nil, nil, fmt.Errorf("Error adding build info to tryjob store. \n%s\nError: %s", spew.Sdump(tryjob), err)
 	}
 
@@ -333,6 +339,7 @@ func (b *BuildBucketState) updateTryjobState(tryjob *tryjobstore.Tryjob) error {
 		// Make sure we have an up to date issue. Note: 'issue' might be nil
 		// if we didn't find it in the issue store.
 		if issue, err = b.syncGerritIssue(tryjob.IssueID, tryjob.PatchsetID, issue); err != nil {
+			// Note: Pass the error directly since it might be gerrit.ErrorNotFound.
 			return err
 		}
 
@@ -366,9 +373,9 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 		var err error
 		issue, err = b.updateGerritIssue(issueID, issue)
 		if err != nil {
-			// We didn't find the issue in Gerrit.
+			// We didn't find the issue in Gerrit. So pass the error back.
 			if err == gerrit.ErrNotFound {
-				return nil, nil
+				return nil, err
 			}
 			return nil, fmt.Errorf("Error fetching issue %d: %s", issueID, err)
 		}
