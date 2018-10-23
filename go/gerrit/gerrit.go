@@ -339,11 +339,16 @@ func fixupChangeInfo(ci *ChangeInfo) *ChangeInfo {
 
 // GetIssueProperties returns a fully filled-in ChangeInfo object, as opposed to
 // the partial data returned by Gerrit's search endpoint.
+// If the given issue cannot be found ErrNotFound is returned as error.
 func (g *Gerrit) GetIssueProperties(issue int64) (*ChangeInfo, error) {
 	url := fmt.Sprintf(URL_TMPL_CHANGE, issue)
 	fullIssue := &ChangeInfo{}
 	if err := g.get(url, fullIssue, ErrNotFound); err != nil {
-		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
+		// Pass ErrNotFound through unchanged so calling functions can check for it.
+		if err == ErrNotFound {
+			return nil, err
+		}
+		return nil, sklog.FmtErrorf("Failed to load details for issue %d: %v", issue, err)
 	}
 	return fixupChangeInfo(fullIssue), nil
 }

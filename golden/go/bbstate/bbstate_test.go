@@ -26,7 +26,7 @@ func TestBuildBucketState(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Comment out the line below to run tests locally.
-	t.Skip()
+	// t.Skip()
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", "", gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
