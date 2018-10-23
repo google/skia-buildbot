@@ -312,7 +312,7 @@ func (c *execContext) Run(command *Command) error {
 // return an error if the command exited with a non-zero status or there is any other error.
 func (c *execContext) runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
-	command.CombinedOutput = &output
+	command.CombinedOutput = util.NewThreadSafeWriter(&output)
 	// Setting Verbose to Silent to maintain previous behavior.
 	command.Verbose = Silent
 	err := c.Run(command)
