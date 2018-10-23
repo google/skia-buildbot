@@ -101,6 +101,9 @@ type BuildBucketState struct {
 
 	// watchMutex protects currentBuilds
 	watchMutex sync.Mutex
+
+	// missingIssueIDs keeps track of issues that have been requested before and received a 404
+	missingIssueIDs sync.Map
 }
 
 // NewBuildBucketState creates a new instance of BuildBucketState.
@@ -135,6 +138,11 @@ func NewBuildBucketState(config *Config) (BuildIssueSync, error) {
 
 // SyncIssueTryjob implements the BuildIssueSync interface.
 func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
+	// check if this issue has received a 404 in the past.
+	if _, ok := b.missingIssueIDs.Load(issueID); ok {
+		return nil, nil, nil
+	}
+
 	// Fetch the build information from BuildBucket and convert it to a Tryjob.
 	tryjob, err := b.fetchBuild(buildBucketID)
 	if err != nil {
@@ -148,6 +156,11 @@ func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjo
 
 	// Update the tryjob information.
 	if err := b.updateTryjobState(tryjob); err != nil {
+		// If we could not find the issue then we will trigger an error this time but not the next time
+		// this is called.
+		if err == gerrit.ErrNotFound {
+			b.missingIssueIDs.Store(issueID, true)
+		}
 		return nil, nil, fmt.Errorf("Error adding build info to tryjob store. \n%s\nError: %s", spew.Sdump(tryjob), err)
 	}
 
@@ -333,6 +346,7 @@ func (b *BuildBucketState) updateTryjobState(tryjob *tryjobstore.Tryjob) error {
 		// Make sure we have an up to date issue. Note: 'issue' might be nil
 		// if we didn't find it in the issue store.
 		if issue, err = b.syncGerritIssue(tryjob.IssueID, tryjob.PatchsetID, issue); err != nil {
+			// Note: Pass the error directly since it might be gerrit.ErrorNotFound.
 			return err
 		}
 
@@ -366,9 +380,9 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 		var err error
 		issue, err = b.updateGerritIssue(issueID, issue)
 		if err != nil {
-			// We didn't find the issue in Gerrit.
+			// We didn't find the issue in Gerrit. So pass the error back.
 			if err == gerrit.ErrNotFound {
-				return nil, nil
+				return nil, err
 			}
 			return nil, fmt.Errorf("Error fetching issue %d: %s", issueID, err)
 		}
