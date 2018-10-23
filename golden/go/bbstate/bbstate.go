@@ -397,6 +397,8 @@ func (b *BuildBucketState) syncGerritIssue(issueID, patchsetID int64, issue *try
 func (b *BuildBucketState) updateGerritIssue(issueID int64, issue *tryjobstore.Issue) (*tryjobstore.Issue, error) {
 	changeInfo, err := b.gerritAPI.GetIssueProperties(issueID)
 	if err != nil {
+		// Note: Make sure to pass through the error unchanged since it is tested against
+		// gerrit.ErrNotFound
 		return nil, err
 	}
 
