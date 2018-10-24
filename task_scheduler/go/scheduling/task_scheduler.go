@@ -218,37 +218,55 @@ func (s *TaskScheduler) Status() *TaskSchedulerStatus {
 	}
 }
 
+// TaskCandidateSearchTerms includes fields used for searching task candidates.
+type TaskCandidateSearchTerms struct {
+	db.TaskKey
+	Dimensions []string `json:"dimensions"`
+}
+
 // SearchQueue returns all task candidates in the queue which match the given
 // TaskKey. Any blank fields are considered to be wildcards.
-func (s *TaskScheduler) SearchQueue(k db.TaskKey) []*taskCandidate {
+func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidate {
 	s.queueMtx.RLock()
 	defer s.queueMtx.RUnlock()
 	rv := []*taskCandidate{}
 	for _, c := range s.queue {
 		// TODO(borenet): I wish there was a better way to do this.
-		if k.ForcedJobId != "" && c.ForcedJobId != k.ForcedJobId {
+		if q.ForcedJobId != "" && c.ForcedJobId != q.ForcedJobId {
 			continue
 		}
-		if k.Name != "" && c.Name != k.Name {
+		if q.Name != "" && c.Name != q.Name {
 			continue
 		}
-		if k.Repo != "" && c.Repo != k.Repo {
+		if q.Repo != "" && c.Repo != q.Repo {
 			continue
 		}
-		if k.Revision != "" && c.Revision != k.Revision {
+		if q.Revision != "" && c.Revision != q.Revision {
 			continue
 		}
-		if k.Issue != "" && c.Issue != k.Issue {
+		if q.Issue != "" && c.Issue != q.Issue {
 			continue
 		}
-		if k.PatchRepo != "" && c.PatchRepo != k.PatchRepo {
+		if q.PatchRepo != "" && c.PatchRepo != q.PatchRepo {
 			continue
 		}
-		if k.Patchset != "" && c.Patchset != k.Patchset {
+		if q.Patchset != "" && c.Patchset != q.Patchset {
 			continue
 		}
-		if k.Server != "" && c.Server != k.Server {
+		if q.Server != "" && c.Server != q.Server {
 			continue
+		}
+		if len(q.Dimensions) > 0 {
+			ok := true
+			for _, d := range q.Dimensions {
+				if !util.In(d, c.TaskSpec.Dimensions) {
+					ok = false
+					break
+				}
+			}
+			if !ok {
+				continue
+			}
 		}
 		rv = append(rv, c.Copy())
 	}

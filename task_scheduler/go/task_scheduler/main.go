@@ -511,12 +511,12 @@ func jsonTaskSearchHandler(w http.ResponseWriter, r *http.Request) {
 // jsonTaskCandidateSearchHandler allows for searching task candidates based on
 // their TaskKey.
 func jsonTaskCandidateSearchHandler(w http.ResponseWriter, r *http.Request) {
-	var params db.TaskKey
+	var params scheduling.TaskCandidateSearchTerms
 	if err := httputils.ParseFormValues(r, &params); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse request parameters.")
 		return
 	}
-	candidates := ts.SearchQueue(params)
+	candidates := ts.SearchQueue(&params)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(candidates); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
