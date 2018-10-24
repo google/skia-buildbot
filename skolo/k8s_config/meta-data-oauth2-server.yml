@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: meta-data-oauth2-server
+  namespace: default
+  labels:
+    app: meta-data-oauth2-server
+spec:
+  selector:
+    matchLabels:
+      name: meta-data-oauth2-server
+  template:
+    metadata:
+      labels:
+        name: meta-data-oauth2-server
+    spec:
+      # tolerations:
+      # - key: node-role.kubernetes.io/master
+      #   effect: NoSchedule
+      containers:
+      - name: meta-data-oauth2-server
+        image: gcr.io/skia-public/meta-data-server:3f70d170b83bc32067928d767d330305a7e0b622
+        args:
+          - "--port=:8000"
+          - "--prom_port=:20000"
+          - "--conf /etc/metadata-server.json5"
+        ports:
+          - containerPort: 8000
+            name: http
+          - containerPort: 20000
+            name: prom
+
+
+
+
+
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
