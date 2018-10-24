@@ -22,6 +22,30 @@
       "revId": "618b9e39ec367dad8378b405d24532c0c508b74b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53eb929d_4b9a7270",
+        "filename": "task_driver/create-task-driver-server-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T19:08:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3affe303_1e35c9d0",
+      "range": {
+        "startLine": 3,
+        "startChar": 38,
+        "endLine": 3,
+        "endChar": 46
+      },
+      "revId": "618b9e39ec367dad8378b405d24532c0c508b74b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
