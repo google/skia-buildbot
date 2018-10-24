@@ -275,7 +275,7 @@ func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error)
 // the search defaults to the last 24 hours.
 type JobSearchParams struct {
 	RepoState
-	BuildbucketBuildId int64     `json:"buildbucket_build_id"`
+	BuildbucketBuildId *int64    `json:"buildbucket_build_id,string,omitempty"`
 	IsForce            *bool     `json:"is_force,omitempty"`
 	Name               string    `json:"name"`
 	Status             JobStatus `json:"status"`
@@ -293,12 +293,12 @@ func searchBoolEqual(search *bool, test bool) bool {
 }
 
 // searchInt64Equal compares the two int64s and returns true if the first is
-// either zero or equal to the second.
-func searchInt64Equal(search, test int64) bool {
-	if search == 0 {
+// either nil or equal to the second.
+func searchInt64Equal(search *int64, test int64) bool {
+	if search == nil {
 		return true
 	}
-	return search == test
+	return *search == test
 }
 
 // searchStringEqual compares the two strings and returns true if the first is
@@ -361,6 +361,7 @@ func matchTasks(tasks []*Task, p *TaskSearchParams) []*Task {
 		if true &&
 			!p.TimeStart.After(t.Created) &&
 			t.Created.Before(p.TimeEnd) &&
+			searchInt64Equal(p.Attempt, int64(t.Attempt)) &&
 			searchStringEqual(p.Issue, t.Issue) &&
 			searchStringEqual(p.Patchset, t.Patchset) &&
 			searchStringEqual(p.Server, t.Server) &&
@@ -380,7 +381,8 @@ func matchTasks(tasks []*Task, p *TaskSearchParams) []*Task {
 // any value for that field. If either of TimeStart or TimeEnd is not provided,
 // the search defaults to the last 24 hours.
 type TaskSearchParams struct {
-	Status TaskStatus `json:"status"`
+	Attempt *int64     `json:"attempt,string,omitempty"`
+	Status  TaskStatus `json:"status"`
 	TaskKey
 	TimeStart time.Time `json:"time_start"`
 	TimeEnd   time.Time `json:"time_end"`
