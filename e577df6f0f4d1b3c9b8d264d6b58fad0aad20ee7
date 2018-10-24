@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cad6a5c9_ffdbee47",
+        "filename": "task_driver/go/db/memory/memory.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-24T17:22:20Z",
+      "side": 1,
+      "message": "Nit: combine lines 57 and 58.",
+      "revId": "e577df6f0f4d1b3c9b8d264d6b58fad0aad20ee7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
