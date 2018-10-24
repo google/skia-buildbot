@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44f70eb6_8e45f4dd",
+        "filename": "task_driver/go/server/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-24T15:01:12Z",
+      "side": 1,
+      "message": "nit: TaskDriverForDisplay",
+      "range": {
+        "startLine": 50,
+        "startChar": 35,
+        "endLine": 50,
+        "endChar": 48
+      },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc31a722_8c12d57c",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-24T15:01:12Z",
+      "side": 1,
+      "message": "Should we only display this if Infra is true?\nSeems like unnecessary information to display when Infra \u003d False.\n\nWould also be nice if there was an easy indication that a step is infra step without having to expand it to see. Maybe something like - \"[infra] go version\".",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b9cfb03_97e0adf6",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-24T15:01:12Z",
+      "side": 1,
+      "message": "Should the environment be collapsed by default and expandable? It could be quite large and majority of the time users will probably not care about it.",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b35f854_3820264d",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-24T15:01:12Z",
+      "side": 1,
+      "message": "Is \"stderr+stdout\" a better indication for \"Log (combined)\" ?",
+      "range": {
+        "startLine": 87,
+        "startChar": 53,
+        "endLine": 87,
+        "endChar": 61
+      },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
