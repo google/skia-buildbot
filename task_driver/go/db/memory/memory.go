@@ -7,13 +7,20 @@ package memory
 import (
 	"sync"
 
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
 )
 
 // memoryDB is an in-memory implementation of db.DB.
 type memoryDB struct {
+	backingFile string
 	mtx         sync.Mutex
 	taskDrivers map[string]*db.TaskDriverRun
+}
+
+// Write the contents of memoryDB to disk. Assumes the caller holds d.mtx.
+func (d *memoryDB) write() error {
+	return util.WriteGobFile(d.backingFile, d.taskDrivers)
 }
 
 // See documentation for db.DB interface.
@@ -21,7 +28,7 @@ func (d *memoryDB) InsertTaskDriver(t *db.TaskDriverRun) error {
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
 	d.taskDrivers[t.TaskId] = t
-	return nil
+	return d.write()
 }
 
 // See documentation for db.DB interface.
@@ -35,7 +42,8 @@ func (d *memoryDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 func (d *memoryDB) UpdateTaskDriver(id string, fn func(*db.TaskDriverRun) error) error {
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
-	t := d.taskDrivers[id]
+	old := d.taskDrivers[id]
+	t := old
 	if t == nil {
 		t = &db.TaskDriverRun{
 			TaskId: id,
@@ -46,12 +54,27 @@ func (d *memoryDB) UpdateTaskDriver(id string, fn func(*db.TaskDriverRun) error)
 		return err
 	}
 	d.taskDrivers[id] = cpy
+	err := d.write()
+	if err != nil {
+		// Undo the changes.
+		if old == nil {
+			delete(d.taskDrivers, id)
+		} else {
+			d.taskDrivers[id] = old
+		}
+		return err
+	}
 	return nil
 }
 
 // Return an in-memory DB instance.
-func NewInMemoryDB() db.DB {
-	return &memoryDB{
-		taskDrivers: map[string]*db.TaskDriverRun{},
+func NewInMemoryDB(backingFile string) (db.DB, error) {
+	var data map[string]*db.TaskDriverRun
+	if err := util.MaybeReadGobFile(backingFile, &data); err != nil {
+		return nil, err
 	}
+	return &memoryDB{
+		backingFile: backingFile,
+		taskDrivers: data,
+	}, nil
 }
