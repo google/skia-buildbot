@@ -22,6 +22,30 @@
       "revId": "8149f27f0070dc622121dff0b3d40e1c59235a32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4756b478_45d2c76d",
+        "filename": "skolo/Makefile",
+        "patchSetId": 10
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-24T19:19:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a996647_c86113a9",
+      "range": {
+        "startLine": 122,
+        "startChar": 25,
+        "endLine": 122,
+        "endChar": 27
+      },
+      "revId": "8149f27f0070dc622121dff0b3d40e1c59235a32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
