@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f5cf62db_8b769e70",
+        "filename": "task_driver/go/server/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44f70eb6_8e45f4dd",
+      "range": {
+        "startLine": 50,
+        "startChar": 35,
+        "endLine": 50,
+        "endChar": 48
+      },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f09e6e1_55b89f48",
         "filename": "task_driver/go/server/main.go",
         "patchSetId": 7
@@ -39,6 +63,24 @@
       "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38e35627_4d4ff9af",
+        "filename": "task_driver/go/server/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Done. The other stuff is copypasta :-/",
+      "parentUuid": "4f09e6e1_55b89f48",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "d9ed6e42_fd7c0ae2",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af0e7ef3_3be40e81",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 27
+      },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e6d57b53_a90418e7",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "e235bc04_59e3ba8b",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "I don\u0027t remember why we started using divs instead of tables.  It was either because tables were much slower to render, or because Polymer had some problem with them.  I can try switching to tables if you want.",
+      "parentUuid": "e6d57b53_a90418e7",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fc31a722_8c12d57c",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
@@ -93,6 +177,24 @@
       "writtenOn": "2018-10-24T15:01:12Z",
       "side": 1,
       "message": "Should we only display this if Infra is true?\nSeems like unnecessary information to display when Infra \u003d False.\n\nWould also be nice if there was an easy indication that a step is infra step without having to expand it to see. Maybe something like - \"[infra] go version\".",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "944e2b23_381d161e",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Sure, hid the line when infra is false.  I hesitate to add to the step name line for fear of cluttering it.  Infra steps will turn purple when they fail, which I suspect is the only time we\u0027ll care whether a step is infra or not anyway.",
+      "parentUuid": "fc31a722_8c12d57c",
       "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -133,6 +235,42 @@
     },
     {
       "key": {
+        "uuid": "7a38d201_848f28f4",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Maybe. I\u0027m hoping I\u0027ve already solved this by only expanding the properties for the interesting steps.  I can come back and make it collapsible later if we want that.",
+      "parentUuid": "9b9cfb03_97e0adf6",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41d4b37d_d5cbcb4e",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "That would result in displaying blank entries for environment and data when they don\u0027t exist. I prefer to just leave out the row in that case.",
+      "parentUuid": "9c9a4ec6_f540f3be",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f304d461_830b0f9e",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
@@ -150,6 +288,24 @@
     },
     {
       "key": {
+        "uuid": "9c30861b_8ca9e0ec",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f304d461_830b0f9e",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b35f854_3820264d",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
@@ -161,6 +317,30 @@
       "writtenOn": "2018-10-24T15:01:12Z",
       "side": 1,
       "message": "Is \"stderr+stdout\" a better indication for \"Log (combined)\" ?",
+      "range": {
+        "startLine": 87,
+        "startChar": 53,
+        "endLine": 87,
+        "endChar": 61
+      },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14f75dc2_699e82a3",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "The task driver can supply an arbitrary log stream (eg. for DM verbose log) in addition to stdout and stderr.  So \"stdout+stderr\" may be correct in most cases but wouldn\u0027t be correct if there are other log streams.",
+      "parentUuid": "4b35f854_3820264d",
       "range": {
         "startLine": 87,
         "startChar": 53,
@@ -190,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "3d172ccc_2acbff2c",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6964f999_4e54a4a8",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "91e9b988_1e8817e2",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.scss",
         "patchSetId": 7
@@ -204,6 +402,24 @@
       "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e12a4fda_5810725b",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T17:10:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91e9b988_1e8817e2",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
