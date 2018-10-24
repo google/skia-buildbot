@@ -25,6 +25,63 @@
     },
     {
       "key": {
+        "uuid": "4f09e6e1_55b89f48",
+        "filename": "task_driver/go/server/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "Maybe use httputils.MakeResourceHandler and add the wasm logic there?\n\nThen hook it up with:\n\nr.PathPrefix(\"/res/\").Handler(http.StripPrefix(\"/res/\", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af0e7ef3_3be40e81",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "JSON is valid JavaScript, so you should be able to just drop this.",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 27
+      },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6d57b53_a90418e7",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "Why not use \u003ctr\u003e and \u003ctd\u003e?",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fc31a722_8c12d57c",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
@@ -59,6 +116,40 @@
     },
     {
       "key": {
+        "uuid": "9c9a4ec6_f540f3be",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "Can you just ensure that s.environment and s.data are populated with empty objects to avoid this test?",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f304d461_830b0f9e",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "I think this would read easier if you broke it out as a function that did a switch on d.type.",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4b35f854_3820264d",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
@@ -76,6 +167,40 @@
         "endLine": 87,
         "endChar": 61
       },
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6964f999_4e54a4a8",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "Leftover debugging?",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91e9b988_1e8817e2",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T15:06:37Z",
+      "side": 1,
+      "message": "Blank lines between blocks.",
       "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
