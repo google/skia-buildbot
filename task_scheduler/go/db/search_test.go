@@ -37,7 +37,7 @@ func TestJobSearch(t *testing.T) {
 				Repo:     j.Repo,
 				Revision: j.Revision,
 			},
-			BuildbucketBuildId: j.BuildbucketBuildId,
+			BuildbucketBuildId: &j.BuildbucketBuildId,
 			IsForce:            isForce,
 			Name:               j.Name,
 			Status:             j.Status,
@@ -107,10 +107,11 @@ func TestJobSearch(t *testing.T) {
 
 	// BuildbucketBuildId
 	p = emptyParams()
-	p.BuildbucketBuildId = j.BuildbucketBuildId
+	p.BuildbucketBuildId = &j.BuildbucketBuildId
 	checkMatches(p)
 	p = matchParams()
-	p.BuildbucketBuildId = 999991
+	v := int64(999991)
+	p.BuildbucketBuildId = &v
 	checkNoMatch(p)
 
 	// IsForce
