@@ -17,10 +17,15 @@ import (
 	"google.golang.org/api/option"
 )
 
+const (
+	DEFAULT_LUNCH_TARGET = "cf_x86_phone-eng"
+)
+
 type CompileTask struct {
-	Issue    int    `json:"issue"`
-	PatchSet int    `json:"patchset"`
-	Hash     string `json:"hash"`
+	Issue       int    `json:"issue"`
+	PatchSet    int    `json:"patchset"`
+	Hash        string `json:"hash"`
+	LunchTarget string `json:"lunch_target"`
 
 	Checkout string `json:"checkout"`
 

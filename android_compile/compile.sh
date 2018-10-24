@@ -17,12 +17,13 @@ function log_step() {
 }
 
 
-if [ -z "$1" ]
+if [ -z "$1" || -z "$2" ]
   then
-    echo "Missing Android checkout directory"
+    echo "Missing Android checkout directory and Lunch target"
     exit 1
 fi
 checkout=$1
+lunch_target=$2
 cd $checkout
 
 # Set ccache env variables.
@@ -35,7 +36,7 @@ source_cmd="source ./build/envsetup.sh"
 log_step "Running $source_cmd"
 eval $source_cmd
 
-lunch_cmd="lunch cf_x86_phone-eng"
+lunch_cmd="lunch $lunch_target"
 log_step "Running $lunch_cmd"
 eval $lunch_cmd
 

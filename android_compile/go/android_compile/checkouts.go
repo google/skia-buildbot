@@ -243,7 +243,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 
 		// Sync the current branch, only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
-		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j10", "--optimized-fetch", "--prune", "-f"); err != nil {
+		if _, err := sk_exec.RunCwd(ctx, checkoutPath, repoToolPath, "sync", "-c", "-j50", "--optimized-fetch", "--prune", "-f"); err != nil {
 			errMsg := fmt.Sprintf("Failed to sync the repo at %s: %s", checkoutBase, err)
 			sklog.Errorln(errMsg)
 			return errors.New(errMsg)
@@ -464,8 +464,6 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 		}
 	} else {
 		// Checkout the specified Skia hash.
-		// TODO(rmistry): This has lots of problems, the non-trybot bot could fail if
-		// Android tree is red. Maybe non-trybot path should not be supported?
 		if _, err := skiaCheckout.Git(ctx, "checkout", task.Hash); err != nil {
 			return fmt.Errorf("Failed to checkout Skia hash %s: %s", task.Hash, err)
 		}
@@ -492,7 +490,11 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 
 	// Step 8: Do the with patch or with hash compilation and update CompileTask
 	// with link to logs and whether it was successful.
-	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript)
+	lunchTarget := task.LunchTarget
+	if lunchTarget == "" {
+		lunchTarget = DEFAULT_LUNCH_TARGET
+	}
+	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, lunchTarget, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript)
 	if err != nil {
 		return fmt.Errorf("Error when compiling checkout withpatch at %s: %s", checkoutPath, err)
 	}
@@ -502,10 +504,10 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 		return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 	}
 
-	// Step 9: If the compilation failed and if it is a trybot run then verify
-	// that the tree is not broken by building at Skia HEAD. Update CompileTask
-	// with link to logs and whether the no patch run was successful.
-	if !withPatchSuccess && trybotRun {
+	// Step 9: If the compilation failed then verify that the tree is not
+	// broken by building at Skia HEAD. Update CompileTask with link to logs
+	// and whether the no patch run was successful.
+	if !withPatchSuccess {
 		// If this failed then check to see if a build without the patch will succeed.
 		if err := resetSkiaCheckout(ctx, skiaCheckout, "origin/master"); err != nil {
 			return fmt.Errorf("Error when resetting Skia checkout: %s", err)
@@ -518,7 +520,7 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 			return fmt.Errorf("Could not prepare Skia checkout for compile: %s", err)
 		}
 		// Do the no patch compilation.
-		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript)
+		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, lunchTarget, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript)
 		if err != nil {
 			return fmt.Errorf("Error when compiling checkout nopatch at %s: %s", checkoutPath, err)
 		}
@@ -540,7 +542,7 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 // We do the compilation via compile.sh and not via exec because
 // ./build/envsetup.sh needs to be sournced before running lunch and mma
 // commands and this was much simpler to do via a bash script.
-func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCompileScript string) (bool, string, error) {
+func compileCheckout(ctx context.Context, checkoutPath, lunchTarget, logFilePrefix, pathToCompileScript string) (bool, string, error) {
 	checkoutBase := path.Base(checkoutPath)
 	sklog.Infof("Started compiling %s", checkoutBase)
 	// Create metric and send it to a timer.
