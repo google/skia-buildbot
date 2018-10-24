@@ -106,5 +106,6 @@ promk/tmpconf
 **/chat_config.txt
 .vscode
 tracedb/build
+skolo/build
 # Symlinks.
 autoroll/res/res
