@@ -22,6 +22,30 @@
       "revId": "eb2de2e5e26c5d5f5e77fc5d55fb79d3e0f2fea6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afc5f0c1_0ca619e1",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T12:17:40Z",
+      "side": 1,
+      "message": "Forgot to update the doc.  The check for zero was assuming that a zero value meant that the search parameter is unset.  Now that it can be nil, zero means zero.",
+      "parentUuid": "71b813b1_2c2e5ff4",
+      "range": {
+        "startLine": 296,
+        "startChar": 10,
+        "endLine": 296,
+        "endChar": 14
+      },
+      "revId": "eb2de2e5e26c5d5f5e77fc5d55fb79d3e0f2fea6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
