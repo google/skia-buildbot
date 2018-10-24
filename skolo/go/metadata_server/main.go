@@ -10,10 +10,10 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skolo/go/service_accounts"
+	"go.skia.org/infra/skolo/go/skmetadata"
 )
 
 const (
@@ -82,7 +82,7 @@ func main() {
 		sklog.Fatalf("Hostname not in jumphost mapping: %s", hostname)
 	}
 
-	tokens := make(map[string]*metadata.ServiceAccountToken, len(serviceAccounts))
+	tokens := make(map[string]*skmetadata.ServiceAccountToken, len(serviceAccounts))
 	tokenIpMapping := make(map[string]string, len(serviceAccounts))
 	for _, acct := range serviceAccounts {
 		ipAddrs, ok := serviceAccountIpMapping[acct]
@@ -94,7 +94,7 @@ func main() {
 		for _, ipAddr := range ipAddrs {
 			tokenIpMapping[ipAddr] = tokenFile
 			if _, ok := tokens[tokenFile]; !ok {
-				tok, err := metadata.NewServiceAccountToken(tokenFile)
+				tok, err := skmetadata.NewServiceAccountToken(tokenFile, false)
 				if err != nil {
 					sklog.Fatal(err)
 				}
@@ -103,13 +103,13 @@ func main() {
 			}
 		}
 	}
-	tokenMapping := make(map[string]*metadata.ServiceAccountToken, len(tokenIpMapping))
+	tokenMapping := make(map[string]*skmetadata.ServiceAccountToken, len(tokenIpMapping))
 	for ipAddr, tokenFile := range tokenIpMapping {
 		tokenMapping[ipAddr] = tokens[tokenFile]
 	}
 
 	r := mux.NewRouter()
-	metadata.SetupServer(r, pm, im, tokenMapping)
+	skmetadata.SetupServer(r, pm, im, tokenMapping)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on http://localhost%s", *port)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
