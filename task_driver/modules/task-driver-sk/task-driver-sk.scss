@@ -1,0 +1,115 @@
+@import '~infra-sk/modules/colors';
+
+task-driver-sk {
+  div.step {
+    border-style: solid;
+    border-width: 0px 0px 1px 5px;
+    border-bottom-color: #EEEEEE;
+    font-family: sans-serif;
+    margin: 2px;
+    padding: 10px;
+    padding-left: 20px;
+  }
+
+  div.SUCCESS {
+    border-left-color: $green;
+  }
+
+  div.FAILURE {
+    border-left-color: $red;
+  }
+
+  div.EXCEPTION {
+    border-left-color: $purple;
+  }
+
+  div.IN_PROGRESS {
+    border-left-color: $light-orange;
+  }
+
+  div.h2 {
+    color: $blue;
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 10px;
+  }
+
+  div.h4 {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 5px;
+  }
+
+  .horiz {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .vert {
+    display: block;
+  }
+
+  div.duration {
+    font-size: 0.9em;
+  }
+
+  span.expando {
+    color: $blue;
+    cursor: pointer;
+    font-family: monospace;
+  }
+
+  div.children_link {
+    margin-bottom: 5px;
+    margin-top: 5px;
+  }
+
+  .properties {
+    margin-bottom: 15px;
+  }
+
+  /**
+   * Styling for tables.
+   * TODO(borenet): Move these to a common module.
+   */
+  table {
+    border-collapse: collapse;
+    display: table;
+  }
+
+  tr {
+    border-bottom: 1px solid #EEEEEE;
+    display: table-row;
+  }
+
+  tr:hover {
+    background-color: #F5F5F5;
+  }
+
+  tr:hover tr:hover {
+    background-color: #FFFFFF;
+  }
+
+  tr-container {
+    display: table-row-group;
+  }
+
+  td,th {
+    display: table-cell;
+    padding: 10px;
+  }
+
+  td {
+    font-size: 0.813em;
+    vertical-align: middle;
+  }
+
+  th {
+    color: #767676;
+    font-size: 0.75em;
+  }
+
+  number {
+    text-align: right;
+  }
+}

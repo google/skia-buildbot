@@ -71,7 +71,7 @@ func goVars(ctx context.Context, workdir string) (string, []string) {
 }
 
 func syncMissingGoDeps(ctx context.Context, infraDir string) error {
-	td.StartStep(ctx, td.Props("Sync missing Go DEPS"))
+	ctx = td.StartStep(ctx, td.Props("Sync missing Go DEPS"))
 	defer td.EndStep(ctx)
 
 	// Determine if any dependencies are missing from the go_deps asset. This
