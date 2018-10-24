@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71b813b1_2c2e5ff4",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-24T12:06:02Z",
+      "side": 1,
+      "message": "nit: nil\ndo you still need a check for *search \u003d\u003d 0 ?",
+      "range": {
+        "startLine": 296,
+        "startChar": 10,
+        "endLine": 296,
+        "endChar": 14
+      },
+      "revId": "eb2de2e5e26c5d5f5e77fc5d55fb79d3e0f2fea6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
