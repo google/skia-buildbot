@@ -184,6 +184,24 @@
     },
     {
       "key": {
+        "uuid": "d5c1ea7c_8d3b0f15",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-24T18:35:55Z",
+      "side": 1,
+      "message": "Switched to tables. They look fine and no noticeable performance difference.",
+      "parentUuid": "ccb8debb_7ece7af0",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fc31a722_8c12d57c",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
