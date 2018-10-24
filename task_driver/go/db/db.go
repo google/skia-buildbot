@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -101,6 +102,7 @@ func UpdateFromMessage(db DB, m *td.Message) error {
 	return db.UpdateTaskDriver(m.TaskId, func(t *TaskDriverRun) error {
 		if t.Steps == nil {
 			t.Steps = map[string]*Step{}
+			sklog.Infof("Got new task: %s", t.TaskId)
 		}
 		step, ok := t.Steps[m.StepId]
 		if !ok {
