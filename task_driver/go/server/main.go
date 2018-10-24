@@ -10,6 +10,8 @@ import (
 	"flag"
 	"html/template"
 	"net/http"
+	"os"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -38,6 +40,7 @@ var (
 	project      = flag.String("project_id", "", "GCE Project ID")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the \"dist\" subdirectory of the current directory will be used.")
+	workdir      = flag.String("workdir", os.TempDir(), "Working directory to use.")
 
 	// Database used for storing and retrieving Task Drivers.
 	d db.DB
@@ -214,7 +217,10 @@ func main() {
 	}
 
 	// Create the TaskDriver DB.
-	d = memory.NewInMemoryDB()
+	d, err = memory.NewInMemoryDB(path.Join(*workdir, "db.gob"))
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Launch a goroutine to listen for pubsub messages.
 	go func() {
