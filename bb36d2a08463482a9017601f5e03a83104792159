@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d86ba7dd_28485052",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T17:43:01Z",
+      "side": 1,
+      "message": "For all of our other apps so far the template helpers and sub-templates have come before the helpers and templates that depend on them, for example:\n\nhttps://github.com/google/skia-buildbot/blob/master/am/modules/alert-manager-sk/alert-manager-sk.js",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 0
+      },
+      "revId": "bb36d2a08463482a9017601f5e03a83104792159",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -166,6 +166,24 @@
     },
     {
       "key": {
+        "uuid": "ccb8debb_7ece7af0",
+        "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-24T17:43:01Z",
+      "side": 1,
+      "message": "Yeah, try the tables, I also think they will look better. Also, you might need a tbody, I know\nthat fixed tables under Polymer for me:\n\n https://github.com/google/skia-buildbot/blob/master/res/imp/paramset.html#L122\n\nIf there is a speed issue try table-layout: fixed;\n\nhttps://www.eriwen.com/css/use-the-table-layout-css-property-to-speed-up-table-rendering/",
+      "parentUuid": "e235bc04_59e3ba8b",
+      "revId": "35ea2fa206696f4fe9597ea9707820d6458e0308",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fc31a722_8c12d57c",
         "filename": "task_driver/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 7
