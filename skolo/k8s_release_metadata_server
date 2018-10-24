@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -x -e
+
+# Create and upload a container image for the metadata server to be used in the Skolo.
+APPNAME=metadata-server
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+
+# Add the dockerfile and binary.
+${INSTALL} --mode=644 -T ./dockerfiles/Dockerfile_metadata_server   ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ./build/metadata-server-k8s                ${ROOT}/usr/local/bin/${APPNAME}
+}
+
+source ../bash/docker_build.sh

@@ -1,5 +1,8 @@
 include ../go/skiaversion/skiaversion.mk
 
+# Go build command to build static binaries suitable for lean Alpine containers.
+KGO := CGO_ENABLED=0 GOOS=linux go build
+
 .PHONY: all
 all: hotspare backup cloudlogger trooper_tools
 
@@ -115,3 +118,16 @@ get_oauth2_token_push: get_oauth2_token_release
 	pushcli "get-oauth2-token" "jumphost-rpi-01"
 	pushcli "get-oauth2-token" "jumphost-win-02"
 	pushcli "get-oauth2-token" "jumphost-win-03"
+
+# Build all the binaries which should run in containers in the Skolo.
+.PHONY: k8s-skolo-binaries
+k8s-skolo-binaries:
+	mkdir -p ./build
+	rm -f ./build/*
+	$(KGO) -o ./build/metadata-server-k8s -a ./go/metadata_server_k8s/...
+	$(KGO) -o ./build/file-backup-k8s -a ./go/file-backup/...
+
+.PHONY: k8s-push-skolo-containers
+ k8s-push-skolo-containers: k8s-skolo-binaries
+	./k8s_release_metadata_server
+	./k8s_release_router_backup

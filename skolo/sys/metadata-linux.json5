@@ -1,0 +1,16 @@
+[
+  // Clients: swarming
+  {
+    "project": "skia-swarming-bots",
+    "email": "chromium-swarm-bots@skia-swarming-bots.iam.gserviceaccount.com",
+    "keyFile": "/etc/service-accounts/service_account_public_swarming.json",
+    "clients": ["*"],
+  },
+  // Clients: jumphost
+  {
+    "project": "google.com:skia-buildbots",
+    "email": "jumphost@skia-buildbots.google.com.iam.gserviceaccount.com",
+    "keyFile": "/etc/service-accounts/service_account_jumphost.json",
+    "clients": ["self"],
+  },
+]

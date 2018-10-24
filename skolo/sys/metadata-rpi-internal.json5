@@ -1,0 +1,23 @@
+[
+  // Clients: swarming
+  {
+    "project": "google.com:skia-buildbots",
+    "email": "chrome-swarming-bots@skia-buildbots.google.com.iam.gserviceaccount.com",
+    "keyFile": "/etc/service-accounts/service_account_internal_swarming.json",
+    "clients": ["*"],
+  },
+  // Clients: jumphost
+  {
+    "project": "google.com:skia-buildbots",
+    "email": "jumphost@skia-buildbots.google.com.iam.gserviceaccount.com",
+    "keyFile": "/etc/service-accounts/service_account_jumphost.json",
+    "clients": ["self"],
+  },
+  // Clients: rpi-master
+  {
+    "project": "google.com:skia-buildbots",
+    "email": "rpi-master@skia-buildbots.google.com.iam.gserviceaccount.com",
+    "keyFile": "/etc/service-accounts/service_account_rpi-master.json",
+    "clients": ["192.168.1.98", "192.168.1.99"],
+  },
+]
