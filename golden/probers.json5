@@ -39,4 +39,11 @@
      "body": "",
      "mimetype": ""
    },
+   "skiagold_chromevr": {
+     "urls": ["https://lottie-gold.skia.org"],
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
 }
