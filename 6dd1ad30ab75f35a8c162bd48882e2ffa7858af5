@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f00c3c97_4ea8c82a",
+        "filename": "res/imp/date-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-25T20:37:41Z",
+      "side": 1,
+      "message": "Do not need a selected option here?",
+      "revId": "6dd1ad30ab75f35a8c162bd48882e2ffa7858af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "711a00c7_ab3cd73f",
+        "filename": "res/imp/date-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-25T20:37:41Z",
+      "side": 1,
+      "message": "nit: remove?",
+      "revId": "6dd1ad30ab75f35a8c162bd48882e2ffa7858af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96b3053f_66f9c390",
+        "filename": "res/imp/date-picker-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-10-25T20:37:41Z",
+      "side": 1,
+      "message": "nit: remove?",
+      "revId": "6dd1ad30ab75f35a8c162bd48882e2ffa7858af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
