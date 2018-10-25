@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 /*
@@ -24,7 +25,7 @@ var (
 )
 
 func main() {
-	ctx := td.StartRun(projectId, taskId, taskName, output, local)
+	ctx := td.StartRun(projectId, db.RepoState{}, taskName, output, local)
 	defer td.EndRun(ctx)
 
 	panic("this is a panic")

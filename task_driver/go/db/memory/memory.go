@@ -10,7 +10,13 @@ import (
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
+	"go.skia.org/infra/task_driver/go/td"
 )
+
+func init() {
+	gob.Register(map[string]interface{}{})
+	gob.Register([]interface{}{})
+}
 
 // memoryDB is an in-memory implementation of db.DB.
 type memoryDB struct {
@@ -19,17 +25,15 @@ type memoryDB struct {
 	taskDrivers map[string]*db.TaskDriverRun
 }
 
+// See documentation for db.DB interface.
+func (d *memoryDB) Close() error {
+	// Close() is a no-op for memoryDB.
+	return nil
+}
+
 // Write the contents of memoryDB to disk. Assumes the caller holds d.mtx.
 func (d *memoryDB) write() error {
 	return util.WriteGobFile(d.backingFile, d.taskDrivers)
-}
-
-// See documentation for db.DB interface.
-func (d *memoryDB) InsertTaskDriver(t *db.TaskDriverRun) error {
-	d.mtx.Lock()
-	defer d.mtx.Unlock()
-	d.taskDrivers[t.TaskId] = t
-	return d.write()
 }
 
 // See documentation for db.DB interface.
@@ -40,7 +44,7 @@ func (d *memoryDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 }
 
 // See documentation for db.DB interface.
-func (d *memoryDB) UpdateTaskDriver(id string, fn func(*db.TaskDriverRun) error) error {
+func (d *memoryDB) UpdateTaskDriver(id string, msg *td.Message) error {
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
 	old := d.taskDrivers[id]
@@ -51,7 +55,7 @@ func (d *memoryDB) UpdateTaskDriver(id string, fn func(*db.TaskDriverRun) error)
 		}
 	}
 	cpy := t.Copy()
-	if err := fn(cpy); err != nil {
+	if err := cpy.UpdateFromMessage(msg); err != nil {
 		return err
 	}
 	d.taskDrivers[id] = cpy
@@ -69,8 +73,6 @@ func (d *memoryDB) UpdateTaskDriver(id string, fn func(*db.TaskDriverRun) error)
 
 // Return an in-memory DB instance.
 func NewInMemoryDB(backingFile string) (db.DB, error) {
-	gob.Register(map[string]interface{}{})
-	gob.Register([]interface{}{})
 	data := map[string]*db.TaskDriverRun{}
 	if err := util.MaybeReadGobFile(backingFile, &data); err != nil {
 		return nil, err

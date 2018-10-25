@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 /*
@@ -36,7 +37,7 @@ func main() {
 	// Start a new Task Driver run. The returned Context represents the
 	// root-level step, from which all other steps stem. EndRun must be
 	// deferred, passing in the Context returned from StartRun.
-	ctx := td.StartRun(projectId, taskId, taskName, output, local)
+	ctx := td.StartRun(projectId, db.RepoState{}, taskName, output, local)
 	defer td.EndRun(ctx)
 
 	// Technically, a Task Driver doesn't have to do anything more with
