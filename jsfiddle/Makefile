@@ -27,7 +27,7 @@ release: release_build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-push: release
+push: release skia-public
 	pushk jsfiddle
 
 .PHONY: build serve release_build watch core release

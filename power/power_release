@@ -1,7 +1,6 @@
 #!/bin/bash
-# Builds and uploads a debian package for the Power Controller.
+# Builds and uploads a dockerfile for the Power Controller.
 APPNAME=power-controller
-SYSTEMD="power-controller.service"
 DESCRIPTION="The Skia Power Controller offers a semi-automated way to restart swarming bots and devices."
 
 set -x -e
@@ -11,18 +10,19 @@ copy_release_files()
 {
 INSTALL="fakeroot install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service               ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL}     --mode=644 -T Dockerfile                                ${ROOT}/Dockerfile
 
-${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}               ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}                  ${ROOT}/usr/local/bin/${APPNAME}
 
-${INSTALL_DIR} --mode=755                                           ${ROOT}/usr/local/share/${APPNAME}/
-${INSTALL}     --mode=644 ./dist/*                                  ${ROOT}/usr/local/share/${APPNAME}/
-${INSTALL}     --mode=644 -T ./res/img/favicon.ico                  ${ROOT}/usr/local/share/${APPNAME}/favicon.ico
-${INSTALL_DIR} --mode=755                                           ${ROOT}/etc/powercycle/
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rpi-01.json5   ${ROOT}/etc/powercycle/powercycle-rpi-01.json5
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-linux-01.json5 ${ROOT}/etc/powercycle/powercycle-linux-01.json5
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-02.json5   ${ROOT}/etc/powercycle/powercycle-win-02.json5
-${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-03.json5   ${ROOT}/etc/powercycle/powercycle-win-03.json5
+${INSTALL_DIR} --mode=755                                              ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL}     --mode=644 ./dist/*                                     ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL}     --mode=644 -T ./res/img/favicon.ico                     ${ROOT}/usr/local/share/${APPNAME}/favicon.ico
+${INSTALL_DIR} --mode=755                                              ${ROOT}/etc/powercycle/
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-internal-01.json5 ${ROOT}/etc/powercycle/powercycle-internal-01.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-linux-01.json5    ${ROOT}/etc/powercycle/powercycle-linux-01.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-rpi-01.json5      ${ROOT}/etc/powercycle/powercycle-rpi-01.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-02.json5      ${ROOT}/etc/powercycle/powercycle-win-02.json5
+${INSTALL}     --mode=644 -T ../skolo/sys/powercycle-win-03.json5      ${ROOT}/etc/powercycle/powercycle-win-03.json5
 }
 
-source ../bash/release.sh
+source ../bash/docker_build.sh
