@@ -133,9 +133,11 @@ active.
 - Metrics are customarily made available at port 20000. To configure metrics scraping,
   add the following to the app.yaml under spec -> template -> metadata:
 
-    annotations:
-      prometheus.io.scrape: "true"
-      prometheus.io.port: "20000"
+```yaml
+annotations:
+  prometheus.io.scrape: "true"
+  prometheus.io.port: "20000"
+```
 
 - Metrics will be available on [prom2.skia.org](https://prom2.skia.org/). Legacy apps report metrics
 to [prom.skia.org](https://prom.skia.org/) and require updating `prometheus/sys/prometheus.yml`.
@@ -144,23 +146,26 @@ to [prom.skia.org](https://prom.skia.org/) and require updating `prometheus/sys/
 - If you have secrets (like a service account), bind it to the deployment by adding
 the following to app.yaml:
 
-    spec:
-      automountServiceAccountToken: false
+```yaml
+spec:
+  automountServiceAccountToken: false
+  ...
+  containers:
+    - name: my-container
       ...
-      containers:
-        - name: my-container
-          ...
-          volumeMounts:
-            - name: my-app-sa
-              mountPath: /var/secrets/google
-          env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /var/secrets/google/key.json
-          ...
-      volumes:
+      volumeMounts:
         - name: my-app-sa
-          secret:
-            secretName: my-app
+          mountPath: /var/secrets/google
+      env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/key.json
+      ...
+  volumes:
+    - name: my-app-sa
+      secret:
+        secretName: my-app
+```
+
 - Update [skia-ingress.yaml](https://skia.googlesource.com/skia-public-config/+/master/skia-ingress.yaml)
 with an entry for your app. Note that this is in the `skia-public-config` repo.
 Commit this, then run `kubectl apply -f skia-ingress.yaml` to apply the new config.

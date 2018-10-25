@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"path"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -51,7 +50,7 @@ func main() {
 		common.InitWithMust(
 			"power-controller",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
+			common.MetricsLoggingOpt(),
 		)
 	}
 
@@ -67,7 +66,7 @@ func main() {
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	rootHandler := httputils.LoggingGzipRequestResponse(r)
-
+	rootHandler = httputils.HealthzAndHTTPS(rootHandler)
 	http.Handle("/", rootHandler)
 	sklog.Infof("Ready to serve on http://127.0.0.1%s", *port)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
@@ -109,10 +108,9 @@ func powercycledBotsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupGatherer() error {
-	oauthCacheFile := path.Join(*resourcesDir, "google_storage_token.data")
-	ts, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", skswarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(*local, skswarming.AUTH_SCOPE)
 	if err != nil {
-		return fmt.Errorf("Could not set up autheticated token source: %s", err)
+		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}
 	authedClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
