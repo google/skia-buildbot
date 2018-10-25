@@ -46,6 +46,30 @@
       "revId": "f45623f5c0a16ebd77d5e7d155b43c5287302a84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccc89d37_21036d31",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T18:05:59Z",
+      "side": 1,
+      "message": "Bumped the timeouts up a bit.  For now, QPS will be fairly low (it\u0027s around 100 messages per task, and only one task per infra commit, so maybe 1000/day).  Unfortunately, the way that Task Scheduler assigns IDs (timestamp + sequence number) is great for BoltDB but terrible for BigTable, so I expect performance to degrade quite a bit as we scale up.  I have some ideas for how to make better IDs, but that will probably have to happen at the same time that Task Scheduler switches to BT.",
+      "parentUuid": "cfa1947d_11dd4b7b",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "f45623f5c0a16ebd77d5e7d155b43c5287302a84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
