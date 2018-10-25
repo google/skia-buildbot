@@ -22,6 +22,30 @@
       "revId": "09c68999901fd3cf5cbf023b9843aa29dbb9625f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47ee33d7_d972d74c",
+        "filename": "power/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-25T14:54:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8ab9c09_eaeb9793",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 13
+      },
+      "revId": "09c68999901fd3cf5cbf023b9843aa29dbb9625f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
