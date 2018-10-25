@@ -1,6 +1,10 @@
 package td
 
-import "go.skia.org/infra/go/util"
+import (
+	"errors"
+
+	"go.skia.org/infra/go/util"
+)
 
 // StepProperties are basic properties of a step.
 type StepProperties struct {
@@ -57,4 +61,14 @@ func (p *StepProperties) Copy() *StepProperties {
 		Environ: util.CopyStringSlice(p.Environ),
 		Parent:  p.Parent,
 	}
+}
+
+// Return an error if the StepProperties are not valid.
+func (p *StepProperties) Validate() error {
+	if p.Id == "" {
+		return errors.New("Id is required.")
+	} else if p.Id != STEP_ID_ROOT && p.Parent == "" {
+		return errors.New("Non-root steps must have a parent.")
+	}
+	return nil
 }
