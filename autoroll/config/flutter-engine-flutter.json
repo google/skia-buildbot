@@ -14,7 +14,7 @@
   ],
   "githubRepoOwner": "flutter",
   "githubRepoName": "flutter",
-  "githubChecksNum": 13,
+  "githubChecksNum": 12,
   "githubChecksWaitFor": [
     "flutter-build"
   ],
