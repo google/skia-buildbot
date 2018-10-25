@@ -67,15 +67,21 @@ func (s RepoState) IsTryJob() bool {
 	return s.Patch.Full()
 }
 
+// GetShortIssue returns the last two digits of the issue number, which is used
+// for ID generation in a few places, including GoB patch refs.
+func (s RepoState) GetShortIssue() string {
+	issueShort := s.Issue
+	if len(issueShort) > ISSUE_SHORT_LENGTH {
+		issueShort = issueShort[len(s.Issue)-ISSUE_SHORT_LENGTH:]
+	}
+	return issueShort
+}
+
 // GetPatchRef returns the ref for the tryjob patch, if the RepoState includes
 // a patch, and "" otherwise.
 func (s RepoState) GetPatchRef() string {
 	if s.IsTryJob() {
-		issueShort := s.Issue
-		if len(issueShort) > ISSUE_SHORT_LENGTH {
-			issueShort = issueShort[len(s.Issue)-ISSUE_SHORT_LENGTH:]
-		}
-		return fmt.Sprintf("refs/changes/%s/%s/%s", issueShort, s.Issue, s.Patchset)
+		return fmt.Sprintf("refs/changes/%s/%s/%s", s.GetShortIssue(), s.Issue, s.Patchset)
 	}
 	return ""
 }
