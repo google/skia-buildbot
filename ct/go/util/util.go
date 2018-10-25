@@ -1254,6 +1254,64 @@ func GetRankFromPageset(pagesetFileName string) (int, error) {
 	return strconv.Atoi(rank)
 }
 
+// AddCTRunDataToPerf uploads data from the CT run to CT's perf instance.
+// It does the following:
+// 1) Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+/master
+// 2) Constructs a results file in the format of https://github.com/google/skia-buildbot/blob/master/perf/FORMAT.md
+// 3) Ensures that the results file has as key the runID, groupName and the git hash from (1).
+// 4) Uploads the results file to Google storage bucket CT_PERF_BUCKET for ingestion by ct-perf.skia.org.
+//    It is stored in location of this format: gs://<bucket>/<one or more dir names>/YYYY/MM/DD/HH/<zero or more dir names><some unique name>.json
+//
+// Converts the following example CSV file:
+//
+// paint_op_count,traceUrls,pixels_rasterized,rasterize_time (ms),record_time_caching_disabled (ms),record_time_subsequence_caching_disabled (ms),painter_memory_usage (B),record_time_construction_disabled (ms),page_name
+// 805.0,,1310720.0,2.449,1.128,0.283,25856.0,0.335,http://www.reuters.com (#480)
+// 643.0,,1310720.0,2.894,0.998,0.209,24856.0,0.242,http://www.rediff.com (#490)
+//
+//  into
+//
+//  {
+//    "gitHash" : "8dcc84f7dc8523dd90501a4feb1f632808337c34",
+//    "key" : {
+//      "group_name" : "BGPT perf"
+//    },
+//    "results" : {
+//      "http://www.reuters.com (#480)" : {
+//        "default" : {
+//          "paint_op_count": 805.0,
+//          "pixels_rasterized": 1310720.0,
+//          "rasterize_time (ms)": 2.449,
+//          "record_time_caching_disabled (ms)": 1.128,
+//          "record_time_subsequence_caching_disabled (ms)": 0.283,
+//          "painter_memory_usage (B)": 25856.0,
+//          "record_time_construction_disabled (ms)": 0.335,
+//          "options" : {
+//            "page_name" : "http://www.reuters.com",
+//          },
+//        },
+//      "http://www.rediff.com (#490)" : {
+//        "default" : {
+//          "paint_op_count": 643.0,
+//          "pixels_rasterized": 1310720.0,
+//          "rasterize_time (ms)": 2.894,
+//          "record_time_caching_disabled (ms)": 0.998,
+//          "record_time_subsequence_caching_disabled (ms)": 0.209,
+//          "painter_memory_usage (B)": 24856.0,
+//          "record_time_construction_disabled (ms)": 0.242,
+//          "options" : {
+//            "page_name" : "http://www.reuters.com",
+//          },
+//        },
+//      }
+//    }
+//  }
+//
+// TODO(rmistry): Strip out the Trace URLs since they have special treatment anyway.
+// Look at https://github.com/google/skia-buildbot/blob/master/android_ingest/go/parser/parser.go.
+func AddCTRunDataToPerf(groupName, patchToCSVResults string) error {
+	return nil
+}
+
 type Pageset struct {
 	UserAgent       string `json:"user_agent"`
 	ArchiveDataFile string `json:"archive_data_file"`

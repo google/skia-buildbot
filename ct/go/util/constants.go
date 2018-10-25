@@ -174,6 +174,9 @@ const (
 	TASKS_PRIORITY_HIGH   = swarming.RECOMMENDED_PRIORITY
 	TASKS_PRIORITY_MEDIUM = swarming.RECOMMENDED_PRIORITY + 10
 	TASKS_PRIORITY_LOW    = swarming.RECOMMENDED_PRIORITY + 20
+
+	// ct-perf.skia.org constants.
+	CT_PERF_BUCKET = "gs://cluster-telemetry-test"
 )
 
 type PagesetTypeInfo struct {
