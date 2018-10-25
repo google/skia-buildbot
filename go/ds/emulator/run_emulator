@@ -5,6 +5,7 @@ function kill_emulators()
   kill -9 `ps aux | grep "[g]cloud\.py" | awk '{print $2}'`
   kill -9 `ps aux | grep "[c]loud_datastore_emulator" | awk '{print $2}'`
   kill -9 `ps aux | grep "[C]loudDatastore.jar" | awk '{print $2}'`
+  kill -9 `ps aux | grep "[c]btemulator" | awk '{print $2}'`
 }
 
 # Starts and stops the cloud datastore emulator.
