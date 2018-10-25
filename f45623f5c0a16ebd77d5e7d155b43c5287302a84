@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2908aec6_daee4875",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T17:54:26Z",
+      "side": 1,
+      "message": "I just pulled these numbers out of nowhere.  I\u0027m happy to take suggestions based on typical BT performance.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "f45623f5c0a16ebd77d5e7d155b43c5287302a84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

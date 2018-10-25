@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3357201a_e5db0ca4",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T17:54:26Z",
+      "side": 1,
+      "message": "My understanding was that having multiple values in a cell was intended more for \"undo\"-type use cases, rather than for events (eg. the time series data example in the cloud docs uses one row per data point rather than one frequently-updated row with a timestamped cell).  Is that incorrect?  I don\u0027t mind constructing row keys this way, especially if it keeps me from having to worry about someone \"accidentally\" enabling GC.",
+      "parentUuid": "511c1415_e088ee4a",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d55f7d4_5b39de26",
         "filename": "task_driver/go/db/bigtable/bigtable.go",
         "patchSetId": 5
@@ -33,6 +51,24 @@
       "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5042792_e28216da",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T17:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d55f7d4_5b39de26",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "b8cd59a8_461788ed",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T17:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e542e268_765782e5",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b42ed2ae_769e6721",
         "filename": "task_driver/go/db/bigtable/bigtable.go",
         "patchSetId": 5
@@ -64,6 +118,24 @@
       "writtenOn": "2018-10-25T17:33:27Z",
       "side": 1,
       "message": "As written this will read all versions of all rows that match the query, which may be what you want if you change the schema to use the native row timestamping I outlined above. If not you need to modify the query to only return the latest version of each row.",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ca0fa58_6ae3f0b5",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T17:54:26Z",
+      "side": 1,
+      "message": "Interesting!  I believe I\u0027ve done that with a LatestNFilter.",
+      "parentUuid": "b42ed2ae_769e6721",
       "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -90,6 +162,30 @@
       "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14cc62f3_388fb3b1",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-25T17:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d3856575_2cc778e0",
+      "range": {
+        "startLine": 121,
+        "startChar": 37,
+        "endLine": 121,
+        "endChar": 56
+      },
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
