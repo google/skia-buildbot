@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "511c1415_e088ee4a",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T17:33:27Z",
+      "side": 1,
+      "message": "bigtable can store multiple values for a key, each differentiated by a timestamp. So instead of doing this you can just use the id as they key and set the row timestamp from msg.Timestamp.\n\nJust make sure you don\u0027t set garbage collection on this table.",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d55f7d4_5b39de26",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T17:33:27Z",
+      "side": 1,
+      "message": "Store the table, not the client, I believe Open(Table) is slow.",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e542e268_765782e5",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T17:33:27Z",
+      "side": 1,
+      "message": "All bigtable requests (with one exception) will continuously retry operations until they succeed, so you should supply a context that has a timeout.\n\nSame for all bt requests.",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b42ed2ae_769e6721",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T17:33:27Z",
+      "side": 1,
+      "message": "As written this will read all versions of all rows that match the query, which may be what you want if you change the schema to use the native row timestamping I outlined above. If not you need to modify the query to only return the latest version of each row.",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3856575_2cc778e0",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T17:33:27Z",
+      "side": 1,
+      "message": "If you use ServerTime then the Apply() call will never retry on failure.\nIf you set a time, i.e. msg.timestamp, then Apply() will retry failed requests.",
+      "range": {
+        "startLine": 121,
+        "startChar": 37,
+        "endLine": 121,
+        "endChar": 56
+      },
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
