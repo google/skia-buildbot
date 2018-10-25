@@ -1,7 +1,11 @@
 package td
 
 import (
+	"errors"
+	"fmt"
 	"time"
+
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -56,4 +60,49 @@ type Message struct {
 	// DataType describes the contents of Data. Required for
 	// MSG_TYPE_STEP_DATA.
 	DataType DataType `json:"dataType,omitempty"`
+}
+
+// Return an error if the Message is not valid.
+func (m *Message) Validate() error {
+	if m.StepId == "" {
+		return errors.New("StepId is required.")
+	} else if m.TaskId == "" {
+		return errors.New("TaskId is required.")
+	} else if util.TimeIsZero(m.Timestamp) {
+		return errors.New("Timestamp is required.")
+	}
+	switch m.Type {
+	case MSG_TYPE_STEP_STARTED:
+		if m.Step == nil {
+			return fmt.Errorf("StepProperties are required for %s", m.Type)
+		}
+		if err := m.Step.Validate(); err != nil {
+			return err
+		}
+	case MSG_TYPE_STEP_FINISHED:
+		// Nothing to do here.
+	case MSG_TYPE_STEP_DATA:
+		if m.Data == nil {
+			return fmt.Errorf("Data is required for %s", m.Type)
+		}
+		switch m.DataType {
+		case DATA_TYPE_LOG:
+		case DATA_TYPE_COMMAND:
+		case DATA_TYPE_HTTP_REQUEST:
+		case DATA_TYPE_HTTP_RESPONSE:
+		default:
+			return fmt.Errorf("Invalid DataType %q", m.DataType)
+		}
+	case MSG_TYPE_STEP_FAILED:
+		if m.Error == "" {
+			return fmt.Errorf("Error is required for %q", m.Type)
+		}
+	case MSG_TYPE_STEP_EXCEPTION:
+		if m.Error == "" {
+			return fmt.Errorf("Error is required for %q", m.Type)
+		}
+	default:
+		return fmt.Errorf("Invalid message Type %q", m.Type)
+	}
+	return nil
 }
