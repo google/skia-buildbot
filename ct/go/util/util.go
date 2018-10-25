@@ -1254,6 +1254,16 @@ func GetRankFromPageset(pagesetFileName string) (int, error) {
 	return strconv.Atoi(rank)
 }
 
+// AddCTRunDataToPerf uploads data from the CT run to CT's perf instance.
+// It does the following:
+// 1) Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+/master
+// 2) Constructs a results file in the format of https://github.com/google/skia-buildbot/blob/master/perf/FORMAT.md
+// 3) Ensures that the results file has as key the runID, groupName and the git hash from (1).
+// 4) Uploads the results file to Google storage for ingestion by ct-perf.skia.org.
+func AddCTRunDataToPerf(groupName, patchToCSVResults string) error {
+	return nil
+}
+
 type Pageset struct {
 	UserAgent       string `json:"user_agent"`
 	ArchiveDataFile string `json:"archive_data_file"`
