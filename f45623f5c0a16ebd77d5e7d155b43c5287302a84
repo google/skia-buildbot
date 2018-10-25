@@ -22,6 +22,30 @@
       "revId": "f45623f5c0a16ebd77d5e7d155b43c5287302a84",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfa1947d_11dd4b7b",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T18:00:21Z",
+      "side": 1,
+      "message": "You will have to see, but I had to have much higher values for Perf when writing, but I was writing 100K points per second.",
+      "parentUuid": "2908aec6_daee4875",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 0
+      },
+      "revId": "f45623f5c0a16ebd77d5e7d155b43c5287302a84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

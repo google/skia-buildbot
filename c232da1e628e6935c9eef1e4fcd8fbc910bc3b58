@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "3b326e6e_be1ffa48",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T18:00:21Z",
+      "side": 1,
+      "message": "sgtm, just wanted you to know of the option.",
+      "parentUuid": "3357201a_e5db0ca4",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3d55f7d4_5b39de26",
         "filename": "task_driver/go/db/bigtable/bigtable.go",
         "patchSetId": 5
@@ -139,6 +157,24 @@
       "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35380a85_a2c281b6",
+        "filename": "task_driver/go/db/bigtable/bigtable.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-25T18:00:21Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4ca0fa58_6ae3f0b5",
+      "revId": "c232da1e628e6935c9eef1e4fcd8fbc910bc3b58",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
