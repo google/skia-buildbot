@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "02e9f42d_bfaa488a",
+        "filename": "go/test_automation/builtin.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a76aef2b_b54a503f",
+      "range": {
+        "startLine": 32,
+        "startChar": 23,
+        "endLine": 32,
+        "endChar": 27
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c29a90a9_8e3b8535",
         "filename": "go/test_automation/builtin.go",
         "patchSetId": 31
@@ -295,6 +319,30 @@
     },
     {
       "key": {
+        "uuid": "b5c320e5_c4884801",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "67f31ada_95202d37",
+      "range": {
+        "startLine": 130,
+        "startChar": 30,
+        "endLine": 131,
+        "endChar": 30
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7fb0fce3_894c04a7",
         "filename": "go/test_automation/step.go",
         "patchSetId": 31
@@ -324,6 +372,24 @@
       "side": 1,
       "message": "SGTM. Lack of \"re-raising\" a panic in Go is kind of unfortunate.  I do want the parent step to inherit the result of its child in this case.",
       "parentUuid": "7fb0fce3_894c04a7",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fb172d7_ceddae06",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "Sorry, the \"panic(errIgnoreThisPanic)\" should have been something like \"panic(errDontPrintStackTraceAgain)\".",
+      "parentUuid": "b5fe1303_1c7cb9e5",
       "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -362,6 +428,24 @@
       "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7bac1a6a_6c150ea2",
+        "filename": "go/test_automation/step.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "Ok, I see that exec doesn\u0027t provide access to the exit code. I guess we\u0027ll fix it if it becomes a big enough problem.",
+      "parentUuid": "c98695f0_e758661f",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -447,6 +531,30 @@
     },
     {
       "key": {
+        "uuid": "b9154e00_9264abd9",
+        "filename": "infra/bots/build_task_drivers.sh",
+        "patchSetId": 31
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "I suspect it will be easiest to have a single compile task and put all the binaries into one isolate. I don\u0027t think the savings in isolated input size will be worth the effort of having different tasks for each platform and binary.\n\nPresumably the compiled binaries will be the same across revisions if the code hasn\u0027t changed, so we wouldn\u0027t have to re-download the isolates for every task. If that isn\u0027t true, we should figure out why.",
+      "parentUuid": "46175c5e_a2dc4f8b",
+      "range": {
+        "startLine": 16,
+        "startChar": 14,
+        "endLine": 16,
+        "endChar": 28
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d7e684ad_99b48f91",
         "filename": "infra/bots/task_drivers/infra_tests.go",
         "patchSetId": 31
@@ -476,6 +584,24 @@
       "side": 1,
       "message": "Ideally, all of the built-in components will be extensively tested.  I\u0027m hoping that the task drivers themselves are short and simple enough not to warrant testing.  Doing so would require either full simulation (IMO this is a non-goal) or a way to sandbox the task driver to run it (this would be nice, but is a ton of work and isn\u0027t going to make it into v0).",
       "parentUuid": "d7e684ad_99b48f91",
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cf6e370_e9ed46bd",
+        "filename": "infra/bots/task_drivers/infra_tests.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "IMO, if we make it easy to test built-in components, then it will probably be easy to test task drivers also. I think the biggest differences would be use of flags and, if we aren\u0027t mocking the execs, the time required to run the commands.",
+      "parentUuid": "e30160c9_67d05617",
       "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -517,6 +643,30 @@
       "side": 1,
       "message": "Agreed. I\u0027d like to put most/all of it into test_automation.Init(), but the downside is that we wouldn\u0027t be able to see all flags listed in the same file.",
       "parentUuid": "0e35934b_bed26048",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 2
+      },
+      "revId": "dea751d79cd1bdd5607b81eb9fd9a0ec6b19288e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e022c797_f1129ea0",
+        "filename": "infra/bots/task_drivers/infra_tests.go",
+        "patchSetId": 31
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-25T19:44:22Z",
+      "side": 1,
+      "message": "I personally think it\u0027s fine to just have a comment in the flag section saying \"Generic test driver flags are defined in test_automation/flags.go.\"",
+      "parentUuid": "1a8d75e5_65f4f6ca",
       "range": {
         "startLine": 17,
         "startChar": 0,
