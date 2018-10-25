@@ -49,11 +49,11 @@ file. This error may also prevent the roller from starting up, which is by
 design.
 
 The Skia->Flutter roller may throw errors from Flutter's license script:
-"Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1: /mnt/pd0/autoroll_workdir/engine/src/third_party/dart/tools/sdks/linux/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /mnt/pd0/autoroll_workdir/engine/src/out/licenses"
+"Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1: /data/engine/src/third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /data/engine/src/out/licenses"
 This alert means that the licence script is failing possibly due to a recent
 Skia change. Ask brianosman@ to run the script manually, or follow these steps
 on the roller to see what failed:
-* cd /mnt/pd0/autoroll_workdir/engine/src/flutter/
-* Check to see if DEPS has the latest Skia rev. If not update it and run "~/depot_tools/gclient sync"
-* cd /mnt/pd0/autoroll_workdir/engine/src/flutter/tools/licenses/
-* /mnt/pd0/autoroll_workdir/engine/src/third_party/dart/tools/sdks/linux/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /mnt/pd0/autoroll_workdir/engine/src/out/licenses
+* cd /data/engine/src/flutter/
+* Check to see if DEPS has the latest Skia rev. If not update it and run "/data/depot_tools/gclient sync"
+* cd /data/engine/src/flutter/tools/licenses/
+* /data/engine/src/third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /data/engine/src/out/licenses
