@@ -77,6 +77,8 @@ func buildOrGetCachedHarness(ctx context.Context, buildName string, buildType bu
 	// System freetype has many MSAN-like bugs, which can throw off our fuzzer. Build our own
 	// (newer) freetype to minimize these.
 	buildArgs = append(buildArgs, "skia_use_system_freetype2=false")
+	// Experimental gif codec
+	buildArgs = append(buildArgs, "skia_use_wuffs=true")
 
 	d := filepath.Join(config.Common.SkiaRoot, "skia")
 	gi, err := gitinfo.NewGitInfo(ctx, d, false, false)
