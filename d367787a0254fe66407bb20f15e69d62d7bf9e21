@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6a03b4fb_03090631",
+        "filename": "scripts/pubsub_recorder/pubsub_recorder.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-26T20:09:10Z",
+      "side": 1,
+      "message": "Drive-by: an existing subscription causes problems if you change the topic between runs.  Plus, we probably don\u0027t want to immediately see a ton of messages we missed, rather than starting to record once this program starts running.",
+      "range": {
+        "startLine": 81,
+        "startChar": 19,
+        "endLine": 82,
+        "endChar": 41
+      },
+      "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c7e7f02_0fc2a146",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-26T20:09:10Z",
+      "side": 1,
+      "message": "This topic receives messages for ALL log entries for all task drivers, so it includes both Messages and text payloads.  We may be able to remove the other topic and export now, but I\u0027m tempted to leave it around just in case someone cares about it.",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 39
+      },
+      "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
