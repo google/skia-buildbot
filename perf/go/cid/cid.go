@@ -12,7 +12,6 @@ import (
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -78,8 +77,7 @@ func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (*CommitID, err
 		return nil, err
 	}
 	if !commit.Branches["master"] {
-		sklog.Warningf("Commit %s is not in master branch.", hash)
-		return nil, ingestion.IgnoreResultsFileErr
+		return nil, fmt.Errorf("Commit %s is not in master branch.", hash)
 	}
 	offset, err := vcs.IndexOf(ctx, hash)
 	if err != nil {
