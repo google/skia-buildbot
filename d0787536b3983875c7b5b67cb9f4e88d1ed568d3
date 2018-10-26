@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "337bca21_a9393bb0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-26T15:20:50Z",
+      "side": 1,
+      "message": "Do we really have apps that only write to a file and can\u0027t be told to write to stdout/stderr?",
+      "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "878ec10a_0972dea6",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-26T15:20:50Z",
+      "side": 1,
+      "message": "Yes, return and error, don\u0027t panic. Here and below.",
+      "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
