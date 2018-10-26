@@ -45,6 +45,30 @@
       "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6d3a699_531e8dbc",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-26T20:40:47Z",
+      "side": 1,
+      "message": "Who is pushing events to that pubsub topic?",
+      "parentUuid": "1c7e7f02_0fc2a146",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 39
+      },
+      "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
