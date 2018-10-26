@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baf5bd8c_30b3cebc",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-26T15:36:56Z",
+      "side": 1,
+      "message": "DM is the only one I\u0027m aware of.  The verbose log is *too* verbose and makes stdout impossible to read, so we write it to a file instead.  Currently we grab this file from isolate (IIRC, maybe we upload it to GS with the image results) when we need to read it.  With the task driver\u0027s support for id-tagged log streams, all of the logs can go through cloud logging and we can filter to just stdout, stderr, dm verbose log, etc.",
+      "parentUuid": "337bca21_a9393bb0",
+      "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "878ec10a_0972dea6",
         "filename": "task_driver/go/td/step.go",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2018-10-26T15:20:50Z",
       "side": 1,
       "message": "Yes, return and error, don\u0027t panic. Here and below.",
+      "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adb64d6d_d0e9d884",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-26T15:36:56Z",
+      "side": 1,
+      "message": "Done. We still might panic in follow(), and I don\u0027t see a reasonable way around that. The step context should recover from the panic and generate a step failure message, so it should be easy to determine what happened.",
+      "parentUuid": "878ec10a_0972dea6",
       "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
