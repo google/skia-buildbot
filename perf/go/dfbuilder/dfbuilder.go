@@ -20,6 +20,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	NEW_N_FROM_KEY_STEP = 24 * time.Hour
+)
+
 // builder implements DataFrameBuilder using btts.
 type builder struct {
 	vcs   vcsinfo.VCS
@@ -232,16 +236,16 @@ func (b *builder) NewN(progress types.Progress, n int) (*dataframe.DataFrame, er
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress types.Progress) (*dataframe.DataFrame, error) {
-	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, true)
+func (b *builder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, downsample)
 	return b.new(colHeaders, indices, q, progress, skip)
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromKeysAndRange(keys []string, begin, end time.Time, progress types.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
 	// TODO tickle progress as each Go routine completes.
 	defer timer.New("NewFromKeysAndRange").Stop()
-	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, true)
+	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, downsample)
 
 	// Determine which tiles we are querying over, and how each tile maps into our results.
 	mapper := buildTileMapOffsetToIndex(indices, b.store)
@@ -424,6 +428,92 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		}
 		steps += 1
 		endIndex -= n
+	}
+
+	if total < n {
+		// Trim down the traces so they are the same length as ret.Header.
+		for key, tr := range ret.TraceSet {
+			ret.TraceSet[key] = tr[n-total:]
+		}
+	}
+
+	return ret, nil
+}
+
+// See DataFrameBuilder.
+func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	defer timer.New("NewNFromKeys").Stop()
+
+	// For the lack of a better heuristic, we'll load one day of data at a time.
+	begin := end.Add(-NEW_N_FROM_KEY_STEP)
+
+	ret := dataframe.NewEmpty()
+	var total int32 // total number of commits we've added to ret so far.
+	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
+
+	for total < n {
+		df, err := b.NewFromKeysAndRange(keys, begin, end, false, nil)
+		if err != nil {
+			return nil, fmt.Errorf("Failed while querying: %s", err)
+		}
+
+		// If there are no matches then we're done.
+		if len(df.TraceSet) == 0 {
+			break
+		}
+
+		// Total up the number of data points we have for each commit.
+		counts := make([]int, len(df.Header))
+		for _, tr := range df.TraceSet {
+			for i, x := range tr {
+				if x != vec32.MISSING_DATA_SENTINEL {
+					counts[i] += 1
+				}
+			}
+		}
+
+		// If we have no data for any commit then we are done.
+		done := true
+		for _, count := range counts {
+			if count > 0 {
+				done = false
+				break
+			}
+		}
+		if done {
+			break
+		}
+
+		ret.ParamSet.AddParamSet(df.ParamSet)
+
+		// For each commit that has data, copy the data from df into ret.
+		// Move backwards down the trace since we are building the result from 'end' backwards.
+		for i := len(counts) - 1; i >= 0; i-- {
+			if counts[i] > 0 {
+				ret.Header = append([]*dataframe.ColumnHeader{df.Header[i]}, ret.Header...)
+				for key, sourceTrace := range df.TraceSet {
+					if _, ok := ret.TraceSet[key]; !ok {
+						ret.TraceSet[key] = vec32.New(int(n))
+					}
+					ret.TraceSet[key][n-1-total] = sourceTrace[i]
+				}
+				total += 1
+
+				// If we've added enough commits to ret then we are done.
+				if total == n {
+					break
+				}
+			}
+		}
+
+		if progress != nil {
+			progress(steps, steps+1)
+		}
+		steps += 1
+
+		// Step back another day.
+		end = begin.Add(-time.Millisecond) // Since our ranges are half open, i.e. they always include 'begin'.
+		begin = end.Add(-NEW_N_FROM_KEY_STEP)
 	}
 
 	if total < n {

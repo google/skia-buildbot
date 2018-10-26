@@ -204,7 +204,7 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	now := time.Now()
 
-	df, err = builder.NewFromQueryAndRange(now, now, q, nil)
+	df, err = builder.NewFromQueryAndRange(now, now, q, false, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 8)
@@ -234,13 +234,13 @@ func TestBuildNew(t *testing.T) {
 	q, err = query.New(url.Values{"config": []string{"nvpr"}})
 	assert.NoError(t, err)
 
-	df, err = builder.NewFromQueryAndRange(now, now, q, nil)
+	df, err = builder.NewFromQueryAndRange(now, now, q, false, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 8)
 
 	// NewFromKeysAndRange.
-	df, err = builder.NewFromKeysAndRange([]string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, now, now, nil)
+	df, err = builder.NewFromKeysAndRange([]string{",arch=x86,config=8888,", ",arch=x86,config=565,"}, now, now, false, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 8)
@@ -248,7 +248,7 @@ func TestBuildNew(t *testing.T) {
 	assert.Len(t, df.TraceSet[",arch=x86,config=565,"], 8)
 
 	// Empty set of keys should not fail.
-	df, err = builder.NewFromKeysAndRange([]string{}, now, now, nil)
+	df, err = builder.NewFromKeysAndRange([]string{}, now, now, false, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 0)
 	assert.Len(t, df.Header, 8)
@@ -262,7 +262,7 @@ func TestBuildNew(t *testing.T) {
 	// This query will only encode for one tile and should still succeed.
 	q, err = query.New(url.Values{"model": []string{"Pixel"}})
 	assert.NoError(t, err)
-	df, err = builder.NewFromQueryAndRange(now, now, q, nil)
+	df, err = builder.NewFromQueryAndRange(now, now, q, false, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 1)
 	assert.Len(t, df.Header, 8)
