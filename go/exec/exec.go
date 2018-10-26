@@ -110,10 +110,13 @@ type Command struct {
 	// Sends the stderr of the command to this Writer, e.g. os.File or bytes.Buffer.
 	Stderr io.Writer
 	// Sends the combined stdout and stderr of the command to this Writer, in addition to
-	// Stdout and Stderr. Only one goroutine will write at a time. Note: the Go runtime seems to
-	// combine stdout and stderr into one stream as long as LogStdout and LogStderr are false
-	// and Stdout and Stderr are nil. Otherwise, the stdout and stderr of the command could be
-	// arbitrarily reordered when written to CombinedOutput.
+	// Stdout and Stderr. Note: the Go runtime seems to combine stdout and stderr into one
+	// stream as long as LogStdout and LogStderr are false and Stdout and Stderr are the
+	// same pointer value (including nil). Otherwise, the stdout and stderr of the command
+	// could be arbitrarily reordered when written to CombinedOutput. If Stdout or Stderr
+	// contain the same io.Writer but are not the same pointer value (eg. one or both is
+	// included in an io.MultiWriter), a race condition occurs where two goroutines may
+	// write simultaneously, causing problems if the io.Writer is not thread-safe.
 	CombinedOutput io.Writer
 	// Time limit to wait for the command to finish. No limit if not specified.
 	Timeout time.Duration
