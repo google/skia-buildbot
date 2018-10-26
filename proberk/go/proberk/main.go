@@ -215,18 +215,9 @@ func probeOneRound(cfg types.Probes, anonymousClient, authClient *http.Client) {
 			d := time.Since(begin)
 			probe.Latency[url].Update(d.Nanoseconds() / int64(time.Millisecond))
 			if err != nil {
-				errorOkay := false
-				for _, expect := range probe.Expected {
-					if strings.Contains(err.Error(), fmt.Sprintf("statuscode %d", expect)) {
-						errorOkay = true
-						break
-					}
-				}
-				if !errorOkay {
-					sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, url, err)
-					probe.Failure[url].Update(1)
-					continue
-				}
+				sklog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, url, err)
+				probe.Failure[url].Update(1)
+				continue
 			}
 			if resp != nil {
 				responseTestResults := true
@@ -373,7 +364,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	authClient := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().With2xxOnly().Client()
+	authClient := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	authClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
