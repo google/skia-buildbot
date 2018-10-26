@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "27782b15_d6cbc4c1",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-26T16:08:27Z",
+      "side": 1,
+      "message": "I conflated the exec.Command.Stdout/Stderr and osexec.Command.Stdout/Stderr.  I agree that it would be better to add some rules.  I wonder if it would be better to just remove CombinedOutput altogether.  I don\u0027t know what to do about LogStdout and LogStderr; we\u0027d have to disallow CombinedOutput or Stdout\u003d\u003dStderr if either are set, or use the ThreadSafeWriter.  That seems like more compromise than I\u0027d like.",
+      "parentUuid": "16073383_7b94fa60",
+      "range": {
+        "startLine": 114,
+        "startChar": 82,
+        "endLine": 115,
+        "endChar": 38
+      },
+      "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "95b06f98_e7cef909",
         "filename": "go/exec/exec.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-10-26T15:40:07Z",
       "side": 1,
       "message": "1. Seems like this belongs on docs for Stdout/Stderr.\n2. I think at this level of abstraction, we shouldn\u0027t need to know that this package uses io.MultiWriter to implement LogStdout/LogStderr.",
+      "range": {
+        "startLine": 116,
+        "startChar": 67,
+        "endLine": 118,
+        "endChar": 34
+      },
+      "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d82c020_94feb5f4",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-26T16:08:27Z",
+      "side": 1,
+      "message": "I was trying to prevent the caller doing something like this which would trigger the race:\n\nRunCommmand(ctx, \u0026Command{\n    ...\n    Stdout: io.MultiWriter([]io.Writer{w1, w2}),\n    Stderr: w2,\n})",
+      "parentUuid": "95b06f98_e7cef909",
       "range": {
         "startLine": 116,
         "startChar": 67,
