@@ -25,7 +25,7 @@ const propLine = (k, v) => html`
   ${tr(html`${td(k)}${td(v)}`)}
 `;
 
-function stepData(s, d) {
+function stepData(ele, s, d) {
   switch(d.type) {
     case "command":
       return propLine("Command", d.data.command.join(" "));
@@ -35,7 +35,7 @@ function stepData(s, d) {
       return propLine("HTTP Response", d.data.status);
     case "log":
       return propLine("Log (" + d.data.name + ")", html`
-          <a href="${ele._logLink(s, d.data.id)}" target="_blank">${d.data.name}</a>
+          <a href="${ele._logLink(s.id, d.data.id)}" target="_blank">${d.data.name}</a>
       `);
   }
   return "";
@@ -52,9 +52,9 @@ const stepProperties = (ele, s) => html`
           `)}`)
         : ""
     }
-    ${s.data ? s.data.map((d) => stepData(s, d)) : ""}
+    ${s.data ? s.data.map((d) => stepData(ele, s, d)) : ""}
     ${tr(html`${td("Log (combined)")}${td(html`
-        <a href="${ele._logLink(s)}" target="_blank">all logs</a>
+        <a href="${ele._logLink(s.id)}" target="_blank">all logs</a>
     `)}`)}
   </div>
 `;
@@ -164,54 +164,12 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
     this._render();
   }
 
-  _logLink(step, logId) {
-    // Build the logs filter.
-    let project = "skia-swarming-bots";
-    let taskId = this._data.id;
-    let logName = `projects/${project}/logs/task-driver`;
-    let filter = {
-      "logName": logName,
-      "labels.taskId": taskId,
-      "textPayload": "*",
-    };
-    if (step.parent) {
-      filter["labels.stepId"] = step.id;
-    }
+  _logLink(stepId, logId) {
+    let link = "/logs/" + this._data.id + "/" + stepId;
     if (logId) {
-      filter["labels.logId"] = logId;
+      link += "/" + logId;
     }
-
-    // Stringify the filter.
-    let filterStr = "";
-    for (var key in filter) {
-      if (filterStr) {
-        filterStr += "\n";
-      }
-      filterStr += key + "=\"" + filter[key] + "\"";
-    }
-
-    // Gather the remaining URL params.
-    let params = {
-      "project": project,
-      "logName": logName,
-      "minLogLevel": 1,
-      "dateRangeUnbound": "backwardInTime",
-      "advancedFilter": filterStr,
-    };
-
-    // Build the URL.
-    let rv = "https://pantheon.corp.google.com/logs/viewer";
-    let first = true;
-    for (var key in params) {
-      if (first) {
-        rv += "?";
-        first = false;
-      } else {
-        rv += "&"
-      }
-      rv += key + "=" + encodeURIComponent(params[key]);
-    }
-    return rv;
+    return link
   }
 
   // Return true if the step is interesting, ie. it has a result other than

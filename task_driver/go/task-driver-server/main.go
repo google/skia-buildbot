@@ -8,9 +8,11 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -25,11 +27,12 @@ import (
 	"go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/display"
+	"go.skia.org/infra/task_driver/go/logs"
 	"go.skia.org/infra/task_driver/go/td"
 )
 
 const (
-	SUBSCRIPTION_NAME = "td_server_collector"
+	SUBSCRIPTION_NAME = "td_server_log_collector"
 )
 
 var (
@@ -44,17 +47,89 @@ var (
 	// Database used for storing and retrieving Task Drivers.
 	d db.DB
 
+	// BigTable connector used for storing and retrieving logs.
+	lm *logs.LogsManager
+
 	// HTML templates.
 	tdTemplate *template.Template = nil
 )
 
-// getTaskDriver returns a display.TaskDriverRunDisplay instance for the given
-// request. If anything went wrong, returns nil and writes an error to the
-// ResponseWriter.
-func getTaskDriver(w http.ResponseWriter, r *http.Request) *display.TaskDriverRunDisplay {
-	id, ok := mux.Vars(r)["id"]
+// logsHandler reads log entries from BigTable and writes them to the ResponseWriter.
+func logsHandler(w http.ResponseWriter, r *http.Request, taskId, stepId, logId string) {
+	// TODO(borenet): If we had access to the Task Driver DB, we could first
+	// retrieve the run and then limit our search to its duration. That
+	// might speed up the search quite a bit.
+	w.Header().Set("Content-Type", "text/plain")
+	entries, err := lm.Search(taskId, stepId, logId)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to search log entries.")
+		return
+	}
+	if len(entries) == 0 {
+		// TODO(borenet): Maybe an empty log is not the same as a
+		// missing log?
+		http.Error(w, fmt.Sprintf("No matching log entries were found."), http.StatusNotFound)
+		return
+	}
+	for _, e := range entries {
+		line := e.TextPayload
+		if !strings.HasSuffix(line, "\n") {
+			line += "\n"
+		}
+		if _, err := w.Write([]byte(line)); err != nil {
+			httputils.ReportError(w, r, err, "Failed to write response.")
+			return
+		}
+	}
+}
+
+// getVar returns the variable which should be present in the request path.
+// It returns "" if it is not found, in which case it also writes an error to
+// the ResponseWriter.
+func getVar(w http.ResponseWriter, r *http.Request, key string) string {
+	val, ok := mux.Vars(r)[key]
 	if !ok {
-		http.Error(w, "No task driver ID in request path.", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("No %s in request path.", key), http.StatusBadRequest)
+		return ""
+	}
+	return val
+}
+
+// taskLogsHandler is a handler which serves logs for a given task.
+func taskLogsHandler(w http.ResponseWriter, r *http.Request) {
+	taskId := getVar(w, r, "taskId")
+	if taskId == "" {
+		return
+	}
+	logsHandler(w, r, taskId, "", "")
+}
+
+// stepLogsHandler is a handler which serves logs for a given step.
+func stepLogsHandler(w http.ResponseWriter, r *http.Request) {
+	taskId := getVar(w, r, "taskId")
+	stepId := getVar(w, r, "stepId")
+	if taskId == "" || stepId == "" {
+		return
+	}
+	logsHandler(w, r, taskId, stepId, "")
+}
+
+// singleLogHandler is a handler which serves logs for a single log ID.
+func singleLogHandler(w http.ResponseWriter, r *http.Request) {
+	taskId := getVar(w, r, "taskId")
+	stepId := getVar(w, r, "stepId")
+	logId := getVar(w, r, "logId")
+	if taskId == "" || stepId == "" || logId == "" {
+		return
+	}
+	logsHandler(w, r, taskId, stepId, logId)
+}
+
+// getTaskDriver returns a db.TaskDriverRun instance for the given request. If
+// anything went wrong, returns nil and writes an error to the ResponseWriter.
+func getTaskDriver(w http.ResponseWriter, r *http.Request) *db.TaskDriverRun {
+	id := getVar(w, r, "taskId")
+	if id == "" {
 		return nil
 	}
 	td, err := d.GetTaskDriver(id)
@@ -64,6 +139,18 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request) *display.TaskDriverRu
 	}
 	if td == nil {
 		http.Error(w, "No task driver exists with the given ID.", http.StatusNotFound)
+		return nil
+	}
+	return td
+}
+
+// getTaskDriverDisplay returns a display.TaskDriverRunDisplay instance for the
+// given request. If anything went wrong, returns nil and writes an error to the
+// ResponseWriter.
+func getTaskDriverDisplay(w http.ResponseWriter, r *http.Request) *display.TaskDriverRunDisplay {
+	td := getTaskDriver(w, r)
+	if td == nil {
+		// Any error was handled by getTaskDriver.
 		return nil
 	}
 	disp, err := display.TaskDriverForDisplay(td)
@@ -76,9 +163,9 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request) *display.TaskDriverRu
 
 // taskDriverHandler handles requests for an individual Task Driver.
 func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
-	disp := getTaskDriver(w, r)
+	disp := getTaskDriverDisplay(w, r)
 	if disp == nil {
-		// Any error was handled by getTaskDriver.
+		// Any error was handled by getTaskDriverDisplay.
 		return
 	}
 
@@ -107,9 +194,9 @@ func taskDriverHandler(w http.ResponseWriter, r *http.Request) {
 
 // jsonTaskDriverHandler returns the JSON representation of the requested Task Driver.
 func jsonTaskDriverHandler(w http.ResponseWriter, r *http.Request) {
-	disp := getTaskDriver(w, r)
+	disp := getTaskDriverDisplay(w, r)
 	if disp == nil {
-		// Any error was handled by getTaskDriver.
+		// Any error was handled by getTaskDriverDisplay.
 		return
 	}
 
@@ -130,10 +217,13 @@ func loadTemplates() {
 func runServer(ctx context.Context, serverURL string) {
 	loadTemplates()
 	r := mux.NewRouter()
-	r.HandleFunc("/td/{id}", taskDriverHandler)
-	r.HandleFunc("/json/td/{id}", jsonTaskDriverHandler)
+	r.HandleFunc("/td/{taskId}", taskDriverHandler)
+	r.HandleFunc("/json/td/{taskId}", jsonTaskDriverHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+	r.HandleFunc("/logs/{taskId}", taskLogsHandler)
+	r.HandleFunc("/logs/{taskId}/{stepId}", stepLogsHandler)
+	r.HandleFunc("/logs/{taskId}/{stepId}/{logId}", singleLogHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
@@ -147,17 +237,9 @@ func runServer(ctx context.Context, serverURL string) {
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
-// Entry mimics logging.Entry, which for some reason does not include the
-// jsonPayload field, and is not parsable via json.Unmarshal due to the Severity
-// type.
-type Entry struct {
-	Labels      map[string]string `json:"labels"`
-	JsonPayload td.Message        `json:"jsonPayload"`
-}
-
 // handleMessage decodes and inserts an update
 func handleMessage(msg *pubsub.Message) error {
-	var e Entry
+	var e logs.Entry
 	if err := json.Unmarshal(msg.Data, &e); err != nil {
 		// If the message has badly-formatted data,
 		// we'll never be able to parse it, so go ahead
@@ -165,13 +247,33 @@ func handleMessage(msg *pubsub.Message) error {
 		msg.Ack()
 		return err
 	}
-	if err := d.UpdateTaskDriver(e.JsonPayload.TaskId, &e.JsonPayload); err != nil {
-		// This may be a transient error, so nack the message and hope
-		// that we'll be able to handle it on redelivery.
-		msg.Nack()
-		return err
+	if e.JsonPayload != nil {
+		if err := e.JsonPayload.Validate(); err != nil {
+			// If the message has badly-formatted data,
+			// we'll never be able to use it, so go ahead
+			// and ack it to get it out of the queue.
+			msg.Ack()
+			return err
+		}
+		if err := d.UpdateTaskDriver(e.JsonPayload.TaskId, e.JsonPayload); err != nil {
+			// This may be a transient error, so nack the message and hope
+			// that we'll be able to handle it on redelivery.
+			msg.Nack()
+			return fmt.Errorf("Failed to insert task driver update: %s", err)
+		}
+	} else if e.TextPayload != "" {
+		if err := lm.Insert(&e); err != nil {
+			// This may be a transient error, so nack the message and hope
+			// that we'll be able to handle it on redelivery.
+			msg.Nack()
+			return fmt.Errorf("Failed to insert log entry: %s", err)
+		}
+	} else {
+		msg.Ack()
+		return fmt.Errorf("Message has no payload: %+v", msg)
 	}
 	msg.Ack()
+
 	return nil
 }
 
@@ -193,11 +295,11 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	topic := client.Topic(td.PUBSUB_TOPIC)
+	topic := client.Topic(td.PUBSUB_TOPIC_LOGS)
 	if exists, err := topic.Exists(ctx); err != nil {
 		sklog.Fatal(err)
 	} else if !exists {
-		topic, err = client.CreateTopic(ctx, td.PUBSUB_TOPIC)
+		topic, err = client.CreateTopic(ctx, td.PUBSUB_TOPIC_LOGS)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -224,6 +326,10 @@ func main() {
 	// actually in skia-public.
 	btProject := "skia-public"
 	d, err = bigtable_db.NewBigTableDB(ctx, btProject, bigtable_db.BT_INSTANCE, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	lm, err = logs.NewLogsManager(ctx, btProject, logs.BT_INSTANCE, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
