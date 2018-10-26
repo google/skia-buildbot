@@ -246,7 +246,7 @@ func (i *Ingester) watchSource(source Source) {
 			}
 			i.eventProcessMetrics.ignoredByPollingGauge.Update(ignored)
 			i.eventProcessMetrics.processedByPollingGauge.Update(processed)
-			sklog.Infof("Watcher received/ignored: %d/%d", ignored+processed, ignored)
+			sklog.Infof("Watcher for %s received/processed/ignored: %d/%d/%d", source.ID(), ignored+processed, processed, ignored)
 		}
 	}
 }
