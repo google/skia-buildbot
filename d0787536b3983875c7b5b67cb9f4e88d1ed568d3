@@ -69,6 +69,24 @@
       "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71fbda9e_56d91764",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-26T15:56:40Z",
+      "side": 1,
+      "message": "This was my concern with counting on ctx to capture panics, that they\u0027d start creeping into code that isn\u0027t step specific.\n\nCan you return a channel that either returns errors or just closes on success and have a way to pass that to a step?",
+      "parentUuid": "adb64d6d_d0e9d884",
+      "revId": "d0787536b3983875c7b5b67cb9f4e88d1ed568d3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
