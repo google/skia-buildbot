@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "769aad88_56a646a8",
+        "filename": "proberk/go/proberk/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-26T12:10:28Z",
+      "side": 1,
+      "message": "Just remove it and see what breaks?",
+      "revId": "6cca57c9b5861eeee204f48040002250dcf4da18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
