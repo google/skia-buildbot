@@ -1,0 +1,163 @@
+<!-- The <date-picker-sk> custom element declaration.
+
+  A portable input element for dates, because Safari doesn't support "input type=date".
+
+  Attributes:
+    date - Unix date, number of seconds from the Epoch.
+
+  Events:
+    date-changed - The new value of 'date' is provided in the event details.
+
+  Methods:
+    None.
+-->
+
+<dom-module id=date-picker-sk>
+  <template>
+    <select on-change=_yearChange id=year name=year title=Year>
+      <template is="dom-repeat" items="[[_years]]">
+        <option selected$="{{_matches(item,_year)}}">[[ item ]]</option>
+      </template>
+    </select>
+    <select on-change=_monthChange id=month name=month title=Month>
+      <template is="dom-repeat" items="{{_months}}">
+        <option selected$="{{_matches(index,_month)}}">[[ item ]]</option>
+      </template>
+    </select>
+    <select on-change=_dayChange id=day name=day title=Day>
+      <template is="dom-repeat" items="[[_days]]">
+        <option selected$="{{_matches(item,_day)}}">[[ item ]]</option>
+      </template>
+    </select>
+  </template>
+</dom-module>
+
+<script>
+(function () {
+  // The current year.
+  let year = new Date().getFullYear();
+
+  // The list of years to choose from.
+  let years = Array(10).fill(0).map((_, i) => year-i)
+
+  // How many days does Feb have in 'year'?
+  function numFeb(year) {
+    return ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 29 : 28;
+  }
+
+  // days per month.
+  let days = [
+    31, // Jan
+    numFeb(year), // Feb
+    31, // Mar
+    30, // Apr
+    31, // May
+    30, // Jun
+    31, // Jul
+    31, // Aug
+    30, // Sep
+    31, // Oct
+    30, // Nov
+    31, // Dec
+  ];
+
+  let months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  Polymer({
+    is: "date-picker-sk",
+
+    properties: {
+      date: {
+        type: Number,
+        value: Math.floor(Date.now()/1000),
+        reflectToAttribute: true,
+        observer: "_dateChanged",
+      },
+      _years: {
+        type: Array,
+        value: years,
+        reflectToAttribute: false,
+      },
+      _months: {
+        type: Array,
+        value: months,
+        reflectToAttribute: false,
+      },
+      _days: {
+        type: Array,
+        value: [],
+        reflectToAttribute: false,
+      },
+    },
+
+    _dateChanged: function() {
+      let d = new Date();
+      d.setTime(this.date *1000);
+      this._setYear(d.getFullYear());
+      this._setMonth(d.getMonth());
+      this._setDay(d.getDate());
+    },
+
+    _setYear: function(year) {
+      this._year = year;
+      days[1] = numFeb(year);
+      this._setMonth(this.$.month.selectedIndex);
+    },
+
+    _yearChange: function() {
+      this._setYear(this.$.year.value);
+      this._syncDate();
+    },
+
+    _setMonth: function(month) {
+      this._month = month;
+      this._days = Array(days[month]).fill(0).map((_, i) => i+1)
+    },
+
+    _monthChange: function(e) {
+      this._setMonth(this.$.month.selectedIndex);
+      this._syncDate();
+    },
+
+    _setDay: function(day) {
+      this._day = day;
+    },
+
+    _dayChange: function() {
+      this._setDay(this.$.day.value);
+      this._syncDate();
+    },
+
+    // Synchronize the values of _year, _month, _day to 'date'.
+    //
+    // Also fires the "date-changed" event.
+    _syncDate() {
+      let d = new Date();
+      d.setYear(this._year);
+      d.setMonth(this._month);
+      d.setDate(this._day);
+      this.date = Math.floor(d.getTime()/1000);
+      this.fire("date-changed", {date: this.date, bubbles: true});
+    },
+
+    _matches: function(a, b) {
+      return a === b;
+    },
+
+  });
+
+})();
+</script>
