@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "d0cd4c7c_69197d2f",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-26T17:09:29Z",
+      "side": 1,
+      "message": "I think for now I\u0027m feeling like documenting as well as we can, ending with \"When in doubt, use util.NewThreadSafeWriter.\"",
+      "parentUuid": "27782b15_d6cbc4c1",
+      "range": {
+        "startLine": 114,
+        "startChar": 82,
+        "endLine": 115,
+        "endChar": 38
+      },
+      "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "95b06f98_e7cef909",
         "filename": "go/exec/exec.go",
         "patchSetId": 1
@@ -93,6 +117,30 @@
       "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85075ed6_ffd7906b",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-26T17:09:29Z",
+      "side": 1,
+      "message": "Ah, ok, that makes sense.",
+      "parentUuid": "0d82c020_94feb5f4",
+      "range": {
+        "startLine": 116,
+        "startChar": 67,
+        "endLine": 118,
+        "endChar": 34
+      },
+      "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
