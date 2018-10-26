@@ -18,8 +18,10 @@ import (
 )
 
 const (
-	// PubSub topic name.
+	// PubSub topic name for task driver metadata.
 	PUBSUB_TOPIC = "task-driver"
+	// PubSub topic name for task driver logs.
+	PUBSUB_TOPIC_LOGS = "task-driver-logs"
 
 	// Log ID for all Task Drivers. Logs are labeled with task ID and step
 	// ID as well, and those labels should be used for filtering in most
