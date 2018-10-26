@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c339d0f_74f0b58b",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-26T14:11:44Z",
+      "side": 1,
+      "message": "IIUC, this doc is wrong. Maybe either fix the race in createCmd or delete this sentence.",
+      "range": {
+        "startLine": 113,
+        "startChar": 23,
+        "endLine": 113,
+        "endChar": 63
+      },
+      "revId": "98d5b3c2421c78643570502df1646fa916b51284",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
