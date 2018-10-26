@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16073383_7b94fa60",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-26T15:40:07Z",
+      "side": 1,
+      "message": "I think this is misleading. In this context, Stdout and Stderr mean the fields defined above, and we\u0027re discussing how those interact with CombinedOutput. From that perspective, if CombinedOutput is non-nil and either Stdout or Stderr is non-nil, then CombinedOutput needs to be goroutine-safe. (Similarly, if Stdout and Stderr are set to the same value, but LogStdout or LogStderr is true, then the Writer needs to be goroutine-safe.)\n\nThere are lots of sharp edges here... maybe it would be best in createCmd to just disallow setting CombinedOutput if Stdout or Stderr is also set, disallow Stdout \u003d\u003d Stderr, and automatically wrap CombinedOutput in NewThreadSafeWriter if LogStdout or LogStderr is true.",
+      "range": {
+        "startLine": 114,
+        "startChar": 82,
+        "endLine": 115,
+        "endChar": 38
+      },
+      "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95b06f98_e7cef909",
+        "filename": "go/exec/exec.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-26T15:40:07Z",
+      "side": 1,
+      "message": "1. Seems like this belongs on docs for Stdout/Stderr.\n2. I think at this level of abstraction, we shouldn\u0027t need to know that this package uses io.MultiWriter to implement LogStdout/LogStderr.",
+      "range": {
+        "startLine": 116,
+        "startChar": 67,
+        "endLine": 118,
+        "endChar": 34
+      },
+      "revId": "448f964129bc27d7ecce2680cfdd8f6a45b236be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
