@@ -26,10 +26,18 @@ import (
 
 type ProcessState string
 
+type RequestType int
+
 const (
 	PROCESS_RUNNING ProcessState = "Running"
 	PROCESS_SUCCESS ProcessState = "Success"
 	PROCESS_ERROR   ProcessState = "Error"
+
+	// Values for FrameRequest.RequestType.
+	REQUEST_TIME_RANGE RequestType = 0
+	REQUEST_COMPACT    RequestType = 1
+
+	DEFAULT_COMPACT_NUM_COMMITS = 200
 )
 
 const (
@@ -46,13 +54,15 @@ var (
 
 // FrameRequest is used to deserialize JSON frame requests.
 type FrameRequest struct {
-	Begin    int      `json:"begin"`    // Beginning of time range in Unix timestamp seconds.
-	End      int      `json:"end"`      // End of time range in Unix timestamp seconds.
-	Formulas []string `json:"formulas"` // The Formulae to evaluate.
-	Queries  []string `json:"queries"`  // The queries to perform encoded as a URL query.
-	Hidden   []string `json:"hidden"`   // The ids of traces to remove from the response.
-	Keys     string   `json:"keys"`     // The id of a list of keys stored via shortcut2.
-	TZ       string   `json:"tz"`       // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
+	Begin       int         `json:"begin"`       // Beginning of time range in Unix timestamp seconds.
+	End         int         `json:"end"`         // End of time range in Unix timestamp seconds.
+	Formulas    []string    `json:"formulas"`    // The Formulae to evaluate.
+	Queries     []string    `json:"queries"`     // The queries to perform encoded as a URL query.
+	Hidden      []string    `json:"hidden"`      // The ids of traces to remove from the response.
+	Keys        string      `json:"keys"`        // The id of a list of keys stored via shortcut2.
+	TZ          string      `json:"tz"`          // The timezone the request is from. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat/resolvedOptions
+	NumCommits  int32       `json:"num_commits"` // If RequestType is REQUEST_COMPACT, then the number of commits to show before End, and Begin is ignored.
+	RequestType RequestType `json:"request_type"`
 }
 
 func (f *FrameRequest) Id() string {
@@ -423,7 +433,11 @@ func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*
 	if err != nil {
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
-	return p.dfBuilder.NewFromQueryAndRange(begin, end, q, p.progress)
+	if p.request.RequestType == REQUEST_TIME_RANGE {
+		return p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
+	} else {
+		return p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
+	}
 }
 
 // doKeys returns a DataFrame that matches the given set of keys given
@@ -433,7 +447,11 @@ func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataF
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
-	return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, p.progress)
+	if p.request.RequestType == REQUEST_TIME_RANGE {
+		return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
+	} else {
+		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+	}
 }
 
 // doCalc applies the given formula and returns a dataframe that matches the
@@ -454,7 +472,11 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if err != nil {
 			return nil, err
 		}
-		df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, p.progress)
+		if p.request.RequestType == REQUEST_TIME_RANGE {
+			df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
+		} else {
+			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -471,7 +493,11 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if err != nil {
 			return nil, err
 		}
-		df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, p.progress)
+		if p.request.RequestType == REQUEST_TIME_RANGE {
+			df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
+		} else {
+			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+		}
 		if err != nil {
 			return nil, err
 		}
