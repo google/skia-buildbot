@@ -4,11 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/promalertsclient"
+	mock_alert_client "go.skia.org/infra/am/go/alertclient/mocks"
+	"go.skia.org/infra/am/go/incident"
+	"go.skia.org/infra/am/go/silence"
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/power/go/decider"
@@ -16,7 +17,7 @@ import (
 	"go.skia.org/infra/power/go/testdata"
 )
 
-var cycleTests = map[string]func(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder){
+var cycleTests = map[string]func(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder){
 	"NoBots":              testNoBotsCycle,
 	"NoAlertingBots":      testNoAlertingBots,
 	"OneMissingBot":       testOneMissingBot,
@@ -38,7 +39,7 @@ func TestCycle(t *testing.T) {
 			// me = "mock external" client
 			me := skswarming.NewMockApiClient()
 			// ma = "mock alerts" client
-			ma := promalertsclient.NewMockClient()
+			ma := &mock_alert_client.APIClient{}
 			md := decider.NewMockDecider()
 			mr := recorder.NewMockRecorder()
 			defer mi.AssertExpectations(t)
@@ -56,7 +57,7 @@ func setupMockRecorder(mr *recorder.MockRecorder) {
 	mr.On("NewlyDownBots", mock.Anything).Return()
 }
 
-func testNoBotsCycle(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testNoBotsCycle(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
 	me.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC))
 
@@ -68,14 +69,15 @@ func testNoBotsCycle(t *testing.T, mi, me *skswarming.MockApiClient, ma *promale
 	assert.Empty(t, bots, "There should be no bots to reboot, because swarming doesn't detect any are down.")
 }
 
-func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
 	b := []*swarming.SwarmingRpcsBotInfo{
 		testdata.MockBotAndId(t, testdata.MISSING_DEVICE, "skia-rpi-046"),
 	}
 	me.On("ListDownBots", mock.Anything).Return(b, nil).Times(len(skswarming.POOLS_PUBLIC))
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{}, nil).Once()
+	ma.On("GetAlerts").Return([]incident.Incident{}, nil).Once()
+	// The GetSilences call is skipped if there are no alerts.
 
 	g := NewPollingGatherer(me, mi, ma, md, mr, nil, 0).(*gatherer)
 	g.update()
@@ -84,7 +86,7 @@ func testNoAlertingBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 	assert.Empty(t, bots, "There should be no bots to reboot, because alerts says none are down.")
 }
 
-func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
 	b := []*swarming.SwarmingRpcsBotInfo{
 		testdata.MockBotAndId(t, testdata.DEAD_BOT, "skia-rpi-046"),
@@ -94,9 +96,10 @@ func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *proma
 	// return nothing for rest of the pools
 	me.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC) - 1)
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-046", 30*time.Minute),
 	}, nil).Once()
+	ma.On("GetSilences").Return([]silence.Silence{}, nil).Once()
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
@@ -117,7 +120,7 @@ func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *proma
 	assert.False(t, bots[0].Silenced, "Bot should be silenced")
 }
 
-func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
 	b := []*swarming.SwarmingRpcsBotInfo{
 		testdata.MockBotAndId(t, testdata.DEAD_BOT, "skia-rpi-046"),
@@ -128,9 +131,17 @@ func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 	me.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC) - 1)
 
 	silenced := mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-046", 30*time.Minute)
-	silenced.Silenced = true
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		silenced,
+	}, nil).Once()
+	ma.On("GetSilences").Return([]silence.Silence{
+		{
+			Active: true,
+			ParamSet: map[string][]string{
+				"alertname": {ALERT_BOT_MISSING},
+				"bot":       {"skia-rpi-046"},
+			},
+		},
 	}, nil).Once()
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
@@ -152,7 +163,7 @@ func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *prom
 	assert.True(t, bots[0].Silenced, "Bot should be silenced")
 }
 
-func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
 	b := []*swarming.SwarmingRpcsBotInfo{
 		testdata.MockBotAndId(t, testdata.MISSING_DEVICE, "skia-rpi-001"),
@@ -166,11 +177,21 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	// return nothing for rest of the pools
 	me.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC) - 1)
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		mockAPIAlert(ALERT_BOT_QUARANTINED, "skia-rpi-003", 65*time.Minute),
 		mockAPIAlert(ALERT_BOT_QUARANTINED, "skia-rpi-001", 25*time.Minute),
 		mockAPIAlert(ALERT_BOT_QUARANTINED, "skia-rpi-002", 11*time.Minute), // This one has a usb failure, which is sometimes fixed by a powercycle
 		mockAPIAlert(ALERT_BOT_QUARANTINED, "skia-rpi-121", 10*time.Minute), // This one is too hot, and should not be offered for a reboot
+	}, nil).Once()
+	// Add a silence, but it doesn't match any of the above bots
+	ma.On("GetSilences").Return([]silence.Silence{
+		{
+			Active: true,
+			ParamSet: map[string][]string{
+				"alertname": {ALERT_BOT_MISSING},
+				"bot":       {"skia-rpi-046"},
+			},
+		},
 	}, nil).Once()
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(false)
@@ -206,7 +227,7 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	assert.Equal(t, "2017-05-04T10:55:00Z", bots[2].Since.Format(time.RFC3339))
 }
 
-func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PRIVATE))
 	// ListDownBots will return a dead and quarantined bot twice. We need to dedupe it.
 	b := []*swarming.SwarmingRpcsBotInfo{
@@ -217,9 +238,10 @@ func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *proma
 	// return nothing for rest of the pools
 	me.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil).Times(len(skswarming.POOLS_PUBLIC) - 1)
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-113", 30*time.Minute),
 	}, nil).Once()
+	ma.On("GetSilences").Return([]silence.Silence{}, nil).Once()
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
@@ -240,7 +262,7 @@ func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *proma
 	assert.False(t, bots[0].Silenced, "Bot should be silenced")
 }
 
-func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *promalertsclient.MockAPIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
+func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder) {
 	// Baseline - no bots down
 	mi.On("ListDownBots", mock.Anything).Return([]*swarming.SwarmingRpcsBotInfo{}, nil)
 	md.On("ShouldPowercycleBot", mock.Anything).Return(func(bot *swarming.SwarmingRpcsBotInfo) bool {
@@ -270,9 +292,10 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *pr
 	}
 	me.On("ListDownBots", skswarming.POOLS_PUBLIC[0]).Return(b, nil).Once()
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-046", 30*time.Minute),
 	}, nil).Once()
+	ma.On("GetSilences").Return([]silence.Silence{}, nil).Once()
 
 	g.update()
 
@@ -289,11 +312,12 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *pr
 	}
 	me.On("ListDownBots", skswarming.POOLS_PUBLIC[0]).Return(b, nil).Once()
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-046", 35*time.Minute),
 		mockAPIAlert(ALERT_BOT_QUARANTINED, "skia-rpi-047", 10*time.Minute),
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-048", 11*time.Minute),
 	}, nil).Once()
+	ma.On("GetSilences").Return([]silence.Silence{}, nil).Once()
 
 	g.update()
 
@@ -309,10 +333,11 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *pr
 	}
 	me.On("ListDownBots", skswarming.POOLS_PUBLIC[0]).Return(b, nil).Once()
 
-	ma.On("GetAlerts", mock.Anything).Return([]promalertsclient.Alert{
+	ma.On("GetAlerts").Return([]incident.Incident{
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-020", 1*time.Minute),
 		mockAPIAlert(ALERT_BOT_MISSING, "skia-rpi-048", 15*time.Minute),
 	}, nil).Once()
+	ma.On("GetSilences").Return([]silence.Silence{}, nil).Once()
 
 	g.update()
 
@@ -322,15 +347,13 @@ func testRecentlyDownBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *pr
 	mr.AssertCalled(t, "NewlyFixedBots", []string{"skia-rpi-046", "skia-rpi-047-device"})
 }
 
-func mockAPIAlert(alertname, bot string, ago time.Duration) promalertsclient.Alert {
+func mockAPIAlert(alertname, bot string, ago time.Duration) incident.Incident {
 	baseTime := time.Date(2017, time.May, 4, 12, 00, 0, 0, time.UTC)
-	a := promalertsclient.Alert{
-		Alert: model.Alert{
-			Labels: model.LabelSet{},
-		},
+	a := incident.Incident{
+		Params: map[string]string{},
 	}
-	a.Labels["alertname"] = model.LabelValue(alertname)
-	a.Labels["bot"] = model.LabelValue(bot)
-	a.StartsAt = baseTime.Add(-ago)
+	a.Params["alertname"] = alertname
+	a.Params["bot"] = bot
+	a.Start = baseTime.Add(-ago).Unix()
 	return a
 }

@@ -10,7 +10,8 @@ import (
 	"time"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/promalertsclient"
+	"go.skia.org/infra/am/go/alertclient"
+	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/go/sklog"
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -54,7 +55,7 @@ type gatherer struct {
 
 	iSwarming skswarming.ApiClient
 	eSwarming skswarming.ApiClient
-	alerts    promalertsclient.APIClient
+	alerts    alertclient.APIClient
 	decider   decider.Decider
 	hostMap   map[string]string // maps bot id -> jumphost name
 	recorder  recorder.Recorder
@@ -62,7 +63,7 @@ type gatherer struct {
 
 // NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func NewPollingGatherer(external, internal skswarming.ApiClient, alerts promalertsclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[string]string, period time.Duration) Gatherer {
+func NewPollingGatherer(external, internal skswarming.ApiClient, alerts alertclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[string]string, period time.Duration) Gatherer {
 	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
@@ -97,11 +98,17 @@ func (g *gatherer) set(bots []DownBot) {
 	g.downBots = bots
 }
 
-// downBotsFilter is a function that returns true only for alerts about
-// dead and quarantined bots.
-func downBotsFilter(a promalertsclient.Alert) bool {
-	alertName := string(a.Labels["alertname"])
-	return alertName == ALERT_BOT_MISSING || alertName == ALERT_BOT_QUARANTINED
+// filterDownBots returns a subset of the alert slice that has to
+// do with down bots.
+func filterDownBots(alerts []incident.Incident) []incident.Incident {
+	retVal := []incident.Incident{}
+	for _, a := range alerts {
+		alertName := string(a.Params["alertname"])
+		if alertName == ALERT_BOT_MISSING || alertName == ALERT_BOT_QUARANTINED {
+			retVal = append(retVal, a)
+		}
+	}
+	return retVal
 }
 
 // update is the "inner loop" of the gatherer. It polls swarming for a list of
@@ -136,25 +143,33 @@ func (g *gatherer) update() {
 	sklog.Infof("Swarming reports %d down bots", len(bots))
 
 	// Ask Prometheus for bot alerts related to quarantined and dead
-	alerts, err := g.alerts.GetAlerts(downBotsFilter)
+	alerts, err := g.alerts.GetAlerts()
 	if err != nil {
 		sklog.Warningf("Could not get down bots from alerts %s", err)
 		return
 	}
+	alerts = filterDownBots(alerts)
 
 	if len(alerts) == 0 {
 		g.set([]DownBot{})
 		sklog.Info("No bot-related alerts")
 		return
 	}
+	sklog.Infof("alert manager reports %d alerts", len(alerts))
 
-	sklog.Infof("Promalerts reports %d bot-related alerts: %v", len(alerts), alerts)
+	silences, err := g.alerts.GetSilences()
+	if err != nil {
+		sklog.Warningf("Could not get silences from alerts %s", err)
+		return
+	}
+
+	sklog.Infof("alert manager reports %d silences", len(silences))
 
 	// join these together to create []DownBot
 	botsWithAlerts := util.StringSet{}
-	alertMap := map[string]promalertsclient.Alert{}
+	alertMap := map[string]incident.Incident{}
 	for _, a := range alerts {
-		id := string(a.Labels["bot"])
+		id := string(a.Params["bot"])
 		botsWithAlerts[id] = true
 		alertMap[id] = a
 	}
@@ -174,8 +189,8 @@ func (g *gatherer) update() {
 					HostID:     g.hostMap[b.BotId],
 					Dimensions: b.Dimensions,
 					Status:     STATUS_HOST_MISSING,
-					Since:      alert.StartsAt,
-					Silenced:   alert.Silenced,
+					Since:      time.Unix(alert.Start, 0).UTC(),
+					Silenced:   alert.IsSilenced(silences),
 				})
 			} else if g.decider.ShouldPowercycleDevice(b) {
 				downBots = append(downBots, DownBot{
@@ -183,8 +198,8 @@ func (g *gatherer) update() {
 					HostID:     g.hostMap[b.BotId+"-device"],
 					Dimensions: b.Dimensions,
 					Status:     STATUS_DEVICE_MISSING,
-					Since:      alert.StartsAt,
-					Silenced:   alert.Silenced,
+					Since:      time.Unix(alert.Start, 0).UTC(),
+					Silenced:   alert.IsSilenced(silences),
 				})
 			}
 			// Avoid reporting the same bot down more than once
