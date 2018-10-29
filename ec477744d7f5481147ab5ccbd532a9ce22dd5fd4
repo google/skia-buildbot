@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a41b58a4_9cea7646",
+        "filename": "go/fileutil/fileutil.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-29T15:38:49Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to have any purpose.",
+      "range": {
+        "startLine": 178,
+        "startChar": 6,
+        "endLine": 178,
+        "endChar": 12
+      },
+      "revId": "ec477744d7f5481147ab5ccbd532a9ce22dd5fd4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d833cc61_bc6c475f",
+        "filename": "go/fileutil/fileutil.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-29T15:38:49Z",
+      "side": 1,
+      "message": "Seems like you need \"else { return 0, err }\", otherwise you will have an infinite loop if there is a problem reading the file.",
+      "range": {
+        "startLine": 196,
+        "startChar": 2,
+        "endLine": 196,
+        "endChar": 3
+      },
+      "revId": "ec477744d7f5481147ab5ccbd532a9ce22dd5fd4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
