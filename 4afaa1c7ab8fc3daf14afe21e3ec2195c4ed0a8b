@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1721360a_2387a43e",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-29T19:42:43Z",
+      "side": 1,
+      "message": "nit: consider using sklog.FmtErrorf(\"...\") which has the same signature as fmt.Errorf but automatically adds the file and line number.",
+      "range": {
+        "startLine": 80,
+        "startChar": 14,
+        "endLine": 80,
+        "endChar": 68
+      },
+      "revId": "4afaa1c7ab8fc3daf14afe21e3ec2195c4ed0a8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88e6596d_7e05e1f8",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-29T19:42:43Z",
+      "side": 1,
+      "message": "nit: else not necessary",
+      "range": {
+        "startLine": 438,
+        "startChar": 3,
+        "endLine": 440,
+        "endChar": 2
+      },
+      "revId": "4afaa1c7ab8fc3daf14afe21e3ec2195c4ed0a8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a72b73c_84732c82",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-29T19:42:43Z",
+      "side": 1,
+      "message": "nit: make(map[int]int, n)",
+      "range": {
+        "startLine": 116,
+        "startChar": 7,
+        "endLine": 116,
+        "endChar": 21
+      },
+      "revId": "4afaa1c7ab8fc3daf14afe21e3ec2195c4ed0a8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b10ad195_fec032e4",
+        "filename": "perf/go/dataframe/dataframe.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-29T19:42:43Z",
+      "side": 1,
+      "message": "nit: needs documentation pointing to the interface it\u0027s implementing.",
+      "range": {
+        "startLine": 356,
+        "startChar": 0,
+        "endLine": 357,
+        "endChar": 43
+      },
+      "revId": "4afaa1c7ab8fc3daf14afe21e3ec2195c4ed0a8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
