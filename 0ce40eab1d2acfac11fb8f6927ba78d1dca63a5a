@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "881440fa_e9e37d1c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 721,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-29T17:12:21Z",
+      "side": 1,
+      "message": "nit: ctfeutil.UserHasAdminRights(r)",
+      "range": {
+        "startLine": 721,
+        "startChar": 13,
+        "endLine": 721,
+        "endChar": 60
+      },
+      "revId": "0ce40eab1d2acfac11fb8f6927ba78d1dca63a5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80acba52_65b4237c",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 733,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-29T17:12:21Z",
+      "side": 1,
+      "message": "nit: Should be GET so that it can be cached, etc.",
+      "range": {
+        "startLine": 733,
+        "startChar": 84,
+        "endLine": 733,
+        "endChar": 88
+      },
+      "revId": "0ce40eab1d2acfac11fb8f6927ba78d1dca63a5a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
