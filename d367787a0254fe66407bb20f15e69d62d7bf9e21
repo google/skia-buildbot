@@ -69,6 +69,30 @@
       "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8943685a_1dd042db",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-29T12:23:09Z",
+      "side": 1,
+      "message": "Both topics are exports from Cloud Logging, the difference being that the task-driver topic is filtered to only entries which have a JsonPayload, while task-driver-logs includes everything.",
+      "parentUuid": "c6d3a699_531e8dbc",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 39
+      },
+      "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
