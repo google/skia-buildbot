@@ -141,6 +141,30 @@
       "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cc06fa8_b6ce2ec8",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-29T14:33:36Z",
+      "side": 1,
+      "message": "I meant \"script\" as in bash, you can do it from gcloud:\n\nhttps://cloud.google.com/logging/docs/reference/tools/gcloud-logging#creating_sinks",
+      "parentUuid": "25bdfc6d_8fe3e520",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 39
+      },
+      "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
