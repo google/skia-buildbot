@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/search"
@@ -56,7 +57,7 @@ func main() {
 	}
 
 	// Set up the http client.
-	client := &http.Client{}
+	client := httputils.DefaultClientConfig().Client()
 
 	// load the test meta data from Gold.
 	testRecords, err := loadMetaData(client, *baseURL, DEFAULT_QUERY, META_DATA_FILE)
