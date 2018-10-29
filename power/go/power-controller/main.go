@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/am/go/alertclient"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/promalertsclient"
 	"go.skia.org/infra/go/sklog"
 	skswarming "go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/power/go/decider"
@@ -30,7 +30,7 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	alertsEndpoint = flag.String("alerts_endpoint", "skia-prom:8001", "The Prometheus GCE name and port")
+	alertsEndpoint = flag.String("alerts_endpoint", "alert-manager:9000", "The alert manager GCE name and port")
 
 	// OAUTH params
 	powercycleConfigs = common.NewMultiStringFlag("powercycle_config", nil, "JSON5 file with powercycle bot/device configuration. Same as used for powercycle.")
@@ -122,7 +122,8 @@ func setupGatherer() error {
 	if err != nil {
 		return fmt.Errorf("Could not get ApiClient for chrome-swarming: %s", err)
 	}
-	ac := promalertsclient.New(&http.Client{}, *alertsEndpoint)
+	c := httputils.DefaultClientConfig().With2xxOnly().Client()
+	ac := alertclient.New(c, *alertsEndpoint)
 	d, hostMap, err := decider.New(*powercycleConfigs)
 	if err != nil {
 		return fmt.Errorf("Could not initialize down bot decider: %s", err)
