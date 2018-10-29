@@ -39,12 +39,12 @@ type DataFrameBuilder interface {
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
 	// periodically as the query is processed.
-	NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress types.Progress) (*DataFrame, error)
+	NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error)
 
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromKeysAndRange(keys []string, begin, end time.Time, progress types.Progress) (*DataFrame, error)
+	NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
 
 	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
 	// match the given time set of commits 'cids' and the query 'q'. The 'progress'
@@ -52,12 +52,15 @@ type DataFrameBuilder interface {
 	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
-	// points ending at the given 'end' time.
+	// points ending at the given 'end' time that match the given query.
 	NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*DataFrame, error)
+
+	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
+	// points ending at the given 'end' time for the given keys.
+	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*DataFrame, error)
 
 	// TODO Add func to count matches.
 	// TODO Add func to get merged paramset for a date range.
-
 }
 
 // ptracestoreDataFrameBuilder implements DataFrameBuilder using ptracestore.
@@ -107,6 +110,105 @@ func (d *DataFrame) BuildParamSet() {
 	}
 	paramSet.Normalize()
 	d.ParamSet = paramSet
+}
+
+func simpleMap(n int) map[int]int {
+	ret := map[int]int{}
+	for i := 0; i < n; i += 1 {
+		ret[i] = i
+	}
+	return ret
+}
+
+// merge creates a merged header from the two given headers.
+//
+// I.e. {1,4,5} + {3,4} => {1,3,4,5}
+func merge(a, b []*ColumnHeader) ([]*ColumnHeader, map[int]int, map[int]int) {
+	if len(a) == 0 {
+		return b, simpleMap(0), simpleMap(len(b))
+	} else if len(b) == 0 {
+		return a, simpleMap(len(a)), simpleMap(0)
+	}
+	aMap := map[int]int{}
+	bMap := map[int]int{}
+	numA := len(a)
+	numB := len(b)
+	pA := 0
+	pB := 0
+	ret := []*ColumnHeader{}
+	for {
+		if pA == numA && pB == numB {
+			break
+		}
+		if pA == numA {
+			// Copy in the rest of b.
+			for i := pB; i < numB; i++ {
+				bMap[i] = len(ret)
+				ret = append(ret, b[i])
+			}
+			break
+		}
+		if pB == numB {
+			// Copy in the rest of a.
+			for i := pA; i < numA; i++ {
+				aMap[i] = len(ret)
+				ret = append(ret, a[i])
+			}
+		}
+		if a[pA].Offset < b[pB].Offset {
+			aMap[pA] = len(ret)
+			ret = append(ret, a[pA])
+			pA += 1
+		} else if a[pA].Offset > b[pB].Offset {
+			bMap[pB] = len(ret)
+			ret = append(ret, b[pB])
+			pB += 1
+		} else {
+			aMap[pA] = len(ret)
+			bMap[pB] = len(ret)
+			ret = append(ret, a[pA])
+			pA += 1
+			pB += 1
+		}
+	}
+	return ret, aMap, bMap
+}
+
+// Join create a new DataFrame that is the union of 'a' and 'b'.
+//
+// Will handle the case of a and b having data for different sets of commits,
+// i.e. a.Header doesn't have to equal b.Header.
+func Join(a, b *DataFrame) *DataFrame {
+	ret := NewEmpty()
+	// Build a merged set of headers.
+	header, aMap, bMap := merge(a.Header, b.Header)
+	ret.Header = header
+	if len(a.Header) == 0 {
+		a.Header = b.Header
+	}
+	ret.Skip = b.Skip
+	ret.ParamSet.AddParamSet(a.ParamSet)
+	ret.ParamSet.AddParamSet(b.ParamSet)
+	traceLen := len(ret.Header)
+	for key, sourceTrace := range a.TraceSet {
+		if _, ok := ret.TraceSet[key]; !ok {
+			ret.TraceSet[key] = types.NewTrace(traceLen)
+		}
+		destTrace := ret.TraceSet[key]
+		for sourceOffset, sourceValue := range sourceTrace {
+			destTrace[aMap[sourceOffset]] = sourceValue
+		}
+	}
+	for key, sourceTrace := range b.TraceSet {
+		if _, ok := ret.TraceSet[key]; !ok {
+			ret.TraceSet[key] = types.NewTrace(traceLen)
+		}
+		destTrace := ret.TraceSet[key]
+		for sourceOffset, sourceValue := range sourceTrace {
+			destTrace[bMap[sourceOffset]] = sourceValue
+		}
+	}
+	return ret
 }
 
 // TraceFilter is a function type that should return true if trace 'tr' should
@@ -208,16 +310,16 @@ func (p *ptracestoreDataFrameBuilder) NewN(progress types.Progress, n int) (*Dat
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, progress types.Progress) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromQueryAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, true)
+	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, downsample)
 	return _new(colHeaders, commitIDs, q.Matches, p.store, progress, skip)
 }
 
 // See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, end time.Time, progress types.Progress) (*DataFrame, error) {
+func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error) {
 	defer timer.New("NewFromKeysAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, true)
+	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, downsample)
 	sort.Strings(keys)
 	matches := func(key string) bool {
 		i := sort.SearchStrings(keys, key)
@@ -248,6 +350,10 @@ func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Conte
 
 // See DataFrameBuilder.
 func (p *ptracestoreDataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*DataFrame, error) {
+	return nil, fmt.Errorf("Not Implemented.")
+}
+
+func (p *ptracestoreDataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*DataFrame, error) {
 	return nil, fmt.Errorf("Not Implemented.")
 }
 

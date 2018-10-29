@@ -193,7 +193,7 @@ func TestVCS(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 
-	d, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, nil)
+	d, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, true, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 
@@ -201,7 +201,7 @@ func TestVCS(t *testing.T) {
 	vcs.updateFail = true
 	_, err = dfBuiler.New(nil)
 	assert.NoError(t, err)
-	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, nil)
+	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, true, nil)
 	assert.NoError(t, err)
 
 	store.matchFail = true
@@ -209,7 +209,7 @@ func TestVCS(t *testing.T) {
 	// Test error conditions if the store fails.
 	_, err = dfBuiler.New(nil)
 	assert.Error(t, err)
-	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, nil)
+	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, true, nil)
 	assert.Error(t, err)
 }
 

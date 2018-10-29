@@ -56,7 +56,7 @@ test: testgo
 
 .PHONY: testgo
 testgo:
-	go test -v ./go/...
+	go test ./go/...
 
 .PHONY: push
 push: build
