@@ -116,6 +116,14 @@ func main() {
 
 	ctx := context.Background()
 
+	// TESTING
+	if err := util.AddCTRunDataToPerf(ctx, "test-group-name", "test-run-id", "/tmp/test.csv"); err != nil {
+		sklog.Errorf("Error when adding CT run data to Perf: %s", err)
+		return
+	}
+	// TESTING
+	sklog.Fatal("TESTING ABOVE!")
+
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)

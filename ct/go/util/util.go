@@ -25,11 +25,13 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/ingestcommon"
 )
 
 const (
@@ -1252,6 +1254,234 @@ func GetRankFromPageset(pagesetFileName string) (int, error) {
 	var extension = filepath.Ext(pagesetFileName)
 	rank := pagesetFileName[0 : len(pagesetFileName)-len(extension)]
 	return strconv.Atoi(rank)
+}
+
+// AddCTRunDataToPerf uploads data from the CT run to CT's perf instance.
+// It does the following:
+// 1) Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+/master
+// 2) Constructs a results file in the format of https://github.com/google/skia-buildbot/blob/master/perf/FORMAT.md
+// 3) Ensures that the results file has as key the runID, groupName and the git hash from (1).
+// 4) Uploads the results file to Google storage bucket CT_PERF_BUCKET for ingestion by ct-perf.skia.org.
+//    It is stored in location of this format: gs://<bucket>/<one or more dir names>/YYYY/MM/DD/HH/<zero or more dir names><some unique name>.json
+//
+// Converts the following example CSV file:
+//
+// paint_op_count,traceUrls,pixels_rasterized,rasterize_time (ms),record_time_caching_disabled (ms),record_time_subsequence_caching_disabled (ms),painter_memory_usage (B),record_time_construction_disabled (ms),page_name
+// 805.0,,1310720.0,2.449,1.128,0.283,25856.0,0.335,http://www.reuters.com (#480)
+// 643.0,,1310720.0,2.894,0.998,0.209,24856.0,0.242,http://www.rediff.com (#490)
+//
+//  into
+//
+//  {
+//    "gitHash" : "8dcc84f7dc8523dd90501a4feb1f632808337c34",
+//    "key" : {
+//      "group_name" : "BGPT perf"
+//    },
+//    "results" : {
+//      "http://www.reuters.com" : {
+//        "default" : {
+//          "paint_op_count": 805.0,
+//          "pixels_rasterized": 1310720.0,
+//          "rasterize_time (ms)": 2.449,
+//          "record_time_caching_disabled (ms)": 1.128,
+//          "record_time_subsequence_caching_disabled (ms)": 0.283,
+//          "painter_memory_usage (B)": 25856.0,
+//          "record_time_construction_disabled (ms)": 0.335,
+//          "options" : {
+//            "page_rank" : 480,
+//          },
+//        },
+//      "http://www.rediff.com" : {
+//        "default" : {
+//          "paint_op_count": 643.0,
+//          "pixels_rasterized": 1310720.0,
+//          "rasterize_time (ms)": 2.894,
+//          "record_time_caching_disabled (ms)": 0.998,
+//          "record_time_subsequence_caching_disabled (ms)": 0.209,
+//          "painter_memory_usage (B)": 24856.0,
+//          "record_time_construction_disabled (ms)": 0.242,
+//          "options" : {
+//            "page_rank" : 490,
+//          },
+//        },
+//      }
+//    }
+//  }
+//
+// So "http://www.reuters.com (#480)" will get smashed down to http___www_reuters_com___480_
+//
+// TODO(rmistry): Strip out the rank "http://www.reuters.com (#480)" and add it in options.
+// TODO(rmistry): Strip out the Trace URLs since they have special treatment anyway. This will also make the JSON smaller.
+// Look at https://github.com/google/skia-buildbot/blob/master/android_ingest/go/parser/parser.go.
+// TODO(rmistry): Move to ct_perf.go in util directory?
+func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults string) error {
+	// Step 1: Add a commit to CT Perf's synthetic repo in CT_PERF_REPO
+	uniqueID := fmt.Sprintf("%s-%d", runID, time.Now().Unix())
+	tmpDir, err := ioutil.TempDir("", uniqueID)
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
+	fmt.Println("NOT REMOVING THE DIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	fmt.Println(tmpDir)
+	checkout, err := git.NewCheckout(ctx, CT_PERF_REPO, tmpDir)
+	if err != nil {
+		return err
+	}
+	// Add a commit and record the hash.
+	if err := ioutil.WriteFile(filepath.Join(checkout.Dir(), uniqueID), []byte(uniqueID), 0644); err != nil {
+		return fmt.Errorf("Failed to write %s: %s", uniqueID, err)
+	}
+	if msg, err := checkout.Git(ctx, "add", uniqueID); err != nil {
+		return fmt.Errorf("Failed to add file %q: %s", msg, err)
+	}
+
+	// TODO(rmistry): Use checkout.Git like below?
+	output := bytes.Buffer{}
+	cmd := exec.Command{
+		Name:           "git",
+		Args:           []string{"commit", "-m", fmt.Sprintf("Commit for %s by %s", groupName, runID)},
+		Dir:            checkout.Dir(),
+		InheritEnv:     true,
+		CombinedOutput: &output,
+	}
+	if err := exec.Run(ctx, &cmd); err != nil {
+		return fmt.Errorf("Failed to commit updated file %q: %s", output.String(), err)
+	}
+	// Record the full hash.
+	hashes, err := checkout.RevList(ctx, "HEAD", "-n1")
+	if err != nil {
+		return err
+	}
+	hash := hashes[0]
+	// UNCOMMENT THE BELOW!
+	//if msg, err := checkout.Git(ctx, "push", "origin", "master"); err != nil {
+	//	return fmt.Errorf("Failed to push updated checkout %q: %s", msg, err)
+	//}
+
+	fmt.Println("COMMIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	fmt.Println(hash)
+
+	// USE FOR TESTING = 5835d64be976a27f047b947c6c240e65e84acaad
+	hash = "5835d64be976a27f047b947c6c240e65e84acaad"
+
+	// Step 2: Constructs a results file in the format of https://github.com/google/skia-buildbot/blob/master/perf/FORMAT.md
+	ctPerfData := &ingestcommon.BenchData{
+		Hash: hash,
+		Key: map[string]string{
+			"group_name": groupName,
+		},
+		Results: map[string]ingestcommon.BenchResults{},
+	}
+	// Go through the CSV file here!!!
+	csvFile, err := os.Open(pathToCSVResults)
+	defer util.Close(csvFile)
+	reader := csv.NewReader(csvFile)
+	reader.FieldsPerRecord = -1
+	headers, err := reader.Read()
+	if err != nil {
+		return err
+	}
+	fmt.Println("HEADERS: %s", headers)
+	//pageNameIndex := 0
+	//for i, h := range headers {
+	//	if h == "page_name" {
+	//		pageNameIndex = i
+	//		break
+	//	}
+	//}
+	for {
+		line, err := reader.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		pageNameNoRank := ""
+		//rank := 0
+		benchResult := ingestcommon.BenchResult{}
+		for i := range headers {
+			fmt.Println(line)
+			if headers[i] == "traceUrls" {
+				// Strip out the Trace URLs since they have special treatment anyway. This will also make the JSON smaller.
+				continue
+			} else if headers[i] == "page_name" {
+				fmt.Println("page name")
+				fmt.Println(i)
+				fmt.Println(string(line[i]))
+				pageNameNoRank = string(line[i])
+			} else {
+				fmt.Println("here")
+				fmt.Println(i)
+				fmt.Println(line[i])
+				f, err := strconv.ParseFloat(string(line[i]), 64)
+				if err != nil {
+					sklog.Errorf("Couldn't parse %q as a float64: %s", string(line[i]), err)
+					continue
+				}
+				benchResult[headers[i]] = f
+
+			}
+		}
+
+		ctPerfData.Results[pageNameNoRank] = ingestcommon.BenchResults{}
+		ctPerfData.Results[pageNameNoRank]["default"] = benchResult
+		//for _, v := range line {
+
+		//}
+
+		//people = append(people, Person{
+		//	Firstname: line[0],
+		//	Lastname:  line[1],
+		//	Address: &Address{
+		//		City:  line[2],
+		//		State: line[3],
+		//	},
+		//})
+	}
+
+	fmt.Println("DEBUGGING")
+	fmt.Println(ctPerfData)
+
+	//peopleJson, _ := json.Marshal(people)
+	//fmt.Println(string(peopleJson))
+
+	//// TODO(rmistry): Think about memory.
+	//headers, values, err := GetRowsFromCSV(pathToCSVResults)
+	//if err != nil {
+	//	return fmt.Errorf("Could not read CSV file %s: %s", pathToCSVResults, err)
+	//}
+	//pageToMetrics := [string]map{}
+	//for i := range headers {
+	//	for j := range values {
+	//		if headers[i] == "traceUrls" {
+	//			// Strip out the Trace URLs since they have special treatment anyway. This will also make the JSON smaller.
+	//			continue
+	//		} else if (headers[i] == "page_name")
+	//		fmt.Println(headers[i])
+	//		fmt.Println(values[j][i])
+	//	}
+	//}
+	//fmt.Println(ctPerfData)
+	//for test, metrics := range in.Metrics {
+	//	benchData.Results[test] = ingestcommon.BenchResults{}
+	//	benchData.Results[test]["default"] = ingestcommon.BenchResult{}
+	//	for key, value := range metrics {
+	//		f, err := value.Float64()
+	//		if err != nil {
+	//			sklog.Errorf("Couldn't parse %q as a float64: %s", value.String(), err)
+	//			continue
+	//		}
+	//		benchData.Results[test]["default"][key] = f
+	//	}
+	//}
+	//// PROBABLY NOT NEEDED..
+	//if len(benchData.Results) == 0 {
+	//	sklog.Warningf("Failed to extract any data from incoming file: %q", string(b))
+	//}
+
+	return nil
 }
 
 type Pageset struct {
