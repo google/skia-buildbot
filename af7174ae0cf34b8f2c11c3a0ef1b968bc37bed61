@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "040aefa1_2637f41f",
+        "filename": "am/go/alertclient/client.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-29T17:06:31Z",
+      "side": 1,
+      "message": "if err :\u003d json.NewDecoder(r.Body).Decode(\u0026alerts); err !\u003d nil {\n\nHere and in GetSilences.",
+      "range": {
+        "startLine": 59,
+        "startChar": 11,
+        "endLine": 59,
+        "endChar": 28
+      },
+      "revId": "af7174ae0cf34b8f2c11c3a0ef1b968bc37bed61",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
