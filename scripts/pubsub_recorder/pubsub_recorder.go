@@ -78,14 +78,17 @@ func doRecord(ctx context.Context, client *pubsub.Client, file string) {
 	sub := client.Subscription(subName)
 	if exists, err := sub.Exists(ctx); err != nil {
 		sklog.Fatal(err)
-	} else if !exists {
-		sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic:       client.Topic(*topicName),
-			AckDeadline: 10 * time.Second,
-		})
-		if err != nil {
+	} else if exists {
+		if err := sub.Delete(ctx); err != nil {
 			sklog.Fatal(err)
 		}
+	}
+	sub, err = client.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
+		Topic:       client.Topic(*topicName),
+		AckDeadline: 10 * time.Second,
+	})
+	if err != nil {
+		sklog.Fatal(err)
 	}
 	defer func() {
 		if err := sub.Delete(ctx); err != nil {
