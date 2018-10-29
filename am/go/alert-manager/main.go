@@ -633,6 +633,7 @@ func main() {
 	// Internal endpoints that are only accessible from within the cluster.
 	unprotected := mux.NewRouter()
 	unprotected.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
+	unprotected.HandleFunc("/_/silences", srv.silencesHandler).Methods("GET")
 	go func() {
 		sklog.Fatal(http.ListenAndServe(*internalPort, unprotected))
 	}()

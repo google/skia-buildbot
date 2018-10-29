@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/am/go/note"
+	"go.skia.org/infra/am/go/silence"
 	"go.skia.org/infra/go/alerts"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/human"
@@ -69,6 +70,21 @@ func (in *Incident) Save() ([]datastore.Property, error) {
 	}
 	in.ParamsSerial = string(b)
 	return datastore.SaveStruct(in)
+}
+
+// IsSilence returns if any of the given silences apply to this incident.
+func (in *Incident) IsSilenced(silences []silence.Silence) bool {
+	ps := paramtools.ParamSet{}
+	for k, v := range in.Params {
+		ps[k] = []string{v}
+	}
+
+	for _, s := range silences {
+		if s.ParamSet.Matches(ps) {
+			return true
+		}
+	}
+	return false
 }
 
 // Store and retrieve Incidents from Cloud Datastore.
