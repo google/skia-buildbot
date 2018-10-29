@@ -293,9 +293,14 @@ func NewCloudLoggingReceiver(logger *logging.Logger) (*CloudLoggingReceiver, err
 func (r *CloudLoggingReceiver) HandleMessage(m *Message) error {
 	// TODO(borenet): When should we LogSync, or Flush? If the program
 	// crashes or is killed, we'll want to have already flushed the logs.
+	labels := map[string]string{}
+	if m.StepId != "" {
+		labels["stepId"] = m.StepId
+	}
 	r.logger.Log(logging.Entry{
 		Payload:  m,
 		Severity: logging.ParseSeverity(sklog.DEBUG),
+		Labels:   labels,
 	})
 	return nil
 }
