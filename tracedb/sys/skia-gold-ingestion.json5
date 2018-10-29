@@ -23,10 +23,6 @@
           Bucket: "skia-infra-gm-internal",
           Dir: "dm-json-v1"
         },
-        {
-          Bucket: "chromium-skia-gm",
-          Dir: "dm-json-v1"
-        },
       ],
       ExtraParams: {
         TraceService: "skia-tracedb:9090",

@@ -70,7 +70,7 @@ const (
 	URL_TMPL_CHANGE = "/changes/%d/detail?o=ALL_REVISIONS"
 
 	// extractReg is the regular expression used by ExtractIssueFromCommit.
-	extractRegTmpl = `^\s*Reviewed-on:\s*%s/([0-9]+)\s*$`
+	extractRegTmpl = `^\s*Reviewed-on:.*%s.*/([0-9]+)\s*$`
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -198,10 +198,13 @@ type Gerrit struct {
 // NewGerrit returns a new Gerrit instance. If gitCookiesPath is empty the
 // instance will be in read-only mode and only return information available to
 // anonymous users.
-func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
-	url = strings.TrimRight(url, "/")
+func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, error) {
+	parsedUrl, err := url.Parse(gerritUrl)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Unable to parse gerrit URL: %s", err)
+	}
 
-	regExStr := fmt.Sprintf(extractRegTmpl, url)
+	regExStr := fmt.Sprintf(extractRegTmpl, parsedUrl.Host)
 	extractRegEx, err := regexp.Compile(regExStr)
 	if err != nil {
 		return nil, sklog.FmtErrorf("Unable to compile regular expression '%s'. Error: %s", regExStr, err)
@@ -211,7 +214,7 @@ func NewGerrit(url, gitCookiesPath string, client *http.Client) (*Gerrit, error)
 		client = httputils.NewTimeoutClient()
 	}
 	return &Gerrit{
-		url:               url,
+		url:               gerritUrl,
 		client:            client,
 		buildbucketClient: buildbucket.NewClient(client),
 		gitCookiesPath:    gitCookiesPath,
