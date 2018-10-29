@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e46b496_61ae423e",
+        "filename": "ct/go/ctfe/task_common/task_common.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 745,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-29T18:04:04Z",
+      "side": 1,
+      "message": "nit: should probably be GET",
+      "range": {
+        "startLine": 745,
+        "startChar": 98,
+        "endLine": 745,
+        "endChar": 102
+      },
+      "revId": "ba7b53fd279da9aedeb2ac42631e08bd9034c9cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccd2ec0e_416c6d04",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-10-29T18:04:04Z",
+      "side": 1,
+      "message": "nit: this should probably be passed in so that the page changes when it is modified.",
+      "range": {
+        "startLine": 334,
+        "startChar": 16,
+        "endLine": 334,
+        "endChar": 36
+      },
+      "revId": "ba7b53fd279da9aedeb2ac42631e08bd9034c9cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
