@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b4d0050_9e4ca19f",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-29T14:45:31Z",
+      "side": 1,
+      "message": "It seems like this may be at the point where it warrants a test.",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 207,
+        "endChar": 56
+      },
+      "revId": "ddfd49909a719e7bd99c39b7749781b0afae1e86",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
