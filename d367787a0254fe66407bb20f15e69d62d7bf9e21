@@ -117,6 +117,30 @@
       "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25bdfc6d_8fe3e520",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-29T14:20:27Z",
+      "side": 1,
+      "message": "No, I did it in the cloud console.  I think it could be done via the logadmin API but I never tried.",
+      "parentUuid": "a39c8e36_867499da",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 39
+      },
+      "revId": "d367787a0254fe66407bb20f15e69d62d7bf9e21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
