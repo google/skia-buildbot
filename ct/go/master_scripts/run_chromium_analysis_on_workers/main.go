@@ -116,6 +116,21 @@ func main() {
 
 	ctx := context.Background()
 
+	// TESTING
+	// Instantiate GcsUtil object.
+	g2s, err := util.NewGcsUtil(nil)
+	if err != nil {
+		sklog.Errorf("Could not instantiate gsutil object: %s", err)
+		return
+	}
+
+	if err := util.AddCTRunDataToPerf(ctx, "test-group-name", "test-run-id", "/tmp/test.csv", g2s); err != nil {
+		sklog.Errorf("Error when adding CT run data to Perf: %s", err)
+		return
+	}
+	// TESTING
+	sklog.Fatal("TESTING ABOVE!")
+
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
 	emailsArr = append(emailsArr, util.CtAdmins...)
