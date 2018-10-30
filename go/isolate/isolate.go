@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
 )
@@ -65,11 +65,12 @@ func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*C
 
 // NewClient returns a Client instance.
 func NewClient(workdir, server string) (*Client, error) {
+	client := httputils.DefaultClientConfig().Client()
 	// By default, the storage client tries really hard to be authenticated
 	// with the scopes ReadWrite. Since the isolate executables are public
 	// links, this is unnecessay and, in fact, causes errors if the user
 	// doesn't have access to the bucket.
-	s, err := storage.NewClient(context.Background(), option.WithScopes(storage.ScopeReadOnly), option.WithHTTPClient(&http.Client{}))
+	s, err := storage.NewClient(context.Background(), option.WithScopes(storage.ScopeReadOnly), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
