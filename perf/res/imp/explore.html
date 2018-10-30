@@ -28,7 +28,7 @@
 <link rel="import" href="/res/imp/plot-simple.html" />
 <link rel="import" href="/res/imp/commit-detail-panel.html" />
 <link rel="import" href="/res/imp/highlight.html" />
-<link rel="import" href="/res/imp/day-range.html" />
+<link rel="import" href="/res/imp/domain-picker-sk.html" />
 <link rel="import" href="/res/imp/json-source.html" />
 
 <dom-module id="explore-sk">
@@ -101,7 +101,7 @@
       color: #1F78B4;
     }
 
-    day-range-sk {
+    domain-picker-sk {
       display: block;
     }
 
@@ -147,7 +147,7 @@
         <highlightbar-sk id=highlight></highlightbar-sk>
         <plot-simple-sk width=1024 height=256 id=plot></plot-simple-sk>
         <div class="layout horizontal center-justified">
-          <day-range-sk id=range on-day-range-change="_rangeChange"></day-range-sk>
+          <domain-picker-sk id=range state="[[state]]" on-domain-changed="_rangeChange"></domain-picker-sk>
           <paper-spinner id=spinner></paper-spinner>
           <span id=percent></span>
         </div>
@@ -248,6 +248,8 @@
           xbaroffset: -1, // The offset of the commit in the repo.
           show_zero: true,
           auto_refresh: false,
+          num_commits: 200,
+          request_type: 0,
         }; },
       },
       // The [begin, end] timestamps of the region
@@ -287,8 +289,10 @@
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       sk.get("/_/initpage/?tz=" + tz).then(JSON.parse).then(function(json) {
         var header = json.dataframe.header;
-        this.state.begin = this.$.range.begin = header[0].timestamp;
-        this.state.end   = this.$.range.end   = header[header.length-1].timestamp+1;
+        this.state.begin = header[0].timestamp;
+        this.state.end   = header[header.length-1].timestamp+1;
+        this.$.range.state = this.state;
+
         this.$.query.setKeyOrder(sk.perf.key_order);
         this.$.query.setParamset(json.dataframe.paramset);
 
@@ -383,11 +387,10 @@
 
     _startStateReflector: function() {
       sk.stateReflector(this,  function() {
-        this.$.range.begin = this.state.begin;
-        this.$.range.end = this.state.end;
+        this.$.range.state = this.state;
         this._zeroChanged();
         this._autoRefreshChanged();
-        this._rangeChangeImpl(this.state.begin, this.state.end);
+        this._rangeChangeImpl();
       }.bind(this));
     },
 
@@ -408,15 +411,19 @@
     // Fit the time range to the zoom being displayed.
     // Reload all the queries/formulas on the new time range.
     _zoomToRange: function() {
-      this.$.range.begin = this._zoomRange[0];
-      this.$.range.end = this._zoomRange[1];
-      this._rangeChangeImpl(this._zoomRange[0], this._zoomRange[1]);
+      this.state.begin = this._zoomRange[0];
+      this.state.end = this._zoomRange[1];
+      this._rangeChangeImpl();
     },
 
-    // Called when the day-range slider has changed, causes all the
+    // Called when the domain-picker-sk control has changed, causes all the
     // queries/formulas to be reloaded for the new time range.
     _rangeChange: function(e) {
-      this._rangeChangeImpl(e.detail.begin, e.detail.end);
+      this.state.begin = e.detail.state.begin;
+      this.state.end = e.detail.state.end;
+      this.state.num_commits = e.detail.state.num_commits;
+      this.state.request_type = e.detail.state.request_type;
+      this._rangeChangeImpl();
     },
 
     _shiftBoth: function(e) {
@@ -434,14 +441,42 @@
     // Change the current range by the following +/- offsets.
     _shiftImpl: function(beginOffset, endOffset) {
       var body = {
-        begin:        this.state.begin,
-        begin_offset: beginOffset,
-        end:          this.state.end,
-        end_offset:   endOffset,
+        begin:         this.state.begin,
+        begin_offset:  beginOffset,
+        end:           this.state.end,
+        end_offset:    endOffset,
+        num_commits:   this.state.num_commits,
+        request_type:  this.state.request_type,
       }
       sk.post('/_/shift/', JSON.stringify(body)).then(JSON.parse).then(function(json) {
-        this._rangeChangeImpl(json.begin, json.end);
+        this.state.begin = json.begin;
+        this.state.end = json.end;
+        this.state.num_commits = json.num_commits;
+        // Now let's try to fool Polymer into updating the page.
+        this.set('state', Object.assign({}, this.state));
+        this._rangeChangeImpl();
       }.bind(this)).catch(sk.errorMessage);
+    },
+
+    // Fill in the basic data needed for a FrameRequest that will be common
+    // to all situations.
+    _requestFrameBodyFromState: function() {
+      return {
+        begin: this.state.begin,
+        end: this.state.end,
+        num_commits: this.state.num_commits,
+        request_type: this.state.request_type,
+      };
+    },
+
+    // Create a FrameRequest that will re-create the current state of the page.
+    _requestFrameBodyFullFromState: function() {
+      var body = this._requestFrameBodyFromState();
+      return Object.assign(body, {
+        formulas: this.state.formulas,
+        queries: this.state.queries,
+        keys: this.state.keys,
+      });
     },
 
     // Reload all the queries/formulas on the given time range.
@@ -449,18 +484,10 @@
       if (!this.state) {
         return
       }
-      this.$.range.begin = this.state.begin = begin;
-      this.$.range.end = this.state.end = end;
       if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == "") {
         return
       }
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
-        formulas: this.state.formulas,
-        queries: this.state.queries,
-        keys: this.state.keys,
-      };
+      var body = this._requestFrameBodyFullFromState();
       var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
       this._requestFrame(body, function(json) {
         this.$.plot.removeAll();
@@ -523,13 +550,7 @@
     _autoRefresh: function() {
       // Update end to be now.
       this.state.end = Math.floor(Date.now()/1000);
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
-        formulas: this.state.formulas,
-        queries: this.state.queries,
-        keys: this.state.keys,
-      };
+      var body = this._requestFrameBodyFullFromState();
       var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
       this._requestFrame(body, (json) => {
         this.$.plot.removeAll();
@@ -640,11 +661,10 @@
       if (this.state.queries.indexOf(q) == -1) {
         this.state.queries.push(q);
       }
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
+      var body = this._requestFrameBodyFromState();
+      Object.assign(body, {
         queries: [q],
-      };
+      });
       this._requestFrame(body, function(json) {
         this._addTraces(json, true, true);
       }.bind(this));
@@ -733,11 +753,10 @@
       promise.then(() => {
         let f = `norm(shortcut("${this.state.keys}"))`
         this._removeAll();
-        let body = {
-          begin: this.state.begin,
-          end: this.state.end,
+        var body = this._requestFrameBodyFromState();
+        Object.assign(body, {
           formulas: [f],
-        };
+        });
         this.state.formulas.push(f);
         this._requestFrame(body, (json) => {
           this._addTraces(json, true, false);
@@ -841,11 +860,10 @@
       if (this.state.formulas.indexOf(f) == -1) {
         this.state.formulas.push(f);
       }
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
+      var body = this._requestFrameBodyFromState();
+      Object.assign(body, {
         formulas: [f],
-      };
+      });
       this._requestFrame(body, function(json) {
         // TODO(jcgregorio) Remove all returned trace ids from hidden.
         this._addTraces(json, true, false);
