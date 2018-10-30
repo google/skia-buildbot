@@ -96,6 +96,6 @@ clean_webtools:
 #### npm install dependencies ####
 
 node_modules/lastupdate: package.json
-	npm install
+	#npm install
 	touch node_modules/lastupdate
 

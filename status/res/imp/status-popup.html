@@ -3,6 +3,7 @@
     var bh = {};
     bh.StatusPopup = {
       show: function() {
+        console.log("show");
         // If we are on a small screen (e.g. mobile), make the popup
         // take up more space than on a desktop.
         if (document.documentElement.clientWidth < 600) {
@@ -19,10 +20,18 @@
         // If the user taps anywhere else, remove the popup.
         document.body.addEventListener("tap", this.hide.bind(this));
         this.style["display"] = "block";
+        console.log(this.showCallback);
+        if (this.showCallback) {
+          console.log("Running showCallback");
+          this.showCallback();
+        }
       },
       hide: function() {
         document.body.removeEventListener("tap", this.hide);
         this.style["display"] = "none";
+        if (this.hideCallback) {
+          this.hideCallback();
+        }
       },
     };
     return bh;

@@ -1,9 +1,13 @@
-build: package-lock.json
+web: package-lock.json
 	npx webpack --mode=development
+
+web-prod: package-lock.json
+	NODE_ENV='production' npx webpack --mode=production
+
+build: web
 	GOOS=linux go install -a ./go/task-driver-server
 
-release: build package-lock.json
-	NODE_ENV='production' npx webpack --mode=production
+release: build web-prod
 	GOOS=linux go install -a ./go/task-driver-server
 	./build_release
 
