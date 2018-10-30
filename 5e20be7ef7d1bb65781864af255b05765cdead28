@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ad081e0_f40b3ebe",
+        "filename": "perf/res/imp/domain-picker-sk.html",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-10-30T20:25:50Z",
+      "side": 1,
+      "message": "If this is intended to make a copy, IMO  sk.object.shallowCopy(this.state) would be better.",
+      "range": {
+        "startLine": 100,
+        "startChar": 6,
+        "endLine": 100,
+        "endChar": 59
+      },
+      "revId": "5e20be7ef7d1bb65781864af255b05765cdead28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
