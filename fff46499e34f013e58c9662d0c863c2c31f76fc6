@@ -181,6 +181,24 @@
       "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c5fb87d_6b006041",
+        "filename": "task_driver/pages/task-driver-index.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-30T19:35:28Z",
+      "side": 1,
+      "message": "IIUC this makes webpack pull in the task-driver-sk module so that index.html has access to it.  I guess maybe that could be done in index.html itself?",
+      "parentUuid": "ad00dee0_56a9268d",
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
