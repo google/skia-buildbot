@@ -1241,11 +1241,18 @@ type ShiftRequest struct {
 	End int64 `json:"end"`
 	// EndOffset is the number of commits to move (+ or -) the End timestamp.
 	EndOffset int `json:"end_offset"`
+
+	// See dataframe.FrameRequest.
+	NumCommits int `json:"num_commits"`
+
+	// See dataframe.FrameRequest.
+	RequestType dataframe.RequestType `json:"request_type"`
 }
 
 type ShiftResponse struct {
-	Begin int64 `json:"begin"`
-	End   int64 `json:"end"`
+	Begin      int64 `json:"begin"`
+	End        int64 `json:"end"`
+	NumCommits int   `json:"num_commits"`
 }
 
 // shiftHandler computes a new begin and end timestamp for a dataframe given
@@ -1254,16 +1261,20 @@ type ShiftResponse struct {
 func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := context.Background()
-	sr := &ShiftRequest{}
-	if err := json.NewDecoder(r.Body).Decode(sr); err != nil {
+	var sr ShiftRequest
+	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
-	sklog.Infof("ShiftRequest: %#v", *sr)
+	sklog.Infof("ShiftRequest: %#v", &sr)
 	commits := git.Range(time.Unix(sr.Begin, 0), time.Unix(sr.End, 0))
 	if len(commits) == 0 {
 		httputils.ReportError(w, r, fmt.Errorf("No commits found in range."), "No commits found in range.")
 		return
+	}
+	numCommits := sr.NumCommits
+	if sr.RequestType == dataframe.REQUEST_COMPACT {
+		numCommits -= sr.BeginOffset
 	}
 	beginCommit, err := git.ByIndex(ctx, commits[0].Index+sr.BeginOffset)
 	if err != nil {
@@ -1288,8 +1299,9 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := ShiftResponse{
-		Begin: beginCommit.Timestamp.Unix(),
-		End:   endCommitTs.Unix() + 1,
+		Begin:      beginCommit.Timestamp.Unix(),
+		End:        endCommitTs.Unix() + 1,
+		NumCommits: numCommits,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
