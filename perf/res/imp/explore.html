@@ -248,6 +248,8 @@
           xbaroffset: -1, // The offset of the commit in the repo.
           show_zero: true,
           auto_refresh: false,
+          num_commits: 200,
+          request_type: 0,
         }; },
       },
       // The [begin, end] timestamps of the region
@@ -444,6 +446,27 @@
       }.bind(this)).catch(sk.errorMessage);
     },
 
+    // Fill in the basic data needed for a FrameRequest that will be common
+    // to all situations.
+    _requestFrameBodyFromState: function() {
+      return {
+        begin: this.state.begin,
+        end: this.state.end,
+        num_commits: this.state.num_commits,
+        request_type: this.state.request_type,
+      };
+    },
+
+    // Create a FrameRequest that will re-create the current state of the page.
+    _requestFrameBodyFullFromState: function() {
+      var body = this._requestFrameBodyFromState();
+      return Object.assign(body, {
+        formulas: this.state.formulas,
+        queries: this.state.queries,
+        keys: this.state.keys,
+      });
+    },
+
     // Reload all the queries/formulas on the given time range.
     _rangeChangeImpl: function(begin, end) {
       if (!this.state) {
@@ -454,13 +477,7 @@
       if (this.state.formulas.length == 0 && this.state.queries.length == 0 && this.state.keys == "") {
         return
       }
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
-        formulas: this.state.formulas,
-        queries: this.state.queries,
-        keys: this.state.keys,
-      };
+      var body = this._requestFrameBodyFullFromState();
       var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
       this._requestFrame(body, function(json) {
         this.$.plot.removeAll();
@@ -523,13 +540,7 @@
     _autoRefresh: function() {
       // Update end to be now.
       this.state.end = Math.floor(Date.now()/1000);
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
-        formulas: this.state.formulas,
-        queries: this.state.queries,
-        keys: this.state.keys,
-      };
+      var body = this._requestFrameBodyFullFromState();
       var switchToTab = body.formulas.length > 0 || body.queries.length > 0 || body.keys != "";
       this._requestFrame(body, (json) => {
         this.$.plot.removeAll();
@@ -640,11 +651,10 @@
       if (this.state.queries.indexOf(q) == -1) {
         this.state.queries.push(q);
       }
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
+      var body = this._requestFrameBodyFromState();
+      Object.assign(body, {
         queries: [q],
-      };
+      });
       this._requestFrame(body, function(json) {
         this._addTraces(json, true, true);
       }.bind(this));
@@ -733,11 +743,10 @@
       promise.then(() => {
         let f = `norm(shortcut("${this.state.keys}"))`
         this._removeAll();
-        let body = {
-          begin: this.state.begin,
-          end: this.state.end,
+        var body = this._requestFrameBodyFromState();
+        Object.assign(body, {
           formulas: [f],
-        };
+        });
         this.state.formulas.push(f);
         this._requestFrame(body, (json) => {
           this._addTraces(json, true, false);
@@ -841,11 +850,10 @@
       if (this.state.formulas.indexOf(f) == -1) {
         this.state.formulas.push(f);
       }
-      var body = {
-        begin: this.state.begin,
-        end: this.state.end,
+      var body = this._requestFrameBodyFromState();
+      Object.assign(body, {
         formulas: [f],
-      };
+      });
       this._requestFrame(body, function(json) {
         // TODO(jcgregorio) Remove all returned trace ids from hidden.
         this._addTraces(json, true, false);
@@ -879,6 +887,7 @@
     // of the response once it's available.
     _requestFrame: function(body, cb) {
       body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
       if (this._requestId != "") {
         sk.errorMessage("There is a pending query already running.");
         return
