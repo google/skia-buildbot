@@ -6,11 +6,11 @@
     win_file:
       path: c:\Temp
       state: directory
-  # For v24.20.100.6229, the Intel driver download page only has a ZIP available. If we want to
-  # switch back to using the EXE in the future, see git history.
+  # For v25.20.100.6326, the EXE installer doesn't seem to work. If we want to switch back to using
+  # the EXE in the future, see git history.
   - name: Copy the Intel Graphics Driver Skylake ZIP to the host
     win_copy:
-      src: "{{ win_package_src }}/Intel Graphics Skylake win64_24.20.100.6229.zip"
+      src: "{{ win_package_src }}/Intel Graphics Skylake win64_25.20.100.6326.zip"
       dest: c:\Temp\intel_gfx.zip
   - name: Extract the Intel Graphics Skylake driver ZIP
     win_unzip:
