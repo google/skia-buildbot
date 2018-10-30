@@ -3,7 +3,7 @@ import { html } from 'lit-html'
 
 import { WasmFiddle, codeEditor } from '../wasm-fiddle'
 
-const CanvasKitInit = require('../canvaskit/skia.js');
+const CanvasKitInit = require('../canvaskit/canvaskit.js');
 
 
 // Main template for this element
@@ -11,7 +11,7 @@ const template = (ele) => html`
 <header>
   <div class=title>CanvasKit Fiddle</div>
   <div class=flex></div>
-  <div class=version>CanvasKit Version: 0.0.3</div>
+  <div class=version>CanvasKit Version: 0.1.1</div>
 </header>
 
 <main>

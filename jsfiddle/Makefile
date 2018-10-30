@@ -17,8 +17,8 @@ canvaskit:
 	# Hack until canvaskit is on npm
 	rm -rf modules/canvaskit
 	mkdir -p modules/canvaskit
-	wget -O modules/canvaskit/skia.js https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.3/bin/skia.js
-	wget -O modules/canvaskit/skia.wasm https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.0.3/bin/skia.wasm
+	wget -O modules/canvaskit/canvaskit.js https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.1.1/bin/canvaskit.js
+	wget -O modules/canvaskit/canvaskit.wasm https://storage.googleapis.com/skia-cdn/canvaskit-wasm/0.1.1/bin/canvaskit.wasm
 
 core:
 	go install -v ./go/jsfiddle
