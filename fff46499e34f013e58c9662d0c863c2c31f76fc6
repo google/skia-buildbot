@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "014cb993_70c51927",
+        "filename": "infra-sk/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-30T19:24:31Z",
+      "side": 1,
+      "message": "Ack.  AFAIK, demo pages are turned off in a production build.",
+      "parentUuid": "3451ccc0_30c45af2",
+      "range": {
+        "startLine": 8,
+        "startChar": 31,
+        "endLine": 8,
+        "endChar": 42
+      },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "68adae12_b4972d08",
         "filename": "infra-sk/package.json",
         "patchSetId": 2
@@ -42,6 +66,70 @@
         "endLine": 3,
         "endChar": 21
       },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c856caf3_b83e1fca",
+        "filename": "infra-sk/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-30T19:24:31Z",
+      "side": 1,
+      "message": "Like, make it live?\n\nnpm publish",
+      "parentUuid": "68adae12_b4972d08",
+      "range": {
+        "startLine": 3,
+        "startChar": 18,
+        "endLine": 3,
+        "endChar": 21
+      },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eb0a564_8e04bd65",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-30T19:24:31Z",
+      "side": 1,
+      "message": "!\u003d\u003d here and other places.",
+      "range": {
+        "startLine": 178,
+        "startChar": 51,
+        "endLine": 178,
+        "endChar": 53
+      },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad00dee0_56a9268d",
+        "filename": "task_driver/pages/task-driver-index.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-10-30T19:24:31Z",
+      "side": 1,
+      "message": "Is this file needed?",
       "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
