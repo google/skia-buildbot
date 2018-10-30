@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "a31638a5_728fccb1",
+        "filename": "infra-sk/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-10-30T19:27:28Z",
+      "side": 1,
+      "message": "$ make update-minor\n\nthen\n\n$ make release",
+      "parentUuid": "68adae12_b4972d08",
+      "range": {
+        "startLine": 3,
+        "startChar": 18,
+        "endLine": 3,
+        "endChar": 21
+      },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9eb0a564_8e04bd65",
         "filename": "status/res/imp/task-popup-sk.html",
         "patchSetId": 2
