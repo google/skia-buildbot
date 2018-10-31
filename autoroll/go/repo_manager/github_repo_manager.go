@@ -244,11 +244,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 
-	// Write the file.
-	if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(to+"\n"), os.ModePerm); err != nil {
-		return 0, err
-	}
-
 	// Run the pre-upload steps.
 	for _, s := range rm.PreUploadSteps() {
 		if err := s(ctx, rm.httpClient, rm.parentRepo.Dir()); err != nil {
@@ -294,10 +289,27 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	}
 	commitMsg := buf.String()
 
-	// Commit.
-	if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
+
+	versions_text, err := logStr, err := rm.childRepo.Git(ctx, "rev-list", fmt.Sprintf("%s..%s", from, to))
+	if err != nil {
 		return 0, err
 	}
+	versions := versions_text.Split("\n")
+
+	for _, version : range versions {
+		// Write the file.
+		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(version+"\n"), os.ModePerm); err != nil {
+			return 0, err
+		}
+
+		// Commit.
+		// TODO(liyuqian): change the commit message to be something better than just version
+		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", version); err != nil {
+			return 0, err
+		}
+
+	}
+
 
 	// Push to the forked repository.
 	if _, err := rm.parentRepo.Git(ctx, "push", "origin", ROLL_BRANCH, "-f"); err != nil {
