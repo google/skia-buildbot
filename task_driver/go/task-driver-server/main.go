@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/display"
+	"go.skia.org/infra/task_driver/go/handlers"
 	"go.skia.org/infra/task_driver/go/logs"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -218,15 +219,12 @@ func runServer(ctx context.Context, serverURL string) {
 	loadTemplates()
 	r := mux.NewRouter()
 	r.HandleFunc("/td/{taskId}", taskDriverHandler)
-	r.HandleFunc("/json/td/{taskId}", jsonTaskDriverHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc("/logs/{taskId}", taskLogsHandler)
-	r.HandleFunc("/logs/{taskId}/{stepId}", stepLogsHandler)
-	r.HandleFunc("/logs/{taskId}/{stepId}/{logId}", singleLogHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	handlers.AddTaskDriverHandlers(r, d, lm)
 	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
