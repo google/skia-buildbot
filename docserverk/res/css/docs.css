@@ -61,6 +61,7 @@ h2 {
 
 #drawer {
   min-width: 250px;
+  max-width: 280px; /*do not overlap #content*/
   background: #fafafa;
   padding: 10px;
   overflow-y: scroll;
