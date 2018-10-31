@@ -1,5 +1,4 @@
 build:
-	go install -v ./go/webhook_proxy
 	go install -v ./go/proxy_with_auth
 	go install -v ./go/absent
 	absent
