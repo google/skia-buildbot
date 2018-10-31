@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68c3a677_80350519",
+        "filename": "task_driver/go/handlers/handlers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-31T14:56:57Z",
+      "side": 1,
+      "message": "The handlers are copy/pasted from task-driver-server/main.go, then modified to no longer use global variables for the task driver database and logs.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 16
+      },
+      "revId": "fe75bbba3f480191d08d5f04447afa25ce5b6251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
