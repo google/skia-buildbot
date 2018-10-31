@@ -37,7 +37,8 @@ import (
 	"go.skia.org/infra/status/go/lkgr"
 	task_driver_db "go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
-	"go.skia.org/infra/task_driver/go/display"
+	"go.skia.org/infra/task_driver/go/handlers"
+	"go.skia.org/infra/task_driver/go/logs"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -64,6 +65,7 @@ var (
 	lkgrObj          *lkgr.LKGR                    = nil
 	taskDb           db.RemoteDB                   = nil
 	taskDriverDb     task_driver_db.DB             = nil
+	taskDriverLogs   *logs.LogsManager             = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
 	tCache           db.TaskCache                  = nil
 
@@ -653,46 +655,6 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getTaskDriver returns a display.TaskDriverRunDisplay instance for the given
-// request. If anything went wrong, returns nil and writes an error to the
-// ResponseWriter.
-func getTaskDriver(w http.ResponseWriter, r *http.Request) *display.TaskDriverRunDisplay {
-	id, ok := mux.Vars(r)["id"]
-	if !ok {
-		http.Error(w, "No task driver ID in request path.", http.StatusBadRequest)
-		return nil
-	}
-	td, err := taskDriverDb.GetTaskDriver(id)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to retrieve task driver.")
-		return nil
-	}
-	if td == nil {
-		http.Error(w, "No task driver exists with the given ID.", http.StatusNotFound)
-		return nil
-	}
-	disp, err := display.TaskDriverForDisplay(td)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to format task driver for response.")
-		return nil
-	}
-	return disp
-}
-
-// jsonTaskDriverHandler returns the JSON representation of the requested Task Driver.
-func jsonTaskDriverHandler(w http.ResponseWriter, r *http.Request) {
-	disp := getTaskDriver(w, r)
-	if disp == nil {
-		// Any error was handled by getTaskDriver.
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(disp); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode response.")
-		return
-	}
-}
-
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
@@ -700,7 +662,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/capacity", capacityHandler)
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/autorollers", autorollStatusHandler)
-	r.HandleFunc("/json/td/{id}", jsonTaskDriverHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/lkgr", lkgrHandler)
@@ -719,6 +680,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
+	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	sklog.AddLogsRedirect(r)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
@@ -870,6 +832,10 @@ func main() {
 	// Create the TaskDriver DB.
 	btProject := "skia-public"
 	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, btProject, bigtable_db.BT_INSTANCE, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	taskDriverLogs, err = logs.NewLogsManager(ctx, btProject, logs.BT_INSTANCE, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
