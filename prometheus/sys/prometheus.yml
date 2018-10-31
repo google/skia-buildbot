@@ -6,7 +6,6 @@ alerting:
   alertmanagers:
     - static_configs:
       - targets:
-        - localhost:8001
         - localhost:9000
 
 rule_files:
@@ -172,17 +171,9 @@ scrape_configs:
     static_configs:
       - targets: ['skia-prom:8000']
 
-  - job_name: 'alertmanager'
-    static_configs:
-      - targets: ['skia-prom:8001']
-
   - job_name: 'proxy_with_auth'
     static_configs:
       - targets: ['skia-prom:20002']
-
-  - job_name: 'alert_proxy_with_auth'
-    static_configs:
-      - targets: ['skia-prom:20003']
 
   - job_name: 'webhook_proxy'
     static_configs:
