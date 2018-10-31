@@ -19,10 +19,16 @@
         // If the user taps anywhere else, remove the popup.
         document.body.addEventListener("tap", this.hide.bind(this));
         this.style["display"] = "block";
+        if (this.showCallback) {
+          this.showCallback();
+        }
       },
       hide: function() {
         document.body.removeEventListener("tap", this.hide);
         this.style["display"] = "none";
+        if (this.hideCallback) {
+          this.hideCallback();
+        }
       },
     };
     return bh;

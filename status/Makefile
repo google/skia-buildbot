@@ -18,7 +18,7 @@ status: web skiaversion
 
 # Build the web assets in production mode.
 .PHONY: web
-web: touch_elements core_js elements_html
+web: webpack touch_elements core_js elements_html
 	ln -sf ../../res res/imp/res
 
 .PHONY: touch_elements
@@ -62,3 +62,4 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 include ../make/clusters.mk
+include webpack/webpack.mk

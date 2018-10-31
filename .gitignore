@@ -109,3 +109,6 @@ tracedb/build
 skolo/build
 # Symlinks.
 autoroll/res/res
+
+status/res/imp/task_driver_sk-bundle.css
+status/res/imp/task_driver_sk-bundle.js

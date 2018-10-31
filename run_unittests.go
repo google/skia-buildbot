@@ -71,7 +71,6 @@ var (
 		"res/imp",
 		"autoroll/res/imp",
 		"fuzzer/res/imp",
-		"status/res/imp",
 	}
 
 	// goTestRegexp is a regular expression used for finding the durations

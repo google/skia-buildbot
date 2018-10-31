@@ -5,7 +5,7 @@ release: package-lock.json
 	npx webpack --mode=production
 
 serve: package-lock.json
-	npx webpack-dev-server --mode=production --content-base ./dist --watch-poll
+	npx webpack-dev-server --mode=development --content-base ./dist --watch-poll
 
 test:
 	# Run the generated tests just once under Xvfb.
