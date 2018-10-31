@@ -148,7 +148,7 @@
 
     initIsAdmin: function() {
       var is_admin_url = "/_/is_admin/"
-      sk.post(is_admin_url).then(JSON.parse).then(function(json) {
+      sk.get(is_admin_url).then(JSON.parse).then(function(json) {
         this.isAdmin = json.isAdmin;
       }.bind(this)).catch(sk.errorMessage);
     },

@@ -2,7 +2,6 @@ package fileutil
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -175,13 +174,9 @@ func CountLines(path string) (int, error) {
 	// lines longer than 65536 characters.
 	r := bufio.NewReader(file)
 	for {
-		var buffer bytes.Buffer
-
-		var l []byte
 		var isPrefix bool
 		for {
-			l, isPrefix, err = r.ReadLine()
-			buffer.Write(l)
+			_, isPrefix, err = r.ReadLine()
 			// If we've reached the end of the line, stop reading.
 			if !isPrefix {
 				break
@@ -193,6 +188,8 @@ func CountLines(path string) (int, error) {
 		}
 		if err == io.EOF {
 			break
+		} else if err != nil {
+			return -1, err
 		}
 		numLines++
 	}

@@ -133,7 +133,7 @@
         <td>
           <iron-selector attr-for-selected="id" id="task_priority" selected="100" class="medium-field">
             <template is="dom-repeat" items="{{taskPriorities}}">
-              <div id="{{item}}">{{getTaskPriorityDesc(item)}}</div>
+              <div id="{{item}}">{{getTaskPriorityDesc(item, taskPrioritiesToDesc)}}</div>
             </template>
           </iron-selector>
         </td>
@@ -214,9 +214,9 @@
        });
      },
 
-     getTaskPriorityDesc: function(taskPriority) {
-       if (this.taskPrioritiesToDesc) {
-         return this.taskPrioritiesToDesc[taskPriority];
+     getTaskPriorityDesc: function(taskPriority, taskPrioritiesToDesc) {
+       if (taskPrioritiesToDesc) {
+         return taskPrioritiesToDesc[taskPriority];
        }
      },
 
