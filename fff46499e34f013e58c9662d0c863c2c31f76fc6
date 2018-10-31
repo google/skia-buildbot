@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "c8dd4b46_953b36d0",
+        "filename": "infra-sk/package.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-31T14:08:15Z",
+      "side": 1,
+      "message": "Ok, just tried again and it worked.",
+      "parentUuid": "68d4875f_80d83e6e",
+      "range": {
+        "startLine": 3,
+        "startChar": 18,
+        "endLine": 3,
+        "endChar": 21
+      },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9eb0a564_8e04bd65",
         "filename": "status/res/imp/task-popup-sk.html",
         "patchSetId": 2
@@ -212,6 +236,30 @@
       "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e041d835_b45c6c6f",
+        "filename": "status/res/imp/task-popup-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-31T14:08:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9eb0a564_8e04bd65",
+      "range": {
+        "startLine": 178,
+        "startChar": 51,
+        "endLine": 178,
+        "endChar": 53
+      },
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -298,6 +346,24 @@
       "side": 1,
       "message": "I\u0027m still really confused.  I don\u0027t see anything in this CL that actually references this file.  All the task_driver stuff got moved to infra-sk/",
       "parentUuid": "f33e8a67_64d8a518",
+      "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42029c1e_e0ca6688",
+        "filename": "task_driver/pages/task-driver-index.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-10-31T14:08:15Z",
+      "side": 1,
+      "message": "Only the task-driver-sk element was moved.  task-driver-index remains under task_driver/pages.  task-driver-index.html does not directly reference task-driver-index.js, but the compiled HTML in dist references the compiled JS.",
+      "parentUuid": "19a97920_56c2efbd",
       "revId": "fff46499e34f013e58c9662d0c863c2c31f76fc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
