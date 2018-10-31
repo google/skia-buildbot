@@ -535,7 +535,7 @@ func (c *CloudExpStore) updateCurrentExpectations(tx *datastore.Transaction, cha
 	oldExpsBlob := expState.ExpectationsBlob
 
 	if overwrite || (currentExp == nil) {
-		currentExp = types.NewExpectations(changes)
+		currentExp = types.NewExpectations(changes.DeepCopy())
 	} else {
 		currentExp.AddTestExp(changes)
 	}
