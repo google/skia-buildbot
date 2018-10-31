@@ -190,7 +190,7 @@ func TestDeSerializeSample(t *testing.T) {
 
 	sample := &Sample{
 		Tile:         tile,
-		Expectations: types.NewExpectations(testExp),
+		Expectations: types.NewExpectations(testExp.DeepCopy()),
 		IgnoreRules:  ignoreRules,
 	}
 

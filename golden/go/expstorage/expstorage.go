@@ -125,7 +125,7 @@ func (m *MemExpectationsStore) AddChange(changedTests types.TestExp, userId stri
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
 	}
 
-	m.readCopy = types.NewExpectations(m.expectations.TestExp())
+	m.readCopy = types.NewExpectations(m.expectations.TestExp().DeepCopy())
 	return nil
 }
 
@@ -150,7 +150,7 @@ func (m *MemExpectationsStore) removeChange(changedDigests types.TestExp) error 
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID), true)
 	}
 
-	m.readCopy = types.NewExpectations(m.expectations.TestExp())
+	m.readCopy = types.NewExpectations(m.expectations.TestExp().DeepCopy())
 	return nil
 }
 
