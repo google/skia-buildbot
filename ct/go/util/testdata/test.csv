@@ -1,0 +1,3 @@
+paint_op_count,traceUrls,pixels_rasterized,rasterize_time (ms),record_time_caching_disabled (ms),record_time_subsequence_caching_disabled (ms),painter_memory_usage (B),record_time_construction_disabled (ms),page_name
+805.0,,1310720.0,2.449,1.128,0.283,25856.0,0.335,http://www.reuters.com (#480)
+643.0,,1310720.0,2.894,0.998,0.209,24856.0,0.242,http://www.rediff.com (#490)

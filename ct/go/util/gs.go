@@ -302,9 +302,14 @@ func (gs *GcsUtil) DeleteRemoteDir(gsDir string) error {
 	return nil
 }
 
-// UploadFile uploads the specified file to the remote dir in Google Storage. It
-// also sets the appropriate ACLs on the uploaded file.
+// UploadFile calls UploadFileToBucket with CT's default bucket.
 func (gs *GcsUtil) UploadFile(fileName, localDir, gsDir string) error {
+	return gs.UploadFileToBucket(fileName, localDir, gsDir, GCSBucketName)
+}
+
+// UploadFileToBucket uploads the specified file to the remote dir of the bucket
+// in Google Storage. It also sets the appropriate ACLs on the uploaded file.
+func (gs *GcsUtil) UploadFileToBucket(fileName, localDir, gsDir, bucket string) error {
 	localFile := filepath.Join(localDir, fileName)
 	gsFile := filepath.Join(gsDir, fileName)
 	object := &storage.Object{Name: gsFile}
@@ -320,20 +325,20 @@ func (gs *GcsUtil) UploadFile(fileName, localDir, gsDir string) error {
 		return fmt.Errorf("Error stating %s: %s", localFile, err)
 	}
 	mediaOption := googleapi.ChunkSize(int(fi.Size()))
-	if _, err := gs.service.Objects.Insert(GCSBucketName, object).Media(f, mediaOption).Do(); err != nil {
+	if _, err := gs.service.Objects.Insert(bucket, object).Media(f, mediaOption).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
-	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GCSBucketName, gsFile))
+	sklog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", bucket, gsFile))
 
 	// All objects uploaded to CT's bucket via this util must be readable by
 	// the google.com domain. This will be fine tuned later if required.
 	objectAcl := &storage.ObjectAccessControl{
-		Bucket: GCSBucketName, Entity: "domain-google.com", Object: gsFile, Role: "READER",
+		Bucket: bucket, Entity: "domain-google.com", Object: gsFile, Role: "READER",
 	}
-	if _, err := gs.service.ObjectAccessControls.Insert(GCSBucketName, gsFile, objectAcl).Do(); err != nil {
+	if _, err := gs.service.ObjectAccessControls.Insert(bucket, gsFile, objectAcl).Do(); err != nil {
 		return fmt.Errorf("Could not update ACL of %s: %s", object.Name, err)
 	}
-	sklog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GCSBucketName, gsFile))
+	sklog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", bucket, gsFile))
 
 	return nil
 }
