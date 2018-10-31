@@ -301,8 +301,9 @@ func main() {
 	if *local {
 		login.InitWithAllow(*port, *local, nil, nil, nil)
 	} else {
+		admins := allowed.NewAllowedFromList(ctutil.CtAdmins)
 		allow := allowed.NewAllowedFromList(ctfeutil.DomainsWithViewAccess)
-		login.InitWithAllow(*port, *local, nil, nil, allow)
+		login.InitWithAllow(*port, *local, admins, nil, allow)
 	}
 
 	// Initialize the datastore.

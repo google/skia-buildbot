@@ -730,7 +730,7 @@ func taskPrioritiesHandler(w http.ResponseWriter, r *http.Request) {
 func isAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	data := map[string]interface{}{
-		"isAdmin": skutil.In(login.LoggedInAs(r), ctutil.CtAdmins),
+		"isAdmin": ctfeutil.UserHasAdminRights(r),
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
@@ -742,6 +742,6 @@ func AddHandlers(externalRouter, internalRouter *mux.Router) {
 	externalRouter.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
 	externalRouter.HandleFunc("/"+ctfeutil.BENCHMARKS_PLATFORMS_POST_URI, benchmarksPlatformsHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.TASK_PRIORITIES_POST_URI, taskPrioritiesHandler).Methods("POST")
-	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_POST_URI, isAdminHandler).Methods("POST")
+	externalRouter.HandleFunc("/"+ctfeutil.TASK_PRIORITIES_GET_URI, taskPrioritiesHandler).Methods("GET")
+	externalRouter.HandleFunc("/"+ctfeutil.IS_ADMIN_GET_URI, isAdminHandler).Methods("GET")
 }
