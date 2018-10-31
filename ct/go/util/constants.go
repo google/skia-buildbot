@@ -174,6 +174,10 @@ const (
 	TASKS_PRIORITY_HIGH   = swarming.RECOMMENDED_PRIORITY
 	TASKS_PRIORITY_MEDIUM = swarming.RECOMMENDED_PRIORITY + 10
 	TASKS_PRIORITY_LOW    = swarming.RECOMMENDED_PRIORITY + 20
+
+	// ct-perf.skia.org constants.
+	CT_PERF_BUCKET = "cluster-telemetry-perf"
+	CT_PERF_REPO   = "https://skia.googlesource.com/perf-ct"
 )
 
 type PagesetTypeInfo struct {
@@ -326,4 +330,7 @@ var (
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "CTAndroidBuilder", "cores": "64"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}
 	GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
+
+	// ct-perf.skia.org constants.
+	CTPerfWorkDir = filepath.Join(StorageDir, "ct-perf-workdir")
 )
