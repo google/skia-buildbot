@@ -7,12 +7,4 @@
      "mimetype": "",
      "responsetest": ""
    },
-   "promstatus": {
-     "urls": ["https://promalerts.skia.org/metrics"],
-     "method": "GET",
-     "expected": [303],
-     "body": "",
-     "mimetype": "",
-     "responsetest": ""
-   },
 }

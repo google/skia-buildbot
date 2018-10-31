@@ -1,8 +1,8 @@
 #!/bin/bash
 # Builds and uploads a debian package for Prometheus config.
 APPNAME=prometheus-config
-DESCRIPTION="Prometheus monitoring and alerting config files only."
-SYSTEMD="prometheus.service alertmanager.service"
+DESCRIPTION="Prometheus monitoring config files only."
+SYSTEMD="prometheus.service"
 
 set -x -e
 
@@ -15,7 +15,6 @@ INSTALL_DIR="fakeroot install -d --verbose --backup=none --group=root --owner=ro
 ${INSTALL} --mode=644 -T ./sys/prometheus.yml       ${ROOT}/etc/prometheus/prometheus.yml
 ${INSTALL} --mode=644 -T ./sys/alert.rules          ${ROOT}/etc/prometheus/alert.rules
 ${INSTALL} --mode=644 -T ./sys/absent.rules         ${ROOT}/etc/prometheus/absent.rules
-${INSTALL} --mode=644 -T ./sys/alertmanager.yml     ${ROOT}/etc/alertmanager/alertmanager.yml
 }
 
 source ../bash/release.sh
