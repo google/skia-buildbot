@@ -25,7 +25,7 @@ push: validate
 	go install -v ../push/go/pushcli
 	pushcli prometheus-config skia-prom
 
-push_binaries: build prom alertmanager pushgateway validate
+push_binaries: build prom pushgateway validate
 	./build_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
 	pushcli prometheus skia-prom
@@ -53,11 +53,6 @@ push_graphite_exporter: graphite_exporter
 	go install -v ../push/go/pushcli
 	pushcli graphite-exporter skia-monitoring
 
-alertmanager:
-	-mkdir -p tmp
-	curl -L https://github.com/prometheus/alertmanager/releases/download/v0.9.1/alertmanager-0.9.1.linux-amd64.tar.gz | tar zxC ./tmp --overwrite -f -
-	cp ./tmp/alertmanager-0.9.1.linux-amd64/alertmanager ./tmp/alertmanager
-
 pushgateway:
 	-mkdir -p tmp
 	curl -L https://github.com/prometheus/pushgateway/releases/download/v0.3.1/pushgateway-0.3.1.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
@@ -68,4 +63,4 @@ graphite_exporter:
 	curl -L https://github.com/prometheus/graphite_exporter/releases/download/v0.2.0/graphite_exporter-0.2.0.linux-amd64.tar.gz  | tar zxC ./tmp --overwrite -f -
 	cp ./tmp/graphite_exporter-0.2.0.linux-amd64/graphite_exporter ./tmp/graphite_exporter
 
-.PHONY: build push push_binaries alertmanager graphite_exporter validate
+.PHONY: build push push_binaries graphite_exporter validate
