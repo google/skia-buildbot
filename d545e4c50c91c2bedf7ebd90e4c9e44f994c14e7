@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7b006f51_022566ba",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-01T17:21:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "32296ba5_a9cd191e",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad7a967_e08bf169",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "f102c060_5968bf67",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-01T17:21:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bad7a967_e08bf169",
+      "range": {
+        "startLine": 293,
+        "startChar": 61,
+        "endLine": 293,
+        "endChar": 69
+      },
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77b72548_deaa1f49",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 1
@@ -53,6 +95,24 @@
       "writtenOn": "2018-11-01T12:15:18Z",
       "side": 1,
       "message": "This is fine with me since it will only impact the engine-\u003eflutter roller. Assuming it works, which I guess we will find out after it is deployed.",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "249a9822_c54ba9d9",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-01T17:21:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "77b72548_deaa1f49",
       "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "f72eae0b_76e75c5c",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-01T17:21:33Z",
+      "side": 1,
+      "message": "If it\u0027s in the config, can we quickly turn it on or off on our side without going through the code review process? My main concern is that if our test infrastructure is flooded, we need to switch back to MERGE_METHOD_SQUASH as quickly as possible.",
+      "parentUuid": "395e48b1_bad8fd65",
+      "range": {
+        "startLine": 399,
+        "startChar": 67,
+        "endLine": 399,
+        "endChar": 74
+      },
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b3ef4ab_1d5e651f",
         "filename": "autoroll/go/roller/roll.go",
         "patchSetId": 1
@@ -93,6 +177,24 @@
       "writtenOn": "2018-11-01T12:15:18Z",
       "side": 1,
       "message": "This is going to impact both the skia-\u003eengine and engine-\u003eflutter rollers.\nIs that ok?",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee1f15c0_12cdd55e",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-01T17:21:33Z",
+      "side": 1,
+      "message": "We need to control the method separately for skia-\u003eengine and engine-\u003eflutter. My guess is that we still want to keep skia-\u003eengine using squash while switch engine-\u003eflutter to rebase.",
+      "parentUuid": "3b3ef4ab_1d5e651f",
       "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
