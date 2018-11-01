@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -25,6 +26,9 @@ import (
 
 const (
 	RETRIES = 10
+
+	// VERSION of the application. Update for major and minor changes to functionality.
+	VERSION = "1.0"
 )
 
 // flags
@@ -36,6 +40,7 @@ var (
 	output   = flag.String("output", "fiddleout.json", "The name of the file to write the JSON results to.")
 	procs    = flag.Int("procs", 4, "The number of parallel requests to make to the fiddle server.")
 	quiet    = flag.Bool("quiet", false, "Run without a progress bar.")
+	version  = flag.Bool("version", false, "If true then echo the version number and exit.")
 )
 
 // chanRequest is sent to each worker in the pool.
@@ -81,6 +86,10 @@ func main() {
 	if *output == "" {
 		flag.Usage()
 		log.Fatalf("--output is a required flag.")
+	}
+	if *version {
+		fmt.Printf("fiddlecli version: %s\n", VERSION)
+		os.Exit(0)
 	}
 
 	// Read the source JSON file.
