@@ -45,5 +45,15 @@
       }
     ]
   },
-  "maxRollFrequency": "3h"
+  "maxRollFrequency": "3h",
+  "notifiers": [
+    {
+      "filter": "warning",
+      "email": {
+        "emails": [
+          "rmistry@google.com"
+        ]
+      }
+    }
+  ]
 }
