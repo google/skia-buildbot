@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5879e78f_03201e2e",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T14:58:45Z",
+      "side": 1,
+      "message": "For my understanding: Swarming sets these vars for all swarming tasks?",
+      "revId": "ccd6dd88d567c60fce80388d9798134e10bdc24d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a810fd9b_2ccb246a",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T14:58:45Z",
+      "side": 1,
+      "message": "SWARMING_BOT_ID is set to \"reproduce\" ? that\u0027s strange.",
+      "range": {
+        "startLine": 108,
+        "startChar": 35,
+        "endLine": 108,
+        "endChar": 46
+      },
+      "revId": "ccd6dd88d567c60fce80388d9798134e10bdc24d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
