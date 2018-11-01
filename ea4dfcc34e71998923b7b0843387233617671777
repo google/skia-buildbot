@@ -22,6 +22,30 @@
       "revId": "ea4dfcc34e71998923b7b0843387233617671777",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b605315_78f58292",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T12:25:48Z",
+      "side": 1,
+      "message": "Yea I started doing that but that started to get messy. Then I figured why not follow the same approach as kube.mk for internal configs which would also get rid of the \u0027isInternal\u0027 logic and make things a little neater.\nI can still do the 1 config thing though, just wanted to send this out first.",
+      "parentUuid": "de520458_89097320",
+      "range": {
+        "startLine": 46,
+        "startChar": 40,
+        "endLine": 46,
+        "endChar": 74
+      },
+      "revId": "ea4dfcc34e71998923b7b0843387233617671777",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
