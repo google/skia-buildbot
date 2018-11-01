@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de520458_89097320",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-01T11:34:07Z",
+      "side": 1,
+      "message": "I\u0027m a little confused; I thought we were just going to put one experimental config here to start?",
+      "range": {
+        "startLine": 46,
+        "startChar": 40,
+        "endLine": 46,
+        "endChar": 74
+      },
+      "revId": "ea4dfcc34e71998923b7b0843387233617671777",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
