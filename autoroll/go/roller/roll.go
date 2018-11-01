@@ -395,7 +395,11 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		if err != nil {
 			return nil, nil, fmt.Errorf("Could not get description of %d: %s", issueNum, err)
 		}
-		if err := g.MergePullRequest(int(issueNum), desc, github.MERGE_METHOD_SQUASH); err != nil {
+		method := github.MERGE_METHOD_REBASE
+		if (false) { // TODO(liyuqian): add an option to the auto-roller website to control merge method
+			method = github.MERGE_METHOD_SQUASH
+		}
+		if err := g.MergePullRequest(int(issueNum), desc, method); err != nil {
 			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
 		}
 	}
