@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "35faa0d8_ae9524a8",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:25:43Z",
+      "side": 1,
+      "message": "No, will not be able to turn it on and off quickly on your side if it is in the config file. I will be able to push quickly though when I am online once you modify the config.\nProblem with adding ability to website to do this is that it will be difficult, the website is generic and has been generalized for all kinds of DEPS and Android rollers, adding ability to display a different option based on a config file option will be challenging.",
+      "parentUuid": "f72eae0b_76e75c5c",
+      "range": {
+        "startLine": 399,
+        "startChar": 67,
+        "endLine": 399,
+        "endChar": 74
+      },
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b3ef4ab_1d5e651f",
         "filename": "autoroll/go/roller/roll.go",
         "patchSetId": 1
@@ -195,6 +219,24 @@
       "side": 1,
       "message": "We need to control the method separately for skia-\u003eengine and engine-\u003eflutter. My guess is that we still want to keep skia-\u003eengine using squash while switch engine-\u003eflutter to rebase.",
       "parentUuid": "3b3ef4ab_1d5e651f",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0525c4e_4f769cbb",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:25:43Z",
+      "side": 1,
+      "message": "In that case, passing it through here from the config file (like https://skia-review.googlesource.com/c/159243) sounds like the best we can do now?",
+      "parentUuid": "ee1f15c0_12cdd55e",
       "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
