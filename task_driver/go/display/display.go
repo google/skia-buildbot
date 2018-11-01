@@ -46,7 +46,8 @@ func (s StepSlice) Less(i, j int) bool {
 
 // TaskDriverRunDisplay represents a single run of a Task Driver.
 type TaskDriverRunDisplay struct {
-	Id string `json:"id"`
+	Id         string            `json:"id"`
+	Properties *td.RunProperties `json:"properties"`
 	*StepDisplay
 }
 
@@ -54,7 +55,8 @@ type TaskDriverRunDisplay struct {
 // more human-friendly for display purposes.
 func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 	rv := &TaskDriverRunDisplay{
-		Id: t.TaskId,
+		Id:         t.TaskId,
+		Properties: t.Properties.Copy(),
 	}
 
 	// Create each StepDisplay.
