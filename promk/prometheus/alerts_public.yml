@@ -180,3 +180,23 @@ groups:
       severity: critical
     annotations:
       description: 'The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
+
+# collectd
+  - alert: DiskSpaceLow
+    expt: df_complex_free{resource=~"df-var|df-tmp",host=~"skia-rpi-.+"} < 1e8
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.host }}'
+      description: 'Free space has fallen below 100MB on {{ $labels.host }} drive {{ $labels.resource}}.'
+
+  - alert: TooManyOpenFDs
+    expr: process_open_fds > 2000
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.host }}'
+      description: 'Too many open file handles on {{ $labels.host }}.'
