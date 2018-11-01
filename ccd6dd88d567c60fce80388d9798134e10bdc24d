@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "2dceb1ce_17a64e44",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-01T15:01:04Z",
+      "side": 1,
+      "message": "Yep",
+      "parentUuid": "5879e78f_03201e2e",
+      "revId": "ccd6dd88d567c60fce80388d9798134e10bdc24d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a810fd9b_2ccb246a",
         "filename": "task_driver/go/td/run.go",
         "patchSetId": 2
@@ -30,6 +48,30 @@
       "writtenOn": "2018-11-01T14:58:45Z",
       "side": 1,
       "message": "SWARMING_BOT_ID is set to \"reproduce\" ? that\u0027s strange.",
+      "range": {
+        "startLine": 108,
+        "startChar": 35,
+        "endLine": 108,
+        "endChar": 46
+      },
+      "revId": "ccd6dd88d567c60fce80388d9798134e10bdc24d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af6ff8bd_6479493e",
+        "filename": "task_driver/go/td/run.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-01T15:01:04Z",
+      "side": 1,
+      "message": "Yes, when running \"swarming.py reproduce\" these vars get set to the value \"reproduce\".  I assume that\u0027s so the locally-running task doesn\u0027t stomp on results of the real task it\u0027s reproducing.",
+      "parentUuid": "a810fd9b_2ccb246a",
       "range": {
         "startLine": 108,
         "startChar": 35,
