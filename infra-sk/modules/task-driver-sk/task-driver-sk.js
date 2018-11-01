@@ -43,19 +43,42 @@ function stepData(ele, s, d) {
 
 const stepProperties = (ele, s) => html`
   <table class="properties">
+    ${s.properties
+      ? html`
+        ${s.properties.swarmingServer && s.properties.swarmingTask
+          ? propLine("Swarming Task", html`
+            <a href="${s.properties.swarmingServer + "/task?id=" + s.properties.swarmingTask + "&show_raw=1"}" target="_blank">${s.properties.swarmingTask}</a>
+          `)
+          : ""
+        }
+        ${s.properties.swarmingServer && s.properties.swarmingBot
+          ? propLine("Swarming Bot", html`
+            <a href="${s.properties.swarmingServer + "/bot?id=" + s.properties.swarmingBot}" target="_blank">${s.properties.swarmingBot}</a>
+          `)
+          : ""
+        }
+        ${!s.properties.local
+          ? propLine("Task Scheduler", html`
+            <a href="https://task-scheduler.skia.org/task/${s.id}" target="_blank">${s.id}</a>
+          `)
+          : ""
+        }
+      `
+      : ""
+    }
     ${s.isInfra ? propLine("Infra", s.isInfra) : ""}
     ${propLine("Started", ele._displayTime(s.started))}
     ${propLine("Finished", ele._displayTime(s.finished))}
     ${s.environment
-        ? tr(html`${td("Environment")}${td(html`
+        ? propLine("Environment", html`
             ${s.environment.map((env) => tr(td(env)))}
-          `)}`)
+          `)
         : ""
     }
     ${s.data ? s.data.map((d) => stepData(ele, s, d)) : ""}
-    ${tr(html`${td("Log (combined)")}${td(html`
+    ${propLine("Log (combined)", html`
         <a href="${ele._logLink(s.id)}" target="_blank">all logs</a>
-    `)}`)}
+    `)}
   </div>
 `;
 

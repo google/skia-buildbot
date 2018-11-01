@@ -2,6 +2,7 @@ package td
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -30,6 +31,11 @@ const (
 
 	// Special ID of the root step.
 	STEP_ID_ROOT = "root"
+
+	// Environment variables provided to all Swarming tasks.
+	ENVVAR_SWARMING_BOT    = "SWARMING_BOT_ID"
+	ENVVAR_SWARMING_SERVER = "SWARMING_SERVER"
+	ENVVAR_SWARMING_TASK   = "SWARMING_TASK_ID"
 )
 
 var (
@@ -37,19 +43,114 @@ var (
 	SCOPES = []string{compute.CloudPlatformScope}
 )
 
+// RunProperties are properties for a single run of a Task Driver.
+type RunProperties struct {
+	Local          bool   `json:"local"`
+	SwarmingBot    string `json:"swarmingBot,omitempty"`
+	SwarmingServer string `json:"swarmingServer,omitempty"`
+	SwarmingTask   string `json:"swarmingTask,omitempty"`
+}
+
+// Return an error if the RunProperties are not valid.
+func (p *RunProperties) Validate() error {
+	if p.Local {
+		if p.SwarmingBot != "" {
+			return errors.New("SwarmingBot must be empty for local runs!")
+		}
+		if p.SwarmingServer != "" {
+			return errors.New("SwarmingServer must be empty for local runs!")
+		}
+		if p.SwarmingTask != "" {
+			return errors.New("SwarmingTask must be empty for local runs!")
+		}
+	} else {
+		if p.SwarmingBot == "" {
+			return errors.New("SwarmingBot is required for non-local runs!")
+		}
+		if p.SwarmingServer == "" {
+			return errors.New("SwarmingServer is required for non-local runs!")
+		}
+		if p.SwarmingTask == "" {
+			return errors.New("SwarmingTask is required for non-local runs!")
+		}
+	}
+	return nil
+}
+
+// Return a copy of the RunProperties.
+func (p *RunProperties) Copy() *RunProperties {
+	if p == nil {
+		return nil
+	}
+	return &RunProperties{
+		Local:          p.Local,
+		SwarmingBot:    p.SwarmingBot,
+		SwarmingServer: p.SwarmingServer,
+		SwarmingTask:   p.SwarmingTask,
+	}
+}
+
 // StartRunWithErr begins a new test automation run, returning any error which
 // occurs.
 func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (context.Context, error) {
 	common.Init()
 
 	// TODO(borenet): Catch SIGINT, SIGKILL and report.
-	// Prevent clobbering real task data.
+
+	// Gather RunProperties.
+	swarmingBot := os.Getenv(ENVVAR_SWARMING_BOT)
+	swarmingServer := os.Getenv(ENVVAR_SWARMING_SERVER)
+	swarmingTask := os.Getenv(ENVVAR_SWARMING_TASK)
+
+	// "reproduce" is supplied by "swarming.py reproduce" and indicates that
+	// this is actually a local run, but --local won't have been provided
+	// because the command was copied directly from the Swarming task.
+	if swarmingTask == "reproduce" || swarmingBot == "reproduce" {
+		*local = true
+		swarmingBot = ""
+		swarmingServer = ""
+		swarmingTask = ""
+	}
 	if *local {
+		// Check to make sure we're not actually running in production.
+		// Note that the presence of SWARMING_SERVER does not indicate
+		// that we're running in production, because it can be used with
+		// swarming.py as an alternative to --swarming.
+		errTmpl := "--local was supplied but %s environment variable was found. Was --local used by accident?"
+		if swarmingBot != "" {
+			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_BOT)
+		} else if swarmingTask != "" {
+			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_TASK)
+		}
+
+		// Prevent clobbering real task data for local tasks.
 		hostname, err := os.Hostname()
 		if err != nil {
 			return nil, err
 		}
 		*taskId = fmt.Sprintf("%s_%s", hostname, uuid.New())
+	} else {
+		// Check to make sure that we're not running locally and the
+		// user forgot to use --local.
+		errTmpl := "--local was not supplied but environment variable %s was not found. Did you forget to use --local?"
+		if swarmingBot == "" {
+			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_BOT)
+		} else if swarmingServer == "" {
+			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_SERVER)
+		} else if swarmingTask == "" {
+			return nil, fmt.Errorf(errTmpl, ENVVAR_SWARMING_TASK)
+		}
+	}
+
+	// Validate properties and flags.
+	props := &RunProperties{
+		Local:          *local,
+		SwarmingBot:    swarmingBot,
+		SwarmingServer: swarmingServer,
+		SwarmingTask:   swarmingTask,
+	}
+	if err := props.Validate(); err != nil {
+		return nil, err
 	}
 	if *projectId == "" {
 		return nil, fmt.Errorf("Project ID is required.")
@@ -61,9 +162,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		return nil, fmt.Errorf("Task name is required.")
 	}
 
-	ctx := context.Background()
-
-	// Initialize Cloud Logging.
+	// Create the token source.
 	var ts oauth2.TokenSource
 	if *local {
 		var err error
@@ -78,10 +177,13 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
 		}
 	}
+
+	// Initialize Cloud Logging.
 	labels := map[string]string{
 		"taskId":   *taskId,
 		"taskName": *taskName,
 	}
+	ctx := context.Background()
 	logger, err := sklog.NewCloudLogger(ctx, *projectId, LOG_ID, ts, labels)
 	if err != nil {
 		return nil, err
@@ -104,7 +206,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	})
 
 	// Set up and return the root-level Step.
-	ctx = newRun(ctx, receiver, *taskId, *taskName)
+	ctx = newRun(ctx, receiver, *taskId, *taskName, props)
 	return ctx, nil
 }
 
@@ -112,7 +214,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 func StartRun(projectId, taskId, taskName, output *string, local *bool) context.Context {
 	ctx, err := StartRunWithErr(projectId, taskId, taskName, output, local)
 	if err != nil {
-		sklog.Fatalf("Failed task_driver.Init(): %s", err)
+		sklog.Fatalf("Failed task_driver.StartRun(): %s", err)
 	}
 	return ctx
 }
@@ -133,12 +235,16 @@ type run struct {
 
 // newRun returns a context.Context representing a Task Driver run, including
 // creation of a root step.
-func newRun(ctx context.Context, rec Receiver, taskId, taskName string) context.Context {
+func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *RunProperties) context.Context {
 	r := &run{
 		receiver: rec,
 		taskId:   taskId,
 	}
 	ctx = setRun(ctx, r)
+	r.send(&Message{
+		Type: MSG_TYPE_RUN_STARTED,
+		Run:  props,
+	})
 	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName))
 	return ctx
 }
