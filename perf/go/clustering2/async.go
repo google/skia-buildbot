@@ -47,7 +47,7 @@ const (
 	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
 	// sparse data set, we'll request data in chunks of this many commits per
 	// point we are looking for.
-	SPARSE_BLOCK_SEARCH_MULT = 100
+	SPARSE_BLOCK_SEARCH_MULT = 200
 )
 
 var (
