@@ -154,6 +154,13 @@ type Query struct {
 	NoDiff bool `json:"nodiff"`
 }
 
+func newIssueQuery(issueID, patchsetID int64) *Query {
+	return &Query{
+		Issue:     issueID,
+		Patchsets: []int64{patchsetID},
+	}
+}
+
 // SearchResponse is the standard search response. Depending on the query some fields
 // might be empty, i.e. IssueDetails only makes sense if a trybot isssue was given in the query.
 type SearchResponse struct {

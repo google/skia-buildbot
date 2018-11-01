@@ -269,6 +269,192 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	}, nil
 }
 
+// func (s *SearchAPI) PatchsetSummary() (*PatchsetSummary, error) {
+// 	// q = newIssueQuery(issueID, patchsetID)
+// 	// q.Pos = true
+// 	// q.Neg = true
+// 	// q.Unt = true
+// 	// q.IncludeMaster = true
+
+// 	return nil, nil
+// }
+
+func (s *SearchAPI) TryjobResults(ctx context.Context, issueID, patchsetID, buildBucketID int64, q *Query) (TryjobSummary, error) {
+	ctx, span := trace.StartSpan(ctx, "search/TryjobResults")
+	defer span.End()
+
+	idx := s.ixr.GetIndex()
+	exp, err := s.getExpectationsFromQuery(q)
+	if err != nil {
+		return nil, err
+	}
+
+	if q == nil {
+		q = newIssueQuery(issueID, patchsetID)
+		q.Pos = true
+		q.Neg = true
+		q.Unt = true
+		q.IncludeMaster = true
+	}
+
+	// Build the intermediate map to compare against the tile
+	intermediate := srInterMap{}
+
+	// Accumulate all the digests, including the ones that are in Master.
+	issue, err := s.extractIssueDigests(ctx, q, buildBucketID, idx, exp, intermediate.add)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// TODO(stephana): Add warming of the digests here.
+
+	// Count how many are positive/negative/untriaged and now many are in master.
+
+	//
+
+	ret := &TryjobSummary{}
+
+	return ret, nil
+}
+
+// 	idx := s.ixr.GetIndex()
+// 	// Build the intermediate map to compare against the tile
+// 	issueInter := srInterMap{}
+
+// 	// // Adjust the add function to exclude digests already in the master branch
+// 	// addFn := ret.add
+// 	// if !q.IncludeMaster {
+// 	// 	talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+// 	// 	addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+// 	// 		// Include the digest if either the test or the digest is not in the master tile.
+// 	// 		if _, ok := talliesByTest[test][digest]; !ok {
+// 	// 			ret.add(test, digest, traceID, trace, params)
+// 	// 		}
+// 	// 	}
+// 	// }
+
+// 	expStore := s.storages.IssueExpStoreFactory(issueID)
+// 	issueExp, err := expStore.Get()
+// 	if err != nil {
+// 		return "", sklog.FmtErrorf("Error retrieving expectations for isssue %d: %s", issueID, err)
+// 	}
+
+// 	issue, err := s.extractIssueDigests(ctx, q, idx, ExpSlice{issueExp}, issueInter.add)
+// 	if err != nil {
+// 		return "", sklog.FmtErrorf("Error extracting digests from tryjob results: %s", err)
+// 	}
+
+// 	masterInter, err := s.getMasterDigests(issue, patchsetID)
+// 	if err != nil {
+// 		return "", sklog.FmtErrorf("Error getting the ")
+// 	}
+
+// 	_ = s.getBaseline(masterInter, issueInter)
+
+// 	// Write the baseline to the TryjobStore (attach it to the patchset)
+
+// 	// Push the baseline to Gerrit
+
+// 	return "", nil
+// }
+
+type PatchsetSummary struct {
+	Pos   int `json:"pos"`
+	Neg   int `json:"neg"`
+	Unt   int `json:"unt"`
+	New   int `json:"new"`
+	Total int `json:"total"`
+}
+
+type TryjobSummary struct {
+	PatchsetSummary
+	BuildBucketID int64                             `json:"buildBucketID"`
+	Details       map[string]map[string]types.Label `json:"details"`
+}
+
+func (s *SearchAPI) CreateBaseline(ctx context.Context, issueID, patchsetID int64) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "search/CreateBaseline")
+	defer span.End()
+
+	// // Load the issue and patchset => base expectations
+	// issue, err := b.tryjobStore.GetIssue(issueID, true)
+	// if err != nil {
+	// 	return sklog.FmtErrorf("Error retrieving issue: %s", err)
+	// }
+
+	// patchset := issue.FindPatchset(patchsetID)
+
+	// Set up the query that is used to filter the digests with values used by extractIssueDigests.
+	// We only want configurations that are not ignored
+	q := &Query{
+		Issue:          issueID,
+		Patchsets:      []int64{patchsetID},
+		IncludeIgnores: false,
+		Pos:            true,
+	}
+	idx := s.ixr.GetIndex()
+	// Build the intermediate map to compare against the tile
+	issueInter := srInterMap{}
+
+	// // Adjust the add function to exclude digests already in the master branch
+	// addFn := ret.add
+	// if !q.IncludeMaster {
+	// 	talliesByTest := idx.TalliesByTest(q.IncludeIgnores)
+	// 	addFn = func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet) {
+	// 		// Include the digest if either the test or the digest is not in the master tile.
+	// 		if _, ok := talliesByTest[test][digest]; !ok {
+	// 			ret.add(test, digest, traceID, trace, params)
+	// 		}
+	// 	}
+	// }
+
+	expStore := s.storages.IssueExpStoreFactory(issueID)
+	issueExp, err := expStore.Get()
+	if err != nil {
+		return "", sklog.FmtErrorf("Error retrieving expectations for isssue %d: %s", issueID, err)
+	}
+
+	issue, err := s.extractIssueDigests(ctx, q, idx, ExpSlice{issueExp}, issueInter.add)
+	if err != nil {
+		return "", sklog.FmtErrorf("Error extracting digests from tryjob results: %s", err)
+	}
+
+	masterInter, err := s.getMasterDigests(issue, patchsetID)
+	if err != nil {
+		return "", sklog.FmtErrorf("Error getting the ")
+	}
+
+	_ = s.getBaseline(masterInter, issueInter)
+
+	// Write the baseline to the TryjobStore (attach it to the patchset)
+
+	// Push the baseline to Gerrit
+
+	return "", nil
+}
+
+func (s *SearchAPI) getMasterDigests(issue *tryjobstore.Issue, patchsetID int64) (srInterMap, error) {
+	patchset := issue.FindPatchset(patchsetID)
+	if patchset == nil || patchset.ParentCommit == "" {
+		return nil, sklog.FmtErrorf("Unable to find patchset %d or its parent commit in issue %d", patchsetID, issue.ID)
+	}
+
+	_, err := s.storages.GetExpectationsForCommit(patchset.ParentCommit)
+	if err != nil {
+		return nil, sklog.FmtErrorf("Unable to find base expectations for commit %s. Got error: %s", err)
+	}
+
+	// tile :=
+	// 	s.storages.Git
+
+	// ret := srInterMap{}
+	return nil, nil
+}
+
+func (s *SearchAPI) getBaseline(masterDigests, issueDigests srInterMap) types.Expectations {
+	return types.NewExpectations(nil)
+}
+
 // getExpectationsFromQuery returns a slice of expectations that should be
 // used in the given query. It will add the issue expectations if this is
 // querying tryjob results. If query is nil the expectations of the master
@@ -326,8 +512,8 @@ type filterAddFn func(test, digest, traceID string, trace *types.GoldenTrace, pa
 
 // extractIssueDigests loads the issue and its tryjob results and then filters the
 // results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
-	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, buildBucketID int64, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
+	ctx, span := trace.StartSpan(ctx, "search/extractIssueDigests")
 	defer span.End()
 
 	// Get the issue.
@@ -357,6 +543,16 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 	tryjobs := []*tryjobstore.Tryjob{}
 	for _, psID := range issue.QueryPatchsets {
 		tryjobs = append(tryjobs, issue.FindPatchset(psID).Tryjobs...)
+	}
+
+	// Filter the results if buildBucketID was provided.
+	if buildBucketID > 0 {
+		newTryjobs := make([]*tryjobstore.Tryjob, 0, len(tryjobs))
+		for _, tryjob := range tryjobs {
+			if tryjob.BuildBucketID == buildBucketID {
+				newTryjobs = append(newTryjobs, tryjob)
+			}
+		}
 	}
 
 	// If there are no tryjobs we are done.
@@ -409,7 +605,7 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 			}
 		}
 	}
-	return issue, nil
+	return issue, tryjobs, tjResults, nil
 }
 
 // TODO(stephana): The filterTile function should be merged with the
