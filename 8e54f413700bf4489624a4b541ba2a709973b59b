@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "933d6391_b9cd286d",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "Yes, it will be.",
+      "parentUuid": "f0ce501d_98d7bbac",
+      "range": {
+        "startLine": 1,
+        "startChar": 52,
+        "endLine": 1,
+        "endChar": 68
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0853ca31_d6651aa2",
         "filename": "ct/go/util/ct_perf.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07409119_425235d9",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "I\u0027m not sure. There are a bunch of other things in util/ like mail.go and gs.go.\nAlso it seems like the first place I would look for these functions.",
+      "parentUuid": "0853ca31_d6651aa2",
+      "range": {
+        "startLine": 2,
+        "startChar": 8,
+        "endLine": 2,
+        "endChar": 12
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f8029795_61c561f0",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d8f56068_5a546f4c",
+      "range": {
+        "startLine": 94,
+        "startChar": 9,
+        "endLine": 94,
+        "endChar": 12
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d65901e_b06a2532",
         "filename": "ct/go/util/ct_perf.go",
         "patchSetId": 11
@@ -91,6 +163,30 @@
       "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adc79ea4_4bfc039e",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d65901e_b06a2532",
+      "range": {
+        "startLine": 186,
+        "startChar": 10,
+        "endLine": 186,
+        "endChar": 19
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "c22fb754_8d9f3899",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "I think that\u0027s ok. We have similar check in util.GetRowsFromCSV and AFAIK it has not complained yet.",
+      "parentUuid": "7c2a6d1a_1713322b",
+      "range": {
+        "startLine": 201,
+        "startChar": 21,
+        "endLine": 201,
+        "endChar": 28
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a52b3e47_887e7f07",
         "filename": "ct/go/util/ct_perf.go",
         "patchSetId": 11
@@ -131,6 +251,24 @@
       "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaa43f63_c5c5b058",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a52b3e47_887e7f07",
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "4dfc3cb0_18e8e8c9",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "IIRC all other fields have to be floats. CT only put numbers in the output CSV (other than page_name and trace_urls) because it needs to be compare them in the perf HTML.\nI would be curious to see if this is ever hit.",
+      "parentUuid": "02b0ee0f_e02ae9fc",
+      "range": {
+        "startLine": 222,
+        "startChar": 11,
+        "endLine": 222,
+        "endChar": 17
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f9f7342_530e245a",
         "filename": "ct/go/util/ct_perf_test.go",
         "patchSetId": 11
@@ -168,6 +330,30 @@
       "writtenOn": "2018-11-01T14:59:35Z",
       "side": 1,
       "message": "Should this be checking gb rather than checkout?",
+      "range": {
+        "startLine": 63,
+        "startChar": 13,
+        "endLine": 63,
+        "endChar": 21
+      },
+      "revId": "8e54f413700bf4489624a4b541ba2a709973b59b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb72f2fb_d12e4326",
+        "filename": "ct/go/util/ct_perf_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-01T18:52:18Z",
+      "side": 1,
+      "message": "I just assumed it would be the same thing. How should I check gb ? via exec package and gb.Dir() ?",
+      "parentUuid": "1f9f7342_530e245a",
       "range": {
         "startLine": 63,
         "startChar": 13,
