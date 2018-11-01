@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "733f7784_4ba8df49",
+        "filename": "status/res/imp/fuzzer-widget-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 8766
+      },
+      "writtenOn": "2018-11-01T16:58:19Z",
+      "side": 1,
+      "message": "You can use https://oss-fuzz.com/v2/coverage-report/job/libfuzzer_asan_skia/latest link, it automatically redirects to the most recent code coverage report available.",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 111,
+        "endChar": 6
+      },
+      "revId": "d0606ff891ded376af20723da2a7a8c881d67e54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
