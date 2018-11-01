@@ -72,6 +72,8 @@ type DebugReceiver struct{}
 // See documentation for Receiver interface.
 func (r *DebugReceiver) HandleMessage(m *Message) error {
 	switch m.Type {
+	case MSG_TYPE_RUN_STARTED:
+		glog.Infof("RUN_STARTED: %+v", m.Run)
 	case MSG_TYPE_STEP_STARTED:
 		glog.Infof("STEP_STARTED: %s", m.StepId)
 	case MSG_TYPE_STEP_FINISHED:
@@ -174,6 +176,8 @@ func (r *ReportReceiver) findStep(id string) (*StepReport, error) {
 // See documentation for Receiver interface.
 func (r *ReportReceiver) HandleMessage(m *Message) error {
 	switch m.Type {
+	case MSG_TYPE_RUN_STARTED:
+		// Do nothing.
 	case MSG_TYPE_STEP_STARTED:
 		s := &StepReport{
 			StepProperties: m.Step,

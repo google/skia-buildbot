@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	MSG_TYPE_RUN_STARTED    MessageType = "RUN_STARTED"
 	MSG_TYPE_STEP_STARTED   MessageType = "STEP_STARTED"
 	MSG_TYPE_STEP_FINISHED  MessageType = "STEP_FINISHED"
 	MSG_TYPE_STEP_DATA      MessageType = "STEP_DATA"
@@ -45,6 +46,10 @@ type Message struct {
 	// be filled.
 	Type MessageType `json:"type"`
 
+	// Run is the metadata about the overall Task Driver run. Required for
+	// MSG_TYPE_RUN_STARTED.
+	Run *RunProperties `json:"run,omitempty"`
+
 	// Step is the metadata about the step at creation time. Required for
 	// MSG_TYPE_STEP_STARTED.
 	Step *StepProperties `json:"step,omitempty"`
@@ -72,6 +77,13 @@ func (m *Message) Validate() error {
 		return errors.New("Timestamp is required.")
 	}
 	switch m.Type {
+	case MSG_TYPE_RUN_STARTED:
+		if m.Run == nil {
+			return fmt.Errorf("RunProperties are required for %s", m.Type)
+		}
+		if err := m.Run.Validate(); err != nil {
+			return err
+		}
 	case MSG_TYPE_STEP_STARTED:
 		if m.Step == nil {
 			return fmt.Errorf("StepProperties are required for %s", m.Type)

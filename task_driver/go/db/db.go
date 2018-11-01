@@ -83,8 +83,9 @@ func (s *Step) Copy() *Step {
 
 // TaskDriverRun represents a single run of a Task Driver.
 type TaskDriverRun struct {
-	TaskId string
-	Steps  map[string]*Step
+	TaskId     string
+	Properties *td.RunProperties
+	Steps      map[string]*Step
 }
 
 // Copy returns a deep copy of the TaskDriverRun.
@@ -100,8 +101,9 @@ func (t *TaskDriverRun) Copy() *TaskDriverRun {
 		}
 	}
 	return &TaskDriverRun{
-		TaskId: t.TaskId,
-		Steps:  steps,
+		TaskId:     t.TaskId,
+		Properties: t.Properties.Copy(),
+		Steps:      steps,
 	}
 }
 
@@ -122,6 +124,8 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 	}
 
 	switch m.Type {
+	case td.MSG_TYPE_RUN_STARTED:
+		t.Properties = m.Run.Copy()
 	case td.MSG_TYPE_STEP_STARTED:
 		// Validation.
 		if m.Step == nil {

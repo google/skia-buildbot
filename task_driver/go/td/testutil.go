@@ -25,7 +25,7 @@ func StartTestRun(t testutils.TestingT) *TestingRun {
 	report := newReportReceiver(output)
 	return &TestingRun{
 		t:       t,
-		ctx:     newRun(context.Background(), report, "fake-task-id", "fake-test-task"),
+		ctx:     newRun(context.Background(), report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
 		wd:      wd,
 		report:  report,
 		cleanup: cleanup,
