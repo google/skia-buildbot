@@ -258,6 +258,24 @@
       "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6efd46c_18824e66",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-02T16:26:39Z",
+      "side": 1,
+      "message": "Where the config file lives does not really matter because you still have to push the change to k8s (which needs admin access). Config file changes are by design not automatically picked up.\n\nOne possibility is not reading the whole config file but just a file that says which merge method to use. That location would be specified in the existing config file. I suspect that might make debugging difficult but would just have to log carefully what is being done.\nMaybe something like \"merge_method_url\" : \"https://raw.githubusercontent.com/flutter/flutter/master/bin/internal/engine-flutter-merge-method.json`\"\nIf merge_method_url is not specified (like for Skia-\u003eFlutter) then default to MERGE_METHOD_SQUASH.",
+      "parentUuid": "bfd4b46e_a343d392",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
