@@ -54,6 +54,9 @@ type distEventBus struct {
 	// storageNotifications keep track of storage events we have subscribed to.
 	// See eventbus.NotificationsMap for details.
 	storageNotifications *eventbus.NotificationsMap
+
+	// disableGCSSubscriptions disables registrations of storage events for testing.
+	disableGCSSubscriptions bool
 }
 
 // channelWrapper wraps each message to do channel multiplexing on top of a
@@ -139,48 +142,54 @@ func (d *distEventBus) RegisterStorageEvents(bucketName string, objectPrefix str
 	ctx := context.TODO()
 	bucket := client.Bucket(bucketName)
 
-	notifications, err := bucket.Notifications(ctx)
-	if err != nil {
+	notifyID := eventbus.GetNotificationID(bucketName, objectPrefix)
+	if !d.disableGCSSubscriptions {
+		notifications, err := bucket.Notifications(ctx)
+		if err != nil {
+			return "", err
+		}
+		sklog.Infof("Retrieved: %d notifications", len(notifications))
+
+		var notificationInfo *storage.Notification
+		found := false
+		for _, notify := range notifications {
+			if notify.TopicID == d.topic.ID() && notify.ObjectNamePrefix == objectPrefix {
+				// If we don't have the custom notification attribute we want to create new
+				// subscription since this might be from a different process.
+				if notify.CustomAttributes[notificationIDAttr] != notifyID {
+					continue
+				}
+				notificationInfo = notify
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			bucket := client.Bucket(bucketName)
+			notificationInfo, err = bucket.AddNotification(ctx, &storage.Notification{
+				TopicProjectID:   d.projectID,
+				TopicID:          d.topic.ID(),
+				EventTypes:       []string{storage.ObjectFinalizeEvent},
+				PayloadFormat:    storage.JSONPayload,
+				ObjectNamePrefix: objectPrefix,
+				CustomAttributes: map[string]string{
+					notificationIDAttr: notifyID,
+				},
+			})
+			if err != nil {
+				return "", sklog.FmtErrorf("Error registering event: %s", err)
+			}
+			sklog.Infof("Created storage notification: %s", spew.Sdump(notificationInfo))
+		} else {
+			sklog.Infof("Re-using storage notification: %s", spew.Sdump(notificationInfo))
+		}
+	}
+
+	// Register the same event in the local event bus because local events are directly published there.
+	if _, err := d.localEventBus.RegisterStorageEvents(bucketName, objectPrefix, objectRegEx, nil); err != nil {
 		return "", err
 	}
-	sklog.Infof("Retrieved: %d notifications", len(notifications))
-
-	var notificationInfo *storage.Notification
-	found := false
-	notifyID := eventbus.GetNotificationID(bucketName, objectPrefix)
-	for _, notify := range notifications {
-		if notify.TopicID == d.topic.ID() && notify.ObjectNamePrefix == objectPrefix {
-			// If we don't have the custom notification attribute we want to create new
-			// subscription since this might be from a different process.
-			if notify.CustomAttributes[notificationIDAttr] != notifyID {
-				continue
-			}
-			notificationInfo = notify
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		bucket := client.Bucket(bucketName)
-		notificationInfo, err := bucket.AddNotification(ctx, &storage.Notification{
-			TopicProjectID:   d.projectID,
-			TopicID:          d.topic.ID(),
-			EventTypes:       []string{storage.ObjectFinalizeEvent},
-			PayloadFormat:    storage.JSONPayload,
-			ObjectNamePrefix: objectPrefix,
-			CustomAttributes: map[string]string{
-				notificationIDAttr: notifyID,
-			},
-		})
-		if err != nil {
-			return "", sklog.FmtErrorf("Error registering event: %s", err)
-		}
-		sklog.Infof("Created storage notification: %s", spew.Sdump(notificationInfo))
-	} else {
-		sklog.Infof("Re-using storage notification: %s", spew.Sdump(notificationInfo))
-	}
-
 	return d.storageNotifications.Add(notifyID, objectRegEx), nil
 }
 
