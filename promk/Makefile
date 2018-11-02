@@ -29,4 +29,9 @@ push_config_corp: validate skia-corp
 	cp prometheus/alerts_*.yml ./tmpconf
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
+push_graphite_exporter_config: skia-public
+	# Need to use replace so that the configmap gets updated. Change "replace"
+	# to "create" if this is the first time the configmap has been uploaded.
+	kubectl create configmap graphite-exporter-conf --from-file=./graphite-exporter.yaml -o yaml --dry-run | kubectl replace -f -
+
 include ../make/clusters.mk
