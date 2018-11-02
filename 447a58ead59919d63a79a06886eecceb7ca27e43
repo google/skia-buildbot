@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "870a293d_ae4494b9",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-02T18:39:23Z",
+      "side": 1,
+      "message": "Seems like we should call AddCTRunDataToPerf in an \u0027else\u0027 block here. Otherwise the file may not exist.\n\nMaybe MergeUploadCSVFiles should return the path to the file.",
+      "range": {
+        "startLine": 254,
+        "startChar": 2,
+        "endLine": 254,
+        "endChar": 3
+      },
+      "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e5ada72_c5947555",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-02T18:39:23Z",
+      "side": 1,
+      "message": "How do we prevent different users from picking the same group name? Should we automatically append the username? Maintain a registry? Or just leave it open and expect people to use unique-enough names?",
+      "range": {
+        "startLine": 239,
+        "startChar": 10,
+        "endLine": 239,
+        "endChar": 50
+      },
+      "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48f972dd_68dd97bf",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-02T18:39:23Z",
+      "side": 1,
+      "message": "We might consider putting a max length on this, because a very long name makes the Perf UI annoying to use for everyone.",
+      "range": {
+        "startLine": 447,
+        "startChar": 32,
+        "endLine": 447,
+        "endChar": 55
+      },
+      "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
