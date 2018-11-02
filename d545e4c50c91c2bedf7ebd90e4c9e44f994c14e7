@@ -240,6 +240,24 @@
       "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfd4b46e_a343d392",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-02T15:35:38Z",
+      "side": 1,
+      "message": "I have an idea: can we read the config.json from something like `https://raw.githubusercontent.com/flutter/flutter/master/bin/internal/config.json`? I guess that Kubernetes does have network access, right? This way, flutter can maintain the config.",
+      "parentUuid": "d0525c4e_4f769cbb",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
