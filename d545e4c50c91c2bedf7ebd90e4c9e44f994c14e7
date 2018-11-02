@@ -276,6 +276,24 @@
       "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef5c3c62_2f113347",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-02T20:15:30Z",
+      "side": 1,
+      "message": "This sounds like a good idea. I\u0027ll do that.",
+      "parentUuid": "f6efd46c_18824e66",
+      "revId": "d545e4c50c91c2bedf7ebd90e4c9e44f994c14e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
