@@ -65,6 +65,7 @@ type DatastoreTask struct {
 	WithPatchRawOutput   string
 	CCList               []string
 	TaskPriority         int
+	GroupName            string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -87,6 +88,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.Description = task.Description
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
+	taskVars.GroupName = task.GroupName
 
 	var err error
 	taskVars.CustomWebpages, err = ctutil.GetPatchFromStorage(task.CustomWebpagesGSPath)
@@ -181,6 +183,7 @@ type AddTaskVars struct {
 	Description          string   `json:"desc"`
 	CCList               []string `json:"cc_list"`
 	TaskPriority         string   `json:"task_priority"`
+	GroupName            string   `json:"group_name"`
 
 	ChromiumPatch  string `json:"chromium_patch"`
 	BlinkPatch     string `json:"blink_patch"`
@@ -249,6 +252,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BrowserArgsWithPatch: task.BrowserArgsWithPatch,
 		Description:          task.Description,
 		CCList:               task.CCList,
+		GroupName:            task.GroupName,
 
 		CustomWebpagesGSPath: customWebpagesGSPath,
 		ChromiumPatchGSPath:  chromiumPatchGSPath,
