@@ -64,16 +64,18 @@ const (
 	PLATFORM_LINUX   = "Linux"
 
 	// Benchmarks supported by CT.
-	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer_ct"
-	BENCHMARK_RR                = "rasterize_and_record_micro_ct"
-	BENCHMARK_REPAINT           = "repaint_ct"
-	BENCHMARK_LOADING           = "loading.cluster_telemetry"
-	BENCHMARK_SCREENSHOT        = "screenshot_ct"
-	BENCHMARK_RENDERING         = "rendering.cluster_telemetry"
-	BENCHMARK_USECOUNTER        = "usecounter_ct"
-	BENCHMARK_LEAK_DETECTION    = "leak_detection.cluster_telemetry"
-	BENCHMARK_MEMORY            = "memory.cluster_telemetry"
-	BENCHMARK_METRICS_ANALYSIS  = "analysis_metrics_ct"
+	BENCHMARK_SKPICTURE_PRINTER        = "skpicture_printer_ct"
+	BENCHMARK_RR                       = "rasterize_and_record_micro_ct"
+	BENCHMARK_REPAINT                  = "repaint_ct"
+	BENCHMARK_LOADING                  = "loading.cluster_telemetry"
+	BENCHMARK_SCREENSHOT               = "screenshot_ct"
+	BENCHMARK_RENDERING                = "rendering.cluster_telemetry"
+	BENCHMARK_USECOUNTER               = "usecounter_ct"
+	BENCHMARK_LEAK_DETECTION           = "leak_detection.cluster_telemetry"
+	BENCHMARK_MEMORY                   = "memory.cluster_telemetry"
+	BENCHMARK_METRICS_ANALYSIS         = "analysis_metrics_ct"
+	BENCHMARK_V8_LOADING               = "v8.loading.cluster_telemetry"
+	BENCHMARK_V8_LOADING_RUNTIME_STATS = "v8.loading_runtime_stats.cluster_telemetry"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -312,6 +314,8 @@ var (
 		BENCHMARK_LEAK_DETECTION,
 		BENCHMARK_RENDERING,
 		BENCHMARK_MEMORY,
+		BENCHMARK_V8_LOADING,
+		BENCHMARK_V8_LOADING_RUNTIME_STATS,
 	}
 
 	SupportedPlatformsToDesc = map[string]string{
