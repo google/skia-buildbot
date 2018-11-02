@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -215,41 +216,34 @@ func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocati
 // storage events if the files in the source have not been ingested yet.
 func (i *Ingester) watchSource(source Source) {
 	sklog.Infof("Watching source %s", source.ID())
-	ticker := time.NewTicker(i.runEvery)
-	defer ticker.Stop()
 
-	for {
-		select {
-		case <-i.doneCh:
+	// Repeat will run the function right away and then in intervals of 'runEvery'.
+	util.Repeat(i.runEvery, i.doneCh, func() {
+		// Get the start of the time range that we are polling.
+		startTime, err := i.getStartTimeOfInterest(context.TODO())
+		if err != nil {
+			sklog.Errorf("Unable to get commit range of interest: %s", err)
 			return
-		case <-ticker.C:
-			// Get the start of the time range that we are polling.
-			startTime, err := i.getStartTimeOfInterest(context.TODO())
-			if err != nil {
-				sklog.Errorf("Unable to get commit range of interest: %s", err)
-				return
-			}
-
-			rfCh := source.Poll(startTime, time.Now().Unix())
-			processed := int64(0)
-			ignored := int64(0)
-			for rf := range rfCh {
-				if i.inProcessedFiles(rf.MD5()) {
-					ignored++
-					continue
-				}
-				processed++
-
-				bucketID, objectID := rf.StorageIDs()
-				i.eventBus.PublishStorageEvent(eventbus.NewStorageEvent(bucketID, objectID,
-					rf.TimeStamp(), rf.MD5()))
-			}
-			i.eventProcessMetrics.ignoredByPollingGauge.Update(ignored)
-			i.eventProcessMetrics.processedByPollingGauge.Update(processed)
-			i.eventProcessMetrics.liveness.Reset()
-			sklog.Infof("Watcher for %s received/processed/ignored: %d/%d/%d", source.ID(), ignored+processed, processed, ignored)
 		}
-	}
+
+		rfCh := source.Poll(startTime, time.Now().Unix())
+		processed := int64(0)
+		ignored := int64(0)
+		for rf := range rfCh {
+			if i.inProcessedFiles(rf.MD5()) {
+				ignored++
+				continue
+			}
+			processed++
+
+			bucketID, objectID := rf.StorageIDs()
+			i.eventBus.PublishStorageEvent(eventbus.NewStorageEvent(bucketID, objectID, rf.TimeStamp(), rf.MD5()))
+		}
+		i.eventProcessMetrics.ignoredByPollingGauge.Update(ignored)
+		i.eventProcessMetrics.processedByPollingGauge.Update(processed)
+		i.eventProcessMetrics.liveness.Reset()
+		sklog.Infof("Watcher for %s received/processed/ignored: %d/%d/%d", source.ID(), ignored+processed, processed, ignored)
+	})
 }
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
