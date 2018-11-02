@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2d2bc286_ec4635e3",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-02T19:44:35Z",
+      "side": 1,
+      "message": "The returned currently is always going to be nil because the localEventBus is an instance of a memory based eventbus, but for consistency, I add handling the error.",
+      "parentUuid": "c79d104a_a6b7731a",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 190,
+        "endChar": 5
+      },
+      "revId": "9f5e20e6ae05834b2e5baccc027ec65aaa6ac39f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ce570b33_451412ed",
         "filename": "go/ingestion/ingestion.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2018-11-02T18:55:04Z",
       "side": 1,
       "message": "This return now does something different. Did you intend for it to keep looping in this case?",
+      "range": {
+        "startLine": 226,
+        "startChar": 3,
+        "endLine": 226,
+        "endChar": 9
+      },
+      "revId": "9f5e20e6ae05834b2e5baccc027ec65aaa6ac39f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fb61324_64e4f203",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-02T19:44:35Z",
+      "side": 1,
+      "message": "The return here is actually correct. If we cannot get the startTime (highly unlikely), then we want to leave the function. In the next iteration we\u0027ll try again. \nIf this was in a for-loop and not part of Repeat this should be a \u0027continue\u0027.",
+      "parentUuid": "ce570b33_451412ed",
       "range": {
         "startLine": 226,
         "startChar": 3,
