@@ -1,0 +1,13 @@
+mappings:
+- match: collectd.*.*.*
+  name: $3
+  labels:
+    host: $1
+    resource: $2
+- match: collectd.*.*.*.*
+  name: $3
+  labels:
+    host: $1
+    resource: $2
+    sub: $4
+
