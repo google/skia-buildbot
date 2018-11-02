@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c79d104a_a6b7731a",
+        "filename": "go/gevent/gevent.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-02T18:55:04Z",
+      "side": 1,
+      "message": "Is it ok to ignore these return values? Would it be better if the caller took care of this?",
+      "range": {
+        "startLine": 190,
+        "startChar": 1,
+        "endLine": 190,
+        "endChar": 5
+      },
+      "revId": "9f5e20e6ae05834b2e5baccc027ec65aaa6ac39f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce570b33_451412ed",
+        "filename": "go/ingestion/ingestion.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-02T18:55:04Z",
+      "side": 1,
+      "message": "This return now does something different. Did you intend for it to keep looping in this case?",
+      "range": {
+        "startLine": 226,
+        "startChar": 3,
+        "endLine": 226,
+        "endChar": 9
+      },
+      "revId": "9f5e20e6ae05834b2e5baccc027ec65aaa6ac39f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
