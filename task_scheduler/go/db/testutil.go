@@ -29,12 +29,12 @@ const DEFAULT_TEST_REPO = "go-on-now.git"
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t testutils.TestingT, expected, actual interface{})
 
-func MakeTestTask(ts time.Time, commits []string) *Task {
+func MakeTestTask(ts time.Time, repo string, commits []string) *Task {
 	return &Task{
 		Created: ts,
 		TaskKey: TaskKey{
 			RepoState: RepoState{
-				Repo:     DEFAULT_TEST_REPO,
+				Repo:     repo,
 				Revision: commits[0],
 			},
 			Name: "Test-Task",
@@ -44,12 +44,13 @@ func MakeTestTask(ts time.Time, commits []string) *Task {
 	}
 }
 
-func makeJob(ts time.Time) *Job {
+func makeJob(ts time.Time, repo, commit string) *Job {
 	return &Job{
 		Created:      ts,
 		Dependencies: map[string][]string{},
 		RepoState: RepoState{
-			Repo: DEFAULT_TEST_REPO,
+			Repo:     repo,
+			Revision: commit,
 		},
 		Name:  "Test-Job",
 		Tasks: map[string][]*TaskSummary{},
@@ -57,7 +58,7 @@ func makeJob(ts time.Time) *Job {
 }
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
-func TestTaskDB(t testutils.TestingT, db TaskDB) {
+func TestTaskDB(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	_, err := db.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -68,7 +69,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Time{}, repo, commits[:4])
 
 	// AssignId should fill in t1.Id.
 	assert.Equal(t, "", t1.Id)
@@ -121,8 +122,8 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 
 	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
-	t2 := MakeTestTask(now.Add(time.Nanosecond), []string{"e", "f"})
-	t3 := MakeTestTask(now.Add(2*time.Nanosecond), []string{"g", "h"})
+	t2 := MakeTestTask(now.Add(time.Nanosecond), repo, commits[4:6])
+	t3 := MakeTestTask(now.Add(2*time.Nanosecond), repo, commits[6:8])
 	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
@@ -225,9 +226,9 @@ func TestTaskDBTooManyUsers(t testutils.TestingT, db TaskDB) {
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
-func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
+func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	// Insert a task.
-	t1 := MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Now(), repo, commits[:4])
 	assert.NoError(t, db.PutTask(t1))
 
 	// Retrieve a copy of the task.
@@ -236,7 +237,7 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Cached)
 
 	// Update the original task.
-	t1.Commits = []string{"a", "b"}
+	t1.Commits = commits[:2]
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update the cached copy; should get concurrent update error.
@@ -252,7 +253,7 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	}
 
 	// Insert a second task.
-	t2 := MakeTestTask(time.Now(), []string{"e", "f"})
+	t2 := MakeTestTask(time.Now(), repo, commits[4:6])
 	assert.NoError(t, db.PutTask(t2))
 
 	// Update t2 at the same time as t1Cached; should still get an error.
@@ -274,7 +275,7 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when no errors or retries.
-func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -286,7 +287,7 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 
 	// Create new task t1. (UpdateTasksWithRetries isn't actually useful in this case.)
 	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
-		t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
+		t1 := MakeTestTask(time.Time{}, repo, commits[:4])
 		assert.NoError(t, db.AssignId(t1))
 		t1.Created = time.Now().Add(time.Nanosecond)
 		return []*Task{t1}, nil
@@ -299,15 +300,16 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		t1, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
+		assert.NotNil(t, t1)
 		t1.Status = TASK_STATUS_RUNNING
-		t2 := MakeTestTask(t1.Created.Add(time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(t1.Created.Add(time.Nanosecond), repo, commits[4:6])
 		return []*Task{t1, t2}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
 	assert.Equal(t, TASK_STATUS_RUNNING, tasks[0].Status)
-	assert.Equal(t, []string{"e", "f"}, tasks[1].Commits)
+	assert.Equal(t, commits[4:6], tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
 	t1, err = db.GetTaskById(t1.Id)
@@ -326,11 +328,11 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when there are some retries, but eventual success.
-func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4])
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
@@ -350,7 +352,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 			}
 		}
 		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), repo, commits[4:6])
 		return []*Task{t1Cached, t2}, nil
 	})
 	assert.NoError(t, err)
@@ -358,7 +360,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
 	assert.Equal(t, TASK_STATUS_SUCCESS, tasks[0].Status)
-	assert.Equal(t, []string{"e", "f"}, tasks[1].Commits)
+	assert.Equal(t, commits[4:6], tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
 	t1, err = db.GetTaskById(t1.Id)
@@ -377,7 +379,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when f returns an error.
-func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -386,7 +388,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 		callCount++
 		// Return a task just for fun.
 		return []*Task{
-			MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"}),
+			MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4]),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -401,7 +403,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries when PutTasks returns an error.
-func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	callCount := 0
@@ -409,7 +411,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) 
 		callCount++
 		// Task has zero Created time.
 		return []*Task{
-			MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"}),
+			MakeTestTask(time.Time{}, repo, commits[:4]),
 		}, nil
 	})
 	assert.Error(t, err)
@@ -424,11 +426,11 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) 
 }
 
 // Test UpdateTasksWithRetries when retries are exhausted.
-func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
+func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4])
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
@@ -441,7 +443,7 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), repo, commits[5:6])
 		return []*Task{t1Cached, t2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -457,11 +459,11 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
-func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(time.Time{}, repo, commits[:4])
 	assert.NoError(t, db.AssignId(t1))
 	t1.Created = time.Now().Add(time.Nanosecond)
 	assert.NoError(t, db.PutTask(t1))
@@ -489,11 +491,11 @@ func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
-func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4])
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
@@ -526,11 +528,11 @@ func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when f returns an error.
-func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4])
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update and return an error.
@@ -560,11 +562,11 @@ func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when retries are exhausted.
-func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4])
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update original.
@@ -599,11 +601,11 @@ func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
-func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
+func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(time.Nanosecond), repo, commits[:4])
 	assert.NoError(t, db.AssignId(t1))
 
 	// Attempt to update non-existent task. Function shouldn't be called.
@@ -624,21 +626,21 @@ func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
 }
 
 // Test UpdateTasksWithRetries and UpdateTaskWithRetries.
-func TestUpdateTasksWithRetries(t testutils.TestingT, db TaskDB) {
-	testUpdateTasksWithRetriesSimple(t, db)
-	testUpdateTasksWithRetriesSuccess(t, db)
-	testUpdateTasksWithRetriesErrorInFunc(t, db)
-	testUpdateTasksWithRetriesErrorInPutTasks(t, db)
-	testUpdateTasksWithRetriesExhausted(t, db)
-	testUpdateTaskWithRetriesSimple(t, db)
-	testUpdateTaskWithRetriesSuccess(t, db)
-	testUpdateTaskWithRetriesErrorInFunc(t, db)
-	testUpdateTaskWithRetriesExhausted(t, db)
-	testUpdateTaskWithRetriesTaskNotFound(t, db)
+func TestUpdateTasksWithRetries(t testutils.TestingT, db TaskDB, repo string, commits []string) {
+	testUpdateTasksWithRetriesSimple(t, db, repo, commits)
+	testUpdateTasksWithRetriesSuccess(t, db, repo, commits)
+	testUpdateTasksWithRetriesErrorInFunc(t, db, repo, commits)
+	testUpdateTasksWithRetriesErrorInPutTasks(t, db, repo, commits)
+	testUpdateTasksWithRetriesExhausted(t, db, repo, commits)
+	testUpdateTaskWithRetriesSimple(t, db, repo, commits)
+	testUpdateTaskWithRetriesSuccess(t, db, repo, commits)
+	testUpdateTaskWithRetriesErrorInFunc(t, db, repo, commits)
+	testUpdateTaskWithRetriesExhausted(t, db, repo, commits)
+	testUpdateTaskWithRetriesTaskNotFound(t, db, repo, commits)
 }
 
 // TestJobDB performs basic tests on an implementation of JobDB.
-func TestJobDB(t testutils.TestingT, db JobDB) {
+func TestJobDB(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	_, err := db.GetModifiedJobs("dummy-id")
 	assert.True(t, IsUnknownId(err))
 
@@ -650,7 +652,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, 0, len(jobs))
 
 	now := time.Now().Add(time.Nanosecond)
-	j1 := makeJob(now)
+	j1 := makeJob(now, repo, commits[0])
 
 	// Insert the job.
 	assert.NoError(t, db.PutJob(j1))
@@ -690,8 +692,8 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 
 	// Insert two more jobs. Ensure at least 1 nanosecond between job Created
 	// times so that j1After != j2Before and j2After != j3Before.
-	j2 := makeJob(now.Add(time.Nanosecond))
-	j3 := makeJob(now.Add(2 * time.Nanosecond))
+	j2 := makeJob(now.Add(time.Nanosecond), repo, commits[0])
+	j3 := makeJob(now.Add(2*time.Nanosecond), repo, commits[0])
 	assert.NoError(t, db.PutJobs([]*Job{j2, j3}))
 
 	// Check that PutJobs assigned Ids.
@@ -782,7 +784,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 }
 
 // Test that a JobDB properly tracks its maximum number of users.
-func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB) {
+func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	// Max out the number of modified-jobs users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedJobs()
@@ -794,9 +796,9 @@ func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB) {
 
 // Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
 // has been updated in the DB.
-func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
+func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	// Insert a job.
-	j1 := makeJob(time.Now())
+	j1 := makeJob(time.Now(), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 
 	// Retrieve a copy of the job.
@@ -821,7 +823,7 @@ func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 	}
 
 	// Insert a second job.
-	j2 := makeJob(time.Now())
+	j2 := makeJob(time.Now(), repo, commits[0])
 	assert.NoError(t, db.PutJob(j2))
 
 	// Update j2 at the same time as j1Cached; should still get an error.
@@ -843,7 +845,7 @@ func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when no errors or retries.
-func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Test no-op.
@@ -855,7 +857,7 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 
 	// Create new job j1. (UpdateJobsWithRetries isn't actually useful in this case.)
 	jobs, err = UpdateJobsWithRetries(db, func() ([]*Job, error) {
-		j1 := makeJob(time.Time{})
+		j1 := makeJob(time.Time{}, repo, commits[0])
 		j1.Created = time.Now().Add(time.Nanosecond)
 		return []*Job{j1}, nil
 	})
@@ -868,7 +870,7 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 		j1, err := db.GetJobById(j1.Id)
 		assert.NoError(t, err)
 		j1.Status = JOB_STATUS_IN_PROGRESS
-		j2 := makeJob(j1.Created.Add(time.Nanosecond))
+		j2 := makeJob(j1.Created.Add(time.Nanosecond), repo, commits[0])
 		j2.Repo = "j2-repo"
 		return []*Job{j1, j2}, nil
 	})
@@ -895,11 +897,11 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when there are some retries, but eventual success.
-func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create and cache.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(time.Nanosecond), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 	j1Cached := j1.Copy()
 
@@ -919,7 +921,7 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 			}
 		}
 		j1Cached.Status = JOB_STATUS_SUCCESS
-		j2 := makeJob(begin.Add(2 * time.Nanosecond))
+		j2 := makeJob(begin.Add(2*time.Nanosecond), repo, commits[0])
 		j2.Repo = "j2-repo"
 		return []*Job{j1Cached, j2}, nil
 	})
@@ -947,7 +949,7 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when f returns an error.
-func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
@@ -956,7 +958,7 @@ func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 		callCount++
 		// Return a job just for fun.
 		return []*Job{
-			makeJob(begin.Add(time.Nanosecond)),
+			makeJob(begin.Add(time.Nanosecond), repo, commits[0]),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -971,7 +973,7 @@ func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when PutJobs returns an error.
-func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	callCount := 0
@@ -979,7 +981,7 @@ func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB) {
 		callCount++
 		// Job has zero Created time.
 		return []*Job{
-			makeJob(time.Time{}),
+			makeJob(time.Time{}, repo, commits[0]),
 		}, nil
 	})
 	assert.Error(t, err)
@@ -994,11 +996,11 @@ func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries when retries are exhausted.
-func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
+func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create and cache.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(time.Nanosecond), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 	j1Cached := j1.Copy()
 
@@ -1011,7 +1013,7 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
 		callCount++
 		j1Cached.Status = JOB_STATUS_SUCCESS
-		j2 := makeJob(begin.Add(2 * time.Nanosecond))
+		j2 := makeJob(begin.Add(2*time.Nanosecond), repo, commits[0])
 		return []*Job{j1Cached, j2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -1027,11 +1029,11 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when no errors or retries.
-func testUpdateJobWithRetriesSimple(t testutils.TestingT, db JobDB) {
+func testUpdateJobWithRetriesSimple(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(time.Now())
+	j1 := makeJob(time.Now(), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update j1.
@@ -1057,11 +1059,11 @@ func testUpdateJobWithRetriesSimple(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when there are some retries, but eventual success.
-func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB) {
+func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(time.Nanosecond), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 
 	// Attempt update.
@@ -1094,11 +1096,11 @@ func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when f returns an error.
-func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
+func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(time.Nanosecond), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update and return an error.
@@ -1128,11 +1130,11 @@ func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobWithRetries when retries are exhausted.
-func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB) {
+func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB, repo string, commits []string) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(time.Nanosecond), repo, commits[0])
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update original.
@@ -1167,16 +1169,16 @@ func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 }
 
 // Test UpdateJobsWithRetries and UpdateJobWithRetries.
-func TestUpdateJobsWithRetries(t testutils.TestingT, db JobDB) {
-	testUpdateJobsWithRetriesSimple(t, db)
-	testUpdateJobsWithRetriesSuccess(t, db)
-	testUpdateJobsWithRetriesErrorInFunc(t, db)
-	testUpdateJobsWithRetriesErrorInPutJobs(t, db)
-	testUpdateJobsWithRetriesExhausted(t, db)
-	testUpdateJobWithRetriesSimple(t, db)
-	testUpdateJobWithRetriesSuccess(t, db)
-	testUpdateJobWithRetriesErrorInFunc(t, db)
-	testUpdateJobWithRetriesExhausted(t, db)
+func TestUpdateJobsWithRetries(t testutils.TestingT, db JobDB, repo string, commits []string) {
+	testUpdateJobsWithRetriesSimple(t, db, repo, commits)
+	testUpdateJobsWithRetriesSuccess(t, db, repo, commits)
+	testUpdateJobsWithRetriesErrorInFunc(t, db, repo, commits)
+	testUpdateJobsWithRetriesErrorInPutJobs(t, db, repo, commits)
+	testUpdateJobsWithRetriesExhausted(t, db, repo, commits)
+	testUpdateJobWithRetriesSimple(t, db, repo, commits)
+	testUpdateJobWithRetriesSuccess(t, db, repo, commits)
+	testUpdateJobWithRetriesErrorInFunc(t, db, repo, commits)
+	testUpdateJobWithRetriesExhausted(t, db, repo, commits)
 }
 
 // makeTaskComment creates a comment with its ID fields based on the given repo,
@@ -1423,7 +1425,7 @@ func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
 	return func(string, string) (time.Time, error) { return ts, nil }
 }
 
-func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
+func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	r1 := common.REPO_SKIA
 	r2 := common.REPO_SKIA_INFRA
 	r3 := common.REPO_CHROMIUM
@@ -1432,7 +1434,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	end := start
 	for _, repo := range repos {
 		for i := 0; i < 10; i++ {
-			task := MakeTestTask(end, []string{"c"})
+			task := MakeTestTask(end, repo, commits[2:3])
 			task.Repo = repo
 			assert.NoError(t, db.PutTask(task))
 			end = end.Add(time.Nanosecond)
@@ -1453,7 +1455,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	}
 }
 
-func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
+func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB, repo string, commits []string) {
 	now := time.Now()
 	timeWindow := 24 * time.Hour
 	// Offset commit timestamps for different repos to ensure that we get
@@ -1470,7 +1472,7 @@ func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 			ts := t0.Add(time.Duration(i) * timeWindow / time.Duration(numCommits))
 			gb.AddGen(ctx, f)
 			hash := gb.CommitMsgAt(ctx, fmt.Sprintf("Commit %d", i), ts)
-			task := MakeTestTask(ts, []string{hash})
+			task := MakeTestTask(ts, repo, []string{hash})
 			task.Repo = repoUrl
 			assert.NoError(t, db.PutTask(task))
 		}
