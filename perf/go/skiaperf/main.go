@@ -47,7 +47,6 @@ import (
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/bug"
 	"go.skia.org/infra/perf/go/cid"
-	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
@@ -127,7 +126,7 @@ var (
 
 	frameRequests *dataframe.RunningFrameRequests
 
-	clusterRequests *clustering2.RunningClusterRequests
+	clusterRequests *regression.RunningClusterRequests
 
 	regStore *regression.Store
 
@@ -208,7 +207,7 @@ func newParamsetProvider(freshDataFrame *dataframe.Refresher) regression.Paramse
 
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
-func newAlertsConfigProvider(clusterAlgo clustering2.ClusterAlgo) regression.ConfigProvider {
+func newAlertsConfigProvider(clusterAlgo types.ClusterAlgo) regression.ConfigProvider {
 	return func() ([]*alerts.Config, error) {
 		return alertStore.List(false)
 	}
@@ -255,7 +254,7 @@ func Init() {
 		sklog.Fatalf("Failed to authenicate to cloud storage: %s", err)
 	}
 
-	clusterAlgo, err := clustering2.ToClusterAlgo(*algo)
+	clusterAlgo, err := types.ToClusterAlgo(*algo)
 	if err != nil {
 		sklog.Fatalf("The --algo flag value is invalid: %s", err)
 	}
@@ -343,7 +342,7 @@ func Init() {
 	}
 
 	frameRequests = dataframe.NewRunningFrameRequests(git, dfBuilder)
-	clusterRequests = clustering2.NewRunningClusterRequests(git, cidl, float32(*interesting), dfBuilder)
+	clusterRequests = regression.NewRunningClusterRequests(git, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 	paramsProvider := newParamsetProvider(freshDataFrame)
@@ -684,7 +683,7 @@ type ClusterStartResponse struct {
 func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	req := &clustering2.ClusterRequest{}
+	req := &regression.ClusterRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, r, err, "Could not decode POST body.")
 		return
@@ -699,9 +698,10 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 
 // ClusterStatus is used to serialize a JSON response in clusterStatusHandler.
 type ClusterStatus struct {
-	State   clustering2.ProcessState     `json:"state"`
-	Message string                       `json:"message"`
-	Value   *clustering2.ClusterResponse `json:"value"`
+	State   regression.ProcessState       `json:"state"`
+	Message string                        `json:"message"`
+	Value   *regression.ClusterResponse   `json:"value"`
+	Values  []*regression.ClusterResponse `json:"values"`
 }
 
 // clusterStatusHandler is used to check on the status of a long
@@ -721,7 +721,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	status.State = state
 	status.Message = msg
-	if state == clustering2.PROCESS_SUCCESS {
+	if state == regression.PROCESS_SUCCESS {
 		value, err := clusterRequests.Response(id)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to retrieve results.")
@@ -729,6 +729,34 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		status.Value = value
 	}
+
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// clusterStatusHandler2 is used to check on the status of a long
+// running cluster request. The ID of the routine is passed in via
+// the URL path. A JSON serialized ClusterStatus is returned, with
+// ClusterStatus.Value being populated with all the clusters found so far.
+func clusterStatusHandler2(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+
+	status := &ClusterStatus{}
+	state, msg, err := clusterRequests.Status(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, msg)
+		return
+	}
+	status.State = state
+	status.Message = msg
+	values, err := clusterRequests.Responses(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve results.")
+		return
+	}
+	status.Values = values
 
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
