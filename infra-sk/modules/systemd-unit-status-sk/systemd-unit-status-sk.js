@@ -17,7 +17,7 @@
  *  }
  * </pre>
  */
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 
 import 'elements-sk/styles/buttons'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
@@ -25,11 +25,11 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import { diffDate } from 'common-sk/modules/human'
 
 const template = (ele) => html`
-  <button raised data-action="start"   data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Start  </button>
-  <button raised data-action="stop"    data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Stop   </button>
-  <button raised data-action="restart" data-name$="${ele.value.status.Name}" on-click=${e => ele._click(e)}>Restart</button>
+  <button raised data-action="start"   data-name="${ele.value.status.Name}" @click=${ele._click}>Start  </button>
+  <button raised data-action="stop"    data-name="${ele.value.status.Name}" @click=${ele._click}>Stop   </button>
+  <button raised data-action="restart" data-name="${ele.value.status.Name}" @click=${ele._click}>Restart</button>
   <div class=uptime>${diffDate(ele.value.props ? +ele.value.props.ExecMainStartTimestamp/1000 : 'n/a')}</div>
-  <div class$="${ele.value.status.SubState + ' state'}">${ele.value.status.SubState}</div>
+  <div class="${ele.value.status.SubState} state">${ele.value.status.SubState}</div>
   <div class=service>${ele.value.status.Name}</div>
 `;
 
@@ -52,7 +52,7 @@ window.customElements.define('systemd-unit-status-sk', class extends HTMLElement
 
   _render() {
     if (this.value) {
-      render(template(this), this);
+      render(template(this), this, {eventContext: this});
     }
   }
 

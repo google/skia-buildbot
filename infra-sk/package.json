@@ -1,6 +1,6 @@
 {
   "name": "infra-sk",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Common Skia Infra elements and JS.",
   "homepage": "https://github.com/google/skia-buildbot/tree/master/infra-sk",
   "main": "index.js",
@@ -8,7 +8,7 @@
   "dependencies": {
     "common-sk": "~3.0.0",
     "elements-sk": "~2.4.1",
-    "lit-html": "~0.10.2"
+    "lit-html": "~0.12.0"
   },
   "devDependencies": {
     "@webcomponents/custom-elements": "^1.1.2",
@@ -16,7 +16,7 @@
     "chai-as-promised": "^7.1.1",
     "glob": "^7.1.2",
     "jsdoc": "^3.5.5",
-    "karma": "^2.0.4",
+    "karma": "^3.0.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-firefox-launcher": "^1.1.0",
@@ -24,7 +24,7 @@
     "karma-sinon": "^1.0.5",
     "karma-webpack": "^3.0.0",
     "mocha": "^5.2.0",
-    "pulito": "^4.1.0",
+    "pulito": "^4.1.1",
     "sinon": "^6.1.3",
     "webpack": "^4.15.1",
     "webpack-cli": "^3.0.8"

@@ -22,17 +22,17 @@
  * </script>
  *
  */
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 
 import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 
-const template = (ele) => html`<dialog-sk>
+const template = (ele) => html`<dialog-sk ?shown=${ele._shown}>
   <h2>Confirm</h2>
   <div class=message>${ele._message}</div>
   <div class=buttons>
-  <button on-click=${e => ele._dismiss()}>Cancel</button>
-  <button on-click=${e => ele._confirm()}>OK</button>
+  <button @click=${ele._dismiss}>Cancel</button>
+  <button @click=${ele._confirm}>OK</button>
   </div>
 </dialog-sk>`;
 
@@ -42,6 +42,7 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
     this._resolve = null;
     this._reject = null;
     this._message = '';
+    this._shown = false;
   }
 
   connectedCallback() {
@@ -57,8 +58,8 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
    */
   open(message) {
     this._message = message;
+    this._shown = true;
     this._render();
-    this.firstChild.shown = true;
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -66,16 +67,18 @@ window.customElements.define('confirm-dialog-sk', class extends HTMLElement {
   }
 
   _dismiss() {
-    this.firstChild.shown = false;
+    this._shown = false;
+    this._render();
     this._reject();
   }
 
   _confirm() {
-    this.firstChild.shown = false;
+    this._shown = false;
+    this._render();
     this._resolve();
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 });
