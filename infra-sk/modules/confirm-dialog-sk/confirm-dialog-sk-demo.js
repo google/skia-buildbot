@@ -5,6 +5,7 @@ import { $$ } from 'common-sk/modules/dom'
 import './index.js'
 
 $$('#ask').addEventListener('click', e => {
+  console.log('click');
   $$('#dialog').open('Do something dangerous?').then(() => {
     $$('#results').textContent = 'Confirmed!';
   }).catch(() => {
