@@ -34,6 +34,24 @@
       "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ac043c5_e50868c2",
+        "filename": "am/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-05T15:11:03Z",
+      "side": 1,
+      "message": "\"In general, I don\u0027t think we should depend on transitive dependencies.\"\n\nAgreed.\n\nBut ^0.2.0 should bring in infra-sk 0.4.0 which brings in lit-html 0.12, so we definitely have two copies. So am.skia.org should be upgraded to lit-html 0.12 to avoid the dup at some point.",
+      "parentUuid": "11c4fa74_72148649",
+      "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
