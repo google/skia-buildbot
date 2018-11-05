@@ -43,6 +43,7 @@ var (
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
 	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
+	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
 
 	taskCompletedSuccessfully = false
 
@@ -76,6 +77,7 @@ func sendEmail(recipients []string) {
 			return
 		}
 	}
+	// TODO(rmistry): If groupName is specified then include a link to ct-perf.skia.org.
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
@@ -276,13 +278,11 @@ func main() {
 	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
 	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
-		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-			if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
-				sklog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
-			}
-			// Cleanup created dir after the run completes.
-			defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, run))
+		if _, noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
+			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 		}
+		// Cleanup created dir after the run completes.
+		defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, run))
 	}
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
 	if len(noOutputSlaves) == numSlaves {
@@ -344,6 +344,13 @@ func main() {
 	if err := gs.UploadDir(htmlOutputDir, htmlRemoteDir, true); err != nil {
 		sklog.Errorf("Could not upload %s to %s: %s", htmlOutputDir, htmlRemoteDir, err)
 		return
+	}
+
+	if *groupName == "" {
+		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVPath, gs); err != nil {
+			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
+			return
+		}
 	}
 
 	taskCompletedSuccessfully = true
