@@ -38,18 +38,28 @@ include ../webtools/webtools.mk
 release-fe: autoroll-fe
 	./build_frontend_release
 
+ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
+USE_INTERNAL_CONFIG_DIR_PROMPT ?= $$(bash -c 'read -s -p "The checkout in $(ROLLER_INTERNAL_CONFIG_DIR) is dirty. Would you still like to use it? (y/n): " ans; echo $$ans')
+
+setup-internal-config-repo:
+	if [[ ! -d $(ROLLER_INTERNAL_CONFIG_DIR) ]]; then \
+		git clone https://skia.googlesource.com/skia-autoroll-internal-config.git $(ROLLER_INTERNAL_CONFIG_DIR); \
+	else \
+		git -C $(ROLLER_INTERNAL_CONFIG_DIR) fetch && \
+		git -C $(ROLLER_INTERNAL_CONFIG_DIR) diff --quiet origin/master || \
+		if [ $$? -ne 0 ]; then \
+			if [[ "$(USE_INTERNAL_CONFIG_DIR_PROMPT)" != "y" ]]; then \
+				echo "Exiting"; exit 1; \
+			fi; \
+		fi; \
+	fi
+
 # Parse the config files, compile lists of roller configs.
-ROLLER_CONFIGS=$(wildcard config/*.json)
-ROLLER_CONFIGS_GCE=$(shell python -c "import json,sys; print ' '.join([f for f in sys.argv[1:] if json.load(open(f)).get('kubernetes') is None])" $(ROLLER_CONFIGS))
-ROLLER_CONFIGS_KUBE=$(shell python -c "import json,sys; print ' '.join([f for f in sys.argv[1:] if json.load(open(f)).get('kubernetes') is not None])" $(ROLLER_CONFIGS))
-ROLLER_CONFIGS_KUBE_INTERNAL=$(shell python -c "import json,sys; c = [(f, json.load(open(f))) for f in sys.argv[1:]]; print ' '.join([name for name, f in c if f.get(u'kubernetes') is not None and f[u'isInternal']])" $(ROLLER_CONFIGS))
-ROLLER_CONFIGS_KUBE_EXTERNAL=$(shell python -c "import json,sys; c = [(f, json.load(open(f))) for f in sys.argv[1:]]; print ' '.join([name for name, f in c if f.get(u'kubernetes') is not None and not f[u'isInternal']])" $(ROLLER_CONFIGS))
+ROLLER_CONFIGS_KUBE_INTERNAL=$(wildcard /tmp/skia-autoroll-internal-config/*.json)
+ROLLER_CONFIGS_KUBE_EXTERNAL=$(wildcard config/*.json)
 
 release-be: autoroll-be
 	./deprecated_build_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
-
-release-be-all: autoroll-be $(ROLLER_CONFIGS_GCE)
-	$(foreach cfg, $(ROLLER_CONFIGS_GCE), ./deprecated_build_backend_release "$(cfg)" "$(MESSAGE)";)
 
 release-be-kube: autoroll-be-kube
 	./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
@@ -77,7 +87,7 @@ push-be-kube: release-be-kube kube-conf-gen pushk deployment-dirs $(CONFIG_FILE)
 	if [ "$(CONFIG_IS_INTERNAL)" == "1" ]; then $(KUBE_CONF_GEN_INTERNAL); else $(KUBE_CONF_GEN_EXTERNAL); fi
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
 
-push-be-kube-internal: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
+push-be-kube-internal: release-be-kube kube-conf-gen pushk deployment-dirs setup-internal-config-repo $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
 	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-be
 
