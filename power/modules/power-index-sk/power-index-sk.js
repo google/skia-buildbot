@@ -30,6 +30,7 @@ const downBotsTable = (bots, hosts) => html`
       <th>Key Dimensions</th>
       <th>Status</th>
       <th>Since</th>
+      <th>Silenced</th>
     </tr>
   </thead>
   <tbody>
@@ -47,6 +48,7 @@ const listBots = (bots) => bots.map(bot => {
   <td>${_keyDimension(bot)}</td>
   <td>${bot.status}</td>
   <td>${diffDate(bot.since)} ago</td>
+  <td>${bot.silenced}</td>
 </tr>`
 });
 
@@ -75,18 +77,18 @@ function _keyDimension(bot) {
 function _command(host, bots) {
   let hasBots = false;
   let cmd = 'powercycle --logtostderr ';
-  bots.forEach(function(b){
-    if (b.host_id === host && b.selected){
+  for (let bot of bots) {
+    if (bot.host_id === host && !bot.silenced) {
       hasBots = true;
-      cmd += b.bot_id;
-      if (b.status.startsWith('Device')) {
+      cmd += bot.bot_id;
+      if (bot.status.startsWith('Device')) {
         cmd += '-device';
       }
       cmd += ' ';
     }
-  });
+  };
   if (!hasBots) {
-    return 'No bots down :)'
+    return 'No unsilenced bots down :)'
   }
   return cmd;
 }
@@ -128,7 +130,6 @@ window.customElements.define('power-index-sk', class extends HTMLElement {
         json.list = json.list || [];
         let byHost = {};
         json.list.forEach(function(b){
-          b.selected = !b.silenced;
           var host_arr = byHost[b.host_id] || [];
           host_arr.push(b.bot_id);
           byHost[b.host_id] = host_arr;
