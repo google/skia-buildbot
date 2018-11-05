@@ -29,6 +29,8 @@ const (
 	PROCESS_ERROR   ProcessState = "Error"
 )
 
+type ClusterRequestType int
+
 const (
 	// MAX_FINISHED_PROCESS_AGE is the amount of time to keep a finished
 	// ClusterRequestProcess around before deleting it.
@@ -48,6 +50,9 @@ const (
 	// sparse data set, we'll request data in chunks of this many commits per
 	// point we are looking for.
 	SPARSE_BLOCK_SEARCH_MULT = 100
+
+	CLUSTERING_REQUEST_TYPE_SINGLE ClusterRequestType = 0 // Do clustering at a single commit.
+	CLUSTERING_REQUEST_TYPE_LAST_N ClusterRequestType = 1 // Do clustering over a range of dense commits.
 )
 
 var (
@@ -81,15 +86,17 @@ func ToClusterAlgo(s string) (ClusterAlgo, error) {
 
 // ClusterRequest is all the info needed to start a clustering run.
 type ClusterRequest struct {
-	Source      string      `json:"source"`
-	Offset      int         `json:"offset"`
-	Radius      int         `json:"radius"`
-	Query       string      `json:"query"`
-	K           int         `json:"k"`
-	TZ          string      `json:"tz"`
-	Algo        ClusterAlgo `json:"algo"`
-	Interesting float32     `json:"interesting"`
-	Sparse      bool        `json:"sparse"`
+	Source      string             `json:"source"`
+	Offset      int                `json:"offset"`
+	Radius      int                `json:"radius"`
+	Query       string             `json:"query"`
+	K           int                `json:"k"`
+	TZ          string             `json:"tz"`
+	Algo        ClusterAlgo        `json:"algo"`
+	Interesting float32            `json:"interesting"`
+	Sparse      bool               `json:"sparse"`
+	N           int32              `json:"n"`
+	Type        ClusterRequestType `json:"type"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -102,6 +109,8 @@ type ClusterResponse struct {
 	Frame   *dataframe.FrameResponse `json:"frame"`
 }
 
+type LastNCallback func(*ClusterResponse)
+
 // ClusterRequestProcess handles the processing of a single ClusterRequest.
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
@@ -112,11 +121,11 @@ type ClusterRequestProcess struct {
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
-	response   *ClusterResponse // The response when the clustering is complete.
-	lastUpdate time.Time        // The last time this process was updated.
-	state      ProcessState     // The current state of the process.
-	message    string           // Describes the current state of the process.
-	cids       []*cid.CommitID  // The cids to run the clustering over. Calculated in calcCids.
+	response   []*ClusterResponse // The response when the clustering is complete.
+	lastUpdate time.Time          // The last time this process was updated.
+	state      ProcessState       // The current state of the process.
+	message    string             // Describes the current state of the process.
+	cids       []*cid.CommitID    // The cids to run the clustering over. Calculated in calcCids.
 }
 
 func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
@@ -125,6 +134,7 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 		git:        git,
 		cidl:       cidl,
 		dfBuilder:  dfBuilder,
+		response:   []*ClusterResponse{},
 		lastUpdate: time.Now(),
 		state:      PROCESS_RUNNING,
 		message:    "Running",
@@ -263,7 +273,7 @@ func (p *ClusterRequestProcess) clusterProgress(totalError float64) {
 func (p *ClusterRequestProcess) Response() *ClusterResponse {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	return p.response
+	return p.response[0]
 }
 
 // Status returns the ProcessingState and the message of a
@@ -480,8 +490,8 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 	defer p.mutex.Unlock()
 	p.state = PROCESS_SUCCESS
 	p.message = ""
-	p.response = &ClusterResponse{
+	p.response = append(p.response, &ClusterResponse{
 		Summary: summary,
 		Frame:   frame,
-	}
+	})
 }
