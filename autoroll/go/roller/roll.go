@@ -295,9 +295,10 @@ type githubRoll struct {
 	t                *travisci.TravisCI
 	checksNum        int
 	checksWaitFor    []string
+	mergeMethod 	 string
 }
 
-func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int, checksWaitFor []string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
+func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int, checksWaitFor []string, mergeMethod string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
@@ -395,7 +396,18 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		if err != nil {
 			return nil, nil, fmt.Errorf("Could not get description of %d: %s", issueNum, err)
 		}
-		if err := g.MergePullRequest(int(issueNum), desc, github.MERGE_METHOD_SQUASH); err != nil {
+		// TODO(liyuqian): allow mergeMethod to be an URL and read the actual merge method from it.
+		if strings.HasPrefix(mergeMethod, "http") {
+			client := httputils.NewTimeoutClient()
+			mergeMethod, err := client.Get(mergeMethod)
+			if err != nil {
+				return nil, nil, err
+			}
+		}
+		if mergeMethod != github.MERGE_METHOD_SQUASH && mergeMethod != github.MERGE_METHOD_REBASE {
+			return nil, nil, fmt.Errorf("Unrecognized merge method: %s", mergeMethod)
+		}
+		if err := g.MergePullRequest(int(issueNum), desc, mergeMethod); err != nil {
 			return nil, nil, fmt.Errorf("Could not merge pull request %d: %s", issueNum, err)
 		}
 	}
@@ -404,8 +416,8 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, checksNum int, checksWaitFor []string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor)
+func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, checksNum int, checksWaitFor []string, mergeMethod string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor, mergeMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -415,8 +427,9 @@ func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoMa
 		g:           g,
 		recent:      recent,
 		checksNum:   checksNum,
+		mergeMethod: mergeMethod,
 		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor)
+			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor, mergeMethod)
 		},
 		rm: rm,
 	}, nil
