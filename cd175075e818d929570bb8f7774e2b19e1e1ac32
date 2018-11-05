@@ -52,6 +52,24 @@
       "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "836ac3eb_7a24a677",
+        "filename": "am/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-05T15:15:54Z",
+      "side": 1,
+      "message": "Ah, I missed that sublety.  I changed the ^ to a ~ just to avoid the clash.  In addition, I plan to upgrade the rest of the elements to 0.12.0 after this lands.",
+      "parentUuid": "6ac043c5_e50868c2",
+      "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
