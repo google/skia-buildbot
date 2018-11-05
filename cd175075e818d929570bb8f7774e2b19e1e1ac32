@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90b871fa_dc96cfb2",
+        "filename": "am/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-05T14:54:42Z",
+      "side": 1,
+      "message": "If am depends on infra-sk then the below lit-html dependency means we\u0027re shipping two copies of lit-html in am.skia.org.",
+      "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
