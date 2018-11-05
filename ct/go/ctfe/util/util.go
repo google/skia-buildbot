@@ -109,6 +109,8 @@ const (
 	RESULTS_URI = "/results/"
 
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
+
+	MAX_GROUPNAME_LEN = 20
 )
 
 var DomainsWithViewAccess = []string{"google.com"}

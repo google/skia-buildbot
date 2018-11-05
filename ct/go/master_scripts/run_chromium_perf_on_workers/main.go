@@ -43,6 +43,7 @@ var (
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
 	discardOutliers           = flag.Float64("discard_outliers", 0.0, "The percentage of outliers to discard when comparing the result CSV files.")
 	taskPriority              = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
+	groupName                 = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
 
 	taskCompletedSuccessfully = false
 
@@ -76,6 +77,7 @@ func sendEmail(recipients []string) {
 			return
 		}
 	}
+	// TODO(rmistry): If groupName is specified then include a link to ct-perf.skia.org.
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
@@ -273,20 +275,34 @@ func main() {
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
-	noOutputSlaves := []string{}
 	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
-	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
-		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-			if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, run, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark)); err != nil {
-				sklog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
-			}
-			// Cleanup created dir after the run completes.
-			defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, run))
-		}
+	var noOutputSlaves []string
+
+	// Nopatch CSV file processing.
+	noPatchCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, runIDNoPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	if err != nil {
+		sklog.Errorf("Unable to merge and upload CSV files for %s: %s", runIDNoPatch, err)
+		return
 	}
+	// Cleanup created dir after the run completes.
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch))
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
 	if len(noOutputSlaves) == numSlaves {
-		sklog.Errorf("All %d slaves produced no output", numSlaves)
+		sklog.Errorf("All %d slaves produced no output for nopatch run", numSlaves)
+		return
+	}
+
+	// Withpatch CSV file processing.
+	withPatchCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, runIDWithPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	if err != nil {
+		sklog.Errorf("Unable to merge and upload CSV files for %s: %s", runIDWithPatch, err)
+		return
+	}
+	// Cleanup created dir after the run completes.
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch))
+	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
+	if len(noOutputSlaves) == numSlaves {
+		sklog.Errorf("All %d slaves produced no output for withpatch run", numSlaves)
 		return
 	}
 
@@ -298,8 +314,6 @@ func main() {
 
 	// Compare the resultant CSV files using csv_comparer.py
 	_, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
-	noPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch, runIDNoPatch+".output")
-	withPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch, runIDWithPatch+".output")
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
 	skutil.MkdirAll(htmlOutputDir, 0700)
 	htmlRemoteDir := filepath.Join(remoteOutputDir, "html")
@@ -311,8 +325,8 @@ func main() {
 	pathToCsvComparer := filepath.Join(pathToPyFiles, "csv_comparer.py")
 	args := []string{
 		pathToCsvComparer,
-		"--csv_file1=" + noPatchCSVPath,
-		"--csv_file2=" + withPatchCSVPath,
+		"--csv_file1=" + noPatchCSVLocalPath,
+		"--csv_file2=" + withPatchCSVLocalPath,
 		"--output_html=" + htmlOutputDir,
 		"--variance_threshold=" + strconv.FormatFloat(*varianceThreshold, 'f', 2, 64),
 		"--discard_outliers=" + strconv.FormatFloat(*discardOutliers, 'f', 2, 64),
@@ -344,6 +358,13 @@ func main() {
 	if err := gs.UploadDir(htmlOutputDir, htmlRemoteDir, true); err != nil {
 		sklog.Errorf("Could not upload %s to %s: %s", htmlOutputDir, htmlRemoteDir, err)
 		return
+	}
+
+	if *groupName == "" {
+		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVLocalPath, gs); err != nil {
+			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
+			return
+		}
 	}
 
 	taskCompletedSuccessfully = true
