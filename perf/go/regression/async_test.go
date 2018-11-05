@@ -1,4 +1,4 @@
-package clustering2
+package regression
 
 import (
 	"context"
