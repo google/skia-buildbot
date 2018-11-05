@@ -195,6 +195,13 @@
                   <td>{{chromiumAnalysisTask.CCList}}</td>
                 </tr>
               </template>
+              <!-- TODO(rmistry): Make the group name a link to ct-perf.skia.org -->
+              <template is="dom-if" if="{{chromiumAnalysisTask.GroupName}}">
+                <tr>
+                  <td>GroupName:</td>
+                  <td>{{chromiumAnalysisTask.GroupName}}</td>
+                </tr>
+              </template>
             </table>
           </td>
 
