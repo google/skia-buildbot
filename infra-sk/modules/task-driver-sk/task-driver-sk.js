@@ -106,11 +106,11 @@ const expando = (expanded) => html`<span class="expando">[${expanded ? "-" : "+"
 const step = (ele, s) => html`
   <div class$="${ele._stepClass(s)}">
     <div class="vert">
-      <div class$="${ele._stepNameClass(s)}">${s.name}</div>
-      <div class="horiz duration">${ele._duration(s.started, s.finished)}</div>
       <a class="horiz" id="button_props_${s.id}" on-click=${(ev) => ele._toggleProps(s)}>
         ${expando(s.expandProps)}
       </a>
+      <div class$="${ele._stepNameClass(s)}">${s.name}</div>
+      <div class="horiz duration">${ele._duration(s.started, s.finished)}</div>
     </div>
     ${stepInner(ele, s)}
   </div>
