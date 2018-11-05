@@ -27,6 +27,7 @@
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter"
   },
+  "githubMergeMethod": "squash",
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
