@@ -16,6 +16,24 @@
       "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11c4fa74_72148649",
+        "filename": "am/package.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-05T15:02:35Z",
+      "side": 1,
+      "message": "Potentially 2 copies. In this case, there is only 1 because it\u0027s the same version. In general, I don\u0027t think we should depend on transitive dependencies.",
+      "parentUuid": "90b871fa_dc96cfb2",
+      "revId": "cd175075e818d929570bb8f7774e2b19e1e1ac32",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
