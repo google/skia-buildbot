@@ -137,7 +137,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 
 	if _, err := AddTask(r.Context(), task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %s", task, err))
 		return
 	}
 }
