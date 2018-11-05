@@ -699,9 +699,10 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 
 // ClusterStatus is used to serialize a JSON response in clusterStatusHandler.
 type ClusterStatus struct {
-	State   clustering2.ProcessState     `json:"state"`
-	Message string                       `json:"message"`
-	Value   *clustering2.ClusterResponse `json:"value"`
+	State   clustering2.ProcessState       `json:"state"`
+	Message string                         `json:"message"`
+	Value   *clustering2.ClusterResponse   `json:"value"`
+	Values  []*clustering2.ClusterResponse `json:"values"`
 }
 
 // clusterStatusHandler is used to check on the status of a long
@@ -729,6 +730,35 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		status.Value = value
 	}
+
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		sklog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
+// clusterStatusHandler2 is used to check on the status of a long
+// running cluster request. The ID of the routine is passed in via
+// the URL path. A JSON serialized ClusterStatus is returned, with
+// ClusterStatus.Value being populated only when the clustering
+// process has finished.
+func clusterStatusHandler2(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+
+	status := &ClusterStatus{}
+	state, msg, err := clusterRequests.Status(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, msg)
+		return
+	}
+	status.State = state
+	status.Message = msg
+	values, err := clusterRequests.Responses(id)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve results.")
+		return
+	}
+	status.Values = values
 
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)

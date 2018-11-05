@@ -16,5 +16,5 @@ func Run(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *c
 	if proc.state == PROCESS_ERROR {
 		return nil, fmt.Errorf("Failed to complete clustering: %s", proc.message)
 	}
-	return proc.response, nil
+	return proc.Response(), nil
 }
