@@ -65,6 +65,7 @@ type DatastoreTask struct {
 	MatchStdoutTxt       string
 	CCList               []string
 	TaskPriority         int
+	GroupName            string
 }
 
 func (task DatastoreTask) GetTaskName() string {
@@ -114,6 +115,7 @@ func (task *DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, e
 	taskVars.MatchStdoutTxt = task.MatchStdoutTxt
 	taskVars.CCList = task.CCList
 	taskVars.TaskPriority = strconv.Itoa(task.TaskPriority)
+	taskVars.GroupName = task.GroupName
 	return taskVars, nil
 }
 
@@ -181,6 +183,7 @@ type AddTaskVars struct {
 	MatchStdoutTxt string   `json:"match_stdout_txt"`
 	CCList         []string `json:"cc_list"`
 	TaskPriority   string   `json:"task_priority"`
+	GroupName      string   `json:"group_name"`
 }
 
 func (task *AddTaskVars) GetDatastoreKind() ds.Kind {
@@ -193,6 +196,9 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		task.Platform == "" ||
 		task.Description == "" {
 		return nil, fmt.Errorf("Invalid parameters")
+	}
+	if task.GroupName != "" && len(task.GroupName) >= ctfeutil.MAX_GROUPNAME_LEN {
+		return nil, fmt.Errorf("Please limit group names to less than %d characters", ctfeutil.MAX_GROUPNAME_LEN)
 	}
 	customWebpagesSlice, err := ctfeutil.GetQualifiedCustomWebpages(task.CustomWebpages, task.BenchmarkArgs)
 	if err != nil {
@@ -245,6 +251,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		RunOnGCE:       task.RunOnGCE,
 		MatchStdoutTxt: task.MatchStdoutTxt,
 		CCList:         task.CCList,
+		GroupName:      task.GroupName,
 	}
 	taskPriority, err := strconv.Atoi(task.TaskPriority)
 	if err != nil {

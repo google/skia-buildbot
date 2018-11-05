@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
@@ -40,6 +39,7 @@ var (
 	runInParallel      = flag.Bool("run_in_parallel", true, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	matchStdoutText    = flag.String("match_stdout_txt", "", "Looks for the specified string in the stdout of web page runs. The count of the text's occurence and the lines containing it are added to the CSV of the web page.")
 	taskPriority       = flag.Int("task_priority", util.TASKS_PRIORITY_MEDIUM, "The priority swarming tasks should run at.")
+	groupName          = flag.String("group_name", "", "The group name of this run. It will be used as the key when uploading data to ct-perf.skia.org.")
 
 	taskCompletedSuccessfully = false
 
@@ -82,6 +82,7 @@ func sendEmail(recipients []string, gs *util.GcsUtil) {
 		archivedWebpagesText = fmt.Sprintf(" %d WPR archives were used.", totalArchivedWebpages)
 	}
 
+	// TODO(rmistry): If groupName is specified then include a link to ct-perf.skia.org.
 	bodyTemplate := `
 	The chromium analysis %s benchmark task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
@@ -243,16 +244,16 @@ func main() {
 		return
 	}
 
-	// If "--output-format=csv" is specified then merge all CSV files and upload.
-	noOutputSlaves := []string{}
+	// Merge all CSV files and upload.
 	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local, true /* runOnMaster */)
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
-			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
-		}
-		// Cleanup created dir after the run completes.
-		defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
+	outputCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	if err != nil {
+		sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
+		return
 	}
+	// Cleanup created dir after the run completes.
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
+
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
 	if len(noOutputSlaves) == numSlaves {
 		sklog.Errorf("All %d slaves produced no output", numSlaves)
@@ -266,6 +267,13 @@ func main() {
 	for _, noOutputSlave := range noOutputSlaves {
 		directLink := fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_analysis_"+noOutputSlave)
 		fmt.Printf("Missing output from %s\n", directLink)
+	}
+
+	if *groupName == "" {
+		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, outputCSVLocalPath, gs); err != nil {
+			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
+			return
+		}
 	}
 
 	taskCompletedSuccessfully = true

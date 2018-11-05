@@ -152,6 +152,7 @@ func (task *ChromiumAnalysisTask) Execute(ctx context.Context, getPatchFunc GetP
 		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
 		"--service_account_file=" + *master_common.ServiceAccountFile,
 		"--task_priority=" + strconv.Itoa(task.TaskPriority),
+		"--group_name=" + task.GroupName,
 		fmt.Sprintf("--local=%t", *master_common.Local),
 	}
 	return executeAndPrintTaskOutput(ctx, "run_chromium_analysis_on_workers", runId, args)
@@ -209,6 +210,7 @@ func (task *ChromiumPerfTask) Execute(ctx context.Context, getPatchFunc GetPatch
 		"--email_token_cache_file=" + *master_common.EmailTokenCacheFile,
 		"--service_account_file=" + *master_common.ServiceAccountFile,
 		"--task_priority=" + strconv.Itoa(task.TaskPriority),
+		"--group_name=" + task.GroupName,
 		fmt.Sprintf("--local=%t", *master_common.Local),
 	}
 	return executeAndPrintTaskOutput(ctx, "run_chromium_perf_on_workers", runId, args)
