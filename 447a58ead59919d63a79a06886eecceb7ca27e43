@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7bad4c74_1172f075",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-05T14:36:04Z",
+      "side": 1,
+      "message": "I removed the check for --output-format\u003dcsv here and in perf because none of the results make sense without it.\nAlso did a return if we get error in MergeUploadCSVFiles, I don\u0027t know why we did not have that before.\nAlso refactored things a little in perf. PTAL.",
+      "parentUuid": "870a293d_ae4494b9",
+      "range": {
+        "startLine": 254,
+        "startChar": 2,
+        "endLine": 254,
+        "endChar": 3
+      },
+      "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e5ada72_c5947555",
         "filename": "ct/res/imp/chromium-analysis-sk.html",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "13550dec_6c487d71",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-05T14:36:04Z",
+      "side": 1,
+      "message": "Yea just wanted to keep it simple in the initial implementation. Will add some checking if there are unexpected collisions.",
+      "parentUuid": "9e5ada72_c5947555",
+      "range": {
+        "startLine": 239,
+        "startChar": 10,
+        "endLine": 239,
+        "endChar": 50
+      },
+      "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48f972dd_68dd97bf",
         "filename": "ct/res/imp/chromium-analysis-sk.html",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe92d736_22e53243",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-05T14:36:04Z",
+      "side": 1,
+      "message": "No idea what a good limit is, did 20 for now.",
+      "parentUuid": "48f972dd_68dd97bf",
+      "range": {
+        "startLine": 447,
+        "startChar": 32,
+        "endLine": 447,
+        "endChar": 55
+      },
+      "revId": "447a58ead59919d63a79a06886eecceb7ca27e43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
