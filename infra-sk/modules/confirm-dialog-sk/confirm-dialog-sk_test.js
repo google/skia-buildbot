@@ -1,4 +1,5 @@
 import './index.js'
+import { $$ } from 'common-sk/modules/dom'
 
 let container = document.createElement('div');
 document.body.appendChild(container);
@@ -26,11 +27,9 @@ describe('confirm-dialog-sk', function() {
         button.click();
         // Return the promise and let Mocha check that it resolves.
         return promise;
-      })
+      });
     });
-  });
 
-  describe('promise', function() {
     it('rejects when Cancel is clicked', function() {
       return window.customElements.whenDefined('confirm-dialog-sk').then(() => {
         container.innerHTML = `<confirm-dialog-sk></confirm-dialog-sk>`;
@@ -40,8 +39,21 @@ describe('confirm-dialog-sk', function() {
         assert.equal(button.textContent, 'Cancel');
         button.click();
         return invertPromise(promise);
-      })
+      });
     });
   });
+
+  describe('appearance', function() {
+    it('sets shown on the inner dialog-sk', function() {
+      return window.customElements.whenDefined('confirm-dialog-sk').then(() => {
+        container.innerHTML = `<confirm-dialog-sk></confirm-dialog-sk>`;
+        let dialog = container.firstElementChild;
+
+        assert.equal($$('dialog-sk', dialog).hasAttribute('shown'), false);
+        dialog.open('whatever');
+        assert.equal($$('dialog-sk', dialog).hasAttribute('shown'), true);
+      });
+    });
+  })
 
 });

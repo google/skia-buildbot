@@ -7,7 +7,7 @@
  * </p>
  *
  */
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 import { localeTime, strDuration } from 'common-sk/modules/human'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -84,18 +84,18 @@ const stepProperties = (ele, s) => html`
 
 const stepChildren = (ele, s) => html`
   <div class="vert children_link">
-    <a id="button_children_${s.id}" on-click=${(ev) => ele._toggleChildren(s)}>
+    <a id="button_children_${s.id}" @click=${(ev) => ele._toggleChildren(s)}>
       ${expando(s.expandChildren)}
     </a>
     ${s.steps.length} Children
   </div>
-  <collapse-sk id="children_${s.id}" closed?="${!s.expandChildren}">
+  <collapse-sk id="children_${s.id}" ?closed="${!s.expandChildren}">
     ${s.steps.map((s) => step(ele, s))}
   </collapse-sk>
 `;
 
 const stepInner = (ele, s) => html`
-    <collapse-sk id="props_${s.id}" closed?="${!s.expandProps}">
+    <collapse-sk id="props_${s.id}" ?closed="${!s.expandProps}">
       ${stepProperties(ele, s)}
     </collapse-sk>
     ${s.steps && s.steps.length > 0 ? stepChildren(ele, s) : ""}
@@ -104,12 +104,12 @@ const stepInner = (ele, s) => html`
 const expando = (expanded) => html`<span class="expando">[${expanded ? "-" : "+"}]</span>`;
 
 const step = (ele, s) => html`
-  <div class$="${ele._stepClass(s)}">
+  <div class="${ele._stepClass(s)}">
     <div class="vert">
-      <a class="horiz" id="button_props_${s.id}" on-click=${(ev) => ele._toggleProps(s)}>
+      <a class="horiz" id="button_props_${s.id}" @click=${(ev) => ele._toggleProps(s)}>
         ${expando(s.expandProps)}
       </a>
-      <div class$="${ele._stepNameClass(s)}">${s.name}</div>
+      <div class="${ele._stepNameClass(s)}">${s.name}</div>
       <div class="horiz duration">${ele._duration(s.started, s.finished)}</div>
     </div>
     ${stepInner(ele, s)}
@@ -252,7 +252,7 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
   _reload() {
