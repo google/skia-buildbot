@@ -4,7 +4,7 @@ import { $$ } from 'common-sk/modules/dom'
 
 let ck = $$('canvaskit-fiddle');
 
-ck.content = `const surface = CanvasKit.getWebGLSurface(canvas.id);
+ck.content = `const surface = CanvasKit.MakeCanvasSurface(canvas.id);
 if (!surface) {
   throw 'Could not make surface';
 }
@@ -26,7 +26,7 @@ function drawFrame() {
   offset++;
 
   paint.setPathEffect(dpe);
-  paint.setStyle(CanvasKit.PaintStyle.STROKE);
+  paint.setStyle(CanvasKit.PaintStyle.Stroke);
   paint.setStrokeWidth(5.0 + -3 * Math.cos(offset/30));
   paint.setAntiAlias(true);
   paint.setColor(CanvasKit.Color(66, 129, 164, 1.0));

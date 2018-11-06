@@ -31,18 +31,24 @@ header {
   flex-direction: row;
   justify-content: space-between;
 
+  a {
+    color: white;
+  }
+
   .title {
     font-size: 1.5em;
     font-weight: bold;
+  }
+
+  .npm {
+    margin: auto 10px;
+    font-size: 1.0em;
   }
 
   .version {
     margin: auto;
     font-size: 1.1em;
 
-    a {
-      color: white;
-    }
   }
 }
 

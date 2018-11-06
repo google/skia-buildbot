@@ -1,17 +1,23 @@
 import 'elements-sk/error-toast-sk'
 import { html } from 'lit-html'
 
+import { SKIA_VERSION } from '../../build/version.js'
 import { WasmFiddle, codeEditor } from '../wasm-fiddle'
 
-const PathKitInit = require('pathkit-wasm/bin/pathkit.js');
-
+const PathKitInit = require('../../build/pathkit.js');
 
 // Main template for this element
 const template = (ele) => html`
 <header>
   <div class=title>PathKit Fiddle</div>
+  <div class=npm>
+    <a href="https://www.npmjs.com/package/pathkit-wasm">Available on npm</a>
+  </div>
   <div class=flex></div>
-  <div class=version>PathKit Version: <a href="https://www.npmjs.com/package/pathkit-wasm">0.4.0</a></div>
+
+  <div class=version>
+    <a href="https://skia.googlesource.com/skia/+/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
+  </div>
 </header>
 
 <main>
