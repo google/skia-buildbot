@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "13b46126_ebc23b5a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2007,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-06T15:33:53Z",
+      "side": 1,
+      "message": "sklog.FmtErrorf should probably be moved to a different package because it has nothing to do with logging. It\u0027s basically the same as fmt.Errorf but it adds a stacktrace to the error.",
+      "parentUuid": "5cb3d569_03322cf1",
+      "range": {
+        "startLine": 2007,
+        "startChar": 16,
+        "endLine": 2007,
+        "endChar": 25
+      },
+      "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49e4d91f_263a79d7",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-11-06T14:53:10Z",
       "side": 1,
       "message": "We\u0027re actually leaking the metric here.  Rather than setting its value to zero and letting it hang around, we should Delete() it.",
+      "range": {
+        "startLine": 2078,
+        "startChar": 4,
+        "endLine": 2079,
+        "endChar": 15
+      },
+      "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30b09d3c_2ff71432",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2079,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-06T15:33:53Z",
+      "side": 1,
+      "message": "If we immediately delete, then the 0 won\u0027t be sent to Prometheus, so the old value sticks around. If the previous value was causing an alert, the alert will stay active indefinitely. I could try to figure out how to delete it after the next cycle, but IMO the severity of this leak is pretty small.",
+      "parentUuid": "49e4d91f_263a79d7",
       "range": {
         "startLine": 2078,
         "startChar": 4,
