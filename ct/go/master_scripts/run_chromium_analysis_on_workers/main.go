@@ -269,7 +269,7 @@ func main() {
 		fmt.Printf("Missing output from %s\n", directLink)
 	}
 
-	if *groupName == "" {
+	if *groupName != "" {
 		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, outputCSVLocalPath, gs); err != nil {
 			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 			return
