@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"path"
 	"runtime"
 
@@ -20,6 +19,7 @@ func FuzzerBase(name string) *gce.Instance {
 	vm.Metadata["owner_primary"] = "kjlubick"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
 	vm.Scopes = append(vm.Scopes, auth.SCOPE_READ_WRITE, logging.LoggingWriteScope)
+	vm.ServiceAccount = "fuzzer@skia-buildbots.google.com.iam.gserviceaccount.com"
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
@@ -34,18 +34,9 @@ func FrontEnd() *gce.Instance {
 	return vm
 }
 
-func BackEnd(num int) *gce.Instance {
-	vm := FuzzerBase(fmt.Sprintf("skia-fuzzer-be-%d", num))
-	vm.MachineType = gce.MACHINE_TYPE_HIGHCPU_64
-	return vm
-}
-
 func main() {
 	common.Init()
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"fe":   FrontEnd(),
-		"be-1": BackEnd(1),
-		"be-2": BackEnd(2),
-		"be-3": BackEnd(3),
+		"fe": FrontEnd(),
 	})
 }
