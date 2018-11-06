@@ -254,6 +254,9 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 func (r *run) send(msg *Message) {
 	msg.TaskId = r.taskId
 	msg.Timestamp = time.Now().UTC()
+	if err := msg.Validate(); err != nil {
+		sklog.Error(err)
+	}
 	if err := r.receiver.HandleMessage(msg); err != nil {
 		// Just log the error but don't return it.
 		// TODO(borenet): How do we handle this?
