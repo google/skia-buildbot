@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "877b5079_1af3b536",
+        "filename": "jsfiddle/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-06T18:29:54Z",
+      "side": 1,
+      "message": "There is a docker command to extract files from another docker image:\n\nhttps://github.com/google/skia-buildbot/blob/master/debugger/debugger/Dockerfile#L18",
+      "revId": "68ef04ce458227fa4e0ec9f5061c3d66c4423524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
