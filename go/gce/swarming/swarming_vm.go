@@ -110,6 +110,7 @@ func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 
 // Linux GCE instances.
 func LinuxSwarmingBot(num int) *gce.Instance {
+	// For chromium-swarm-dev, change the name to "skia-d-gce-%03d".
 	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL))
 }
 

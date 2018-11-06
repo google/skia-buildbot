@@ -107,6 +107,8 @@ mkdir --parents /b/s
 SWARMING=https://chromium-swarm.appspot.com
 if [[ $(hostname) == *"-i-"* ]]; then
   SWARMING=https://chrome-swarming.appspot.com
+elif [[ $(hostname) == *"-d-"* ]]; then
+  SWARMING=https://chromium-swarm-dev.appspot.com
 fi
 HOSTNAME=`hostname`
 curl "${SWARMING}/bot_code?bot_id=${HOSTNAME}" --header "Authorization":"Bearer $TOKEN" \

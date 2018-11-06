@@ -99,8 +99,8 @@ const (
 	instanceStatusRunning = "RUNNING"
 	instanceStatusStopped = "TERMINATED"
 
-	errNotFound      = "\\\"reason\\\": \\\"notFound\\\""
-	errAlreadyExists = "\\\"reason\\\": \\\"alreadyExists\\\""
+	errNotFound      = "\\\"reason\\\":\\\"notFound\\\""
+	errAlreadyExists = "\\\"reason\\\":\\\"alreadyExists\\\""
 
 	maxWaitTime = 10 * time.Minute
 
