@@ -1,17 +1,19 @@
 import 'elements-sk/error-toast-sk'
 import { html } from 'lit-html'
 
+import { SKIA_VERSION } from '../../build/version.js'
 import { WasmFiddle, codeEditor } from '../wasm-fiddle'
 
-const CanvasKitInit = require('../canvaskit/canvaskit.js');
-
+const CanvasKitInit = require('../../build/canvaskit.js');
 
 // Main template for this element
 const template = (ele) => html`
 <header>
   <div class=title>CanvasKit Fiddle</div>
   <div class=flex></div>
-  <div class=version>CanvasKit Version: 0.1.1</div>
+  <div class=version>
+    <a href="https://skia.googlesource.com/skia/+/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
+  </div>
 </header>
 
 <main>
