@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fc6f1a08_cc680a5e",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-06T15:52:21Z",
+      "side": 1,
+      "message": "TODO no longer needed?",
+      "revId": "f5e02a9ee769056e3ffac34f693da214b2f5b5d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8021f0c6_69b0467d",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-06T15:52:21Z",
+      "side": 1,
+      "message": "It is confusing to me to have mergeMethod be both either the actual merge method (squash/rebase) or a URL.\nIt would be cleaner to have it always be a URL and rename the config to githubMergeMethodURL with a comment in the config saying it will return which merge method to use. If URL is not specified then \"squash\" is used by default. WDYT?",
+      "revId": "f5e02a9ee769056e3ffac34f693da214b2f5b5d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efcd6adb_7e83196d",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-06T15:52:21Z",
+      "side": 1,
+      "message": "Nit: Add a descriptive error here, something like:\nfmt.Errorf(\"Could not GET from %s: %s\", mergeMethodURL, err)",
+      "range": {
+        "startLine": 406,
+        "startChar": 21,
+        "endLine": 406,
+        "endChar": 24
+      },
+      "revId": "f5e02a9ee769056e3ffac34f693da214b2f5b5d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87895568_91505e86",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-06T15:52:21Z",
+      "side": 1,
+      "message": "Nit: Add a descriptive error here, something like:\nfmt.Errorf(\"Could not read response body: %s\", err)",
+      "range": {
+        "startLine": 411,
+        "startChar": 21,
+        "endLine": 411,
+        "endChar": 24
+      },
+      "revId": "f5e02a9ee769056e3ffac34f693da214b2f5b5d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7e93ac4_dcebc713",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 413,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-06T15:52:21Z",
+      "side": 1,
+      "message": "I think you will need a strings.TrimRight(string(body),\"\\n\") here.",
+      "range": {
+        "startLine": 413,
+        "startChar": 17,
+        "endLine": 413,
+        "endChar": 29
+      },
+      "revId": "f5e02a9ee769056e3ffac34f693da214b2f5b5d2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
