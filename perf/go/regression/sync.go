@@ -1,4 +1,4 @@
-package clustering2
+package regression
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 )
 
 // Run takes a ClusterRequest and runs it to completion before returning the results.
-func Run(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) (*ClusterResponse, error) {
+func Run(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) ([]*ClusterResponse, error) {
 	proc := newProcess(req, git, cidl, dfBuilder)
 	proc.Run(ctx)
 	if proc.state == PROCESS_ERROR {
 		return nil, fmt.Errorf("Failed to complete clustering: %s", proc.message)
 	}
-	return proc.response, nil
+	return proc.Responses(), nil
 }
