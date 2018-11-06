@@ -69,9 +69,7 @@ type Message struct {
 
 // Return an error if the Message is not valid.
 func (m *Message) Validate() error {
-	if m.StepId == "" {
-		return errors.New("StepId is required.")
-	} else if m.TaskId == "" {
+	if m.TaskId == "" {
 		return errors.New("TaskId is required.")
 	} else if util.TimeIsZero(m.Timestamp) {
 		return errors.New("Timestamp is required.")
@@ -85,15 +83,26 @@ func (m *Message) Validate() error {
 			return err
 		}
 	case MSG_TYPE_STEP_STARTED:
+		if m.StepId == "" {
+			return fmt.Errorf("StepId is required for %s", m.Type)
+		}
 		if m.Step == nil {
 			return fmt.Errorf("StepProperties are required for %s", m.Type)
 		}
 		if err := m.Step.Validate(); err != nil {
 			return err
 		}
+		if m.StepId != m.Step.Id {
+			return fmt.Errorf("StepId must equal Step.Id (%s vs %s)", m.StepId, m.Step.Id)
+		}
 	case MSG_TYPE_STEP_FINISHED:
-		// Nothing to do here.
+		if m.StepId == "" {
+			return fmt.Errorf("StepId is required for %s", m.Type)
+		}
 	case MSG_TYPE_STEP_DATA:
+		if m.StepId == "" {
+			return fmt.Errorf("StepId is required for %s", m.Type)
+		}
 		if m.Data == nil {
 			return fmt.Errorf("Data is required for %s", m.Type)
 		}
@@ -106,12 +115,18 @@ func (m *Message) Validate() error {
 			return fmt.Errorf("Invalid DataType %q", m.DataType)
 		}
 	case MSG_TYPE_STEP_FAILED:
+		if m.StepId == "" {
+			return fmt.Errorf("StepId is required for %s", m.Type)
+		}
 		if m.Error == "" {
-			return fmt.Errorf("Error is required for %q", m.Type)
+			return fmt.Errorf("Error is required for %s", m.Type)
 		}
 	case MSG_TYPE_STEP_EXCEPTION:
+		if m.StepId == "" {
+			return fmt.Errorf("StepId is required for %s", m.Type)
+		}
 		if m.Error == "" {
-			return fmt.Errorf("Error is required for %q", m.Type)
+			return fmt.Errorf("Error is required for %s", m.Type)
 		}
 	default:
 		return fmt.Errorf("Invalid message Type %q", m.Type)
