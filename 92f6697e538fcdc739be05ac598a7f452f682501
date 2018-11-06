@@ -93,6 +93,30 @@
       "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "972da120_098bc711",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2079,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-06T15:39:49Z",
+      "side": 1,
+      "message": "IIUC we always query over a time range (ie. last N seconds/minutes/etc), as opposed to the last data point regardless of timestamp, so the alert should only stay around as long as the specified time window.  I agree that writing the zero will cause the alert to disappear immediately which is the desired behavior, and I agree that the leak is probably not severe enough to worry about given the low rate of job name turnover.",
+      "parentUuid": "30b09d3c_2ff71432",
+      "range": {
+        "startLine": 2078,
+        "startChar": 4,
+        "endLine": 2079,
+        "endChar": 15
+      },
+      "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
