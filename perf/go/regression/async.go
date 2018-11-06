@@ -6,14 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"net/url"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -72,8 +69,9 @@ type ClusterRequest struct {
 	Algo        types.ClusterAlgo  `json:"algo"`
 	Interesting float32            `json:"interesting"`
 	Sparse      bool               `json:"sparse"`
-	N           int32              `json:"n"`
 	Type        ClusterRequestType `json:"type"`
+	N           int32              `json:"n"`
+	End         int                `json:"end"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -89,10 +87,9 @@ type ClusterResponse struct {
 // ClusterRequestProcess handles the processing of a single ClusterRequest.
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
-	request   *ClusterRequest
-	git       *gitinfo.GitInfo
-	cidl      *cid.CommitIDLookup
-	dfBuilder dataframe.DataFrameBuilder
+	request *ClusterRequest
+	git     *gitinfo.GitInfo
+	iter    DataFrameIterator
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
@@ -100,22 +97,20 @@ type ClusterRequestProcess struct {
 	lastUpdate time.Time          // The last time this process was updated.
 	state      ProcessState       // The current state of the process.
 	message    string             // Describes the current state of the process.
-
-	// TODO factor this out into a dataframe iterator.
-	cids []*cid.CommitID // The cids to run the clustering over. Calculated in calcCids.
 }
 
 func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
-	return &ClusterRequestProcess{
+	ret := &ClusterRequestProcess{
 		request:    req,
 		git:        git,
-		cidl:       cidl,
-		dfBuilder:  dfBuilder,
 		response:   []*ClusterResponse{},
 		lastUpdate: time.Now(),
 		state:      PROCESS_RUNNING,
 		message:    "Running",
 	}
+	// TODO(jcgregorio) This is awkward and should go away in a future CL.
+	ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, git, req, dfBuilder)
+	return ret
 }
 
 func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
@@ -306,102 +301,6 @@ func tooMuchMissingData(tr types.Trace) bool {
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 
-// CidsWithDataInRange is passed to calcCids, and returns all
-// the commit ids in [begin, end) that have data.
-type CidsWithDataInRange func(begin, end int) ([]*cid.CommitID, error)
-
-// cidsWithData returns the commit ids in the dataframe that have non-missing
-// data in at least one trace.
-func cidsWithData(df *dataframe.DataFrame) []*cid.CommitID {
-	ret := []*cid.CommitID{}
-	for i, h := range df.Header {
-		for _, tr := range df.TraceSet {
-			if tr[i] != vec32.MISSING_DATA_SENTINEL {
-				ret = append(ret, &cid.CommitID{
-					Source: h.Source,
-					Offset: int(h.Offset),
-				})
-				break
-			}
-		}
-	}
-	return ret
-}
-
-// calcCids returns a slice of CommitID's that clustering should be run over.
-func calcCids(request *ClusterRequest, v vcsinfo.VCS, cidsWithDataInRange CidsWithDataInRange) ([]*cid.CommitID, error) {
-	cids := []*cid.CommitID{}
-	if request.Sparse {
-		// Sparse means data might not be available for every commit, so we need to scan
-		// the data and gather up +/- Radius commits from the target commit that actually
-		// do have data.
-
-		// Start by checking center point as a quick exit strategy.
-		withData, err := cidsWithDataInRange(request.Offset, request.Offset+1)
-		if err != nil {
-			return nil, err
-		}
-		if len(withData) == 0 {
-			return nil, fmt.Errorf("No data at the target commit id.")
-		}
-		cids = append(cids, withData...)
-
-		if request.Algo != types.TAIL_ALGO {
-			// Then check from the target forward in time.
-			lastCommit := v.LastNIndex(1)
-			lastIndex := lastCommit[0].Index
-			finalIndex := request.Offset + 1 + SPARSE_BLOCK_SEARCH_MULT*request.Radius
-			if finalIndex > lastIndex {
-				finalIndex = lastIndex
-			}
-			withData, err = cidsWithDataInRange(request.Offset+1, finalIndex)
-			if err != nil {
-				return nil, err
-			}
-			if len(withData) < request.Radius {
-				return nil, fmt.Errorf("Not enough sparse data after the target commit.")
-			}
-			cids = append(cids, withData[:request.Radius]...)
-		}
-
-		// Finally check backward in time.
-		backward := request.Radius
-		if request.Algo == types.TAIL_ALGO {
-			backward = 2 * request.Radius
-		}
-		startIndex := request.Offset - SPARSE_BLOCK_SEARCH_MULT*backward
-		withData, err = cidsWithDataInRange(startIndex, request.Offset)
-		if err != nil {
-			return nil, err
-		}
-		if len(withData) < backward {
-			return nil, fmt.Errorf("Not enough sparse data before the target commit.")
-		}
-		withData = withData[len(withData)-backward:]
-		cids = append(withData, cids...)
-	} else {
-		if request.Radius <= 0 {
-			request.Radius = 1
-		}
-		if request.Algo != types.TAIL_ALGO && request.Radius > MAX_RADIUS {
-			request.Radius = MAX_RADIUS
-		}
-		from := request.Offset - request.Radius
-		to := request.Offset + request.Radius
-		if request.Algo == types.TAIL_ALGO {
-			from = request.Offset - 2*request.Radius
-			to = request.Offset
-		}
-		for i := from; i <= to; i++ {
-			cids = append(cids, &cid.CommitID{
-				Source: request.Source,
-				Offset: i,
-			})
-		}
-	}
-	return cids, nil
-}
-
 // ShortcutFromKeys stores a new shortcut for each cluster based on its Keys.
 func ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 	var err error
@@ -419,102 +318,66 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 	if p.request.Algo == "" {
 		p.request.Algo = types.KMEANS_ALGO
 	}
-	parsedQuery, err := url.ParseQuery(p.request.Query)
-	if err != nil {
-		p.reportError(err, "Invalid URL query.")
-		return
-	}
-	q, err := query.New(parsedQuery)
-	if err != nil {
-		p.reportError(err, "Invalid URL query.")
-		return
-	}
-
-	// Don't do all of this here, instead create something that emits dataframe's from the
-	// given config and loop over that.
-
-	// cidsWithDataInRange is a closure that we pass to calcCids that returns
-	// the CommitID's that are in the given range of offsets that have
-	// data in at least one trace that matches the current query.
-	cidsWithDataInRange := func(begin, end int) ([]*cid.CommitID, error) {
-		c := []*cid.CommitID{}
-		for i := begin; i < end; i++ {
-			c = append(c, &cid.CommitID{
-				Source: p.request.Source,
-				Offset: i,
-			})
-		}
-		df, err := p.dfBuilder.NewFromCommitIDsAndQuery(ctx, c, p.cidl, q, nil)
+	for p.iter.Next() {
+		df, err := p.iter.Value(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to load data searching for commit ids: %s", err)
+			p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
+			return
 		}
-		return cidsWithData(df), nil
-	}
+		before := len(df.TraceSet)
+		// Filter out Traces with insufficient data. I.e. we need 50% or more data
+		// on either side of the target commit.
+		df.FilterOut(tooMuchMissingData)
+		after := len(df.TraceSet)
+		sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
 
-	p.cids, err = calcCids(p.request, p.git, cidsWithDataInRange)
-	if err != nil {
-		p.reportError(err, "Could not calculate the commits to run a cluster over.")
-		return
-	}
-	df, err := p.dfBuilder.NewFromCommitIDsAndQuery(ctx, p.cids, p.cidl, q, p.progress)
-	if err != nil {
-		p.reportError(err, "Invalid range of commits.")
-		return
-	}
+		k := p.request.K
+		if k <= 0 || k > MAX_K {
+			n := len(df.TraceSet)
+			// We want K to be around 50 when n = 30000, which has been determined via
+			// trial and error to be a good value for the Perf data we are working in. We
+			// want K to decrease from  there as n gets smaller, but don't want K to go
+			// below 10, so we use a simple linear relation:
+			//
+			//  k = 40/30000 * n + 10
+			//
+			k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
+		}
+		sklog.Infof("Clustering with K=%d", k)
 
-	before := len(df.TraceSet)
-	// Filter out Traces with insufficient data. I.e. we need 50% or more data
-	// on either side of the target commit.
-	df.FilterOut(tooMuchMissingData)
-	after := len(df.TraceSet)
-	sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
+		var summary *clustering2.ClusterSummaries
+		switch p.request.Algo {
+		case types.KMEANS_ALGO:
+			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
+		case types.STEPFIT_ALGO:
+			summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
+		case types.TAIL_ALGO:
+			summary, err = Tail(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
 
-	k := p.request.K
-	if k <= 0 || k > MAX_K {
-		n := len(df.TraceSet)
-		// We want K to be around 50 when n = 30000, which has been determined via
-		// trial and error to be a good value for the Perf data we are working in. We
-		// want K to decrease from  there as n gets smaller, but don't want K to go
-		// below 10, so we use a simple linear relation:
-		//
-		//  k = 40/30000 * n + 10
-		//
-		k = int(math.Floor((40.0/30000.0)*float64(n) + 10))
-	}
-	sklog.Infof("Clustering with K=%d", k)
+		}
+		if err != nil {
+			p.reportError(err, "Invalid clustering.")
+			return
+		}
+		if err := ShortcutFromKeys(summary); err != nil {
+			p.reportError(err, "Failed to write shortcut for keys.")
+			return
+		}
 
-	var summary *clustering2.ClusterSummaries
-	switch p.request.Algo {
-	case types.KMEANS_ALGO:
-		summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-	case types.STEPFIT_ALGO:
-		summary, err = StepFit(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
-	case types.TAIL_ALGO:
-		summary, err = Tail(df, k, config.MIN_STDDEV, p.clusterProgress, p.request.Interesting)
+		df.TraceSet = types.TraceSet{}
+		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
+		if err != nil {
+			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
+			return
+		}
 
+		p.mutex.Lock()
+		defer p.mutex.Unlock()
+		p.state = PROCESS_SUCCESS
+		p.message = ""
+		p.response = append(p.response, &ClusterResponse{
+			Summary: summary,
+			Frame:   frame,
+		})
 	}
-	if err != nil {
-		p.reportError(err, "Invalid clustering.")
-		return
-	}
-	if err := ShortcutFromKeys(summary); err != nil {
-		p.reportError(err, "Failed to write shortcut for keys.")
-		return
-	}
-
-	df.TraceSet = types.TraceSet{}
-	frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
-	if err != nil {
-		p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
-		return
-	}
-
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-	p.state = PROCESS_SUCCESS
-	p.message = ""
-	p.response = append(p.response, &ClusterResponse{
-		Summary: summary,
-		Frame:   frame,
-	})
 }
