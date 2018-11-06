@@ -141,6 +141,30 @@
       "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "613bd80f_1c7c436d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2079,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-06T17:58:09Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "f7c6b023_f1a48b4a",
+      "range": {
+        "startLine": 2078,
+        "startChar": 4,
+        "endLine": 2079,
+        "endChar": 15
+      },
+      "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
