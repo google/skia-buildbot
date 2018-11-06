@@ -360,7 +360,7 @@ func main() {
 		return
 	}
 
-	if *groupName == "" {
+	if *groupName != "" {
 		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, withPatchCSVLocalPath, gs); err != nil {
 			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
 			return
