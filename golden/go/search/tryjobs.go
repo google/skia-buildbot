@@ -1,57 +1,47 @@
-package tryjobs
+package search
 
 import (
 	"fmt"
-	"strings"
 
-	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
 // TryjobMonitor offers a higher level api to handle tryjob-related tasks on top
 // of the tryjobstore package.
 type TryjobMonitor struct {
-	gerritAPI          gerrit.GerritInterface
-	tryjobStore        tryjobstore.TryjobStore
-	siteURL            string
-	eventBus           eventbus.EventBus
+	storages           *storage.Storage
 	writeGerritMonitor *util.CondMonitor
-	isAuthoritative    bool
 }
 
 // NewTryjobMonitor creates a new instance of TryjobMonitor.
 // siteURL is URL under which the current site it served. It is used to
 // generate URLs that are written to Gerrit CLs.
-func NewTryjobMonitor(tryjobStore tryjobstore.TryjobStore, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus, isAuthoritative bool) *TryjobMonitor {
+func NewTryjobMonitor(storages *storage.Storage) *TryjobMonitor {
 	ret := &TryjobMonitor{
-		tryjobStore:        tryjobStore,
-		gerritAPI:          gerritAPI,
-		siteURL:            strings.TrimRight(siteURL, "/"),
-		eventBus:           eventBus,
+		storages:           storages,
 		writeGerritMonitor: util.NewCondMonitor(1),
-		isAuthoritative:    isAuthoritative,
 	}
 
 	// Subscribe to events that a tryjob has been updated.
-	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.handleTryjobUpdate)
+	storages.EventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.handleTryjobUpdate)
 	return ret
 }
 
-// ForceRefresh forces a refresh of given Gerrit issue.
-func (t *TryjobMonitor) ForceRefresh(issueID int64) error {
+// refreshIssue forces a refresh of given Gerrit issue.
+func (t *TryjobMonitor) refreshIssue(issueID int64) error {
 	// TODO(stephan): This should also sync with the Gerrit issue and update
 	// anything that might need to be updated for a Gerrit CL.
-	return t.WriteGoldLinkToGerrit(issueID)
+	return t.writeGoldLinkToGerrit(issueID)
 }
 
-// WriteGoldLinkToGerrit write a link to the Gerrit CL referenced by issueID.
+// writeGoldLinkToGerrit write a link to the Gerrit CL referenced by issueID.
 // It uses the tryjob store to ensure that the message is only added to the CL once.
-func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
+func (t *TryjobMonitor) writeGoldLinkToGerrit(issueID int64) error {
 	// Make sure this instance is allowed to write the Gerrit comment.
-	if !t.isAuthoritative {
+	if !t.storages.IsAuthoritative {
 		return nil
 	}
 
@@ -59,7 +49,7 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 	defer t.writeGerritMonitor.Enter(issueID).Release()
 
 	// Load the issue from the database
-	issue, err := t.tryjobStore.GetIssue(issueID, false)
+	issue, err := t.storages.TryjobStore.GetIssue(issueID, false)
 	if err != nil {
 		return sklog.FmtErrorf("Error loading issue %d: %s", issueID, err)
 	}
@@ -74,17 +64,17 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 		return nil
 	}
 
-	gerritIssue, err := t.gerritAPI.GetIssueProperties(issueID)
+	gerritIssue, err := t.storages.GerritAPI.GetIssueProperties(issueID)
 	if err != nil {
 		return sklog.FmtErrorf("Error retrieving Gerrit issue %d: %s", issueID, err)
 	}
 
-	if err := t.gerritAPI.AddComment(gerritIssue, t.getGerritMsg(issueID)); err != nil {
+	if err := t.storages.GerritAPI.AddComment(gerritIssue, t.getGerritMsg(issueID)); err != nil {
 		return sklog.FmtErrorf("Error adding Gerrit comment to issue %d: %s", issueID, err)
 	}
 
 	// Write the updated issue to the datastore.
-	return t.tryjobStore.UpdateIssue(issue, func(data interface{}) interface{} {
+	return t.storages.TryjobStore.UpdateIssue(issue, func(data interface{}) interface{} {
 		issue := data.(*tryjobstore.Issue)
 		issue.CommentAdded = true
 		return issue
@@ -97,14 +87,27 @@ func (t *TryjobMonitor) getGerritMsg(issueID int64) string {
 		goldMessageTmpl = "Gold results for tryjobs are being ingested.\nSee image differences at: %s"
 		urlTmpl         = "%s/search?issue=%d"
 	)
-	url := fmt.Sprintf(urlTmpl, t.siteURL, issueID)
+	url := fmt.Sprintf(urlTmpl, t.storages.SiteURL, issueID)
 	return fmt.Sprintf(goldMessageTmpl, url)
 }
 
 // handleTryjobUpdate is triggered when a Tryjob is updated by the ingester.
 func (t *TryjobMonitor) handleTryjobUpdate(data interface{}) {
+	// Extract the tryjob information.
 	tryjob := data.(*tryjobstore.Tryjob)
-	if err := t.WriteGoldLinkToGerrit(tryjob.IssueID); err != nil {
+
+	// Write the link to Gold to Gerrit as a comment.
+	if err := t.writeGoldLinkToGerrit(tryjob.IssueID); err != nil {
 		sklog.Errorf("Error adding comment to Gerrit CL: %s", err)
 	}
+
+	// Update the "hot" tryjobs with this one.
+	if err := t.updateTryjobResults(tryjob.IssueID, tryjob.PatchsetID, tryjob.BuildBucketID); err != nil {
+		sklog.Errorf("Error updating tryjob results: %s", err)
+	}
+}
+
+func (t *TryjobMonitor) updateTryjobResults(issueID, patchsetID, buildBucketID int64) error {
+	// Refresh the current tryjob and updata the cache.
+	return nil
 }

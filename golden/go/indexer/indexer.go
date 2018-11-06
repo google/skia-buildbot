@@ -332,7 +332,7 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 // writeIssueBaseline handles changes to baselines for Gerrit issues and dumps
 // the updated baseline to disk.
 func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
-	if !ixr.storages.CanWriteBaseline() {
+	if !ixr.storages.Baseliner.CanWriteBaseline() {
 		return
 	}
 
@@ -343,7 +343,7 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 	}
 
 	idx := ixr.GetIndex()
-	if err := ixr.storages.PushIssueBaseline(issueID, idx.GetTile(false), idx.tallies); err != nil {
+	if err := ixr.storages.Baseliner.PushIssueBaseline(issueID, idx.GetTile(false), idx.tallies); err != nil {
 		sklog.Errorf("Unable to push baseline for issue %d to GCS: %s", issueID, err)
 		return
 	}
@@ -438,13 +438,13 @@ func writeKnownHashesList(state interface{}) error {
 func writeMasterBaseline(state interface{}) error {
 	idx := state.(*SearchIndex)
 
-	if !idx.storages.CanWriteBaseline() {
+	if !idx.storages.Baseliner.CanWriteBaseline() {
 		return nil
 	}
 
 	// Write the baseline asynchronously.
 	go func() {
-		if err := idx.storages.PushMasterBaseline(idx.GetTile(false)); err != nil {
+		if err := idx.storages.Baseliner.PushMasterBaselines(idx.GetTile(false)); err != nil {
 			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
 		}
 	}()

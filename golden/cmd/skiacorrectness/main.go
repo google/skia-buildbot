@@ -44,7 +44,6 @@ import (
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/web"
@@ -345,11 +344,15 @@ func main() {
 		NCommits:             *nCommits,
 		EventBus:             evt,
 		TryjobStore:          tryjobStore,
-		TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, *siteURL, evt, *authoritative),
 		GerritAPI:            gerritAPI,
 		GStorageClient:       gsClient,
 		Git:                  git,
+		IsAuthoritative:      *authoritative,
+		SiteURL:              *siteURL,
 	}
+
+	// Initialize the Baseliner instance from the values set above.
+	storages.InitBaseliner()
 
 	// Load the whitelist if there is one and disable querying for issues.
 	if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
@@ -448,6 +451,8 @@ func main() {
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	router.HandleFunc(web.BASELINE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 	router.HandleFunc(web.BASELINE_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.BASELINE_PATCHSET_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.BASELINE_PATCHSET_ROUTE, handlers.JsonCreateBaselineHandler).Methods("POST")
 	router.HandleFunc("/json/refresh/{id}", handlers.JsonRefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
