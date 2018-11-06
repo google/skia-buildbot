@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5cb3d569_03322cf1",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2007,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-06T14:53:10Z",
+      "side": 1,
+      "message": "Just curious: how is this different from sklog.Errorf?",
+      "range": {
+        "startLine": 2007,
+        "startChar": 16,
+        "endLine": 2007,
+        "endChar": 25
+      },
+      "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49e4d91f_263a79d7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2079,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-06T14:53:10Z",
+      "side": 1,
+      "message": "We\u0027re actually leaking the metric here.  Rather than setting its value to zero and letting it hang around, we should Delete() it.",
+      "range": {
+        "startLine": 2078,
+        "startChar": 4,
+        "endLine": 2079,
+        "endChar": 15
+      },
+      "revId": "92f6697e538fcdc739be05ac598a7f452f682501",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
