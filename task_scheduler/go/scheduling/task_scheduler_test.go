@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/isolate"
+	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/periodic_triggers"
 	"go.skia.org/infra/go/swarming"
@@ -3629,4 +3630,90 @@ func TestIsolateTaskFailed(t *testing.T) {
 	sort.Strings(expect1)
 	sort.Strings(t1.Commits)
 	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
+}
+
+func TestUnscheduledJobsMetric(t *testing.T) {
+	ctx, gb, d, swarmingClient, s, _, cleanup := setup(t)
+	defer cleanup()
+
+	repo := s.repos[gb.RepoUrl()]
+	c1 := getRS1(t, ctx, gb).Revision
+	c1time := repo.Get(c1).Timestamp
+	c2 := getRS2(t, ctx, gb).Revision
+	// c2 is 5 seconds after c1
+
+	// At 'now', c1 is 60 seconds old, c2 is 55 seconds old, and c3 (below) is 50 seconds old.
+	now := c1time.Add(time.Minute)
+	c1age := "6e+10"
+	c2age := "5.5e+10"
+	c3age := "5e+10"
+
+	check := func(buildAge, testAge, perfAge string) {
+		tags := map[string]string{
+			"repo":        gb.RepoUrl(),
+			"job_name":    specs_testutils.BuildTask,
+			"job_trigger": "",
+		}
+		assert.Equal(t, buildAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_UNSCHEDULED_JOB_SPECS, tags))
+
+		tags["job_name"] = specs_testutils.TestTask
+		assert.Equal(t, testAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_UNSCHEDULED_JOB_SPECS, tags))
+
+		tags["job_name"] = specs_testutils.PerfTask
+		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_UNSCHEDULED_JOB_SPECS, tags))
+	}
+
+	// Expect no errors before MainLoop.
+	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	// Build and Test were added in c1; Perf was added in c2.
+	check(c1age, c1age, c2age)
+
+	// Run MainLoop. No free bots, so no tasks to complete.
+	assert.NoError(t, s.MainLoop(ctx))
+	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	check(c1age, c1age, c2age)
+
+	// One bot free, schedule a task.
+	bot1 := makeBot("bot1", map[string]string{
+		"pool": "Skia",
+		"os":   "Ubuntu",
+	})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.MainLoop(ctx))
+	assert.NoError(t, s.tCache.Update())
+	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
+	assert.NoError(t, err)
+	t1 := tasks[c2][specs_testutils.BuildTask]
+	assert.NotNil(t, t1)
+	assert.Equal(t, c2, t1.Revision)
+	// Task has not completed, so same as above.
+	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	check(c1age, c1age, c2age)
+
+	// The task is complete.
+	t1.Status = db.TASK_STATUS_SUCCESS
+	t1.Finished = time.Now()
+	t1.IsolatedOutput = "abc123"
+	assert.NoError(t, d.PutTask(t1))
+	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
+		makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims),
+	})
+
+	// Run MainLoop to update Jobs.
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	assert.NoError(t, s.MainLoop(ctx))
+	// Expect Build to be up-to-date.
+	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	check("0", c1age, c2age)
+
+	// Revert back to c1 (no Perf task) and check that Perf job disappears.
+	content, err := repo.Repo().GetFile(ctx, "infra/bots/tasks.json", c1)
+	assert.NoError(t, err)
+	gb.Add(ctx, "infra/bots/tasks.json", content)
+	_ = gb.CommitMsgAt(ctx, "c3", c1time.Add(10*time.Second)) // 5 seconds after c2
+
+	// Run MainLoop to update to c3. Perf job should be reset to zero. Build job age is now at c3.
+	assert.NoError(t, s.MainLoop(ctx))
+	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	check(c3age, c1age, "0")
 }

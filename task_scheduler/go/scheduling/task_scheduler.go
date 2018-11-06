@@ -52,6 +52,10 @@ const (
 	// Measurement name for task candidate counts by dimension set.
 	MEASUREMENT_TASK_CANDIDATE_COUNT = "task_candidate_count"
 
+	// Measurement name for unscheduled job specs. Records the age of the oldest commit for which the
+	// job has not completed (nor for any later commit), for each job spec and for each repo.
+	MEASUREMENT_UNSCHEDULED_JOB_SPECS = "unscheduled_job_specs"
+
 	NUM_TOP_CANDIDATES = 50
 )
 
@@ -74,6 +78,17 @@ var (
 
 	ERR_BLAMELIST_DONE = errors.New("ERR_BLAMELIST_DONE")
 )
+
+// unscheduledJobMetricKey is a map key for TaskScheduler.unscheduledMetrics. The tags added to the
+// metric are reflected here so that we delete/recreate the metric when the tags change.
+type unscheduledJobMetricKey struct {
+	// Repo URL.
+	Repo string
+	// Job name.
+	Job string
+	// Job trigger.
+	Trigger string
+}
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
@@ -102,8 +117,10 @@ type TaskScheduler struct {
 	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
-	window           *window.Window
-	workdir          string
+	// Metric for age of commit with no completed job, in ns.
+	unscheduledMetrics map[unscheduledJobMetricKey]metrics2.Int64Metric
+	window             *window.Window
+	workdir            string
 }
 
 func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
@@ -143,28 +160,29 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 	}
 
 	s := &TaskScheduler{
-		bl:               bl,
-		busyBots:         newBusyBots(),
-		candidateMetrics: map[string]metrics2.Int64Metric{},
-		db:               d,
-		depotToolsDir:    depotTools,
-		isolate:          isolateClient,
-		jCache:           jCache,
-		newTasks:         map[db.RepoState]util.StringSet{},
-		newTasksMtx:      sync.RWMutex{},
-		periodicTriggers: pt,
-		pools:            pools,
-		pubsubTopic:      pubsubTopic,
-		queue:            []*taskCandidate{},
-		queueMtx:         sync.RWMutex{},
-		repos:            repos,
-		swarming:         swarmingClient,
-		taskCfgCache:     taskCfgCache,
-		tCache:           tCache,
-		timeDecayAmt24Hr: timeDecayAmt24Hr,
-		tryjobs:          tryjobs,
-		window:           w,
-		workdir:          workdir,
+		bl:                 bl,
+		busyBots:           newBusyBots(),
+		candidateMetrics:   map[string]metrics2.Int64Metric{},
+		db:                 d,
+		depotToolsDir:      depotTools,
+		isolate:            isolateClient,
+		jCache:             jCache,
+		newTasks:           map[db.RepoState]util.StringSet{},
+		newTasksMtx:        sync.RWMutex{},
+		periodicTriggers:   pt,
+		pools:              pools,
+		pubsubTopic:        pubsubTopic,
+		queue:              []*taskCandidate{},
+		queueMtx:           sync.RWMutex{},
+		repos:              repos,
+		swarming:           swarmingClient,
+		taskCfgCache:       taskCfgCache,
+		tCache:             tCache,
+		timeDecayAmt24Hr:   timeDecayAmt24Hr,
+		tryjobs:            tryjobs,
+		unscheduledMetrics: map[unscheduledJobMetricKey]metrics2.Int64Metric{},
+		window:             w,
+		workdir:            workdir,
 	}
 	s.registerPeriodicTriggers()
 	return s, nil
@@ -189,6 +207,14 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
 			lvUpdate.Reset()
+		}
+	})
+	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
+	go util.RepeatCtx(5*time.Minute, ctx, func() {
+		if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
+			sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
+		} else {
+			lvUnscheduledMetrics.Reset()
 		}
 	})
 }
@@ -1967,4 +1993,111 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 		}
 	}
 	return true
+}
+
+// updateUnscheduledJobSpecMetrics updates metrics for MEASUREMENT_UNSCHEDULED_JOB_SPECS.
+func (s *TaskScheduler) updateUnscheduledJobSpecMetrics(ctx context.Context, now time.Time) error {
+	defer metrics2.FuncTimer().Stop()
+
+	// Process each repo individually.
+	for repoUrl, repo := range s.repos {
+		// Include only the jobs at current master. We don't report on JobSpecs that have been removed.
+		head := repo.Get("master")
+		if head == nil {
+			return sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
+		}
+		headTaskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, db.RepoState{
+			Repo:     repoUrl,
+			Revision: head.Hash,
+		})
+		if err != nil {
+			return sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, head.Hash, err)
+		}
+		// Set of JobSpec names left to process.
+		todo := util.StringSet{}
+		// Maps JobSpec name to time of oldest untested commit; initialized to 'now' and updated each
+		// time we see an untested commit.
+		times := map[string]time.Time{}
+		for name := range headTaskCfg.Jobs {
+			todo[name] = true
+			times[name] = now
+		}
+
+		// Iterate backwards to find the most-recently tested commit. We're not going to worry about
+		// merges -- if a job was run on both branches, we'll use the first commit we come across.
+		if err := head.Recurse(func(c *repograph.Commit) (bool, error) {
+			// Stop if this commit is outside the scheduling window.
+			if in, err := s.window.TestCommitHash(repoUrl, c.Hash); err != nil {
+				return false, sklog.FmtErrorf("TestCommitHash: %s", err)
+			} else if !in {
+				return false, nil
+			}
+			rs := db.RepoState{
+				Repo:     repoUrl,
+				Revision: c.Hash,
+			}
+			// Look in the cache for each remaining JobSpec at this commit.
+			for name := range todo {
+				jobs, err := s.jCache.GetJobsByRepoState(name, rs)
+				if err != nil {
+					return false, sklog.FmtErrorf("GetJobsByRepoState: %s", err)
+				}
+				for _, j := range jobs {
+					if j.Done() {
+						delete(todo, name)
+						break
+					}
+				}
+			}
+			if len(todo) == 0 {
+				return false, nil
+			}
+			// Check that the remaining JobSpecs are still valid at this commit.
+			taskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
+			if err != nil {
+				return false, sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
+			}
+			for name := range todo {
+				if _, ok := taskCfg.Jobs[name]; !ok {
+					delete(todo, name)
+				} else {
+					// Set times, since this job still exists and we haven't seen a completed job.
+					times[name] = c.Timestamp
+				}
+			}
+			return len(todo) > 0, nil
+		}); err != nil {
+			return err
+		}
+		// Delete metrics for jobs that have been removed or whose tags have changed.
+		for key, m := range s.unscheduledMetrics {
+			if key.Repo != repoUrl {
+				continue
+			}
+			if jobCfg, ok := headTaskCfg.Jobs[key.Job]; !ok || jobCfg.Trigger != key.Trigger {
+				// Set to 0 before deleting so that alerts ignore it.
+				m.Update(0)
+				delete(s.unscheduledMetrics, key)
+			}
+		}
+		// Update metrics or add metrics for any new jobs (or other tag changes).
+		for name, ts := range times {
+			key := unscheduledJobMetricKey{
+				Repo:    repoUrl,
+				Job:     name,
+				Trigger: headTaskCfg.Jobs[name].Trigger,
+			}
+			m, ok := s.unscheduledMetrics[key]
+			if !ok {
+				m = metrics2.GetInt64Metric(MEASUREMENT_UNSCHEDULED_JOB_SPECS, map[string]string{
+					"repo":        key.Repo,
+					"job_name":    key.Job,
+					"job_trigger": key.Trigger,
+				})
+				s.unscheduledMetrics[key] = m
+			}
+			m.Update(now.Sub(ts).Nanoseconds())
+		}
+	}
+	return nil
 }
