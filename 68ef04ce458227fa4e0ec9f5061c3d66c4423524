@@ -16,6 +16,24 @@
       "revId": "68ef04ce458227fa4e0ec9f5061c3d66c4423524",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "609dd3ef_32ec5d91",
+        "filename": "jsfiddle/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-06T18:45:47Z",
+      "side": 1,
+      "message": "I\u0027m confused.  This isn\u0027t in the Dockerfile.  I saw `docker cp` but that only works on a container, not an image.",
+      "parentUuid": "877b5079_1af3b536",
+      "revId": "68ef04ce458227fa4e0ec9f5061c3d66c4423524",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
