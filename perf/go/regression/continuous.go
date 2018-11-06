@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
-	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -103,6 +102,7 @@ func (c *Continuous) Run(ctx context.Context) {
 	c.reportUntriaged(newClustersGauge)
 	for range time.Tick(time.Second) {
 		clusteringLatency.Start()
+
 		// Get the last numCommits commits.
 		indexCommits := c.git.LastNIndex(c.numCommits)
 		// Drop the radius most recent, since we are clustering
@@ -113,6 +113,8 @@ func (c *Continuous) Run(ctx context.Context) {
 				Source: "master",
 				Offset: commit.Index,
 			}
+
+			// TODO(jcgregorio) details isn't need by the core clustering algo, move below Run().
 			details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
 			if err != nil {
 				sklog.Errorf("Failed to look up commit %v: %s", *id, err)
@@ -136,6 +138,10 @@ func (c *Continuous) Run(ctx context.Context) {
 					radius = cfg.Radius
 				}
 				sklog.Infof("About to cluster for: %#v", *cfg)
+
+				// Handle GroupBy, each query may produce a different dataframe
+				// response, i.e. the pts which have data may change, so we do this
+				// outside clustering2.Run().
 				queries := []string{}
 				if len(cfg.GroupBy) != 0 {
 					paramset := c.paramsProvider()
@@ -160,8 +166,11 @@ func (c *Continuous) Run(ctx context.Context) {
 				}
 				for _, q := range queries {
 					sklog.Infof("Clustering for query: %q", q)
+
+					// TODO(jcgregorio) Here either loop over the indexCommits or just drop the old algo and go with LastN all the time.
+
 					// Create ClusterRequest and run.
-					req := &clustering2.ClusterRequest{
+					req := &ClusterRequest{
 						Source:      "master",
 						Offset:      commit.Index,
 						Radius:      radius,
@@ -172,18 +181,24 @@ func (c *Continuous) Run(ctx context.Context) {
 						Sparse:      cfg.Sparse,
 					}
 					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
-					resp, err := clustering2.Run(ctx, req, c.git, c.cidl, c.dfBuilder)
+					resps, err := Run(ctx, req, c.git, c.cidl, c.dfBuilder)
 					if err != nil {
 						sklog.Warningf("Failed while clustering %v %s", *req, err)
 						continue
 					}
 
+					resp := resps[0]
 					key := cfg.IdAsString()
+					// This should be a callback or something, since we may want to do this work
+					// w/o writing results to the datastore.
+
 					// Update database if regression at the midpoint is found.
 					for _, cl := range resp.Summary.Clusters {
+						// TODO(jcgregorio) commit.Index is actually the midpoint header of the resp.Frame.
 						if cl.StepPoint.Offset == int64(commit.Index) {
 							if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
 								sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+								// TODO(jcgregorio) Compute detailsl from commit.Index here.
 								isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
 								if err != nil {
 									sklog.Errorf("Failed to save newly found cluster: %s", err)
