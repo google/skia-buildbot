@@ -7,7 +7,7 @@
   "dependencies": {
     "common-sk": "3.0.1",
     "elements-sk": "2.4.1",
-    "infra-sk": "^0.3.0"
+    "infra-sk": "^0.4.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
