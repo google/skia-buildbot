@@ -118,9 +118,10 @@ type TaskScheduler struct {
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
 	// Metric for age of commit with no completed job, in ns.
-	unscheduledMetrics map[unscheduledJobMetricKey]metrics2.Int64Metric
-	window             *window.Window
-	workdir            string
+	unscheduledMetrics         map[unscheduledJobMetricKey]metrics2.Int64Metric
+	unscheduledMetricsLiveness metrics2.Liveness
+	window                     *window.Window
+	workdir                    string
 }
 
 func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
@@ -160,29 +161,30 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 	}
 
 	s := &TaskScheduler{
-		bl:                 bl,
-		busyBots:           newBusyBots(),
-		candidateMetrics:   map[string]metrics2.Int64Metric{},
-		db:                 d,
-		depotToolsDir:      depotTools,
-		isolate:            isolateClient,
-		jCache:             jCache,
-		newTasks:           map[db.RepoState]util.StringSet{},
-		newTasksMtx:        sync.RWMutex{},
-		periodicTriggers:   pt,
-		pools:              pools,
-		pubsubTopic:        pubsubTopic,
-		queue:              []*taskCandidate{},
-		queueMtx:           sync.RWMutex{},
-		repos:              repos,
-		swarming:           swarmingClient,
-		taskCfgCache:       taskCfgCache,
-		tCache:             tCache,
-		timeDecayAmt24Hr:   timeDecayAmt24Hr,
-		tryjobs:            tryjobs,
-		unscheduledMetrics: map[unscheduledJobMetricKey]metrics2.Int64Metric{},
-		window:             w,
-		workdir:            workdir,
+		bl:                         bl,
+		busyBots:                   newBusyBots(),
+		candidateMetrics:           map[string]metrics2.Int64Metric{},
+		db:                         d,
+		depotToolsDir:              depotTools,
+		isolate:                    isolateClient,
+		jCache:                     jCache,
+		newTasks:                   map[db.RepoState]util.StringSet{},
+		newTasksMtx:                sync.RWMutex{},
+		periodicTriggers:           pt,
+		pools:                      pools,
+		pubsubTopic:                pubsubTopic,
+		queue:                      []*taskCandidate{},
+		queueMtx:                   sync.RWMutex{},
+		repos:                      repos,
+		swarming:                   swarmingClient,
+		taskCfgCache:               taskCfgCache,
+		tCache:                     tCache,
+		timeDecayAmt24Hr:           timeDecayAmt24Hr,
+		tryjobs:                    tryjobs,
+		unscheduledMetrics:         map[unscheduledJobMetricKey]metrics2.Int64Metric{},
+		unscheduledMetricsLiveness: metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update"),
+		window:  w,
+		workdir: workdir,
 	}
 	s.registerPeriodicTriggers()
 	return s, nil
@@ -207,14 +209,6 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
 			lvUpdate.Reset()
-		}
-	})
-	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func() {
-		if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
-			sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
-		} else {
-			lvUnscheduledMetrics.Reset()
 		}
 	})
 }
@@ -1370,6 +1364,15 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
+
+	go func() {
+		if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
+			sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
+		} else {
+			s.unscheduledMetricsLiveness.Reset()
+		}
+	}()
+
 	return nil
 }
 
