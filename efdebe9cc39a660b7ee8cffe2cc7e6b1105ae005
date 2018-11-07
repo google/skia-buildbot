@@ -46,6 +46,30 @@
       "revId": "efdebe9cc39a660b7ee8cffe2cc7e6b1105ae005",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa075586_3db902f5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-07T20:53:54Z",
+      "side": 1,
+      "message": "What if we just put this at the end of mainLoop():\n\ngo func() {\n    if err :\u003d s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err !\u003d nil {\n        sklog.Errorf(\"Failed to update metrics for unscheduled jobs: %s\", err)\n    } else {\n        s.lvUnscheduledMetrics.Reset()\n    }\n}()",
+      "parentUuid": "7e158d88_5141f91e",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 219,
+        "endChar": 3
+      },
+      "revId": "efdebe9cc39a660b7ee8cffe2cc7e6b1105ae005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
