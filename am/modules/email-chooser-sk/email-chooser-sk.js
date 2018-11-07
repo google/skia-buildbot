@@ -9,7 +9,7 @@
  * </p>
  *
  */
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 
 import 'elements-sk/dialog-sk'
@@ -18,13 +18,13 @@ import 'elements-sk/styles/select'
 
 const template = (ele) => html`<dialog-sk>
   <h2>Assign</h2>
-  <select size=10 on-input=${e => ele._input(e)}>
+  <select size=10 @input=${ele._input}>
     <option value='' selected>(un-assign)</option>
-    ${ele._emails.map(email => html`<option value$=${email}>${email}</option>`)}
+    ${ele._emails.map(email => html`<option value=${email}>${email}</option>`)}
   </select>
   <div class=buttons>
-    <button on-click=${e => ele._dismiss()}>Cancel</button>
-    <button on-click=${e => ele._confirm()}>OK</button>
+    <button @click=${ele._dismiss}>Cancel</button>
+    <button @click=${ele._confirm}>OK</button>
   </div>
 </dialog-sk>`;
 
@@ -74,6 +74,6 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 });

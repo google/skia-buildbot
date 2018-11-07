@@ -27,19 +27,19 @@
  */
 import 'elements-sk/styles/buttons'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 
 const DEFAULT_SIZE = 128;
 const DEFAULT_FPS = 29.97;
 
-const cancelButton = (ele) => ele._hasCancel() ? html`<button id=cancel on-click=${(e) => ele._cancel()}>Cancel</button>` : '';
+const cancelButton = (ele) => ele._hasCancel() ? html`<button id=cancel @click=${ele._cancel}>Cancel</button>` : '';
 
 const template = (ele) => html`
   <label class=file>Lottie file to upload
-    <input type=file name=file id=file on-change=${(e) => ele._onFileChange(e)}/>
+    <input type=file name=file id=file @change=${ele._onFileChange}/>
   </label>
-  <div class$="filename ${ele._state.filename ? '' : 'empty'}">
+  <div class="filename ${ele._state.filename ? '' : 'empty'}">
     ${ele._state.filename ? ele._state.filename : 'No file selected.'}
   </div>
   <label class=number>
@@ -51,20 +51,20 @@ const template = (ele) => html`
   <label class=number title='Frames Per Second'>
     <input type=number id=fps value=${ele._state.fps} required  step='0.01'/> FPS (Hz)
   </label>
-  <div class=warning hidden?=${ele._warningHidden()}>
+  <div class=warning ?hidden=${ele._warningHidden()}>
     <p>
     The width or height of your file exceeds 1024, which will be very slow to render.
     Press a 'Rescale' button to fix the dimensions while preserving the aspect ratio.
     </p>
     <div>
-      <button on-click=${(e) => ele._rescale(1024)}>Rescale to 1024</button>
-      <button on-click=${(e) => ele._rescale(512)}>Rescale to 512</button>
-      <button on-click=${(e) => ele._rescale(128)}>Rescale to 128</button>
+      <button @click=${(e) => ele._rescale(1024)}>Rescale to 1024</button>
+      <button @click=${(e) => ele._rescale(512)}>Rescale to 512</button>
+      <button @click=${(e) => ele._rescale(128)}>Rescale to 128</button>
     </div>
   </div>
   <div id=dialog-buttons>
     ${cancelButton(ele)}
-    <button class=action disabled?=${ele._readyToGo()} on-click=${(e) => ele._go()}>Go</button>
+    <button class=action ?disabled=${ele._readyToGo()} @click=${ele._go}>Go</button>
   </div>
 `;
 
@@ -165,7 +165,7 @@ class SkottieConfigSk extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 };
 

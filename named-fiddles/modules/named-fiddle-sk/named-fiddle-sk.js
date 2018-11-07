@@ -14,17 +14,17 @@
  *   fiddle.
  *
  */
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import 'elements-sk/styles/buttons'
 
 function status(ele) {
-  return ele._state.status != 'OK'  ? ele._state.status : '';
+  return ele._state.status !== 'OK'  ? ele._state.status : '';
 }
 
 const template = (ele) => html`<span class=name><a href='https://fiddle.skia.org/c/${ele._state.hash}'>${ele._state.name}</a></span>
   <span class=status>${status(ele)}</span>
-  <button on-click=${(e) => ele._editClick(e)}>Edit</button>
-  <button on-click=${(e) => ele._deleteClick(e)}>Delete</button>
+  <button @click=${ele._editClick}>Edit</button>
+  <button @click=${ele._deleteClick}>Delete</button>
   <span class=user>${ele._state.user}</span>
 `;
 
@@ -62,7 +62,7 @@ window.customElements.define('named-fiddle-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });

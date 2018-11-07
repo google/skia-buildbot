@@ -1,12 +1,14 @@
 {
   "dependencies": {
-    "@webcomponents/custom-elements": "^1.2.0",
-    "common-sk": "^3.0.1",
-    "copy-webpack-plugin": "^4.5.2",
-    "elements-sk": "^2.4.1",
-    "lit-html": "^0.11.4",
+    "@webcomponents/custom-elements": "~1.2.0",
+    "common-sk": "~3.1.0",
+    "elements-sk": "~2.4.2",
+    "lit-html": "~0.12.0",
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "~4.5.2",
     "pulito": "^4.1.0",
-    "webpack": "^4.19.1",
-    "webpack-cli": "^2.1.5"
+    "webpack": "^4.15.1",
+    "webpack-cli": "^3.0.8"
   }
 }
