@@ -13,6 +13,9 @@ watch:
 package-lock.json: package.json
 	npm install
 
+get_latest_skia:
+	docker pull gcr.io/skia-public/skia-wasm-release:prod
+
 wasm_libs:
 	rm -rf build
 	mkdir build
@@ -32,9 +35,9 @@ release: release_build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-push: release skia-public
+push: get_latest_skia release skia-public
 	pushk jsfiddle
 
-.PHONY: build serve release_build watch core release wasm_libs
+.PHONY: build serve release_build watch core release wasm_libs get_latest_skia
 
 include ../make/clusters.mk
