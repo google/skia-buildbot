@@ -8,8 +8,8 @@ module.exports = (env, argv) => {
   config.output.publicPath='/res/';
   config.plugins.push(
     new CopyWebpackPlugin([
-        { from: 'build/canvaskit.wasm' },
-        { from: 'build/pathkit.wasm' },
+        { from: 'build/canvaskit/canvaskit.wasm' },
+        { from: 'build/pathkit/pathkit.wasm' },
         { from: 'node_modules/@webcomponents/custom-elements/custom-elements.min.js' },
     ])
   );
