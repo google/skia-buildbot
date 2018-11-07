@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1638ecd7_a5ffb550",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-07T19:13:07Z",
+      "side": 1,
+      "message": "This should now just be a check to see if the flag was specified:\n\nif mergeMethodURL !\u003d \"\" {\n  ...\n}",
+      "revId": "8d633b684437c72a50a3df2dcea3efa24a33c3dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
