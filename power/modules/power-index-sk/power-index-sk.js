@@ -4,7 +4,7 @@ import { errorMessage } from 'elements-sk/errorMessage'
 import { diffDate } from 'common-sk/modules/human'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 
 // How often to update the data.
 const UPDATE_INTERVAL_MS = 60000;
@@ -149,7 +149,7 @@ window.customElements.define('power-index-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });

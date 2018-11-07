@@ -12,7 +12,7 @@ import 'elements-sk/error-toast-sk'
 import 'elements-sk/spinner-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 
@@ -32,7 +32,7 @@ const video = (ele) => {
   // and blank otherwise.
   if (ele._hash) {
     return html`
-<video id=video muted loop on-loadeddata=${(e) => ele._videoLoaded(e)} title=lottie
+<video id=video muted loop @loadeddata=${ele._videoLoaded} title=lottie
     src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
   Your browser does not support the video tag.
 </video>
@@ -72,10 +72,10 @@ const livePreview = (ele) => {
 }
 
 const displayLoaded= (ele) => html`
-<button class=edit-config on-click=${(e) => ele._startEdit()}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
-<button on-click=${(e) => ele._rewind(e)}>Rewind</button>
-<button id=playpause on-click=${(e) => ele._playpause(e)}>Pause</button>
-<button hidden?=${!ele._hasEdits} on-click=${(e) => ele._applyEdits()}>Apply Edits</button>
+<button class=edit-config @click=${ ele._startEdit}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
+<button @click=${ele._rewind}>Rewind</button>
+<button id=playpause @click=${ele._playpause}>Pause</button>
+<button ?hidden=${!ele._hasEdits} @click=${ele._applyEdits}>Apply Edits</button>
 <div class=download>
   <a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>
     JSON
@@ -286,7 +286,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       URL.revokeObjectURL(this._downloadUrl);
     }
     this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
     if (this._ui == LOADED_MODE) {
       // Don't re-start the animation while the user edits.
       if (!this._hasEdits) {

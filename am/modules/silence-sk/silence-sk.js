@@ -65,30 +65,30 @@ import * as paramset from '../paramset'
 import { $$ } from 'common-sk/modules/dom'
 import { abbr, displaySilence, expiresIn, notes } from '../am'
 import { diffDate } from 'common-sk/modules/human'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 function table(ele, o) {
   let keys = Object.keys(o);
   keys.sort();
   return keys.filter(k => !k.startsWith('__')).map((k) =>
-    html`<tr><td><delete-icon-sk title='Delete rule.' on-click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td>${o[k].join(', ')}</td></tr>`);
+    html`<tr><td><delete-icon-sk title='Delete rule.' @click=${(e) => ele._deleteRule(e, k)}></delete-icon-sk></td><th>${k}</th><td>${o[k].join(', ')}</td></tr>`);
 }
 
 function addNote(ele) {
   if (ele._state.key) {
     return html`
     <textarea rows=2 cols=80></textarea>
-    <button on-click=${(e) => ele._addNote(e)}>Submit</button>
-  `
+    <button @click=${ele._addNote}>Submit</button>
+  `;
   } else {
-    return html`<textarea rows=2 cols=80></textarea>`
+    return html`<textarea rows=2 cols=80></textarea>`;
   }
 }
 
 function matches(ele) {
   if (!ele._incidents) {
-    return ``
+    return ``;
   }
   return ele._incidents.filter(
     incident => paramset.match(ele._state.param_set, incident.params) && incident.active
@@ -105,22 +105,22 @@ function classOfH2(silence) {
 
 function actionButtons(ele) {
   if (ele._state.active) {
-    return html`<button on-click=${e => ele._save()}>Save</button>
-                <button on-click=${e => ele._archive()}>Archive</button>`
+    return html`<button @click=${ele._save}>Save</button>
+                <button @click=${ele._archive}>Archive</button>`;
   } else {
-    return html`<button on-click=${e => ele._reactivate()}>Reactivate</button>`
+    return html`<button @click=${ele._reactivate}>Reactivate</button>`;
   }
 }
 
 const template = (ele) => html`
-  <h2 class$=${classOfH2(ele._state)} on-click=${e => ele._headerClick(e)}>${displaySilence(ele._state)}</h2>
+  <h2 class=${classOfH2(ele._state)} @click=${ele._headerClick}>${displaySilence(ele._state)}</h2>
   <div class=body>
     <section class=actions>
       ${actionButtons(ele)}
     </section>
     <table class=info>
       <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input on-change=${e => ele._durationChange(e)} value=${ele._state.duration}></input></td></th>
+      <tr><th>Duration:</th><td><input @change=${ele._durationChange} value=${ele._state.duration}></input></td></th>
       <tr><th>Created</th><td title=${new Date(ele._state.created*1000).toLocaleString()}>${diffDate(ele._state.created*1000)}</td></tr>
       <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
     </table>
@@ -233,7 +233,7 @@ window.customElements.define('silence-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });

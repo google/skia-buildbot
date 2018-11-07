@@ -14,9 +14,9 @@ import 'elements-sk/spinner-sk'
 import 'infra-sk/modules/login-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { repeat } from 'lit-html/lib/repeat';
+import { repeat } from 'lit-html/directives/repeat';
 
 const template = (ele) => html`
 <header>
@@ -27,9 +27,9 @@ const template = (ele) => html`
   <section>
    ${repeat(ele._named_fiddles, (i) => i.name, (i, index) => html`<named-fiddle-sk state=${i}></named-fiddle-sk>`)}
   </section>
-  <button on-click=${(e) => ele._new(e)} class=fab>+</button>
+  <button @click=${ele._new} class=fab>+</button>
   <spinner-sk id=busy></spinner-sk>
-  <named-edit-sk id=editor on-named-edit-complete=${(e) => ele._doUpdate(e.detail)}></named-edit-sk>
+  <named-edit-sk id=editor @named-edit-complete=${ele._doUpdate}></named-edit-sk>
 </main>
 <footer>
   <error-toast-sk></error-toast-sk>
@@ -47,7 +47,7 @@ window.customElements.define('named-fiddles-sk', class extends HTMLElement {
     this._editor = $$('#editor', this);
     this._busy = $$('#busy', this);
     this._busy.active = true;
-    this.addEventListener('named-delete', (e) => this._doDelete(e.detail));
+    this.addEventListener('named-delete', (e) => this._doDelete(e));
     this.addEventListener('named-edit', (e) => this._edit(e));
     fetch('/_/named', {
       credentials: 'include',
@@ -74,12 +74,12 @@ window.customElements.define('named-fiddles-sk', class extends HTMLElement {
     this._editor.show();
   }
 
-  _doUpdate(detail) {
-    this._doImpl("/_/update", detail)
+  _doUpdate(e) {
+    this._doImpl('/_/update', e.detail)
   }
 
-  _doDelete(detail) {
-    this._doImpl("/_/delete", detail)
+  _doDelete(e) {
+    this._doImpl('/_/delete', e.detail)
   }
 
   _doImpl(url, detail) {
@@ -104,7 +104,7 @@ window.customElements.define('named-fiddles-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });

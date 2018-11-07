@@ -1,4 +1,4 @@
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 
 import 'elements-sk/error-toast-sk'
 import { errorMessage } from 'elements-sk/errorMessage'
@@ -10,7 +10,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import 'infra-sk/modules/systemd-unit-status-sk'
 
 const listUnits = (ele) =>  ele._units.map(
-  unit => html`<systemd-unit-status-sk machine$="${ele._hostname}" value=${unit}></systemd-unit-status-sk>`
+  unit => html`<systemd-unit-status-sk machine="${ele._hostname}" value=${unit}></systemd-unit-status-sk>`
 );
 
 const template = (ele) => html`
@@ -18,7 +18,7 @@ const template = (ele) => html`
   <h1>pulld - ${ele._hostname}</h1>
 </header>
 <main>
-  <div on-unit-action=${e => ele._unitAction(e)}>
+  <div @unit-action=${ele._unitAction}>
     ${listUnits(ele)}
   </div>
 </main>
@@ -57,7 +57,7 @@ window.customElements.define('pulld-app-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
   _loadData() {

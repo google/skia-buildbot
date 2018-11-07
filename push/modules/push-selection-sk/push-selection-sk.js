@@ -7,7 +7,7 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import 'elements-sk/select-sk'
 import { diffDate } from 'common-sk/modules/human'
 
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 
 function linkToCommit(hash) {
   return 'https://skia.googlesource.com/buildbot/+/' + hash;
@@ -23,11 +23,11 @@ function dirtyIndicator(choice) {
 
 function listChoices(choices) {
   return choices.map((choice) => html`
-<div class=pushSelection data-name$="${choice.Name}">
+<div class=pushSelection data-name="${choice.Name}">
   <check-icon-sk title="Currently installed."></check-icon-sk>
   <pre><a target=_blank href="${linkToCommit(choice.Hash)}">${shorten(choice.Hash)}</a></pre>
   <pre class=built>${diffDate(choice.Built)}</pre>
-  <pre class=userid title$="${choice.UserID}">${shorten(choice.UserID)}</pre>
+  <pre class=userid title="${choice.UserID}">${shorten(choice.UserID)}</pre>
   <span>${choice.Note}</span>
   ${dirtyIndicator(choice)}
 </div>`);
@@ -36,11 +36,11 @@ function listChoices(choices) {
 const template = (ele) => html`
 <dialog-sk>
   <h2>Choose a release package to push</h2>
-  <select-sk selection="${ele._chosen}" on-selection-changed=${e => ele._selectionChanged(e)}>
+  <select-sk selection="${ele._chosen}" @selection-changed=${ele._selectionChanged}>
     ${listChoices(ele._choices)}
   </select-sk>
   <div class=buttons>
-    <button on-click=${() => ele.hide()}>Cancel</button>
+    <button @click=${ele.hide}>Cancel</button>
   </div>
 </dialog-sk>`;
 
@@ -74,7 +74,7 @@ class PushSelectionSk extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
   /** @prop {Array} The list of packages that are available. Serialized Package from infra/go/packages/. For example:

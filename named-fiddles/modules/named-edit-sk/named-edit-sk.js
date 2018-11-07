@@ -17,7 +17,7 @@
  *   </pre>
  *
  */
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
@@ -28,8 +28,8 @@ const template = (ele) => html`
   <label>Name <input type=text id=name value=${ele._state.name} size=50></label>
   <label>Hash <input type=text id=hash value=${ele._state.hash} size=40></label>
   <div class=dialog-buttons>
-    <button on-click=${() => ele.hide()}>Cancel</button>
-    <button id=ok on-click=${() => ele._ok()}>OK</button>
+    <button @click=${ele.hide}>Cancel</button>
+    <button id=ok @click=${ele._ok}>OK</button>
   </div>
 </dialog-sk>
 `;
@@ -74,7 +74,7 @@ window.customElements.define('named-edit-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });

@@ -11,7 +11,7 @@ export function codeEditor(ele) {
   return html`
 <div id=editor>
   <textarea class=code spellcheck=false rows=${lines(ele.content)} cols=80
-        @paste=${() => ele._changed()} @input=${() => ele._changed()}
+        @paste=${ele._changed} @input=${ele._changed}
   ></textarea>
   <div class=numbers>
     ${repeat(lines(ele.content)).map((_, n) => _lineNumber(n+1))}
@@ -141,7 +141,7 @@ export class WasmFiddle extends HTMLElement {
   }
 
   _render() {
-    render(this.template(this), this);
+    render(this.template(this), this, {eventContext: this});
     this._editor = $$('#editor textarea', this);
   }
 

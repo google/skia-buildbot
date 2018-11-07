@@ -15,7 +15,7 @@ import { fromObject } from 'common-sk/modules/query'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
 
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 
 import '../push-selection-sk'
 
@@ -56,16 +56,16 @@ const servicesOf = (ele, installed) => {
 };
 
 const listServices = (ele, server, installed) => servicesOf(ele, installed).map(service => {
-  return html`<systemd-unit-status-sk machine$='${server.Name}' value=${ele._state.status[server.Name + ':' + service]} ></systemd-unit-status-sk>`;
+  return html`<systemd-unit-status-sk machine='${server.Name}' value=${ele._state.status[server.Name + ':' + service]} ></systemd-unit-status-sk>`;
 });
 
 const listApplications = (ele, server) => server.Installed.map(installed => html`
 <div class=applicationRow>
-  <button class=application data-server$='${server.Name}' data-name$='${installed}' data-app$='${prefixOf(installed)}' on-click=${e => ele._startChoose(e)}><create-icon-sk title='Edit which package is installed.'></create-icon-sk></button>
-  <warning-icon-sk class$='${dirtyVisibility(ele, installed)}' title='Out of date.'></warning-icon-sk>
-  <alarm-icon-sk class$='${alarmVisibility(ele, installed)}' title='Uncommited changes when the package was built.'></alarm-icon-sk>
-  <div class=serviceName><a href$='https://github.com/google/skia-buildbot/compare/${fullHash(installed)}...HEAD'>${shorten(installed)}</a></div>
-  <div><a href$='${logsFullURI(server.Name, installed)}'>logs</a></div>
+  <button class=application data-server='${server.Name}' data-name='${installed}' data-app='${prefixOf(installed)}' @click=${ele._startChoose}><create-icon-sk title='Edit which package is installed.'></create-icon-sk></button>
+  <warning-icon-sk class='${dirtyVisibility(ele, installed)}' title='Out of date.'></warning-icon-sk>
+  <alarm-icon-sk class='${alarmVisibility(ele, installed)}' title='Uncommited changes when the package was built.'></alarm-icon-sk>
+  <div class=serviceName><a href='https://github.com/google/skia-buildbot/compare/${fullHash(installed)}...HEAD'>${shorten(installed)}</a></div>
+  <div><a href='${logsFullURI(server.Name, installed)}'>logs</a></div>
   <div>
     ${listServices(ele, server, installed)}
   </div>
@@ -77,17 +77,17 @@ const classMatchFilter = (ele, server) => {
   let search = ele._query.search;
   // Short-circuit the most common case.
   if (!search) {
-    return ''
+    return '';
   }
   return (server.Name.includes(search) || server.Installed.find(installed => prefixOf(installed).includes(search))) ? '' : 'hidden';
 };
 
 const listServers = (ele) => ele._state.servers.map(server => html`
-<section class$='${classMatchFilter(ele, server)}'>
+<section class='${classMatchFilter(ele, server)}'>
   <h2>${server.Name}</h2>
-  <button class=reboot raised data-action='start' data-name='reboot.target' data-server$='${server.Name}' on-click=${e => ele._reboot(e)}>Reboot</button>
-  [<a target=_blank href$='${monURI(server.Name)}'>mon</a>]
-  [<a target=_blank href$='${logsURI(server.Name)}'>logs</a>]
+  <button class=reboot raised data-action='start' data-name='reboot.target' data-server='${server.Name}' @click=${ele._reboot}>Reboot</button>
+  [<a target=_blank href='${monURI(server.Name)}'>mon</a>]
+  [<a target=_blank href='${logsURI(server.Name)}'>logs</a>]
   <div class=appContainer>
     ${listApplications(ele, server)}
   </div>
@@ -96,16 +96,16 @@ const listServers = (ele) => ele._state.servers.map(server => html`
 const template = (ele) => html`
 <header><h1>Push</h1> <login-sk></login-sk></header>
 <section class=controls>
-  <button id=refresh on-click=${e => ele._refreshClick(e)}>Refresh Packages</button>
+  <button id=refresh @click=${ele._refreshClick}>Refresh Packages</button>
   <spinner-sk id=spinner></spinner-sk>
-  <label>Filter servers/apps: <input type=text on-input=${e => ele._filterInput(e)} value='${ele._query.search}'></input></label>
+  <label>Filter servers/apps: <input type=text @input=${ele._filterInput} value='${ele._query.search}'></input></label>
 </section>
-<main on-unit-action=${e => ele._unitAction(e.detail)}>
+<main @unit-action=${(e) => ele._unitAction(e.detail)}>
   ${listServers(ele)}
 </main>
 <footer>
   <error-toast-sk></error-toast-sk>
-  <push-selection-sk id='push-selection' on-package-change=${e => ele._packageChange(e)}></push-selection-sk>
+  <push-selection-sk id='push-selection' @package-change=${ele._packageChange}></push-selection-sk>
   <confirm-dialog-sk id='confirm-dialog'></confirm-dialog-sk>
 </footer>`;
 
@@ -149,7 +149,7 @@ class PushAppSk extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
   // Called when the user presses the button to choose a different package version.

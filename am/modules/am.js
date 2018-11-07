@@ -1,7 +1,7 @@
 // Functions used by more than one element.
 import { diffDate } from 'common-sk/modules/human'
-import { unsafeHTML } from 'lit-html/lib/unsafe-html'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { unsafeHTML } from 'lit-html/directives/unsafe-html'
+import { html, render } from 'lit-html'
 
 const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
 
@@ -22,7 +22,7 @@ export function displaySilence(silence) {
   if (s.length > 33) {
     s = s.slice(0, 30) + '...';
   }
-  if (s.length == 0) {
+  if (!s.length) {
     s = '(*)';
   }
   return s;
@@ -59,7 +59,7 @@ export function notes(ele) {
   <div class=meta>
     <span class=author>${note.author}</span>
     <span class=date>${diffDate(note.ts*1000)}</span>
-    <delete-icon-sk title='Delete comment.' on-click=${(e) => ele._deleteNote(e, index)}></delete-icon-sk>
+    <delete-icon-sk title='Delete comment.' @click=${(e) => ele._deleteNote(e, index)}></delete-icon-sk>
   </div>
 </section>`);
 }
