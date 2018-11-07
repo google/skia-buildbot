@@ -131,6 +131,15 @@ func main() {
 		return
 	}
 
+	if *groupName != "" {
+		if err := util.AddCTRunDataToPerf(ctx, *groupName, *runID, "/tmp/test.csv", gs); err != nil {
+			sklog.Errorf("Could not add CT run data to ct-perf.skia.org: %s", err)
+			return
+		}
+	}
+
+	sklog.Fatal("TESTING ABOVE!")
+
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
 	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.

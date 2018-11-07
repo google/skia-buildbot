@@ -32,7 +32,7 @@ ctfe_push: ctfe skia-public
 
 .PHONY: ctmaster_release
 ctmaster_release: all
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/...
+	GOOS=linux go install -a ./go/...
 	./build_ctmaster_release
 
 .PHONY: ctmaster_push
