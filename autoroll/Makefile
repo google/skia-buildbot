@@ -35,7 +35,7 @@ testgo: skiaversion
 
 include ../webtools/webtools.mk
 
-release-fe: autoroll-fe
+release-fe: autoroll-fe setup-internal-config-repo
 	./build_frontend_release
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
@@ -96,6 +96,9 @@ push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKI
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-be
 
 push-be-kube-all: push-be-kube-internal push-be-kube-external
+
+push-fe: release-fe
+	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-fe
 
 push-google3: release-google3 pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR)
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-google3
