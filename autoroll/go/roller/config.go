@@ -156,10 +156,11 @@ type AutoRollerConfig struct {
 	SheriffBackup []string `json:"sheriffBackup,omitempty"`
 
 	// Github code review flags.
-	GithubRepoOwner     string   `json:"githubRepoOwner,omitempty"`
-	GithubRepoName      string   `json:"githubRepoName,omitempty"`
-	GithubChecksNum     int      `json:"githubChecksNum,omitempty"`
-	GithubChecksWaitFor []string `json:"githubChecksWaitFor,omitempty"`
+	GithubRepoOwner      string   `json:"githubRepoOwner,omitempty"`
+	GithubRepoName       string   `json:"githubRepoName,omitempty"`
+	GithubChecksNum      int      `json:"githubChecksNum,omitempty"`
+	GithubChecksWaitFor  []string `json:"githubChecksWaitFor,omitempty"`
+	GithubMergeMethodURL string   `json:"githubMergeMethod,omitempty"`
 
 	// RepoManager configs. Exactly one must be provided.
 	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager,omitempty"`
