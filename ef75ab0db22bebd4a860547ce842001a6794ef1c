@@ -56,6 +56,30 @@
       "revId": "ef75ab0db22bebd4a860547ce842001a6794ef1c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4adb9cd_35983681",
+        "filename": "autoroll/build_frontend_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-07T15:04:27Z",
+      "side": 1,
+      "message": "I\u0027m not sure how to pass a config dir variable in here to make it work for both instances.\nA single build is used for both internal and external rollers that\u0027s why it had a single config directory. autoroll-fe reads only the configs that matches it\u0027s isInternal.",
+      "parentUuid": "05693ac1_2a6834d9",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 108
+      },
+      "revId": "ef75ab0db22bebd4a860547ce842001a6794ef1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
