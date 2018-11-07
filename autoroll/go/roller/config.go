@@ -160,6 +160,7 @@ type AutoRollerConfig struct {
 	GithubRepoName      string   `json:"githubRepoName,omitempty"`
 	GithubChecksNum     int      `json:"githubChecksNum,omitempty"`
 	GithubChecksWaitFor []string `json:"githubChecksWaitFor,omitempty"`
+	GithubMergeMethodURL  string `json:"githubMergeMethod,omitempty"`
 
 	// RepoManager configs. Exactly one must be provided.
 	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager,omitempty"`
