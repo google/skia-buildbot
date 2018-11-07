@@ -94,6 +94,30 @@
       "revId": "efdebe9cc39a660b7ee8cffe2cc7e6b1105ae005",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "737c9b17_c5b95903",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-07T22:23:06Z",
+      "side": 1,
+      "message": "Oops, that made it hard to test. Is this OK?",
+      "parentUuid": "53262899_323b9947",
+      "range": {
+        "startLine": 215,
+        "startChar": 0,
+        "endLine": 219,
+        "endChar": 3
+      },
+      "revId": "efdebe9cc39a660b7ee8cffe2cc7e6b1105ae005",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
