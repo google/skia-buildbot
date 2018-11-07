@@ -35,7 +35,7 @@ testgo: skiaversion
 
 include ../webtools/webtools.mk
 
-release-fe: autoroll-fe
+release-fe: autoroll-fe setup-internal-config-repo
 	./build_frontend_release
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
@@ -85,7 +85,7 @@ CONFIG_IS_INTERNAL=$(shell python -c "import json,sys; print ('1' if json.load(o
 
 push-be-kube: release-be-kube kube-conf-gen pushk deployment-dirs $(CONFIG_FILE)
 	if [ "$(CONFIG_IS_INTERNAL)" == "1" ]; then $(KUBE_CONF_GEN_INTERNAL); else $(KUBE_CONF_GEN_EXTERNAL); fi
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
+	pushk --dry-run --ignore-dirty --message="$(MESSAGE)" --cluster="$(shell python -c "import json,sys; print ('skia-corp' if json.load(open(sys.argv[1])).get('isInternal') else 'skia-public')" $(CONFIG_FILE))" autoroll-be
 
 push-be-kube-internal: release-be-kube kube-conf-gen pushk deployment-dirs setup-internal-config-repo $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
 	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
@@ -96,6 +96,9 @@ push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKI
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-be
 
 push-be-kube-all: push-be-kube-internal push-be-kube-external
+
+push-fe: release-fe
+	pushk --dry-run --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-fe
 
 push-google3: release-google3 pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR)
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-google3
