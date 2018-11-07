@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "daaddee9_a800c662",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-07T14:08:44Z",
+      "side": 1,
+      "message": "We did not have a target for pushing autoroll-fe.",
+      "revId": "ef75ab0db22bebd4a860547ce842001a6794ef1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51b031da_aeca1acd",
+        "filename": "autoroll/build_docker_backend_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-07T14:08:44Z",
+      "side": 1,
+      "message": "We were already passing it location of CONFIG_FILE. Using it here makes this work for both external and internal configs.",
+      "revId": "ef75ab0db22bebd4a860547ce842001a6794ef1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
