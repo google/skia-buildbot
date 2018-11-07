@@ -4,7 +4,7 @@ import { html } from 'lit-html'
 import { SKIA_VERSION } from '../../build/version.js'
 import { WasmFiddle, codeEditor } from '../wasm-fiddle'
 
-const PathKitInit = require('../../build/pathkit.js');
+const PathKitInit = require('../../build/pathkit/pathkit.js');
 
 // Main template for this element
 const template = (ele) => html`

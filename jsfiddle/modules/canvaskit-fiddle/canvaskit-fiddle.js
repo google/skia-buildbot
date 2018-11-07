@@ -4,7 +4,7 @@ import { html } from 'lit-html'
 import { SKIA_VERSION } from '../../build/version.js'
 import { WasmFiddle, codeEditor } from '../wasm-fiddle'
 
-const CanvasKitInit = require('../../build/canvaskit.js');
+const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
 // Main template for this element
 const template = (ele) => html`

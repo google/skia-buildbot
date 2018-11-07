@@ -54,6 +54,9 @@ For example:
     timeout: 600s
 ```
 
+As a note, the `gcr.io/skia-public/infra:prod` image that this cloud builder step runs on
+is re-created on each commit to this repo (see [docker/Dockerfile](../docker/Dockerfile)).
+
 This sets the working directory to the one for the app we want to build, then
 runs the `build_fiddler_release` script, but note that we have set the `ROOT`
 and `SKIP_BUILD` environment variables so that the script only builds the
