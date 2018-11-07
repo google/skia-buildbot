@@ -203,3 +203,9 @@ apply to all apps and may not need to be added
     - Free disk space on the instance and any attached disks.
 - Tell people about your new service.
 - Be prepared for bug reports. :-)
+
+
+Continuous Deployment
+=====================
+Some apps are set up to be continuously re-built and re-deployed on every commit of Skia
+or Skia Infra. To do that, see [kube/README.md](./kube/README.md).
