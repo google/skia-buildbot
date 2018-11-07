@@ -193,12 +193,22 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	s.tryjobs.Start(ctx)
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
+	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(ctx); err != nil {
 			sklog.Errorf("Failed to run the task scheduler: %s", err)
 		} else {
 			lvScheduling.Reset()
+			// Do this after MainLoop so that the repos and Jobs have been updated.
+			go func() {
+				if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
+					sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
+				} else {
+					lvUnscheduledMetrics.Reset()
+				}
+			}()
+
 		}
 	})
 	lvUpdate := metrics2.NewLiveness("last_successful_tasks_update")
@@ -207,14 +217,6 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
 			lvUpdate.Reset()
-		}
-	})
-	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func() {
-		if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
-			sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
-		} else {
-			lvUnscheduledMetrics.Reset()
 		}
 	})
 }
