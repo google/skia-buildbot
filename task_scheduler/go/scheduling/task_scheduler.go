@@ -192,6 +192,8 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 // will be run before each scheduling iteration.
 func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	s.tryjobs.Start(ctx)
+	// After each successful call to MainLoop, we send (non-blocking) on afterMainLoop.
+	afterMainLoop := make(chan struct{})
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
@@ -199,6 +201,10 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			sklog.Errorf("Failed to run the task scheduler: %s", err)
 		} else {
 			lvScheduling.Reset()
+			select {
+			case afterMainLoop <- struct{}{}:
+			default:
+			}
 		}
 	})
 	lvUpdate := metrics2.NewLiveness("last_successful_tasks_update")
@@ -210,13 +216,17 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 		}
 	})
 	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
-	go util.RepeatCtx(5*time.Minute, ctx, func() {
-		if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
-			sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
-		} else {
-			lvUnscheduledMetrics.Reset()
-		}
-	})
+	go func() {
+		// Wait until after the first execution of MainLoop so that the repos have been updated.
+		<-afterMainLoop
+		util.RepeatCtx(5*time.Minute, ctx, func() {
+			if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
+				sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
+			} else {
+				lvUnscheduledMetrics.Reset()
+			}
+		})
+	}()
 }
 
 // TaskSchedulerStatus is a struct which provides status information about the
