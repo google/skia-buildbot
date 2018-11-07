@@ -80,6 +80,30 @@
       "revId": "ef75ab0db22bebd4a860547ce842001a6794ef1c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc1ac0d6_5faa73e8",
+        "filename": "autoroll/build_frontend_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-07T15:08:12Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f4adb9cd_35983681",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 108
+      },
+      "revId": "ef75ab0db22bebd4a860547ce842001a6794ef1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
