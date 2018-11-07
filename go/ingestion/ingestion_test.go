@@ -99,21 +99,16 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 	assert.NoError(t, err)
 	assert.NoError(t, ingester.Start(ctx))
 
-	time.Sleep(10 * time.Second)
-
-	// Wait until we have collected the desired result, but no more than 10 seconds.
-	startTime := time.Now()
-	for {
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		mutex.Lock()
 		colen := len(collected)
 		mutex.Unlock()
-		if colen >= (totalCommits/2) || (time.Now().Sub(startTime) > (time.Second * 10)) {
-			break
+		if colen >= (totalCommits / 2) {
+			return nil
 		}
-		time.Sleep(time.Millisecond * 100)
-	}
+		return testutils.TryAgainErr
+	}))
 
-	assert.Equal(t, totalCommits/2, len(collected))
 	for _, count := range collected {
 		assert.Equal(t, 1, count)
 	}
@@ -121,6 +116,8 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 		_, ok := collected[result.Name()]
 		assert.True(t, ok)
 	}
+	// Make sure the go-routines end.
+	ingester.stop()
 }
 
 // mock processor

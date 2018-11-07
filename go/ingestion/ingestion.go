@@ -177,6 +177,7 @@ func (i *Ingester) Start(ctx context.Context) error {
 			select {
 			case resultFile = <-resultChan:
 			case <-doneCh:
+				sklog.Infof("Finishing processing loop.")
 				return
 			}
 
@@ -244,6 +245,7 @@ func (i *Ingester) watchSource(source Source) {
 		i.eventProcessMetrics.liveness.Reset()
 		sklog.Infof("Watcher for %s received/processed/ignored: %d/%d/%d", source.ID(), ignored+processed, processed, ignored)
 	})
+	sklog.Infof("Finishing watching source %s", source.ID())
 }
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
