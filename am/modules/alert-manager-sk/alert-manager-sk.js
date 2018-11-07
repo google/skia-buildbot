@@ -24,7 +24,7 @@ import '../silence-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { Login } from 'infra-sk/modules/login'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 import * as paramset from '../paramset'
@@ -40,12 +40,12 @@ function classOfH2(ele, incident) {
   let ret = [];
   if (!incident.active) {
     ret.push('inactive');
-  } else if (incident.params.__silence_state == 'silenced') {
+  } else if (incident.params.__silence_state === 'silenced') {
     ret.push('silenced');
   } else if (incident.params.assigned_to) {
     ret.push('assigned');
   }
-  if (ele._selected && ele._selected.key == incident.key) {
+  if (ele._selected && ele._selected.key === incident.key) {
     ret.push('selected');
   }
   return ret.join(' ');
@@ -56,7 +56,7 @@ function classOfSilenceH2(ele, silence) {
   if (!silence.active) {
     ret.push('inactive');
   }
-  if (ele._selected && ele._selected.key == silence.key) {
+  if (ele._selected && ele._selected.key === silence.key) {
     ret.push('selected');
   }
   return ret.join(' ');
@@ -79,7 +79,7 @@ function editSilence(ele) {
 }
 
 function viewStats(ele) {
-  return ele._incident_stats.map((i, index) =>  html`<incident-sk state=${i} minimized params?=${index===0}></incident-sk>`)
+  return ele._incident_stats.map((i, index) =>  html`<incident-sk state=${i} ?minimized params=${index===0}></incident-sk>`)
 }
 
 function rightHandSide(ele) {
@@ -130,25 +130,25 @@ function assignedTo(incident, ele) {
 
 function incidentList(ele, incidents) {
   return incidents.map(i => html`
-    <h2 class$=${classOfH2(ele, i)} on-click=${e => ele._select(i)}>
+    <h2 class=${classOfH2(ele, i)} @click=${e => ele._select(i)}>
     <span>
-      <checkbox-sk checked?=${ele._checked.has(i.key)} on-change=${e => ele._check_selected(e)} on-click=${e => ele._suppress(e)} id=${i.key}></checkbox-sk>
+      <checkbox-sk ?checked=${ele._checked.has(i.key)} @on-change=${ele._check_selected} @click=${ele._suppress} id=${i.key}></checkbox-sk>
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
-    <comment-icon-sk title='This incident has notes.' class$=${hasNotes(i)}></comment-icon-sk>
+    <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
     </h2>
     `)
 }
 
 function statsList(ele) {
-  return ele._stats.map(stat => html`<h2 on-click=${e => ele._statsClick(stat.incident)}>${displayIncident(stat.incident)} <span>${stat.num}</span></h2>`)
+  return ele._stats.map(stat => html`<h2 @click=${e => ele._statsClick(stat.incident)}>${displayIncident(stat.incident)} <span>${stat.num}</span></h2>`);
 }
 
 const template = (ele) => html`
 <header>${trooper(ele)}<login-sk></login-sk></header>
 <section class=nav>
-  <tabs-sk on-tab-selected-sk=${e => ele._tabSwitch(e)}>
+  <tabs-sk @tab-selected-sk=${ele._tabSwitch}>
     <button>Mine</button>
     <button>Alerts</button>
     <button>Silences</button>
@@ -163,13 +163,13 @@ const template = (ele) => html`
     </section>
     <section class=silences>
       ${ele._silences.map(i => html`
-        <h2 class$=${classOfSilenceH2(ele, i)} on-click=${e => ele._silenceClick(i)}>
+        <h2 class=${classOfSilenceH2(ele, i)} @click=${ele._silenceClick}>
           <span>
             ${displaySilence(i)}
           </span>
           <span>
             <span title='Expires in'>${expiresIn(i)}</span>
-            <comment-icon-sk title='This silence has notes.' class$=${hasNotes(i)}></comment-icon-sk>
+            <comment-icon-sk title='This silence has notes.' class=${hasNotes(i)}></comment-icon-sk>
           </span>
         </h2>`)}
     </section>
@@ -189,7 +189,7 @@ const template = (ele) => html`
 `;
 
 function findParent(ele, tagName) {
-  while (ele != null && ele.tagName != tagName) {
+  while (!ele && ele.tagName !== tagName) {
     ele = ele.parentElement;
   }
   return ele;
@@ -324,7 +324,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
 
   _check_selected(e) {
     let checkbox = findParent(e.target, 'CHECKBOX-SK');
-    if (this._checked.size == 0) {
+    if (!this._checked.size) {
       // Request a new silence.
       fetch('/_/new_silence', {
         credentials: 'include',
@@ -431,7 +431,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   _incidentAction(json) {
     let incidents = this._incidents;
     for (let i = 0; i < incidents.length; i++) {
-      if (incidents[i].key == json.key) {
+      if (incidents[i].key === json.key) {
         incidents[i] = json;
         break;
       }
@@ -444,7 +444,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     let found = false;
     this._current_silence = json;
     for (let i = 0; i < this._silences.length; i++) {
-      if (this._silences[i].key == json.key) {
+      if (this._silences[i].key === json.key) {
         this._silences[i] = json;
         found = true;
         break;
@@ -491,13 +491,13 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     let sortby = ['__silence_state', 'assigned_to', 'abbr', 'alertname', 'id'];
     this._incidents.sort((a,b) => {
       // Sort active before inactive.
-      if (a.active != b.active) {
+      if (a.active !== b.active) {
         return a.active ? -1 : 1;
       }
       // Inactive incidents are then sorted by 'lastseen' timestamp.
-      if (a.active == false) {
+      if (!a.active) {
         let delta = b.last_seen - a.last_seen;
-        if (delta != 0) {
+        if (delta) {
           return delta;
         }
       }
@@ -508,7 +508,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
         left = left || '';
         right = right || '';
         let cmp = left.localeCompare(right);
-        if (cmp != 0) {
+        if (cmp) {
           return cmp;
         }
       }
@@ -538,10 +538,10 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
 
   _render() {
     this._rationalize();
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
     // Update the icon.
     let isTrooper = this._user === this._trooper;
-    let numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isTrooper) ? 1 : 0, 0)
+    let numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isTrooper) ? 1 : 0, 0);
     document.title = `${numActive} - AlertManager`;
     if (!this._favicon) {
       return

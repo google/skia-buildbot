@@ -59,16 +59,15 @@ import { $$ } from 'common-sk/modules/dom'
 import { abbr, linkify, notes } from '../am'
 import { diffDate, strDuration } from 'common-sk/modules/human'
 import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html/lib/lit-extended'
+import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
-import { unsafeHTML } from 'lit-html/lib/unsafe-html'
 
 function classOfH2(ele) {
   if (!ele._state.active) {
-    return 'inactive'
+    return 'inactive';
   }
   if (ele._state.params.assigned_to) {
-    return 'assigned'
+    return 'assigned';
   }
 }
 
@@ -81,8 +80,8 @@ function table(o) {
 function actionButtons(ele) {
   if (ele._state.active) {
     return html`<section class=assign>
-      <button on-click=${e => ele._take(e)}>Take</button>
-      <button on-click=${e => ele._assign(e)}>Assign</button>
+      <button @click=${ele._take}>Take</button>
+      <button @click=${ele._assign}>Assign</button>
     </section>`;
   } else {
     return html``;
@@ -91,36 +90,36 @@ function actionButtons(ele) {
 
 function matchingSilences(ele) {
   if (ele.hasAttribute('minimized')) {
-    return ``
+    return ``;
   }
   let ret = ele._silences.filter(silence => paramset.match(silence.param_set, ele._state.params)).map( silence =>
     html`<silence-sk state=${silence} collapsable collapsed></silence-sk>`
-  )
-  if (ret.length === 0) {
+  );
+  if (!ret.length) {
     ret.push(html`<div class=nosilences>None</div>`);
   }
-  return ret
+  return ret;
 }
 
 function lastSeen(ele) {
   if (ele._state.active) {
-    return ''
+    return '';
   } else {
-    return html`<tr><th>Last Seen</th><td title=${new Date(ele._state.last_seen*1000).toLocaleString()}>${diffDate(ele._state.last_seen*1000)}</td></tr>`
+    return html`<tr><th>Last Seen</th><td title=${new Date(ele._state.last_seen*1000).toLocaleString()}>${diffDate(ele._state.last_seen*1000)}</td></tr>`;
   }
 }
 
 function duration(ele) {
   if (ele._state.active) {
-    return ''
+    return '';
   } else {
-    return html`<tr><th>Duration</th><td>${strDuration(ele._state.last_seen - ele._state.start)}</td></tr>`
+    return html`<tr><th>Duration</th><td>${strDuration(ele._state.last_seen - ele._state.start)}</td></tr>`;
   }
 }
 
 function history(ele) {
   if (ele.hasAttribute('minimized')) {
-    return ``
+    return ``;
   }
   return fetch(`/_/recent_incidents?id=${ele._state.id}&key=${ele._state.key}`, {
     headers: {
@@ -130,12 +129,12 @@ function history(ele) {
     method: 'GET',
   }).then(jsonOrThrow).then(json => {
     json = json || [];
-    return json.map(i =>  html`<incident-sk state=${i} minimized></incident-sk>`)
+    return json.map(i => html`<incident-sk state=${i} minimized></incident-sk>`);
   }).catch(errorMessage);
 }
 
 const template = (ele) => html`
-  <h2 class$=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)}</h2>
+  <h2 class=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)}</h2>
   <section class=detail>
     ${actionButtons(ele)}
     <table class=timing>
@@ -149,7 +148,7 @@ const template = (ele) => html`
     ${notes(ele)}
     <section class=addNote>
       <textarea rows=2 cols=80></textarea>
-      <button on-click=${(e) => ele._addNote(e)}>Submit</button>
+      <button @click=${ele._addNote}>Submit</button>
     </section>
     <section class=matchingSilences>
       <h3>Matching Silences</h3>
@@ -218,7 +217,7 @@ window.customElements.define('incident-sk', class extends HTMLElement {
     if (!this._state) {
       return
     }
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });
