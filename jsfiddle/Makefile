@@ -21,11 +21,11 @@ wasm_libs:
 	mkdir build
 	# Extract them from the most recently built ones. These are built
 	# using cloudbuild.yaml in the Skia repo.
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/skia/skia/out/canvaskit_wasm/canvaskit.js /OUT/canvaskit.js
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/skia/skia/out/canvaskit_wasm/canvaskit.wasm /OUT/canvaskit.wasm
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/skia/skia/out/pathkit/pathkit.js /OUT/pathkit.js
-	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/skia/skia/out/pathkit/pathkit.wasm /OUT/pathkit.wasm
-	docker run --rm --volume `pwd`/build:/OUT --workdir /tmp/skia/skia gcr.io/skia-public/skia-wasm-release:prod sh -c "git rev-parse HEAD > /OUT/VERSION"
+	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/canvaskit/canvaskit.js /OUT/canvaskit.js
+	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/canvaskit/canvaskit.wasm /OUT/canvaskit.wasm
+	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/pathkit/pathkit.js /OUT/pathkit.js
+	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/pathkit/pathkit.wasm /OUT/pathkit.wasm
+	docker run --rm --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod cp /tmp/VERSION /OUT/VERSION
 	echo "export const SKIA_VERSION = '`cat build/VERSION`';" > build/version.js
 
 core:
