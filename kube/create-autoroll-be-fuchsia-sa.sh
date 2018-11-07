@@ -4,7 +4,7 @@
 # into the kubernetes cluster as a secret.
 
 set -e -x
-source ./config.sh
+source ./corp-config.sh
 source ../bash/ramdisk.sh
 
 # New service account we will create.

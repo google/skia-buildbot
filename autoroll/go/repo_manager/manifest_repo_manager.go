@@ -24,7 +24,7 @@ var (
 	NewManifestRepoManager func(context.Context, *ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newManifestRepoManager
 
 	// TODO(rmistry): Make this configurable.
-	manifestFileName = filepath.Join("manifest", "skia")
+	manifestFileName = filepath.Join("fuchsia", "topaz", "skia")
 )
 
 // ManifestRepoManagerConfig provides configuration for the Manifest RepoManager.
