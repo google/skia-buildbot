@@ -210,7 +210,13 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 		}
 	})
 	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
+	first := true
 	go util.RepeatCtx(5*time.Minute, ctx, func() {
+		if first {
+			first = false
+			// The first run tends to fail because the repos haven't been updated yet.
+			return
+		}
 		if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
 			sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
 		} else {
