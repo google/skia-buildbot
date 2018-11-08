@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -32,7 +33,9 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
@@ -40,8 +43,10 @@ import (
 
 // flags
 var (
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	pollInterval = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	pollInterval   = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
+	serviceAccount = flag.String("service_account", "", "Should be set when running in K8s.")
+
 	// Map that holds all picked up tasks. Used to ensure same task is not picked up more than once.
 	pickedUpTasks = map[string]string{}
 	// Mutex that controls access to the above map.
@@ -543,6 +548,23 @@ func main() {
 	// See skbug.com/7062.
 	if err := frontend.TerminateRunningTasks(); err != nil {
 		sklog.Fatalf("Could not terminate running tasks: %s", err)
+	}
+
+	if !*master_common.Local {
+		user, err := user.Current()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		// Create token source.
+		ts, err := auth.NewDefaultTokenSource(*master_common.Local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		if err != nil {
+			sklog.Fatalf("Problem setting up default token source: %s", err)
+		}
+		// Use the gitcookie created by gitauth package if .gitcookies does not already exist.
+		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+		if _, err := gitauth.New(ts, gitcookiesPath, true, *serviceAccount); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
 	}
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
