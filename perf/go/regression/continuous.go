@@ -87,6 +87,59 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	}()
 }
 
+func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResponse, cfg *alerts.Config, q string) {
+	key := cfg.IdAsString()
+	for _, resp := range resps {
+		headerLength := len(resp.Frame.DataFrame.Header)
+		midPoint := headerLength / 2
+
+		midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
+
+		id := &cid.CommitID{
+			Source: "master",
+			Offset: int(midOffset),
+		}
+
+		details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
+		if err != nil {
+			sklog.Errorf("Failed to look up commit %v: %s", *id, err)
+			continue
+		}
+		for _, cl := range resp.Summary.Clusters {
+			// Update database if regression at the midpoint is found.
+			if cl.StepPoint.Offset == midOffset {
+				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
+					sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+					isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
+					if err != nil {
+						sklog.Errorf("Failed to save newly found cluster: %s", err)
+						continue
+					}
+					if isNew {
+						if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+							sklog.Errorf("Failed to send notification: %s", err)
+						}
+					}
+				}
+				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
+					sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
+					isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
+					if err != nil {
+						sklog.Errorf("Failed to save newly found cluster: %s", err)
+						continue
+					}
+					if isNew {
+						if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+							sklog.Errorf("Failed to send notification: %s", err)
+						}
+					}
+				}
+			}
+		}
+	}
+
+}
+
 // Run starts the continuous running of clustering over the last numCommits
 // commits.
 //
@@ -136,7 +189,6 @@ func (c *Continuous) Run(ctx context.Context) {
 						Offset: commit.Index,
 					}
 
-					// TODO(jcgregorio) details isn't need by the core clustering algo, move below Run().
 					details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
 					if err != nil {
 						sklog.Errorf("Failed to look up commit %v: %s", *id, err)
@@ -166,44 +218,7 @@ func (c *Continuous) Run(ctx context.Context) {
 						continue
 					}
 
-					resp := resps[0]
-					key := cfg.IdAsString()
-					// This should be a callback or something, since we may want to do this work
-					// w/o writing results to the datastore.
-
-					// Update database if regression at the midpoint is found.
-					for _, cl := range resp.Summary.Clusters {
-						// TODO(jcgregorio) commit.Index is actually the midpoint header of the resp.Frame.
-						if cl.StepPoint.Offset == int64(commit.Index) {
-							if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
-								sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
-								// TODO(jcgregorio) Compute detailsl from commit.Index here.
-								isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
-								if err != nil {
-									sklog.Errorf("Failed to save newly found cluster: %s", err)
-									continue
-								}
-								if isNew {
-									if err := c.notifier.Send(details[0], cfg, cl); err != nil {
-										sklog.Errorf("Failed to send notification: %s", err)
-									}
-								}
-							}
-							if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
-								sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
-								isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
-								if err != nil {
-									sklog.Errorf("Failed to save newly found cluster %#v: %s", *req, err)
-									continue
-								}
-								if isNew {
-									if err := c.notifier.Send(details[0], cfg, cl); err != nil {
-										sklog.Errorf("Failed to send notification: %s", err)
-									}
-								}
-							}
-						}
-					}
+					c.reportRegressions(ctx, resps, cfg, q)
 				}
 			}
 		}
