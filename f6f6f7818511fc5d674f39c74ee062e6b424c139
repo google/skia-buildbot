@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "076724d4_f4052cd4",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-08T20:49:20Z",
+      "side": 1,
+      "message": "Document \u0027seek\u0027, units, etc.",
+      "revId": "f6f6f7818511fc5d674f39c74ee062e6b424c139",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
