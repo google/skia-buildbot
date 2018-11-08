@@ -22,6 +22,30 @@
       "revId": "9f4646c7e4d09a095bd35e759665d895dcf2b8ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c2897cc_7b9db568",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T19:24:45Z",
+      "side": 1,
+      "message": "The check in the code is for j.Done(). Maybe I should use a name other than \"unscheduled\"?",
+      "parentUuid": "6b6687ad_86750ab7",
+      "range": {
+        "startLine": 411,
+        "startChar": 42,
+        "endLine": 411,
+        "endChar": 59
+      },
+      "revId": "9f4646c7e4d09a095bd35e759665d895dcf2b8ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
