@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b6687ad_86750ab7",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-08T18:59:01Z",
+      "side": 1,
+      "message": "These metrics are for jobs which haven\u0027t triggered any tasks yet, not jobs which haven\u0027t completed, right?  If so, \"has not completed\" is misleading.",
+      "range": {
+        "startLine": 411,
+        "startChar": 42,
+        "endLine": 411,
+        "endChar": 59
+      },
+      "revId": "9f4646c7e4d09a095bd35e759665d895dcf2b8ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
