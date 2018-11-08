@@ -167,6 +167,31 @@ func (c *Config) GroupCombinations(ps paramtools.ParamSet) ([]Combination, error
 	return ret, nil
 }
 
+// QueriesFromParamset uses GroupCombinations to produce the full set of
+// queries that this Config represents.
+func (c *Config) QueriesFromParamset(paramset paramtools.ParamSet) ([]string, error) {
+	ret := []string{}
+	if len(c.GroupBy) != 0 {
+		allCombinations, err := c.GroupCombinations(paramset)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to build GroupBy combinations: %s", err)
+		}
+		for _, combo := range allCombinations {
+			parsed, err := url.ParseQuery(c.Query)
+			if err != nil {
+				return nil, fmt.Errorf("Found invalid query %q: %s", c.Query, err)
+			}
+			for _, kv := range combo {
+				parsed[kv.Key] = []string{kv.Value}
+			}
+			ret = append(ret, parsed.Encode())
+		}
+	} else {
+		ret = append(ret, c.Query)
+	}
+	return ret, nil
+}
+
 func (c *Config) Validate() error {
 	parsed, err := url.ParseQuery(c.Query)
 	if err != nil {

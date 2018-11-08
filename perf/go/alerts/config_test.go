@@ -211,3 +211,43 @@ func TestGroupCombinations(t *testing.T) {
 	}
 	assert.Equal(t, expected, actual)
 }
+
+func TestQueriesFromParamset(t *testing.T) {
+	testutils.SmallTest(t)
+	ps := paramtools.ParamSet{
+		"model":  []string{"nexus4", "nexus6", "nexus6"},
+		"config": []string{"565", "8888", "nvpr"},
+		"arch":   []string{"ARM", "x86"},
+	}
+	ps.Normalize()
+	cfg := &Config{
+		GroupBy: "foo, config",
+	}
+	_, err := cfg.GroupCombinations(ps)
+	assert.Error(t, err, "Unknown key")
+
+	cfg = &Config{
+		GroupBy: "arch, config",
+		Query:   "model=nexus6",
+	}
+	queries, err := cfg.QueriesFromParamset(ps)
+	assert.NoError(t, err)
+	expected := []string{
+		"arch=ARM&config=565&model=nexus6",
+		"arch=ARM&config=8888&model=nexus6",
+		"arch=ARM&config=nvpr&model=nexus6",
+		"arch=x86&config=565&model=nexus6",
+		"arch=x86&config=8888&model=nexus6",
+		"arch=x86&config=nvpr&model=nexus6",
+	}
+	assert.Equal(t, expected, queries)
+
+	// No GroupBy
+	cfg = &Config{
+		Query: "model=nexus6",
+	}
+	queries, err = cfg.QueriesFromParamset(ps)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"model=nexus6"}, queries)
+
+}
