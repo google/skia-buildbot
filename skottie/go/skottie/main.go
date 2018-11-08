@@ -55,7 +55,6 @@ var (
 type Server struct {
 	bucket    *storage.BucketHandle
 	templates *template.Template
-	version   string
 }
 
 func New() (*Server, error) {
@@ -74,12 +73,6 @@ func New() (*Server, error) {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)
 	}
 
-	b, err := ioutil.ReadFile(*versionFile)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read Skia version: %s", err)
-	}
-	version := strings.TrimSpace(string(b))
-
 	if *lockedDown {
 		allow := allowed.NewAllowedFromList([]string{"google.com"})
 		login.InitWithAllow(*port, *local, nil, nil, allow)
@@ -91,8 +84,7 @@ func New() (*Server, error) {
 	}
 
 	srv := &Server{
-		bucket:  storageClient.Bucket(bucket),
-		version: version,
+		bucket: storageClient.Bucket(bucket),
 	}
 	srv.loadTemplates()
 	return srv, nil
@@ -135,10 +127,7 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		srv.loadTemplates()
 	}
-	context := map[string]string{
-		"Version": srv.version,
-	}
-	if err := srv.templates.ExecuteTemplate(w, "index.html", context); err != nil {
+	if err := srv.templates.ExecuteTemplate(w, "index.html", nil); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
