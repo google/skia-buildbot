@@ -37,6 +37,8 @@ type Liveness interface {
 
 	// Reset should be called when some work has been successfully completed.
 	Reset()
+
+	Close()
 }
 
 // Int64Metric is a metric which reports an int64 value.

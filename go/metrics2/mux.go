@@ -132,6 +132,12 @@ func (ml *muxLiveness) Reset() {
 	}
 }
 
+func (ml *muxLiveness) Close() {
+	for _, l := range ml.livenesses {
+		l.Close()
+	}
+}
+
 // muxInt64Metric implements Int64Metric.
 type muxInt64Metric struct {
 	metrics []Int64Metric
