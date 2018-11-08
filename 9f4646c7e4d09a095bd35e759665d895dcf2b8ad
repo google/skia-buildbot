@@ -46,6 +46,30 @@
       "revId": "9f4646c7e4d09a095bd35e759665d895dcf2b8ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2dea943c_26f1eb6f",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 2
+      },
+      "lineNbr": 411,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-08T19:29:55Z",
+      "side": 1,
+      "message": "In that case, I guess \"unfinished\" would be better.  \"Unscheduled\" aside, the current wording makes it sound like we\u0027re alerting if any one job doesn\u0027t finish within N hours, whereas we\u0027re actually alerting if *no* job of the same name has finished in the last N hours.",
+      "parentUuid": "1c2897cc_7b9db568",
+      "range": {
+        "startLine": 411,
+        "startChar": 42,
+        "endLine": 411,
+        "endChar": 59
+      },
+      "revId": "9f4646c7e4d09a095bd35e759665d895dcf2b8ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
