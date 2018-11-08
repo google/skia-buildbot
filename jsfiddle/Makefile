@@ -31,12 +31,13 @@ release: release_build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
 
-release_ci:
+release_ci: package-lock.json
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
 	cp -r /OUT/* build
 	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
+	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/jsfiddle
 	./build_release
