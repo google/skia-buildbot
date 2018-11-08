@@ -394,6 +394,48 @@ ALERT TaskSchedulerTooManyCandidates
     description = "There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_candidates"
   }
 
+
+ALERT UnscheduledJobSpecMetricsLiveness
+  IF liveness_last_successful_unscheduled_jobs_metrics_update_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "unscheduled_job_specs metrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update unscheduled_job_specs for the last 10 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
+  }
+
+ALERT UnscheduledJobSpec
+  IF unscheduled_job_specs{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/1000/1000/1000/60/60 > 4
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not completed for a commit more than 4 hours old. Maybe its dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#unscheduled_job_spec"
+  }
+
+ALERT UnscheduledJobSpecLong
+  IF unscheduled_job_specs{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/1000/1000/1000/60/60 > 9
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not completed for a commit more than 9 hours old. Maybe its dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#unscheduled_job_spec"
+  }
+
+ALERT UnscheduledJobSpecNightly
+  IF unscheduled_job_specs{job_trigger="nightly"}/1000/1000/1000/60/60 > 28
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe its dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#unscheduled_job_spec"
+  }
+
+ALERT UnscheduledJobSpecWeekly
+  IF unscheduled_job_specs{job_trigger="weekly"}/1000/1000/1000/60/60/24 > 7.2
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not completed in the last 7 days (weekly job). Maybe its dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#unscheduled_job_spec"
+  }
+
+
 # Skolo
 
 ALERT BackupNotDone
