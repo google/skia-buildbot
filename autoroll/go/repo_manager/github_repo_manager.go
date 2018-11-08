@@ -244,18 +244,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 
-	// Write the file.
-	if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(to+"\n"), os.ModePerm); err != nil {
-		return 0, err
-	}
-
-	// Run the pre-upload steps.
-	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.httpClient, rm.parentRepo.Dir()); err != nil {
-			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
-		}
-	}
-
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
 	githubCompareUrl := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from[:12], to[:12])
@@ -294,9 +282,28 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	}
 	commitMsg := buf.String()
 
-	// Commit.
-	if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
+	versions, err := rm.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+	if err != nil {
 		return 0, err
+	}
+	for _, version := range versions {
+		// Write the file.
+		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(version+"\n"), os.ModePerm); err != nil {
+			return 0, err
+		}
+
+		// Commit.
+		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", version); err != nil {
+			return 0, err
+		}
+
+	}
+
+	// Run the pre-upload steps.
+	for _, s := range rm.PreUploadSteps() {
+		if err := s(ctx, rm.httpClient, rm.parentRepo.Dir()); err != nil {
+			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
+		}
 	}
 
 	// Push to the forked repository.

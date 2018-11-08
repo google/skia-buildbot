@@ -34,6 +34,7 @@
       "flutter/%s/dart-sdk-windows-x64.zip"
     ]
   },
+  "githubMergeMethodURL":  "https://raw.githubusercontent.com/flutter/flutter/master/bin/internal/engine.merge_method",
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
