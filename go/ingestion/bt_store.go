@@ -135,6 +135,10 @@ func (b *BTIStore) Clear() error {
 	return err
 }
 
+func (b *BTIStore) Close() error {
+	return b.client.Close()
+}
+
 // Returns the row key for keeping track of file hashes.
 func (b *BTIStore) getResultFileRowKey(md5Sum string) string {
 	return fmt.Sprintf("%s:%s", b.nameSpace, md5Sum)
