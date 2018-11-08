@@ -2,7 +2,6 @@ package regression
 
 import (
 	"context"
-	"net/url"
 	"sync"
 	"time"
 
@@ -102,70 +101,50 @@ func (c *Continuous) Run(ctx context.Context) {
 	c.reportUntriaged(newClustersGauge)
 	for range time.Tick(time.Second) {
 		clusteringLatency.Start()
-
-		// Get the last numCommits commits.
-		indexCommits := c.git.LastNIndex(c.numCommits)
-		// Drop the radius most recent, since we are clustering
-		// based on a radius of +/-radius commits.
-		indexCommits = indexCommits[:(c.numCommits - c.radius)]
-		for _, commit := range indexCommits {
-			id := &cid.CommitID{
-				Source: "master",
-				Offset: commit.Index,
-			}
-
-			// TODO(jcgregorio) details isn't need by the core clustering algo, move below Run().
-			details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
-			if err != nil {
-				sklog.Errorf("Failed to look up commit %v: %s", *id, err)
-				continue
-			}
-			configs, err := c.provider()
-			if err != nil {
-				// TODO(jcgregorio) Float these errors up to the UI.
-				sklog.Errorf("Failed to load configs: %s", err)
-				continue
-			}
+		configs, err := c.provider()
+		if err != nil {
+			// TODO(jcgregorio) Float these errors up to the UI.
+			sklog.Errorf("Failed to load configs: %s", err)
+			continue
+		}
+		for _, cfg := range configs {
 			c.mutex.Lock()
-			c.current.Commit = details[0]
+			c.current.Alert = cfg
 			c.mutex.Unlock()
-			for _, cfg := range configs {
-				c.mutex.Lock()
-				c.current.Alert = cfg
-				c.mutex.Unlock()
-				radius := c.radius
-				if cfg.Radius != 0 {
-					radius = cfg.Radius
-				}
-				sklog.Infof("About to cluster for: %#v", *cfg)
+			radius := c.radius
+			if cfg.Radius != 0 {
+				radius = cfg.Radius
+			}
+			sklog.Infof("About to cluster for: %#v", *cfg)
 
-				// Handle GroupBy, each query may produce a different dataframe
-				// response, i.e. the pts which have data may change, so we do this
-				// outside clustering2.Run().
-				queries := []string{}
-				if len(cfg.GroupBy) != 0 {
-					paramset := c.paramsProvider()
-					allCombinations, err := cfg.GroupCombinations(paramset)
+			queries, err := cfg.QueriesFromParamset(c.paramsProvider())
+			if err != nil {
+				sklog.Errorf("Failed to build GroupBy combinations: %s", err)
+				continue
+			}
+			for _, q := range queries {
+				sklog.Infof("Clustering for query: %q", q)
+
+				// Get the last numCommits commits.
+				indexCommits := c.git.LastNIndex(c.numCommits)
+				// Drop the radius most recent, since we are clustering
+				// based on a radius of +/-radius commits.
+				indexCommits = indexCommits[:(c.numCommits - c.radius)]
+				for _, commit := range indexCommits {
+					id := &cid.CommitID{
+						Source: "master",
+						Offset: commit.Index,
+					}
+
+					// TODO(jcgregorio) details isn't need by the core clustering algo, move below Run().
+					details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
 					if err != nil {
-						sklog.Errorf("Failed to build GroupBy combinations: %s", err)
+						sklog.Errorf("Failed to look up commit %v: %s", *id, err)
 						continue
 					}
-					for _, combo := range allCombinations {
-						parsed, err := url.ParseQuery(cfg.Query)
-						if err != nil {
-							sklog.Errorf("Found invalid query %q: %s", cfg.Query, err)
-							continue
-						}
-						for _, kv := range combo {
-							parsed[kv.Key] = []string{kv.Value}
-						}
-						queries = append(queries, parsed.Encode())
-					}
-				} else {
-					queries = append(queries, cfg.Query)
-				}
-				for _, q := range queries {
-					sklog.Infof("Clustering for query: %q", q)
+					c.mutex.Lock()
+					c.current.Commit = details[0]
+					c.mutex.Unlock()
 
 					// TODO(jcgregorio) Here either loop over the indexCommits or just drop the old algo and go with LastN all the time.
 
