@@ -42,9 +42,6 @@ func htmlHandler(page []byte) func(w http.ResponseWriter, r *http.Request) {
 			loadPages()
 		}
 		w.Header().Set("Content-Type", "text/html")
-		// This page should not be iframed. Maybe one day, something will be iframed,
-		// but likely not this page.
-		w.Header().Add("X-Frame-Options", "deny")
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(page); err != nil {
 			httputils.ReportError(w, r, err, "Server could not load page")
