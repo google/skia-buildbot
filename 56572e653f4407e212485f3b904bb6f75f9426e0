@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dfe5ac6_20991200",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1249,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 0,
+      "message": "This is semi-important, since the API for Delete*Comment assumes there is only one matching comment to delete.",
+      "range": {
+        "startLine": 1249,
+        "startChar": 26,
+        "endLine": 1249,
+        "endChar": 69
+      },
+      "revId": "56572e653f4407e212485f3b904bb6f75f9426e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

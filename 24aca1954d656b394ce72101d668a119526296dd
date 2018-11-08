@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "98c724ef_6cb93f8b",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "missing it.Stop()",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 5
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c68af75_c68c8c74",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "This is only correct for TaskComments and CommitComments, not TaskSpecComments.",
+      "range": {
+        "startLine": 50,
+        "startChar": 11,
+        "endLine": 50,
+        "endChar": 41
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "006bc109_3b53ed01",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "IMO, if things work as-is, just remove this comment. There\u0027s no way we\u0027ll have enough QPS for comments for it to matter what we use for IDs, and these IDs are not user-visible.",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 46
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1646b131_8e2a004c",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "nit: Maybe best to require a parentDoc; it sounds like if we have multiple apps in the same project using Firestore, using unique prefixes is the only way to prevent conflicts. Maybe follow the same guidance as for namespaces in https://skia.googlesource.com/buildbot/+/master/DATASTORE.md",
+      "range": {
+        "startLine": 35,
+        "startChar": 41,
+        "endLine": 35,
+        "endChar": 50
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42f0fe69_d5a5732b",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "I don\u0027t understand this. Why would the Created field in the DB be different from the Created field in the Go struct?\n\nSame Q for GetTasksFromDateRange.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 47
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "007e695c_9eb91bc9",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "nit: You could use the GetAll method: https://godoc.org/cloud.google.com/go/firestore#Transaction.GetAll\n\nSame for putTasks.",
+      "range": {
+        "startLine": 111,
+        "startChar": 14,
+        "endLine": 111,
+        "endChar": 25
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd25cc04_1dad255c",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-08T21:10:55Z",
+      "side": 1,
+      "message": "nit: Maybe move this to db.go, since it might be useful for users of db package.",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 14
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
