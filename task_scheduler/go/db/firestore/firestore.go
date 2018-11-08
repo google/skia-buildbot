@@ -1,0 +1,50 @@
+package firestore
+
+import (
+	"context"
+	"time"
+
+	"cloud.google.com/go/firestore"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
+)
+
+// Fix the given timestamp. Firestore only supports microsecond precision, and
+// we always want to store UTC.
+func fixTimestamp(t time.Time) time.Time {
+	return t.UTC().Truncate(time.Microsecond)
+}
+
+// firestoreDB is a db.DB which uses Cloud Firestore for storage.
+type firestoreDB struct {
+	client    *firestore.Client
+	parentDoc string
+
+	// ModifiedTasks and ModifiedJobs are embedded in order to implement
+	// db.TaskReader and db.JobReader.
+	db.ModifiedTasks
+	db.ModifiedJobs
+}
+
+// NewDB returns a db.DB which uses Cloud Firestore for storage.
+func NewDB(ctx context.Context, project, parentDoc string, ts oauth2.TokenSource) (db.DBCloser, error) {
+	client, err := firestore.NewClient(ctx, project, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	return &firestoreDB{
+		client:    client,
+		parentDoc: parentDoc + "/",
+	}, nil
+}
+
+// See documentation for db.DBCloser interface.
+func (d *firestoreDB) Close() error {
+	return d.client.Close()
+}
+
+// collection returns a ref to the given collection.
+func (d *firestoreDB) collection(id string) *firestore.CollectionRef {
+	return d.client.Collection(d.parentDoc + id)
+}
