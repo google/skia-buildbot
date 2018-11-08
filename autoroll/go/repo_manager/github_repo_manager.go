@@ -286,7 +286,8 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	if err != nil {
 		return 0, err
 	}
-	for _, version := range versions {
+	for i := len(versions) - 1; i >= 0; i-- {
+		version := versions[i]
 		// Write the file.
 		if err := ioutil.WriteFile(path.Join(rm.parentRepo.Dir(), rm.revisionFile), []byte(version+"\n"), os.ModePerm); err != nil {
 			return 0, err
