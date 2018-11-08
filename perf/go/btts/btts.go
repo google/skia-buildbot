@@ -168,8 +168,11 @@ type BigTableTraceStore struct {
 	ctx           context.Context
 	tileSize      int32 // How many commits we store per tile.
 	shards        int32 // How many shards we break the traces into.
-	table         *bigtable.Table
 	writesCounter metrics2.Counter
+
+	// tableMutex protects access to table.
+	tableMutex sync.Mutex
+	table      *bigtable.Table
 
 	// lookup maps column names as strings, "V:2", to the index, 2.
 	// Used to speed up reading values out of rows.
@@ -179,6 +182,12 @@ type BigTableTraceStore struct {
 
 	mutex    sync.RWMutex              // Protects opsCache.
 	opsCache map[string]*OpsCacheEntry // map[tile] -> ops.
+}
+
+func (b *BigTableTraceStore) getTable() *bigtable.Table {
+	b.tableMutex.Lock()
+	defer b.tableMutex.Unlock()
+	return b.table
 }
 
 func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTableConfig, ts oauth2.TokenSource, cacheOps bool) (*BigTableTraceStore, error) {
@@ -193,7 +202,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 	for i := 0; int32(i) < cfg.TileSize; i++ {
 		lookup[VALUES_FAMILY+":"+strconv.Itoa(i)] = i
 	}
-	return &BigTableTraceStore{
+	ret := &BigTableTraceStore{
 		ctx:           ctx,
 		tileSize:      cfg.TileSize,
 		shards:        cfg.Shards,
@@ -202,7 +211,23 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 		lookup:        lookup,
 		opsCache:      map[string]*OpsCacheEntry{},
 		cacheOps:      cacheOps,
-	}, nil
+	}
+	// Periodically refresh the BigTable client. Maybe this will fix the occasional timeouts.
+	go func() {
+		for _ = range time.Tick(5 * time.Minute) {
+			client, err := bigtable.NewClient(ctx, cfg.Project, cfg.Instance, option.WithTokenSource(ts), option.WithGRPCConnectionPool(20))
+			if err != nil {
+				sklog.Errorf("Couldn't create client: %s", err)
+				continue
+			}
+			ret.mutex.Lock()
+			ret.table = client.Open(cfg.Table)
+			ret.mutex.Unlock()
+			sklog.Info("BigTable client refreshed.")
+		}
+	}()
+
+	return ret, nil
 }
 
 // Given the index return the TileKey of the tile that would contain that column.
@@ -234,7 +259,7 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 	}
 	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
 	defer cancel()
-	row, err := b.table.ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
+	row, err := b.getTable().ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
 		return nil, false, fmt.Errorf("Failed to read OPS from BigTable: %s", err)
 	}
@@ -294,7 +319,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 		rowKeys = append(rowKeys, tileKey.TraceRowName(k, b.shards))
 		if len(muts) >= MAX_MUTATIONS {
 			b.writesCounter.Inc(int64(len(muts)))
-			errs, err := b.table.ApplyBulk(tctx, rowKeys, muts)
+			errs, err := b.getTable().ApplyBulk(tctx, rowKeys, muts)
 			if err != nil {
 				return fmt.Errorf("Failed writing traces: %s", err)
 			}
@@ -307,7 +332,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 	}
 	if len(muts) > 0 {
 		b.writesCounter.Inc(int64(len(muts)))
-		errs, err := b.table.ApplyBulk(tctx, rowKeys, muts)
+		errs, err := b.getTable().ApplyBulk(tctx, rowKeys, muts)
 		if err != nil {
 			return fmt.Errorf("Failed writing traces: %s", err)
 		}
@@ -349,7 +374,7 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 
 	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
 	defer cancel()
-	err = b.table.ReadRows(tctx, rowSet, func(row bigtable.Row) bool {
+	err = b.getTable().ReadRows(tctx, rowSet, func(row bigtable.Row) bool {
 		vec := vec32.New(int(b.tileSize))
 		for _, col := range row[VALUES_FAMILY] {
 			vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -383,7 +408,7 @@ func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + q.String()
 			tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
 			defer cancel()
-			return b.table.ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
 					vec[b.lookup[col.Column]] = math.Float32frombits(binary.LittleEndian.Uint32(col.Value))
@@ -420,7 +445,7 @@ func (b *BigTableTraceStore) QueryCount(tileKey TileKey, q *regexp.Regexp) (int6
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + q.String()
 			tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
 			defer cancel()
-			return b.table.ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				_ = atomic.AddInt64(&ret, 1)
 				return true
 			}, bigtable.RowFilter(
@@ -447,7 +472,7 @@ func (b *BigTableTraceStore) GetSource(index int32, traceId string) (string, err
 	tileKey := TileKeyFromOffset(index / b.tileSize)
 	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
 	defer cancel()
-	row, err := b.table.ReadRow(tctx, tileKey.TraceRowName(traceId, b.shards), bigtable.RowFilter(
+	row, err := b.getTable().ReadRow(tctx, tileKey.TraceRowName(traceId, b.shards), bigtable.RowFilter(
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(SOURCES_FAMILY),
@@ -464,7 +489,7 @@ func (b *BigTableTraceStore) GetSource(index int32, traceId string) (string, err
 
 	tctx2, cancel2 := context.WithTimeout(b.ctx, TIMEOUT)
 	defer cancel2()
-	row, err = b.table.ReadRow(tctx2, sourceHash, bigtable.RowFilter(
+	row, err = b.getTable().ReadRow(tctx2, sourceHash, bigtable.RowFilter(
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(HASHES_FAMILY),
@@ -485,7 +510,7 @@ func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 	ret := BadTileKey
 	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
 	defer cancel()
-	err := b.table.ReadRows(tctx, bigtable.PrefixRange("@"), func(row bigtable.Row) bool {
+	err := b.getTable().ReadRows(tctx, bigtable.PrefixRange("@"), func(row bigtable.Row) bool {
 		var err error
 		ret, err = TileKeyFromOpsRowName(row.Key())
 		if err != nil {
@@ -551,7 +576,7 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 			updateMutation.DeleteTimestampRange(OPS_FAMILY, OPS_OPS_COLUMN, 0, before)
 			condUpdate := bigtable.NewCondMutation(cond, updateMutation, nil)
 
-			if err := b.table.Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
+			if err := b.getTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
 				sklog.Warningf("Failed to apply: %s", err)
 				continue
 			}
@@ -578,7 +603,7 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 			updateMutation.Set(OPS_FAMILY, OPS_OPS_COLUMN, now, encodedOps)
 
 			condUpdate := bigtable.NewCondMutation(cond, nil, updateMutation)
-			if err := b.table.Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
+			if err := b.getTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
 				sklog.Warningf("Failed to apply: %s", err)
 				continue
 			}
