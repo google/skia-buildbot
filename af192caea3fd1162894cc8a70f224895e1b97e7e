@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bc09b464_08649485",
+        "filename": "task_driver/go/lib/os_steps/os_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T18:22:33Z",
+      "side": 1,
+      "message": "I think it\u0027s not well-defined whether rv is assigned before or after we get its return value. https://golang.org/ref/spec#Order_of_evaluation\n\nIf you leave it like this, I suggest writing a test that will fail if Golang does something different in a future version or on a different platform.",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 17
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d98697a9_e0f6e97b",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T18:22:33Z",
+      "side": 1,
+      "message": "I think it might be better to use the result of error.Error() as the map key, for two reasons:\n - error could be implemented by basically any type, including types that can\u0027t be used as map keys. OTOH, it\u0027s probably reasonable to expect people not to do that, at least for task drivers.\n - avoids problems with pointer vs. non-pointer values. OTOH, seems unlikely that anyone would do \"return \u0026err\".",
+      "range": {
+        "startLine": 64,
+        "startChar": 22,
+        "endLine": 64,
+        "endChar": 27
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3618850b_096e8c98",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T18:22:33Z",
+      "side": 1,
+      "message": "Is it OK for this to be a global?",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 15
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
