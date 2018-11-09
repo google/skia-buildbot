@@ -139,6 +139,14 @@ func getTaskDriver(w http.ResponseWriter, r *http.Request) *db.TaskDriverRun {
 		return nil
 	}
 	if td == nil {
+		// The requested task driver doesn't exist. This is a temporary
+		// measure while some tasks are running task drivers and others
+		// are not: if the client provided a redirect URL, redirect the
+		// client, otherwise give a 404.
+		if redirect := r.FormValue("ifNotFound"); redirect != "" {
+			http.Redirect(w, r, redirect, http.StatusSeeOther)
+			return nil
+		}
 		http.Error(w, "No task driver exists with the given ID.", http.StatusNotFound)
 		return nil
 	}
