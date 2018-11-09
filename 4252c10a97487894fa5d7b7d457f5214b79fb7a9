@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03c2c91f_18d3124d",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T17:35:22Z",
+      "side": 1,
+      "message": "You are overwriting the return value. Maybe you meant something like:\nif err !\u003d nil {\n  util.Close(adminClient)\n} else {\n  err \u003d adminClient.Close()\n}",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 19
+      },
+      "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7acef296_f71ac945",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T17:35:22Z",
+      "side": 1,
+      "message": "It might be simpler to just ignore the error below. Does https://godoc.org/google.golang.org/grpc/status#FromError and https://godoc.org/google.golang.org/grpc/status#Status.Code give you NotFound?",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 41
+      },
+      "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55982605_66113280",
+        "filename": "go/ingestion/ingestion_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T17:35:22Z",
+      "side": 1,
+      "message": "nit: should probably be in a defer.\n\n(If you rename the method to Close, you could use defer testutils.AssertCloses(t, ingester).)",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 35
+      },
+      "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
