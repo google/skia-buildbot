@@ -222,7 +222,7 @@ func TestTryLeaseBuild(t *testing.T) {
 	expect := fmt.Errorf("Can't lease this!")
 	MockTryLeaseBuild(mock, id, now, expect)
 	_, err = trybots.tryLeaseBuild(id, now)
-	assert.EqualError(t, err, expect.Error())
+	assert.Contains(t, err.Error(), expect.Error())
 	assert.True(t, mock.Empty())
 }
 
@@ -314,10 +314,10 @@ func TestGetJobToSchedule(t *testing.T) {
 	assert.True(t, result.Valid())
 
 	// Failed to lease build.
-	expectErr := fmt.Errorf("fail")
+	expectErr := fmt.Errorf("Can't lease this!")
 	MockTryLeaseBuild(mock, b1.Id, now, expectErr)
 	result, err = trybots.getJobToSchedule(ctx, b1, now)
-	assert.EqualError(t, err, expectErr.Error())
+	assert.Contains(t, err.Error(), expectErr.Error())
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 

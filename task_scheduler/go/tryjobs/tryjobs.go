@@ -334,10 +334,10 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error)
 		LeaseExpirationTs: expiration,
 	}).Do()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("Failed request to lease buildbucket build %d: %s", id, err)
 	}
 	if resp.Error != nil {
-		return 0, fmt.Errorf(resp.Error.Message)
+		return 0, fmt.Errorf("Error response for leasing buildbucket build %d: %s", id, resp.Error.Message)
 	}
 	return resp.Build.LeaseKey, nil
 }
