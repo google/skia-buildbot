@@ -22,6 +22,30 @@
       "revId": "aa31beca447fd68d1be0f28b1abd17b00a3cd9d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6c7cf32_affe38bf",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-09T22:17:25Z",
+      "side": 1,
+      "message": "Oh, this must be a typo. Hopefully that this is the only one. Sending a new CL to fix it: https://skia-review.googlesource.com/c/buildbot/+/170295\n\nTake your time to review and deploy it (maybe in the next week). It\u0027s not urgent. Thank you so much for finding this! I\u0027m still overwhelmed by other bugs \u003d_\u003d...",
+      "parentUuid": "d6dcd28b_5656f3bb",
+      "range": {
+        "startLine": 163,
+        "startChar": 38,
+        "endLine": 163,
+        "endChar": 55
+      },
+      "revId": "aa31beca447fd68d1be0f28b1abd17b00a3cd9d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
