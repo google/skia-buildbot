@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: nfs4-server
+spec:
+  template:
+    metadata:
+      labels:
+        name: nfs4-server
+    spec:
+      containers:
+      - name: nfs4-server
+        image: gcr.io/skia-public/nfs4-image:001
+        ports:
+        - containerPort: 2049
+          hostPort: 2049
+        volumeMounts:
+        - name: sd-card-image
+          mountPath: /exported
+        securityContext:
+          privileged: true
+      volumes:
+       - name: sd-card-image
+         hostPath:
+           path: /home/chrome-bot/sd_card

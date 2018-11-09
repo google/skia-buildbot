@@ -1,0 +1,6 @@
+proc            /proc           proc    defaults          0       0
+/dev/mmcblk0p1  /boot           vfat    defaults,noatime          0       2
+/dev/mmcblk0p3  /b     ext4    defaults,noatime          0       2
+/dev/mmcblk0p5  /var   ext4    defaults,noatime          0       2
+/dev/mmcblk0p6  /tmp   ext4    defaults,noatime          0       2
+/dev/mmcblk0p7  /home/chrome-bot   ext4    defaults,noatime          0       2

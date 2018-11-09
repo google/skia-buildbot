@@ -8,10 +8,10 @@ serve-rpi-image/rpi.img:
 	bash -c "echo '$(IMG_SHA1) serve-rpi-image/rpi.img' | sha1sum -c -"
 
 .PHONY: build
-build: serve-rpi-image/rpi.img
+build:
 	docker build -t serve-rpi-image ./serve-rpi-image
 
-VERSION = 2018.08.23.08d6f0.v2
+VERSION = 2018.11.08.08d6f0.v4
 
 .PHONY: push
 push:
