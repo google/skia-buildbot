@@ -2,6 +2,7 @@ package td
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func TestDefer(t *testing.T) {
@@ -88,4 +90,90 @@ func TestExec(t *testing.T) {
 		assert.True(t, strings.Contains(out, "stderr"))
 		return nil
 	})
+}
+
+func TestFatal(t *testing.T) {
+	testutils.SmallTest(t)
+
+	err := errors.New("FATAL")
+	checkErr := func(s *StepReport) {
+		assert.Equal(t, 1, len(s.Errors))
+		assert.EqualError(t, err, s.Errors[0])
+	}
+	checkErrs := func(s *StepReport) {
+		checkErr(s)
+		s.Recurse(func(s *StepReport) bool {
+			checkErr(s)
+			return true
+		})
+	}
+	checkExc := func(s *StepReport) {
+		assert.Equal(t, 1, len(s.Exceptions))
+		assert.EqualError(t, err, s.Exceptions[0])
+	}
+	checkExcs := func(s *StepReport) {
+		checkExc(s)
+		s.Recurse(func(s *StepReport) bool {
+			checkExc(s)
+			return true
+		})
+	}
+
+	// When Fatal is called in a non-infra step, all parent steps get an error.
+	s := RunTestSteps(t, true, func(ctx context.Context) error {
+		return Do(ctx, nil, func(ctx context.Context) error {
+			return Do(ctx, Props("non-infra step"), func(ctx context.Context) error {
+				Fatal(ctx, err)
+				return nil
+			})
+		})
+	})
+	checkErrs(s)
+
+	// When Fatal is called in an infra step, all parent steps get an exception.
+	s = RunTestSteps(t, true, func(ctx context.Context) error {
+		return Do(ctx, nil, func(ctx context.Context) error {
+			return Do(ctx, Props("infra step").Infra(), func(ctx context.Context) error {
+				Fatal(ctx, err)
+				return nil
+			})
+		})
+	})
+	checkExcs(s)
+
+	// Check the case where we call Fatal() after a failed subprocess but
+	// still want to perform deferred cleanup.
+	ranCleanup := false
+	s = RunTestSteps(t, true, func(ctx context.Context) error {
+		defer func() {
+			util.LogErr(Do(ctx, Props("cleanup").Infra(), func(ctx context.Context) error {
+				ranCleanup = true
+				return nil
+			}))
+		}()
+
+		if _, err := exec.RunSimple(ctx, "false"); err != nil {
+			Fatal(ctx, err)
+			return err
+		}
+		return nil
+	})
+	assert.Equal(t, 1, len(s.Errors))
+	assert.Equal(t, "Command exited with exit status 1: false; Stdout+Stderr:\n", s.Errors[0])
+	assert.True(t, ranCleanup)
+
+	// Check the case where we call Fatal() after an infra step failed whose
+	// parent is not an infra step.
+	s = RunTestSteps(t, true, func(ctx context.Context) error {
+		return Do(ctx, Props("non-infra step"), func(ctx context.Context) error {
+			if err := Do(ctx, Props("infra step").Infra(), func(ctx context.Context) error {
+				return errors.New("Infra Failure")
+			}); err != nil {
+				Fatal(ctx, err)
+			}
+			return nil
+		})
+	})
+	assert.Equal(t, 1, len(s.Exceptions))
+	assert.Equal(t, "Infra Failure", s.Exceptions[0])
 }

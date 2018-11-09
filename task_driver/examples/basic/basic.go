@@ -88,7 +88,7 @@ func main() {
 
 	// Please see docs for RunStepFunc.
 	if err := RunStepFunc(ctx); err != nil {
-		td.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 }
 
