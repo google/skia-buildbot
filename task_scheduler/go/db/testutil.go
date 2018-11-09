@@ -18,7 +18,10 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-const DEFAULT_TEST_REPO = "go-on-now.git"
+const (
+	DEFAULT_TEST_REPO = "go-on-now.git"
+	TS_RESOLUTION     = time.Microsecond
+)
 
 // AssertDeepEqual does a deep equals comparison using the testutils.TestingT interface.
 //
@@ -85,7 +88,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	// Set Creation time. Ensure Created is not the time of AssignId to test the
 	// sequence (1) AssignId, (2) initialize task, (3) PutTask.
 	timeStart := time.Now()
-	now := timeStart.Add(time.Nanosecond)
+	now := timeStart.Add(TS_RESOLUTION)
 	t1.Created = now
 
 	// Insert the task.
@@ -107,8 +110,8 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 
 	// Ensure that the task shows up in the correct date ranges.
 	t1Before := t1.Created
-	t1After := t1Before.Add(1 * time.Nanosecond)
-	timeEnd := now.Add(2 * time.Nanosecond)
+	t1After := t1Before.Add(1 * TS_RESOLUTION)
+	timeEnd := now.Add(2 * TS_RESOLUTION)
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
@@ -119,10 +122,10 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
+	// Insert two more tasks. Ensure at least 1 microsecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
-	t2 := MakeTestTask(now.Add(time.Nanosecond), []string{"e", "f"})
-	t3 := MakeTestTask(now.Add(2*time.Nanosecond), []string{"g", "h"})
+	t2 := MakeTestTask(now.Add(TS_RESOLUTION), []string{"e", "f"})
+	t3 := MakeTestTask(now.Add(2*TS_RESOLUTION), []string{"g", "h"})
 	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
@@ -152,12 +155,12 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
-	t2After := t2Before.Add(1 * time.Nanosecond)
+	t2After := t2Before.Add(1 * TS_RESOLUTION)
 
 	t3Before := t3.Created
-	t3After := t3Before.Add(1 * time.Nanosecond)
+	t3After := t3Before.Add(1 * TS_RESOLUTION)
 
-	timeEnd = now.Add(3 * time.Nanosecond)
+	timeEnd = now.Add(3 * TS_RESOLUTION)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before, "")
 	assert.NoError(t, err)
@@ -288,7 +291,7 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 		assert.NoError(t, db.AssignId(t1))
-		t1.Created = time.Now().Add(time.Nanosecond)
+		t1.Created = time.Now().Add(TS_RESOLUTION)
 		return []*Task{t1}, nil
 	})
 	assert.NoError(t, err)
@@ -300,7 +303,7 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 		t1, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
 		t1.Status = TASK_STATUS_RUNNING
-		t2 := MakeTestTask(t1.Created.Add(time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(t1.Created.Add(TS_RESOLUTION), []string{"e", "f"})
 		return []*Task{t1, t2}, nil
 	})
 	assert.NoError(t, err)
@@ -318,7 +321,7 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -330,7 +333,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
@@ -350,7 +353,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 			}
 		}
 		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
 		return []*Task{t1Cached, t2}, nil
 	})
 	assert.NoError(t, err)
@@ -369,7 +372,7 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, tasks[1], t2)
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -386,7 +389,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 		callCount++
 		// Return a task just for fun.
 		return []*Task{
-			MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"}),
+			MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"}),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -395,7 +398,7 @@ func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -418,7 +421,7 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) 
 	assert.Equal(t, 1, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(time.Nanosecond), "")
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -428,7 +431,7 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
@@ -441,7 +444,7 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := MakeTestTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
+		t2 := MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
 		return []*Task{t1Cached, t2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -449,7 +452,7 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	assert.Equal(t, 0, len(tasks))
 
 	// Check no extra tasks in the DB.
-	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*time.Nanosecond), "")
+	tasks, err = db.GetTasksFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -463,7 +466,7 @@ func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	// Create new task t1.
 	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.AssignId(t1))
-	t1.Created = time.Now().Add(time.Nanosecond)
+	t1.Created = time.Now().Add(TS_RESOLUTION)
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update t1.
@@ -482,7 +485,7 @@ func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the TaskDB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -493,7 +496,7 @@ func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
@@ -519,7 +522,7 @@ func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1Again, t1Updated)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -530,7 +533,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update and return an error.
@@ -553,7 +556,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -564,7 +567,7 @@ func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update original.
@@ -592,7 +595,7 @@ func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Check no extra tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
@@ -603,7 +606,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
-	t1 := MakeTestTask(begin.Add(time.Nanosecond), []string{"a", "b", "c", "d"})
+	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.AssignId(t1))
 
 	// Attempt to update non-existent task. Function shouldn't be called.
@@ -618,7 +621,7 @@ func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
 	assert.Equal(t, 0, callCount)
 
 	// Check no tasks in the DB.
-	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond), "")
+	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 }
@@ -649,7 +652,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 
-	now := time.Now().Add(time.Nanosecond)
+	now := time.Now().Add(TS_RESOLUTION)
 	j1 := makeJob(now)
 
 	// Insert the job.
@@ -674,10 +677,10 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, []*Job{j1}, jobs)
 
 	// Ensure that the job shows up in the correct date ranges.
-	timeStart := time.Time{}
+	timeStart := util.TimeUnixZero
 	j1Before := j1.Created
-	j1After := j1Before.Add(1 * time.Nanosecond)
-	timeEnd := now.Add(2 * time.Nanosecond)
+	j1After := j1Before.Add(1 * TS_RESOLUTION)
+	timeEnd := now.Add(2 * TS_RESOLUTION)
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
@@ -688,10 +691,10 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 
-	// Insert two more jobs. Ensure at least 1 nanosecond between job Created
+	// Insert two more jobs. Ensure at least 1 microsecond between job Created
 	// times so that j1After != j2Before and j2After != j3Before.
-	j2 := makeJob(now.Add(time.Nanosecond))
-	j3 := makeJob(now.Add(2 * time.Nanosecond))
+	j2 := makeJob(now.Add(TS_RESOLUTION))
+	j3 := makeJob(now.Add(2 * TS_RESOLUTION))
 	assert.NoError(t, db.PutJobs([]*Job{j2, j3}))
 
 	// Check that PutJobs assigned Ids.
@@ -721,12 +724,12 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 
 	// Ensure that all jobs show up in the correct time ranges, in sorted order.
 	j2Before := j2.Created
-	j2After := j2Before.Add(1 * time.Nanosecond)
+	j2After := j2Before.Add(1 * TS_RESOLUTION)
 
 	j3Before := j3.Created
-	j3After := j3Before.Add(1 * time.Nanosecond)
+	j3After := j3Before.Add(1 * TS_RESOLUTION)
 
-	timeEnd = now.Add(3 * time.Nanosecond)
+	timeEnd = now.Add(3 * TS_RESOLUTION)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before)
 	assert.NoError(t, err)
@@ -856,7 +859,7 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	// Create new job j1. (UpdateJobsWithRetries isn't actually useful in this case.)
 	jobs, err = UpdateJobsWithRetries(db, func() ([]*Job, error) {
 		j1 := makeJob(time.Time{})
-		j1.Created = time.Now().Add(time.Nanosecond)
+		j1.Created = time.Now().Add(TS_RESOLUTION)
 		return []*Job{j1}, nil
 	})
 	assert.NoError(t, err)
@@ -868,7 +871,7 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 		j1, err := db.GetJobById(j1.Id)
 		assert.NoError(t, err)
 		j1.Status = JOB_STATUS_IN_PROGRESS
-		j2 := makeJob(j1.Created.Add(time.Nanosecond))
+		j2 := makeJob(j1.Created.Add(TS_RESOLUTION))
 		j2.Repo = "j2-repo"
 		return []*Job{j1, j2}, nil
 	})
@@ -887,7 +890,7 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, jobs[1], j2)
 
 	// Check no extra jobs in the DB.
-	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -899,7 +902,7 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 	j1Cached := j1.Copy()
 
@@ -919,7 +922,7 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 			}
 		}
 		j1Cached.Status = JOB_STATUS_SUCCESS
-		j2 := makeJob(begin.Add(2 * time.Nanosecond))
+		j2 := makeJob(begin.Add(2 * TS_RESOLUTION))
 		j2.Repo = "j2-repo"
 		return []*Job{j1Cached, j2}, nil
 	})
@@ -939,7 +942,7 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, jobs[1], j2)
 
 	// Check no extra jobs in the DB.
-	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -956,7 +959,7 @@ func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 		callCount++
 		// Return a job just for fun.
 		return []*Job{
-			makeJob(begin.Add(time.Nanosecond)),
+			makeJob(begin.Add(TS_RESOLUTION)),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -965,7 +968,7 @@ func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no jobs in the DB.
-	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 }
@@ -988,7 +991,7 @@ func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, 1, callCount)
 
 	// Check no jobs in the DB.
-	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(time.Nanosecond))
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 }
@@ -998,7 +1001,7 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 	j1Cached := j1.Copy()
 
@@ -1011,7 +1014,7 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
 		callCount++
 		j1Cached.Status = JOB_STATUS_SUCCESS
-		j2 := makeJob(begin.Add(2 * time.Nanosecond))
+		j2 := makeJob(begin.Add(2 * TS_RESOLUTION))
 		return []*Job{j1Cached, j2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -1019,7 +1022,7 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, 0, len(jobs))
 
 	// Check no extra jobs in the DB.
-	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -1050,7 +1053,7 @@ func testUpdateJobWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1Again, j1Updated)
 
 	// Check no extra jobs in the JobDB.
-	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -1061,7 +1064,7 @@ func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 
 	// Attempt update.
@@ -1087,7 +1090,7 @@ func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1Again, j1Updated)
 
 	// Check no extra jobs in the DB.
-	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -1098,7 +1101,7 @@ func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update and return an error.
@@ -1121,7 +1124,7 @@ func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1, j1Again)
 
 	// Check no extra jobs in the DB.
-	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -1132,7 +1135,7 @@ func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(time.Nanosecond))
+	j1 := makeJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update original.
@@ -1160,7 +1163,7 @@ func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1, j1Again)
 
 	// Check no extra jobs in the DB.
-	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*TS_RESOLUTION))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
@@ -1246,10 +1249,10 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	tc4 := makeTaskComment(4, 1, 1, 2, now)
 	tc5 := makeTaskComment(5, 1, 2, 2, now)
 	tc6 := makeTaskComment(6, 2, 3, 3, now)
-	tc6copy := tc6.Copy() // Adding identical comment should be ignored.
-	for _, c := range []*TaskComment{tc1, tc2, tc3, tc4, tc5, tc6, tc6copy} {
+	for _, c := range []*TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
 		assert.NoError(t, db.PutTaskComment(c))
 	}
+	tc6copy := tc6.Copy()
 	tc6.Message = "modifying after Put shouldn't affect stored comment"
 
 	sc1 := makeTaskSpecComment(1, 1, 1, now)
@@ -1257,10 +1260,10 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	sc3 := makeTaskSpecComment(3, 1, 1, now.Add(time.Second))
 	sc4 := makeTaskSpecComment(4, 1, 2, now)
 	sc5 := makeTaskSpecComment(5, 2, 3, now)
-	sc5copy := sc5.Copy() // Adding identical comment should be ignored.
-	for _, c := range []*TaskSpecComment{sc1, sc2, sc3, sc4, sc5, sc5copy} {
+	for _, c := range []*TaskSpecComment{sc1, sc2, sc3, sc4, sc5} {
 		assert.NoError(t, db.PutTaskSpecComment(c))
 	}
+	sc5copy := sc5.Copy()
 	sc5.Message = "modifying after Put shouldn't affect stored comment"
 
 	cc1 := makeCommitComment(1, 1, 1, now)
@@ -1268,10 +1271,10 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	cc3 := makeCommitComment(3, 1, 1, now.Add(time.Second))
 	cc4 := makeCommitComment(4, 1, 2, now)
 	cc5 := makeCommitComment(5, 2, 3, now)
-	cc5copy := cc5.Copy() // Adding identical comment should be ignored.
-	for _, c := range []*CommitComment{cc1, cc2, cc3, cc4, cc5, cc5copy} {
+	for _, c := range []*CommitComment{cc1, cc2, cc3, cc4, cc5} {
 		assert.NoError(t, db.PutCommitComment(c))
 	}
+	cc5copy := cc5.Copy()
 	cc5.Message = "modifying after Put shouldn't affect stored comment"
 
 	// Check that adding duplicate non-identical comment gives an error.
@@ -1428,14 +1431,14 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	r2 := common.REPO_SKIA_INFRA
 	r3 := common.REPO_CHROMIUM
 	repos := []string{r1, r2, r3}
-	start := time.Now().Add(-50 * time.Nanosecond)
+	start := time.Now().Add(-50 * TS_RESOLUTION)
 	end := start
 	for _, repo := range repos {
 		for i := 0; i < 10; i++ {
 			task := MakeTestTask(end, []string{"c"})
 			task.Repo = repo
 			assert.NoError(t, db.PutTask(task))
-			end = end.Add(time.Nanosecond)
+			end = end.Add(TS_RESOLUTION)
 		}
 	}
 	tasks, err := db.GetTasksFromDateRange(start, end, "")
