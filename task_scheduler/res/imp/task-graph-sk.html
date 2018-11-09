@@ -66,9 +66,9 @@
         "_draw(jobs.*, task.*)",
       ],
 
-      _computeTaskLink: function(taskId) {
-        var swarmingLink = "https://" + this.swarmingServer + "/task?id=" + taskId;
-        return "https://task-driver.skia.org/td/" + taskId + "?ifNotFound=" + encodeURIComponent(swarmingLink);
+      _computeTaskLink: function(task) {
+        var swarmingLink = "https://" + this.swarmingServer + "/task?id=" + task.swarmingTaskId;
+        return "https://task-driver.skia.org/td/" + task.id + "?ifNotFound=" + encodeURIComponent(swarmingLink);
       },
 
       _draw: function() {
@@ -341,7 +341,7 @@
               .attr("ry", "4")
               .attr("class", "task");
         taskLinks.attr("href", function(data) {
-          return this._computeTaskLink(data.task.swarmingTaskId);
+          return this._computeTaskLink(data.task);
         }.bind(this));
         taskLinks.exit().remove();
         var taskRects = svg.selectAll("rect.task").data(tasks, function(data) { return data.task.id; });
