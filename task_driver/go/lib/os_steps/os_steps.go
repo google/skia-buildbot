@@ -40,9 +40,10 @@ func RemoveAll(ctx context.Context, path string) (err error) {
 // Abs is a wrapper for filepath.Abs.
 func Abs(ctx context.Context, path string) (string, error) {
 	var rv string
-	return rv, td.Do(ctx, td.Props(fmt.Sprintf("Abs %s", path)).Infra(), func(context.Context) error {
+	err := td.Do(ctx, td.Props(fmt.Sprintf("Abs %s", path)).Infra(), func(context.Context) error {
 		var err error
 		rv, err = filepath.Abs(path)
 		return err
 	})
+	return rv, err
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/exec"
@@ -62,15 +63,20 @@ func StartStep(ctx context.Context, props *StepProperties) context.Context {
 
 // infraErrors collects all infrastructure errors.
 var infraErrors = map[error]bool{}
+var infraErrorsMtx sync.Mutex
 
 // IsInfraError returns true if the given error is an infrastructure error.
 func IsInfraError(err error) bool {
+	infraErrorsMtx.Lock()
+	defer infraErrorsMtx.Unlock()
 	return infraErrors[err]
 }
 
 // InfraError wraps the given error, indicating that it is an infrastructure-
 // related error. If the given error is already an InfraError, returns it as-is.
 func InfraError(err error) error {
+	infraErrorsMtx.Lock()
+	defer infraErrorsMtx.Unlock()
 	infraErrors[err] = true
 	return err
 }
