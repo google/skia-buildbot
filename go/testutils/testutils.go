@@ -127,6 +127,15 @@ func LargeTest(t TestingT) {
 	}
 }
 
+// ManualTest is a function which should be called at the beginning of tests
+// which shouldn't run on the bots due to excessive running time, external
+// requirements, etc.
+func ManualTest(t TestingT) {
+	if os.Getenv("SWARMING_HEADLESS") == "1" {
+		t.Skip("Not running manual tests.")
+	}
+}
+
 // TestDataDir returns the path to the caller's testdata directory, which
 // is assumed to be "<path to caller dir>/testdata".
 func TestDataDir() (string, error) {
