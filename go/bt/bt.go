@@ -55,3 +55,35 @@ func InitBigtable(projectID, instanceID string, tableConfigs ...TableConfig) err
 	}
 	return nil
 }
+
+// DeleteTables deletes the tables given in the TableConfig.
+func DeleteTables(projectID, instanceID string, tableConfigs ...TableConfig) (err error) {
+	ctx := context.TODO()
+
+	// Set up admin client, tables, and column families.
+	adminClient, err := bigtable.NewAdminClient(ctx, projectID, instanceID)
+	if err != nil {
+		return sklog.FmtErrorf("Unable to create admin client: %s", err)
+	}
+	defer func() { err = adminClient.Close() }()
+
+	tablesSlice, err := adminClient.Tables(ctx)
+	if err != nil {
+		return sklog.FmtErrorf("Error retrieving tables: %s", err)
+	}
+	tables := util.NewStringSet(tablesSlice)
+
+	// Delete all tables if they exist.
+	for _, tConfig := range tableConfigs {
+		for tableName := range tConfig {
+			if !tables[tableName] {
+				continue
+			}
+
+			if err := adminClient.DeleteTable(ctx, tableName); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

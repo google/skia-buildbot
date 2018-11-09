@@ -40,13 +40,15 @@ func TestPollingIngester(t *testing.T) {
 func TestPollingIngesterWithStore(t *testing.T) {
 	testutils.LargeTest(t)
 
+	// Delete and recreate the BT tables to make sure there are no residual data.
+	assert.NoError(t, bt.DeleteTables(projectID, instanceID, BigTableConfig))
 	assert.NoError(t, bt.InitBigtable(projectID, instanceID, BigTableConfig))
+
+	// Create the BT ingestion store.
 	store, err := NewBTIStore(projectID, instanceID, nameSpace)
 	assert.NoError(t, err)
 	assert.NotNil(t, store)
 
-	// Clear the store to make sure the ingester adds all the data.
-	assert.NoError(t, store.Clear())
 	testIngester(t, LOCAL_STATUS_DIR+"-polling", store)
 }
 
@@ -99,21 +101,16 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 	assert.NoError(t, err)
 	assert.NoError(t, ingester.Start(ctx))
 
-	time.Sleep(10 * time.Second)
-
-	// Wait until we have collected the desired result, but no more than 10 seconds.
-	startTime := time.Now()
-	for {
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		mutex.Lock()
 		colen := len(collected)
 		mutex.Unlock()
-		if colen >= (totalCommits/2) || (time.Now().Sub(startTime) > (time.Second * 10)) {
-			break
+		if colen >= (totalCommits / 2) {
+			return nil
 		}
-		time.Sleep(time.Millisecond * 100)
-	}
+		return testutils.TryAgainErr
+	}))
 
-	assert.Equal(t, totalCommits/2, len(collected))
 	for _, count := range collected {
 		assert.Equal(t, 1, count)
 	}
@@ -121,6 +118,18 @@ func testIngester(t *testing.T, statusDir string, ingestionStore IngestionStore)
 		_, ok := collected[result.Name()]
 		assert.True(t, ok)
 	}
+	// Make sure the go-routines end.
+	assert.NoError(t, ingester.stop())
+	// nGoroutines := runtime.NumGoroutine()
+	// fmt.Printf("Num: Go routines: %d\n", nGoroutines)
+	// if nGoroutines > 8 {
+	// 	buf := make([]byte, 1<<16)
+	// 	runtime.Stack(buf, true)
+	// 	fmt.Printf("%s", buf)
+	// 	panic("done")
+	// }
+
+	// time.Sleep(3 * time.Second)
 }
 
 // mock processor
