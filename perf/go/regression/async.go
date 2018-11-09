@@ -71,7 +71,7 @@ type ClusterRequest struct {
 	Sparse      bool               `json:"sparse"`
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
-	End         int                `json:"end"`
+	End         time.Time          `json:"end"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -108,8 +108,14 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 		state:      PROCESS_RUNNING,
 		message:    "Running",
 	}
-	// TODO(jcgregorio) This is awkward and should go away in a future CL.
-	ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, git, req, dfBuilder)
+	if req.Type == CLUSTERING_REQUEST_TYPE_SINGLE {
+		// TODO(jcgregorio) This is awkward and should go away in a future CL.
+		ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, git, req, dfBuilder)
+	} else {
+		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+		// ret.iter = ....
+		panic("Not implemented.")
+	}
 	return ret
 }
 
