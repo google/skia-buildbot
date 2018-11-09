@@ -47,6 +47,11 @@ func newLiveness(c Client, name string, makeUnique bool, tagsList ...map[string]
 	return l
 }
 
+// Close implements the Liveness interface.
+func (l *liveness) Close() {
+	l.cancelFn()
+}
+
 // getLocked returns the current value of the Liveness. Assumes the caller holds a lock.
 func (l *liveness) getLocked() int64 {
 	return int64(time.Since(l.lastSuccessfulUpdate).Seconds())
