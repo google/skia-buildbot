@@ -31,21 +31,12 @@ type BenchData struct {
 	PatchStorage string                  `json:"patch_storage"`
 }
 
-// TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
-
-// IsGerritIssue returns true if the issue comes from an instance of the Gerrit
-// code review system.
-func (b *BenchData) IsGerritIssue() bool {
-	return (b.Issue != "") && (b.PatchStorage == "gerrit")
-}
-
 // parseBenchDataFromReader parses the stream out of the io.Reader into
 // BenchData. The caller is responsible for calling Close on the reader.
 func ParseBenchDataFromReader(r io.Reader) (*BenchData, error) {
-	dec := json.NewDecoder(r)
-	benchData := &BenchData{}
-	if err := dec.Decode(benchData); err != nil {
+	var benchData BenchData
+	if err := json.NewDecoder(r).Decode(&benchData); err != nil {
 		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
 	}
-	return benchData, nil
+	return &benchData, nil
 }
