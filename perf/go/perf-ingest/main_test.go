@@ -27,7 +27,7 @@ func TestParamsAndValues(t *testing.T) {
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	assert.NoError(t, err)
 
-	params, values, paramSet := getParamSAndValues(benchData)
+	params, values, paramSet := getParamsAndValues(benchData)
 	assert.Len(t, values, 13)
 	assert.Len(t, params, 13)
 	expected := paramtools.ParamSet{
