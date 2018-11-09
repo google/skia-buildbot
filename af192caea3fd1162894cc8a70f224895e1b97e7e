@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9b7b6a1a_51d1e89c",
+        "filename": "task_driver/go/lib/os_steps/os_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T19:00:59Z",
+      "side": 1,
+      "message": "Changed to err :\u003d ... and return rv, err.",
+      "parentUuid": "bc09b464_08649485",
+      "range": {
+        "startLine": 43,
+        "startChar": 8,
+        "endLine": 43,
+        "endChar": 17
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d98697a9_e0f6e97b",
         "filename": "task_driver/go/td/step.go",
         "patchSetId": 2
@@ -64,6 +88,54 @@
         "startChar": 4,
         "endLine": 64,
         "endChar": 15
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f3fc350_0b87a439",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T19:00:59Z",
+      "side": 1,
+      "message": "I don\u0027t know of another way to do it, unless there\u0027s a clever way to propagate using contexts.  Added a mutex to prevent concurrent writes.",
+      "parentUuid": "3618850b_096e8c98",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 15
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e6a8e21_8981eeef",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T19:00:59Z",
+      "side": 1,
+      "message": "Unfortunately, if we used the error message, we could treat different error instances as if they\u0027re the same.  I\u0027d be more concerned about two errors which happen to have the same message than about illegal map keys.\n\nIt\u0027s possible that I just haven\u0027t thought of the right way to do this yet, and I\u0027m definitely open to alternative suggestions.  Determining whether a step failed because of one of its children (and therefore should inherit its infra/non-infra failure status) turns out to be kind of tricky.",
+      "parentUuid": "d98697a9_e0f6e97b",
+      "range": {
+        "startLine": 64,
+        "startChar": 22,
+        "endLine": 64,
+        "endChar": 27
       },
       "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
