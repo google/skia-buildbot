@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d6dcd28b_5656f3bb",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-09T21:30:30Z",
+      "side": 1,
+      "message": "This is probably why it is not working. It should be githubMergeMethodURL.",
+      "range": {
+        "startLine": 163,
+        "startChar": 38,
+        "endLine": 163,
+        "endChar": 55
+      },
+      "revId": "aa31beca447fd68d1be0f28b1abd17b00a3cd9d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
