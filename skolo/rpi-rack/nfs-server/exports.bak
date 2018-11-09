@@ -1,0 +1,2 @@
+/exported      *(ro,sync,fsid=0,no_subtree_check,insecure,no_root_squash)
+/exported/root *(ro,sync,no_subtree_check,insecure,no_root_squash,nohide)
