@@ -140,6 +140,52 @@
     },
     {
       "key": {
+        "uuid": "e9cbeeb8_04d17779",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T05:45:52Z",
+      "side": 1,
+      "message": "At https://firebase.google.com/docs/firestore/manage-data/transactions, \"Each transaction can write to a maximum of 500 documents.\" We might want to log a warning here if e.g. len(jobs) \u003e 250.",
+      "range": {
+        "startLine": 161,
+        "startChar": 22,
+        "endLine": 161,
+        "endChar": 29
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84647830_a79b6da7",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T05:45:52Z",
+      "side": 1,
+      "message": "This is pretty simple: job.Id \u003d d.jobs().NewDoc().ID",
+      "range": {
+        "startLine": 164,
+        "startChar": 3,
+        "endLine": 164,
+        "endChar": 48
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bd25cc04_1dad255c",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 1
