@@ -45,7 +45,7 @@ var (
 
 const (
 	// MAX_PARALLEL_RECEIVES is the number of Go routines we want to run. Determined experimentally.
-	MAX_PARALLEL_RECEIVES = 8
+	MAX_PARALLEL_RECEIVES = 1
 )
 
 var (
@@ -55,10 +55,10 @@ var (
 	NonRecoverableError = errors.New("Non-recoverable ingestion error.")
 )
 
-// getParamSAndValues returns two parallel slices, each slice contains the
+// getParamsAndValues returns two parallel slices, each slice contains the
 // params and then the float for a single value of a trace. It also returns the
 // consolidated ParamSet built from all the Params.
-func getParamSAndValues(b *ingestcommon.BenchData) ([]paramtools.Params, []float32, paramtools.ParamSet) {
+func getParamsAndValues(b *ingestcommon.BenchData) ([]paramtools.Params, []float32, paramtools.ParamSet) {
 	params := []paramtools.Params{}
 	values := []float32{}
 	ps := paramtools.ParamSet{}
@@ -115,7 +115,7 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 		return NonRecoverableError
 	}
 
-	params, values, paramset := getParamSAndValues(benchData)
+	params, values, paramset := getParamsAndValues(benchData)
 	index, err := vcs.IndexOf(ctx, benchData.Hash)
 	if err != nil {
 		if err := vcs.Update(context.Background(), true, false); err != nil {
