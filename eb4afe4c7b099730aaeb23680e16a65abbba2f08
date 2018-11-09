@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7b63873c_a9e5bd8a",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 438,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T15:48:44Z",
+      "side": 1,
+      "message": "Nit: why not just remove this?  AFAIK we have no intention of extending the window.",
+      "range": {
+        "startLine": 430,
+        "startChar": 0,
+        "endLine": 438,
+        "endChar": 4
+      },
+      "revId": "eb4afe4c7b099730aaeb23680e16a65abbba2f08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
