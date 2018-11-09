@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "a23bbf72_8740b7de",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T16:27:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "40f1e228_95cfa526",
+      "range": {
+        "startLine": 35,
+        "startChar": 41,
+        "endLine": 35,
+        "endChar": 50
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "42f0fe69_d5a5732b",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
@@ -378,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "d4cebb0d_00d4f7fa",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T16:27:10Z",
+      "side": 1,
+      "message": "It\u0027s possible that creating a Client assigns a UUID to that client. That UUID could be used to assign IDs locally.",
+      "parentUuid": "a91ebda7_8b68b24b",
+      "range": {
+        "startLine": 164,
+        "startChar": 3,
+        "endLine": 164,
+        "endChar": 48
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bd25cc04_1dad255c",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 1
@@ -422,6 +470,30 @@
       "revId": "24aca1954d656b394ce72101d668a119526296dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "483fdfaf_e432f823",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T16:27:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ec49f59a_ea6ec790",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 14
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

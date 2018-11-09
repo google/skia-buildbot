@@ -22,6 +22,76 @@
       "revId": "836bf975fc902293fa04033eaad25288265608fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56882b86_b5256e40",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T16:27:10Z",
+      "side": 1,
+      "message": "Seems OK as long as you document it.\n\nThe alternative would be to use reflect.",
+      "parentUuid": "cb97d667_436e666c",
+      "range": {
+        "startLine": 85,
+        "startChar": 54,
+        "endLine": 85,
+        "endChar": 80
+      },
+      "revId": "836bf975fc902293fa04033eaad25288265608fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a457f619_dcbb5b51",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T16:27:10Z",
+      "side": 1,
+      "message": "Sorry, I got confused. Your previous code seems right to me, and if the test fails, then the test is wrong, at least according to the CommentDB docs.",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 135,
+        "endChar": 3
+      },
+      "revId": "836bf975fc902293fa04033eaad25288265608fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4bee655_2fab51cc",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T16:27:10Z",
+      "side": 1,
+      "message": "I don\u0027t see why this is necessary. Same for tasks.",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 59
+      },
+      "revId": "836bf975fc902293fa04033eaad25288265608fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
