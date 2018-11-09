@@ -204,14 +204,9 @@ func WriteFile(t TestingT, filename, contents string) {
 	assert.NoErrorf(t, ioutil.WriteFile(filename, []byte(contents), os.ModePerm), "Unable to write to file %s", filename)
 }
 
-// CloseInTest takes an ioutil.Closer and Closes it, reporting any error.
-func CloseInTest(t TestingT, c io.Closer) {
-	if err := c.Close(); err != nil {
-		t.Errorf("Failed to Close(): %v", err)
-	}
-}
-
-// AssertCloses takes an ioutil.Closer and asserts that it closes.
+// AssertCloses takes an ioutil.Closer and asserts that it closes. E.g.:
+// frobber := NewFrobber()
+// defer testutils.AssertCloses(t, frobber)
 func AssertCloses(t TestingT, c io.Closer) {
 	assert.NoError(t, c.Close())
 }

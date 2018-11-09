@@ -19,7 +19,7 @@ func TestBoltDBStoreAndRetrieve(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not open test db: %s", err)
 	}
-	defer testutils.CloseInTest(t, db)
+	defer testutils.AssertCloses(t, db)
 	if err := db.StorePool(expectedFuzzPool, "deadbeef"); err != nil {
 		t.Errorf("Could not store pool to test db:%s ", err)
 	}
@@ -48,7 +48,7 @@ func TestBoltDBDoesNotExist(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not open test db: %s", err)
 	}
-	defer testutils.CloseInTest(t, db)
+	defer testutils.AssertCloses(t, db)
 	if _, err := db.LoadFuzzNames("deadbeef"); err == nil {
 		t.Errorf("Should have seen error, but did not")
 	}
