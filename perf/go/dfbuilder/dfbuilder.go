@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	NEW_N_FROM_KEY_STEP = 24 * time.Hour
+	NEW_N_FROM_KEY_STEP = 4 * 24 * time.Hour
 )
 
 // builder implements DataFrameBuilder using btts.
