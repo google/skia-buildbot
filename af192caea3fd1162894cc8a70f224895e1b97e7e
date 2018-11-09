@@ -140,6 +140,54 @@
       "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b716d55_4a3d50be",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T19:18:06Z",
+      "side": 1,
+      "message": "I was mostly wondering about multiple runs within the same process, e.g. when running tests. I suppose it\u0027s unlikely that they would conflict.",
+      "parentUuid": "4f3fc350_0b87a439",
+      "range": {
+        "startLine": 64,
+        "startChar": 4,
+        "endLine": 64,
+        "endChar": 15
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7b22c667_b6ed9a6a",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T19:18:06Z",
+      "side": 1,
+      "message": "Ack\n\nWhen a parent fails, could we just iterate over the children looking for the same (or maybe similar) error?",
+      "parentUuid": "3e6a8e21_8981eeef",
+      "range": {
+        "startLine": 64,
+        "startChar": 22,
+        "endLine": 64,
+        "endChar": 27
+      },
+      "revId": "af192caea3fd1162894cc8a70f224895e1b97e7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
