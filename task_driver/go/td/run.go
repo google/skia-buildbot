@@ -289,19 +289,13 @@ func (r *run) AddStepData(id string, typ DataType, d interface{}) {
 // error.
 func (r *run) Failed(id string, err error) {
 	msg := &Message{
-		Type:   MSG_TYPE_STEP_FAILED,
 		StepId: id,
 		Error:  err.Error(),
 	}
-	r.send(msg)
-}
-
-// Send a Message indicating that the current step has failed exceptionally.
-func (r *run) Exception(id string, err error) {
-	msg := &Message{
-		Type:   MSG_TYPE_STEP_EXCEPTION,
-		StepId: id,
-		Error:  err.Error(),
+	if IsInfraError(err) {
+		msg.Type = MSG_TYPE_STEP_EXCEPTION
+	} else {
+		msg.Type = MSG_TYPE_STEP_FAILED
 	}
 	r.send(msg)
 }

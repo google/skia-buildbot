@@ -22,7 +22,7 @@ func TestOsSteps(t *testing.T) {
 	expect := []td.StepResult{}
 
 	// Stat the nonexistent dir.
-	expect = append(expect, td.STEP_RESULT_FAILURE)
+	expect = append(expect, td.STEP_RESULT_EXCEPTION)
 	dir1 := filepath.Join(tr.Dir(), "test_dir")
 	fi, err := Stat(s, dir1)
 	assert.True(t, os.IsNotExist(err))
@@ -54,7 +54,7 @@ func TestOsSteps(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Stat the dir.
-	expect = append(expect, td.STEP_RESULT_FAILURE)
+	expect = append(expect, td.STEP_RESULT_EXCEPTION)
 	fi, err = Stat(s, dir1)
 	assert.True(t, os.IsNotExist(err))
 

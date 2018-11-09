@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
@@ -41,7 +40,7 @@ func goVars(ctx context.Context, workdir string) (string, []string) {
 	goPath := path.Join(workdir, "go_deps")
 	goSrc := path.Join(goPath, "src")
 	if err := os_steps.MkdirAll(ctx, goSrc); err != nil {
-		td.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 	goRoot := path.Join(workdir, "go", "go")
 	goBin := path.Join(goRoot, "bin")
@@ -103,21 +102,18 @@ func main() {
 	ctx := td.StartRun(projectId, taskId, taskName, output, local)
 	defer td.EndRun(ctx)
 	if *repo == "" {
-		td.Fatal("--repo is required.")
+		td.Fatalf(ctx, "--repo is required.")
 	}
 	if *revision == "" {
-		td.Fatal("--revision is required.")
+		td.Fatalf(ctx, "--revision is required.")
 	}
 
 	// Setup Go.
-	if err := td.Do(ctx, td.Props("Absolute workdir"), func(ctx context.Context) error {
-		var err error
-		*workdir, err = filepath.Abs(*workdir)
-		return err
-	}); err != nil {
-		td.Fatal(err)
+	wd, err := os_steps.Abs(ctx, *workdir)
+	if err != nil {
+		td.Fatal(ctx, err)
 	}
-	infraDir, goEnv := goVars(ctx, *workdir)
+	infraDir, goEnv := goVars(ctx, wd)
 
 	// Check out code.
 	*repo = strings.TrimSuffix(*repo, ".git")
@@ -131,21 +127,21 @@ func main() {
 		},
 	}
 	if _, err := checkout.EnsureGitCheckout(ctx, infraDir, repoState); err != nil {
-		td.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 
 	// For Large/Race, start the Cloud Datastore emulator.
 	if strings.Contains(*taskName, "Large") || strings.Contains(*taskName, "Race") {
 		d := path.Join(infraDir, "go", "ds", "emulator")
 		if _, err := exec.RunCwd(ctx, d, "./run_emulator", "start"); err != nil {
-			td.Fatal(err)
+			td.Fatal(ctx, err)
 		}
 		goEnv = append(goEnv, "DATASTORE_EMULATOR_HOST=localhost:8891")
 		goEnv = append(goEnv, "BIGTABLE_EMULATOR_HOST=localhost:8892")
 		goEnv = append(goEnv, "PUBSUB_EMULATOR_HOST=localhost:8893")
 		defer func() {
 			if _, err := exec.RunCwd(ctx, d, "./run_emulator", "stop"); err != nil {
-				td.Fatal(err)
+				td.Fatal(ctx, err)
 			}
 		}()
 	}
@@ -194,6 +190,6 @@ func main() {
 		}
 		return nil
 	}); err != nil {
-		td.Fatal(err)
+		td.Fatal(ctx, err)
 	}
 }

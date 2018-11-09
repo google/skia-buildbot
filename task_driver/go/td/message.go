@@ -31,8 +31,8 @@ type DataType string
 // Message is a struct used to send step metadata to Receivers.
 type Message struct {
 	// StepId indicates the ID for the step. This is required for every
-	// Message.
-	StepId string `json:"stepId"`
+	// Message except MSG_TYPE_RUN_STARTED.
+	StepId string `json:"stepId,omitempty"`
 
 	// TaskId indicates the ID of this task. This is required for every
 	// Message.

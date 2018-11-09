@@ -60,6 +60,21 @@ func StartStep(ctx context.Context, props *StepProperties) context.Context {
 	return newStep(ctx, uuid.New(), parent, props)
 }
 
+// infraErrors collects all infrastructure errors.
+var infraErrors = map[error]bool{}
+
+// IsInfraError returns true if the given error is an infrastructure error.
+func IsInfraError(err error) bool {
+	return infraErrors[err]
+}
+
+// InfraError wraps the given error, indicating that it is an infrastructure-
+// related error. If the given error is already an InfraError, returns it as-is.
+func InfraError(err error) error {
+	infraErrors[err] = true
+	return err
+}
+
 // Mark the step as failed, with the given error. Returns the passed-in error
 // for convenience, so that the caller can do things like:
 //
@@ -69,6 +84,9 @@ func StartStep(ctx context.Context, props *StepProperties) context.Context {
 //
 func FailStep(ctx context.Context, err error) error {
 	props := getStep(ctx)
+	if props.IsInfra {
+		err = InfraError(err)
+	}
 	getRun(ctx).Failed(props.Id, err)
 	return err
 }
@@ -90,7 +108,13 @@ func finishStep(ctx context.Context, recovered interface{}) {
 	props := getStep(ctx)
 	e := getRun(ctx)
 	if recovered != nil {
-		e.Exception(props.Id, fmt.Errorf("Caught panic: %s", recovered))
+		// If the panic is an error, use the original error, otherwise
+		// create an error.
+		err, ok := recovered.(error)
+		if !ok {
+			err = InfraError(fmt.Errorf("Caught panic: %v", recovered))
+		}
+		e.Failed(props.Id, err)
 		defer panic(recovered)
 	}
 	e.Finish(props.Id)
@@ -116,17 +140,19 @@ func Do(ctx context.Context, props *StepProperties, fn func(context.Context) err
 // Fatal is a substitute for sklog.Fatal which logs an error and panics.
 // sklog.Fatal does not panic but calls os.Exit, which prevents the Task Driver
 // from properly reporting errors.
-func Fatal(msg ...interface{}) {
-	sklog.Error(msg...)
-	panic(fmt.Sprint(msg...))
+func Fatal(ctx context.Context, err error) {
+	sklog.Error(err)
+	if getStep(ctx).IsInfra {
+		err = InfraError(err)
+	}
+	panic(err)
 }
 
 // Fatalf is a substitute for sklog.Fatalf which logs an error and panics.
 // sklog.Fatalf does not panic but calls os.Exit, which prevents the Task Driver
 // from properly reporting errors.
-func Fatalf(format string, v ...interface{}) {
-	sklog.Errorf(format, v...)
-	panic(fmt.Sprintf(format, v...))
+func Fatalf(ctx context.Context, format string, a ...interface{}) {
+	Fatal(ctx, fmt.Errorf(format, a...))
 }
 
 // LogData is extra Step data generated for log streams.
