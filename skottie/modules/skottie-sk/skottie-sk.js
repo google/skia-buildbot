@@ -11,6 +11,7 @@ import '../skottie-config-sk'
 import 'elements-sk/error-toast-sk'
 import 'elements-sk/spinner-sk'
 import { $$ } from 'common-sk/modules/dom'
+import { SKIA_VERSION } from '../../build/version.js'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -18,6 +19,8 @@ import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
+
+const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
 const DIALOG_MODE = 1;
 const LOADING_MODE = 2;
@@ -27,36 +30,12 @@ const displayDialog = (ele) => html`
 <skottie-config-sk state=${ele._state}></skottie-config-sk>
 `;
 
-const video = (ele) => {
-  // ele._hash is filled in when the video has been loaded from the server
-  // and blank otherwise.
-  if (ele._hash) {
-    return html`
-<video id=video muted loop @loadeddata=${ele._videoLoaded} title=lottie
-    src='/_/i/${ele._hash}' width=${ele._state.width} height=${ele._state.height}>
-  Your browser does not support the video tag.
-</video>
+const wasmCanvas = (ele) => html`
+<canvas id=skottie width=${ele._state.width} height=${ele._state.height}>
+  Your browser does not support the canvas tag.
+</canvas>
 
 <figcaption>skottie</figcaption>`;
-  } else {
-    // Have a blank video to make it look like something should be there
-    // but don't set the source to avoid a 404 request to an empty video
-    // (e.g. when hash is empty string).
-    return html`
-<video title=loading muted loop
-       width=${ele._state.width} height=${ele._state.height}>
-</video>
-
-<figcaption>
-  <div class=video_loading title="We are processing the skottie video on the backend.">
-    <div>Processing</div>
-    <spinner-sk active></spinner-sk>
-  </div>
-  <span>skottie</span>
-</figcaption>
-`;
-  }
-}
 
 const livePreview = (ele) => {
   if (ele._hasEdits) {
@@ -84,7 +63,7 @@ const displayLoaded= (ele) => html`
 </div>
 <section class=figures>
   <figure>
-    ${video(ele)}
+    ${wasmCanvas(ele)}
   </figure>
   <figure>
     <div id=container title=lottie-web
@@ -119,7 +98,7 @@ const pick = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <h2>Skottie</h2><span><a href='https://skia.googlesource.com/skia/+/${ele.version}'>${ele.version.slice(0, 7)}</a></span>
+  <h2>Skottie</h2><span><a href='https://skia.googlesource.com/skia/+/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
 </header>
 <main>
   ${pick(ele)}
@@ -144,12 +123,22 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._hash = '';
     this._lottie = null;
     this._live = null;
-    this._video = null;
     this._playing = true;
     this._downloadUrl = null; // The URL to download the lottie JSON from.
     this._editor = null;
     this._editorLoaded = false;
     this._hasEdits = false;
+
+    this.CanvasKit = null;
+    this._skAnimation = null;
+    this._skCanvas = null;
+    this._skSurface = null;
+    this._wasmDuration = null;
+    // The wasm animation computes how long it has been since it started and
+    // use arithmetic to figure out where to seek (i.e. which frame to draw).
+    this._firstFrameTime = null;
+     // used for remembering where we were in the animation when paused.
+    this._wasmTimePassed = 0;
   }
 
   connectedCallback() {
@@ -158,20 +147,45 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this.addEventListener('cancelled', this)
     window.addEventListener('popstate', this)
     this._render();
+    CanvasKitInit({
+      locateFile: (file) => '/static/'+file,
+    }).then((CanvasKit) => {
+      this.CanvasKit = CanvasKit;
+      this._rewind();
+    });
+
+    // Start a continous animation loop.
+    const drawFrame = () => {
+      window.requestAnimationFrame(drawFrame);
+      if (!this.CanvasKit || !this._state.lottie) {
+        return;
+      }
+      if (!this._skCanvas) {
+        this._skSurface = this.CanvasKit.MakeCanvasSurface('skottie');
+        if (!this._skSurface) {
+          errorMessage('Could not make SkSurface');
+          return;
+        }
+        this._skCanvas = this._skSurface.getCanvas();
+      }
+      if (!this._skAnimation) {
+        this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
+        this._wasmDuration = this._skAnimation.duration() * 1000;
+      }
+      if (this._playing) {
+        let now = Date.now();
+        let seek = ((now - this._firstFrameTime) / this._wasmDuration ) % 1.0;
+        this._renderSkottieAt(seek);
+      }
+    }
+
+    window.requestAnimationFrame(drawFrame);
   }
 
   disconnectedCallback() {
     this.removeEventListener('skottie-selected', this)
     this.removeEventListener('cancelled', this)
   }
-
-  static get observedAttributes() {
-    return ['version'];
-  }
-
-  /** @prop version {string} The version of Skia. */
-  get version() { return this.getAttribute('version'); }
-  set version(val) { this.setAttribute('version', val); }
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
@@ -188,18 +202,22 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     }
     this._ui = LOADING_MODE;
     this._render();
-    fetch(`/_/j/${this._hash}`, {
-      credentials: 'include',
-    }).then(jsonOrThrow).then(json => {
-      this._state = json;
-      this._ui = LOADED_MODE;
-      this._render();
-    }).catch((msg) => {
-      errorMessage(msg);
-      window.history.pushState(null, '', '/');
-      this._ui = DIALOG_MODE;
-      this._render();
+    // Run this on the next micro-task to allow mocks to be set up if needed.
+    setTimeout(() => {
+      fetch(`/_/j/${this._hash}`, {
+        credentials: 'include',
+      }).then(jsonOrThrow).then(json => {
+        this._state = json;
+        this._ui = LOADED_MODE;
+        this._render();
+      }).catch((msg) => {
+        errorMessage(msg);
+        window.history.pushState(null, '', '/');
+        this._ui = DIALOG_MODE;
+        this._render();
+      });
     });
+
   }
 
   _applyEdits() {
@@ -221,6 +239,12 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._hasEdits = false;
     this._editorLoaded = false;
     this._editor = null;
+    // Clean up the old animation and other wasm objects
+    this._skSurface.delete();
+    this._skSurface = null;
+    this._skCanvas = null;
+    this._skAnimation.delete();
+    this._skAnimation = null;
     this._render();
     fetch('/_/upload', {
       credentials: 'include',
@@ -247,17 +271,17 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._render();
   }
 
-  _playpause(e) {
+  _playpause() {
     if (this._playing) {
       this._lottie.pause();
-      this._video.pause();
+      this._wasmTimePassed = Date.now() - this._firstFrameTime;
       this._live && this._live.pause();
-      e.target.textContent = 'Play';
+      $$("#playpause").textContent = 'Play';
     } else {
       this._lottie.play();
-      this._video.play();
+      this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
       this._live && this._live.play();
-      e.target.textContent = 'Pause';
+      $$("#playpause").textContent = 'Pause';
     }
     this._playing = !this._playing;
   }
@@ -266,19 +290,24 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     if (!this._playing) {
       this._live && this._live.goToAndStop(0);
       this._lottie.goToAndStop(0);
-      this._video.currentTime = 0;
+      this._firstFrameTime = Date.now();
+      if (this._skAnimation && this._skCanvas) {
+        this._renderSkottieAt(0);
+      }
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie.goToAndPlay(0);
-      this._video.currentTime = 0;
-      this._video.play();
+      this._firstFrameTime = Date.now();
     }
   }
 
-  _videoLoaded(e) {
-    e.target.play();
-    this._playing = true;
-    this._rewind();
+  _renderSkottieAt(seek) {
+    if (this._skAnimation && this._skCanvas) {
+        this._skAnimation.seek(seek);
+        let bounds = {fLeft: 0, fTop: 0, fRight: this._state.width, fBottom: this._state.height};
+        this._skAnimation.render(this._skCanvas, bounds);
+        this._skCanvas.flush();
+    }
   }
 
   _render() {
@@ -302,7 +331,6 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
             preserveAspectRatio:'xMidYMid meet'
           },
         });
-        this._video = $$('#video', this);
         this._live = null;
       } else {
         // we have edits, update the live preview version.

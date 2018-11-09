@@ -5,6 +5,7 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
+    "@webcomponents/custom-elements": "^1.2.0",
     "common-sk": "~3.0.0",
     "elements-sk": "~2.4.2",
     "infra-sk": "~0.4.0",
@@ -14,9 +15,10 @@
   },
   "devDependencies": {
     "copy-webpack-plugin": "^4.5.2",
+    "fetch-mock": "~7.0.5",
     "pulito": "^4.1.0",
-    "webpack": "^4.15.1",
-    "webpack-cli": "^3.0.8"
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -12,8 +12,13 @@ module.exports = (env, argv) => {
     },{
       from: './node_modules/jsoneditor/dist/img/jsoneditor-icons.svg',
       to: 'img/jsoneditor-icons.svg'
-    }])
+    },{ from: 'build/canvaskit/canvaskit.wasm' },
+      { from: 'node_modules/@webcomponents/custom-elements/custom-elements.min.js' }
+    ])
   );
+  config.node = {
+    fs: 'empty'
+  };
   config.resolve = config.resolve || {};
   config.resolve.alias = config.resolve.alias || {};
   config.resolve.alias['infra-sk'] = resolve(__dirname, '../infra-sk/');
