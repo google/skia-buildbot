@@ -37,6 +37,10 @@ type Liveness interface {
 
 	// Reset should be called when some work has been successfully completed.
 	Reset()
+
+	// Close stops the internal goroutine. Usually used for testing since most Liveness instances
+	// live for the duration of the process.
+	Close()
 }
 
 // Int64Metric is a metric which reports an int64 value.

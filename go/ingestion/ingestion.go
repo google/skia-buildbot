@@ -100,6 +100,9 @@ type IngestionStore interface {
 
 	// ContainsResultFileHash returns true if the provided md5 hash is in the DB.
 	ContainsResultFileHash(md5 string) (bool, error)
+
+	// Close closes the ingestion store.
+	Close() error
 }
 
 // Ingester is the main type that drives ingestion for a single type.
@@ -191,9 +194,23 @@ func (i *Ingester) Start(ctx context.Context) error {
 	return nil
 }
 
-// stop stops the ingestion process. Currently only used for testing.
-func (i *Ingester) stop() {
+// Close stops the ingestion process. Currently only used for testing. It's mainly intended
+// to terminate as many goroutines as possible.
+func (i *Ingester) Close() error {
+	// Stop the internal Go routines.
 	close(i.doneCh)
+
+	// Close the liveness.
+	i.eventProcessMetrics.liveness.Close()
+
+	// Give straggling operations time to complete before we close the ingestion store.
+	time.Sleep(1 * time.Second)
+
+	// Note: This does not seem to shut down gRPC related goroutines.
+	if i.ingestionStore != nil {
+		return i.ingestionStore.Close()
+	}
+	return nil
 }
 
 func (i *Ingester) getInputChannel(ctx context.Context) (<-chan ResultFileLocation, error) {
