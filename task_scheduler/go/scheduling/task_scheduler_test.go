@@ -3632,7 +3632,7 @@ func TestIsolateTaskFailed(t *testing.T) {
 	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
 }
 
-func TestUnscheduledJobsMetric(t *testing.T) {
+func TestOverdueJobSpecMetrics(t *testing.T) {
 	ctx, gb, d, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
 
@@ -3644,9 +3644,9 @@ func TestUnscheduledJobsMetric(t *testing.T) {
 
 	// At 'now', c1 is 60 seconds old, c2 is 55 seconds old, and c3 (below) is 50 seconds old.
 	now := c1time.Add(time.Minute)
-	c1age := "6e+10"
-	c2age := "5.5e+10"
-	c3age := "5e+10"
+	c1age := "60"
+	c2age := "55"
+	c3age := "50"
 
 	check := func(buildAge, testAge, perfAge string) {
 		tags := map[string]string{
@@ -3654,23 +3654,23 @@ func TestUnscheduledJobsMetric(t *testing.T) {
 			"job_name":    specs_testutils.BuildTask,
 			"job_trigger": "",
 		}
-		assert.Equal(t, buildAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_UNSCHEDULED_JOB_SPECS, tags))
+		assert.Equal(t, buildAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 
 		tags["job_name"] = specs_testutils.TestTask
-		assert.Equal(t, testAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_UNSCHEDULED_JOB_SPECS, tags))
+		assert.Equal(t, testAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 
 		tags["job_name"] = specs_testutils.PerfTask
-		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_UNSCHEDULED_JOB_SPECS, tags))
+		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 	}
 
 	// Expect no errors before MainLoop.
-	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
 	// Build and Test were added in c1; Perf was added in c2.
 	check(c1age, c1age, c2age)
 
 	// Run MainLoop. No free bots, so no tasks to complete.
 	assert.NoError(t, s.MainLoop(ctx))
-	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
 	check(c1age, c1age, c2age)
 
 	// One bot free, schedule a task.
@@ -3687,7 +3687,7 @@ func TestUnscheduledJobsMetric(t *testing.T) {
 	assert.NotNil(t, t1)
 	assert.Equal(t, c2, t1.Revision)
 	// Task has not completed, so same as above.
-	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
 	check(c1age, c1age, c2age)
 
 	// The task is complete.
@@ -3703,7 +3703,7 @@ func TestUnscheduledJobsMetric(t *testing.T) {
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
 	assert.NoError(t, s.MainLoop(ctx))
 	// Expect Build to be up-to-date.
-	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
 	check("0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.
@@ -3714,6 +3714,6 @@ func TestUnscheduledJobsMetric(t *testing.T) {
 
 	// Run MainLoop to update to c3. Perf job should be reset to zero. Build job age is now at c3.
 	assert.NoError(t, s.MainLoop(ctx))
-	assert.NoError(t, s.updateUnscheduledJobSpecMetrics(ctx, now))
+	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
 	check(c3age, c1age, "0")
 }

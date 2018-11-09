@@ -52,9 +52,9 @@ const (
 	// Measurement name for task candidate counts by dimension set.
 	MEASUREMENT_TASK_CANDIDATE_COUNT = "task_candidate_count"
 
-	// Measurement name for unscheduled job specs. Records the age of the oldest commit for which the
+	// Measurement name for overdue job specs. Records the age of the oldest commit for which the
 	// job has not completed (nor for any later commit), for each job spec and for each repo.
-	MEASUREMENT_UNSCHEDULED_JOB_SPECS = "unscheduled_job_specs"
+	MEASUREMENT_OVERDUE_JOB_SPECS = "overdue_job_specs_s"
 
 	NUM_TOP_CANDIDATES = 50
 )
@@ -79,9 +79,9 @@ var (
 	ERR_BLAMELIST_DONE = errors.New("ERR_BLAMELIST_DONE")
 )
 
-// unscheduledJobMetricKey is a map key for TaskScheduler.unscheduledMetrics. The tags added to the
+// overdueJobSpecMetricKey is a map key for TaskScheduler.overdueMetrics. The tags added to the
 // metric are reflected here so that we delete/recreate the metric when the tags change.
-type unscheduledJobMetricKey struct {
+type overdueJobSpecMetricKey struct {
 	// Repo URL.
 	Repo string
 	// Job name.
@@ -118,9 +118,9 @@ type TaskScheduler struct {
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
 	// Metric for age of commit with no completed job, in ns.
-	unscheduledMetrics map[unscheduledJobMetricKey]metrics2.Int64Metric
-	window             *window.Window
-	workdir            string
+	overdueMetrics map[overdueJobSpecMetricKey]metrics2.Int64Metric
+	window         *window.Window
+	workdir        string
 }
 
 func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
@@ -160,29 +160,29 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 	}
 
 	s := &TaskScheduler{
-		bl:                 bl,
-		busyBots:           newBusyBots(),
-		candidateMetrics:   map[string]metrics2.Int64Metric{},
-		db:                 d,
-		depotToolsDir:      depotTools,
-		isolate:            isolateClient,
-		jCache:             jCache,
-		newTasks:           map[db.RepoState]util.StringSet{},
-		newTasksMtx:        sync.RWMutex{},
-		periodicTriggers:   pt,
-		pools:              pools,
-		pubsubTopic:        pubsubTopic,
-		queue:              []*taskCandidate{},
-		queueMtx:           sync.RWMutex{},
-		repos:              repos,
-		swarming:           swarmingClient,
-		taskCfgCache:       taskCfgCache,
-		tCache:             tCache,
-		timeDecayAmt24Hr:   timeDecayAmt24Hr,
-		tryjobs:            tryjobs,
-		unscheduledMetrics: map[unscheduledJobMetricKey]metrics2.Int64Metric{},
-		window:             w,
-		workdir:            workdir,
+		bl:               bl,
+		busyBots:         newBusyBots(),
+		candidateMetrics: map[string]metrics2.Int64Metric{},
+		db:               d,
+		depotToolsDir:    depotTools,
+		isolate:          isolateClient,
+		jCache:           jCache,
+		newTasks:         map[db.RepoState]util.StringSet{},
+		newTasksMtx:      sync.RWMutex{},
+		periodicTriggers: pt,
+		pools:            pools,
+		pubsubTopic:      pubsubTopic,
+		queue:            []*taskCandidate{},
+		queueMtx:         sync.RWMutex{},
+		repos:            repos,
+		swarming:         swarmingClient,
+		taskCfgCache:     taskCfgCache,
+		tCache:           tCache,
+		timeDecayAmt24Hr: timeDecayAmt24Hr,
+		tryjobs:          tryjobs,
+		overdueMetrics:   map[overdueJobSpecMetricKey]metrics2.Int64Metric{},
+		window:           w,
+		workdir:          workdir,
 	}
 	s.registerPeriodicTriggers()
 	return s, nil
@@ -193,7 +193,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 	s.tryjobs.Start(ctx)
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
-	lvUnscheduledMetrics := metrics2.NewLiveness("last_successful_unscheduled_jobs_metrics_update")
+	lvOverdueMetrics := metrics2.NewLiveness("last_successful_overdue_metrics_update")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(ctx); err != nil {
@@ -202,10 +202,10 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			lvScheduling.Reset()
 			// Do this after MainLoop so that the repos and Jobs have been updated.
 			go func() {
-				if err := s.updateUnscheduledJobSpecMetrics(ctx, time.Now()); err != nil {
-					sklog.Errorf("Failed to update metrics for unscheduled jobs: %s", err)
+				if err := s.updateOverdueJobSpecMetrics(ctx, time.Now()); err != nil {
+					sklog.Errorf("Failed to update metrics for overdue job specs: %s", err)
 				} else {
-					lvUnscheduledMetrics.Reset()
+					lvOverdueMetrics.Reset()
 				}
 			}()
 
@@ -1997,8 +1997,8 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	return true
 }
 
-// updateUnscheduledJobSpecMetrics updates metrics for MEASUREMENT_UNSCHEDULED_JOB_SPECS.
-func (s *TaskScheduler) updateUnscheduledJobSpecMetrics(ctx context.Context, now time.Time) error {
+// updateOverdueJobSpecMetrics updates metrics for MEASUREMENT_OVERDUE_JOB_SPECS.
+func (s *TaskScheduler) updateOverdueJobSpecMetrics(ctx context.Context, now time.Time) error {
 	defer metrics2.FuncTimer().Stop()
 
 	// Process each repo individually.
@@ -2072,33 +2072,33 @@ func (s *TaskScheduler) updateUnscheduledJobSpecMetrics(ctx context.Context, now
 			return err
 		}
 		// Delete metrics for jobs that have been removed or whose tags have changed.
-		for key, m := range s.unscheduledMetrics {
+		for key, m := range s.overdueMetrics {
 			if key.Repo != repoUrl {
 				continue
 			}
 			if jobCfg, ok := headTaskCfg.Jobs[key.Job]; !ok || jobCfg.Trigger != key.Trigger {
 				// Set to 0 before deleting so that alerts ignore it.
 				m.Update(0)
-				delete(s.unscheduledMetrics, key)
+				delete(s.overdueMetrics, key)
 			}
 		}
 		// Update metrics or add metrics for any new jobs (or other tag changes).
 		for name, ts := range times {
-			key := unscheduledJobMetricKey{
+			key := overdueJobSpecMetricKey{
 				Repo:    repoUrl,
 				Job:     name,
 				Trigger: headTaskCfg.Jobs[name].Trigger,
 			}
-			m, ok := s.unscheduledMetrics[key]
+			m, ok := s.overdueMetrics[key]
 			if !ok {
-				m = metrics2.GetInt64Metric(MEASUREMENT_UNSCHEDULED_JOB_SPECS, map[string]string{
+				m = metrics2.GetInt64Metric(MEASUREMENT_OVERDUE_JOB_SPECS, map[string]string{
 					"repo":        key.Repo,
 					"job_name":    key.Job,
 					"job_trigger": key.Trigger,
 				})
-				s.unscheduledMetrics[key] = m
+				s.overdueMetrics[key] = m
 			}
-			m.Update(now.Sub(ts).Nanoseconds())
+			m.Update(int64(now.Sub(ts).Seconds()))
 		}
 	}
 	return nil

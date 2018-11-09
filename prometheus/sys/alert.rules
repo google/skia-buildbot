@@ -394,6 +394,48 @@ ALERT TaskSchedulerTooManyCandidates
     description = "There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_candidates"
   }
 
+
+ALERT OverdueMetricsLiveness
+  IF liveness_last_successful_overdue_metrics_update_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    summary = "overdue metrics update is failing ({{ $labels.instance }})",
+    description = "{{ $labels.instance }} has failed to update overdue_job_specs_s for the last 10 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }} Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_metrics_liveness"
+  }
+
+ALERT OverdueJobSpec
+  IF overdue_job_specs_s{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 4
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not finished for any commit in the last {{ $value/60/60 }} hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+  }
+
+ALERT OverdueJobSpecLong
+  IF overdue_job_specs_s{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 9
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not finished for any commit in the last {{ $value/60/60 }} hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+  }
+
+ALERT OverdueJobSpecNightly
+  IF overdue_job_specs_s{job_trigger="nightly"}/60/60 > 28
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+  }
+
+ALERT OverdueJobSpecWeekly
+  IF overdue_job_specs_s{job_trigger="weekly"}/60/60/24 > 7.2
+  LABELS { category = "infra", severity = "critical" }
+  ANNOTATIONS {
+    summary = "{{ $labels.job_name }}.",
+    description = "{{ $labels.job_name }} has not completed in the last 7 days (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+  }
+
+
 # Skolo
 
 ALERT BackupNotDone
