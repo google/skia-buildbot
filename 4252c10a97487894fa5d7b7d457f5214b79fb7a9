@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4a4b3b92_26cc76be",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-09T18:43:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03c2c91f_18d3124d",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 19
+      },
+      "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7acef296_f71ac945",
         "filename": "go/bt/bt.go",
         "patchSetId": 7
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e6326732_7a22ffba",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-09T18:43:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7acef296_f71ac945",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 41
+      },
+      "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "55982605_66113280",
         "filename": "go/ingestion/ingestion_test.go",
         "patchSetId": 7
@@ -68,6 +116,30 @@
       "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1ff24c0_21cc4b30",
+        "filename": "go/ingestion/ingestion_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-09T18:43:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "55982605_66113280",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 35
+      },
+      "revId": "4252c10a97487894fa5d7b7d457f5214b79fb7a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
