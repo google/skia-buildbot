@@ -196,8 +196,12 @@ window.customElements.define('task-driver-sk', class extends HTMLElement {
   }
 
   // Return true if the step is interesting, ie. it has a result other than
-  // SUCCESS (including not yet finished).
+  // SUCCESS (including not yet finished). The root step (which has no parent)
+  // is interesting by default.
   _stepIsInteresting(step) {
+    if (!step.parent) {
+      return true
+    }
     return step.result != "SUCCESS";
   }
 
