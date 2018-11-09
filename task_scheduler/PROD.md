@@ -144,3 +144,36 @@ trigger_weekly
 The weekly trigger has not run in over 8 days. Check that the
 task-scheduler-trigger-weekly.service has run. If not, check the systemctl
 settings on the server. If so, check the Task Scheduler logs.
+
+
+overdue_metrics_liveness
+------------------------
+
+The function TaskScheduler.updateOverdueJobSpecMetrics is not being called
+periodically. If scheduling_failed alert is firing, resolve that first.
+Otherwise, check the logs for error messages, check the
+`timer_func_timer_ns{func="updateOverdueJobSpecMetrics"}` metric, or look
+for recent changes that may have affected this function.
+
+
+overdue_job_spec
+----------------
+
+Tasks have not completed recently for the indicated job, even though a
+reasonable amount of time has elapsed since an eligible commit. If any other
+task scheduler alerts are firing, resolve those first. Otherwise:
+
+ - Check Status for pending or running tasks for this job. The Swarming UI
+   provides the best information on why the task has not completed.
+
+ - Check that the dimensions specified for the job's tasks match the bot that
+   should run those tasks.
+
+ - Check that the bots are available to run the tasks. Remember that forced jobs
+   will always be completed before other jobs, and tryjobs get a higher score
+   than regular jobs.
+
+    - If there are many forced jobs that were triggered accidentally, the [Job
+      search UI](https://task-scheduler.skia.org/jobs/search) can be used to
+      bulk-cancel jobs.
+
