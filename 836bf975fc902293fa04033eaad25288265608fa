@@ -72,6 +72,29 @@
     },
     {
       "key": {
+        "uuid": "e483dc55_53dd9942",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-09T17:22:49Z",
+      "side": 1,
+      "message": "I was looking this up for an unrelated reason and noticed it\u0027s marked deprecated.",
+      "range": {
+        "startLine": 157,
+        "startChar": 5,
+        "endLine": 157,
+        "endChar": 14
+      },
+      "revId": "836bf975fc902293fa04033eaad25288265608fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f4bee655_2fab51cc",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 2
