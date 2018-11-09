@@ -24,6 +24,34 @@ type DataFrameIterator interface {
 	Value(ctx context.Context) (*dataframe.DataFrame, error)
 }
 
+type dataframeSlicer struct {
+	df     *dataframe.DataFrame
+	size   int
+	offset int
+}
+
+func (d *dataframeSlicer) Next() bool {
+	return d.offset*d.size < len(d.df.Header)
+}
+
+func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, error) {
+	// Slice off a sub-dataframe from d.df.
+	d.offset += 1
+	return df, nil
+}
+
+func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *ClusterRequest, dfBuilder *dataframe.DataFrameBuilder) (*dataframeSlicer, error) {
+	df, err := dfBuilder.NewNFromQuery(ctx, req.End, req.Query, req.N, progress)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to build dataframe iterator: %s", err)
+	}
+	return &dataframeSlicer{
+		df:     df,
+		size:   req.Radius*2 + 1,
+		offset: 0,
+	}
+}
+
 // singleIterator is a DataFrameIterator that produces a single DataFrame.
 //
 // This code is transitional to move regression detection to using
