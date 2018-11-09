@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb97d667_436e666c",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "I\u0027m not a fan of this, but I\u0027m not sure how to get rid of it, other than just passing the DocumentSnapshot to the callback function and letting the caller handle DataTo.",
+      "range": {
+        "startLine": 85,
+        "startChar": 54,
+        "endLine": 85,
+        "endChar": 80
+      },
+      "revId": "836bf975fc902293fa04033eaad25288265608fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

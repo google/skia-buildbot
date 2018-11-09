@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "f6ee2a67_1d713133",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "Done, in firestore.IterDocs().",
+      "parentUuid": "98c724ef_6cb93f8b",
+      "range": {
+        "startLine": 50,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 5
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dc363e91_dec80fc0",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6c68af75_c68c8c74",
+      "range": {
+        "startLine": 50,
+        "startChar": 11,
+        "endLine": 50,
+        "endChar": 41
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "006bc109_3b53ed01",
         "filename": "task_scheduler/go/db/firestore/comments.go",
         "patchSetId": 1
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3f7033b4_ee522f50",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "SGTM.",
+      "parentUuid": "006bc109_3b53ed01",
+      "range": {
+        "startLine": 123,
+        "startChar": 1,
+        "endLine": 123,
+        "endChar": 46
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1646b131_8e2a004c",
         "filename": "task_scheduler/go/db/firestore/firestore.go",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2018-11-08T21:10:55Z",
       "side": 1,
       "message": "nit: Maybe best to require a parentDoc; it sounds like if we have multiple apps in the same project using Firestore, using unique prefixes is the only way to prevent conflicts. Maybe follow the same guidance as for namespaces in https://skia.googlesource.com/buildbot/+/master/DATASTORE.md",
+      "range": {
+        "startLine": 35,
+        "startChar": 41,
+        "endLine": 35,
+        "endChar": 50
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40f1e228_95cfa526",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "SGTM. I added a go/firestore package which tries to enforce that all refs inherit from a parent doc. Let me know what you think.",
+      "parentUuid": "1646b131_8e2a004c",
       "range": {
         "startLine": 35,
         "startChar": 41,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8496de2e_4db8a335",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "42f0fe69_d5a5732b",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 47
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "007e695c_9eb91bc9",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
@@ -137,6 +257,30 @@
       "revId": "24aca1954d656b394ce72101d668a119526296dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0a00065d_51836339",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "007e695c_9eb91bc9",
+      "range": {
+        "startLine": 111,
+        "startChar": 14,
+        "endLine": 111,
+        "endChar": 25
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "fb171ef9_72e87d46",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9cbeeb8_04d17779",
+      "range": {
+        "startLine": 161,
+        "startChar": 22,
+        "endLine": 161,
+        "endChar": 29
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "84647830_a79b6da7",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "a91ebda7_8b68b24b",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "Done, although it makes me pretty suspicious that NewDoc() doesn\u0027t return an error; I can\u0027t imagine that the ID is guaranteed to be globally unique.",
+      "parentUuid": "84647830_a79b6da7",
+      "range": {
+        "startLine": 164,
+        "startChar": 3,
+        "endLine": 164,
+        "endChar": 48
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bd25cc04_1dad255c",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 1
@@ -197,6 +389,30 @@
       "writtenOn": "2018-11-08T21:10:55Z",
       "side": 1,
       "message": "nit: Maybe move this to db.go, since it might be useful for users of db package.",
+      "range": {
+        "startLine": 23,
+        "startChar": 1,
+        "endLine": 23,
+        "endChar": 14
+      },
+      "revId": "24aca1954d656b394ce72101d668a119526296dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec49f59a_ea6ec790",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-09T14:29:35Z",
+      "side": 1,
+      "message": "I think I\u0027d like to keep it here for now (even though this file gets compiled as part of normal builds and thus the constant is available everywhere), since it\u0027s only used for testing.",
+      "parentUuid": "bd25cc04_1dad255c",
       "range": {
         "startLine": 23,
         "startChar": 1,
