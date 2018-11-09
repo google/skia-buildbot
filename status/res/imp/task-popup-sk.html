@@ -67,7 +67,7 @@
     <div class="horizontal layout wrap">
       <div class="flex">
         <task-driver-sk id="tdStatus" style="display: none;"></task-driver-sk>
-        <h3 id="nonExperimentalHeader">
+        <h3 id="nonTaskDriverHeader">
           <a target="_blank" href$="[[swarming_url]]/task?id=[[task.swarming_task_id]]">
             <span>{{task.name}}</span><iron-icon icon="launch"></iron-icon>
           </a>
@@ -79,7 +79,7 @@
         </a>
       </div>
     </div>
-    <div id="nonExperimentalDetails">
+    <div id="nonTaskDriverDetails">
       <table>
         <tr>
           <td>Status:</td>
@@ -150,14 +150,12 @@
       },
 
       showCallback: function() {
-        if (this._isExperimental(this.task)) {
-          sk.get("/json/td/" + this.task.id).then(JSON.parse).then(function(td) {
-            this.$.tdStatus.data = td;
-            this.$.tdStatus.style = "display: block";
-            this.$.nonExperimentalHeader.style = "display: none";
-            this.$.nonExperimentalDetails.style = "display: none";
-          }.bind(this));
-        }
+        sk.get("/json/td/" + this.task.id).then(JSON.parse).then(function(td) {
+          this.$.tdStatus.data = td;
+          this.$.tdStatus.style = "display: block";
+          this.$.nonTaskDriverHeader.style = "display: none";
+          this.$.nonTaskDriverDetails.style = "display: none";
+        }.bind(this));
       },
 
       _commentAdded: function() {
@@ -172,12 +170,6 @@
       },
       _commitSubject: function(c, commit_details) {
         return commit_details[c] ? commit_details[c].shortSubject : "";
-      },
-      _isExperimental: function(task) {
-        if (task && task.name) {
-          return task.name.indexOf("Experimental") !== -1;
-        }
-        return false;
       },
       _makeAddCommentURL: function(task, repo) {
         return "/json/tasks/" + task.id + "/comments";
@@ -199,12 +191,6 @@
           job = job.substring(uploadPrefix.length);
         }
         return this.task_scheduler_url + "/trigger?submit=true&job=" + job + "@" + task.revision;
-      },
-      _showIfExperimental: function(match, task) {
-        if (match !== this._isExperimental(task)) {
-          return "display: none;";
-        }
-        return "";
       },
       _taskResultClass: function(task) {
         return task.colorClass;
