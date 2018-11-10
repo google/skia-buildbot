@@ -26,16 +26,19 @@ const DIALOG_MODE = 1;
 const LOADING_MODE = 2;
 const LOADED_MODE = 3;
 
+const DPR = window.devicePixelRatio;
+
 const displayDialog = (ele) => html`
 <skottie-config-sk state=${ele._state}></skottie-config-sk>
 `;
 
 const wasmCanvas = (ele) => html`
-<canvas id=skottie width=${ele._state.width} height=${ele._state.height}>
+<canvas id=skottie width=${ele._state.width * DPR} height=${ele._state.height * DPR}
+        style='width: ${ele._state.width}px; height: ${ele._state.height}px;'>
   Your browser does not support the canvas tag.
 </canvas>
 
-<figcaption>skottie</figcaption>`;
+<figcaption>skottie-wasm</figcaption>`;
 
 const livePreview = (ele) => {
   if (ele._hasEdits) {
@@ -167,6 +170,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
           return;
         }
         this._skCanvas = this._skSurface.getCanvas();
+        this._skCanvas.scale(DPR, DPR);
       }
       if (!this._skAnimation) {
         this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
