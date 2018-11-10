@@ -229,6 +229,23 @@ func (d *DataFrame) FilterOut(f TraceFilter) {
 	d.BuildParamSet()
 }
 
+// Slice returns a dataframe that contains a subset of the current dataframe,
+// starting from 'offset', the next 'size' num points will be returned as a new
+// dataframe. Note that the data is composed of slices of the original data,
+// not copies, so the returned dataframe must not be altered.
+func (d *DataFrame) Slice(offset, size int) (*DataFrame, error) {
+	if offset+size > len(d.Header) {
+		return nil, fmt.Errorf("Slize exceeds current dataframe bounds.")
+	}
+	ret := NewEmpty()
+	ret.Header = d.Header[offset : offset+size]
+	for key, tr := range d.TraceSet {
+		ret.TraceSet[key] = tr[offset : offset+size]
+	}
+	ret.BuildParamSet()
+	return ret, nil
+}
+
 // rangeImpl returns the slices of ColumnHeader and cid.CommitID that
 // are needed by DataFrame and ptracestore.PTraceStore, respectively. The
 // slices are populated from the given vcsinfo.IndexCommits.
