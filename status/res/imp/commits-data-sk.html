@@ -125,7 +125,7 @@
     // both issue and patchStorage.
     function findIssueAndReviewTool(commit) {
       // See if it is a Gerrit CL.
-      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/c\/([0-9]*)/g;
+      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/(c\/)?([0-9]*)/g;
       var gerritTokens = gerritRE.exec(commit.body);
       if (gerritTokens) {
         return {
@@ -144,55 +144,31 @@
       return commit.patchStorage === 'gerrit';
     }
 
-    // Return whether this commit reverted another commit.
-    function isRevert(commit) {
-      if (isGerritIssue(commit)) {
-        // The subject of the CL needs to start with 'Revert "' for Gerrit
-        // issues.
-        return /^Revert "/g.test(commit.subject);
+    // Find and return the commit which was reverted by the given commit.
+    function findRevertedCommit(commits, commit) {
+      patt = new RegExp("^This reverts commit ([a-f0-9]+)");
+      var tokens = patt.exec(commit.body);
+      if (tokens) {
+        return commits[tokens[tokens.length - 1]];
       }
-      return false;
+      return null;
     }
 
-    // Return whether this commit relanded another commit.
-    function isReland(commit) {
-      if (isGerritIssue(commit)) {
-        // The subject of the CL needs to start with 'Revert "' for Gerrit
-        // issues. Reland issues look like this: 'Revert "Revert "...'
-        var numRevertBlocks = 0;
-        var tmpSubject = commit.subject;
-        var m;
-        while ((m = /^Revert "(.*)/g.exec(tmpSubject)) != null) {
-          tmpSubject = m[1];  // Move on to the next block.
-          numRevertBlocks++;
-        }
-        if (numRevertBlocks == 0) {
-          return false;
-        } else if (numRevertBlocks >= 2) {
-          // There are an even number of Revert blocks. This means that it is
-          // a reland.
-          return true;
-        }
+    // Find and return the commit which was relanded by the given commit.
+    function findRelandedCommit(commits, commit) {
+      // Relands can take one of two formats. The first is a "direct" reland.
+      patt = new RegExp("^This is a reland of ([a-f0-9]+)");
+      var tokens = patt.exec(commit.body);
+      if (tokens) {
+        return commits[tokens[tokens.length - 1]];
       }
-      return false;
-    }
 
-    // Find and return the issue number of the reverted commit that is the specified number of
-    // levels deep.
-    function findRevertedIssue(commit, levelsDeep) {
-      var levelsDeepStr = "";
-      var patt;
-      if (isGerritIssue(commit)) {
-        for (i=0; i<levelsDeep; i++) {
-          levelsDeepStr += "\\> ";
-        }
-        patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Reviewed-on\\: https://skia-review\.googlesource\.com/([0-9]*)", "g");
-        var tokens = patt.exec(commit.body);
-        if (tokens) {
-          return tokens[tokens.length - 1];
-        }
+      // The second is a revert of a revert.
+      var revert = findRevertedCommit(commits, commit);
+      if (revert) {
+        return findRevertedCommit(commits, revert);
       }
-      return '';
+      return null;
     }
 
     function getTaskColorClass(task) {
@@ -544,6 +520,10 @@
         }
 
         var commits = data.commits;
+        var commitsMap = {};
+        for (var i = 0; i < commits.length; i++) {
+          commitsMap[commits[i].hash] = commits[i];
+        }
 
         // Prepare task data.
         var tasks = {};
@@ -569,14 +549,24 @@
           var c = findIssueAndReviewTool(commit);
           commit.issue = c.issue;
           commit.patchStorage = c.patchStorage;
-          commit.isRevert = isRevert(commit);
-          if (commit.isRevert && findRevertedIssue(commit, 1)) {
-              this.reverted_map[findRevertedIssue(commit, 1)] = commit;
+        }
+
+        for (var i = 0; i < commits.length; i++) {
+          var commit = commits[i];
+          commit.isRevert = false;
+          var reverted = findRevertedCommit(commitsMap, commit);
+          if (reverted) {
+            commit.isRevert = true;
+            this.reverted_map[reverted.issue] = commit;
           }
-          commit.isReland = isReland(commit);
-          if (commit.isReland && findRevertedIssue(commit, 2)) {
-              this.relanded_map[findRevertedIssue(commit, 2)] = commit;
+
+          commit.isReland = false;
+          var relanded = findRelandedCommit(commitsMap, commit);
+          if (relanded) {
+            commit.isReland = true;
+            this.relanded_map[relanded.issue] = commit;
           }
+
           commit.ignoreFailure = commit.comments &&
                                  commit.comments.length > 0 &&
                                  commit.comments[commit.comments.length-1].ignoreFailure;
