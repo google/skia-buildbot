@@ -16,6 +16,24 @@
       "revId": "6d516a5920af4739dce3498f1497ca65a60dfabe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ee251ff_0efdfba2",
+        "filename": "perf/go/regression/async.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-12T17:59:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1fac7d00_d6d9ca50",
+      "revId": "6d516a5920af4739dce3498f1497ca65a60dfabe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
