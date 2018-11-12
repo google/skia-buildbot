@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -245,6 +246,7 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	// Update the cached copy; should get concurrent update error.
 	t1Cached.Status = TASK_STATUS_RUNNING
 	err = db.PutTask(t1Cached)
+	sklog.Infof("%+v", err)
 	assert.True(t, IsConcurrentUpdate(err))
 
 	{
