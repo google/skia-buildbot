@@ -1098,7 +1098,7 @@ type MultiWriter []io.Writer
 // all errors returned by each of the io.Writers.
 func (mw MultiWriter) Write(b []byte) (int, error) {
 	var rv int
-	var rvErr error
+	var rvErr *multierror.Error
 	for _, w := range mw {
 		n, err := w.Write(b)
 		if err != nil {
@@ -1107,7 +1107,10 @@ func (mw MultiWriter) Write(b []byte) (int, error) {
 			rv = n
 		}
 	}
-	return rv, rvErr
+	// Note: multierror.Error.ErrorOrNil() checks whether the instance is
+	// nil, so it's safe to call rvErr.ErrorOrNil() even if no error
+	// occurred.
+	return rv, rvErr.ErrorOrNil()
 }
 
 // ThreadSafeWriter wraps an io.Writer and provides thread safety.

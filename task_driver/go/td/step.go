@@ -4,15 +4,19 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	fsnotify "gopkg.in/fsnotify.v1"
 )
 
 const (
@@ -174,6 +178,132 @@ type LogData struct {
 func NewLogStream(ctx context.Context, name, severity string) io.Writer {
 	props := getStep(ctx)
 	return getRun(ctx).LogStream(props.Id, name, severity)
+}
+
+// FileStream is a struct used for streaming logs from a file, eg. when a test
+// program writes verbose logs to a file. Intended to be used like this:
+//
+//	fs := s.NewFileStream("verbose")
+//	defer util.Close(fs)
+//	_, err := s.RunCwd(".", myTestProg, "--verbose", fs.FilePath())
+//
+type FileStream struct {
+	cancel  context.CancelFunc
+	ctx     context.Context
+	doneCh  <-chan struct{}
+	err     *multierror.Error
+	file    *os.File
+	name    string
+	w       io.Writer
+	watcher *fsnotify.Watcher
+}
+
+// Create a log stream which uses an intermediate file, eg. for writing from a
+// test program.
+func NewFileStream(ctx context.Context, name, severity string) (*FileStream, error) {
+	w := NewLogStream(ctx, name, severity)
+	f, err := ioutil.TempFile("", "log")
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create file-based log stream; failed to create log file: %s", err)
+	}
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create file-based log stream; failed to create fsnotify.Watcher: %s", err)
+	}
+	if err := watcher.Add(f.Name()); err != nil {
+		return nil, fmt.Errorf("Failed to create file-based log stream; failed to add a watcher for the log file: %s", err)
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	doneCh := make(chan struct{})
+	rv := &FileStream{
+		cancel:  cancel,
+		ctx:     ctx,
+		doneCh:  doneCh,
+		file:    f,
+		name:    name,
+		w:       w,
+		watcher: watcher,
+	}
+
+	// Start collecting logs from the file.
+	go rv.follow(doneCh)
+	return rv, nil
+}
+
+// Read from the file incrementally as it is written, writing its contents to
+// the step's log emitter.
+func (fs *FileStream) follow(doneCh chan<- struct{}) {
+	reportErr := func(format string, args ...interface{}) {
+		err := fmt.Errorf(format, args...)
+		getRun(fs.ctx).Failed(getStep(fs.ctx).Id, InfraError(err))
+		fs.err = multierror.Append(fs.err, err)
+	}
+
+	defer func() {
+		// Cleanup.
+		if err := fs.file.Close(); err != nil {
+			reportErr("Failed to close logstream file: %s", err)
+		}
+		if err := fs.watcher.Close(); err != nil {
+			reportErr("Failed to close logstream file watcher: %s", err)
+		}
+		if err := os.Remove(fs.file.Name()); err != nil {
+			reportErr("Failed to delete logstream file: %s", err)
+		}
+		doneCh <- struct{}{}
+	}()
+
+	buf := make([]byte, 128)
+	for {
+		select {
+		case <-fs.ctx.Done():
+			// fs.Close() was called; return.
+			return
+		case <-fs.watcher.Events:
+			// The file was modified in some way; continue reading,
+			// assuming that it was appended.
+			for {
+				nRead, err := fs.file.Read(buf)
+				// Technically, an io.Reader is allowed to return
+				// non-zero number of bytes read AND io.EOF on the
+				// same call to Read(). Don't handle EOF until we've
+				// written all of the data we read.
+				if err != nil && err != io.EOF {
+					reportErr("Failed to read from logstream file: %s", err)
+					return
+				}
+				if nRead > 0 {
+					nWrote, err := fs.w.Write(buf[:nRead])
+					if err != nil {
+						reportErr("Failed to write to log stream: %s", err)
+						return
+					}
+					if nWrote != nRead {
+						reportErr("Read %d bytes but wrote %d!", nRead, nWrote)
+						return
+					}
+				}
+				if err == io.EOF {
+					break
+				}
+			}
+		case err := <-fs.watcher.Errors:
+			reportErr("fsnotify watcher error: %s", err)
+			return
+		}
+	}
+}
+
+// Close the FileStream, cleaning up its resources and deleting the log file.
+func (fs *FileStream) Close() error {
+	fs.cancel()
+	_ = <-fs.doneCh
+	return fs.err.ErrorOrNil()
+}
+
+// Return the path to the logfile used by this FileStream.
+func (fs *FileStream) FilePath() string {
+	return fs.file.Name()
 }
 
 // ExecData is extra Step data generated when executing commands through the
