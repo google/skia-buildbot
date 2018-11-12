@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"golang.org/x/oauth2"
@@ -213,29 +212,6 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 		opsCache:      map[string]*OpsCacheEntry{},
 		cacheOps:      cacheOps,
 	}
-
-	// oldClient keeps track of the last client created so we can clean it up with a Close() in 5 minutes.
-	var oldClient *bigtable.Client
-
-	// Periodically refresh the BigTable client. Fixes the occasional timeouts.
-	go func() {
-		for _ = range time.Tick(5 * time.Minute) {
-			if oldClient != nil {
-				util.Close(oldClient)
-			}
-			oldClient = client
-			client, err := bigtable.NewClient(ctx, cfg.Project, cfg.Instance, option.WithTokenSource(ts), option.WithGRPCConnectionPool(20))
-			if err != nil {
-				sklog.Errorf("Couldn't create client: %s", err)
-				oldClient = nil
-				continue
-			}
-			ret.tableMutex.Lock()
-			ret.table = client.Open(cfg.Table)
-			ret.tableMutex.Unlock()
-			sklog.Info("BigTable client refreshed.")
-		}
-	}()
 
 	return ret, nil
 }
