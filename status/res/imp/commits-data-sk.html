@@ -566,10 +566,16 @@
             commit.isReland = true;
             this.relanded_map[relanded.issue] = commit;
           }
+        }
 
+        for (var i = 0; i < commits.length; i++) {
+          var commit = commits[i];
           commit.ignoreFailure = commit.comments &&
                                  commit.comments.length > 0 &&
                                  commit.comments[commit.comments.length-1].ignoreFailure;
+          if (this.reverted_map[commit.issue]) {
+            commit.ignoreFailure = true;
+          }
 
           commit.displayClass = {};
           if (!task_details[commit.hash]) {
