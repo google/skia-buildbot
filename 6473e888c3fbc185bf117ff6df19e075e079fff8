@@ -124,6 +124,24 @@
       "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "392c4cfd_add9a0d1",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-12T19:30:06Z",
+      "side": 1,
+      "message": "Yes, commit.ignoreFailure is what causes it to appear.",
+      "parentUuid": "c5336c91_a9dafd8c",
+      "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
