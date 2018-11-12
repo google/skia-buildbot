@@ -142,6 +142,24 @@
       "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5f0b5c1_8e000c1f",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-12T19:31:47Z",
+      "side": 1,
+      "message": "k in that case I have less objections about this since it is obvious that failures are ignored. I\u0027m still curious what Ben thinks.",
+      "parentUuid": "392c4cfd_add9a0d1",
+      "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
