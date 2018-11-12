@@ -302,6 +302,25 @@ type githubRoll struct {
 
 func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 
+	// TMP LOGGING
+	mergeMethod := github.MERGE_METHOD_SQUASH
+	sklog.Infof("MERGE METHOD URL IS %s", mergeMethodURL)
+	if mergeMethodURL != "" {
+		client := httputils.NewTimeoutClient()
+		resp, err := client.Get(mergeMethodURL)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not GET from %s: %s", mergeMethodURL, err)
+		}
+		defer util.Close(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Could not read response body: %s", err)
+		}
+		mergeMethod = strings.TrimRight(string(body), "\n")
+	}
+	sklog.Infof("MERGE METHOD IS %s", mergeMethod)
+	// TMP LOGGING
+
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
 	if err != nil {
