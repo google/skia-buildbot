@@ -104,6 +104,16 @@ skottie-sk {
     margin-left: 0.6em;
   }
 
+  .embed {
+    display: inline-block;
+  }
+
+  .embed input {
+    padding: 0.2em;
+    border: solid lightblue 1px;
+    margin: 0.6em;
+  }
+
 }
 
 #json_editor button {
