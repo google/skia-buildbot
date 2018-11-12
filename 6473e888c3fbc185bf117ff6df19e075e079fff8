@@ -70,6 +70,24 @@
       "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be03666c_427c93c8",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-12T19:23:36Z",
+      "side": 1,
+      "message": "\u003e Yes, but:\n\u003e 1. You can always click on the \"failures\" filter to see all failures.\n\nRight but this is not obvious, especially since everyone is used to the current behavior. I almost never leave the \"Interesting\" tab. If there was an indication via a symbol that a commit was ignored then that would make it more obvious.\n\n\u003e 2. If the bot failed only at one commit and succeeded again when it was reverted, I\u0027d argue that nobody cares to see it once the revert has landed.\n\nThis is probably true. If any other commit had a failure for that bot then it will show up for the reverted commit (IIUC). But sometimes failures are flaky and might not have anything to do with the reverted commit but are useful to be aware of.\nStill seems too magical. Bringing in Ben for the tiebreaker.",
+      "parentUuid": "834c350a_2401fa9d",
+      "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
