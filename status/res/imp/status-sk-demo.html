@@ -39,7 +39,7 @@
         return request.respond(200, {}, JSON.stringify(rv));
     });
 
-    var login = {"Email":"test@google.com","IsAdmin":true,"IsEditor":true,"IsViewer":true}};
+    var login = {"Email":"test@google.com","IsAdmin":true,"IsEditor":true,"IsViewer":true};
     server.respondWith("GET","/loginstatus/", JSON.stringify(login));
 
     var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
