@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ptracequery ingest_json_validator
+build: skiaperf web ingest_json_validator
 
 buildk: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
@@ -36,9 +36,6 @@ validate: ingest_json_validator
 .PHONY: skiaperf
 skiaperf:
 	go install -v ./go/skiaperf
-
-ptracequery:
-	go install -v ./go/ptracequery
 
 ingest_json_validator:
 	go install -v ./go/ingest_json_validator
