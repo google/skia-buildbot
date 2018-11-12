@@ -16,6 +16,24 @@
       "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efe1eb11_2ecdb4a4",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-12T18:49:28Z",
+      "side": 1,
+      "message": "Not currently, no.  This is already true for commits ignored via comments, except that you can delete the comment if you want to see the failures.",
+      "parentUuid": "c05a436f_84562c8e",
+      "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
