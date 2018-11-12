@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "31123e56_e7302e04",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-12T16:35:28Z",
+      "side": 1,
+      "message": "nit: make it clearer that this is the per-attempt timeout. Same nit for other functions.",
+      "range": {
+        "startLine": 93,
+        "startChar": 64,
+        "endLine": 93,
+        "endChar": 71
+      },
+      "revId": "dd80d3ed0f08857ddf015fb51ba9346ccea83174",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2628d99_08c98cd4",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-12T16:35:28Z",
+      "side": 1,
+      "message": "IMO, only DeadlineExceeded, ResourceExhausted, Aborted, and Unavailable should be retried. It\u0027s possible that ResourceExhausted and Aborted should be handled at a higher level.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 4
+      },
+      "revId": "dd80d3ed0f08857ddf015fb51ba9346ccea83174",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9eb3714_009bd8db",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-12T16:35:28Z",
+      "side": 1,
+      "message": "Should probably log the error if we\u0027re retrying.",
+      "revId": "dd80d3ed0f08857ddf015fb51ba9346ccea83174",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
