@@ -194,7 +194,7 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 	if cfg.TileSize <= 0 {
 		return nil, fmt.Errorf("tileSize must be >0. %d", cfg.TileSize)
 	}
-	client, err := bigtable.NewClient(ctx, cfg.Project, cfg.Instance, option.WithTokenSource(ts), option.WithGRPCConnectionPool(20))
+	client, err := bigtable.NewClient(ctx, cfg.Project, cfg.Instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create client: %s", err)
 	}
@@ -387,13 +387,13 @@ func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map
 	var mutex sync.Mutex
 	ret := map[string][]float32{}
 	var g errgroup.Group
+	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	defer cancel()
 	// Spawn one Go routine for each shard.
 	for i := int32(0); i < b.shards; i++ {
 		i := i
 		g.Go(func() error {
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + q.String()
-			tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
-			defer cancel()
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				vec := vec32.New(int(b.tileSize))
 				for _, col := range row[VALUES_FAMILY] {
@@ -424,13 +424,13 @@ func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map
 func (b *BigTableTraceStore) QueryCount(tileKey TileKey, q *regexp.Regexp) (int64, error) {
 	var g errgroup.Group
 	ret := int64(0)
+	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	defer cancel()
 	// Spawn one Go routine for each shard.
 	for i := int32(0); i < b.shards; i++ {
 		i := i
 		g.Go(func() error {
 			rowRegex := tileKey.TraceRowPrefix(i) + ".*" + q.String()
-			tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
-			defer cancel()
 			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
 				_ = atomic.AddInt64(&ret, 1)
 				return true
@@ -473,9 +473,7 @@ func (b *BigTableTraceStore) GetSource(index int32, traceId string) (string, err
 	}
 	sourceHash := fmt.Sprintf("&%x", row[SOURCES_FAMILY][0].Value)
 
-	tctx2, cancel2 := context.WithTimeout(b.ctx, TIMEOUT)
-	defer cancel2()
-	row, err = b.getTable().ReadRow(tctx2, sourceHash, bigtable.RowFilter(
+	row, err = b.getTable().ReadRow(tctx, sourceHash, bigtable.RowFilter(
 		bigtable.ChainFilters(
 			bigtable.LatestNFilter(1),
 			bigtable.FamilyFilter(HASHES_FAMILY),
