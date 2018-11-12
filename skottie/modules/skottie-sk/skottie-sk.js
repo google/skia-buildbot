@@ -53,7 +53,16 @@ const livePreview = (ele) => {
   }
 }
 
-const displayLoaded= (ele) => html`
+const iframeDirections = (ele) => {
+  if (ele._hash === '') {
+    return ''
+  }
+  return html`
+    <input size=120 value='<iframe width=${ele._state.width} height=${ele._state.height} src="https://skottie.skia.org/e/${ele._hash}" scrolling=no></iframe>'>
+  `;
+}
+
+const displayLoaded = (ele) => html`
 <button class=edit-config @click=${ ele._startEdit}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
 <button @click=${ele._rewind}>Rewind</button>
 <button id=playpause @click=${ele._playpause}>Pause</button>
@@ -63,6 +72,9 @@ const displayLoaded= (ele) => html`
     JSON
   </a>
   ${ele._hasEdits? '(without edits)': ''}
+</div>
+<div class=embed>
+  ${iframeDirections(ele)}
 </div>
 <section class=figures>
   <figure>
