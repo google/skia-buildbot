@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"os/user"
@@ -1530,6 +1531,7 @@ func main() {
 		"skiaperf",
 		common.PrometheusOpt(promPort),
 	)
+	runtime.SetBlockProfileRate(1000)
 
 	Init()
 	login.SimpleInitMust(*port, *local)

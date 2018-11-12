@@ -11,6 +11,7 @@ import (
 
 // StepFit finds regressions by looking at each trace individually and seeing if that looks like a regression.
 func StepFit(df *dataframe.DataFrame, k int, stddevThreshold float32, progress clustering2.Progress, interesting float32) (*clustering2.ClusterSummaries, error) {
+	sklog.Info("Starting StepFit.")
 	low := clustering2.NewClusterSummary()
 	high := clustering2.NewClusterSummary()
 	// Normalize each trace and then run through stepfit. If interesting then
