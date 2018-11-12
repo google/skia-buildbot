@@ -1,13 +1,13 @@
 {
   "name": "infra-sk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Common Skia Infra elements and JS.",
   "homepage": "https://github.com/google/skia-buildbot/tree/master/infra-sk",
   "main": "index.js",
   "license": "Apache-2.0",
   "dependencies": {
     "common-sk": "~3.0.0",
-    "elements-sk": "~2.4.1",
+    "elements-sk": "~2.5.0",
     "lit-html": "~0.12.0"
   },
   "devDependencies": {

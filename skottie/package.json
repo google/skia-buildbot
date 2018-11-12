@@ -7,8 +7,8 @@
   "dependencies": {
     "@webcomponents/custom-elements": "^1.2.0",
     "common-sk": "~3.0.0",
-    "elements-sk": "~2.4.2",
-    "infra-sk": "~0.4.0",
+    "elements-sk": "~2.5.0",
+    "infra-sk": "~0.6.0",
     "jsoneditor": "~5.24.3",
     "lit-html": "~0.12.0",
     "lottie-web": "^5.1.20"
