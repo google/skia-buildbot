@@ -31,7 +31,7 @@ ALERT TooManyGoRoutines
   FOR 2m
   LABELS { category = "infra", severity = "warning"}
   ANNOTATIONS {
-    summary = "Too many Go routines in {{ $labels.job }}",
+    abbr = "{{ $labels.job }}",
     description = "Too many Go routines in {{ $labels.job }} running on {{ $labels.instance }}. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=400&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
   }
 
@@ -137,7 +137,7 @@ ALERT JobMetricsLiveness
   IF liveness_last_successful_job_metrics_update_s/60 > 30
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Job metrics update is failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to update job metrics for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#job_metrics"
   }
 
@@ -145,7 +145,7 @@ ALERT BotCoverageMetricsLiveness
   IF liveness_last_successful_bot_coverage_metrics_s/60 > 60
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Bot coverage metrics update is failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to update bot coverage metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#bot_coverage_metrics"
   }
 
@@ -153,7 +153,7 @@ ALERT SwarmingTaskMetricsLiveness
   IF liveness_last_successful_swarming_task_metrics_s/60 > 60
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Swarming task metrics update is failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to update swarming task metrics for the last 1 hour. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#swarming_task_metrics"
   }
 
@@ -161,7 +161,7 @@ ALERT EventMetricsLiveness
   IF liveness_last_successful_event_metrics_update_s/60 > 30
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Event metrics update is failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#event_metrics"
   }
 
@@ -290,7 +290,7 @@ ALERT TaskSchedulerLiveness
   IF liveness_last_successful_task_scheduling_s/60 > 10
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler Failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to schedule for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#scheduling_failed"
   }
 
@@ -299,7 +299,7 @@ ALERT TaskSchedulerLatency
   FOR 10m
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler HTTP Latency",
+    abbr = "{{ $labels.probename }}",
     description = "The endpoint for {{ $labels.probename }} took more than 300ms to respond. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#http_latency"
   }
 
@@ -308,7 +308,7 @@ ALERT TaskSchedulerErrorRate
   FOR 2m
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    summary = "Task Scheduler Error Rate ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "The error rate for task_scheduler on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#error_rate"
   }
 
@@ -316,7 +316,7 @@ ALERT TaskSchedulerDBBackup
   IF liveness_last_db_backup_s/60/60 > 25
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler DB backup ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "The last Task Scheduler DB backup on {{ $labels.instance }} was more than 25 hours ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#old_db_backup"
   }
 
@@ -324,7 +324,7 @@ ALERT TaskSchedulerExtraDBBackups
   IF recent_db_backup_count > 9
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler extra DB backups ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "There are too many recent Task Scheduler DB backups for {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_recent_db_backups"
   }
 
@@ -332,7 +332,7 @@ ALERT TaskSchedulerDBBackupTrigger
   IF liveness_db_backup_maybe_backup_db_s/60 > 10
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler DB backup trigger ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "The last time we checked for a Task Scheduler DB backup trigger file on {{ $labels.instance }} was more than 10 minutes ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_backup_trigger_liveness"
   }
 
@@ -340,7 +340,7 @@ ALERT TaskSchedulerIncrementalBackup
   IF liveness_incremental_backup_s/60 > 10
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler incremental backup ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "The last time a Task Scheduler incremental backup succeeded on {{ $labels.instance }} was more than 10 minutes ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_liveness"
   }
 
@@ -348,7 +348,7 @@ ALERT TaskSchedulerIncrementalBackupReset
   IF incremental_backup_reset > 0
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler incremental backup reset ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "Task Scheduler modified job tracking for incremental backups has been reset since last full backup on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_reset"
   }
 
@@ -357,7 +357,7 @@ ALERT TaskSchedulerDBFreePages
   FOR 1h
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Task Scheduler DB excess free pages ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "There are a large number of free pages in the Task Scheduler DB on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_too_many_free_pages"
   }
 
@@ -365,7 +365,7 @@ ALERT DbMetricsLiveness
   IF liveness_DbMetric_s/60 > 30
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "DbMetrics update is failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to update boltutil.DbMetrics for the last 30 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
   }
 
@@ -374,7 +374,7 @@ ALERT NightlyTrigger
   IF liveness_periodic_trigger_s{trigger="nightly"}/60/60 > 25
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Nightly Trigger ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "The nightly trigger has not run in over 25 hours on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_nightly"
   }
 
@@ -382,7 +382,7 @@ ALERT WeeklyTrigger
   IF liveness_periodic_trigger_s{trigger="weekly"}/60/60/24 > 8
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "Weekly Trigger ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "The weekly trigger has not run in over 8 days on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_weekly"
   }
 
@@ -390,7 +390,7 @@ ALERT TaskSchedulerTooManyCandidates
   IF task_candidate_count > 1500
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    summary = "There are a lot of task candidates on {{ $labels.instance }}.",
+    abbr = "{{ $labels.instance }}",
     description = "There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_candidates"
   }
 
@@ -399,7 +399,7 @@ ALERT OverdueMetricsLiveness
   IF liveness_last_successful_overdue_metrics_update_s/60 > 10
   LABELS { category = "infra", severity = "critical"}
   ANNOTATIONS {
-    summary = "overdue metrics update is failing ({{ $labels.instance }})",
+    abbr = "{{ $labels.instance }}",
     description = "{{ $labels.instance }} has failed to update overdue_job_specs_s for the last 10 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }} Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_metrics_liveness"
   }
 
@@ -407,16 +407,16 @@ ALERT OverdueJobSpec
   IF overdue_job_specs_s{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 4
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    summary = "{{ $labels.job_name }}.",
-    description = "{{ $labels.job_name }} has not finished for any commit in the last {{ $value/60/60 }} hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+    abbr = "{{ $labels.job_name }}",
+    description = "{{ $labels.job_name }} has not finished for any commit in the last 4 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
   }
 
 ALERT OverdueJobSpecLong
   IF overdue_job_specs_s{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 9
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    summary = "{{ $labels.job_name }}.",
-    description = "{{ $labels.job_name }} has not finished for any commit in the last {{ $value/60/60 }} hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+    abbr = "{{ $labels.job_name }}",
+    description = "{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
   }
 
 # Note: We don't have an alert for job_trigger="weekly" because Task Scheduler's
@@ -425,7 +425,7 @@ ALERT OverdueJobSpecNightly
   IF overdue_job_specs_s{job_trigger="nightly"}/60/60 > 28
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
-    summary = "{{ $labels.job_name }}.",
+    abbr = "{{ $labels.job_name }}",
     description = "{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
   }
 
