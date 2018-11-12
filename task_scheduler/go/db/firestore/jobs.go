@@ -32,7 +32,7 @@ func (d *firestoreDB) jobs() *fs.CollectionRef {
 
 // See documentation for db.JobReader interface.
 func (d *firestoreDB) GetJobById(id string) (*db.Job, error) {
-	doc, err := d.jobs().Doc(id).Get(context.Background())
+	doc, err := firestore.Get(d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -51,14 +51,13 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, err
 	start = fixTimestamp(start)
 	end = fixTimestamp(end)
 
-	ctx := context.Background()
 	// TODO(borenet): It's possible that we should require
 	// another field when searching by timestamp; indexing a
 	// timestamp causes the whole collection to cap out at a
 	// maximum of 500 writes per second.
 	q := d.jobs().Where("Created", ">=", start).Where("Created", "<", end).OrderBy("Created", fs.Asc)
 	rv := []*db.Job{}
-	if err := firestore.IterDocs(ctx, q, func(doc *fs.DocumentSnapshot) error {
+	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var job db.Job
 		if err := doc.DataTo(&job); err != nil {
 			return err
@@ -158,8 +157,7 @@ func (d *firestoreDB) PutJobs(jobs []*db.Job) error {
 		fixJobTimestamps(job)
 	}
 
-	ctx := context.Background()
-	if err := d.client.RunTransaction(ctx, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := firestore.RunTransaction(d.client, DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putJobs(jobs, tx)
 	}); err != nil {
 		return err

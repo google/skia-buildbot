@@ -33,7 +33,7 @@ func (d *firestoreDB) tasks() *fs.CollectionRef {
 
 // See documentation for db.TaskReader interface.
 func (d *firestoreDB) GetTaskById(id string) (*db.Task, error) {
-	doc, err := d.tasks().Doc(id).Get(context.Background())
+	doc, err := firestore.Get(d.tasks().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -52,7 +52,6 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 	start = fixTimestamp(start)
 	end = fixTimestamp(end)
 
-	ctx := context.Background()
 	// TODO(borenet): We can make this part of the query,
 	// but it would required building a composite index.
 	// It's possible that we should require a repo when
@@ -61,7 +60,7 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 	// 500 writes per second.
 	q := d.tasks().Where("Created", ">=", start).Where("Created", "<", end).OrderBy("Created", fs.Asc)
 	rv := []*db.Task{}
-	if err := firestore.IterDocs(ctx, q, func(doc *fs.DocumentSnapshot) error {
+	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var task db.Task
 		if err := doc.DataTo(&task); err != nil {
 			return err
@@ -171,8 +170,7 @@ func (d *firestoreDB) PutTasks(tasks []*db.Task) error {
 		fixTaskTimestamps(task)
 	}
 
-	ctx := context.Background()
-	if err := d.client.RunTransaction(ctx, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := firestore.RunTransaction(d.client, DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putTasks(tasks, tx)
 	}); err != nil {
 		return err

@@ -1,7 +1,6 @@
 package firestore
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -46,9 +45,8 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 		}
 	}
 
-	ctx := context.Background()
 	q := d.commitComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
-	if err := firestore.IterDocs(ctx, q, func(doc *fs.DocumentSnapshot) error {
+	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c db.CommitComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
@@ -65,7 +63,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 	}
 
 	q = d.taskComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
-	if err := firestore.IterDocs(ctx, q, func(doc *fs.DocumentSnapshot) error {
+	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c db.TaskComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
@@ -87,7 +85,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 	}
 
 	q = d.taskSpecComments().OrderBy("Timestamp", fs.Asc)
-	if err := firestore.IterDocs(ctx, q, func(doc *fs.DocumentSnapshot) error {
+	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c db.TaskSpecComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
@@ -119,7 +117,7 @@ func taskCommentId(c *db.TaskComment) string {
 func (d *firestoreDB) PutTaskComment(c *db.TaskComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := taskCommentId(c)
-	_, err := d.taskComments().Doc(id).Create(context.Background(), c)
+	_, err := firestore.Create(d.taskComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
@@ -129,7 +127,7 @@ func (d *firestoreDB) PutTaskComment(c *db.TaskComment) error {
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) DeleteTaskComment(c *db.TaskComment) error {
 	id := taskCommentId(c)
-	_, err := d.taskComments().Doc(id).Delete(context.Background())
+	_, err := firestore.Delete(d.taskComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	return err
 }
 
@@ -142,7 +140,7 @@ func taskSpecCommentId(c *db.TaskSpecComment) string {
 func (d *firestoreDB) PutTaskSpecComment(c *db.TaskSpecComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := taskSpecCommentId(c)
-	_, err := d.taskSpecComments().Doc(id).Create(context.Background(), c)
+	_, err := firestore.Create(d.taskSpecComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
@@ -152,7 +150,7 @@ func (d *firestoreDB) PutTaskSpecComment(c *db.TaskSpecComment) error {
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) DeleteTaskSpecComment(c *db.TaskSpecComment) error {
 	id := taskSpecCommentId(c)
-	_, err := d.taskSpecComments().Doc(id).Delete(context.Background())
+	_, err := firestore.Delete(d.taskSpecComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	return err
 }
 
@@ -165,7 +163,7 @@ func commitCommentId(c *db.CommitComment) string {
 func (d *firestoreDB) PutCommitComment(c *db.CommitComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := commitCommentId(c)
-	_, err := d.commitComments().Doc(id).Create(context.Background(), c)
+	_, err := firestore.Create(d.commitComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
@@ -175,6 +173,6 @@ func (d *firestoreDB) PutCommitComment(c *db.CommitComment) error {
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) DeleteCommitComment(c *db.CommitComment) error {
 	id := commitCommentId(c)
-	_, err := d.commitComments().Doc(id).Delete(context.Background())
+	_, err := firestore.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	return err
 }

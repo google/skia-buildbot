@@ -9,6 +9,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	GET_SINGLE_TIMEOUT = 5 * time.Second
+	GET_MULTI_TIMEOUT  = 60 * time.Second
+	PUT_SINGLE_TIMEOUT = 10 * time.Second
+	PUT_MULTI_TIMEOUT  = 30 * time.Second
+
+	DEFAULT_ATTEMPTS = 3
+)
+
 // Fix the given timestamp. Firestore only supports microsecond precision, and
 // we always want to store UTC.
 func fixTimestamp(t time.Time) time.Time {
