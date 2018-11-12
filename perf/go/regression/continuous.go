@@ -137,7 +137,6 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 			}
 		}
 	}
-
 }
 
 // Run starts the continuous running of clustering over the last numCommits
@@ -164,63 +163,14 @@ func (c *Continuous) Run(ctx context.Context) {
 			c.mutex.Lock()
 			c.current.Alert = cfg
 			c.mutex.Unlock()
-			radius := c.radius
-			if cfg.Radius != 0 {
-				radius = cfg.Radius
+
+			clusterResponseProcessor := func(resps []*ClusterResponse, cfg *alerts.Config, q string) {
+				c.reportRegressions(ctx, resps, cfg, q)
 			}
-			sklog.Infof("About to cluster for: %#v", *cfg)
-
-			queries, err := cfg.QueriesFromParamset(c.paramsProvider())
-			if err != nil {
-				sklog.Errorf("Failed to build GroupBy combinations: %s", err)
-				continue
+			if cfg.Radius == 0 {
+				cfg.Radius = c.radius
 			}
-			for _, q := range queries {
-				sklog.Infof("Clustering for query: %q", q)
-
-				// Get the last numCommits commits.
-				indexCommits := c.git.LastNIndex(c.numCommits)
-				// Drop the radius most recent, since we are clustering
-				// based on a radius of +/-radius commits.
-				indexCommits = indexCommits[:(c.numCommits - c.radius)]
-				for _, commit := range indexCommits {
-					id := &cid.CommitID{
-						Source: "master",
-						Offset: commit.Index,
-					}
-
-					details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
-					if err != nil {
-						sklog.Errorf("Failed to look up commit %v: %s", *id, err)
-						continue
-					}
-					c.mutex.Lock()
-					c.current.Commit = details[0]
-					c.mutex.Unlock()
-
-					// TODO(jcgregorio) Here either loop over the indexCommits or just drop the old algo and go with LastN all the time.
-
-					// Create ClusterRequest and run.
-					req := &ClusterRequest{
-						Source:      "master",
-						Offset:      commit.Index,
-						Radius:      radius,
-						Query:       q,
-						Algo:        cfg.Algo,
-						Interesting: cfg.Interesting,
-						K:           cfg.K,
-						Sparse:      cfg.Sparse,
-					}
-					sklog.Infof("Continuous: Clustering at %s for %q", details[0].Message, q)
-					resps, err := Run(ctx, req, c.git, c.cidl, c.dfBuilder)
-					if err != nil {
-						sklog.Warningf("Failed while clustering %v %s", *req, err)
-						continue
-					}
-
-					c.reportRegressions(ctx, resps, cfg, q)
-				}
-			}
+			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, c.git, c.cidl, c.dfBuilder)
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
