@@ -71,7 +71,7 @@ type ClusterRequest struct {
 	Sparse      bool               `json:"sparse"`
 	Type        ClusterRequestType `json:"type"`
 	N           int32              `json:"n"`
-	End         int                `json:"end"`
+	End         time.Time          `json:"end"`
 }
 
 func (c *ClusterRequest) Id() string {
@@ -99,7 +99,7 @@ type ClusterRequestProcess struct {
 	message    string             // Describes the current state of the process.
 }
 
-func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
+func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
 	ret := &ClusterRequestProcess{
 		request:    req,
 		git:        git,
@@ -108,13 +108,25 @@ func newProcess(req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLoo
 		state:      PROCESS_RUNNING,
 		message:    "Running",
 	}
-	// TODO(jcgregorio) This is awkward and should go away in a future CL.
-	ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, git, req, dfBuilder)
+	if req.Type == CLUSTERING_REQUEST_TYPE_SINGLE {
+		// TODO(jcgregorio) This is awkward and should go away in a future CL.
+		ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, git, req, dfBuilder)
+	} else {
+		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+		iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
+		if err != nil {
+			sklog.Errorf("Failed to create iterator: %s", err)
+			ret.state = PROCESS_ERROR
+			ret.message = "Failed to create initial dataframe."
+		} else {
+			ret.iter = iter
+		}
+	}
 	return ret
 }
 
 func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
-	ret := newProcess(req, git, cidl, dfBuilder)
+	ret := newProcess(ctx, req, git, cidl, dfBuilder)
 	go ret.Run(ctx)
 	return ret
 }
@@ -324,6 +336,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 			p.reportError(err, "Failed to get DataFrame from DataFrameIterator.")
 			return
 		}
+		sklog.Infof("Next dataframe: %d traces", len(df.TraceSet))
 		before := len(df.TraceSet)
 		// Filter out Traces with insufficient data. I.e. we need 50% or more data
 		// on either side of the target commit.
@@ -372,12 +385,12 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		}
 
 		p.mutex.Lock()
-		defer p.mutex.Unlock()
 		p.state = PROCESS_SUCCESS
 		p.message = ""
 		p.response = append(p.response, &ClusterResponse{
 			Summary: summary,
 			Frame:   frame,
 		})
+		p.mutex.Unlock()
 	}
 }
