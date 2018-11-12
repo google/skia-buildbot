@@ -34,6 +34,24 @@
       "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a67f8ff_08bc7e62",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-12T18:56:26Z",
+      "side": 1,
+      "message": "So if there is a revert all failures will automatically be ignored with no way to unignore?\nIf yes then I\u0027m not sure we want that: A dev might want to be able to see everything that failed after a revert to try to address all issues.",
+      "parentUuid": "efe1eb11_2ecdb4a4",
+      "revId": "6473e888c3fbc185bf117ff6df19e075e079fff8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
