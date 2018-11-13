@@ -1,0 +1,114 @@
+<!-- The <cluster-lastn-page-sk> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+
+<link rel="import" href="/res/imp/domain-picker-sk.html" />
+<link rel="import" href="/res/imp/alert-config.html" />
+<link rel="stylesheet" href="/res/common/css/md.css">
+
+<dom-module id="cluster-lastn-page-sk">
+  <style>
+  </style>
+  <template>
+    <alert-config-sk id=alertconfig config="{{_cfg}}"></alert-config-sk>
+    <domain-picker-sk id=range state="[[state]]" on-domain-changed="_rangeChange"></domain-picker-sk>
+    <button class=action>Run</button>
+    <!--
+    <table on-start-triage=_triage_start id=table>
+      <tr>
+        <th>Commit</th>
+        <template is="dom-repeat" items="[[_reg.header]]">
+          <th colspan=2><a href="/a/?[[item.id]]">[[_displayName(item.query,item.display_name)]]</a></th>
+        </template>
+      </tr>
+        <tr>
+          <th></th>
+          <template is="dom-repeat" items="[[_reg.header]]">
+
+            <template is="dom-if" if="[[_stepDownAt(index)]]">
+              <th>Low</th>
+            </template>
+
+            <template is="dom-if" if="[[_stepUpAt(index)]]">
+              <th>High</th>
+            </template>
+
+            <template is="dom-if" if="[[_notBoth(index)]]">
+              <th></th>
+            </template>
+
+          </template>
+        </tr>
+      <template is="dom-repeat" items="[[_reg.table]]" index-as="tableIndex">
+        <tr>
+          <td class=fixed>
+            <commit-detail-sk cid="[[item.cid]]"></commit-detail-sk>
+          </td>
+          <template is="dom-repeat" items="[[item.columns]]">
+
+            <template is="dom-if" if="[[_stepDownAt(index)]]">
+              <td class=cluster>
+                <template is="dom-if" if="[[item.low]]">
+                  <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=low full_summary="[[_full_summary(item.frame, item.low)]]" triage="[[item.low_status]]"></triage-status-sk>
+                </template>
+                <template is="dom-if" if="[[_not(item.low)]]">
+                  <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
+                </template>
+              </td>
+            </template>
+
+            <template is="dom-if" if="[[_stepUpAt(index)]]">
+              <td class=cluster>
+                <template is="dom-if" if="[[item.high]]">
+                  <triage-status-sk alert="[[_alertAt(index)]]" cluster_type=high full_summary="[[_full_summary(item.frame, item.high)]]" triage="[[item.high_status]]"></triage-status-sk>
+                </template>
+                <template is="dom-if" if="[[_not(item.high)]]">
+                  <a class=dot title="No clusters found." href="/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]">[[_display(tableIndex,state.end)]]</a>
+                </template>
+              </td>
+            </template>
+
+            <template is="dom-if" if="[[_notBoth(index)]]">
+              <td></td>
+            </template>
+
+          </template>
+        </tr>
+      </template>
+    </table>
+    -->
+
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "cluster-lastn-page-sk",
+
+    ready: function() {
+    },
+
+    properties: {
+      cfg: {
+        type: Object,
+        value: {},
+        reflectToAttribute: false,
+        observer: "cfgChange",
+      },
+      domain: {
+        type: Object,
+        value: () => ({
+          end: Date.now()/1000,
+          num_commits: 200,
+          request_type: 1,
+        }),
+        reflectToAttribute: false,
+        observer: "domainChange",
+      }
+    },
+
+  });
+</script>

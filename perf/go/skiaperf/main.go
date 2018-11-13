@@ -1549,6 +1549,7 @@ func main() {
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
 	router.HandleFunc("/a/", templateHandler("alerts.html"))
+	router.HandleFunc("/d/", templateHandler("dryRunAlert.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
