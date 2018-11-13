@@ -31,7 +31,6 @@
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
     logged_in: Boolean, if the links should be for internal or external pages.
-    num_task_specs: Number, the number of task specs with data, after filtering.
     relanded_map: Object, a map of an issue number that was relanded to the commit that relands it.
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
@@ -81,6 +80,12 @@
         It is important to preallocate this size, otherwise the flexbox layout
         behaves strangely (i.e. wrong) when the data is first added. */
         min-height: 780px;
+      }
+      #table.empty {
+        background-image: url("https://i.giphy.com/media/121YQW1OQhqGLS/giphy.webp");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
       }
     </style>
 
@@ -186,14 +191,15 @@
       _redraw:function() {
         this.set("drawing", true);
         console.time("d3 rendering");
+        if (this.category_list.length === 0) {
+          this.$.table.classList.add("empty");
+        } else {
+          this.$.table.classList.remove("empty");
+        }
         this._drawCommitMessages(this.commits, this.relanded_map, this.reverted_map, this.time_points);
-
         this._drawCategories(this.category_list, this.categories);
-
         this._drawSubCategories(this.categories);
-
         this._drawTaskSpecColumns(this.categories, this.task_specs, this.commits.length);
-
         this._drawTasks(this.commits, this.task_details);
         console.timeEnd("d3 rendering");
         this.set("drawing", false);
