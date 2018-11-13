@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d78ebebd_7ebe34e9",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-13T17:36:03Z",
+      "side": 1,
+      "message": "Should this be a warning/error?",
+      "range": {
+        "startLine": 270,
+        "startChar": 11,
+        "endLine": 270,
+        "endChar": 16
+      },
+      "revId": "428a472cc0a92d8b48869a705465a3b211672446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
