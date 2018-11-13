@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db4714d4_302962ec",
+        "filename": "status/res/imp/commits-data-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-13T13:08:26Z",
+      "side": 0,
+      "message": "Drive-by: this isn\u0027t actually used.",
+      "range": {
+        "startLine": 40,
+        "startChar": 3,
+        "endLine": 40,
+        "endChar": 80
+      },
+      "revId": "4e8a15a609f1a9fc1865002afcc1ce0ea15b899f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
