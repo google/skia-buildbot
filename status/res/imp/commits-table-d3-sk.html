@@ -31,7 +31,6 @@
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
     logged_in: Boolean, if the links should be for internal or external pages.
-    num_task_specs: Number, the number of task specs with data, after filtering.
     relanded_map: Object, a map of an issue number that was relanded to the commit that relands it.
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
@@ -81,6 +80,9 @@
         It is important to preallocate this size, otherwise the flexbox layout
         behaves strangely (i.e. wrong) when the data is first added. */
         min-height: 780px;
+      }
+      iframe {
+        border: 0;
       }
     </style>
 
@@ -186,14 +188,38 @@
       _redraw:function() {
         this.set("drawing", true);
         console.time("d3 rendering");
+
+        // Display pictures instead of tasks if there aren't any to display.
+        var iframe = null;
+        for (var i = 0; i < this.$.table.childNodes.length; i++) {
+          var child = this.$.table.childNodes[i];
+          if (child.tagName == "IFRAME") {
+            iframe = child;
+            break;
+          }
+        }
+        if (this.category_list.length === 0) {
+          if (!iframe) {
+            iframe = document.createElement("iframe");
+            iframe.src = "https://clients3.google.com/cast/chromecast/home?slideshow-period=300";
+            this.$.table.appendChild(iframe);
+          }
+          // Images are 1920x1080. Scale to fit the size of the div.
+          srcWidth = 1920;
+          srcHeight = 1080;
+          var scale = Math.min(this.$.table.clientWidth / srcWidth, this.$.table.clientHeight / srcHeight);
+          iframe.style.width = (srcWidth * scale) + "px";
+          iframe.style.height = (srcHeight * scale) + "px";
+        } else {
+          if (iframe) {
+            this.$.table.removeChild(iframe);
+          }
+        }
+
         this._drawCommitMessages(this.commits, this.relanded_map, this.reverted_map, this.time_points);
-
         this._drawCategories(this.category_list, this.categories);
-
         this._drawSubCategories(this.categories);
-
         this._drawTaskSpecColumns(this.categories, this.task_specs, this.commits.length);
-
         this._drawTasks(this.commits, this.task_details);
         console.timeEnd("d3 rendering");
         this.set("drawing", false);
