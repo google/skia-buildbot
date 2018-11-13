@@ -22,6 +22,30 @@
       "revId": "428a472cc0a92d8b48869a705465a3b211672446",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7caa61ad_81d96d73",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-13T17:47:04Z",
+      "side": 1,
+      "message": "Changed to warning. Done.",
+      "parentUuid": "d78ebebd_7ebe34e9",
+      "range": {
+        "startLine": 270,
+        "startChar": 11,
+        "endLine": 270,
+        "endChar": 16
+      },
+      "revId": "428a472cc0a92d8b48869a705465a3b211672446",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
