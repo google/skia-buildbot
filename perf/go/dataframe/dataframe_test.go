@@ -9,12 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
-	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -60,26 +57,6 @@ func (m *mockVcs) ResolveCommit(ctx context.Context, commitHash string) (string,
 	return "", nil
 }
 
-type mockPTraceStore struct {
-	traceSet  types.TraceSet
-	matchFail bool
-}
-
-func (m mockPTraceStore) Add(commitID *cid.CommitID, values map[string]float32, sourceFile string, ts time.Time) error {
-	return nil
-}
-
-func (m mockPTraceStore) Details(commitID *cid.CommitID, traceID string) (string, float32, error) {
-	return "", 0, nil
-}
-
-func (m mockPTraceStore) Match(commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, progress types.Progress) (types.TraceSet, error) {
-	if m.matchFail {
-		return nil, fmt.Errorf("Failed to retrieve traces.")
-	}
-	return m.traceSet, nil
-}
-
 var (
 	ts0 = time.Unix(1406721642, 0).UTC()
 	ts1 = time.Unix(1406721715, 0).UTC()
@@ -94,14 +71,6 @@ var (
 			Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
 			Index:     1,
 			Timestamp: ts1,
-		},
-	}
-
-	store = mockPTraceStore{
-		traceSet: types.TraceSet{
-			",arch=x86,config=565,":  types.Trace([]float32{1.2, 2.1}),
-			",arch=x86,config=8888,": types.Trace([]float32{1.3, 3.1}),
-			",arch=x86,config=gpu,":  types.Trace([]float32{1.4, 4.1}),
 		},
 	}
 )
@@ -141,76 +110,6 @@ func TestRangeImpl(t *testing.T) {
 	headers, pcommits, _ = rangeImpl([]*vcsinfo.IndexCommit{}, 0)
 	assert.Equal(t, 0, len(headers))
 	assert.Equal(t, 0, len(pcommits))
-}
-
-func TestNew(t *testing.T) {
-	testutils.SmallTest(t)
-	colHeaders := []*ColumnHeader{
-		{
-			Source:    "master",
-			Offset:    0,
-			Timestamp: ts0.Unix(),
-		},
-		{
-			Source:    "master",
-			Offset:    1,
-			Timestamp: ts1.Unix(),
-		},
-	}
-	pcommits := []*cid.CommitID{
-		{
-			Offset: 0,
-			Source: "master",
-		},
-		{
-			Offset: 1,
-			Source: "master",
-		},
-	}
-	store.matchFail = false
-
-	matches := func(key string) bool {
-		return true
-	}
-	d, err := _new(colHeaders, pcommits, matches, store, nil, 1)
-	assert.NoError(t, err)
-	assert.Equal(t, 3, len(d.TraceSet))
-	assert.True(t, util.SSliceEqual(d.ParamSet["arch"], []string{"x86"}))
-	assert.True(t, util.SSliceEqual(d.ParamSet["config"], []string{"8888", "565", "gpu"}))
-	assert.Equal(t, 1, d.Skip)
-}
-
-func TestVCS(t *testing.T) {
-	testutils.SmallTest(t)
-	vcs := &mockVcs{
-		commits: commits,
-	}
-	store.matchFail = false
-
-	dfBuiler := NewDataFrameBuilderFromPTraceStore(vcs, store)
-
-	d, err := dfBuiler.New(nil)
-	assert.NoError(t, err)
-	assert.Equal(t, 3, len(d.TraceSet))
-
-	d, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, true, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, 3, len(d.TraceSet))
-
-	// Test error conditions, i.e. that we log only and don't return an error.
-	vcs.updateFail = true
-	_, err = dfBuiler.New(nil)
-	assert.NoError(t, err)
-	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, true, nil)
-	assert.NoError(t, err)
-
-	store.matchFail = true
-	dfBuiler = NewDataFrameBuilderFromPTraceStore(vcs, store)
-	// Test error conditions if the store fails.
-	_, err = dfBuiler.New(nil)
-	assert.Error(t, err)
-	_, err = dfBuiler.NewFromQueryAndRange(ts0, ts1.Add(time.Second), &query.Query{}, true, nil)
-	assert.Error(t, err)
 }
 
 func TestBuildParamSet(t *testing.T) {
