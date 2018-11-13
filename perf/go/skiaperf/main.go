@@ -155,6 +155,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/alerts.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
+		filepath.Join(*resourcesDir, "templates/dryRunAlert.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -1549,6 +1550,7 @@ func main() {
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
 	router.HandleFunc("/a/", templateHandler("alerts.html"))
+	router.HandleFunc("/d/", templateHandler("dryRunAlert.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
