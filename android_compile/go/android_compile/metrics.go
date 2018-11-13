@@ -20,11 +20,22 @@ var (
 	// Metric regarding broken android tree and it's mutex.
 	androidTreeBrokenMetric      = metrics2.GetInt64Metric("android_compile_tree_broken", nil)
 	androidTreeBrokenMetricMutex = sync.Mutex{}
+
+	// Metric regarding mirror syncs. Does not need a mutux because the tree is only updated after a RWLock.
+	mirrorSyncFailureMetric = metrics2.GetInt64Metric("android_compile_mirror_sync_failure", nil)
 )
 
 func resetMetrics() {
 	queueLengthMetric.Reset()
 	runningLengthMetric.Reset()
+}
+
+func updateMirrorSyncFailureMetric(failure bool) {
+	val := 0
+	if failure {
+		val = 1
+	}
+	mirrorSyncFailureMetric.Update(int64(val))
 }
 
 func updateInfraFailureMetric(failure bool) {
