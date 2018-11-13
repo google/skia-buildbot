@@ -9,6 +9,11 @@
  * @attr
  *
  * @example
+ *
+ *  <iframe width=128 height=128
+ *    src="https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b"
+ *    scrolling=no>
+ *  </iframe>
  */
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -38,7 +43,7 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
     this._skCanvas = null;
     this._skSurface = null;
     this._wasmDuration = null;
-    this._firstFrameTime = Date.now();
+    this._firstFrameTime = null;
   }
 
   connectedCallback() {
@@ -51,7 +56,6 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
       this._render();
     });
 
-    // Run this on the next micro-task to allow mocks to be set up if needed.
     this._render();
 
     // Start a continous animation loop.
@@ -72,6 +76,7 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
       if (!this._skAnimation) {
         this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
         this._wasmDuration = this._skAnimation.duration() * 1000;
+        this._firstFrameTime = Date.now();
       }
       let now = Date.now();
       let seek = ((now - this._firstFrameTime) / this._wasmDuration ) % 1.0;
@@ -109,14 +114,13 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
         this._render();
       }).catch((msg) => {
         console.log(msg);
-        //        window.history.pushState(null, '', '/');
         this._render();
       });
     });
   }
 
   _render() {
-    render(template(this), this);
+    render(template(this), this, {eventContext: this});
   }
 
 });
