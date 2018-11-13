@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
-	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -61,19 +60,6 @@ type DataFrameBuilder interface {
 
 	// TODO Add func to count matches.
 	// TODO Add func to get merged paramset for a date range.
-}
-
-// ptracestoreDataFrameBuilder implements DataFrameBuilder using ptracestore.
-type ptracestoreDataFrameBuilder struct {
-	vcs   vcsinfo.VCS
-	store ptracestore.PTraceStore
-}
-
-func NewDataFrameBuilderFromPTraceStore(vcs vcsinfo.VCS, store ptracestore.PTraceStore) DataFrameBuilder {
-	return &ptracestoreDataFrameBuilder{
-		vcs:   vcs,
-		store: store,
-	}
 }
 
 // ColumnHeader describes each column in a DataFrame.
@@ -246,9 +232,9 @@ func (d *DataFrame) Slice(offset, size int) (*DataFrame, error) {
 	return ret, nil
 }
 
-// rangeImpl returns the slices of ColumnHeader and cid.CommitID that
-// are needed by DataFrame and ptracestore.PTraceStore, respectively. The
-// slices are populated from the given vcsinfo.IndexCommits.
+// rangeImpl returns the slices of ColumnHeader and cid.CommitID that are
+// needed by DataFrame. The slices are populated from the given
+// vcsinfo.IndexCommits.
 //
 // The value for 'skip', the number of commits skipped, is passed through to
 // the return values.
@@ -270,17 +256,16 @@ func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.C
 }
 
 // lastN returns the slices of ColumnHeader and cid.CommitID that are
-// needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
-// are for the last N commits in the repo.
+// needed by DataFrame. The slices are for the last N commits in the repo.
 //
 // Returns 0 for 'skip', the number of commits skipped.
 func lastN(vcs vcsinfo.VCS, n int) ([]*ColumnHeader, []*cid.CommitID, int) {
 	return rangeImpl(vcs.LastNIndex(n), 0)
 }
 
-// getRange returns the slices of ColumnHeader and cid.CommitID that are
-// needed by DataFrame and ptracestore.PTraceStore, respectively. The slices
-// are for the commits that fall in the given time range [begin, end).
+// getRange returns the slices of ColumnHeader and cid.CommitID that are needed
+// by DataFrame. The slices are for the commits that fall in the given time
+// range [begin, end).
 //
 // If 'downsample' is true then the number of commits returned is limited
 // to MAX_SAMPLE_SIZE.
@@ -293,85 +278,6 @@ func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*Column
 		commits, skip = DownSample(vcs.Range(begin, end), MAX_SAMPLE_SIZE)
 	}
 	return rangeImpl(commits, skip)
-}
-
-func _new(colHeaders []*ColumnHeader, commitIDs []*cid.CommitID, matches ptracestore.KeyMatches, store ptracestore.PTraceStore, progress types.Progress, skip int) (*DataFrame, error) {
-	defer timer.New("_new time").Stop()
-	traceSet, err := store.Match(commitIDs, matches, progress)
-	if err != nil {
-		return nil, fmt.Errorf("DataFrame failed to query for all traces: %s", err)
-	}
-	d := &DataFrame{
-		TraceSet: traceSet,
-		Header:   colHeaders,
-		ParamSet: paramtools.ParamSet{},
-		Skip:     skip,
-	}
-
-	d.BuildParamSet()
-	return d, nil
-}
-
-// See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) New(progress types.Progress) (*DataFrame, error) {
-	return p.NewN(progress, DEFAULT_NUM_COMMITS)
-}
-
-// See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewN(progress types.Progress, n int) (*DataFrame, error) {
-	colHeaders, commitIDs, skip := lastN(p.vcs, n)
-	matches := func(key string) bool {
-		return true
-	}
-	return _new(colHeaders, commitIDs, matches, p.store, progress, skip)
-}
-
-// See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error) {
-	defer timer.New("NewFromQueryAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, downsample)
-	return _new(colHeaders, commitIDs, q.Matches, p.store, progress, skip)
-}
-
-// See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error) {
-	defer timer.New("NewFromKeysAndRange time").Stop()
-	colHeaders, commitIDs, skip := getRange(p.vcs, begin, end, downsample)
-	sort.Strings(keys)
-	matches := func(key string) bool {
-		i := sort.SearchStrings(keys, key)
-		if i > len(keys)-1 {
-			return false
-		}
-		return keys[i] == key
-	}
-	return _new(colHeaders, commitIDs, matches, p.store, progress, skip)
-}
-
-// See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error) {
-	details, err := cidl.Lookup(ctx, cids)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
-	}
-	colHeaders := []*ColumnHeader{}
-	for _, d := range details {
-		colHeaders = append(colHeaders, &ColumnHeader{
-			Source:    d.Source,
-			Offset:    int64(d.Offset),
-			Timestamp: d.Timestamp,
-		})
-	}
-	return _new(colHeaders, cids, q.Matches, p.store, progress, 0)
-}
-
-// See DataFrameBuilder.
-func (p *ptracestoreDataFrameBuilder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*DataFrame, error) {
-	return nil, fmt.Errorf("Not Implemented.")
-}
-
-func (p *ptracestoreDataFrameBuilder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*DataFrame, error) {
-	return nil, fmt.Errorf("Not Implemented.")
 }
 
 // NewEmpty returns a new empty DataFrame.
@@ -398,6 +304,3 @@ func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) *Data
 		Skip:     skip,
 	}
 }
-
-// Validate that the concrete ptracestoreDataFrameBuilder faithfully implements the DataFrameBuidler interface.
-var _ DataFrameBuilder = (*ptracestoreDataFrameBuilder)(nil)
