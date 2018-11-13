@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e3761cda_253f510e",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-13T16:06:58Z",
+      "side": 1,
+      "message": "I think we need a single point to set CORS, CSP, X-* headers, etc. but not sure HealthzAndHTTPS is the right location.",
+      "parentUuid": "c380d27d_049dfa08",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d82ba53b_c82a9f94",
         "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
         "patchSetId": 7
@@ -76,6 +94,24 @@
     },
     {
       "key": {
+        "uuid": "8099855b_af024920",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-13T16:06:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af4182f5_f0df31da",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58fe2927_4f7c756e",
         "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
         "patchSetId": 7
@@ -90,6 +126,24 @@
       "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75604827_9e116e9a",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-13T16:06:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58fe2927_4f7c756e",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -110,6 +164,24 @@
     },
     {
       "key": {
+        "uuid": "e31cc579_b76f0215",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-13T16:06:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a7d1643_0d1a6853",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00755441_355eec00",
         "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
         "patchSetId": 7
@@ -124,6 +196,24 @@
       "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "187ff4b2_ae2fda87",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-13T16:06:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00755441_355eec00",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -158,6 +248,24 @@
       "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fa11a40_0c6b8d49",
+        "filename": "skottie/pages/embed.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-13T16:06:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16153891_2e175893",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
