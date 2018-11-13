@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	// TODO(jcgregorio) Move once ptraceingest is deleted.
-	TEST_DATA_DIR = "../ptraceingest/testdata"
+	TEST_DATA_DIR = "./testdata"
 
 	TEST_INGESTION_FILE = "nano.json"
 )

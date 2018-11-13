@@ -6,12 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
-	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -34,7 +31,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -51,8 +47,6 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	"go.skia.org/infra/perf/go/notify"
-	_ "go.skia.org/infra/perf/go/ptraceingest"
-	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/types"
@@ -228,25 +222,15 @@ func Init() {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
-	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore}
-
-	if *kubernetes {
-		scopes = append(scopes, bigtable.Scope)
-	}
+	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope}
 
 	ts, err := auth.NewDefaultTokenSource(*local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
 
-	if *kubernetes {
-		if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
-			sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
-		}
-	} else {
-		if err := ds.Init(*projectName, *namespace); err != nil {
-			sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
-		}
+	if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
+		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
 	}
 
 	storageClient, err = storage.NewClient(ctx, option.WithTokenSource(ts))
@@ -261,13 +245,11 @@ func Init() {
 
 	loadTemplates()
 
-	if *kubernetes {
-		var ok bool
-		if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
-			sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
-		}
-		*gitRepoUrl = btConfig.GitUrl
+	var ok bool
+	if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
+		sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
 	}
+	*gitRepoUrl = btConfig.GitUrl
 
 	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
 	if err != nil {
@@ -275,21 +257,11 @@ func Init() {
 	}
 
 	var dfBuilder dataframe.DataFrameBuilder
-	if *kubernetes {
-		ts, err := auth.NewDefaultTokenSource(*local, bigtable.Scope)
-		if err != nil {
-			sklog.Fatalf("Failed to get TokenSource: %s", err)
-		}
-		traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
-		if err != nil {
-			sklog.Fatalf("Failed to open trace store: %s", err)
-		}
-		dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
-	} else {
-		ptracestore.Init(*ptraceStoreDir)
-		dfBuilder = dataframe.NewDataFrameBuilderFromPTraceStore(git, ptracestore.Default)
-		initIngestion(ctx)
+	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
+	if err != nil {
+		sklog.Fatalf("Failed to open trace store: %s", err)
 	}
+	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 
 	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, *dataFrameSize)
 	if err != nil {
@@ -303,38 +275,9 @@ func Init() {
 	alertStore = alerts.NewStore()
 
 	if !*noemail {
-		if *kubernetes {
-			emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
-			if err != nil {
-				sklog.Fatalf("Failed to create email auth: %v", err)
-			}
-		} else {
-			usr, err := user.Current()
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			tokenFile, err := filepath.Abs(usr.HomeDir + "/" + GMAIL_TOKEN_CACHE_FILE)
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			emailClientId := *emailClientIdFlag
-			emailClientSecret := *emailClientSecretFlag
-			if !*local {
-				emailClientId = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_ID))
-				emailClientSecret = metadata.Must(metadata.ProjectGet(metadata.GMAIL_CLIENT_SECRET))
-				cachedGMailToken := metadata.Must(metadata.ProjectGet(metadata.GMAIL_CACHED_TOKEN))
-				err = ioutil.WriteFile(tokenFile, []byte(cachedGMailToken), os.ModePerm)
-				if err != nil {
-					sklog.Fatalf("Failed to cache token: %s", err)
-				}
-			}
-			if *local && (emailClientId == "" || emailClientSecret == "") {
-				sklog.Fatal("If -local, you must provide -email_clientid and -email_clientsecret")
-			}
-			emailAuth, err = email.NewGMail(emailClientId, emailClientSecret, tokenFile)
-			if err != nil {
-				sklog.Fatalf("Failed to create email auth: %v", err)
-			}
+		emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
+		if err != nil {
+			sklog.Fatalf("Failed to create email auth: %v", err)
 		}
 		notifier = notify.New(emailAuth, *subdomain)
 	} else {
@@ -1197,28 +1140,24 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	name := ""
-	if *kubernetes {
-		index := int32(dr.CID.Offset)
-		tileKey := traceStore.TileKey(index)
-		ops, err := traceStore.GetOrderedParamSet(tileKey)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to find details")
-			return
-		}
-		p, err := query.ParseKey(dr.TraceID)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Invalid trace id")
-			return
-		}
-		encodedKey, err := ops.EncodeParamsAsString(p)
-		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to encode key")
-			return
-		}
-		name, err = traceStore.GetSource(index, encodedKey)
-	} else {
-		name, _, err = ptracestore.Default.Details(&dr.CID, dr.TraceID)
+	index := int32(dr.CID.Offset)
+	tileKey := traceStore.TileKey(index)
+	ops, err := traceStore.GetOrderedParamSet(tileKey)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to find details")
+		return
 	}
+	p, err := query.ParseKey(dr.TraceID)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid trace id")
+		return
+	}
+	encodedKey, err := ops.EncodeParamsAsString(p)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode key")
+		return
+	}
+	name, err = traceStore.GetSource(index, encodedKey)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load details")
 		return
