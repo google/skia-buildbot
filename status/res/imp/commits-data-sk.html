@@ -37,7 +37,6 @@
     commits: Array<Object>, the commit objects, in chronological order.
     commits_map: Object, a map of commit hash to commit objects.
     loading: Boolean, if the data is being fetched from the server or parsed.
-    num_task_specs: Number, the number of task specs with data, after filtering.
     relanded_map: Object, a map of an issue number that was relanded to the commit that relands it
     reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it
     swarming_url: String, the URL of the Swarming server.
@@ -273,10 +272,6 @@
           type: Number,
           notify: true,
           computed: "_or(_activeAJAX, _filtering)",
-        },
-        num_task_specs: {
-          type: Number,
-          notify:true,
         },
         purple_tasks: {
           type: Array,
@@ -820,7 +815,6 @@
           console.error("Invalid task spec filter selection: " + selected);
         }
         sk.sortStrings(filteredTaskSpecs);
-        this.num_task_specs = filteredTaskSpecs.length;
 
         var categories = {};
         var categoryList = [];

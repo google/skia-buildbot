@@ -29,7 +29,6 @@
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
     logged_in: Boolean, if the links should be for internal or external pages.
-    num_task_specs: Number, the number of task specs with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
@@ -172,7 +171,6 @@
           commits="[[commits]]"
           commits_map="[[commits_map]]"
           logged_in="[[logged_in]]"
-          num_task_specs="[[num_task_specs]]"
           relanded_map="[[relanded_map]]"
           repo="[[repo]]"
           repo_base="[[repo_base]]"
@@ -230,9 +228,6 @@
         },
         logged_in: {
           type: Boolean,
-        },
-        num_task_specs: {
-          type: Number,
         },
         purple_tasks: {
           type: Array,
