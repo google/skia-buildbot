@@ -1,0 +1,163 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c380d27d_049dfa08",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "I don\u0027t think we should disable this for all URLs\nMaybe instead of setting it here, we should set it by default in https://github.com/google/skia-buildbot/blob/master/go/httputils/http.go#L644 with an option to disable it.",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d82ba53b_c82a9f94",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "An iframe-able version of skottie-sk.js; This auto-plays a lottie animation using the Skottie WASM player.\n\nThe controls, the lottie-web version, and other surrounding HTML has been removed to allow for a clean embedding look.",
+      "range": {
+        "startLine": 5,
+        "startChar": 3,
+        "endLine": 5,
+        "endChar": 64
+      },
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dda3b41_f3a1bfe4",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "Perhaps add \u003ciframe width\u003d128 height\u003d128 src\u003d\"https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b\" scrolling\u003dno\u003e\u003c/iframe\u003e as an example of usage?",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af4182f5_f0df31da",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "I would initialize this around line 75 after the animation is initialized.",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58fe2927_4f7c756e",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "This comment is out of date",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a7d1643_0d1a6853",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "Delete?",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00755441_355eec00",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "Since lit 0.12.0, include {eventContext: this} as a third argument.\nhttps://polymer.github.io/lit-html/guide/writing-templates.html#render-options\n\nIt doesn\u0027t directly impact any @events in this element, but I\u0027d prefer to have it in all places for consistency.",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fe1bdc4_63897510",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "delete file?",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16153891_2e175893",
+        "filename": "skottie/pages/embed.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-13T13:25:14Z",
+      "side": 1,
+      "message": "Why have this and embed.scss?",
+      "revId": "7ab43c3fae2cb8c49b29a77e70d3d6e693ed2d52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
