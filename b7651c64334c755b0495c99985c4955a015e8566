@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17e17c95_6769ed11",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-13T20:08:15Z",
+      "side": 1,
+      "message": "Why do we need this helper function?  It seems simpler to just do \n\nif ...; err !\u003d nil {\n  mirrorSyncFailureMetric.Update(1)\n} else {\n  mirrorSyncFailureMetric.Update(0)\n}",
+      "range": {
+        "startLine": 127,
+        "startChar": 3,
+        "endLine": 127,
+        "endChar": 32
+      },
+      "revId": "b7651c64334c755b0495c99985c4955a015e8566",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
