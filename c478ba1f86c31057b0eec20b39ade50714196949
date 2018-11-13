@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a496d195_702801c1",
+        "filename": "status/res/imp/commits-table-d3-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2018-11-13T13:22:13Z",
+      "side": 1,
+      "message": "👍",
+      "revId": "c478ba1f86c31057b0eec20b39ade50714196949",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
