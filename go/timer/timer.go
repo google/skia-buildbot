@@ -16,6 +16,14 @@ import (
 //
 //     defer timer.New("database sync time").Stop()
 //
+// If you need to do something with the duration then you can do:
+//
+//     timerMetric := timer.New("database sync time")
+//     defer func() {
+//       duration := timerMetric.Stop()
+//       // Do something with duration here.
+//     }()
+//
 type Timer struct {
 	Begin  time.Time
 	Name   string
@@ -37,10 +45,11 @@ func NewWithMetric(name string, m metrics2.Float64Metric) *Timer {
 	}
 }
 
-func (t Timer) Stop() {
+func (t Timer) Stop() time.Duration {
 	duration := time.Now().Sub(t.Begin)
 	sklog.Infof("%s %v", t.Name, duration)
 	if t.Metric != nil {
 		t.Metric.Update(duration.Seconds())
 	}
+	return duration
 }

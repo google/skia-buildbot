@@ -41,6 +41,10 @@ const (
 
 	COMPILE_TASK_LOGS_BUCKET = "android-compile-logs"
 
+	// If the mirror sync time exceeds this, then the mirror is recreated
+	// before the next sync. More context is in skbug.com/8053
+	MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION = time.Minute * 25
+
 	// Exponential backoff values used to retry the syncing of the checkout.
 	INITIAL_INTERVAL     = 10 * time.Second
 	RANDOMIZATION_FACTOR = 0.5
@@ -84,6 +88,9 @@ var (
 	// RWMutex for handling checkouts. The mirror will acquire a Lock()
 	// while the other local checkouts will acquire a RLock().
 	checkoutsMutex sync.RWMutex
+
+	// Whether the mirror should be recreated before it is synced.
+	recreateMirror bool
 )
 
 func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Duration, storageClient *storage.Client) error {
@@ -108,11 +115,8 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	pathToMirror = filepath.Join(workdir, CHECKOUTS_TOPLEVEL_DIR, "mirror")
 	if _, err := os.Stat(pathToMirror); err != nil {
 		if os.IsNotExist(err) {
-			if _, err := fileutil.EnsureDirExists(pathToMirror); err != nil {
-				return fmt.Errorf("Error creating %s: %s", pathToMirror, err)
-			}
-			if err := runInit(ctx, pathToMirror, ANDROID_MANIFEST_URL, true); err != nil {
-				return fmt.Errorf("Error running init on %s: %s", pathToMirror, err)
+			if err := createMirrorAndInit(ctx, pathToMirror); err != nil {
+				return fmt.Errorf("Error creating mirror in %s: %s", pathToMirror, err)
 			}
 		}
 	}
@@ -159,6 +163,16 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	}
 	// Get a handle to the Google Storage bucket that logs will be stored in.
 	bucketHandle = storageClient.Bucket(COMPILE_TASK_LOGS_BUCKET)
+	return nil
+}
+
+func createMirrorAndInit(ctx context.Context, pathToMirror string) error {
+	if _, err := fileutil.EnsureDirExists(pathToMirror); err != nil {
+		return fmt.Errorf("Error creating %s: %s", pathToMirror, err)
+	}
+	if err := runInit(ctx, pathToMirror, ANDROID_MANIFEST_URL, true); err != nil {
+		return fmt.Errorf("Error running init on %s: %s", pathToMirror, err)
+	}
 	return nil
 }
 
@@ -222,24 +236,43 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		defer checkoutsMutex.RUnlock()
 	}
 
-	// Clean checkout before syncing.
-	pathToCleanCheckoutScript := filepath.Join(*resourcesDir, "clean-checkout.sh")
-	cleanCheckoutCmd := fmt.Sprintf("bash %s %s", pathToCleanCheckoutScript, checkoutPath)
-	sklog.Infof("Running %s", cleanCheckoutCmd)
-	cleanCheckoutOutput, err := sk_exec.RunSimple(ctx, cleanCheckoutCmd)
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to clean checkout: %s", err)
-		sklog.Errorln(errMsg)
-		return errors.New(errMsg)
+	if isMirror && recreateMirror {
+		sklog.Info("Recreating the mirror.")
+		util.RemoveAll(checkoutPath)
+		if err := createMirrorAndInit(ctx, checkoutPath); err != nil {
+			return fmt.Errorf("Error creating mirror in %s: %s", checkoutPath, err)
+		}
+		recreateMirror = false
+	} else {
+		// Clean checkout before syncing.
+		pathToCleanCheckoutScript := filepath.Join(*resourcesDir, "clean-checkout.sh")
+		cleanCheckoutCmd := fmt.Sprintf("bash %s %s", pathToCleanCheckoutScript, checkoutPath)
+		sklog.Infof("Running %s", cleanCheckoutCmd)
+		cleanCheckoutOutput, err := sk_exec.RunSimple(ctx, cleanCheckoutCmd)
+		if err != nil {
+			errMsg := fmt.Sprintf("Failed to clean checkout: %s", err)
+			sklog.Errorln(errMsg)
+			return errors.New(errMsg)
+		}
+		sklog.Infof("Output: %s", cleanCheckoutOutput)
 	}
-	sklog.Infof("Output: %s", cleanCheckoutOutput)
 
 	updateFunc := func() error {
 		checkoutBase := path.Base(checkoutPath)
 		sklog.Infof("Started updating %s", checkoutBase)
 		// Create metric and send it to a timer.
 		syncTimesMetric := metrics2.GetFloat64Metric(fmt.Sprintf("android_sync_time_%s", checkoutBase))
-		defer timer.NewWithMetric(fmt.Sprintf("Time taken to update %s:", checkoutBase), syncTimesMetric).Stop()
+		timerMetric := timer.NewWithMetric(fmt.Sprintf("Time taken to update %s:", checkoutBase), syncTimesMetric)
+		defer func() {
+			duration := timerMetric.Stop()
+			if isMirror {
+				recreateMirror = duration > MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION
+				if recreateMirror {
+					sklog.Warningf("Mirror sync time %s was greater than %s", duration, MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION)
+					sklog.Info("Will recreate mirror before next sync.")
+				}
+			}
+		}()
 
 		// Sync the current branch, only fetch projects fixed to sha1 if revision
 		// does not exist locally, and delete refs that no longer exist on server.
