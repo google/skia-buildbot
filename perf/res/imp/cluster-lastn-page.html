@@ -1,0 +1,208 @@
+<!-- The <cluster-lastn-page-sk> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+
+<link rel='import' href='/res/imp/bower_components/paper-spinner/paper-spinner.html'>
+
+<link rel='import' href='/res/imp/alert-config.html' />
+<link rel='import' href='/res/imp/domain-picker-sk.html' />
+
+<link rel='stylesheet' href='/res/common/css/md.css'>
+
+<dom-module id='cluster-lastn-page-sk'>
+  <style>
+    .controls > * {
+      display: block;
+      margin: 0.6em;
+    }
+  </style>
+  <template>
+    <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
+      <paper-dialog-scrollable>
+        <alert-config-sk id=alertconfig config='{{cfg}}'></alert-config-sk>
+      </paper-dialog-scrollable>
+      <div class='buttons'>
+        <paper-button dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm autofocus>Accept</paper-button>
+      </div>
+    </paper-dialog>
+    <div class=controls>
+      <label>Alert Configuration: <button on-click=_editAlert>[[_configTitle(cfg.algo,cfg.radius,cfg.sparse,cfg.interesting)]]</button></label>
+      <label>Domain: <domain-picker-sk id=range state='[[domain]]' on-domain-changed='_rangeChange'></domain-picker-sk></label>
+      <button class=action disabled$='[[_notHasQuery(cfg)]]' on-click=_run>Run</button>
+    </div>
+    <hr>
+    <paper-spinner id=spinner></paper-spinner> <span id=status></span>
+    <table on-start-triage=_triage_start id=table>
+      <tr>
+        <th>Commit</th>
+        <template is='dom-repeat' items='[[_reg.header]]'>
+          <th colspan=2><a href='/a/?[[item.id]]'>[[_displayName(item.query,item.display_name)]]</a></th>
+        </template>
+      </tr>
+        <tr>
+          <th></th>
+          <template is='dom-repeat' items='[[_reg.header]]'>
+
+            <template is='dom-if' if='[[_stepDownAt(index)]]'>
+              <th>Low</th>
+            </template>
+
+            <template is='dom-if' if='[[_stepUpAt(index)]]'>
+              <th>High</th>
+            </template>
+
+            <template is='dom-if' if='[[_notBoth(index)]]'>
+              <th></th>
+            </template>
+
+          </template>
+        </tr>
+      <template is='dom-repeat' items='[[_reg.table]]' index-as='tableIndex'>
+        <tr>
+          <td class=fixed>
+            <commit-detail-sk cid='[[item.cid]]'></commit-detail-sk>
+          </td>
+          <template is='dom-repeat' items='[[item.columns]]'>
+
+            <template is='dom-if' if='[[_stepDownAt(index)]]'>
+              <td class=cluster>
+                <template is='dom-if' if='[[item.low]]'>
+                  <triage-status-sk alert='[[_alertAt(index)]]' cluster_type=low full_summary='[[_full_summary(item.frame, item.low)]]' triage='[[item.low_status]]'></triage-status-sk>
+                </template>
+                <template is='dom-if' if='[[_not(item.low)]]'>
+                  <a class=dot title='No clusters found.' href='/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]'>[[_display(tableIndex,state.end)]]</a>
+                </template>
+              </td>
+            </template>
+
+            <template is='dom-if' if='[[_stepUpAt(index)]]'>
+              <td class=cluster>
+                <template is='dom-if' if='[[item.high]]'>
+                  <triage-status-sk alert='[[_alertAt(index)]]' cluster_type=high full_summary='[[_full_summary(item.frame, item.high)]]' triage='[[item.high_status]]'></triage-status-sk>
+                </template>
+                <template is='dom-if' if='[[_not(item.high)]]'>
+                  <a class=dot title='No clusters found.' href='/g/c/[[_hashFrom(tableIndex)]]?query=[[_encQueryFrom(index)]]'>[[_display(tableIndex,state.end)]]</a>
+                </template>
+              </td>
+            </template>
+
+            <template is='dom-if' if='[[_notBoth(index)]]'>
+              <td></td>
+            </template>
+
+          </template>
+        </tr>
+      </template>
+    </table>
+
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'cluster-lastn-page-sk',
+
+    ready: function() {
+      sk.get('/_/initpage/').then(JSON.parse).then(function(json) {
+        this.$.alertconfig.paramset = json.dataframe.paramset;
+      }.bind(this)).catch(sk.errorMessage);
+      sk.get('/_/alert/new').then(JSON.parse).then(function(json) {
+        this.set('cfg', json);
+      }.bind(this)).catch(sk.errorMessage);
+      this._requestId = null;
+    },
+
+    properties: {
+      cfg: {
+        type: Object,
+        value: {},
+        reflectToAttribute: false,
+      },
+      domain: {
+        type: Object,
+        value: () => ({
+          end: Date.now()/1000,
+          num_commits: 200,
+          request_type: 1,
+        }),
+        reflectToAttribute: false,
+      }
+    },
+
+    _editAlert: function(e) {
+      this.$.edit.open();
+    },
+
+    _catch: function(msg) {
+      this._requestId = null;
+      this.$.spinner.active = false;
+      if (msg) {
+        sk.errorMessage(msg, 10000);
+      }
+      this.$.status.textContent = '';
+    },
+
+    _run: function(e) {
+      if (this._requestId) {
+        sk.errorMessage('There is a pending query already running.');
+        return
+      }
+      let body = {
+        config: this.cfg,
+        domain: this.domain,
+      };
+      this.$.spinner.active = true;
+      sk.post('/_/dryrun/start', JSON.stringify(body), 'application/json').then(JSON.parse).then(function(json) {
+        this._requestId = json.id;
+        this._checkDryRunStatus(function(regression) {
+          this.set('_reg', regressions);
+        }.bind(this));
+      }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    _checkDryRunStatus: function(cb) {
+      sk.get('/_/dryrun/status/'+this._requestId).then(JSON.parse).then(function(json) {
+        if (json.state == 'Running') {
+          this.$.status.textContent = json.message;
+          if (json.value) {
+            cb(json.value);
+          }
+          window.setTimeout(this._checkDryRunStatus.bind(this, cb), 300);
+        } else {
+          if (json.value) {
+            cb(json.value);
+          }
+          this._catch(json.message);
+        }
+      }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    _configTitle: function(algo,radius,sparse,interesting) {
+      return `Algo: ${algo} - Radius: ${radius} - Sparse: ${sparse} - Threshhold: ${interesting}`;
+    },
+
+    _notHasQuery: function(cfg) {
+      return cfg.query === '';
+    },
+
+    _rangeChange: function(e) {
+      this.domain = e.detail.state;
+    },
+
+    _onDialogClose: function(e) {
+      if (!e.detail.confirmed) {
+        return
+      }
+      this.cfg.interesting = +this.cfg.interesting;
+      this.cfg.radius = +this.cfg.radius;
+      this.cfg.k = +this.cfg.k;
+      this.cfg.minimum_num = +this.cfg.minimum_num;
+      this.cfg = Object.assign({}, this.cfg);
+    },
+
+  });
+</script>
