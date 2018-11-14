@@ -18,7 +18,7 @@ release_ci: app
 	./build_release
 
 serve: app
-	npx webpack-dev-server --mode=development --watch
+	npx webpack-dev-server --mode=development --watch --watch-poll 100
 
 watch: app
 	npx webpack --mode=development --watch
