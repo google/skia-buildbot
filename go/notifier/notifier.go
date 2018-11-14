@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/sheriff_endpoints"
 	"go.skia.org/infra/go/util"
 )
 
@@ -76,7 +77,7 @@ func (c *Config) Create(ctx context.Context, emailer *email.GMail) (Notifier, Fi
 	}
 	var n Notifier
 	if c.Email != nil {
-		n, err = EmailNotifier(c.Email.Emails, emailer, "")
+		n, err = EmailNotifier(c.Email.SheriffEndpoint, c.Email.Emails, emailer, "")
 	} else if c.Chat != nil {
 		n, err = ChatNotifier(c.Chat.RoomID)
 	} else if c.PubSub != nil {
@@ -92,14 +93,22 @@ func (c *Config) Create(ctx context.Context, emailer *email.GMail) (Notifier, Fi
 
 // Configuration for EmailNotifier.
 type EmailNotifierConfig struct {
-	// List of email addresses to notify. Required.
-	Emails []string `json:"emails"`
+	// Either SheriffEndpoint and/or Emails should be provided. Both cannot
+	// be empty.
+
+	// Sheriff endpoint can be in either of the following forms:
+	// * https://skia-tree-status.appspot.com/current-sheriff
+	// * https://build.chromium.org/deprecated/chromium/sheriff_angle.js
+	// * https://build.chromium.org/deprecated/chromium/sheriff_angle.json
+	SheriffEndpoint string `json:"sheriffEndpoint,omitempty"`
+	// List of email addresses to notify. Optional.
+	Emails []string `json:"emails,omitempty"`
 }
 
 // Validate the EmailNotifierConfig.
 func (c *EmailNotifierConfig) Validate() error {
-	if c.Emails == nil || len(c.Emails) == 0 {
-		return fmt.Errorf("Emails is required.")
+	if (c.SheriffEndpoint == "") && (c.Emails == nil || len(c.Emails) == 0) {
+		return fmt.Errorf("SheriffEndpoint and/or Emails is required.")
 	}
 	return nil
 }
@@ -123,7 +132,18 @@ func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) er
 
 // EmailNotifier returns a Notifier which sends email to interested parties.
 // Sends the same ViewAction markup with each message.
-func EmailNotifier(emails []string, emailer *email.GMail, markup string) (Notifier, error) {
+func EmailNotifier(sheriffEndpoint string, emails []string, emailer *email.GMail, markup string) (Notifier, error) {
+	if emails == nil {
+		emails = []string{}
+	}
+	if sheriffEndpoint != "" {
+		sheriffEmails, err := sheriff_endpoints.GetSheriffEmails(sheriffEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("Error when getting sheriff emails from %s: %s", sheriffEndpoint, err)
+		}
+		emails = append(emails, sheriffEmails...)
+	}
+
 	return &emailNotifier{
 		from:   EMAIL_FROM_ADDRESS,
 		gmail:  emailer,

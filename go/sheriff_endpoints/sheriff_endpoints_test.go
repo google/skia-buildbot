@@ -1,4 +1,4 @@
-package roller
+package sheriff_endpoints
 
 import (
 	"testing"

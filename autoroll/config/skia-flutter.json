@@ -48,8 +48,9 @@
   "maxRollFrequency": "3h",
   "notifiers": [
     {
-      "filter": "warning",
+      "filter": "info",
       "email": {
+        "sheriffEndpoint": "https://skia-tree-status.appspot.com/current-sheriff",
         "emails": [
           "rmistry@google.com"
         ]

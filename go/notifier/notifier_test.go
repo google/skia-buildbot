@@ -25,9 +25,11 @@ func TestConfigs(t *testing.T) {
 
 	c = Config{
 		Filter: "debug",
-		Email:  &EmailNotifierConfig{},
+		Email: &EmailNotifierConfig{
+			SheriffEndpoint: "",
+		},
 	}
-	assert.EqualError(t, c.Validate(), "Emails is required.")
+	assert.EqualError(t, c.Validate(), "SheriffEndpoint and/or Emails is required.")
 
 	c = Config{
 		Filter: "debug",
@@ -35,12 +37,43 @@ func TestConfigs(t *testing.T) {
 			Emails: []string{},
 		},
 	}
-	assert.EqualError(t, c.Validate(), "Emails is required.")
+	assert.EqualError(t, c.Validate(), "SheriffEndpoint and/or Emails is required.")
+
+	c = Config{
+		Filter: "debug",
+		Email: &EmailNotifierConfig{
+			SheriffEndpoint: "",
+			Emails:          []string{},
+		},
+	}
+	assert.EqualError(t, c.Validate(), "SheriffEndpoint and/or Emails is required.")
+
+	c = Config{
+		Filter: "debug",
+		Email:  &EmailNotifierConfig{},
+	}
+	assert.EqualError(t, c.Validate(), "SheriffEndpoint and/or Emails is required.")
+
+	c = Config{
+		Filter: "debug",
+		Email: &EmailNotifierConfig{
+			Emails: []string{},
+		},
+	}
+	assert.EqualError(t, c.Validate(), "SheriffEndpoint and/or Emails is required.")
 
 	c = Config{
 		Filter: "debug",
 		Email: &EmailNotifierConfig{
 			Emails: []string{"test@example.com"},
+		},
+	}
+	assert.NoError(t, c.Validate())
+
+	c = Config{
+		Filter: "debug",
+		Email: &EmailNotifierConfig{
+			SheriffEndpoint: "superman@krypton.com",
 		},
 	}
 	assert.NoError(t, c.Validate())
