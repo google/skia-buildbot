@@ -168,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "b558560f_3113990d",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-14T20:47:02Z",
+      "side": 1,
+      "message": "I think I\u0027m confused.  I was thinking you just store the configs when the roller is created here: https://skia.googlesource.com/buildbot/+/master/autoroll/go/roller/autoroller.go#176  Then add a ReloadConfig method to notifier which would let you do this at line 283:\n\nfor _, n :\u003d range r.notifierConfigs {\n    if n.Email !\u003d nil {\n        n.Email.Emails \u003d emails\n    }\n}\nr.notifier.ReloadConfig(r.notifierConfigs)",
+      "parentUuid": "9fd007f2_10e5775e",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "936eb190_90fa5b34",
         "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
         "patchSetId": 1
