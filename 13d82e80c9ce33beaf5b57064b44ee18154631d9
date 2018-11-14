@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5bccc089_8ab7a18f",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-14T16:54:22Z",
+      "side": 1,
+      "message": "nit: no quotes around a single class.  See also line 30.  not relevant uber-nit: double quotes for html, single quotes for JS.",
+      "range": {
+        "startLine": 26,
+        "startChar": 11,
+        "endLine": 26,
+        "endChar": 12
+      },
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e54d60f_5fdb17d1",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-14T16:54:22Z",
+      "side": 1,
+      "message": "replace with this._drawFrame.bind(this)\n\nSame down below.",
+      "range": {
+        "startLine": 69,
+        "startChar": 37,
+        "endLine": 69,
+        "endChar": 65
+      },
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15c14adc_9bdf5ad4",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-14T16:54:22Z",
+      "side": 1,
+      "message": "1. I\u0027d rather not use font-awesome CSS icons.  I\u0027d prefer https://jsdoc.skia.org/elements-sk/icon-sk.html which should have play/pause/etc.  You would us it like:\n\u003cplay-icon-sk @click\u003d${ele._play}\u003e\u003c/play-icon-sk\u003e where _play is the callback\n\n2. If we did use font-awesome, I\u0027d prefer to add it as a dependency in package.json and import it from node_modules rather than to a CDN link on the web.",
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1eb58f70_99d110c3",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-14T16:54:22Z",
+      "side": 1,
+      "message": "delete",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 17
+      },
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
