@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "06ead86d_2bbacbd9",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T20:29:49Z",
+      "side": 1,
+      "message": "I still don\u0027t follow.\nDo you mean in that \"Update the current sheriff in a loop\" repeat in autoroller.Start the notifier config should be recreated for all rollers?",
+      "parentUuid": "be8d21c2_2957b483",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "936eb190_90fa5b34",
         "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
         "patchSetId": 1
