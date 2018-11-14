@@ -23,9 +23,16 @@ const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 const DPR = window.devicePixelRatio;
 
 const wasmCanvas = (ele) => html`
-<canvas id=skottie width=${ele._state.width * DPR} height=${ele._state.height * DPR}
-        style='width: ${ele._state.width}px; height: ${ele._state.height}px;'>
-</canvas>`;
+<div class='skottie-sk-wrapper'>
+  <canvas id=skottie width=${ele._state.width * DPR} height=${ele._state.height * DPR}
+          style='width: ${ele._state.width}px; height: ${ele._state.height}px;'>
+  </canvas>
+  <div class='skottie-sk-controls'>
+    <button class="skottie-sk-control-btn btn-playpause">
+      <span class="fa fa-pause"></span>
+    </button>
+  </div>
+</div>`;
 
 const template = (ele) => html`${wasmCanvas(ele)}`;
 
@@ -39,11 +46,72 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
       height: 256,
       fps: 30,
     };
+    this._root = null;
     this._skAnimation = null;
     this._skCanvas = null;
     this._skSurface = null;
     this._wasmDuration = null;
-    this._firstFrameTime = null;
+    this._startTime = 0;
+    this._pauseTime = 0;
+  }
+
+  _isPlaying() { return this._startTime >= this._pauseTime; }
+
+  _drawFrame() {
+    if (this._skAnimation && this._skCanvas) {
+      let now = Date.now();
+      let seek = ((now - this._startTime) / this._wasmDuration ) % 1.0;
+      this._skAnimation.seek(seek);
+      let bounds = {fLeft: 0, fTop: 0, fRight: this._state.width, fBottom: this._state.height};
+      this._skAnimation.render(this._skCanvas, bounds);
+      this._skCanvas.flush();
+
+      if (this._isPlaying()) {
+        window.requestAnimationFrame(() => { this._drawFrame(); });
+      }
+    }
+  }
+
+  _start() {
+    if (!this.CanvasKit || !this._state.lottie) {
+      return;
+    }
+    if (!this._skCanvas) {
+      this._skSurface = this.CanvasKit.MakeCanvasSurface('skottie');
+      if (!this._skSurface) {
+        errorMessage('Could not make SkSurface');
+        return;
+      }
+      this._skCanvas = this._skSurface.getCanvas();
+      this._skCanvas.scale(DPR, DPR);
+    }
+    if (!this._skAnimation) {
+      this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
+      this._wasmDuration = this._skAnimation.duration() * 1000;
+    }
+
+    // Adjust the timeline to account for paused time.
+    this._startTime = Date.now() - this._pauseTime + this._startTime;
+    this._pauseTime = 0;
+
+    window.requestAnimationFrame(() => { this._drawFrame(); });
+  }
+
+  _pause() {
+    this._pauseTime = Date.now();
+  }
+
+  _onPlayPause() {
+    var icon = this.querySelector('.btn-playpause').querySelector('.fa');
+    if (this._isPlaying()) {
+      this._pause();
+      icon.classList.remove('fa-pause');
+      icon.classList.add('fa-play');
+    } else {
+      this._start();
+      icon.classList.remove('fa-play');
+      icon.classList.add('fa-pause');
+    }
   }
 
   connectedCallback() {
@@ -54,45 +122,14 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
     }).then((CanvasKit) => {
       this.CanvasKit = CanvasKit;
       this._render();
+      this._start();
     });
 
     this._render();
 
-    // Start a continous animation loop.
-    const drawFrame = () => {
-      window.requestAnimationFrame(drawFrame);
-      if (!this.CanvasKit || !this._state.lottie) {
-        return;
-      }
-      if (!this._skCanvas) {
-        this._skSurface = this.CanvasKit.MakeCanvasSurface('skottie');
-        if (!this._skSurface) {
-          errorMessage('Could not make SkSurface');
-          return;
-        }
-        this._skCanvas = this._skSurface.getCanvas();
-        this._skCanvas.scale(DPR, DPR);
-      }
-      if (!this._skAnimation) {
-        this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
-        this._wasmDuration = this._skAnimation.duration() * 1000;
-        this._firstFrameTime = Date.now();
-      }
-      let now = Date.now();
-      let seek = ((now - this._firstFrameTime) / this._wasmDuration ) % 1.0;
-      this._renderSkottieAt(seek);
-    }
-
-    window.requestAnimationFrame(drawFrame);
-  }
-
-  _renderSkottieAt(seek) {
-    if (this._skAnimation && this._skCanvas) {
-      this._skAnimation.seek(seek);
-      let bounds = {fLeft: 0, fTop: 0, fRight: this._state.width, fBottom: this._state.height};
-      this._skAnimation.render(this._skCanvas, bounds);
-      this._skCanvas.flush();
-    }
+    this.querySelector('.btn-playpause')
+        .addEventListener('click', () => { this._onPlayPause(); }, false);
+    this._start();
   }
 
   _reflectFromURL() {
@@ -120,7 +157,10 @@ window.customElements.define('skottie-embed-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    if (!this._root) {
+      this._root = template(this);
+    }
+    render(this._root, this, {eventContext: this});
   }
 
 });
