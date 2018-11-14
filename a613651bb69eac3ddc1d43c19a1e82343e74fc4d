@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b083ff15_d95a9dda",
+        "filename": "skottie/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-14T15:54:14Z",
+      "side": 1,
+      "message": "--watch-poll doesn\u0027t work for me, it does all the work like it is going to serve and then exits.",
+      "range": {
+        "startLine": 21,
+        "startChar": 43,
+        "endLine": 21,
+        "endChar": 55
+      },
+      "revId": "a613651bb69eac3ddc1d43c19a1e82343e74fc4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "458f7884_0be1fc32",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-14T15:54:14Z",
+      "side": 1,
+      "message": "The lottie-web player generates an event when it reaches the end of the animation, can you use that to re-sync the two players at the end of each run?",
+      "revId": "a613651bb69eac3ddc1d43c19a1e82343e74fc4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
