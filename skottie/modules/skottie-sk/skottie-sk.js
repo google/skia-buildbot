@@ -32,13 +32,28 @@ const displayDialog = (ele) => html`
 <skottie-config-sk state=${ele._state}></skottie-config-sk>
 `;
 
+const loading = (ele) => {
+  if (!ele.CanvasKit) {
+    return html`
+<div class=wasm_loading title="We are loading CanvasKit (skottie-wasm).">
+  <div>Loading</div>
+  <spinner-sk active></spinner-sk>
+</div>`;
+  } else {
+    return '';
+  }
+}
+
 const wasmCanvas = (ele) => html`
 <canvas id=skottie width=${ele._state.width * DPR} height=${ele._state.height * DPR}
         style='width: ${ele._state.width}px; height: ${ele._state.height}px;'>
   Your browser does not support the canvas tag.
 </canvas>
 
-<figcaption>skottie-wasm</figcaption>`;
+<figcaption>
+  ${loading(ele)}
+  skottie-wasm
+</figcaption>`;
 
 const livePreview = (ele) => {
   if (ele._hasEdits) {
@@ -166,6 +181,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       locateFile: (file) => '/static/'+file,
     }).then((CanvasKit) => {
       this.CanvasKit = CanvasKit;
+      this._render();
       this._rewind();
     });
 
@@ -188,10 +204,23 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
         this._wasmDuration = this._skAnimation.duration() * 1000;
       }
+      // Elsewhere, the _firstFrameTime is set to null to restart
+      // the animation. If null, we assume the user hit re-wind
+      // and restart both the Skottie animation and the lottie-web one.
+      // This avoids the (small) boot-up lag while we wait for the
+      // skottie animation to be parsed and loaded.
+      if (!this._firstFrameTime && this._playing) {
+        this._firstFrameTime = Date.now();
+      }
       if (this._playing) {
         let now = Date.now();
         let seek = ((now - this._firstFrameTime) / this._wasmDuration ) % 1.0;
         this._renderSkottieAt(seek);
+        // If we want to have synchronized playing, it's best to force the
+        // lottie player to draw at the same time as the skottie one. Otherwise,
+        // the lottie player occasionally skips a few frames and they drift.
+        this._lottie.goToAndStop(seek * this._wasmDuration);
+        this._live && this._live.goToAndStop(seek * this._wasmDuration);
       }
     }
 
@@ -289,31 +318,33 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
   _playpause() {
     if (this._playing) {
-      this._lottie.pause();
       this._wasmTimePassed = Date.now() - this._firstFrameTime;
+      this._lottie.pause();
       this._live && this._live.pause();
       $$("#playpause").textContent = 'Play';
     } else {
       this._lottie.play();
-      this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
       this._live && this._live.play();
+      this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
       $$("#playpause").textContent = 'Pause';
     }
     this._playing = !this._playing;
   }
 
   _rewind(e) {
+    // Handle rewinding when paused.
+    this._wasmTimePassed = 0;
     if (!this._playing) {
       this._live && this._live.goToAndStop(0);
       this._lottie.goToAndStop(0);
-      this._firstFrameTime = Date.now();
+      this._firstFrameTime = null;
       if (this._skAnimation && this._skCanvas) {
         this._renderSkottieAt(0);
       }
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie.goToAndPlay(0);
-      this._firstFrameTime = Date.now();
+      this._firstFrameTime = null;
     }
   }
 
