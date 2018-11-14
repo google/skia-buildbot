@@ -122,7 +122,12 @@ func CheckoutsInit(numCheckouts int, workdir string, repoUpdateDuration time.Dur
 	}
 	// Update mirror here and then periodically.
 	cleanup.Repeat(repoUpdateDuration, func() {
-		util.LogErr(updateCheckout(ctx, pathToMirror, true))
+		if err := updateCheckout(ctx, pathToMirror, true); err != nil {
+			sklog.Errorf("Error when updating the mirror: %s", err)
+			mirrorSyncFailureMetric.Update(1)
+		} else {
+			mirrorSyncFailureMetric.Update(0)
+		}
 	}, nil)
 
 	// Slice that will be used to update all checkouts in parallel.

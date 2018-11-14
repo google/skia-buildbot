@@ -30,6 +30,16 @@ groups:
       abbr: 'Too many waiting android compile tasks'
       description: 'There are 5 or more waiting android compile tasks. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#queue_too_long'
 
+  - alert: AndroidCompileMirrorSyncFailed
+    expr: android_compile_mirror_sync_failure{app="android-compile"} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'Mirror sync in android compile server failed'
+      description: 'Mirror sync in android compile server failed. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#mirror_sync_failed'
+
   - alert: AndroidCompileTreeBroken
     expr: android_compile_tree_broken{app="android-compile"} > 0
     for: 5m
