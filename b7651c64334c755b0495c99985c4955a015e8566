@@ -22,6 +22,30 @@
       "revId": "b7651c64334c755b0495c99985c4955a015e8566",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6324a8b7_e48cb785",
+        "filename": "android_compile/go/android_compile/checkouts.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T12:28:50Z",
+      "side": 1,
+      "message": "I was trying to be consistent with the other methods but yes not needed. Done.",
+      "parentUuid": "17e17c95_6769ed11",
+      "range": {
+        "startLine": 127,
+        "startChar": 3,
+        "endLine": 127,
+        "endChar": 32
+      },
+      "revId": "b7651c64334c755b0495c99985c4955a015e8566",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
