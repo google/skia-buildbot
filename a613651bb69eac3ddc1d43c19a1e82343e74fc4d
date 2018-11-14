@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "94f3f0aa_b4bae0e1",
+        "filename": "skottie/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-14T15:59:17Z",
+      "side": 1,
+      "message": "That is strange.  For my laptop, only having --watch doesn\u0027t work, in that is misses file changes.\n\nnpx webpack-dev-server --version\nwebpack-dev-server 3.1.10\nwebpack 4.25.1\n\nWhat\u0027s it for you?",
+      "parentUuid": "b083ff15_d95a9dda",
+      "range": {
+        "startLine": 21,
+        "startChar": 43,
+        "endLine": 21,
+        "endChar": 55
+      },
+      "revId": "a613651bb69eac3ddc1d43c19a1e82343e74fc4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "458f7884_0be1fc32",
         "filename": "skottie/modules/skottie-sk/skottie-sk.js",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2018-11-14T15:54:14Z",
       "side": 1,
       "message": "The lottie-web player generates an event when it reaches the end of the animation, can you use that to re-sync the two players at the end of each run?",
+      "revId": "a613651bb69eac3ddc1d43c19a1e82343e74fc4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e23cf590_0034fad5",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-14T15:59:17Z",
+      "side": 1,
+      "message": "I could, but it would be de-synced for the first playthrough.\n\nOn the first load, the lottie player plays frame 1, 2, 40, 41... (or so, the skip isn\u0027t exact every time) and then is de-synced.  This approach keeps it in tight lock no matter what (tm).",
+      "parentUuid": "458f7884_0be1fc32",
       "revId": "a613651bb69eac3ddc1d43c19a1e82343e74fc4d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
