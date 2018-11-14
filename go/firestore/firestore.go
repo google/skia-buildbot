@@ -7,7 +7,6 @@ package firestore
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -21,8 +20,14 @@ import (
 )
 
 const (
+	// Firestore has a timestamp resolution of one microsecond.
+	TS_RESOLUTION = time.Microsecond
+
 	// List all apps here as constants.
 	APP_TASK_SCHEDULER = "task-scheduler"
+
+	// Base wait time between attempts.
+	BACKOFF_WAIT = 5 * time.Second
 
 	// List all instances here as constants.
 	INSTANCE_PROD = "prod"
@@ -105,8 +110,9 @@ func withTimeout(timeout time.Duration, fn func(context.Context) error) error {
 
 // withTimeoutAndRetries runs the given function with the given timeout and a
 // maximum of the given number of attempts. The timeout is applied for each
-// attempt.
-func withTimeoutAndRetries(attempts int, timeout time.Duration, fn func(context.Context) error) error {
+// attempt. If an error occurs and the function will be retried, the given
+// restart callback will be called first.
+func withTimeoutAndRetries(attempts int, timeout time.Duration, fn func(context.Context) error, restart func()) error {
 	var err error
 	for i := 0; i < attempts; i++ {
 		err = withTimeout(timeout, fn)
@@ -125,8 +131,15 @@ func withTimeoutAndRetries(attempts int, timeout time.Duration, fn func(context.
 			if !retry {
 				return err
 			}
-			sklog.Errorf("Encountered Firestore error; retrying: %s", err)
+		} else if err != nil {
+			return err
 		}
+		if restart != nil {
+			restart()
+		}
+		wait := BACKOFF_WAIT * time.Duration(2^i)
+		sklog.Errorf("Encountered Firestore error; retrying in %s: %s;\n", wait, err)
+		time.Sleep(wait)
 	}
 	// Note that we could collect the errors using multierror, but that
 	// would break some behavior which relies on pointer equality
@@ -145,14 +158,15 @@ func Get(ref *firestore.DocumentRef, attempts int, timeout time.Duration) (*fire
 			doc = got
 		}
 		return err
-	})
+	}, nil)
 	return doc, err
 }
 
 // IterDocs is a convenience function which executes the given query and calls
 // the given callback function for each document. Uses the given maximum number
-// of attempts and the given per-attempt timeout.
-func IterDocs(q firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
+// of attempts and the given per-attempt timeout. If an error occurs and
+// iteration must be restarted, the given restartCallback is called.
+func IterDocs(q firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error, restartCallback func()) error {
 	return withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
 		it := q.Documents(ctx)
 		defer it.Stop()
@@ -161,14 +175,14 @@ func IterDocs(q firestore.Query, attempts int, timeout time.Duration, callback f
 			if err == iterator.Done {
 				break
 			} else if err != nil {
-				return fmt.Errorf("Iteration failed: %s", err)
+				return err
 			}
 			if err := callback(doc); err != nil {
 				return err
 			}
 		}
 		return nil
-	})
+	}, restartCallback)
 }
 
 // RunTransaction runs the given function in a transaction. Uses the given
@@ -176,7 +190,7 @@ func IterDocs(q firestore.Query, attempts int, timeout time.Duration, callback f
 func RunTransaction(client *Client, attempts int, timeout time.Duration, fn func(context.Context, *firestore.Transaction) error) error {
 	return withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
 		return client.RunTransaction(ctx, fn)
-	})
+	}, nil)
 }
 
 // See documentation for firestore.DocumentRef.Create(). Uses the given maximum
@@ -187,7 +201,7 @@ func Create(ref *firestore.DocumentRef, data interface{}, attempts int, timeout 
 		var err error
 		wr, err = ref.Create(ctx, data)
 		return err
-	})
+	}, nil)
 	return wr, err
 }
 
@@ -199,7 +213,7 @@ func Set(ref *firestore.DocumentRef, data interface{}, attempts int, timeout tim
 		var err error
 		wr, err = ref.Set(ctx, data, opts...)
 		return err
-	})
+	}, nil)
 	return wr, err
 }
 
@@ -211,7 +225,7 @@ func Update(ref *firestore.DocumentRef, attempts int, timeout time.Duration, upd
 		var err error
 		wr, err = ref.Update(ctx, updates, preconds...)
 		return err
-	})
+	}, nil)
 	return wr, err
 }
 
@@ -223,6 +237,6 @@ func Delete(ref *firestore.DocumentRef, attempts int, timeout time.Duration, pre
 		var err error
 		wr, err = ref.Delete(ctx, preconds...)
 		return err
-	})
+	}, nil)
 	return wr, err
 }
