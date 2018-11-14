@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "9fd007f2_10e5775e",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T20:42:13Z",
+      "side": 1,
+      "message": "Ok cool. Over there should there be something like rm.SheriffEmailsUpdated() to let each repo_manager do whatever they want when that happens? And then in github_repo_manager it updates the config? Speaking of which, how do I update the config? :)",
+      "parentUuid": "4f8e1642_100830e2",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "936eb190_90fa5b34",
         "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
         "patchSetId": 1
