@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -48,30 +49,75 @@ func (d *firestoreDB) GetTaskById(id string) (*db.Task, error) {
 
 // See documentation for db.TaskReader interface.
 func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*db.Task, error) {
-	// Adjust start and end times for Firestore resolution.
-	start = fixTimestamp(start)
-	end = fixTimestamp(end)
-
-	// TODO(borenet): We can make this part of the query,
-	// but it would required building a composite index.
-	// It's possible that we should require a repo when
-	// searching by timestamp; indexing a timestamp causes
-	// the whole collection to cap out at a maximum of
-	// 500 writes per second.
-	q := d.tasks().Where("Created", ">=", start).Where("Created", "<", end).OrderBy("Created", fs.Asc)
-	rv := []*db.Task{}
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	var tasks [][]*db.Task
+	var possibleDupes []map[string]bool
+	var possibleDupeTime []time.Time
+	init := func(numGoroutines int) {
+		tasks = make([][]*db.Task, numGoroutines)
+		possibleDupes = make([]map[string]bool, numGoroutines)
+		possibleDupeTime = make([]time.Time, numGoroutines)
+		for i := 0; i < numGoroutines; i++ {
+			estResults := estResultSize(end.Sub(start) / time.Duration(numGoroutines))
+			tasks[i] = make([]*db.Task, 0, estResults)
+		}
+	}
+	elem := func(idx int, doc *fs.DocumentSnapshot) error {
+		dupes := possibleDupes[idx]
+		if dupes != nil {
+			if dupes[doc.Ref.ID] {
+				delete(dupes, doc.Ref.ID)
+				if len(dupes) == 0 {
+					dupes = nil
+					possibleDupes[idx] = dupes
+					possibleDupeTime[idx] = time.Time{}
+				}
+				return nil
+			}
+		}
 		var task db.Task
 		if err := doc.DataTo(&task); err != nil {
 			return err
 		}
 		if repo == "" || task.Repo == repo {
-			rv = append(rv, &task)
+			tasks[idx] = append(tasks[idx], &task)
+		}
+		if dupes != nil {
+			if !task.Created.Equal(possibleDupeTime[idx]) {
+				possibleDupes[idx] = nil
+				possibleDupeTime[idx] = time.Time{}
+			}
 		}
 		return nil
-	}); err != nil {
+	}
+	onPause := func(idx int) {
+		dupes := map[string]bool{}
+		myTasks := tasks[idx]
+		lastTask := myTasks[len(myTasks)-1]
+		possibleDupeTime[idx] = lastTask.Created
+		for i := len(myTasks) - 1; i >= 0; i-- {
+			t := myTasks[i]
+			if !t.Created.Equal(lastTask.Created) {
+				break
+			}
+			dupes[t.Id] = true
+		}
+		possibleDupes[idx] = dupes
+	}
+	onRestart := func(idx int) {
+		tasks[idx] = make([]*db.Task, 0, len(tasks[idx]))
+	}
+	if err := d.dateRangeHelper(d.tasks(), start, end, init, elem, onPause, onRestart); err != nil {
 		return nil, err
 	}
+	totalResults := 0
+	for _, taskList := range tasks {
+		totalResults += len(taskList)
+	}
+	rv := make([]*db.Task, 0, totalResults)
+	for _, taskList := range tasks {
+		rv = append(rv, taskList...)
+	}
+	sort.Sort(db.TaskSlice(rv))
 	return rv, nil
 }
 
