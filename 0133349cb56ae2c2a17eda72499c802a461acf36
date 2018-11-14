@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09e5cc7e_040e1630",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T17:36:01Z",
+      "side": 1,
+      "message": "You reversed the loop iteration below. Will this end up corresponding to the right commit?",
+      "revId": "0133349cb56ae2c2a17eda72499c802a461acf36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
