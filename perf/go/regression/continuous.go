@@ -170,7 +170,7 @@ func (c *Continuous) Run(ctx context.Context) {
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, c.git, c.cidl, c.dfBuilder)
+			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Now(), c.git, c.cidl, c.dfBuilder)
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
