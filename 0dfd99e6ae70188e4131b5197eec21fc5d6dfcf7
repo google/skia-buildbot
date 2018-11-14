@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa6ade6d_426768c5",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-14T21:19:09Z",
+      "side": 1,
+      "message": "Should be int32. I don\u0027t think this will work correctly on 64-bit machines for ints larger than 32 bits.",
+      "range": {
+        "startLine": 1137,
+        "startChar": 25,
+        "endLine": 1137,
+        "endChar": 28
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ea083cc_4045e766",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-14T21:19:09Z",
+      "side": 1,
+      "message": "nit: param is named restart",
+      "range": {
+        "startLine": 118,
+        "startChar": 8,
+        "endLine": 118,
+        "endChar": 13
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0aba974c_5271cc96",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-14T21:19:09Z",
+      "side": 1,
+      "message": "If the point is to work around server-side timeouts, would it make more sense for this limit to be time-based?",
+      "range": {
+        "startLine": 199,
+        "startChar": 3,
+        "endLine": 202,
+        "endChar": 4
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8937963e_978e77ae",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-14T21:19:09Z",
+      "side": 1,
+      "message": "I think this is done.",
+      "range": {
+        "startLine": 211,
+        "startChar": 2,
+        "endLine": 211,
+        "endChar": 74
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "459571be_718b58ed",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-14T21:19:09Z",
+      "side": 1,
+      "message": "nit: \"possibleDupes[idx] \u003d nil\" is equivalent; dupes is unused after this.",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ecf9974_e380b7d9",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-14T21:19:09Z",
+      "side": 1,
+      "message": "nit: should also clear possibleDupes and possibleDupeTime (only matters if there are tons of tasks with the same Created time, which is very unlikely).",
+      "range": {
+        "startLine": 105,
+        "startChar": 1,
+        "endLine": 105,
+        "endChar": 2
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
