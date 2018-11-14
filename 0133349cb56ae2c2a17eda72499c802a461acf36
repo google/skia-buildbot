@@ -16,6 +16,24 @@
       "revId": "0133349cb56ae2c2a17eda72499c802a461acf36",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "926cf2d2_b40e4779",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5647
+      },
+      "writtenOn": "2018-11-14T17:37:37Z",
+      "side": 1,
+      "message": "I think so as both versions and logStr are newest commit first, and they take the same reversed index i.",
+      "parentUuid": "09e5cc7e_040e1630",
+      "revId": "0133349cb56ae2c2a17eda72499c802a461acf36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
