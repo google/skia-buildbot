@@ -15,7 +15,7 @@ import (
 // RegressionsForAlert looks for regressions to the given alert over the last
 // 'numContinuous' commits with data and periodically calls
 // clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.ParamSet, clusterResponseProcessor func([]*ClusterResponse, *alerts.Config, string), numContinuous int, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) {
+func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.ParamSet, clusterResponseProcessor func([]*ClusterResponse, *alerts.Config, string), numContinuous int, end time.Time, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) {
 	sklog.Infof("About to cluster for: %#v", *cfg)
 	queries, err := cfg.QueriesFromParamset(ps)
 	if err != nil {
@@ -35,7 +35,7 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.
 			Sparse:      cfg.Sparse,
 			Type:        CLUSTERING_REQUEST_TYPE_LAST_N,
 			N:           int32(numContinuous),
-			End:         time.Now(),
+			End:         end,
 		}
 		resps, err := Run(ctx, req, git, cidl, dfBuilder)
 		if err != nil {
