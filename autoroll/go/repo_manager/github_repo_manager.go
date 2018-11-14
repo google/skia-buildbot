@@ -286,6 +286,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	if err != nil {
 		return 0, err
 	}
+	logStrList := strings.Split(logStr, "\n")
 	for i := len(versions) - 1; i >= 0; i-- {
 		version := versions[i]
 		// Write the file.
@@ -294,7 +295,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		}
 
 		// Commit.
-		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", version); err != nil {
+		if _, err := rm.parentRepo.Git(ctx, "commit", "-a", "-m", logStrList[i]); err != nil {
 			return 0, err
 		}
 
