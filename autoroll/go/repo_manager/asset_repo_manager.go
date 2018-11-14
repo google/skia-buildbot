@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/autoroll/go/strategy"
+	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -241,6 +242,15 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 	}); err != nil {
 		return 0, err
 	}
+
+	// Before running the pre-upload steps, which install Go and the infra
+	// repo's dependencies via CIPD, update the version of the Go DEPS CIPD
+	// package to install the one requested by the roll.
+	// TODO(borenet): Rather than modifying this global variable, which
+	// could affect other callers (though there aren't any at the time of
+	// writing), find a way to plumb the desired version through the
+	// pre-upload step.
+	cipd.PkgGoDEPS.Version = cipd.VersionTag(to)
 
 	// Run the pre-upload steps.
 	sklog.Infof("Running pre-upload steps.")

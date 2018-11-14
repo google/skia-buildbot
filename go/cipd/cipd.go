@@ -25,7 +25,7 @@ var (
 	PkgGo = &Package{
 		Dest:    "go",
 		Name:    "skia/bots/go",
-		Version: fmt.Sprintf("version:%s", PKG_VERSIONS_FROM_ASSETS["go"]),
+		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["go"]),
 	}
 
 	// CIPD package which contains pre-built dependencies for the
@@ -33,16 +33,21 @@ var (
 	PkgGoDEPS = &Package{
 		Dest:    "gopath",
 		Name:    "skia/bots/go_deps",
-		Version: fmt.Sprintf("version:%s", PKG_VERSIONS_FROM_ASSETS["go_deps"]),
+		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["go_deps"]),
 	}
 
 	// CIPD package containing the Google Protocol Buffer compiler.
 	PkgProtoc = &Package{
 		Dest:    "protoc",
 		Name:    "skia/bots/protoc",
-		Version: fmt.Sprintf("version:%s", PKG_VERSIONS_FROM_ASSETS["protoc"]),
+		Version: VersionTag(PKG_VERSIONS_FROM_ASSETS["protoc"]),
 	}
 )
+
+// VersionTag returns a CIPD version tag for the given version number.
+func VersionTag(version string) string {
+	return fmt.Sprintf("version:%s", version)
+}
 
 // Package describes a CIPD package.
 type Package struct {
