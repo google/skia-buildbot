@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a85ca1e6_c41f575f",
+        "filename": "autoroll/config/skia-flutter.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T18:46:58Z",
+      "side": 1,
+      "message": "Will switch back to warning after a day or two of testing.",
+      "range": {
+        "startLine": 51,
+        "startChar": 17,
+        "endLine": 51,
+        "endChar": 21
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "936eb190_90fa5b34",
+        "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T18:46:58Z",
+      "side": 1,
+      "message": "Moved the 2 functions here from autoroll/go/roller/sheriff.go\nfor use by go/notifier",
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
