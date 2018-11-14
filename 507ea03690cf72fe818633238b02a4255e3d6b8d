@@ -192,6 +192,30 @@
     },
     {
       "key": {
+        "uuid": "6951f671_015cc5cb",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-14T20:56:21Z",
+      "side": 1,
+      "message": "Ok, I follow so far.\nWhat I meant was - we probably do not want to do \n\nfor _, n :\u003d range r.notifierConfigs {\n    if n.Email !\u003d nil {\n        n.Email.Emails \u003d emails\n    }\n}\n\nfor all rollers because their notifier emails could be different than the sheriff emails in their config.\nWe need a way to say my notifier emails should be the same as the sheriff emails?",
+      "parentUuid": "b558560f_3113990d",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "936eb190_90fa5b34",
         "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
         "patchSetId": 1
