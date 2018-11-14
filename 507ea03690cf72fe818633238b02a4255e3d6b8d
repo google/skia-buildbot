@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "4f8e1642_100830e2",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-14T20:32:22Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean by \"for all rollers\", but yes, update the email list for the notifier and reload the config at this line: https://skia.googlesource.com/buildbot/+/master/autoroll/go/roller/autoroller.go#283",
+      "parentUuid": "06ead86d_2bbacbd9",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "936eb190_90fa5b34",
         "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
         "patchSetId": 1
