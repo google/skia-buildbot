@@ -40,6 +40,9 @@ type TriageStatus struct {
 //
 // Note that Low and High can be nil if no regression has been found in that
 // direction.
+//
+// TODO(jcgregorio) Now that we can search for regressions using GroupBy it is possible
+// that Frame will only be valid for Low or High. Fix by refactoring Regression.
 type Regression struct {
 	Low        *clustering2.ClusterSummary `json:"low"`   // Can be nil.
 	High       *clustering2.ClusterSummary `json:"high"`  // Can be nil.
@@ -63,6 +66,33 @@ func New() *Regressions {
 	return &Regressions{
 		ByAlertID: map[string]*Regression{},
 	}
+}
+
+// Merge the results from rhs into this Regression.
+func (r *Regression) Merge(rhs *Regression) *Regression {
+	if rhs.Low != nil {
+		if r.Low != nil && (rhs.Low.StepFit.Regression > r.Low.StepFit.Regression) {
+			r.Low = rhs.Low
+			r.LowStatus = rhs.LowStatus
+			r.Frame = rhs.Frame
+		} else {
+			r.Low = rhs.Low
+			r.LowStatus = rhs.LowStatus
+			r.Frame = rhs.Frame
+		}
+	}
+	if rhs.High != nil {
+		if r.High != nil && (rhs.High.StepFit.Regression < r.High.StepFit.Regression) {
+			r.High = rhs.High
+			r.HighStatus = rhs.HighStatus
+			r.Frame = rhs.Frame
+		} else {
+			r.High = rhs.High
+			r.HighStatus = rhs.HighStatus
+			r.Frame = rhs.Frame
+		}
+	}
+	return r
 }
 
 // Triaged returns true if triaged.

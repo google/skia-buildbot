@@ -87,7 +87,7 @@ func (c *Continuous) reportUntriaged(newClustersGauge metrics2.Int64Metric) {
 	}()
 }
 
-func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResponse, cfg *alerts.Config, q string) {
+func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResponse, cfg *alerts.Config) {
 	key := cfg.IdAsString()
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
@@ -109,7 +109,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s for %q: %v", details[0].Message, q, *cl.StepFit)
+					sklog.Infof("Found Low regression at %s: %v", details[0].Message, *cl.StepFit)
 					isNew, err := c.store.SetLow(details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
@@ -122,7 +122,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 					}
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s for %q: %v", id.ID(), q, *cl.StepFit)
+					sklog.Infof("Found High regression at %s: %v", id.ID(), *cl.StepFit)
 					isNew, err := c.store.SetHigh(details[0], key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
@@ -164,13 +164,13 @@ func (c *Continuous) Run(ctx context.Context) {
 			c.current.Alert = cfg
 			c.mutex.Unlock()
 
-			clusterResponseProcessor := func(resps []*ClusterResponse, cfg *alerts.Config, q string) {
-				c.reportRegressions(ctx, resps, cfg, q)
+			clusterResponseProcessor := func(resps []*ClusterResponse) {
+				c.reportRegressions(ctx, resps, cfg)
 			}
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, c.git, c.cidl, c.dfBuilder)
+			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Now(), c.git, c.cidl, c.dfBuilder)
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)

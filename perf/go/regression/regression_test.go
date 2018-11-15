@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/stepfit"
 )
 
 func TestRegressions(t *testing.T) {
@@ -56,4 +57,83 @@ func TestRegressions(t *testing.T) {
 	b, err := r.JSON()
 	assert.NoError(t, err)
 	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"high\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"frame\":{\"dataframe\":null,\"ticks\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"positive\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"negative\",\"message\":\"See bug #foo.\"}}}}", string(b))
+}
+
+func TestMerge(t *testing.T) {
+	testutils.SmallTest(t)
+
+	r := newRegression()
+
+	rhs := newRegression()
+	df := &dataframe.FrameResponse{}
+	cl := &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			Regression: 1,
+		},
+	}
+	rhs.Low = cl
+	rhs.Frame = df
+
+	r = r.Merge(rhs)
+	assert.Equal(t, r.Low, cl)
+	assert.Equal(t, r.Frame, df)
+
+	r = r.Merge(rhs)
+	assert.Equal(t, r.Low, cl)
+	assert.Equal(t, r.Frame, df)
+
+	clbetter := &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			Regression: 2,
+		},
+	}
+	dfbetter := &dataframe.FrameResponse{}
+	betterlow := newRegression()
+	betterlow.Low = clbetter
+	betterlow.Frame = dfbetter
+
+	r = r.Merge(betterlow)
+	assert.Equal(t, r.Low, clbetter)
+	assert.Equal(t, r.Frame, dfbetter)
+
+	r = r.Merge(betterlow)
+	assert.Equal(t, r.Low, clbetter)
+	assert.Equal(t, r.Frame, dfbetter)
+
+	// Now the same for High.
+	rhs = newRegression()
+	df = &dataframe.FrameResponse{}
+	cl = &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			Regression: -1,
+		},
+	}
+	rhs.High = cl
+	rhs.Frame = df
+
+	r = r.Merge(rhs)
+	assert.Equal(t, r.High, cl)
+	assert.Equal(t, r.Frame, df)
+
+	r = r.Merge(rhs)
+	assert.Equal(t, r.High, cl)
+	assert.Equal(t, r.Frame, df)
+
+	clbetter = &clustering2.ClusterSummary{
+		StepFit: &stepfit.StepFit{
+			Regression: -2,
+		},
+	}
+	dfbetter = &dataframe.FrameResponse{}
+	betterhigh := newRegression()
+	betterhigh.High = clbetter
+	betterhigh.Frame = dfbetter
+
+	r = r.Merge(betterhigh)
+	assert.Equal(t, r.High, clbetter)
+	assert.Equal(t, r.Frame, dfbetter)
+
+	r = r.Merge(betterhigh)
+	assert.Equal(t, r.High, clbetter)
+	assert.Equal(t, r.Frame, dfbetter)
 }

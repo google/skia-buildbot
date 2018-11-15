@@ -14,7 +14,8 @@
       }
 
   Attributes:
-    None
+    force_request_type - A value of 'dense' or 'range' will force the corresponding
+      request_type to be always set.
 
   Events:
     domain-changed - The event detail will contain the updated 'state'.
@@ -48,16 +49,16 @@
   <template>
     <paper-dialog id=dialog>
       <h2>Graph Domain</h2>
-        <paper-radio-button on-change=_typeRange checked="[[_isEqual(_state.request_type,0)]]">Date Range</paper-radio-button>
-        <paper-radio-button on-change=_typeDense checked="[[_isEqual(_state.request_type,1)]]">Dense</paper-radio-button>
+        <paper-radio-button on-change=_typeRange checked='[[_isEqual(_state.request_type,0)]]'>Date Range</paper-radio-button>
+        <paper-radio-button on-change=_typeDense checked='[[_isEqual(_state.request_type,1)]]'>Dense</paper-radio-button>
         <div>
-          <template is="dom-if" if="[[_isEqual(_state.request_type,0)]]">
+          <template is='dom-if' if='[[_isEqual(_state.request_type,0)]]'>
             <p>Display all points in the date range.</p>
             <label>Begin:</label> <date-picker-sk on-date-changed=_beginChange date=[[_state.begin]]></date-picker-sk>
           </template>
-          <template is="dom-if" if="[[_isEqual(_state.request_type,1)]]">
+          <template is='dom-if' if='[[_isEqual(_state.request_type,1)]]'>
             <p>Display only the points that have data before the date.</p>
-            <paper-input on-change=_numChanged type=number value="[[_state.num_commits]]" label="Number of points: " prevent-invalid-input></paper-input>
+            <paper-input on-change=_numChanged type=number value='[[_state.num_commits]]' label='Number of points: ' prevent-invalid-input></paper-input>
           </template>
         </div>
         <div>
@@ -65,7 +66,7 @@
         </div>
       <div id=controls>
         <button on-click=_cancel>Cancel</button>
-        <button on-click=_ok disabled="[[_isInvalid(_state.begin,_state.end,_state.request_type)]]">OK</button>
+        <button on-click=_ok disabled='[[_isInvalid(_state.begin,_state.end,_state.request_type)]]'>OK</button>
       </div>
     </paper-dialog>
     <button id=description on-click=_edit>{{description}}</button>
@@ -74,25 +75,31 @@
 
 <script>
   Polymer({
-    is: "domain-picker-sk",
+    is: 'domain-picker-sk',
 
     properties: {
       description: {
         type: String,
-        value: "",
+        value: '',
         reflectToAttribute: false,
       },
       state: {
         type: Object,
         value: {},
         reflectToAttribute: false,
-        observer: "stateChange",
+        observer: 'stateChange',
       },
       _state: {
         type: Object,
         value: {},
         reflectToAttribute: false,
-        observer: "_stateChange",
+        observer: '_stateChange',
+      },
+      force_request_type: {
+        type: String,
+        value: '',
+        reflectToAttribute: true,
+        observer: '_forceRequestTypeChange',
       },
     },
 
@@ -127,7 +134,7 @@
 
     _ok: function() {
       this.$.dialog.close();
-      this.fire("domain-changed", {state: this._state, bubbles: true});
+      this.fire('domain-changed', {state: this._state, bubbles: true});
     },
 
     _beginChange: function(e) {
@@ -145,13 +152,31 @@
     },
 
     _typeRange: function() {
+      if (this.force_request_type === 'dense') {
+        this._typeDense();
+        return
+      }
       this.set('_state.request_type', 0);
+      this._state = Object.assign({}, this._state);
       this._stateChange();
     },
 
     _typeDense: function() {
+      if (this.force_request_type === 'range') {
+        this._typeRange();
+        return
+      }
       this.set('_state.request_type', 1);
+      this._state = Object.assign({}, this._state);
       this._stateChange();
+    },
+
+    _forceRequestTypeChange: function() {
+      if (this.force_request_type === 'dense') {
+        this._typeDense();
+      } else if (this.force_request_type === 'range') {
+        this._typeRange();
+      }
     },
 
     _isInvalid: function(begin, end, request_type) {

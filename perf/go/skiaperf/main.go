@@ -46,6 +46,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
+	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut2"
@@ -139,6 +140,8 @@ var (
 	emailAuth *email.GMail
 
 	btConfig *config.PerfBigTableConfig
+
+	dryrunRequests *dryrun.Requests
 )
 
 func loadTemplates() {
@@ -149,6 +152,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/alerts.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
+		filepath.Join(*resourcesDir, "templates/dryRunAlert.html"),
 
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -289,6 +293,7 @@ func Init() {
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 	paramsProvider := newParamsetProvider(freshDataFrame)
+	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, git)
 
 	// Start running continuous clustering looking for regressions.
 	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
@@ -1488,6 +1493,7 @@ func main() {
 	router.HandleFunc("/c/", templateHandler("clusters2.html"))
 	router.HandleFunc("/t/", templateHandler("triage.html"))
 	router.HandleFunc("/a/", templateHandler("alerts.html"))
+	router.HandleFunc("/d/", templateHandler("dryRunAlert.html"))
 	router.HandleFunc("/g/{dest:[ect]}/{hash:[a-zA-Z0-9]+}", gotoHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
@@ -1506,6 +1512,10 @@ func main() {
 	router.HandleFunc("/_/frame/results/{id:[a-zA-Z0-9]+}", frameResultsHandler).Methods("GET")
 	router.HandleFunc("/_/cluster/start", clusterStartHandler).Methods("POST")
 	router.HandleFunc("/_/cluster/status/{id:[a-zA-Z0-9]+}", clusterStatusHandler).Methods("GET")
+
+	router.HandleFunc("/_/dryrun/start", dryrunRequests.StartHandler).Methods("POST")
+	router.HandleFunc("/_/dryrun/status/{id:[a-zA-Z0-9]+}", dryrunRequests.StatusHandler).Methods("GET")
+
 	router.HandleFunc("/_/reg/", regressionRangeHandler).Methods("POST")
 	router.HandleFunc("/_/reg/count", regressionCountHandler).Methods("GET")
 	router.HandleFunc("/_/reg/current", regressionCurrentHandler).Methods("GET")
