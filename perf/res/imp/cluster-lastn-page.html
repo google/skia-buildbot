@@ -1,0 +1,282 @@
+<!-- The <cluster-lastn-page-sk> custom element declaration.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+
+<link rel='import' href='/res/imp/bower_components/paper-spinner/paper-spinner.html'>
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="/res/imp/commit-detail.html" />
+<link rel="import" href="/res/imp/triage-status.html" />
+<link rel='import' href='/res/imp/alert-config.html' />
+<link rel='import' href='/res/imp/domain-picker-sk.html' />
+<link rel="import" href="/res/imp/cluster2.html">
+
+<link rel='stylesheet' href='/res/common/css/md.css'>
+
+<dom-module id='cluster-lastn-page-sk'>
+  <style>
+    .controls > * {
+      display: block;
+      margin: 0.6em;
+    }
+
+    cluster-summary2-sk {
+      display: block;
+      margin: 2em;
+    }
+
+    alert-config-sk {
+      padding: 2em;
+      display: block;
+    }
+
+    paper-button {
+      color: #1f78b4;
+    }
+
+    .controls > .running {
+      display: flex;
+      align-items: center;
+    }
+
+    .running > * {
+      padding: 0.3em;
+    }
+
+    button {
+      text-transform: initial;
+    }
+  </style>
+  <template>
+    <paper-dialog id=edit on-iron-overlay-closed=_onDialogClose>
+      <paper-dialog-scrollable>
+        <alert-config-sk id=alertconfig config='{{state}}'></alert-config-sk>
+      </paper-dialog-scrollable>
+      <div class='buttons'>
+        <paper-button dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm autofocus>Accept</paper-button>
+      </div>
+    </paper-dialog>
+    <div class=controls>
+      <label>Alert Configuration: <button on-click=_editAlert>[[_configTitle(state.algo,state.radius,state.sparse,state.interesting)]]</button></label>
+      <label>Domain: <domain-picker-sk id=range state='[[domain]]' on-domain-changed='_rangeChange' force_request_type=dense></domain-picker-sk></label>
+      <div class=running>
+        <button class=action disabled$='[[_notHasQuery(state)]]' on-click=_run>Run</button>
+        <paper-spinner id=spinner></paper-spinner>
+        <span id=status></span>
+      </div>
+    </div>
+    <hr>
+
+    <paper-dialog id=dialog on-open-keys=_openKeys>
+      <cluster-summary2-sk id=cluster_summary id=summary on-triaged=_triaged full_summary="[[_dialog_state.full_summary]]" triage="[[_dialog_state.triage]]"></cluster-summary2-sk>
+      <div class=buttons>
+        <button on-click=_close>Close</button>
+      </div>
+    </paper-dialog>
+
+    <table on-start-triage=_triage_start id=table>
+      <tr>
+        <th>Commit</th>
+        <th colspan=2>Regressions</th>
+      </tr>
+      <tr>
+        <th></th>
+        <template is='dom-if' if='[[_stepDownAt(state.direction)]]'>
+          <th>Low</th>
+        </template>
+
+        <template is='dom-if' if='[[_stepUpAt(state.direction)]]'>
+          <th>High</th>
+        </template>
+
+        <template is='dom-if' if='[[_notBoth(state.direction)]]'>
+          <th></th>
+        </template>
+      </tr>
+      <template is='dom-repeat' items='[[regressions]]' index-as='tableIndex'>
+        <tr>
+          <td class=fixed>
+            <commit-detail-sk cid='[[item.cid]]'></commit-detail-sk>
+          </td>
+
+          <template is='dom-if' if='[[_stepDownAt(state.direction)]]'>
+            <td class=cluster>
+              <template is='dom-if' if='[[item.regression.low]]'>
+                <triage-status-sk alert='[[state]]' cluster_type=low full_summary='[[_full_summary(item.regression.frame, item.regression.low)]]' triage='[[item.regression.low_status]]'></triage-status-sk>
+              </template>
+            </td>
+          </template>
+
+          <template is='dom-if' if='[[_stepUpAt(state.direction)]]'>
+            <td class=cluster>
+              <template is='dom-if' if='[[item.regression.high]]'>
+                <triage-status-sk alert='[[state]]' cluster_type=high full_summary='[[_full_summary(item.regression.frame, item.regression.high)]]' triage='[[item.regression.high_status]]'></triage-status-sk>
+              </template>
+            </td>
+          </template>
+
+          <template is='dom-if' if='[[_notBoth(state.direction)]]'>
+            <td></td>
+          </template>
+
+        </tr>
+      </template>
+    </table>
+
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: 'cluster-lastn-page-sk',
+
+    ready: function() {
+      sk.get('/_/initpage/').then(JSON.parse).then(function(json) {
+        this.$.alertconfig.paramset = json.dataframe.paramset;
+      }.bind(this)).catch(sk.errorMessage);
+      sk.get('/_/alert/new').then(JSON.parse).then(function(json) {
+        this.set('state', json);
+        sk.stateReflector(this, () => { this.state = this.state; });
+      }.bind(this)).catch(sk.errorMessage);
+      this._requestId = null;
+    },
+
+    properties: {
+      domain: {
+        type: Object,
+        value: () => ({
+            end: Math.floor(Date.now()/1000),
+            num_commits: 200,
+            request_type: 1,
+        }),
+        reflectToAttribute: false,
+      },
+      state: {
+        type: Object,
+        value: {},
+        reflectToAttribute: false,
+      },
+      _dialog_state: {
+        type: Object,
+        value: function() { return {}; },
+      }
+    },
+
+    _editAlert: function(e) {
+      this.$.edit.open();
+    },
+
+    _catch: function(msg) {
+      this._requestId = null;
+      this.$.spinner.active = false;
+      if (msg) {
+        sk.errorMessage(msg, 10000);
+      }
+      this.$.status.textContent = '';
+    },
+
+    _run: function(e) {
+      if (this._requestId) {
+        sk.errorMessage('There is a pending query already running.');
+        return
+      }
+      let body = {
+        domain: this.domain,
+        config: this.state,
+      }
+      this.$.spinner.active = true;
+      sk.post('/_/dryrun/start', JSON.stringify(body), 'application/json').then(JSON.parse).then(function(json) {
+        this._requestId = json.id;
+        this._checkDryRunStatus(function(regressions) {
+          this.set('regressions', regressions);
+        }.bind(this));
+      }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    _checkDryRunStatus: function(cb) {
+      sk.get('/_/dryrun/status/'+this._requestId).then(JSON.parse).then(function(json) {
+        if (!json.finished) {
+          this.$.status.textContent = json.message;
+          cb(json.regressions);
+          window.setTimeout(this._checkDryRunStatus.bind(this, cb), 300);
+        } else {
+          cb(json.regressions);
+          this._catch(json.message);
+        }
+      }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    _configTitle: function(algo,radius,sparse,interesting) {
+      return `Algo: ${algo} - Radius: ${radius} - Sparse: ${sparse} - Threshhold: ${interesting}`;
+    },
+
+    _notHasQuery: function(cfg) {
+      return cfg.query === '';
+    },
+
+    _rangeChange: function(e) {
+      this.domain = e.detail.state;
+    },
+
+    _onDialogClose: function(e) {
+      if (!e.detail.confirmed) {
+        return
+      }
+      this.state.interesting = +this.state.interesting;
+      this.state.radius = +this.state.radius;
+      this.state.k = +this.state.k;
+      this.state.minimum_num = +this.state.minimum_num;
+      this.state = Object.assign({}, this.state);
+      this.state = Object.assign({}, this.state);
+    },
+
+    _stepUpAt: function(dir) {
+      return  dir == "UP" || dir == "BOTH";
+    },
+
+    _stepDownAt: function(dir) {
+      return  dir == "DOWN" || dir == "BOTH";
+    },
+
+    _notBoth: function(dir) {
+      return dir != "BOTH";
+    },
+
+    _full_summary: function(frame, summary) {
+      return {
+        frame: frame,
+        summary: summary,
+      }
+    },
+
+    _openKeys: function(e) {
+      var query = {
+        keys:       e.detail.shortcut,
+        begin:      e.detail.begin,
+        end:        e.detail.end,
+        xbaroffset: e.detail.xbar.offset
+      };
+      window.open('/e/?' + sk.query.fromObject(query), '_blank');
+    },
+
+    _triage_start: function(e) {
+      this._dialog_state = e.detail;
+      this.$.dialog.open();
+    },
+
+    _triaged: function() {
+      sk.errorMessage("Dry run results can't be triaged.", 10000);
+    },
+
+  });
+</script>
