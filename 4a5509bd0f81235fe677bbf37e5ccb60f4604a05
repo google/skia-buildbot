@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c75bd306_966e9035",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T18:29:46Z",
+      "side": 1,
+      "message": "What if the caller wants to use additional email addresses?  Can\u0027t we replace $SHERIFF with the list of emails while also maintaining the existing set?",
+      "range": {
+        "startLine": 291,
+        "startChar": 25,
+        "endLine": 291,
+        "endChar": 86
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e22cb6ff_e72793c4",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T18:29:46Z",
+      "side": 1,
+      "message": "We need to reload the configs outside of this loop.  Otherwise all but the last will contain $SHERIFF instead of the actual email list.",
+      "range": {
+        "startLine": 293,
+        "startChar": 5,
+        "endLine": 293,
+        "endChar": 77
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24d9a15c_266d002a",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T18:29:46Z",
+      "side": 1,
+      "message": "I think a better way to do this is to keep r.notifierConfigs \"clean\" by making copies of the configs in this goroutine.  That probably implies a notifier.Config.Copy() method.",
+      "range": {
+        "startLine": 297,
+        "startChar": 5,
+        "endLine": 298,
+        "endChar": 35
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63fcd020_b8652d39",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T18:29:46Z",
+      "side": 1,
+      "message": "This is not necessarily true.  We may send emails at different filter levels to different people.",
+      "range": {
+        "startLine": 299,
+        "startChar": 5,
+        "endLine": 299,
+        "endChar": 73
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
