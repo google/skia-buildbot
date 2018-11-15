@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c9654805_67c3d489",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T21:37:23Z",
+      "side": 1,
+      "message": "Done (I think)",
+      "parentUuid": "04bfeab3_0d0bbca4",
+      "range": {
+        "startLine": 85,
+        "startChar": 59,
+        "endLine": 85,
+        "endChar": 80
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "34aa3b7f_c4cc0528",
         "filename": "autoroll/go/notifier/notifier.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b342f059_842ebca2",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T21:37:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34aa3b7f_c4cc0528",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 40
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "a8b2251f_9a7bc692",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T21:37:23Z",
+      "side": 1,
+      "message": "I gave this a shot, still not tested e2e.",
+      "parentUuid": "0f23126e_4187dabb",
+      "range": {
+        "startLine": 180,
+        "startChar": 1,
+        "endLine": 180,
+        "endChar": 68
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "992f1063_17851716",
         "filename": "go/notifier/notifier.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e427f734_7ad48942",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T21:37:23Z",
+      "side": 1,
+      "message": "Oops. Done.",
+      "parentUuid": "992f1063_17851716",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 20
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
