@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04bfeab3_0d0bbca4",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T19:23:52Z",
+      "side": 1,
+      "message": "Maybe it would be cleaner overall to add a configs []*notifier.Config parameter here and call ReloadConfigs as part of New().",
+      "range": {
+        "startLine": 85,
+        "startChar": 59,
+        "endLine": 85,
+        "endChar": 80
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34aa3b7f_c4cc0528",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T19:23:52Z",
+      "side": 1,
+      "message": "nit:\n\nn :\u003d notifier.NewRouter(a.emailer)\nif err :\u003d n.AddFromConfigs(ctx, configs); err !\u003d nil {\n    return err\n}\na.n \u003d n",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 40
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f23126e_4187dabb",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T19:23:52Z",
+      "side": 1,
+      "message": "Per comment in notifier.go, let\u0027s pass in c.Notifiers to arb_notifier.New() rather than accessing the router directly.  That may allow us to remove the Router() method altogether?  Additionally, we need to replace instances of $SHERIFF here in addition to the below, so you may need to extract your new code into a helper function which takes a config list and sheriff emails and returns a new config list.",
+      "range": {
+        "startLine": 180,
+        "startChar": 1,
+        "endLine": 180,
+        "endChar": 68
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "992f1063_17851716",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-15T19:23:52Z",
+      "side": 1,
+      "message": "These are pointers, so their contents need to be copied as well.",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 20
+      },
+      "revId": "7943bcbacf9183716ee63fc8cc3768d0b11c80b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
