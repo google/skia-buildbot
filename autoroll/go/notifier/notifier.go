@@ -90,6 +90,12 @@ func New(childName, parentName string, emailer *email.GMail) *AutoRollNotifier {
 	}
 }
 
+func (a *AutoRollNotifier) ReloadConfigs(ctx context.Context, configs []*notifier.Config) error {
+	// Create a new router and add the specified configs to it.
+	a.n = notifier.NewRouter(a.emailer)
+	return a.n.AddFromConfigs(ctx, configs)
+}
+
 // Return the underlying notifier.Router.
 func (a *AutoRollNotifier) Router() *notifier.Router {
 	return a.n
