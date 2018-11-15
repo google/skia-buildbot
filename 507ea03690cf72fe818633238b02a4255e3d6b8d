@@ -240,6 +240,30 @@
     },
     {
       "key": {
+        "uuid": "a31ec8b4_c42595ab",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T18:08:22Z",
+      "side": 1,
+      "message": "Ok, I tried this out. Not tested yet.\nOne problem was with the placeholder: It would be overriden with n.Email.Emails so I tried to keep it back at the end.",
+      "parentUuid": "7ed98300_622e68bf",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 58
+      },
+      "revId": "507ea03690cf72fe818633238b02a4255e3d6b8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "936eb190_90fa5b34",
         "filename": "go/sheriff_endpoints/sheriff_endpoints.go",
         "patchSetId": 1
