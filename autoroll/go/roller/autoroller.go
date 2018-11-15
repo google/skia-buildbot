@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -68,6 +69,7 @@ type AutoRoller struct {
 	strategyHistory *strategy.StrategyHistory
 	successThrottle *state_machine.Throttler
 	rollIntoAndroid bool
+	notifierConfigs []*notifier.Config
 }
 
 // NewAutoRoller returns an AutoRoller instance.
@@ -174,8 +176,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 	sklog.Info("Creating notifier")
-	n := arb_notifier.New(c.ChildName, c.ParentName, emailer)
-	if err := n.Router().AddFromConfigs(ctx, c.Notifiers); err != nil {
+	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, emailer, c.Notifiers)
+	if err != nil {
 		return nil, err
 	}
 	sklog.Info("Creating status cache.")
@@ -202,6 +204,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		status:          statusCache,
 		strategyHistory: sh,
 		successThrottle: successThrottle,
+		notifierConfigs: c.Notifiers,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -281,6 +284,31 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency tim
 			r.emailsMtx.Lock()
 			defer r.emailsMtx.Unlock()
 			r.emails = emails
+
+			// If $SHERIFF was specified in a notifier config then update the
+			// config with the email list and reload the notifier.
+			// Make copies of the configs and reload them so we do not end up
+			// modifying the original configs.
+			configCopies := []*notifier.Config{}
+			for _, n := range r.notifierConfigs {
+				configCopy := n.Copy(ctx)
+				if configCopy.Email != nil {
+					newEmails := []string{}
+					for _, e := range configCopy.Email.Emails {
+						if e == "$SHERIFF" {
+							newEmails = append(newEmails, emails...)
+						} else {
+							newEmails = append(newEmails, e)
+						}
+					}
+					configCopy.Email.Emails = newEmails
+				}
+				configCopies = append(configCopies, configCopy)
+			}
+			if err := r.notifier.ReloadConfigs(ctx, configCopies); err != nil {
+				sklog.Errorf("Failed to reload configs: %s", err)
+				return
+			}
 		}
 	}, nil)
 }
