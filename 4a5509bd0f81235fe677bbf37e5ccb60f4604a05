@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d1d82b32_9d0c6c6c",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T19:04:54Z",
+      "side": 1,
+      "message": "That\u0027s true, I was trying to keep things simple. I tried this out. PTAL.",
+      "parentUuid": "c75bd306_966e9035",
+      "range": {
+        "startLine": 291,
+        "startChar": 25,
+        "endLine": 291,
+        "endChar": 86
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e22cb6ff_e72793c4",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "636ada7a_bcddd3ec",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T19:04:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e22cb6ff_e72793c4",
+      "range": {
+        "startLine": 293,
+        "startChar": 5,
+        "endLine": 293,
+        "endChar": 77
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7c77f5ba_2e494bc8",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T19:04:54Z",
+      "side": 1,
+      "message": "Tried this out.",
+      "parentUuid": "24d9a15c_266d002a",
+      "range": {
+        "startLine": 297,
+        "startChar": 5,
+        "endLine": 298,
+        "endChar": 35
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "63fcd020_b8652d39",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fd21403_38b990c6",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-15T19:04:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "63fcd020_b8652d39",
+      "range": {
+        "startLine": 299,
+        "startChar": 5,
+        "endLine": 299,
+        "endChar": 73
+      },
+      "revId": "4a5509bd0f81235fe677bbf37e5ccb60f4604a05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
