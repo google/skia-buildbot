@@ -87,9 +87,10 @@ type ClusterResponse struct {
 // ClusterRequestProcess handles the processing of a single ClusterRequest.
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
-	request *ClusterRequest
-	git     *gitinfo.GitInfo
-	iter    DataFrameIterator
+	request                  *ClusterRequest
+	git                      *gitinfo.GitInfo
+	iter                     DataFrameIterator
+	clusterResponseProcessor ClusterResponseProcessor
 
 	// mutex protects access to the remaining struct members.
 	mutex      sync.RWMutex
@@ -99,14 +100,15 @@ type ClusterRequestProcess struct {
 	message    string             // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
+func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) *ClusterRequestProcess {
 	ret := &ClusterRequestProcess{
-		request:    req,
-		git:        git,
-		response:   []*ClusterResponse{},
-		lastUpdate: time.Now(),
-		state:      PROCESS_RUNNING,
-		message:    "Running",
+		request:                  req,
+		git:                      git,
+		clusterResponseProcessor: clusterResponseProcessor,
+		response:                 []*ClusterResponse{},
+		lastUpdate:               time.Now(),
+		state:                    PROCESS_RUNNING,
+		message:                  "Running",
 	}
 	if req.Type == CLUSTERING_REQUEST_TYPE_SINGLE {
 		// TODO(jcgregorio) This is awkward and should go away in a future CL.
@@ -125,8 +127,8 @@ func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, 
 	return ret
 }
 
-func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder) *ClusterRequestProcess {
-	ret := newProcess(ctx, req, git, cidl, dfBuilder)
+func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) *ClusterRequestProcess {
+	ret := newProcess(ctx, req, git, cidl, dfBuilder, clusterResponseProcessor)
 	go ret.Run(ctx)
 	return ret
 }
@@ -198,8 +200,9 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 			delete(fr.inProcess, id)
 		}
 	}
+	clusterResponseProcessor := func(resps []*ClusterResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newRunningProcess(ctx, req, fr.git, fr.cidl, fr.dfBuilder)
+		fr.inProcess[id] = newRunningProcess(ctx, req, fr.git, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
 	}
 	return id
 }
@@ -387,10 +390,12 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		p.mutex.Lock()
 		p.state = PROCESS_SUCCESS
 		p.message = ""
-		p.response = append(p.response, &ClusterResponse{
+		cr := &ClusterResponse{
 			Summary: summary,
 			Frame:   frame,
-		})
+		}
+		p.clusterResponseProcessor([]*ClusterResponse{cr})
+		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}
 }
