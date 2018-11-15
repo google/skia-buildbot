@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "346b55bf_2668fcdb",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-15T23:05:19Z",
+      "side": 1,
+      "message": "Needs --keys-file that points to a json file with those keys",
+      "revId": "e5bce0b2289c1a465512b60dcccfe09fff0ae3bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "897217ae_6f8ac43c",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-15T23:05:19Z",
+      "side": 1,
+      "message": "need --work-dir and --failure-file (the place to write a URL if a failure happened)",
+      "revId": "e5bce0b2289c1a465512b60dcccfe09fff0ae3bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5d41326_59a19029",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-15T23:05:19Z",
+      "side": 1,
+      "message": "Why not just fmt.Printf ?  Here and other places.",
+      "range": {
+        "startLine": 186,
+        "startChar": 1,
+        "endLine": 186,
+        "endChar": 19
+      },
+      "revId": "e5bce0b2289c1a465512b60dcccfe09fff0ae3bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
