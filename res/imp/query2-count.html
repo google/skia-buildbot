@@ -50,7 +50,13 @@
         return
       }
       this._countInProgress = true;
-      sk.post(this.url, this.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(json) {
+      let now = Math.floor(Date.now()/1000);
+      let body = {
+        q: this.current_query,
+        end: now,
+        begin: now - 24*60*60,
+      };
+      sk.post(this.url, JSON.stringify(body)).then(JSON.parse).then(function(json) {
         this._countInProgress = false;
         this.$.matches.textContent = json.count;
       }.bind(this)).catch(function() {
