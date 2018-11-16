@@ -388,6 +388,12 @@ func prepareSkiaCheckoutForCompile(ctx context.Context, userConfigContent []byte
 		return fmt.Errorf("Could not write to %s: %s", android_skia_checkout.SkUserConfigManualRelPath, err)
 	}
 
+	// Remove SkUserConfig.h so it does not cause failures, see
+	// https://skia-review.googlesource.com/c/skia/+/171231 for context.
+	if err := os.Remove(android_skia_checkout.SkUserConfigRelPath); err != nil {
+		return fmt.Errorf("Error when deleting %s: %s", android_skia_checkout.SkUserConfigRelPath, err)
+	}
+
 	return nil
 }
 
