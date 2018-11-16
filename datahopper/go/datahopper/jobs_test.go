@@ -15,7 +15,7 @@ import (
 )
 
 // Create a db.JobDB and jobEventDB.
-func setup(t *testing.T, now time.Time) (*jobEventDB, db.JobDB) {
+func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB) {
 	jdb := db.NewInMemoryJobDB()
 	edb := &jobEventDB{
 		cached: []*events.Event{},
@@ -45,20 +45,20 @@ func makeJob(created time.Time, name string, status db.JobStatus, jobType jobTyp
 	return j
 }
 
-// assertEvent checks that ev.Data contains j.
-func assertEvent(t *testing.T, ev *events.Event, j *db.Job) {
-	assert.Equal(t, STREAM, ev.Stream)
+// assertJobEvent checks that ev.Data contains j.
+func assertJobEvent(t *testing.T, ev *events.Event, j *db.Job) {
+	assert.Equal(t, JOB_STREAM, ev.Stream)
 	var job db.Job
 	assert.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&job))
 	deepequal.AssertDeepEqual(t, j, &job)
 	assert.True(t, j.Created.Equal(ev.Timestamp))
 }
 
-// TestUpdate checks that jobEventDB.update creates the correct Events from Jobs in the DB.
-func TestUpdate(t *testing.T) {
+// TestJobUpdate checks that jobEventDB.update creates the correct Events from Jobs in the DB.
+func TestJobUpdate(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setup(t, now)
+	edb, jdb := setupJobs(t, now)
 	start := now.Add(-TIME_PERIODS[len(TIME_PERIODS)-1])
 	jobs := []*db.Job{
 		// 0: Filtered out -- too early.
@@ -74,21 +74,21 @@ func TestUpdate(t *testing.T) {
 	}
 	assert.NoError(t, jdb.PutJobs(jobs))
 	assert.NoError(t, edb.update())
-	evs, err := edb.Range(STREAM, start.Add(-time.Hour), start.Add(time.Hour))
+	evs, err := edb.Range(JOB_STREAM, start.Add(-time.Hour), start.Add(time.Hour))
 	assert.NoError(t, err)
 
 	expected := append(jobs[1:3], jobs[4:8]...)
 	assert.Len(t, evs, len(expected))
 	for i, ev := range evs {
-		assertEvent(t, ev, expected[i])
+		assertJobEvent(t, ev, expected[i])
 	}
 }
 
-// TestRange checks that jobEventDB.Range returns Events within the given range.
-func TestRange(t *testing.T) {
+// TestJobRange checks that jobEventDB.Range returns Events within the given range.
+func TestJobRange(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setup(t, now)
+	edb, jdb := setupJobs(t, now)
 	base := now.Add(-time.Hour)
 	jobs := []*db.Job{
 		makeJob(base.Add(-time.Nanosecond), "A", db.JOB_STATUS_SUCCESS, NORMAL, time.Minute),
@@ -100,11 +100,11 @@ func TestRange(t *testing.T) {
 	assert.NoError(t, edb.update())
 
 	test := func(start, end time.Time, startIdx, count int) {
-		evs, err := edb.Range(STREAM, start, end)
+		evs, err := edb.Range(JOB_STREAM, start, end)
 		assert.NoError(t, err)
 		assert.Len(t, evs, count)
 		for i, ev := range evs {
-			assertEvent(t, ev, jobs[startIdx+i])
+			assertJobEvent(t, ev, jobs[startIdx+i])
 		}
 	}
 	before := base.Add(-time.Hour)
@@ -177,13 +177,13 @@ func (dt *DynamicAggregateFnTester) Run(evs []*events.Event) {
 	}
 }
 
-func TestComputeAvgDuration(t *testing.T) {
+func TestComputeAvgJobDuration(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setup(t, now)
+	edb, jdb := setupJobs(t, now)
 	created := now.Add(-time.Hour)
 
-	tester := newDynamicAggregateFnTester(t, computeAvgDuration)
+	tester := newDynamicAggregateFnTester(t, computeAvgJobDuration)
 	expect := func(jobName string, jobType jobTypeString, jobs []*db.Job) {
 		var totalDur float64 = 0
 		for _, j := range jobs {
@@ -230,20 +230,20 @@ func TestComputeAvgDuration(t *testing.T) {
 	expect("AllTypes", FORCED, jobsType[8:9])
 
 	assert.NoError(t, edb.update())
-	evs, err := edb.Range(STREAM, created.Add(-time.Hour), created.Add(time.Hour))
+	evs, err := edb.Range(JOB_STREAM, created.Add(-time.Hour), created.Add(time.Hour))
 	assert.NoError(t, err)
 	assert.Len(t, evs, len(jobsStatus)+len(jobsType))
 
 	tester.Run(evs)
 }
 
-func TestComputeFailureMishapRate(t *testing.T) {
+func TestComputeJobFailureMishapRate(t *testing.T) {
 	testutils.SmallTest(t)
 	now := time.Now()
-	edb, jdb := setup(t, now)
+	edb, jdb := setupJobs(t, now)
 	created := now.Add(-time.Hour)
 
-	tester := newDynamicAggregateFnTester(t, computeFailureMishapRate)
+	tester := newDynamicAggregateFnTester(t, computeJobFailureMishapRate)
 	expect := func(jobName string, metric string, numer, denom int) {
 		tester.AddAssert(map[string]string{
 			"job_name": jobName,
@@ -322,7 +322,7 @@ func TestComputeFailureMishapRate(t *testing.T) {
 	}
 
 	assert.NoError(t, edb.update())
-	evs, err := edb.Range(STREAM, created.Add(-time.Hour), created.Add(time.Hour))
+	evs, err := edb.Range(JOB_STREAM, created.Add(-time.Hour), created.Add(time.Hour))
 	assert.NoError(t, err)
 	assert.Len(t, evs, jobCount)
 

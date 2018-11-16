@@ -29,11 +29,11 @@ var (
 )
 
 const (
-	STREAM = "job_metrics"
+	JOB_STREAM = "job_metrics"
 )
 
-// jobTypeString is an enum of the types of Jobs that computeAvgDuration will aggregate separately.
-// The string value is the same as the job_type tag value returned by computeAvgDuration.
+// jobTypeString is an enum of the types of Jobs that computeAvgJobDuration will aggregate separately.
+// The string value is the same as the job_type tag value returned by computeAvgJobDuration.
 type jobTypeString string
 
 const (
@@ -54,7 +54,7 @@ type jobEventDB struct {
 	// 3. Thread 1: EventManager.updateMetrics calls jobEventDB.Range, which waits
 	//    to lock jobEventDB.mtx
 	// 4. Thread 2: jobEventDB.update calls EventMetrics.AggregateMetric (by way
-	//    of addAggregates and EventStream.AggregateMetric), which waits to lock
+	//    of addJobAggregates and EventStream.AggregateMetric), which waits to lock
 	//    EventMetrics.mtx
 	mtx sync.Mutex
 }
@@ -118,7 +118,7 @@ func (j *jobEventDB) update() error {
 			return fmt.Errorf("Failed to encode %#v to GOB: %s", job, err)
 		}
 		ev := &events.Event{
-			Stream:    STREAM,
+			Stream:    JOB_STREAM,
 			Timestamp: job.Created,
 			Data:      buf.Bytes(),
 		}
@@ -130,12 +130,12 @@ func (j *jobEventDB) update() error {
 	return nil
 }
 
-// computeAvgDuration is an events.DynamicAggregateFn that returns metrics for average Job duration
+// computeAvgJobDuration is an events.DynamicAggregateFn that returns metrics for average Job duration
 // for Jobs with status SUCCESS or FAILURE, given a slice of Events created by jobEventDB.update.
 // The first return value will contain the tags "job_name" (db.Job.Name) and "job_type" (one of
 // "normal", "tryjob", "forced"), and the second return value will be the corresponding average Job
 // duration. Returns an error if Event.Data can't be GOB-decoded as a db.Job.
-func computeAvgDuration(ev []*events.Event) ([]map[string]string, []float64, error) {
+func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, error) {
 	if len(ev) > 0 {
 		// ev should be ordered by timestamp
 		sklog.Debugf("Calculating avg-duration for %d jobs since %s.", len(ev), ev[0].Timestamp)
@@ -196,12 +196,12 @@ func computeAvgDuration(ev []*events.Event) ([]map[string]string, []float64, err
 	return rvTags, rvVals, nil
 }
 
-// computeAvgDuration is an events.DynamicAggregateFn that returns metrics for Job failure rate and
+// computeJobFailureMishapRate is an events.DynamicAggregateFn that returns metrics for Job failure rate and
 // mishap rate, given a slice of Events created by jobEventDB.update. The first return value will
 // contain the tags "job_name" (db.Job.Name) and "metric" (one of "failure-rate", "mishap-rate"),
 // and the second return value will be the corresponding ratio of failed/mishap Jobs to all
 // completed Jobs. Returns an error if Event.Data can't be GOB-decoded as a db.Job.
-func computeFailureMishapRate(ev []*events.Event) ([]map[string]string, []float64, error) {
+func computeJobFailureMishapRate(ev []*events.Event) ([]map[string]string, []float64, error) {
 	if len(ev) > 0 {
 		// ev should be ordered by timestamp
 		sklog.Debugf("Calculating failure-rate for %d jobs since %s.", len(ev), ev[0].Timestamp)
@@ -250,15 +250,15 @@ func computeFailureMishapRate(ev []*events.Event) ([]map[string]string, []float6
 	return rvTags, rvVals, nil
 }
 
-// addAggregates adds aggregation functions for job events to the EventStream.
-func addAggregates(s *events.EventStream) error {
+// addJobAggregates adds aggregation functions for job events to the EventStream.
+func addJobAggregates(s *events.EventStream) error {
 	for _, period := range TIME_PERIODS {
-		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration"}, period, computeAvgDuration); err != nil {
+		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration"}, period, computeAvgJobDuration); err != nil {
 			return err
 		}
 
 		// Job failure/mishap rate.
-		if err := s.DynamicMetric(nil, period, computeFailureMishapRate); err != nil {
+		if err := s.DynamicMetric(nil, period, computeJobFailureMishapRate); err != nil {
 			return err
 		}
 	}
@@ -281,8 +281,8 @@ func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
 	}
 	edb.em = em
 
-	s := em.GetEventStream(STREAM)
-	if err := addAggregates(s); err != nil {
+	s := em.GetEventStream(JOB_STREAM)
+	if err := addJobAggregates(s); err != nil {
 		return err
 	}
 
