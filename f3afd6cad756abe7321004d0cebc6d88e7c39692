@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3922fecb_81602f0f",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T17:36:19Z",
+      "side": 1,
+      "message": "Maybe mention that the results could be from inconsistent snapshots. (Also for IterDocsInParallel.)",
+      "range": {
+        "startLine": 174,
+        "startChar": 48,
+        "endLine": 174,
+        "endChar": 49
+      },
+      "revId": "f3afd6cad756abe7321004d0cebc6d88e7c39692",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0163546e_3737a8b1",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T17:36:19Z",
+      "side": 1,
+      "message": "nit: Debugf",
+      "range": {
+        "startLine": 198,
+        "startChar": 11,
+        "endLine": 198,
+        "endChar": 16
+      },
+      "revId": "f3afd6cad756abe7321004d0cebc6d88e7c39692",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23de2880_0199eda4",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T17:36:19Z",
+      "side": 1,
+      "message": "nit: \"following\"",
+      "range": {
+        "startLine": 209,
+        "startChar": 34,
+        "endLine": 209,
+        "endChar": 36
+      },
+      "revId": "f3afd6cad756abe7321004d0cebc6d88e7c39692",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

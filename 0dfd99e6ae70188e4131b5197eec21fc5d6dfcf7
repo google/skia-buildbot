@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1b178029_90e528ca",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T17:36:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "937ab0d1_0e01d4dc",
+      "range": {
+        "startLine": 1137,
+        "startChar": 25,
+        "endLine": 1137,
+        "endChar": 28
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ea083cc_4045e766",
         "filename": "task_scheduler/go/db/firestore/firestore.go",
         "patchSetId": 2
@@ -234,6 +258,30 @@
       "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "abc0e351_ced2f4a9",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T17:36:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0778ba75_60ef7b1d",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
