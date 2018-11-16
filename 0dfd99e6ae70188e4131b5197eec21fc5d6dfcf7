@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "937ab0d1_0e01d4dc",
+        "filename": "go/util/util.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1137,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T15:54:25Z",
+      "side": 1,
+      "message": "Thanks for the catch. For some reason I thought ints were always 32 bits in Go.",
+      "parentUuid": "fa6ade6d_426768c5",
+      "range": {
+        "startLine": 1137,
+        "startChar": 25,
+        "endLine": 1137,
+        "endChar": 28
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0ea083cc_4045e766",
         "filename": "task_scheduler/go/db/firestore/firestore.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7019cec8_0974a386",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T15:54:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ea083cc_4045e766",
+      "range": {
+        "startLine": 118,
+        "startChar": 8,
+        "endLine": 118,
+        "endChar": 13
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "96d23cbc_81b7af27",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T15:54:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0aba974c_5271cc96",
+      "range": {
+        "startLine": 199,
+        "startChar": 3,
+        "endLine": 202,
+        "endChar": 4
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8937963e_978e77ae",
         "filename": "task_scheduler/go/db/firestore/firestore.go",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "4466e182_90b64147",
+        "filename": "task_scheduler/go/db/firestore/firestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T15:54:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8937963e_978e77ae",
+      "range": {
+        "startLine": 211,
+        "startChar": 2,
+        "endLine": 211,
+        "endChar": 74
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "459571be_718b58ed",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2018-11-14T21:19:09Z",
       "side": 1,
       "message": "nit: \"possibleDupes[idx] \u003d nil\" is equivalent; dupes is unused after this.",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 31
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0778ba75_60ef7b1d",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T15:54:25Z",
+      "side": 1,
+      "message": "It\u0027s used on line 81.",
+      "parentUuid": "459571be_718b58ed",
       "range": {
         "startLine": 69,
         "startChar": 0,
@@ -137,6 +257,30 @@
       "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c95d950c_84ad1855",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T15:54:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ecf9974_e380b7d9",
+      "range": {
+        "startLine": 105,
+        "startChar": 1,
+        "endLine": 105,
+        "endChar": 2
+      },
+      "revId": "0dfd99e6ae70188e4131b5197eec21fc5d6dfcf7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
