@@ -30,9 +30,9 @@ var (
 	// overridden for testing.
 	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client) (RepoManager, error) = newAndroidRepoManager
 
-	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
+	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath}
 
-	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigRelPath, android_skia_checkout.AndroidBpRelPath}
+	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.AndroidBpRelPath}
 
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
@@ -319,6 +319,11 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		if _, err := exec.RunCwd(ctx, r.childDir, "git", "add", genFile); err != nil {
 			return 0, err
 		}
+	}
+
+	// TODO(rmistry): Remove this after the first time android_skia_checkout.SkUserConfigRelPath is deleted.
+	if _, err := exec.RunCwd(ctx, r.childDir, "git", "rm", android_skia_checkout.SkUserConfigRelPath); err != nil {
+		return 0, err
 	}
 
 	// Run the pre-upload steps.
