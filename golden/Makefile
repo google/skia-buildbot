@@ -41,10 +41,6 @@ k8s-release-skiacorrectness: build-static-skiacorrectness frontend
 k8s-release-diff-server: build-static-diffserver
 	./k8s_release_diff_server
 
-.PHONY: release-goldctl-gcs
-release-goldctl-gcs: build-static-goldctl
-	./release_goldctl
-
 .PHONY: build-static-skiacorrectness
 build-static-skiacorrectness: skiaversion
 	mkdir -p ./build
@@ -56,11 +52,5 @@ build-static-diffserver: skiaversion
 	mkdir -p ./build
 	rm -f ./build/diff_server_k8s
 	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/main.go
-
-.PHONY: build-static-goldctl
-build-static-goldctl:
-	mkdir -p ./build
-	rm -f ./build/goldctl
-	$(KGO) -o build/goldctl -a ./cmd/goldctl/main.go
 
 include ../webtools/webtools.mk
