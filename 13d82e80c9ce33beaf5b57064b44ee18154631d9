@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "079ad37a_7af2f7aa",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-16T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bccc089_8ab7a18f",
+      "range": {
+        "startLine": 26,
+        "startChar": 11,
+        "endLine": 26,
+        "endChar": 12
+      },
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e54d60f_5fdb17d1",
         "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57e27b7b_4422eed3",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-16T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e54d60f_5fdb17d1",
+      "range": {
+        "startLine": 69,
+        "startChar": 37,
+        "endLine": 69,
+        "endChar": 65
+      },
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -101,6 +149,24 @@
     },
     {
       "key": {
+        "uuid": "6589da73_063f9fd4",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-16T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21ae61c8_6d4f53cd",
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1eb58f70_99d110c3",
         "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.scss",
         "patchSetId": 4
@@ -121,6 +187,30 @@
       "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e6b4111_9dadabd6",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-16T19:34:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1eb58f70_99d110c3",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 17
+      },
+      "revId": "13d82e80c9ce33beaf5b57064b44ee18154631d9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
