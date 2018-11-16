@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4004fc6a_03f624bd",
+        "filename": "datahopper/go/datahopper/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T16:16:55Z",
+      "side": 1,
+      "message": "nit: (We probably don\u0027t care, but...) Counting all tasks will make the flake-rate lower than it should be. Assuming 2 attempts and an actual flake-rate of 50%, we would see the following:\n - 50% would succeed on first attempt\n - 25% would fail on first attempt and succeed on the next attempt (2 tasks)\n - 25% would fail on both attempts (2 tasks)\n\nSo, over four commits, we should see on average:\nc1: S\nc2: S\nc3: F S\nc4: F F\nTotal: 1 flake, 6 tasks \u003d 17% flake rate, rather than 50%\n\nCounting only tasks with Attempt \u003d\u003d 0 should make this more accurate.\n\n(It would still give us a 25% flake rate rather than 50%, but I don\u0027t know how to fix that, and as the flake rate decreases, the fail-fail case becomes more and more unlikely.)",
+      "range": {
+        "startLine": 141,
+        "startChar": 2,
+        "endLine": 141,
+        "endChar": 15
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf4b97a7_b705e5b5",
+        "filename": "datahopper/go/datahopper/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T16:16:55Z",
+      "side": 1,
+      "message": "Should this just be removed?",
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dba44910_d84d722a",
+        "filename": "datahopper/go/datahopper/tasks_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T16:16:55Z",
+      "side": 1,
+      "message": "Debugging?",
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26703dc9_e0c4a3c0",
+        "filename": "task_scheduler/go/flakes/flakes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T16:16:55Z",
+      "side": 1,
+      "message": "nit: It would be nice to compute this by TaskKey rather than RetryOf so that we can include forced tasks. (So, if both attempts failed but someone manually retries and it succeeds, we would still count it as a flake.)",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 15
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3f2bb11_d2b8f2fc",
+        "filename": "task_scheduler/go/flakes/flakes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T16:16:55Z",
+      "side": 1,
+      "message": "nit: something like this would explain the use of a loop: \"A retry that succeeded means all previous tasks in the retry chain are flakes.\"",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 63
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81b89848_88636645",
+        "filename": "task_scheduler/go/flakes/flakes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-16T16:16:55Z",
+      "side": 1,
+      "message": "nit: \"the input slice\" (flaky is also a slice)",
+      "range": {
+        "startLine": 26,
+        "startChar": 34,
+        "endLine": 26,
+        "endChar": 43
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
