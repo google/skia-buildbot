@@ -30,6 +30,10 @@ var testKinds = []ds.Kind{
 }
 
 func TestMySQLExpectationsStore(t *testing.T) {
+	// Temporarily skip until we have the race condition resolved or this
+	// is removed alltogether.
+	t.Skip()
+
 	testutils.LargeTest(t)
 	// Set up the test database.
 	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
