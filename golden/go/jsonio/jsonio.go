@@ -81,7 +81,7 @@ func ParseGoldResults(r io.Reader) (*GoldResults, []string, error) {
 
 	// Extract the embedded Gold result and validate it.
 	ret := raw.GoldResults
-	if errMsg, err := ret.Validate(); err != nil {
+	if errMsg, err := ret.Validate(false); err != nil {
 		errMessages = append(errMessages, errMsg...)
 	}
 
@@ -99,14 +99,10 @@ type GoldResults struct {
 	Results []*Result         `json:"results"  validate:"min=1"`
 
 	// Required fields for tryjobs.
-	Issue         int64 `json:"issue,string"`
-	BuildBucketID int64 `json:"buildbucket_build_id,string"`
-	Patchset      int64 `json:"patchset,string"`
-
-	// Optional fields
-	SwarmingTaskID string `json:"swarming_task_id"`
-	SwarmingBotID  string `json:"swarming_bot_id"`
-	Builder        string `json:"builder"`
+	Issue         int64  `json:"issue,string"`
+	BuildBucketID int64  `json:"buildbucket_build_id,string"`
+	Patchset      int64  `json:"patchset,string"`
+	Builder       string `json:"builder"` // Builder is not strictly necessary but makes debugging easier.
 }
 
 type rawGoldResults struct {
@@ -145,7 +141,7 @@ func (r *rawGoldResults) parseValidate() []string {
 // both return values will be nil. Otherwise the first return value contains
 // error messages (one for each field) and the returned error contains a
 // concatenation of these error messages.
-func (g *GoldResults) Validate() ([]string, error) {
+func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 	jn := goldResultsJsonMap
 	errMsg := []string{}
 
@@ -156,8 +152,11 @@ func (g *GoldResults) Validate() ([]string, error) {
 
 	validIssue := g.Issue == 0 || (g.Issue > 0 && g.Patchset > 0 && g.BuildBucketID > 0)
 	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be zero or all not be zero", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
-	for _, r := range g.Results {
-		r.validate(&errMsg, jn["Results"])
+
+	if !ignoreResults {
+		for _, r := range g.Results {
+			r.validate(&errMsg, jn["Results"])
+		}
 	}
 
 	// If we have an error construct an error object from the error messages.
