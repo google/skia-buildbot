@@ -50,6 +50,7 @@
     iron-icon {
       padding: 0.4em;
       cursor: pointer;
+      color: black;
     }
 
     iron-icon:hover {
@@ -86,6 +87,7 @@
         <th>Owner</th>
         <th></th>
         <th></th>
+        <th></th>
       </tr>
       <template is="dom-repeat" items="{{_alerts}}">
         <tr>
@@ -95,7 +97,8 @@
           <td>{{item.alert}}</td>
           <td>{{item.owner}}</td>
           <td><iron-icon title="Delete" icon="delete" on-tap="_delete" __config="{{item}}"></iron-icon></td>
-          <td>[[_ifNotActive(item.state)]]</iron-icon></td>
+          <td><a href$="[[_dryrunUrl(item)]]"><iron-icon title="Dry Run" icon="build"></iron-icon></td>
+          <td>[[_ifNotActive(item.state)]]</td>
         </tr>
       </template>
     </table>
@@ -203,7 +206,10 @@
       sk.post("/_/alert/delete/" + e.target.__config.id, "").then(function(){
         this._list();
       }.bind(this)).catch(sk.errorMessage);
-      console.log(e.target.__config);
+    },
+
+    _dryrunUrl: function(config) {
+      return '/d/?' + sk.query.fromObject(config);
     },
 
     _onDialogClose: function(e) {
