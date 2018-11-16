@@ -2,6 +2,7 @@ package jsonio
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -74,7 +75,7 @@ func TestValidate(t *testing.T) {
 	testutils.SmallTest(t)
 
 	empty := &GoldResults{}
-	errMsgs, err := empty.Validate()
+	errMsgs, err := empty.Validate(false)
 	assert.Error(t, err)
 	assertErrorFields(t, errMsgs,
 		"gitHash",
@@ -86,31 +87,57 @@ func TestValidate(t *testing.T) {
 		GitHash: "a1b2c3d4e5f6a7b8c9d0e1f2",
 		Key:     map[string]string{"param1": "value1"},
 	}
-	errMsgs, err = wrongResults.Validate()
+	errMsgs, err = wrongResults.Validate(false)
 	assert.Error(t, err)
 	assertErrorFields(t, errMsgs, "results")
 
 	wrongResults.Results = []*Result{}
-	errMsgs, err = wrongResults.Validate()
+	errMsgs, err = wrongResults.Validate(false)
 	assert.Error(t, err)
 	assertErrorFields(t, errMsgs, "results")
 
 	wrongResults.Results = []*Result{
 		&Result{Key: map[string]string{}},
 	}
-	errMsgs, err = wrongResults.Validate()
+	errMsgs, err = wrongResults.Validate(false)
 	assert.Error(t, err)
 	assertErrorFields(t, errMsgs, "results")
+
+	// Now ignore the results in the validation.
+	errMsgs, err = wrongResults.Validate(true)
+	assert.NoError(t, err)
+	assert.Equal(t, []string(nil), errMsgs)
 }
 
 func TestParseGoldResults(t *testing.T) {
 	testutils.SmallTest(t)
+	_ = testParse(t, testJSON)
+}
 
-	buf := bytes.NewBuffer([]byte(testJSON))
+func TestGenJson(t *testing.T) {
+	testutils.SmallTest(t)
 
-	_, errMsg, err := ParseGoldResults(buf)
+	// Test parsing the test JSON.
+	goldResults := testParse(t, testJSON)
+
+	// For good measure we validate.
+	_, err := goldResults.Validate(false)
+	assert.NoError(t, err)
+
+	// Encode and decode the results.
+	var buf bytes.Buffer
+	assert.NoError(t, json.NewEncoder(&buf).Encode(goldResults))
+	newGoldResults := testParse(t, buf.String())
+	assert.Equal(t, goldResults, newGoldResults)
+}
+
+func testParse(t *testing.T, jsonStr string) *GoldResults {
+	buf := bytes.NewBuffer([]byte(jsonStr))
+
+	ret, errMsg, err := ParseGoldResults(buf)
 	assert.NoError(t, err)
 	assert.Nil(t, errMsg)
+	return ret
 }
 
 func assertErrorFields(t *testing.T, errMsgs []string, expectedFields ...string) {
