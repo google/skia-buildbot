@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"os"
 
-	"go.skia.org/infra/golden/go/search"
-
 	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/gold-client/go/goldclient"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/search"
 )
 
 var (
@@ -234,11 +234,21 @@ func addEnvFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVarP(&flagFailureFile, "failure-file", "", "", "Path to the file where to write failure information")
 
 	if !optional {
-		cmd.MarkFlagRequired("instance")
-		cmd.MarkFlagRequired("work-dir")
-		cmd.MarkFlagRequired("passfail")
-		cmd.MarkFlagRequired("commit")
-		cmd.MarkFlagRequired("keys-file")
+		if err := cmd.MarkFlagRequired("instance"); err != nil {
+			sklog.Fatal(err)
+		}
+		if err := cmd.MarkFlagRequired("work-dir"); err != nil {
+			sklog.Fatal(err)
+		}
+		if err := cmd.MarkFlagRequired("passfail"); err != nil {
+			sklog.Fatal(err)
+		}
+		if err := cmd.MarkFlagRequired("commit"); err != nil {
+			sklog.Fatal(err)
+		}
+		if err := cmd.MarkFlagRequired("keys-file"); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 }
 

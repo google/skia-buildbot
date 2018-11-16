@@ -8,11 +8,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	"go.skia.org/infra/golden/go/jsonio"
-
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -85,7 +84,9 @@ func (c *cloudClient) SetConfig(config interface{}) error {
 		return sklog.FmtErrorf("Provided config is not an instance of *UploadResults")
 	}
 
-	c.uploadResults.merge(resultConf)
+	if err := c.uploadResults.merge(resultConf); err != nil {
+		return err
+	}
 
 	// From the instance ID load Derive the Gold URL and the bucket from the instance ID.
 	if err := c.processInstanceID(resultConf.instanceID); err != nil {
