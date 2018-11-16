@@ -271,8 +271,8 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 
 	// Verify that the notifier configs are valid.
-	a := arb_notifier.New("fake", "fake", nil)
-	return a.Router().AddFromConfigs(context.Background(), c.Notifiers)
+	_, err := arb_notifier.New(context.Background(), "fake", "fake", nil, c.Notifiers)
+	return err
 }
 
 // Return the "type" of this roller.

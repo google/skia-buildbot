@@ -10,7 +10,7 @@
   "rollerName": "skia-flutter-autoroll",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://skia-tree-status.appspot.com/current-sheriff"
+    "https://skia-tree-status-staging.appspot.com/current-sheriff"
   ],
   "githubRepoOwner": "flutter",
   "githubRepoName": "engine",
@@ -48,10 +48,10 @@
   "maxRollFrequency": "3h",
   "notifiers": [
     {
-      "filter": "warning",
+      "filter": "info",
       "email": {
         "emails": [
-          "rmistry@google.com"
+          "$SHERIFF"
         ]
       }
     }
