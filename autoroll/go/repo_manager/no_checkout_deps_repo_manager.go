@@ -192,11 +192,21 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 	}
 
 	// Use "gclient getdep" to retrieve the last roll revision.
-	depsFile := path.Join(wd, "DEPS")
+
+	// "gclient getdep" requires a .gclient file.
+	if _, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "config", parentRepo.URL); err != nil {
+		return "", "", 0, nil, err
+	}
+	split := strings.Split(parentRepo.URL, "/")
+	fakeCheckoutDir := path.Join(wd, strings.TrimSuffix(split[len(split)-1], ".git"))
+	if err := os.Mkdir(fakeCheckoutDir, os.ModePerm); err != nil {
+		return "", "", 0, nil, err
+	}
+	depsFile := path.Join(fakeCheckoutDir, "DEPS")
 	if err := ioutil.WriteFile(depsFile, buf.Bytes(), os.ModePerm); err != nil {
 		return "", "", 0, nil, err
 	}
-	output, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "getdep", "-r", rm.childPath)
+	output, err := exec.RunCwd(ctx, fakeCheckoutDir, "python", rm.gclient, "getdep", "-r", rm.childPath)
 	if err != nil {
 		return "", "", 0, nil, err
 	}
@@ -235,7 +245,7 @@ func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, strat str
 	// disk.
 	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", rm.childPath, nextRollRev)}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  wd,
+		Dir:  fakeCheckoutDir,
 		Env:  depot_tools.Env(rm.depotTools),
 		Name: rm.gclient,
 		Args: args,
