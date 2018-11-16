@@ -58,6 +58,11 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 			comments.CommitComments[c.Revision] = append(comments.CommitComments[c.Revision], &c)
 		}
 		return nil
+	}, func() error {
+		for _, comments := range commentsByRepo {
+			comments.CommitComments = nil
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -80,6 +85,11 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 			byCommit[c.Name] = append(byCommit[c.Name], &c)
 		}
 		return nil
+	}, func() error {
+		for _, comments := range commentsByRepo {
+			comments.TaskComments = nil
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -95,6 +105,11 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 				comments.TaskSpecComments = map[string][]*db.TaskSpecComment{}
 			}
 			comments.TaskSpecComments[c.Name] = append(comments.TaskSpecComments[c.Name], &c)
+		}
+		return nil
+	}, func() error {
+		for _, comments := range commentsByRepo {
+			comments.TaskSpecComments = nil
 		}
 		return nil
 	}); err != nil {
