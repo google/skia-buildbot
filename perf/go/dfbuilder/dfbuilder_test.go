@@ -142,16 +142,17 @@ func TestBuildNew(t *testing.T) {
 	// Should not fail on an empty table.
 	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, &btts_testutils.MockTS{}, false)
 	assert.NoError(t, err)
+	now := time.Now()
 	v := &mockVCS{
 		ret: []*vcsinfo.IndexCommit{
-			&vcsinfo.IndexCommit{Index: 0, Hash: "123"},
-			&vcsinfo.IndexCommit{Index: 1, Hash: "223"},
-			&vcsinfo.IndexCommit{Index: 2, Hash: "323"},
-			&vcsinfo.IndexCommit{Index: 3, Hash: "423"},
-			&vcsinfo.IndexCommit{Index: 4, Hash: "523"},
-			&vcsinfo.IndexCommit{Index: 5, Hash: "623"},
-			&vcsinfo.IndexCommit{Index: 6, Hash: "723"},
-			&vcsinfo.IndexCommit{Index: 7, Hash: "823"},
+			&vcsinfo.IndexCommit{Index: 0, Hash: "123", Timestamp: now.Add(-7 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 1, Hash: "223", Timestamp: now.Add(-6 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 2, Hash: "323", Timestamp: now.Add(-5 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 3, Hash: "423", Timestamp: now.Add(-4 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 4, Hash: "523", Timestamp: now.Add(-3 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 5, Hash: "623", Timestamp: now.Add(-2 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 6, Hash: "723", Timestamp: now.Add(-1 * time.Minute)},
+			&vcsinfo.IndexCommit{Index: 7, Hash: "823", Timestamp: now},
 		},
 	}
 	builder := NewDataFrameBuilderFromBTTS(v, store)
@@ -202,7 +203,7 @@ func TestBuildNew(t *testing.T) {
 	// NewFromQueryAndRange
 	q, err := query.New(url.Values{"config": []string{"8888"}})
 	assert.NoError(t, err)
-	now := time.Now()
+	now = time.Now()
 
 	df, err = builder.NewFromQueryAndRange(now, now, q, false, nil)
 	assert.NoError(t, err)
@@ -226,9 +227,9 @@ func TestBuildNew(t *testing.T) {
 	df, err = builder.NewNFromQuery(ctx, time.Now(), q, 2, nil)
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
-	assert.Len(t, df.Header, 1)
-	assert.Equal(t, df.Header[0].Offset, int64(7))
-	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][0], float32(1.0))
+	assert.Len(t, df.Header, 2)
+	assert.Equal(t, df.Header[1].Offset, int64(7))
+	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][1], float32(1.0))
 
 	// NewFromQueryAndRange where query doesn't encode.
 	q, err = query.New(url.Values{"config": []string{"nvpr"}})
@@ -326,11 +327,28 @@ func (m *mockVCS) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, erro
 }
 
 func (m *mockVCS) Update(ctx context.Context, pull bool, allBranches bool) error { return nil }
-func (m *mockVCS) From(start time.Time) []string                                 { return []string{} }
+func (m *mockVCS) From(start time.Time) []string {
+	ret := []string{}
+	for _, c := range m.ret {
+		if c.Timestamp.After(start) {
+			ret = append(ret, c.Hash)
+		}
+	}
+
+	return ret
+}
 func (m *mockVCS) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
-func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) { return 0, nil }
+func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) {
+	for i, c := range m.ret {
+		if c.Hash == hash {
+			return i, nil
+		}
+	}
+
+	return 0, fmt.Errorf("Not found")
+}
 func (m *mockVCS) GetFile(ctx context.Context, fileName string, commitHash string) (string, error) {
 	return "", nil
 }
