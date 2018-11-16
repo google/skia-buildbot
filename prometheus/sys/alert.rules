@@ -403,16 +403,20 @@ ALERT OverdueMetricsLiveness
     description = "{{ $labels.instance }} has failed to update overdue_job_specs_s for the last 10 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }} Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_metrics_liveness"
   }
 
+# These jobs have tasks with an expiration of 4 hours, and we allow 2 attempts, so they should
+# normally finish within 8 hours.
 ALERT OverdueJobSpec
-  IF overdue_job_specs_s{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 4
+  IF overdue_job_specs_s{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 8
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     abbr = "{{ $labels.job_name }}",
-    description = "{{ $labels.job_name }} has not finished for any commit in the last 4 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+    description = "{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
   }
 
+# These jobs have tasks with an expiration of 9 hours, and we allow 2 attempts, so they should
+# normally finish within 18 hours.
 ALERT OverdueJobSpecLong
-  IF overdue_job_specs_s{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 9
+  IF overdue_job_specs_s{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 18
   LABELS { category = "infra", severity = "critical" }
   ANNOTATIONS {
     abbr = "{{ $labels.job_name }}",
