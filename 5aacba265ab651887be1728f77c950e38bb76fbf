@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7be050e1_93243add",
+        "filename": "datahopper/go/datahopper/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T18:55:42Z",
+      "side": 1,
+      "message": "I\u0027m tempted to just say we don\u0027t care.  I think it\u0027s okay to just say we\u0027re reporting the rate of confirmed flakes as opposed to the actual flakiness rate.  For our purposes I think it\u0027s accurate enough.  For a slightly lower real flake rate of 20%, we\u0027d have something like 25 commits in which the first task failed 5 times and the retry succeeded 4 out of those 5.  So, we have 4 confirmed flakes out of 30 tasks, or 13.3%.  What we really care about is whether or not a given bot is flaky (ie. beyond some base rate of general intermittent infra failures) and when the flakiness rate (for a given bot and/or overall) changes.",
+      "parentUuid": "4004fc6a_03f624bd",
+      "range": {
+        "startLine": 141,
+        "startChar": 2,
+        "endLine": 141,
+        "endChar": 15
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cf4b97a7_b705e5b5",
         "filename": "datahopper/go/datahopper/tasks.go",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "fa6c9c2e_8decb8da",
+        "filename": "datahopper/go/datahopper/tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T18:55:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf4b97a7_b705e5b5",
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dba44910_d84d722a",
         "filename": "datahopper/go/datahopper/tasks_test.go",
         "patchSetId": 1
@@ -56,6 +98,24 @@
       "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcff3549_c84e9f72",
+        "filename": "datahopper/go/datahopper/tasks_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T18:55:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dba44910_d84d722a",
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "d6b770c7_6e990a3e",
+        "filename": "task_scheduler/go/flakes/flakes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T18:55:42Z",
+      "side": 1,
+      "message": "Ah, good idea. Done.",
+      "parentUuid": "26703dc9_e0c4a3c0",
+      "range": {
+        "startLine": 12,
+        "startChar": 5,
+        "endLine": 12,
+        "endChar": 15
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e3f2bb11_d2b8f2fc",
         "filename": "task_scheduler/go/flakes/flakes.go",
         "patchSetId": 1
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "ee7071a4_312f731b",
+        "filename": "task_scheduler/go/flakes/flakes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T18:55:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e3f2bb11_d2b8f2fc",
+      "range": {
+        "startLine": 22,
+        "startChar": 2,
+        "endLine": 22,
+        "endChar": 63
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81b89848_88636645",
         "filename": "task_scheduler/go/flakes/flakes.go",
         "patchSetId": 1
@@ -125,6 +233,30 @@
       "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ddc462a_e3a35f87",
+        "filename": "task_scheduler/go/flakes/flakes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-16T18:55:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81b89848_88636645",
+      "range": {
+        "startLine": 26,
+        "startChar": 34,
+        "endLine": 26,
+        "endChar": 43
+      },
+      "revId": "5aacba265ab651887be1728f77c950e38bb76fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
