@@ -345,27 +345,27 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
-	// endIndex is the index in the trace store that we are currently searching up to.
-	endIndex, err := b.findIndexForTime(ctx, end)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to find end index: %s", err)
-	}
+	begin := end.Add(-NEW_N_FROM_KEY_STEP)
+
 	ret := dataframe.NewEmpty()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
 
 	for total < n {
-		// Be optimistic and assume that the data is already dense and query for 'n'
-		// columns worth of data until we get a response that has no data, or we have
-		// 'n' values in our traces.
-
-		// Don't search for negative indices.
-		if endIndex-n+1 < 0 {
+		endIndex, err := b.findIndexForTime(ctx, end)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to find end index: %s", err)
+		}
+		beginIndex, err := b.findIndexForTime(ctx, begin)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to find begin index: %s", err)
+		}
+		if endIndex == beginIndex {
 			break
 		}
 
 		// Query for traces.
-		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, endIndex-n+1, endIndex)
+		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
 		if err != nil {
 			return nil, fmt.Errorf("Failed building index range: %s", err)
 		}
@@ -427,7 +427,9 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 			progress(steps, steps+1)
 		}
 		steps += 1
-		endIndex -= n
+
+		end = begin.Add(-time.Millisecond) // Since our ranges are half open, i.e. they always include 'begin'.
+		begin = end.Add(-NEW_N_FROM_KEY_STEP)
 	}
 
 	if total < n {
