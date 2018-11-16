@@ -90,6 +90,23 @@ func (c *Config) Create(ctx context.Context, emailer *email.GMail) (Notifier, Fi
 	return n, filter, c.Subject, nil
 }
 
+// Create a copy of this Config.
+func (c *Config) Copy(ctx context.Context) *Config {
+	return &Config{
+		Filter: c.Filter,
+		Email: &EmailNotifierConfig{
+			Emails: c.Email.Emails,
+		},
+		Chat: &ChatNotifierConfig{
+			RoomID: c.Chat.RoomID,
+		},
+		PubSub: &PubSubNotifierConfig{
+			Topic: c.PubSub.Topic,
+		},
+		Subject: c.Subject,
+	}
+}
+
 // Configuration for EmailNotifier.
 type EmailNotifierConfig struct {
 	// List of email addresses to notify. Required.
