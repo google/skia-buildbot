@@ -151,6 +151,11 @@ func main() {
 		}
 	}()
 
+	// Tasks metrics.
+	if err := StartTaskMetrics(*taskSchedulerDbUrl, ctx); err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Jobs metrics.
 	if err := StartJobMetrics(*taskSchedulerDbUrl, ctx); err != nil {
 		sklog.Fatal(err)
