@@ -317,7 +317,9 @@ func setup(t *testing.T) (context.Context, *AutoRollStateMachine, *TestAutoRolle
 	ctx := context.Background()
 	gcsClient := gcs.NewMemoryGCSClient("test-bucket")
 	rollerImpl := NewTestAutoRollerImpl(t, ctx, gcsClient)
-	sm, err := New(ctx, rollerImpl, notifier.New("fake", "fake", nil), gcsClient, "test-roller")
+	n, err := notifier.New(ctx, "fake", "fake", nil, nil)
+	assert.NoError(t, err)
+	sm, err := New(ctx, rollerImpl, n, gcsClient, "test-roller")
 	assert.NoError(t, err)
 	return ctx, sm, rollerImpl, gcsClient, func() {}
 }
@@ -638,7 +640,9 @@ func TestPersistence(t *testing.T) {
 	defer cleanup()
 
 	check := func() {
-		sm2, err := New(ctx, r, notifier.New("fake", "fake", nil), gcsClient, gcsPrefix)
+		n, err := notifier.New(ctx, "fake", "fake", nil, nil)
+		assert.NoError(t, err)
+		sm2, err := New(ctx, r, n, gcsClient, gcsPrefix)
 		assert.NoError(t, err)
 		assert.Equal(t, sm.Current(), sm2.Current())
 	}
