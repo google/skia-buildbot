@@ -14,10 +14,12 @@ import (
 )
 
 const (
-	MEASUREMENT_SWARM_BOTS_LAST_SEEN   = "swarming_bots_last_seen"
-	MEASUREMENT_SWARM_BOTS_QUARANTINED = "swarming_bots_quarantined"
-	MEASUREMENT_SWARM_BOTS_LAST_TASK   = "swarming_bots_last_task"
-	MEASUREMENT_SWARM_BOTS_DEVICE_TEMP = "swarming_bots_device_temp"
+	MEASUREMENT_SWARM_BOTS_LAST_SEEN               = "swarming_bots_last_seen"
+	MEASUREMENT_SWARM_BOTS_QUARANTINED             = "swarming_bots_quarantined"
+	MEASUREMENT_SWARM_BOTS_LAST_TASK               = "swarming_bots_last_task"
+	MEASUREMENT_SWARM_BOTS_DEVICE_TEMP             = "swarming_bots_device_temp"
+	MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED         = "swarming_bots_reboot_required"
+	MEASUREMENT_DIVERGENT_WINDOWS_SKOLO_OS_VERSION = "divergent_windows_skolo_os_version"
 )
 
 var batteryBlacklist = []*regexp.Regexp{
@@ -52,6 +54,11 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 	if err != nil {
 		return nil, fmt.Errorf("Could not get list of bots for pool %s: %s", pool, err)
 	}
+
+	// Keep track of the "os" dimension for the first Windows Skolo bot.
+	var windowsSkoloOSDimension util.StringSet
+	// Set to 1 if any Windows Skolo bot's "os" dimension does not match.
+	var divergentWindowsSkoloOSVersion int64 = 0
 
 	newMetrics := []metrics2.Int64Metric{}
 	for _, bot := range bots {
@@ -143,6 +150,15 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 				sklog.Errorf("Malformed bot state %q: %s", bot.State, err)
 				continue
 			}
+
+			m5 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_REBOOT_REQUIRED, tags)
+			if st.RebootRequired {
+				m5.Update(1)
+			} else {
+				m5.Update(0)
+			}
+			newMetrics = append(newMetrics, m5)
+
 			for zone, temp := range st.BotTemperatureMap {
 				tags["temp_zone"] = zone
 				m4 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags)
@@ -190,15 +206,42 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 				}
 				break
 			}
+
 		}
 
+		// Check Windows OS version.
+		dimensions := swarming.BotDimensionsToStringMap(bot.Dimensions)
+		os := dimensions["os"]
+		zones := dimensions["zone"]
+		if util.In("us-skolo", zones) && util.In("Windows", os) {
+			osSet := util.NewStringSet(os)
+			if len(windowsSkoloOSDimension) == 0 {
+				windowsSkoloOSDimension = osSet
+			} else if !windowsSkoloOSDimension.Equals(osSet) {
+				divergentWindowsSkoloOSVersion = 1
+			}
+		}
 	}
+
+	if server == swarming.SWARMING_SERVER && pool == swarming.DIMENSION_POOL_VALUE_SKIA && len(windowsSkoloOSDimension) == 0 {
+		// Something is wrong with the code above if there are no Windows bots in Skolo.
+		return newMetrics, fmt.Errorf("No bots found with dimensions zone:us-skolo and os:Windows.")
+	}
+	divergentWindowsSkoloOSVersionTags := map[string]string{
+		"pool":     pool,
+		"swarming": server,
+	}
+	m := metricsClient.GetInt64Metric(MEASUREMENT_DIVERGENT_WINDOWS_SKOLO_OS_VERSION, divergentWindowsSkoloOSVersionTags)
+	m.Update(divergentWindowsSkoloOSVersion)
+	newMetrics = append(newMetrics, m)
+
 	return newMetrics, nil
 }
 
 type botState struct {
 	BotTemperatureMap map[string]float32       `json:"temp"`
 	DeviceMap         map[string]androidDevice `json:"devices"`
+	RebootRequired    bool                     `json:"reboot_required,omitempty"`
 }
 
 type androidDevice struct {
@@ -215,15 +258,20 @@ func StartSwarmingBotMetrics(swarmingClients map[string]swarming.ApiClient, swar
 	for swarmingServer, client := range swarmingClients {
 		for _, pool := range swarmingPools[swarmingServer] {
 			go func(server, pool string, client swarming.ApiClient) {
+				lvReportBotMetrics := metrics2.NewLiveness("last_successful_report_bot_metrics", map[string]string{
+					"server": server,
+					"pool":   pool,
+				})
 				oldMetrics := []metrics2.Int64Metric{}
 				for range time.Tick(2 * time.Minute) {
 					oldMetrics = cleanupOldMetrics(oldMetrics)
 					newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, server)
+					oldMetrics = append(oldMetrics, newMetrics...)
 					if err != nil {
 						sklog.Error(err)
 						continue
 					}
-					oldMetrics = append(oldMetrics, newMetrics...)
+					lvReportBotMetrics.Reset()
 				}
 			}(swarmingServer, pool, client)
 		}
