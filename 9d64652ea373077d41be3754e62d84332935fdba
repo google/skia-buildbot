@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "6d8e47b7_16980e52",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-19T19:39:19Z",
+      "side": 1,
+      "message": "ubernit: its",
+      "range": {
+        "startLine": 35,
+        "startChar": 24,
+        "endLine": 35,
+        "endChar": 28
+      },
+      "revId": "9d64652ea373077d41be3754e62d84332935fdba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e2e09a7_523e4b68",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-19T19:39:19Z",
+      "side": 1,
+      "message": "whether",
+      "range": {
+        "startLine": 49,
+        "startChar": 11,
+        "endLine": 49,
+        "endChar": 17
+      },
+      "revId": "9d64652ea373077d41be3754e62d84332935fdba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63c007c9_f58777cf",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-19T19:39:19Z",
+      "side": 1,
+      "message": "JSON file",
+      "range": {
+        "startLine": 103,
+        "startChar": 63,
+        "endLine": 103,
+        "endChar": 67
+      },
+      "revId": "9d64652ea373077d41be3754e62d84332935fdba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "160d0e33_890fd275",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 7
