@@ -22,6 +22,30 @@
       "revId": "f79ee45cb91de0ab147dbcbbc307bd5ea8f2611a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff1f9636_0b9b3bf3",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-19T15:00:47Z",
+      "side": 1,
+      "message": "Leaving it for now. We can always change later if required.",
+      "parentUuid": "a8213fab_572bc4aa",
+      "range": {
+        "startLine": 97,
+        "startChar": 9,
+        "endLine": 99,
+        "endChar": 4
+      },
+      "revId": "f79ee45cb91de0ab147dbcbbc307bd5ea8f2611a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

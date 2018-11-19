@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08319462_d6995dfc",
+        "filename": "autoroll/go/notifier/notifier.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-19T15:00:47Z",
+      "side": 1,
+      "message": "This was missing and causing things to fail.",
+      "revId": "30ace938c85abc5962acc7d38e77a8a4c5ad91cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f4f9e6b7_69dc0a11",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-19T15:00:47Z",
+      "side": 1,
+      "message": "Nil checks were missing here.",
+      "revId": "30ace938c85abc5962acc7d38e77a8a4c5ad91cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
