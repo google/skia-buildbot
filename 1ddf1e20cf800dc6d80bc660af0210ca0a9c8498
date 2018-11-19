@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28d09717_4d5c5c57",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T15:30:36Z",
+      "side": 1,
+      "message": "In chat (search FmtErrorf), there was some discussion of naming this FmtErrorf, but I didn\u0027t see a conclusion, so I went with this shorter name.",
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
