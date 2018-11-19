@@ -129,3 +129,18 @@ func TestStringSetUnion(t *testing.T) {
 	assert.True(t, In("nu", keys))
 	assert.True(t, In("omicron", keys))
 }
+
+func TestStringSetEqual(t *testing.T) {
+	testutils.SmallTest(t)
+	assert.True(t, StringSet(nil).Equals(nil))
+	assert.True(t, NewStringSet(nil).Equals(nil))
+	assert.True(t, NewStringSet(nil).Equals(NewStringSet(nil)))
+	assert.True(t, NewStringSet([]string{}).Equals(nil))
+	someKeys := []string{"gamma", "beta", "alpha", "zeta"}
+	assert.True(t, NewStringSet(someKeys).Equals(NewStringSet(someKeys)))
+	assert.False(t, NewStringSet(someKeys).Equals(NewStringSet(someKeys[:3])))
+	assert.False(t, NewStringSet(someKeys[:3]).Equals(NewStringSet(someKeys)))
+	assert.True(t, NewStringSet(someKeys[:1]).Equals(NewStringSet(someKeys[:1])))
+	assert.False(t, NewStringSet(someKeys[:1]).Equals(NewStringSet(someKeys[1:2])))
+	assert.False(t, NewStringSet(someKeys[0:1]).Equals(NewStringSet(someKeys[2:3])))
+}

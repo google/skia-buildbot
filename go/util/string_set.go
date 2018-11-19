@@ -90,6 +90,18 @@ func (s StringSet) Union(other StringSet) StringSet {
 	return resultSet
 }
 
+func (s StringSet) Equals(other StringSet) bool {
+	if len(s) != len(other) {
+		return false
+	}
+	for val := range s {
+		if !other[val] {
+			return false
+		}
+	}
+	return true
+}
+
 // AddLists adds lists of strings to the StringSet and returns
 // the receiving StringSet.
 func (s StringSet) AddLists(lists ...[]string) StringSet {
