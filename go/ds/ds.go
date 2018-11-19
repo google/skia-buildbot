@@ -95,6 +95,7 @@ const (
 	PERF_NS                = "perf"
 	PERF_ANDROID_NS        = "perf-android"
 	PERF_ANDROID_MASTER_NS = "perf-androidmaster"
+	PERF_CT_NS             = "perf-ct"
 
 	// Gold
 	GOLD_CHROMEVR_NS  = "gold-chromevr"
@@ -135,6 +136,7 @@ var (
 		PERF_NS:                []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_NS:        []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		PERF_ANDROID_MASTER_NS: []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
+		PERF_CT_NS:             []Kind{ACTIVITY, ALERT, REGRESSION, SHORTCUT},
 		GOLD_CHROMEVR_NS:       goldKinds,
 		GOLD_LOTTIE_NS:         goldKinds,
 		GOLD_PDFIUM_NS:         goldKinds,
