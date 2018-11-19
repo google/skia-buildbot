@@ -148,12 +148,12 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 	// Validate the fields
 	addErrMessage(&errMsg, govalidator.IsHexadecimal(g.GitHash), "field '%s' must be hexadecimal. Received '%s'", jn["GitHash"], g.GitHash)
 	addErrMessage(&errMsg, len(g.Key) > 0 && hasNonEmptyKV(g.Key), "field '%s' must not be empty and must not have empty keys or values", jn["Key"])
-	addErrMessage(&errMsg, len(g.Results) > 0, "field '%s' must not be empty.", jn["Results"])
 
 	validIssue := g.Issue == 0 || (g.Issue > 0 && g.Patchset > 0 && g.BuildBucketID > 0)
 	addErrMessage(&errMsg, validIssue, "fields '%s', '%s', '%s' must all be zero or all not be zero", jn["Issue"], jn["Patchset"], jn["BuildBucketID"])
 
 	if !ignoreResults {
+		addErrMessage(&errMsg, len(g.Results) > 0, "field '%s' must not be empty.", jn["Results"])
 		for _, r := range g.Results {
 			r.validate(&errMsg, jn["Results"])
 		}

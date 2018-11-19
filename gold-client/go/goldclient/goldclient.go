@@ -3,16 +3,28 @@ package goldclient
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"image/png"
 	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"time"
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
+)
+
+const (
+	resultPrefix       = "dm-json-v1"
+	imagePrefix        = "dm-images-v1"
+	resultFileNameTmpl = "dm-%s.json"
+	tempFileName       = "dm.json"
 )
 
 type GoldClient interface {
@@ -26,19 +38,21 @@ type UploadResults struct {
 
 	perTestPassFail bool
 	instanceID      string
+	workDir         string
 }
 
-func NewUploadResults(results *jsonio.GoldResults, instanceID string, perTestPassFail bool) (*UploadResults, error) {
+func NewUploadResults(results *jsonio.GoldResults, instanceID string, perTestPassFail bool, workDir string) (*UploadResults, error) {
 	ret := &UploadResults{
 		results:         results,
 		perTestPassFail: perTestPassFail,
 		instanceID:      instanceID,
+		workDir:         workDir,
 	}
 
 	return ret, nil
 }
 
-func (u *UploadResults) merge(right *UploadResults) error {
+func (u *UploadResults) merge(right *UploadResults) {
 	if u.results == nil {
 		u.results = right.results
 	}
@@ -48,7 +62,24 @@ func (u *UploadResults) merge(right *UploadResults) error {
 	if !u.perTestPassFail {
 		u.perTestPassFail = right.perTestPassFail
 	}
-	return nil
+}
+
+func (u *UploadResults) getResultFilePath() string {
+	now := time.Now().UTC()
+	year, month, day := now.Date()
+	hour := now.Hour()
+	fileName := fmt.Sprintf(resultFileNameTmpl, strconv.FormatInt(now.UnixNano()/int64(time.Millisecond), 10))
+	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s", resultPrefix, year, month, day, hour, fileName)
+
+	if u.results.Issue > 0 {
+		path = "trybot/" + path
+	}
+
+	return path
+}
+
+func (u *UploadResults) getImagePath(imgHash string) string {
+	return fmt.Sprintf("%s/%s.png", imagePrefix, imgHash)
 }
 
 // Implement the GoldClient interface for a remote Gold server.
@@ -83,10 +114,7 @@ func (c *cloudClient) SetConfig(config interface{}) error {
 	if !ok {
 		return sklog.FmtErrorf("Provided config is not an instance of *UploadResults")
 	}
-
-	if err := c.uploadResults.merge(resultConf); err != nil {
-		return err
-	}
+	c.uploadResults.merge(resultConf)
 
 	// From the instance ID load Derive the Gold URL and the bucket from the instance ID.
 	if err := c.processInstanceID(resultConf.instanceID); err != nil {
@@ -125,33 +153,36 @@ func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
 	}
 
 	// Load the PNG from disk and hash it.
-	imgBytes, imgHash, err := loadAndHashFile(imgFileName)
+	_, imgHash, err := loadAndHashFile(imgFileName)
 	if err != nil {
 		return false, err
 	}
 
 	// Check against known hashes and upload if needed.
 	if !c.knownHashes[imgHash] {
-		if err := c.uploadImage(imgBytes, imgHash); err != nil {
+		if err := c.gsUtilUploadImage(imgFileName, imgHash); err != nil {
 			return false, sklog.FmtErrorf("Error uploading image: %s", err)
 		}
 	}
 
+	// Upload the result of this test.
+	c.addResult(name, imgHash)
+	if err := c.gsUtilUploadResultsFile(); err != nil {
+		return false, sklog.FmtErrorf("Error uploading result file: %s", err)
+	}
+
 	// If we do per test pass/fail then compare to the baseline and return accordingly
 	if c.uploadResults.perTestPassFail {
-
-		// Upload the result of this test.
-		if err := c.uploadOneResult(name, imgHash); err != nil {
-			return false, sklog.FmtErrorf("Error uploading result file: %s", err)
-		}
-
 		// Check if this is positive in the expectations.
 		// TODO(stephana): Better define semantics of expecations.
 		return c.expectations[name][imgHash] == types.POSITIVE, nil
 	}
 
-	// TODO(stephana): Add a finalize function that uploads all the results at the end.
+	// If we don't do per-test pass/fail then return true.
+	return true, nil
+}
 
+func (c *cloudClient) addResult(name, imgHash string) {
 	// Add the result to the overall results.
 	newResult := &jsonio.Result{
 		Digest: imgHash,
@@ -166,25 +197,50 @@ func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
 		newResult.Key[types.CORPUS_FIELD] = c.uploadResults.instanceID
 	}
 	c.uploadResults.results.Results = append(c.uploadResults.results.Results, newResult)
+}
 
-	if err := c.upload(); err != nil {
-		return false, err
+func (c *cloudClient) gsUtilUploadResultsFile() error {
+	localFileName := filepath.Join(c.uploadResults.workDir, tempFileName)
+	jsonBytes, err := json.MarshalIndent(c.uploadResults.results, "", "  ")
+	if err != nil {
+		return err
 	}
 
-	// If we don't do per-test pass/fail then return true.
-	return true, nil
+	if err := ioutil.WriteFile(localFileName, jsonBytes, 0600); err != nil {
+		return err
+	}
+
+	// Get the path to upload to
+	objPath := c.uploadResults.getResultFilePath()
+	return c.gsUtilCopy(localFileName, objPath)
 }
 
-func (c *cloudClient) upload() error {
+func (c *cloudClient) gsUtilCopy(srcFile, targetPath string) error {
+	srcFile, err := filepath.Abs(srcFile)
+	if err != nil {
+		return err
+	}
+
+	// runCmd := &exec.Command{
+	// 	Name:           "gsutil",
+	// 	Args:           []string{"cp", srcFile, fmt.Sprintf("gs://%s/%s", c.bucket, targetPath)},
+	// 	Timeout:        5 * time.Second,
+	// 	CombinedOutput: &combinedBuf,
+	// 	Verbose:        exec.Silent,
+	// }
+
+	runCmd := exec.Command("gsutil", "cp", srcFile, fmt.Sprintf("gs://%s/%s", c.bucket, targetPath))
+	outBytes, err := runCmd.CombinedOutput()
+	if err != nil {
+		return sklog.FmtErrorf("Error running gsutil. Got output \n%s\n and error: %s", outBytes, err)
+	}
+
 	return nil
 }
 
-func (c *cloudClient) uploadImage(imgBytes []byte, imgHash string) error {
-	return nil
-}
-
-func (c *cloudClient) uploadOneResult(testName, imgHash string) error {
-	return nil
+func (c *cloudClient) gsUtilUploadImage(imagePath string, imgHash string) error {
+	objPath := c.uploadResults.getImagePath(imgHash)
+	return c.gsUtilCopy(imagePath, objPath)
 }
 
 func loadAndHashFile(fileName string) ([]byte, string, error) {
