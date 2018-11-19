@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -48,30 +49,36 @@ func (d *firestoreDB) GetTaskById(id string) (*db.Task, error) {
 
 // See documentation for db.TaskReader interface.
 func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*db.Task, error) {
-	// Adjust start and end times for Firestore resolution.
-	start = fixTimestamp(start)
-	end = fixTimestamp(end)
-
-	// TODO(borenet): We can make this part of the query,
-	// but it would required building a composite index.
-	// It's possible that we should require a repo when
-	// searching by timestamp; indexing a timestamp causes
-	// the whole collection to cap out at a maximum of
-	// 500 writes per second.
-	q := d.tasks().Where("Created", ">=", start).Where("Created", "<", end).OrderBy("Created", fs.Asc)
-	rv := []*db.Task{}
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	var tasks [][]*db.Task
+	init := func(numGoroutines int) {
+		tasks = make([][]*db.Task, numGoroutines)
+		for i := 0; i < numGoroutines; i++ {
+			estResults := estResultSize(end.Sub(start) / time.Duration(numGoroutines))
+			tasks[i] = make([]*db.Task, 0, estResults)
+		}
+	}
+	elem := func(idx int, doc *fs.DocumentSnapshot) error {
 		var task db.Task
 		if err := doc.DataTo(&task); err != nil {
 			return err
 		}
 		if repo == "" || task.Repo == repo {
-			rv = append(rv, &task)
+			tasks[idx] = append(tasks[idx], &task)
 		}
 		return nil
-	}); err != nil {
+	}
+	if err := d.dateRangeHelper(d.tasks(), start, end, init, elem); err != nil {
 		return nil, err
 	}
+	totalResults := 0
+	for _, taskList := range tasks {
+		totalResults += len(taskList)
+	}
+	rv := make([]*db.Task, 0, totalResults)
+	for _, taskList := range tasks {
+		rv = append(rv, taskList...)
+	}
+	sort.Sort(db.TaskSlice(rv))
 	return rv, nil
 }
 
