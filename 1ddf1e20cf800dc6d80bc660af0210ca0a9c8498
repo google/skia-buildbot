@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "a9508c4f_f4ca6abf",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T17:57:50Z",
+      "side": 1,
+      "message": "IMO this should be a pointer since the value contained err is always going to be a pointer (I believe). That should also remove the requirement to check for (ErrorWithContext) in tryCast.",
+      "range": {
+        "startLine": 76,
+        "startChar": 6,
+        "endLine": 76,
+        "endChar": 26
+      },
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "28d09717_4d5c5c57",
         "filename": "go/skerr/skerr.go",
         "patchSetId": 3
@@ -72,6 +95,24 @@
       "side": 1,
       "message": "nit: I should have commented, I liked FmtErrorf, because it resembles fmt.Errorf(...) which is what it replaced. If it\u0027s just me this works too.",
       "parentUuid": "28d09717_4d5c5c57",
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b200421a_ff0b6b78",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T17:57:50Z",
+      "side": 1,
+      "message": "How about, if one of the arguments in \u0027args\u0027 is an error, then that error is passed to wrap. \nThat way I can capture the error in the error message itself and it\u0027s also added to the context.",
+      "parentUuid": "ab2dbab2_1c34d86c",
       "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
