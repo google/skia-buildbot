@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "18e9a058_054e2066",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T15:59:32Z",
+      "side": 1,
+      "message": "nit:while mostly self explanatory, this should still have a short description of what it contains.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "28d09717_4d5c5c57",
         "filename": "go/skerr/skerr.go",
         "patchSetId": 3
@@ -37,6 +60,47 @@
     },
     {
       "key": {
+        "uuid": "ab2dbab2_1c34d86c",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T15:59:32Z",
+      "side": 1,
+      "message": "nit: I should have commented, I liked FmtErrorf, because it resembles fmt.Errorf(...) which is what it replaced. If it\u0027s just me this works too.",
+      "parentUuid": "28d09717_4d5c5c57",
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "487f0e67_7dd697a2",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T15:59:32Z",
+      "side": 1,
+      "message": "What are the use cases for the different functions in this package ? \nIn other words could this be merged with \u0027Fmt\u0027 so that we gather error messages along\nthe stacktrace of a function ? \nI think one way of doing this should be enough.",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 10
+      },
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "877592a3_7efbae19",
         "filename": "go/skerr/skerr_test.go",
         "patchSetId": 3
@@ -57,6 +121,29 @@
       "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7288fc9e_11009a8f",
+        "filename": "go/sklog/sklog.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T15:59:32Z",
+      "side": 1,
+      "message": "Nit: since we are refactoring the clients of this, can we deprecate this (I realize we don\u0027t have a process for that) or at least add a TODO to remove it.",
+      "range": {
+        "startLine": 294,
+        "startChar": 0,
+        "endLine": 301,
+        "endChar": 0
+      },
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
