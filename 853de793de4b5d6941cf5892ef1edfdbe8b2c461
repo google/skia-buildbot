@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d19498c2_681993d6",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T18:20:29Z",
+      "side": 1,
+      "message": "nit: maybe add a TODO to revert back to https://skia.googlesource.com/buildbot/+/refs/changes/82/170982/4/go/firestore/firestore.go once https://github.com/GoogleCloudPlatform/google-cloud-go/issues/1225 is fixed.",
+      "range": {
+        "startLine": 186,
+        "startChar": 8,
+        "endLine": 186,
+        "endChar": 24
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec727374_a5fee79f",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T18:20:29Z",
+      "side": 1,
+      "message": "nit: only used one place",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 8
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aabc0fed_aa108d6f",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T18:20:29Z",
+      "side": 1,
+      "message": "nit: maybe name it TestIterDocs so we know where it comes from.",
+      "range": {
+        "startLine": 108,
+        "startChar": 23,
+        "endLine": 108,
+        "endChar": 27
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3de5d2d4_4594e633",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T18:20:29Z",
+      "side": 1,
+      "message": "Is it a guarantee that a query will return results ordered by Id if the query doesn\u0027t specify any ordering criteria?",
+      "range": {
+        "startLine": 152,
+        "startChar": 17,
+        "endLine": 152,
+        "endChar": 30
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "052fc933_475a0e06",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T18:20:29Z",
+      "side": 1,
+      "message": "My approach would be to make a testable private function iterDocsImpl and have IterDocs call that function.",
+      "range": {
+        "startLine": 157,
+        "startChar": 4,
+        "endLine": 157,
+        "endChar": 17
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
