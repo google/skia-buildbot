@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e6da598_536b972e",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-11-19T21:43:02Z",
+      "side": 1,
+      "message": "run_id should not be part of the key-value pairs as it changes for every run and thus starts a new trace id.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 32
+      },
+      "revId": "0ab9a12893e50960927863c0ee9d80d078301431",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
