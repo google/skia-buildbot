@@ -321,11 +321,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		}
 	}
 
-	// TODO(rmistry): Remove this after the first time android_skia_checkout.SkUserConfigRelPath is deleted.
-	if _, err := exec.RunCwd(ctx, r.childDir, "git", "rm", android_skia_checkout.SkUserConfigRelPath); err != nil {
-		return 0, err
-	}
-
 	// Run the pre-upload steps.
 	for _, s := range r.PreUploadSteps() {
 		if err := s(ctx, r.httpClient, r.workdir); err != nil {
