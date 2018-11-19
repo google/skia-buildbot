@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4b38cc7c_1b5dd03e",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-19T20:43:36Z",
+      "side": 1,
+      "message": "I just went back to StartAfter in this CL.  Offset will just cause consistency problems, so I think we\u0027re blocked until that issue is resolved anyway.",
+      "parentUuid": "d19498c2_681993d6",
+      "range": {
+        "startLine": 186,
+        "startChar": 8,
+        "endLine": 186,
+        "endChar": 24
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ec727374_a5fee79f",
         "filename": "go/firestore/firestore_test.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5242db1_0003ba40",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-19T20:43:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec727374_a5fee79f",
+      "range": {
+        "startLine": 40,
+        "startChar": 1,
+        "endLine": 40,
+        "endChar": 8
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "156cb563_31d8fd06",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-19T20:43:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aabc0fed_aa108d6f",
+      "range": {
+        "startLine": 108,
+        "startChar": 23,
+        "endLine": 108,
+        "endChar": 27
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3de5d2d4_4594e633",
         "filename": "go/firestore/firestore_test.go",
         "patchSetId": 6
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1aa20cbe_3738a123",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-19T20:43:36Z",
+      "side": 1,
+      "message": "It seems to be the case, but I\u0027m not 100% sure.  I can remove this check if you want.",
+      "parentUuid": "3de5d2d4_4594e633",
+      "range": {
+        "startLine": 152,
+        "startChar": 17,
+        "endLine": 152,
+        "endChar": 30
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "052fc933_475a0e06",
         "filename": "go/firestore/firestore_test.go",
         "patchSetId": 6
@@ -105,6 +201,30 @@
       "writtenOn": "2018-11-19T18:20:29Z",
       "side": 1,
       "message": "My approach would be to make a testable private function iterDocsImpl and have IterDocs call that function.",
+      "range": {
+        "startLine": 157,
+        "startChar": 4,
+        "endLine": 157,
+        "endChar": 17
+      },
+      "revId": "853de793de4b5d6941cf5892ef1edfdbe8b2c461",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd685668_46d9aeca",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-19T20:43:36Z",
+      "side": 1,
+      "message": "Done. It\u0027s a little hacky, but it seems to work.",
+      "parentUuid": "052fc933_475a0e06",
       "range": {
         "startLine": 157,
         "startChar": 4,
