@@ -11,6 +11,7 @@ VULCANIZE1=true
 
 .PHONY: build
 build: skiaperf web ingest_json_validator
+	go install -v ./go/perf-force-ingest
 
 buildk: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
@@ -25,6 +26,9 @@ push-perf-ingest: build-perf-ingest skia-public
 
 pushk: buildk skia-public
 	pushk skiaperf
+
+.PHONY: perf-force-ingest
+	go install -v ./go/perf-force-ingest
 
 .PHONY: skiaperf
 skiaperf:

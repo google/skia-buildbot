@@ -222,7 +222,7 @@ func Init() {
 	if *namespace == "" {
 		sklog.Fatal("The --namespace flag is required. See infra/DATASTORE.md for format details.\n")
 	}
-	if !*local && !util.In(*namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_MASTER_NS}) {
+	if !*local && !util.In(*namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 

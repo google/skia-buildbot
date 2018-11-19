@@ -33,6 +33,7 @@ type PerfBigTableConfig struct {
 const (
 	NANO    = "nano"
 	ANDROID = "android"
+	CT      = "ct"
 )
 
 var (
@@ -53,6 +54,15 @@ var (
 			Table:    "android",
 			Topic:    "perf-ingestion-android",
 			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
+			Shards:   8,
+		},
+		CT: &PerfBigTableConfig{
+			TileSize: 256,
+			Project:  "skia-public",
+			Instance: "perf-bt",
+			Table:    "ct",
+			Topic:    "perf-ingestion-ct",
+			GitUrl:   "https://skia.googlesource.com/perf-ct",
 			Shards:   8,
 		},
 	}
