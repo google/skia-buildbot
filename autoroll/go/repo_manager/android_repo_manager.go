@@ -32,7 +32,7 @@ var (
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath}
 
-	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.AndroidBpRelPath}
+	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.AndroidBpRelPath}
 
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
