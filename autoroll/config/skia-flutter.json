@@ -48,10 +48,10 @@
   "maxRollFrequency": "3h",
   "notifiers": [
     {
-      "filter": "warning",
+      "filter": "info",
       "email": {
         "emails": [
-          "rmistry@google.com"
+          "$SHERIFF"
         ]
       }
     }

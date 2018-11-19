@@ -32,7 +32,8 @@ func TestNotifier(t *testing.T) {
 	testutils.SmallTest(t)
 
 	ctx := context.Background()
-	n := New("childRepo", "parentRepo", nil)
+	n, err := New(ctx, "childRepo", "parentRepo", nil, nil)
+	assert.NoError(t, err)
 	t1 := &testNotifier{}
 	n.Router().Add(t1, notifier.FILTER_DEBUG, "")
 

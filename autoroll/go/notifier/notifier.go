@@ -82,12 +82,27 @@ type AutoRollNotifier struct {
 }
 
 // Return an AutoRollNotifier instance.
-func New(childName, parentName string, emailer *email.GMail) *AutoRollNotifier {
-	return &AutoRollNotifier{
+func New(ctx context.Context, childName, parentName string, emailer *email.GMail, configs []*notifier.Config) (*AutoRollNotifier, error) {
+	n := &AutoRollNotifier{
 		childName:  childName,
+		emailer:    emailer,
 		n:          notifier.NewRouter(emailer),
 		parentName: parentName,
 	}
+	if err := n.ReloadConfigs(ctx, configs); err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+func (a *AutoRollNotifier) ReloadConfigs(ctx context.Context, configs []*notifier.Config) error {
+	// Create a new router and add the specified configs to it.
+	n := notifier.NewRouter(a.emailer)
+	if err := n.AddFromConfigs(ctx, configs); err != nil {
+		return err
+	}
+	a.n = n
+	return nil
 }
 
 // Return the underlying notifier.Router.
