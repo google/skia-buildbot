@@ -165,6 +165,14 @@ ALERT EventMetricsLiveness
     description = "{{ $labels.instance }} has failed to update event metrics for {{ $labels.measurement }} for the last 30 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#event_metrics"
   }
 
+ALERT SwarmingBotMetricsLiveness
+  IF liveness_last_successful_report_bot_metrics_s/60 > 10
+  LABELS { category = "infra", severity = "critical"}
+  ANNOTATIONS {
+    abbr = "{{ $labels.pool }}",
+    description = "{{ $labels.instance }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#swarming_bot_metrics"
+  }
+
 # Swarming
 
 ALERT BotMissing
@@ -205,6 +213,22 @@ ALERT DeviceUnhealthy
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} is quarantined because the device is {{ $labels.device_state }} and hasn't resolved itself in 1+ hours. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
   }
+
+ALERT SwarmingBotRebootRequired
+  IF avg_over_time(swarming_bots_reboot_required[10m]) >= 1
+  LABELS { category = "infra", severity = "warning"}
+  ANNOTATIONS {
+    abbr = "{{ $labels.bot }}",
+    description = "Swarming bot {{ $labels.bot }} requires reboot. After reboot, check if os dimension has changed. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
+  }
+
+ALERT WindowsSkoloOSVersion
+  IF round(avg_over_time(windows_skolo_os_version_count{pool="Skia"}[1h])) != 1
+  LABELS { category = "infra", severity = "warning"}
+  ANNOTATIONS {
+    description = "Windows Skolo bots OS version has diverged. https://goto.google.com/skolo-maintenance"
+  }
+
 
 # Swarming Logger
 

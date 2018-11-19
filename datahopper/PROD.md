@@ -48,3 +48,14 @@ metrics](https://skia.googlesource.com/buildbot/+/master/go/metrics2/events/even
 goroutine has not successfully updated metrics based on event data for some
 time. You should check the logs to try to diagnose what's failing. Double-check
 the instance name to verify which log stream to investigate.
+
+
+swarming_bot_metrics
+--------------------
+
+The [Swarming bot
+metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/bots.go)
+goroutine has not successfully queried for Swarming bots for some time. See the
+alert for which pool and server is failing. You should check the
+[logs](https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-datahopper2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fdatahopper)
+to try to diagnose what's failing.
