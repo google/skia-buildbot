@@ -16,6 +16,47 @@
       "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4c274ea9_023b7114",
+        "filename": "go/skerr/skerr.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-19T15:55:51Z",
+      "side": 1,
+      "message": "I like it.",
+      "parentUuid": "28d09717_4d5c5c57",
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "877592a3_7efbae19",
+        "filename": "go/skerr/skerr_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-19T15:55:51Z",
+      "side": 1,
+      "message": "Disagree: https://screenshot.googleplex.com/EpTW3RtAAF1",
+      "range": {
+        "startLine": 52,
+        "startChar": 17,
+        "endLine": 52,
+        "endChar": 30
+      },
+      "revId": "1ddf1e20cf800dc6d80bc660af0210ca0a9c8498",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
