@@ -73,7 +73,7 @@ const iframeDirections = (ele) => {
     return ''
   }
   return html`
-    <input size=120 value='<iframe width=${ele._state.width} height=${ele._state.height} src="https://skottie.skia.org/e/${ele._hash}" scrolling=no></iframe>'>
+    <input size=120 value='<iframe width=${ele._state.width} height=${ele._state.height} src="${window.location.origin}/e/${ele._hash}" scrolling=no></iframe>'>
   `;
 }
 
