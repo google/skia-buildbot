@@ -24,6 +24,7 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --role roles/pubsub.editor
 
 gsutil iam ch "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com:objectViewer" gs://skia-perf
+gsutil iam ch "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com:objectViewer" gs://cluster-telemetry-perf
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
