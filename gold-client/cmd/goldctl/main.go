@@ -3,6 +3,7 @@ package main
 // goldctl is a CLI for working with the Gold service.
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -146,9 +147,6 @@ func main() {
 }
 
 func runImgTestAddCommand(cmd *cobra.Command, args []string) {
-	// TODO(stephana): Remove after this stub lands.
-	os.Exit(0)
-
 	keyMap, err := readKeysFile(flagKeysFile)
 	ifErrLogExit(cmd, err)
 
@@ -166,21 +164,21 @@ func runImgTestAddCommand(cmd *cobra.Command, args []string) {
 		BuildBucketID: jobID,
 	}
 
-	up, err := goldclient.NewUploadResults(gr, flagInstandID, flagPassFailStep)
+	up, err := goldclient.NewUploadResults(gr, flagInstandID, flagPassFailStep, flagWorkDir)
 	ifErrLogExit(cmd, err)
 	logInfof(cmd, "CONFIG: \n%s", spew.Sdump(up))
 
 	goldClient, err := goldclient.NewCloudClient(up)
 	ifErrLogExit(cmd, err)
-	fmt.Printf("\n\n\nBerofr\n\n\n")
 
 	pass, err := goldClient.Test(flagTestName, flagPNGFile)
-	fmt.Printf("\n\n\nAFTER\n\n\n")
 	ifErrLogExit(cmd, err)
 
 	if !pass {
 		os.Exit(1)
 	}
+	logInfo(cmd, "DONE DONE DONE\n")
+	os.Exit(0)
 }
 
 func runAuthCommand(cmd *cobra.Command, args []string)            { notImplemented(cmd) }
@@ -188,13 +186,21 @@ func runImgTestInitCommand(cmd *cobra.Command, args []string)     { notImplement
 func runImgTestFinalizeCommand(cmd *cobra.Command, args []string) { notImplemented(cmd) }
 func runImgTestPassFailCommand(cmd *cobra.Command, args []string) { notImplemented(cmd) }
 
-func readKeysFile(fileName string) (map[string]string, error) {
-	return nil, nil
+func readKeysFile(keysFile string) (map[string]string, error) {
+	reader, err := os.Open(keysFile)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := map[string]string{}
+	err = json.NewDecoder(reader).Decode(&ret)
+	return ret, err
 }
 
 func notImplemented(cmd *cobra.Command) {
 	logErr(cmd, fmt.Errorf("Command not implemented yet."))
 	os.Exit(1)
+	sklog.Infof("abd")
 }
 
 // func ifErrLogExit(err error) {
@@ -234,21 +240,11 @@ func addEnvFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVarP(&flagFailureFile, "failure-file", "", "", "Path to the file where to write failure information")
 
 	if !optional {
-		if err := cmd.MarkFlagRequired("instance"); err != nil {
-			sklog.Fatal(err)
-		}
-		if err := cmd.MarkFlagRequired("work-dir"); err != nil {
-			sklog.Fatal(err)
-		}
-		if err := cmd.MarkFlagRequired("passfail"); err != nil {
-			sklog.Fatal(err)
-		}
-		if err := cmd.MarkFlagRequired("commit"); err != nil {
-			sklog.Fatal(err)
-		}
-		if err := cmd.MarkFlagRequired("keys-file"); err != nil {
-			sklog.Fatal(err)
-		}
+		_ = cmd.MarkFlagRequired("instance")
+		_ = cmd.MarkFlagRequired("work-dir")
+		_ = cmd.MarkFlagRequired("passfail")
+		_ = cmd.MarkFlagRequired("commit")
+		_ = cmd.MarkFlagRequired("keys-file")
 	}
 }
 
@@ -315,7 +311,7 @@ func logErrfAndExit(cmd *cobra.Command, format string, err error) {
 // with a non-zero exit code.
 func ifErrLogExit(cmd *cobra.Command, err error) {
 	if err != nil {
-		logErr(cmd, err)
+		logErrf(cmd, "Error running command: ''%s''\n", err)
 		os.Exit(1)
 	}
 }

@@ -1,0 +1,48 @@
+{
+  GitRepoDir: "/data/repo",
+  GitRepoURL: "https://chromium.googlesource.com/chromium/src",
+  EventTopic: "gold-chrome-gpu-eventbus",
+
+  Ingesters: {
+    // Chrome GPU Gold ingester
+    gold: {
+      RunEvery: "5m",
+      NCommits: 75,
+      MinDays: 20,
+      StatusDir: "/data/ingest_status",
+      MetricName: "gold-chrome-gpu-ingestion",
+      Sources: [
+        {
+          Bucket: "skia-gold-chrome-gpu",
+          Dir: "dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        TraceService: "gold-chrome-gpu-traceservice:9090"
+      }
+    },
+
+    // Gold Tryjob Ingester for gold-chrome-gpu.
+    "gold-tryjob": {
+      RunEvery: "5m",
+      NCommits: 10,
+      MinDays: 120,
+      StatusDir: "/data/tryjobs/ingest_status",
+      MetricName: "chrome-gpu-gold-ingest-tryjob",
+      Sources: [
+        {
+          Bucket: "skia-gold-chrome-gpu",
+          Dir: "trybot/dm-json-v1"
+        },
+      ],
+      ExtraParams: {
+        GerritCodeReviewURL: "https://chromium-review.googlesource.com",
+        BuildBucketURL: "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+        BuildBucketName: "master.tryserver.chromium.linux",
+        BuildBucketPollInterval: "10s",
+        BuildBucketTimeWindow: "5h",
+        BuilderRegEx: "linux_chromium_rel_ng",
+      }
+    }
+ }
+}

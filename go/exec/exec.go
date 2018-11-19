@@ -49,6 +49,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -232,6 +233,7 @@ func start(command *Command, cmd *osexec.Cmd) error {
 func waitSimple(command *Command, cmd *osexec.Cmd) error {
 	err := cmd.Wait()
 	if err != nil {
+		fmt.Printf("YYYYY\n")
 		return fmt.Errorf("Command exited with %s: %s", err, DebugString(command))
 	}
 	return nil
@@ -259,7 +261,13 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 		<-done // allow goroutine to exit
 		return fmt.Errorf("%s %f secs", TIMEOUT_ERROR_PREFIX, command.Timeout.Seconds())
 	case err := <-done:
+		fmt.Printf("%s\n", spew.Sdump(err))
 		if err != nil {
+			if exitErr, ok := err.(*osexec.ExitError); ok {
+				fmt.Printf("state: %s", spew.Sdump(exitErr.ProcessState))
+			}
+
+			fmt.Printf("XXXX\n")
 			return fmt.Errorf("Command exited with %s: %s", err, DebugString(command))
 		}
 		return nil
