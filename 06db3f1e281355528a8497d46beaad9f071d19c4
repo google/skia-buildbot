@@ -22,6 +22,30 @@
       "revId": "06db3f1e281355528a8497d46beaad9f071d19c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e84c7e66_6c2db29c",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-19T16:20:30Z",
+      "side": 1,
+      "message": "Done, and decided to refactor a bit so that A. this does something reasonable on all pools (don\u0027t need the error to detect when the metric is broken), and B. if we ever *want* multiple versions of Windows in Skolo, we just need to change the alert rather than the metric.",
+      "parentUuid": "1132b33f_423f15c3",
+      "range": {
+        "startLine": 59,
+        "startChar": 5,
+        "endLine": 59,
+        "endChar": 28
+      },
+      "revId": "06db3f1e281355528a8497d46beaad9f071d19c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
