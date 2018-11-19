@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1132b33f_423f15c3",
+        "filename": "datahopper/go/swarming_metrics/bots.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-19T15:44:34Z",
+      "side": 1,
+      "message": "This assumes there will be one \"true\" Windows versions for all bots in the skolo - yeah?  Can you add a comment making that explicit?",
+      "range": {
+        "startLine": 59,
+        "startChar": 5,
+        "endLine": 59,
+        "endChar": 28
+      },
+      "revId": "06db3f1e281355528a8497d46beaad9f071d19c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
