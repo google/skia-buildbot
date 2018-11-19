@@ -12,6 +12,7 @@
      "urls": [
        "https://android-perf.skia.org/e/",
        "https://android-master-perf.skia.org/e/",
+       "https://ct-perf.skia.org/e/",
      ],
      "method": "GET",
      "expected": [307],
@@ -34,6 +35,7 @@
        "https://perf.skia.org/_/reg/count",
        "https://android-perf.skia.org/_/reg/count",
        "https://android-master-perf.skia.org/_/reg/count",
+       "https://ct-perf.skia.org/_/reg/count",
      ],
      "method": "GET",
      "expected": [200],
