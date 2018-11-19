@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "160d0e33_890fd275",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-11-19T19:35:22Z",
+      "side": 1,
+      "message": "I\u0027ll do a major refactoring of this type and this whole file. \nThe names are ambiguous and the design is messy. It grew \"organically\" to\nmeet the requirements of running a tryjob.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "9d64652ea373077d41be3754e62d84332935fdba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
