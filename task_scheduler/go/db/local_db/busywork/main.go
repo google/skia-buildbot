@@ -5,20 +5,21 @@ package main
 
 import (
 	"container/heap"
+	"context"
 	"flag"
 	"fmt"
 	"math"
 	"math/rand"
-	"path"
 	"sort"
 	"strconv"
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -27,7 +28,6 @@ var (
 	// Flags.
 	local    = flag.Bool("local", true, "Whether we're running on a dev machine vs in production.")
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	workdir  = flag.String("workdir", "workdir", "Working directory to use.")
 
 	// Counters.
 	inserts            = 0
@@ -508,15 +508,11 @@ func reportStats() {
 }
 
 func main() {
-
 	// Global init.
-	common.InitWithMust(
-		"busywork",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	common.Init()
 
-	d, err := local_db.NewDB("busywork", path.Join(*workdir, "busywork.bdb"))
+	ts, err := auth.NewDefaultTokenSource(*local)
+	d, err := firestore.NewDB(context.Background(), "skia-firestore", "busywork-borenet-2018-11-09", ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

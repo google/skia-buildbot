@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -47,26 +48,34 @@ func (d *firestoreDB) GetJobById(id string) (*db.Job, error) {
 
 // See documentation for db.JobReader interface.
 func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) {
-	// Adjust start and end times for Firestore resolution.
-	start = fixTimestamp(start)
-	end = fixTimestamp(end)
-
-	// TODO(borenet): It's possible that we should require
-	// another field when searching by timestamp; indexing a
-	// timestamp causes the whole collection to cap out at a
-	// maximum of 500 writes per second.
-	q := d.jobs().Where("Created", ">=", start).Where("Created", "<", end).OrderBy("Created", fs.Asc)
-	rv := []*db.Job{}
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	var jobs [][]*db.Job
+	init := func(numGoroutines int) {
+		jobs = make([][]*db.Job, numGoroutines)
+		for i := 0; i < numGoroutines; i++ {
+			estResults := estResultSize(end.Sub(start) / time.Duration(numGoroutines))
+			jobs[i] = make([]*db.Job, 0, estResults)
+		}
+	}
+	elem := func(idx int, doc *fs.DocumentSnapshot) error {
 		var job db.Job
 		if err := doc.DataTo(&job); err != nil {
 			return err
 		}
-		rv = append(rv, &job)
+		jobs[idx] = append(jobs[idx], &job)
 		return nil
-	}); err != nil {
+	}
+	if err := d.dateRangeHelper(d.jobs(), start, end, init, elem); err != nil {
 		return nil, err
 	}
+	totalResults := 0
+	for _, jobList := range jobs {
+		totalResults += len(jobList)
+	}
+	rv := make([]*db.Job, 0, totalResults)
+	for _, jobList := range jobs {
+		rv = append(rv, jobList...)
+	}
+	sort.Sort(db.JobSlice(rv))
 	return rv, nil
 }
 

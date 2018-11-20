@@ -7,8 +7,8 @@ package firestore
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -21,8 +21,14 @@ import (
 )
 
 const (
+	// Firestore has a timestamp resolution of one microsecond.
+	TS_RESOLUTION = time.Microsecond
+
 	// List all apps here as constants.
 	APP_TASK_SCHEDULER = "task-scheduler"
+
+	// Base wait time between attempts.
+	BACKOFF_WAIT = 5 * time.Second
 
 	// List all instances here as constants.
 	INSTANCE_PROD = "prod"
@@ -30,6 +36,11 @@ const (
 
 	// Maximum number of docs in a single transaction.
 	MAX_TRANSACTION_DOCS = 500
+
+	// IterDocs won't iterate for longer than this amount of time at once,
+	// otherwise we risk server timeouts. Instead, it will stop and resume
+	// iteration.
+	MAX_ITER_TIME = 50 * time.Second
 )
 
 var (
@@ -42,6 +53,11 @@ var (
 		codes.Internal,
 		codes.Unavailable,
 	}
+
+	// errIterTooLong is a special error used in conjunction with
+	// MAX_ITER_TIME and IterDocs to prevent running into server timeouts
+	// when iterating a large number of entries.
+	errIterTooLong = errors.New("iterated too long")
 )
 
 // Client is a Cloud Firestore client which enforces separation of app/instance
@@ -125,8 +141,12 @@ func withTimeoutAndRetries(attempts int, timeout time.Duration, fn func(context.
 			if !retry {
 				return err
 			}
-			sklog.Errorf("Encountered Firestore error; retrying: %s", err)
+		} else if err != nil {
+			return err
 		}
+		wait := BACKOFF_WAIT * time.Duration(2^i)
+		sklog.Errorf("Encountered Firestore error; retrying in %s: %s;\n", wait, err)
+		time.Sleep(wait)
 	}
 	// Note that we could collect the errors using multierror, but that
 	// would break some behavior which relies on pointer equality
@@ -149,26 +169,89 @@ func Get(ref *firestore.DocumentRef, attempts int, timeout time.Duration) (*fire
 	return doc, err
 }
 
+// iterDocsInner is a helper function used by IterDocs which facilitates testing.
+func iterDocsInner(query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error, ranTooLong func(time.Time) bool) (int, error) {
+	numRestarts := 0
+	var lastSeen *firestore.DocumentSnapshot
+	for {
+		started := time.Now()
+		err := withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+			q := query
+			if lastSeen != nil {
+				q = q.StartAfter(lastSeen)
+			}
+			it := q.Documents(ctx)
+			defer it.Stop()
+			for {
+				doc, err := it.Next()
+				if err == iterator.Done {
+					break
+				} else if err != nil {
+					return err
+				}
+				if err := callback(doc); err != nil {
+					return err
+				}
+				lastSeen = doc
+				if ranTooLong(started) {
+					sklog.Debugf("Iterated for longer than %s; pausing to avoid timeouts.", MAX_ITER_TIME)
+					return errIterTooLong
+				}
+			}
+			return nil
+		})
+		if err == nil {
+			return numRestarts, nil
+		} else if err != errIterTooLong {
+			return numRestarts, err
+		}
+		numRestarts++
+		sklog.Debugf("Resuming iteration after %s", lastSeen.Ref.Path)
+	}
+}
+
 // IterDocs is a convenience function which executes the given query and calls
 // the given callback function for each document. Uses the given maximum number
-// of attempts and the given per-attempt timeout.
-func IterDocs(q firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
-	return withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
-		it := q.Documents(ctx)
-		defer it.Stop()
-		for {
-			doc, err := it.Next()
-			if err == iterator.Done {
-				break
-			} else if err != nil {
-				return fmt.Errorf("Iteration failed: %s", err)
-			}
-			if err := callback(doc); err != nil {
-				return err
-			}
-		}
-		return nil
+// of attempts and the given per-attempt timeout. IterDocs automatically stops
+// iterating after enough time has passed and re-issues the query, continuing
+// where it left off. This is to avoid server-side timeouts resulting from
+// iterating a large number of results. Note that this behavior may result in
+// individual results coming from inconsistent snapshots.
+func IterDocs(query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
+	_, err := iterDocsInner(query, attempts, timeout, callback, func(started time.Time) bool {
+		return time.Now().Sub(started) > MAX_ITER_TIME
 	})
+	return err
+}
+
+// IterDocsInParallel is a convenience function which executes the given queries
+// in multiple goroutines and calls the given callback function for each
+// document. Uses the maximum number of attempts and the given per-attempt
+// timeout for each goroutine. Each callback includes the goroutine index.
+// IterDocsInParallel automatically stops iterating after enough time has passed
+// and re-issues the query, continuing where it left off. This is to avoid
+// server-side timeouts resulting from iterating a large number of results. Note
+// that this behavior may result in individual results coming from inconsistent
+// snapshots.
+func IterDocsInParallel(queries []firestore.Query, attempts int, timeout time.Duration, callback func(int, *firestore.DocumentSnapshot) error) error {
+	var wg sync.WaitGroup
+	errs := make([]error, len(queries))
+	for idx, query := range queries {
+		wg.Add(1)
+		go func(idx int, query firestore.Query) {
+			defer wg.Done()
+			errs[idx] = IterDocs(query, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+				return callback(idx, doc)
+			})
+		}(idx, query)
+	}
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // RunTransaction runs the given function in a transaction. Uses the given
