@@ -78,7 +78,7 @@ func TestConvertCSVToBenchData(t *testing.T) {
 	assert.NotNil(t, perfData)
 	assert.Equal(t, perfData.Hash, TEST_HASH)
 	assert.Equal(t, perfData.Key["group_name"], TEST_GROUP_NAME)
-	assert.Equal(t, perfData.Options["run_id"], TEST_UNIQUE_ID)
+	assert.Equal(t, perfData.Key["run_id"], TEST_UNIQUE_ID)
 	assert.Len(t, perfData.Results, 2)
 	assert.Equal(t, perfData.Results["http://www.reuters.com"]["default"]["paint_op_count"], 805.0)
 	assert.Equal(t, perfData.Results["http://www.reuters.com"]["default"]["rasterize_time (ms)"], 2.449)
