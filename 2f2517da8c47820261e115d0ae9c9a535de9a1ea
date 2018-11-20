@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d2a0b7c_02f187da",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T20:07:55Z",
+      "side": 1,
+      "message": "Not sure if this is the right thing to do, but had to add it to make local testing work...",
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
