@@ -80,6 +80,9 @@ func (in *Incident) IsSilenced(silences []silence.Silence) bool {
 	}
 
 	for _, s := range silences {
+		if !s.Active {
+			continue
+		}
 		if s.ParamSet.Matches(ps) {
 			return true
 		}
