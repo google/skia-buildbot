@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "7cbe90f0_fdb22698",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79865f67_d82c22aa",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 55
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c3046ba2_376b9a29",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -80,6 +104,30 @@
       "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e41048c5_f1c5eaad",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3046ba2_376b9a29",
+      "range": {
+        "startLine": 16,
+        "startChar": 51,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -106,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "f0856257_fcc9a613",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc486fcb_9a4fd19f",
+      "range": {
+        "startLine": 55,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 62
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c47d6205_22e49b9c",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -117,6 +189,30 @@
       "writtenOn": "2018-11-20T21:02:17Z",
       "side": 1,
       "message": "I\u0027m not sure this needs to be in a promise.  I don\u0027t see either client chain off the return value.",
+      "range": {
+        "startLine": 64,
+        "startChar": 14,
+        "endLine": 64,
+        "endChar": 53
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "713b687c_4697bf76",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "https://skia-review.googlesource.com/c/buildbot/+/172161/2/skottie/modules/skottie-sk/skottie-sk.js#203 does: we can only fetch the duration after the animation is fully initialized (CK+SkAnimation).",
+      "parentUuid": "c47d6205_22e49b9c",
       "range": {
         "startLine": 64,
         "startChar": 14,
@@ -152,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "b890c896_2075e9c6",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "Hmm, empirically I can chain off it... is there a better way to wrap as a promise?",
+      "parentUuid": "5a043459_8f42a38b",
+      "range": {
+        "startLine": 72,
+        "startChar": 14,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "20f221ce_c2c7ac77",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -175,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "66fd0d25_c71c0f1a",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "20f221ce_c2c7ac77",
+      "range": {
+        "startLine": 75,
+        "startChar": 14,
+        "endLine": 75,
+        "endChar": 15
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "71ca3dff_5612da64",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -195,6 +339,30 @@
       "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac134213_071c34e7",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-20T21:22:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71ca3dff_5612da64",
+      "range": {
+        "startLine": 162,
+        "startChar": 17,
+        "endLine": 162,
+        "endChar": 23
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
