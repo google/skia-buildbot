@@ -44,7 +44,7 @@ import (
 //
 //  {
 //    "gitHash" : "8dcc84f7dc8523dd90501a4feb1f632808337c34",
-//    "run_id" : "rmistry-xyz",
+//    "runID" : "rmistry-xyz",
 //    "key" : {
 //      "group_name" : "BGPT perf"
 //    },
@@ -161,16 +161,24 @@ func commitToSyntheticRepo(ctx context.Context, groupName, uniqueID string, chec
 	return hash, nil
 }
 
+// Extend ingestcommon.BenchData to include RunID.
+type CTBenchData struct {
+	*ingestcommon.BenchData
+	RunID string `json:"runID"`
+}
+
 // convertCSVToBenchData converts CT's output CSV into ingestcommon.BenchData
 // which will be used to ingest CT data into ct-perf.skia.org.
-func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*ingestcommon.BenchData, error) {
-	ctPerfData := &ingestcommon.BenchData{
-		Hash: hash,
-		Key: map[string]string{
-			"group_name": groupName,
-			"run_id":     runID,
+func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*CTBenchData, error) {
+	ctPerfData := &CTBenchData{
+		&ingestcommon.BenchData{
+			Hash: hash,
+			Key: map[string]string{
+				"group_name": groupName,
+			},
+			Results: map[string]ingestcommon.BenchResults{},
 		},
-		Results: map[string]ingestcommon.BenchResults{},
+		runID,
 	}
 	csvFile, err := os.Open(pathToCSVResults)
 	defer util.Close(csvFile)
