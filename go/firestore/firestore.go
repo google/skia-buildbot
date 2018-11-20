@@ -24,6 +24,10 @@ const (
 	// List all apps here as constants.
 	APP_TASK_SCHEDULER = "task-scheduler"
 
+	// Project ID. At the moment only the skia-firestore project has
+	// Firestore enabled.
+	FIRESTORE_PROJECT = "skia-firestore"
+
 	// List all instances here as constants.
 	INSTANCE_PROD = "prod"
 	INSTANCE_TEST = "test"
