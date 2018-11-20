@@ -63,6 +63,9 @@ const (
 	//  3              40                 [20,  60]
 	//  4              60                 [30,  90]
 	//  5             120                 [60, 180]
+
+	DEFAULT_LUNCH_TARGET = "cf_x86_phone-eng"
+	DEFAULT_MMMA_TARGETS = "frameworks/base/core/jni,external/skia"
 )
 
 var (
@@ -536,7 +539,7 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 
 	// Step 8: Do the with patch or with hash compilation and update CompileTask
 	// with link to logs and whether it was successful.
-	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript)
+	withPatchSuccess, gsWithPatchLink, err := compileCheckout(ctx, checkoutPath, task.LunchTarget, task.MMMATargets, fmt.Sprintf("%d_withpatch_", datastoreKey.ID), pathToCompileScript)
 	if err != nil {
 		return fmt.Errorf("Error when compiling checkout withpatch at %s: %s", checkoutPath, err)
 	}
@@ -562,7 +565,7 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 			return fmt.Errorf("Could not prepare Skia checkout for compile: %s", err)
 		}
 		// Do the no patch compilation.
-		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript)
+		noPatchSuccess, gsNoPatchLink, err := compileCheckout(ctx, checkoutPath, task.LunchTarget, task.MMMATargets, fmt.Sprintf("%d_nopatch_", datastoreKey.ID), pathToCompileScript)
 		if err != nil {
 			return fmt.Errorf("Error when compiling checkout nopatch at %s: %s", checkoutPath, err)
 		}
@@ -584,7 +587,7 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 // We do the compilation via compile.sh and not via exec because
 // ./build/envsetup.sh needs to be sournced before running lunch and mma
 // commands and this was much simpler to do via a bash script.
-func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCompileScript string) (bool, string, error) {
+func compileCheckout(ctx context.Context, checkoutPath, lunchTarget, mmmaTargets, logFilePrefix, pathToCompileScript string) (bool, string, error) {
 	checkoutBase := path.Base(checkoutPath)
 	sklog.Infof("Started compiling %s", checkoutBase)
 	// Create metric and send it to a timer.
@@ -592,7 +595,7 @@ func compileCheckout(ctx context.Context, checkoutPath, logFilePrefix, pathToCom
 	defer timer.NewWithMetric(fmt.Sprintf("Time taken to compile %s:", checkoutBase), compileTimesMetric).Stop()
 
 	// Execute the compile script pointing it to the checkout.
-	command := exec.Command("bash", pathToCompileScript, checkoutPath)
+	command := exec.Command("bash", pathToCompileScript, checkoutPath, lunchTarget, mmmaTargets)
 	logFile, err := ioutil.TempFile(*workdir, logFilePrefix)
 	defer util.Remove(logFile.Name())
 	if err != nil {
