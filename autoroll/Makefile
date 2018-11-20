@@ -62,7 +62,7 @@ release-be: autoroll-be
 	./deprecated_build_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
 
 release-be-kube: autoroll-be-kube
-	./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
+	CONFIG_DIR="$(CONFIG_DIR)" ./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
 
 release-google3: autoroll-google3
 	./build_google3_release "$(MESSAGE)"
