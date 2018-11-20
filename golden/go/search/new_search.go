@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -118,12 +119,27 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 
 	var inter srInterMap = nil
 	var issue *tryjobstore.Issue = nil
+	var issueParamsByTest map[string]map[string]paramtools.ParamSet = nil
 
 	// Find the digests (left hand side) we are interested in.
 	if isTryjobSearch {
 		// Search the tryjob results for the issue at hand.
 		issue = &tryjobstore.Issue{}
-		inter, issue, err = s.queryIssue(ctx, q, idx, exp)
+
+		var egroup errgroup.Group
+		egroup.Go(func() error {
+			inter, issue, err = s.queryIssue(ctx, q, idx, exp)
+			return err
+		})
+
+		egroup.Go(func() error {
+			issueParamsByTest, err = s.getIssueParamsByTest(q.Issue)
+			return err
+		})
+
+		if err := egroup.Wait(); err != nil {
+			return nil, err
+		}
 	} else {
 		// Iterate through the tile and get an intermediate
 		// representation that contains all the traces matching the queries.
@@ -141,7 +157,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RQuery, q.IncludeIgnores, exp, idx)
+		s.getReferenceDiffs(ctx, ret, issueParamsByTest, q.Metric, q.Match, q.RQuery, q.IncludeIgnores, exp, idx)
 		if err != nil {
 			return nil, err
 		}
@@ -253,7 +269,7 @@ func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, err
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
 	ret := s.getDigestRecs(inter, exp)
-	s.getReferenceDiffs(ctx, ret, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, false, exp, idx)
+	s.getReferenceDiffs(ctx, ret, nil, diff.METRIC_COMBINED, []string{types.PRIMARY_KEY_FIELD}, nil, false, exp, idx)
 	if err != nil {
 		return nil, err
 	}
@@ -293,6 +309,10 @@ func (s *SearchAPI) getExpectationsFromQuery(q *Query) (ExpSlice, error) {
 	return ret, nil
 }
 
+func (s *SearchAPI) getIssueParamsByTest(issueID int64) (map[string]map[string]paramtools.ParamSet, error) {
+	return nil, nil
+}
+
 // query issue returns the digest related to this issues in intermediate representation.
 func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice) (srInterMap, *tryjobstore.Issue, error) {
 	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
@@ -320,28 +340,22 @@ func (s *SearchAPI) queryIssue(ctx context.Context, q *Query, idx *indexer.Searc
 	return ret, issue, nil
 }
 
-// filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
-// be called for each testName/digest combination and should accumulate the digests of interest.
-type filterAddFn func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet)
-
-// extractIssueDigests loads the issue and its tryjob results and then filters the
-// results via the given query. For each testName/digest pair addFn is called.
-func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
-	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+func (s *SearchAPI) loadIssueTryjobResults(ctx context.Context, idx *indexer.SearchIndex, issueID int64, patchsets []int64, includeIgnores, allPatchsets bool) (*tryjobstore.Issue, [][]*tryjobstore.TryjobResult, error) {
+	ctx, span := trace.StartSpan(ctx, "search/loadTryjobResults")
 	defer span.End()
 
 	// Get the issue.
-	issue, err := s.storages.TryjobStore.GetIssue(q.Issue, true)
+	issue, err := s.storages.TryjobStore.GetIssue(issueID, true)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if issue == nil {
-		return nil, sklog.FmtErrorf("Unable to find issue %d", q.Issue)
+		return nil, nil, sklog.FmtErrorf("Unable to find issue %d", issueID)
 	}
 
 	// If no patchsets were given we pick the last one that has tryjobs.
-	issue.QueryPatchsets = q.Patchsets
+	issue.QueryPatchsets = patchsets
 	if len(issue.QueryPatchsets) == 0 {
 		issue.QueryPatchsets = make([]int64, 0, len(issue.PatchsetDetails))
 		for i := len(issue.PatchsetDetails) - 1; i >= 0; i-- {
@@ -361,17 +375,17 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 
 	// If there are no tryjobs we are done.
 	if len(tryjobs) == 0 {
-		return issue, nil
+		return nil, [][]*tryjobstore.TryjobResult{}, nil
 	}
 
 	// Get the results
 	tjResults, err := s.storages.TryjobStore.GetTryjobResults(tryjobs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Filter the ignored results by setting the results to nil.
-	if !q.IncludeIgnores {
+	if !includeIgnores {
 		ignoreMatcher := idx.GetIgnoreMatcher()
 		for _, oneTryjob := range tjResults {
 			for idx, trj := range oneTryjob {
@@ -391,6 +405,24 @@ func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *inde
 				}
 			}
 		}
+	}
+
+	return issue, tjResults, nil
+}
+
+// filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
+// be called for each testName/digest combination and should accumulate the digests of interest.
+type filterAddFn func(test, digest, traceID string, trace *types.GoldenTrace, params paramtools.ParamSet)
+
+// extractIssueDigests loads the issue and its tryjob results and then filters the
+// results via the given query. For each testName/digest pair addFn is called.
+func (s *SearchAPI) extractIssueDigests(ctx context.Context, q *Query, idx *indexer.SearchIndex, exp ExpSlice, addFn filterAddFn) (*tryjobstore.Issue, error) {
+	ctx, span := trace.StartSpan(ctx, "search/queryIssue")
+	defer span.End()
+
+	issue, tjResults, err := s.loadIssueTryjobResults(ctx, idx, q.Issue, q.Patchsets, q.IncludeIgnores, false)
+	if err != nil {
+		return nil, err
 	}
 
 	// Iterate over the remaining results.
@@ -473,16 +505,25 @@ func (s *SearchAPI) getDigestRecs(inter srInterMap, exps ExpSlice) []*SRDigest {
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
+func (s *SearchAPI) getReferenceDiffs(ctx context.Context, resultDigests []*SRDigest, issueParamsByTest map[string]map[string]paramtools.ParamSet, metric string, match []string, rhsQuery paramtools.ParamSet, includeIgnores bool, exp ExpSlice, idx *indexer.SearchIndex) {
 	ctx, span := trace.StartSpan(ctx, "search/getReferenceDiffs")
 	defer span.End()
 
-	refDiffer := NewRefDiffer(exp, s.storages.DiffStore, idx)
+	refDiffer := RefDiffer{
+		metric:            metric,
+		match:             match,
+		rhsQuery:          rhsQuery,
+		includeIgnores:    includeIgnores,
+		issueParamsByTest: issueParamsByTest,
+		exp:               exp,
+		diffStore:         s.storages.DiffStore,
+		idx:               idx,
+	}
 	var wg sync.WaitGroup
 	wg.Add(len(resultDigests))
 	for _, retDigest := range resultDigests {
 		go func(retDigest *SRDigest) {
-			closestRef, refDiffs := refDiffer.GetRefDiffs(metric, match, retDigest.Test, retDigest.Digest, retDigest.ParamSet, rhsQuery, includeIgnores)
+			closestRef, refDiffs := refDiffer.GetRefDiffs(retDigest.Test, retDigest.Digest, retDigest.ParamSet)
 			retDigest.ClosestRef = closestRef
 			retDigest.RefDiffs = refDiffs
 
