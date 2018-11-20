@@ -1132,3 +1132,20 @@ func NewThreadSafeWriter(w io.Writer) io.Writer {
 		w: w,
 	}
 }
+
+// RoundUpToPowerOf2 rounds the given int up to the nearest power of 2.
+func RoundUpToPowerOf2(i int32) int32 {
+	// Taken from https://web.archive.org/web/20160703165415/https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+	// Attributed to Sean Anderson.
+	if i == 0 {
+		return 1
+	}
+	i--
+	i |= i >> 1
+	i |= i >> 2
+	i |= i >> 4
+	i |= i >> 8
+	i |= i >> 16
+	i++
+	return i
+}

@@ -884,3 +884,31 @@ func TestChunkIter(t *testing.T) {
 	check(4, 1, [][]int{{0, 1}, {1, 2}, {2, 3}, {3, 4}})
 	check(7, 5, [][]int{{0, 5}, {5, 7}})
 }
+
+func TestRoundUpToPowerOf2(t *testing.T) {
+	testutils.SmallTest(t)
+
+	test := func(input, output int32) {
+		assert.Equal(t, output, RoundUpToPowerOf2(input))
+	}
+	test(0, 1)
+	test(1, 1)
+	test(2, 2)
+	test(3, 4)
+	test(4, 4)
+	test(5, 8)
+	test(7, 8)
+	test(8, 8)
+	test(9, 16)
+	test(16, 16)
+	test(17, 32)
+	test(25, 32)
+	test(32, 32)
+	test(33, 64)
+	test(50, 64)
+	test(64, 64)
+	for i := 64; i < (1 << 31); i = i << 1 {
+		test(int32(i-1), int32(i))
+		test(int32(i), int32(i))
+	}
+}
