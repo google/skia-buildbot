@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2630f8f0_b4ecf34c",
+        "filename": "ct/go/util/ct_perf.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-20T15:04:07Z",
+      "side": 1,
+      "message": "Do you want `json:\"run_id\"`?",
+      "range": {
+        "startLine": 167,
+        "startChar": 1,
+        "endLine": 167,
+        "endChar": 6
+      },
+      "revId": "bacf03836ad9208c89f7d9b42a5e1535446bd141",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
