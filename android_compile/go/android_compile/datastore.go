@@ -22,6 +22,9 @@ type CompileTask struct {
 	PatchSet int    `json:"patchset"`
 	Hash     string `json:"hash"`
 
+	LunchTarget string `json:"lunch_target"`
+	MMMATargets string `json:"mmma_targets"`
+
 	Checkout string `json:"checkout"`
 
 	Created   time.Time `json:"created"`
