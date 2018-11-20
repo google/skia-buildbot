@@ -16,6 +16,185 @@
       "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b616fa42_bfa230dd",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "Looks fine for me - curious that I didn\u0027t need it.  Probably a subtle race condition with loading the library.",
+      "parentUuid": "6d2a0b7c_02f187da",
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79865f67_d82c22aa",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "Keep this in its own render function.  Don\u0027t render in the constructor (as the constructor should be fast and light), try rendering at the beginning of connectedCallback().",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 55
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3046ba2_376b9a29",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "ubernit: \"animation and engine\"",
+      "range": {
+        "startLine": 16,
+        "startChar": 51,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc486fcb_9a4fd19f",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "I think I would prefer this to be like\n\n_render() {\n  if (this._loading) {\n    render(loadingTemplate...);\n  } else {\n    render(runningTemplate...);\n  }\n}\n\nand calls look like:\nthis._loading \u003d true;\nthis._render();\n\nThis pattern more closely resembles what our other elements do.",
+      "range": {
+        "startLine": 55,
+        "startChar": 4,
+        "endLine": 55,
+        "endChar": 62
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c47d6205_22e49b9c",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "I\u0027m not sure this needs to be in a promise.  I don\u0027t see either client chain off the return value.",
+      "range": {
+        "startLine": 64,
+        "startChar": 14,
+        "endLine": 64,
+        "endChar": 53
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a043459_8f42a38b",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "I know this looks like a promise, but it actually isn\u0027t.  Don\u0027t return it from this function.  With above comment, I don\u0027t think initialize needs to return a Promise.",
+      "range": {
+        "startLine": 72,
+        "startChar": 14,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20f221ce_c2c7ac77",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "delete extra semicolon",
+      "range": {
+        "startLine": 75,
+        "startChar": 14,
+        "endLine": 75,
+        "endChar": 15
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71ca3dff_5612da64",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-20T21:02:17Z",
+      "side": 1,
+      "message": "I think calling flush on the surface is a better habit to get into - it should call flush on its canvas too.  If not, that might be a bug.",
+      "range": {
+        "startLine": 162,
+        "startChar": 17,
+        "endLine": 162,
+        "endChar": 23
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
