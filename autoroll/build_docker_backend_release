@@ -11,8 +11,7 @@ INSTALL_DIR="install -d --verbose --backup=none"
 ${INSTALL}     --mode=644 -T ./go/autoroll-be-kube/Dockerfile ${ROOT}/Dockerfile
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}-kube    ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL}     --mode=644 -T ../infra/config/recipes.cfg      ${ROOT}/usr/local/share/autoroll/recipes.cfg
-${INSTALL_DIR} --mode=755                                     ${ROOT}/usr/local/share/autoroll/config
-cp                           ${CONFIG_FILE}                   ${ROOT}/usr/local/share/autoroll/config/
+cp -r                        ${CONFIG_DIR}                    ${ROOT}/usr/local/share/autoroll/config
 chmod 644 ${ROOT}/usr/local/share/autoroll/config/*.json
 }
 
