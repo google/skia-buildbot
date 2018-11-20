@@ -30,7 +30,7 @@
     ]
   },
   "cqExtraTrybots": [
-    "master.tryserver.blink:linux_trusty_blink_rel"
+    "luci.chromium.try:linux-blink-rel"
   ],
   "kubernetes": {
     "cpu": "1",
