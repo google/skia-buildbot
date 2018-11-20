@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e145f89_3f34a6a4",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-20T20:14:44Z",
+      "side": 1,
+      "message": "Should we omit \"Fake\" tasks?",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 3
+      },
+      "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
