@@ -133,6 +133,7 @@ func (d *firestoreDB) putTasks(tasks []*db.Task, tx *fs.Transaction) (rvErr erro
 		} else if isNew[idx] {
 			// If the task is not supposed to exist but does, then
 			// we have a problem.
+			sklog.Errorf("Task has no DbModified timestamp but already exists in the DB!")
 			return db.ErrConcurrentUpdate
 		}
 		// If the task already exists, check the DbModified timestamp
@@ -165,8 +166,8 @@ func (d *firestoreDB) PutTask(task *db.Task) error {
 
 // See documentation for db.TaskDB interface.
 func (d *firestoreDB) PutTasks(tasks []*db.Task) error {
-	if len(tasks) > firestore.MAX_TRANSACTION_DOCS/2 {
-		sklog.Errorf("Inserting %d tasks; Firestore maximum per transaction is %d", len(tasks), firestore.MAX_TRANSACTION_DOCS)
+	if len(tasks) > MAX_TRANSACTION_DOCS/2 {
+		sklog.Warningf("Inserting %d tasks; Firestore maximum per transaction is %d", len(tasks), MAX_TRANSACTION_DOCS)
 	}
 	for _, task := range tasks {
 		if task.Id == "" {
