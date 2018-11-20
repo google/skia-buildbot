@@ -245,7 +245,7 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		sklog.Info("Recreating the mirror.")
 		util.RemoveAll(checkoutPath)
 		if err := createMirrorAndInit(ctx, checkoutPath); err != nil {
-			return fmt.Errorf("Error creating mirror in %s: %s", checkoutPath, err)
+			sklog.Errorf("Error creating mirror in %s: %s", checkoutPath, err)
 		}
 		recreateMirror = false
 	} else {
