@@ -44,11 +44,9 @@ import (
 //
 //  {
 //    "gitHash" : "8dcc84f7dc8523dd90501a4feb1f632808337c34",
+//    "run_id" : "rmistry-xyz",
 //    "key" : {
 //      "group_name" : "BGPT perf"
-//    },
-//    "options": {
-//      "run_id" : "rmistry-xyz"
 //    },
 //    "results" : {
 //      "http://www.reuters.com" : {
@@ -170,11 +168,9 @@ func convertCSVToBenchData(hash, groupName, runID, pathToCSVResults string) (*in
 		Hash: hash,
 		Key: map[string]string{
 			"group_name": groupName,
+			"run_id":     runID,
 		},
 		Results: map[string]ingestcommon.BenchResults{},
-		Options: map[string]string{
-			"run_id": runID,
-		},
 	}
 	csvFile, err := os.Open(pathToCSVResults)
 	defer util.Close(csvFile)
