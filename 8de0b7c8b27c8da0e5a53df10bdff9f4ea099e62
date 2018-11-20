@@ -22,6 +22,30 @@
       "revId": "8de0b7c8b27c8da0e5a53df10bdff9f4ea099e62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14e28a55_5dcfda0b",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-20T18:05:57Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "97e74c25_3a854fe0",
+      "range": {
+        "startLine": 180,
+        "startChar": 1,
+        "endLine": 180,
+        "endChar": 32
+      },
+      "revId": "8de0b7c8b27c8da0e5a53df10bdff9f4ea099e62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
