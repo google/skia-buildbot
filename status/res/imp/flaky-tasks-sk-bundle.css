@@ -1,0 +1,27 @@
+flaky-tasks-sk {
+  /**
+   * Styling for tables.
+   * TODO(borenet): Move these to a common module.
+   */ }
+  flaky-tasks-sk table {
+    border-collapse: collapse;
+    display: table; }
+  flaky-tasks-sk tr {
+    border-bottom: 1px solid #EEEEEE;
+    display: table-row; }
+  flaky-tasks-sk tr:hover {
+    background-color: #F5F5F5; }
+  flaky-tasks-sk tr:hover tr:hover {
+    background-color: #FFFFFF; }
+  flaky-tasks-sk tr-container {
+    display: table-row-group; }
+  flaky-tasks-sk td, flaky-tasks-sk th {
+    display: table-cell;
+    padding: 10px; }
+  flaky-tasks-sk td {
+    vertical-align: middle; }
+  flaky-tasks-sk th {
+    color: #767676;
+    font-size: 0.75em; }
+  flaky-tasks-sk td.number {
+    text-align: right; }
