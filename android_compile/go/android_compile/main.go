@@ -107,6 +107,15 @@ func readGSAndTriggerCompileTask(ctx context.Context, g *gsFileLocation) error {
 		return errors.New("Either hash or (issue & patchset) must be specified")
 	}
 
+	// Set default values if LunchTarget and MMMATargets are not specified.
+	// This is done for backwards compatibility.
+	if task.LunchTarget == "" {
+		task.LunchTarget = DEFAULT_LUNCH_TARGET
+	}
+	if task.MMMATargets == "" {
+		task.MMMATargets = DEFAULT_MMMA_TARGETS
+	}
+
 	// Check to see if this task has already been requested and is currently
 	// waiting/running. If it is then do not trigger a new task. This is done
 	// to avoid creating unnecessary duplicate tasks.
