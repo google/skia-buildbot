@@ -183,7 +183,9 @@ func (d *firestoreDB) PutTasks(tasks []*db.Task) error {
 		return err
 	}
 	for _, task := range tasks {
-		d.TrackModifiedTask(task)
+		if err := d.TrackModifiedTask(task); err != nil {
+			return err
+		}
 	}
 	return nil
 }

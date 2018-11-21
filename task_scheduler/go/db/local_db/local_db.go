@@ -226,10 +226,10 @@ type localDB struct {
 	metricWriteJobQueries  metrics2.Counter
 	metricWriteJobRows     metrics2.Counter
 
-	// ModifiedTasks and ModifiedJobs are embedded in order to implement
-	// db.TaskReader and db.JobReader.
-	db.ModifiedTasks
-	db.ModifiedJobs
+	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
+	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
+	db.ModifiedTasksImpl
+	db.ModifiedJobsImpl
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -670,9 +670,8 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		return err
 	} else {
 		d.metricWriteTaskRows.Inc(int64(len(gobs)))
-		d.TrackModifiedTasksGOB(gobs)
+		return d.TrackModifiedTasksGOB(gobs)
 	}
-	return nil
 }
 
 // Sets job.Id based on job.Created. tx must be an update transaction.
@@ -850,9 +849,8 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 		return err
 	} else {
 		d.metricWriteJobRows.Inc(int64(len(gobs)))
-		d.TrackModifiedJobsGOB(gobs)
+		return d.TrackModifiedJobsGOB(gobs)
 	}
-	return nil
 }
 
 // writeCommentsMap is passed to db.NewCommentBoxWithPersistence to persist

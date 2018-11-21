@@ -172,7 +172,9 @@ func (d *firestoreDB) PutJobs(jobs []*db.Job) error {
 		return err
 	}
 	for _, job := range jobs {
-		d.TrackModifiedJob(job)
+		if err := d.TrackModifiedJob(job); err != nil {
+			return err
+		}
 	}
 	return nil
 }
