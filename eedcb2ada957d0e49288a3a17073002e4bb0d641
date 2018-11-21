@@ -70,6 +70,30 @@
       "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2c40865_90cf79e7",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-21T19:47:16Z",
+      "side": 1,
+      "message": "Now that I think about it, I think I\u0027d rather leave them in, just for \"completeness\".",
+      "parentUuid": "5f864f31_f75f1f95",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 3
+      },
+      "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

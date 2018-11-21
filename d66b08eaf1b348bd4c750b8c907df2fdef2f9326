@@ -22,6 +22,30 @@
       "revId": "d66b08eaf1b348bd4c750b8c907df2fdef2f9326",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "409af3c5_55c0d9ec",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-21T19:47:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c16c3fda_44c4ab27",
+      "range": {
+        "startLine": 160,
+        "startChar": 8,
+        "endLine": 160,
+        "endChar": 13
+      },
+      "revId": "d66b08eaf1b348bd4c750b8c907df2fdef2f9326",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
