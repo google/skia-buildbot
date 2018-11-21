@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "901abfdf_d669cec1",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1571,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-21T19:43:59Z",
+      "side": 1,
+      "message": "This was required to account for round-trip time for the pubsub messages.  I can\u0027t think of a good way around it :(  It seems to be long enough locally, but it could still be flaky.",
+      "range": {
+        "startLine": 1571,
+        "startChar": 1,
+        "endLine": 1571,
+        "endChar": 24
+      },
+      "revId": "59127488657fe2fc8f3e4453ebc8ae613105cf6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
