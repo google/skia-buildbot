@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+  - name: Get Windows Update status
+    win_service:
+      name: wuauserv
+    register: wu_status
+  - debug:
+      msg: "Start mode: {{ wu_status.start_mode }}, State: {{ wu_status.state }}"
