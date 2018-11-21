@@ -1,0 +1,23 @@
+skottie-player-sk {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  border: 0;
+
+  .player-loading {
+    position: relative;
+    text-align: center;
+    align-items: center;
+  }
+
+  .player-loading > div {
+    padding: 20px 0 0 0;
+    border: none;
+    font-size: 120%;
+    font-weight: bold;
+  }
+
+  .skottie-canvas {
+    display: block;
+  }
+}

@@ -23,3 +23,6 @@ fetchMock.post('glob:/_/upload', {
   }),
   headers: {'Content-Type':'application/json'},
 });
+
+// Pass-through CanvasKit.
+fetchMock.get('glob:*.wasm', fetchMock.realFetch.bind(window));

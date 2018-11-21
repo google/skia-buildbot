@@ -8,8 +8,8 @@
  *
  */
 import '../skottie-config-sk'
+import '../skottie-player-sk'
 import 'elements-sk/error-toast-sk'
-import 'elements-sk/spinner-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { SKIA_VERSION } from '../../build/version.js'
 import { errorMessage } from 'elements-sk/errorMessage'
@@ -20,38 +20,19 @@ import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
 
-const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
-
 const DIALOG_MODE = 1;
 const LOADING_MODE = 2;
 const LOADED_MODE = 3;
-
-const DPR = window.devicePixelRatio;
 
 const displayDialog = (ele) => html`
 <skottie-config-sk state=${ele._state}></skottie-config-sk>
 `;
 
-const loading = (ele) => {
-  if (!ele.CanvasKit) {
-    return html`
-<div class=wasm_loading title="We are loading CanvasKit (skottie-wasm).">
-  <div>Loading</div>
-  <spinner-sk active></spinner-sk>
-</div>`;
-  } else {
-    return '';
-  }
-}
-
-const wasmCanvas = (ele) => html`
-<canvas id=skottie width=${ele._state.width * DPR} height=${ele._state.height * DPR}
-        style='width: ${ele._state.width}px; height: ${ele._state.height}px;'>
-  Your browser does not support the canvas tag.
-</canvas>
+const skottiePlayer = (ele) => html`
+<skottie-player-sk paused width=${ele._state.width} height=${ele._state.height}>
+</skottie-player-sk>
 
 <figcaption>
-  ${loading(ele)}
   skottie-wasm
 </figcaption>`;
 
@@ -93,7 +74,7 @@ const displayLoaded = (ele) => html`
 </div>
 <section class=figures>
   <figure>
-    ${wasmCanvas(ele)}
+    ${skottiePlayer(ele)}
   </figure>
   <figure>
     <div id=container title=lottie-web
@@ -159,11 +140,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._editorLoaded = false;
     this._hasEdits = false;
 
-    this.CanvasKit = null;
-    this._skAnimation = null;
-    this._skCanvas = null;
-    this._skSurface = null;
-    this._wasmDuration = null;
+    this._duration = 0; // _duration = 0 is a sentinel value for "player not loaded yet"
+
     // The wasm animation computes how long it has been since it started and
     // use arithmetic to figure out where to seek (i.e. which frame to draw).
     this._firstFrameTime = null;
@@ -177,33 +155,11 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this.addEventListener('cancelled', this)
     window.addEventListener('popstate', this)
     this._render();
-    CanvasKitInit({
-      locateFile: (file) => '/static/'+file,
-    }).then((CanvasKit) => {
-      this.CanvasKit = CanvasKit;
-      this._render();
-      this._rewind();
-    });
 
     // Start a continous animation loop.
     const drawFrame = () => {
       window.requestAnimationFrame(drawFrame);
-      if (!this.CanvasKit || !this._state.lottie) {
-        return;
-      }
-      if (!this._skCanvas) {
-        this._skSurface = this.CanvasKit.MakeCanvasSurface('skottie');
-        if (!this._skSurface) {
-          errorMessage('Could not make SkSurface');
-          return;
-        }
-        this._skCanvas = this._skSurface.getCanvas();
-        this._skCanvas.scale(DPR, DPR);
-      }
-      if (!this._skAnimation) {
-        this._skAnimation = this.CanvasKit.MakeAnimation(JSON.stringify(this._state.lottie));
-        this._wasmDuration = this._skAnimation.duration() * 1000;
-      }
+
       // Elsewhere, the _firstFrameTime is set to null to restart
       // the animation. If null, we assume the user hit re-wind
       // and restart both the Skottie animation and the lottie-web one.
@@ -212,15 +168,17 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       if (!this._firstFrameTime && this._playing) {
         this._firstFrameTime = Date.now();
       }
-      if (this._playing) {
-        let now = Date.now();
-        let seek = ((now - this._firstFrameTime) / this._wasmDuration ) % 1.0;
-        this._renderSkottieAt(seek);
-        // If we want to have synchronized playing, it's best to force the
-        // lottie player to draw at the same time as the skottie one. Otherwise,
-        // the lottie player occasionally skips a few frames and they drift.
-        this._lottie.goToAndStop(seek * this._wasmDuration);
-        this._live && this._live.goToAndStop(seek * this._wasmDuration);
+      if (this._playing && this._duration > 0) {
+        let progress = (Date.now() - this._firstFrameTime) % this._duration;
+
+        // If we want to have synchronized playing, it's best to force
+        // all players to draw the same frame rather than letting them play
+        // on their own timeline.
+        let player = this.querySelector('skottie-player-sk');
+        player && player.seek(progress / this._duration);
+
+        this._lottie.goToAndStop(progress);
+        this._live && this._live.goToAndStop(progress);
       }
     }
 
@@ -234,6 +192,17 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
   attributeChangedCallback(name, oldValue, newValue) {
     this._render();
+  }
+
+  _initializePlayer() {
+    let player = this.querySelector('skottie-player-sk');
+    player.initialize({
+                        width:  this._state.width,
+                        height: this._state.height,
+                        lottie: this._state.lottie,
+                      }).then(() => {
+                        this._duration = player.duration();
+                      });
   }
 
   _reflectFromURL() {
@@ -255,6 +224,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         this._state = json;
         this._ui = LOADED_MODE;
         this._render();
+        this._initializePlayer();
       }).catch((msg) => {
         errorMessage(msg);
         window.history.pushState(null, '', '/');
@@ -285,11 +255,6 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._editorLoaded = false;
     this._editor = null;
     // Clean up the old animation and other wasm objects
-    this._skSurface.delete();
-    this._skSurface = null;
-    this._skCanvas = null;
-    this._skAnimation.delete();
-    this._skAnimation = null;
     this._render();
     fetch('/_/upload', {
       credentials: 'include',
@@ -304,6 +269,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._hash = json.hash;
       window.history.pushState(null, '', '/' + this._hash);
       this._render();
+      this._initializePlayer();
+
       // Re-sync all players
       this._rewind();
     }).catch(msg => {
@@ -338,22 +305,11 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._live && this._live.goToAndStop(0);
       this._lottie.goToAndStop(0);
       this._firstFrameTime = null;
-      if (this._skAnimation && this._skCanvas) {
-        this._renderSkottieAt(0);
-      }
+      this.querySelector('skottie-player-sk').seek(0);
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie.goToAndPlay(0);
       this._firstFrameTime = null;
-    }
-  }
-
-  _renderSkottieAt(seek) {
-    if (this._skAnimation && this._skCanvas) {
-        this._skAnimation.seek(seek);
-        let bounds = {fLeft: 0, fTop: 0, fRight: this._state.width, fBottom: this._state.height};
-        this._skAnimation.render(this._skCanvas, bounds);
-        this._skCanvas.flush();
     }
   }
 
