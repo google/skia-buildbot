@@ -14,7 +14,7 @@ import (
 type inMemoryTaskDB struct {
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
-	ModifiedTasks
+	ModifiedTasksImpl
 }
 
 // See docs for TaskDB interface. Does not take any locks.
@@ -91,7 +91,9 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 
 		// TODO(borenet): Keep tasks in a sorted slice.
 		db.tasks[task.Id] = task.Copy()
-		db.TrackModifiedTask(task)
+		if err := db.TrackModifiedTask(task); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -108,7 +110,7 @@ func NewInMemoryTaskDB() TaskDB {
 type inMemoryJobDB struct {
 	jobs    map[string]*Job
 	jobsMtx sync.RWMutex
-	ModifiedJobs
+	ModifiedJobsImpl
 }
 
 func (db *inMemoryJobDB) assignId(j *Job) error {
@@ -181,7 +183,9 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 
 		// TODO(borenet): Keep jobs in a sorted slice.
 		db.jobs[job.Id] = job.Copy()
-		db.TrackModifiedJob(job)
+		if err := db.TrackModifiedJob(job); err != nil {
+			return err
+		}
 	}
 	return nil
 }
