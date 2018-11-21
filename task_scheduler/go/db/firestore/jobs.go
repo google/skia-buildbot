@@ -156,8 +156,8 @@ func (d *firestoreDB) PutJob(job *db.Job) error {
 
 // See documentation for db.JobDB interface.
 func (d *firestoreDB) PutJobs(jobs []*db.Job) error {
-	if len(jobs) > firestore.MAX_TRANSACTION_DOCS/2 {
-		sklog.Errorf("Inserting %d jobs; Firestore maximum per transaction is %d", len(jobs), firestore.MAX_TRANSACTION_DOCS)
+	if len(jobs) > MAX_TRANSACTION_DOCS/2 {
+		sklog.Warningf("Inserting %d jobs; Firestore maximum per transaction is %d", len(jobs), MAX_TRANSACTION_DOCS)
 	}
 	for _, job := range jobs {
 		if job.Id == "" {

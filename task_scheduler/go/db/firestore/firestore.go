@@ -12,6 +12,9 @@ import (
 )
 
 const (
+	// At the moment, the only project with Firestore enabled is skia-firestore.
+	FIRESTORE_PROJECT = firestore.FIRESTORE_PROJECT
+
 	// Timeouts for various requests.
 	GET_SINGLE_TIMEOUT = 10 * time.Second
 	GET_MULTI_TIMEOUT  = 60 * time.Second
@@ -23,6 +26,9 @@ const (
 
 	// Load entries in at most 100 goroutines.
 	MAX_LOAD_GOROUTINES = 100
+
+	// Maximum documents in a transaction.
+	MAX_TRANSACTION_DOCS = firestore.MAX_TRANSACTION_DOCS
 
 	// Datastore key for a Task or Job's Created field.
 	KEY_CREATED = "Created"
