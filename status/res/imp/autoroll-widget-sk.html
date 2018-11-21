@@ -118,7 +118,9 @@
           if (rollerData.mode !== "dry run" && badnessBehind > badness) {
             badness = badnessBehind;
           }
-          if (badness < 0.5 && rollerData.mode !== "stopped") {
+          if (rollerData.mode === "stopped") {
+            rollerData.class = "bg-unknown";
+          } else if (badness < 0.5) {
             rollerData.class = "bg-success";
           } else if (badness < 1.0) {
             rollerData.class = "bg-lightorange";
