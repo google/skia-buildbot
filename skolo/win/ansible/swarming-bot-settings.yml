@@ -7,6 +7,24 @@
       name: wuauserv
       start_mode: disabled
       state: stopped
+  # Add a task that disables Windows Update. (Windows re-enables the service unexpectedly.)
+  - name: Add "Disable Windows Update" task
+    win_scheduled_task:
+      name: DisableWindowsUpdate
+      description: Disable Windows Update
+      actions:
+        - path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+          arguments: -ExecutionPolicy Unrestricted -NonInteractive -NoProfile -Command
+            "Set-Service wuauserv -StartupType Disabled"
+      triggers:
+        - type: boot
+          repetition:
+            # Run on boot and repeat every hour.
+            - interval: PT1H
+      username: SYSTEM
+      run_level: highest
+      state: present
+      enabled: yes
   # Unlike Windows Server, Windows Defender can not be uninstalled on Windows 10. Windows also
   # tends to re-enable it if it's disabled. Instead we exclude the entire drive from scanning and
   # disable specific features. Docs here:
