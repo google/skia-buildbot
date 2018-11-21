@@ -22,6 +22,30 @@
       "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a94bbc2_d234fc9c",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-21T17:35:14Z",
+      "side": 1,
+      "message": "I\u0027m not sure it\u0027s worth the effort, but if you want I can add that logic.  I don\u0027t remember how those would be identified.",
+      "parentUuid": "6e145f89_3f34a6a4",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 3
+      },
+      "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
