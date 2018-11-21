@@ -320,6 +320,30 @@
     },
     {
       "key": {
+        "uuid": "7ebf3025_59a7f146",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-21T19:47:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5a3462c7_1ecf4f1d",
+      "range": {
+        "startLine": 72,
+        "startChar": 14,
+        "endLine": 72,
+        "endChar": 18
+      },
+      "revId": "2f2517da8c47820261e115d0ae9c9a535de9a1ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20f221ce_c2c7ac77",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "53a57d72_bf6e420f",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-21T19:47:48Z",
+      "side": 1,
+      "message": "Good catch!",
+      "parentUuid": "df9e105e_266b7747",
+      "range": {
+        "startLine": 119,
+        "startChar": 39,
+        "endLine": 119,
+        "endChar": 50
+      },
+      "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b8ca568_2f8ddf5a",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-11-21T14:13:09Z",
       "side": 1,
       "message": "FYI: as of https://skia-review.googlesource.com/c/skia/+/172120 we have support for \"try GPU first, then fallback to SW\"",
+      "range": {
+        "startLine": 124,
+        "startChar": 46,
+        "endLine": 124,
+        "endChar": 63
+      },
+      "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d5a49ff4_75d142eb",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-21T19:47:48Z",
+      "side": 1,
+      "message": "\\o/",
+      "parentUuid": "7b8ca568_2f8ddf5a",
       "range": {
         "startLine": 124,
         "startChar": 46,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "0776ee2e_4cc7a3a9",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-21T19:47:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "428b6b74_21b77a63",
+      "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6797c26_b4df0ea7",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 3
@@ -79,6 +145,24 @@
       "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a98e0acd_ef7e3758",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-21T19:47:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f6797c26_b4df0ea7",
+      "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -102,6 +186,30 @@
       "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba3c8ccf_cf633573",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-21T19:47:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "753b1d0e_174a2b21",
+      "range": {
+        "startLine": 143,
+        "startChar": 3,
+        "endLine": 143,
+        "endChar": 23
+      },
+      "revId": "85ce0b45c2f65a455c08d6650bfcf786337d579d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
