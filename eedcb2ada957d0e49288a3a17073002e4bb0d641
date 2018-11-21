@@ -46,6 +46,30 @@
       "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f864f31_f75f1f95",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-21T17:44:54Z",
+      "side": 1,
+      "message": "The SwarmingTaskId field is empty. There\u0027s a Fake() bool method. It\u0027s not very important.",
+      "parentUuid": "3a94bbc2_d234fc9c",
+      "range": {
+        "startLine": 41,
+        "startChar": 2,
+        "endLine": 41,
+        "endChar": 3
+      },
+      "revId": "eedcb2ada957d0e49288a3a17073002e4bb0d641",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
