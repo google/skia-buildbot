@@ -30,6 +30,10 @@ const (
 	// Base wait time between attempts.
 	BACKOFF_WAIT = 5 * time.Second
 
+	// Project ID. At the moment only the skia-firestore project has
+	// Firestore enabled.
+	FIRESTORE_PROJECT = "skia-firestore"
+
 	// List all instances here as constants.
 	INSTANCE_PROD = "prod"
 	INSTANCE_TEST = "test"
