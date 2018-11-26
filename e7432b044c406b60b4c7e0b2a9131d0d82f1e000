@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c587f46_15e40901",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "We should think about this carefully. If we\u0027ve already inserted the job into the DB, returning an error doesn\u0027t seem correct, because then we\u0027ll try to insert the same jobs again. My general feeling is that if there is an error in ModifiedJobs/ModifiedTasks, the resolution of the error is to reset all subscribers and have GetModified* return an error for existing subscribers.\n\nI\u0027m not completely sure how to do this for push notifications (i.e. PubSub), but one possibility is to send heartbeats, where the receiver resets itself if it misses 2 heartbeats. Another possibility is to add a UUID to messages where the receiver resets itself if the UUID changes between messages.",
+      "range": {
+        "startLine": 176,
+        "startChar": 3,
+        "endLine": 176,
+        "endChar": 13
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d49be0c_8efe1787",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "I think we need to handle the case where we get a message for a subscriber after the subscriber calls stopTrackingModifiedData.",
+      "range": {
+        "startLine": 79,
+        "startChar": 14,
+        "endLine": 79,
+        "endChar": 28
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "654fda06_f7bbc97f",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "nit: if we can use DbModified time somehow, that would be better to avoid race conditions (e.g. process 1 updates task, process 2 updates task, process 2 sends pubsub message, process 1 sends pubsub message).",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b429bc0d_a24974bc",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "Is it possible that this will deadlock? I.e. this sequence of calls:\n - stopTrackingModifiedData takes c.mtx\n - pubsub calls the callback passed to newSubscriber, which waits on c.mtx\n - stopTrackingModifiedData calls s.Stop -- is it possible there is a mutex here to ensure the callback finishes before the subscriber is stopped?",
+      "range": {
+        "startLine": 118,
+        "startChar": 11,
+        "endLine": 118,
+        "endChar": 19
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac8d983c_7cd29c6f",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "Maybe should mention that this implementation is best-effort and GetModifiedTasks could possibly miss some tasks without returning an error.",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36ca4102_5e9c90b0",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "nit: maybe name this subscriberLabel, and/or document that every instance with a unique label will see all modified tasks on this topic (i.e. label doesn\u0027t need to match between client and server). (This would be obvious if I were really familiar with pubsub, but it confused me at first.)",
+      "range": {
+        "startLine": 134,
+        "startChar": 47,
+        "endLine": 134,
+        "endChar": 52
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d4836fc_229b17ff",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "nit: maybe mention topic should be one of the TOPIC_* constants in this package",
+      "range": {
+        "startLine": 134,
+        "startChar": 40,
+        "endLine": 134,
+        "endChar": 45
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db377eac_82377494",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "nit: update docs to match NewModifiedTasks.",
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e658c2a_f9eef1f0",
+        "filename": "task_scheduler/go/db/pubsub/pubsub.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "nit: \"pubsub messages for each of the\"",
+      "range": {
+        "startLine": 63,
+        "startChar": 24,
+        "endLine": 63,
+        "endChar": 48
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4130e808_94096781",
+        "filename": "task_scheduler/go/db/pubsub/pubsub.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "nit: might be a good idea to add a function timer here. I\u0027m not sure how long Get typically takes.",
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

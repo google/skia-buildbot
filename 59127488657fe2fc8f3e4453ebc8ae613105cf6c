@@ -22,6 +22,30 @@
       "revId": "59127488657fe2fc8f3e4453ebc8ae613105cf6c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "875f4307_344004b3",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1571,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T18:47:21Z",
+      "side": 1,
+      "message": "It would probably be better to use testutils.EventuallyConsistent.\nhttps://skia.googlesource.com/buildbot/+/b5b7d06a6706029d2f32959e7927a92f0efb97d9/go/testutils/testutils.go#270\n\nIt might make sense to write a helper, e.g. assertGetModifiedTasks(t, id, []*Task{t1}), which would collect the return values of GetModifiedTasks until there are the expected number of results, sort, and deepequal.AssertDeepEqual.",
+      "parentUuid": "901abfdf_d669cec1",
+      "range": {
+        "startLine": 1571,
+        "startChar": 1,
+        "endLine": 1571,
+        "endChar": 24
+      },
+      "revId": "59127488657fe2fc8f3e4453ebc8ae613105cf6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
