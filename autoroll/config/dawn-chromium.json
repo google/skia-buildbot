@@ -1,0 +1,42 @@
+{
+  "childName": "Dawn",
+  "contacts": [
+    "cwallez@google.com"
+  ],
+  "gerritURL": "https://chromium-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "dawn-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "cwallez@google.com"
+  ],
+  "sheriffBackup": [
+    "kainino@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/dawn",
+    "childRepo": "https://dawn.googlesource.com/dawn.git",
+    "gerritProject": "chromium/src",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "cqExtraTrybots": [
+    "luci.chromium.try:linux_optional_gpu_tests_rel",
+    "luci.chromium.try:mac_optional_gpu_tests_rel",
+    "luci.chromium.try:win_optional_gpu_tests_rel"
+  ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "4h"
+}
