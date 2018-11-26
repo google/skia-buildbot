@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/pborman/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
@@ -25,8 +27,8 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	d, err := NewDB(context.Background(), "skia-firestore", instance, nil)
 	assert.NoError(t, err)
 	cleanup := func() {
-		_, err := d.(*firestoreDB).client.ParentDoc.Delete(context.Background())
-		assert.NoError(t, err)
+		c := d.(*firestoreDB).client
+		assert.NoError(t, firestore.RecursiveDelete(c, c.ParentDoc, 5, 30*time.Second))
 		assert.NoError(t, d.Close())
 	}
 	return d, cleanup

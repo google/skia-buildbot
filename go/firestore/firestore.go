@@ -7,12 +7,14 @@ package firestore
 import (
 	"context"
 	"errors"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -63,6 +65,13 @@ var (
 	// when iterating a large number of entries.
 	errIterTooLong = errors.New("iterated too long")
 )
+
+// DocumentRefSlice is a slice of DocumentRefs, used for sorting.
+type DocumentRefSlice []*firestore.DocumentRef
+
+func (s DocumentRefSlice) Len() int           { return len(s) }
+func (s DocumentRefSlice) Less(i, j int) bool { return s[i].Path < s[j].Path }
+func (s DocumentRefSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 // Client is a Cloud Firestore client which enforces separation of app/instance
 // data via separate collections and documents. All references to collections
@@ -312,4 +321,82 @@ func Delete(ref *firestore.DocumentRef, attempts int, timeout time.Duration, pre
 		return err
 	})
 	return wr, err
+}
+
+// GetAllDescendantDocuments returns a slice of DocumentRefs for every
+// descendent of the given Document. This includes missing documents, ie. those
+// which do not exist but have sub-documents.
+func GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
+	// TODO(borenet): Should we pause and resume like we do in IterDocs?
+	colls := map[string]*firestore.CollectionRef{}
+	if err := withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+		it := ref.Collections(ctx)
+		for {
+			coll, err := it.Next()
+			if err == iterator.Done {
+				break
+			} else if err != nil {
+				return err
+			}
+			colls[coll.Path] = coll
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	docs := map[string]*firestore.DocumentRef{}
+	for _, coll := range colls {
+		if err := withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
+			it := coll.DocumentRefs(ctx)
+			for {
+				doc, err := it.Next()
+				if err == iterator.Done {
+					break
+				} else if err != nil {
+					return err
+				}
+				docs[doc.Path] = doc
+			}
+			return nil
+		}); err != nil {
+			return nil, err
+		}
+	}
+	rv := make([]*firestore.DocumentRef, 0, len(docs))
+	for _, doc := range docs {
+		children, err := GetAllDescendantDocuments(doc, attempts, timeout)
+		if err != nil {
+			return nil, err
+		}
+		rv = append(rv, children...)
+	}
+	for _, doc := range docs {
+		rv = append(rv, doc)
+	}
+	sort.Sort(DocumentRefSlice(rv))
+	return rv, nil
+}
+
+// RecursiveDelete deletes the given document and all of its descendant
+// documents and collections. The given maximum number of attempts and the given
+// per-attempt timeout apply for each delete operation, as opposed to the whole
+// series of operations. This function does nothing to account for documents
+// which may be added or modified while it is taking place.
+func RecursiveDelete(client *Client, ref *firestore.DocumentRef, attempts int, timeout time.Duration) error {
+	docs, err := GetAllDescendantDocuments(ref, attempts, timeout)
+	if err != nil {
+		return err
+	}
+	// Also delete the passed-in doc.
+	docs = append(docs, ref)
+	return util.ChunkIter(len(docs), MAX_TRANSACTION_DOCS, func(start, end int) error {
+		return RunTransaction(client, attempts, timeout, func(ctx context.Context, tx *firestore.Transaction) error {
+			for _, doc := range docs[start:end] {
+				if err := tx.Delete(doc); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+	})
 }
