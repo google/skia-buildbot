@@ -7,6 +7,8 @@
  * </p>
  *
  */
+import 'elements-sk/icon/pause-icon-sk'
+import 'elements-sk/icon/play-arrow-icon-sk'
 import 'elements-sk/spinner-sk'
 import { html, render } from 'lit-html'
 
@@ -19,7 +21,7 @@ const loadingTemplate = (ele) => html`
   <spinner-sk active></spinner-sk>
 </div>`;
 
-const runningTemplate = (ele) => html`
+const canvasTemplate = (ele) => html`
 <canvas class=skottie-canvas id=skottie
         width=${ele._config.width * window.devicePixelRatio}
         height=${ele._config.height * window.devicePixelRatio}
@@ -27,13 +29,32 @@ const runningTemplate = (ele) => html`
   Your browser does not support the canvas tag.
 </canvas>`;
 
+const runningTemplate = (ele) => html`
+<div class=skottie-player-wrapper>
+  <canvas class=skottie-canvas id=skottie
+          width=${ele._config.width * window.devicePixelRatio}
+          height=${ele._config.height * window.devicePixelRatio}
+          style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
+    Your browser does not support the canvas tag.
+  </canvas>
+  <div class=${ele._config.controls ? 'skottie-player-controls' : 'skottie-player-hidden'}>
+    <play-arrow-icon-sk @click=${ele._onPlay}
+                        class=${ele._state.paused ? '' : 'skottie-player-hidden'}>
+    </play-arrow-icon-sk>
+    <pause-icon-sk      @click=${ele._onPause}
+                        class=${ele._state.paused ? 'skottie-player-hidden' : ''}>
+    </play-arrow-icon-sk>
+  </div>
+</div>`;
+
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
   constructor() {
     super();
 
     this._config = {
-      width:  this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
-      height: this.hasAttribute('height') ? this.getAttribute('height') : 256,
+      width:    this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
+      height:   this.hasAttribute('height') ? this.getAttribute('height') : 256,
+      controls: this.hasAttribute('controls'),
     };
 
     this._engine = {
@@ -111,6 +132,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       this._state.paused = false;
       // Shift timeOrigin to continue from where we paused.
       this.seek(this._state.seekPoint);
+      this._drawFrame();
     }
   }
 
@@ -179,5 +201,17 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
                ? loadingTemplate(this)
                : runningTemplate(this),
            this, {eventContext: this});
+  }
+
+  _onPlay() {
+    this.querySelector('play-arrow-icon-sk').classList.add('skottie-player-hidden');
+    this.querySelector('pause-icon-sk').classList.remove('skottie-player-hidden');
+    this.play();
+  }
+
+  _onPause() {
+    this.querySelector('play-arrow-icon-sk').classList.remove('skottie-player-hidden');
+    this.querySelector('pause-icon-sk').classList.add('skottie-player-hidden');
+    this.pause();
   }
 });
