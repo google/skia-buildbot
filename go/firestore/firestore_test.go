@@ -77,6 +77,7 @@ func setup(t *testing.T) (*Client, func()) {
 	c, err := NewClient(context.Background(), project, app, instance, nil)
 	assert.NoError(t, err)
 	return c, func() {
+		assert.NoError(t, RecursiveDelete(c, c.ParentDoc, 5, 30*time.Second))
 		assert.NoError(t, c.Close())
 	}
 }
@@ -218,4 +219,69 @@ func TestIterDocs(t *testing.T) {
 		}
 	}
 	assert.Equal(t, total, len(foundMap))
+}
+
+func TestGetAllDescendants(t *testing.T) {
+	c, cleanup := setup(t)
+	defer cleanup()
+
+	attempts := 3
+	timeout := 5 * time.Second
+
+	// Create some documents.
+	add := func(coll *firestore.CollectionRef, name string) *firestore.DocumentRef {
+		doc := coll.Doc(name)
+		_, err := Create(doc, map[string]string{"name": name}, attempts, timeout)
+		assert.NoError(t, err)
+		return doc
+	}
+
+	container := c.Collection("container")
+	topLevelDoc := add(container, "TopLevel")
+
+	states := topLevelDoc.Collection("states")
+	ny := add(states, "NewYork")
+	ca := add(states, "California")
+	nc := add(states, "NorthCarolina")
+	fl := add(states, "Florida")
+
+	addCity := func(state *firestore.DocumentRef, name string) *firestore.DocumentRef {
+		cities := state.Collection("cities")
+		return add(cities, name)
+	}
+	nyc := addCity(ny, "NewYork")
+	la := addCity(ca, "LosAngeles")
+	sf := addCity(ca, "SanFrancisco")
+	ch := addCity(nc, "ChapelHill")
+
+	// Verify that descendants are found.
+	check := func(parent *firestore.DocumentRef, expect []*firestore.DocumentRef) {
+		actual, err := GetAllDescendantDocuments(parent, attempts, timeout)
+		assert.NoError(t, err)
+		assert.Equal(t, len(expect), len(actual))
+		for idx, e := range expect {
+			assert.Equal(t, e.ID, actual[idx].ID)
+		}
+	}
+	check(ny, []*firestore.DocumentRef{nyc})
+	check(ca, []*firestore.DocumentRef{la, sf})
+	check(nc, []*firestore.DocumentRef{ch})
+	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
+
+	// Check that we can find descendants of missing documents.
+	_, err := Delete(ny, attempts, timeout)
+	assert.NoError(t, err)
+	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
+	_, err = Delete(nyc, attempts, timeout)
+	assert.NoError(t, err)
+	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, nc, ch})
+
+	// Also test RecursiveDelete.
+	del := func(doc *firestore.DocumentRef, expect []*firestore.DocumentRef) {
+		assert.NoError(t, RecursiveDelete(c, doc, attempts, timeout))
+		check(topLevelDoc, expect)
+	}
+	del(ca, []*firestore.DocumentRef{fl, nc, ch})
+	del(fl, []*firestore.DocumentRef{nc, ch})
+	del(topLevelDoc, []*firestore.DocumentRef{})
 }
