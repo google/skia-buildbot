@@ -40,6 +40,7 @@ import (
 	"go.skia.org/infra/task_driver/go/handlers"
 	"go.skia.org/infra/task_driver/go/logs"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -85,6 +86,7 @@ var (
 // flags
 var (
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
+	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -727,6 +729,11 @@ func main() {
 			sklog.Fatalf("Failed to create local task DB: %s", err)
 		}
 		defer util.Close(taskDb.(db.DBCloser))
+	} else if *firestoreInstance != "" {
+		taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+		if err != nil {
+			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
+		}
 	} else {
 		// remote_db relies on non-2xx status codes to communicate errors.
 		remoteDbClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
