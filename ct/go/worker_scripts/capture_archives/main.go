@@ -33,14 +33,13 @@ var (
 )
 
 func captureArchives() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Capturing Archives")
 	defer sklog.Flush()
-
-	ctx := context.Background()
 
 	// Delete and remake the local webpage archives directory.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)

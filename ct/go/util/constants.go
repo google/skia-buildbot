@@ -101,10 +101,11 @@ const (
 
 	// Timeouts
 
-	PKILL_TIMEOUT       = 5 * time.Minute
-	HTTP_CLIENT_TIMEOUT = 30 * time.Minute
-	FETCH_GN_TIMEOUT    = 2 * time.Minute
-	GN_GEN_TIMEOUT      = 2 * time.Minute
+	PKILL_TIMEOUT              = 5 * time.Minute
+	HTTP_CLIENT_TIMEOUT        = 30 * time.Minute
+	FETCH_GN_TIMEOUT           = 2 * time.Minute
+	GN_GEN_TIMEOUT             = 2 * time.Minute
+	UPDATE_DEPOT_TOOLS_TIMEOUT = 5 * time.Minute
 
 	// util.SyncDir
 	GIT_PULL_TIMEOUT     = 30 * time.Minute

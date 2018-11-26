@@ -45,7 +45,8 @@ var (
 )
 
 func metricsAnalysis() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -64,8 +65,6 @@ func metricsAnalysis() error {
 	if *valueColumnName == "" {
 		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
-
-	ctx := context.Background()
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)

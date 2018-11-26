@@ -29,7 +29,8 @@ var (
 )
 
 func runLua() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -45,8 +46,6 @@ func runLua() error {
 	if *runID == "" {
 		return errors.New("Must specify --run_id")
 	}
-
-	ctx := context.Background()
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)

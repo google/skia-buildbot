@@ -5,8 +5,10 @@
 package worker_common
 
 import (
+	"context"
 	"flag"
 	"os"
+	"path/filepath"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -19,11 +21,13 @@ var (
 	Local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
-func Init() {
+func Init(ctx context.Context) {
 	common.Init()
 	if *Local {
 		util.SetVarsForLocal()
 	} else {
+		// Update depot_tools.
+		skutil.LogErr(util.ExecuteCmd(ctx, filepath.Join(util.DepotToolsDir, "update_depot_tools"), []string{}, []string{}, util.UPDATE_DEPOT_TOOLS_TIMEOUT, nil, nil))
 		// Add depot_tools to the PATH.
 		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+":"+util.DepotToolsDir))
 		// Add adb to the PATH.
