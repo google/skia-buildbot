@@ -175,6 +175,24 @@
       "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b8a3cd6_3ff209ca",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-26T21:44:41Z",
+      "side": 1,
+      "message": "To answer my own question, it sounds like lit-html is performing a sophisticated sync: \"lit-html takes care of efficiently rendering templates to DOM, including efficiently updating the DOM with new values\".\n\nUpdated to call _render().",
+      "parentUuid": "2dd9b859_400f1325",
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
