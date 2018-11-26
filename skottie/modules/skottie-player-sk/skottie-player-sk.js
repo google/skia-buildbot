@@ -7,6 +7,8 @@
  * </p>
  *
  */
+import 'elements-sk/icon/pause-icon-sk'
+import 'elements-sk/icon/play-arrow-icon-sk'
 import 'elements-sk/spinner-sk'
 import { html, render } from 'lit-html'
 
@@ -20,20 +22,27 @@ const loadingTemplate = (ele) => html`
 </div>`;
 
 const runningTemplate = (ele) => html`
-<canvas class=skottie-canvas id=skottie
-        width=${ele._config.width * window.devicePixelRatio}
-        height=${ele._config.height * window.devicePixelRatio}
-        style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
-  Your browser does not support the canvas tag.
-</canvas>`;
+<div class=skottie-player-wrapper>
+  <canvas class=skottie-canvas id=skottie
+          width=${ele._config.width * window.devicePixelRatio}
+          height=${ele._config.height * window.devicePixelRatio}
+          style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
+    Your browser does not support the canvas tag.
+  </canvas>
+  <div class=skottie-player-controls ?hidden=${!ele._config.controls}>
+    <play-arrow-icon-sk @click=${ele._onPlay} ?hidden=${!ele._state.paused}></play-arrow-icon-sk>
+    <pause-icon-sk @click=${ele._onPause} ?hidden=${ele._state.paused}></pause-icon-sk>
+  </div>
+</div>`;
 
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
   constructor() {
     super();
 
     this._config = {
-      width:  this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
-      height: this.hasAttribute('height') ? this.getAttribute('height') : 256,
+      width:    this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
+      height:   this.hasAttribute('height') ? this.getAttribute('height') : 256,
+      controls: (new URL(document.location)).searchParams.has('controls'),
     };
 
     this._engine = {
@@ -111,6 +120,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       this._state.paused = false;
       // Shift timeOrigin to continue from where we paused.
       this.seek(this._state.seekPoint);
+      this._drawFrame();
     }
   }
 
@@ -179,5 +189,15 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
                ? loadingTemplate(this)
                : runningTemplate(this),
            this, {eventContext: this});
+  }
+
+  _onPlay() {
+    this.play();
+    this._render();
+  }
+
+  _onPause() {
+    this.pause();
+    this._render();
   }
 });

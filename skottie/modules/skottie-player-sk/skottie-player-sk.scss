@@ -21,3 +21,27 @@ skottie-player-sk {
     display: block;
   }
 }
+
+.skottie-player-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+
+.skottie-player-controls {
+  position: absolute;
+  bottom: -45px; // height of controls container
+  left: 50%;
+  padding: 0px;
+  background: rgba(128, 128, 128, .50);
+  transform: translateX(-50%);
+  transition: bottom .25s ease-in;
+}
+
+.skottie-player-wrapper:hover > .skottie-player-controls {
+  bottom: 12px;
+  z-index: 2;
+}
