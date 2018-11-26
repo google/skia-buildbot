@@ -101,10 +101,11 @@ const (
 
 	// Timeouts
 
-	PKILL_TIMEOUT       = 5 * time.Minute
-	HTTP_CLIENT_TIMEOUT = 30 * time.Minute
-	FETCH_GN_TIMEOUT    = 2 * time.Minute
-	GN_GEN_TIMEOUT      = 2 * time.Minute
+	PKILL_TIMEOUT              = 5 * time.Minute
+	HTTP_CLIENT_TIMEOUT        = 30 * time.Minute
+	FETCH_GN_TIMEOUT           = 2 * time.Minute
+	GN_GEN_TIMEOUT             = 2 * time.Minute
+	UPDATE_DEPOT_TOOLS_TIMEOUT = 5 * time.Minute
 
 	// util.SyncDir
 	GIT_PULL_TIMEOUT     = 30 * time.Minute
@@ -205,9 +206,10 @@ var (
 	CtAdmins = []string{"rmistry@google.com", "benjaminwagner@google.com"}
 
 	// Names of local directories and files.
-	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)
-	RepoDir                = filepath.Join("/", "b", REPO_DIR_NAME)
-	DepotToolsDir          = filepath.Join("/", "home", "chrome-bot", "depot_tools")
+	StorageDir = filepath.Join("/", "b", STORAGE_DIR_NAME)
+	RepoDir    = filepath.Join("/", "b", REPO_DIR_NAME)
+	//DepotToolsDir          = filepath.Join("/", "home", "chrome-bot", "depot_tools")
+	DepotToolsDir          = filepath.Join("/", "repos", "depot_tools")
 	ChromiumBuildsDir      = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
 	ChromiumSrcDir         = filepath.Join(StorageDir, "chromium", "src")
 	TelemetryBinariesDir   = filepath.Join(ChromiumSrcDir, "tools", "perf")

@@ -38,7 +38,8 @@ var (
 )
 
 func captureSkps() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -58,8 +59,6 @@ func captureSkps() error {
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		return errors.New("Android is not yet supported for capturing SKPs.")
 	}
-
-	ctx := context.Background()
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)

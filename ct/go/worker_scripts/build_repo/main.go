@@ -29,11 +29,10 @@ var (
 )
 
 func buildRepo() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer sklog.Flush()
-
-	ctx := context.Background()
 
 	if *outDir == "" {
 		return errors.New("Must specify --out")
