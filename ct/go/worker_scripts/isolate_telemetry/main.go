@@ -28,11 +28,10 @@ var (
 )
 
 func buildRepo() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	defer util.TimeTrack(time.Now(), "Isolating Telemetry")
 	defer sklog.Flush()
-
-	ctx := context.Background()
 
 	// Validate required arguments.
 	if *runID == "" {
