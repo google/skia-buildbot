@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ee727205_a303b270",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-26T20:58:30Z",
+      "side": 1,
+      "message": "We could have the controls be dependent on something in the url?\n\ne.g. https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b?controls\u003dtrue\n\nOtherwise, no controls to not break iframe sizing (if that\u0027s still an issue)",
+      "range": {
+        "startLine": 22,
+        "startChar": 50,
+        "endLine": 22,
+        "endChar": 58
+      },
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4817590e_52f45de4",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-26T20:58:30Z",
+      "side": 1,
+      "message": "replace with ${canvasTemplate(ele)} or remove canvasTemplate",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 39,
+        "endChar": 11
+      },
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e016340b_28662933",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-26T20:58:30Z",
+      "side": 1,
+      "message": "Does ?hidden\u003d${!ele._state.paused} not work?  Same question for line 40.",
+      "range": {
+        "startLine": 42,
+        "startChar": 24,
+        "endLine": 42,
+        "endChar": 81
+      },
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12053ef0_aa5c52f2",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-26T20:58:30Z",
+      "side": 1,
+      "message": "manually editing js classes should rarely be necessary.  Adding this._render() after this.play() would have the same effect, assuming the template is set up appropriately.",
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
