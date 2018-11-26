@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40c61069_e420cadf",
+        "filename": "go/firestore/firestore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-26T17:18:28Z",
+      "side": 1,
+      "message": "nit: maybe test multiple cities in a state and no cities in a state",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 253,
+        "endChar": 32
+      },
+      "revId": "b7461b736bce9eff729873ce00ce5f281cbe506e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
