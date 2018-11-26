@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d06da80a_b0753147",
+        "filename": "skottie/modules/skottie-embed-sk/skottie-embed-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-26T21:29:53Z",
+      "side": 1,
+      "message": "I don\u0027t think it breaks sizing at this point, but it may become problematic in the future.\n\nI like the URL param idea, done.",
+      "parentUuid": "ee727205_a303b270",
+      "range": {
+        "startLine": 22,
+        "startChar": 50,
+        "endLine": 22,
+        "endChar": 58
+      },
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4817590e_52f45de4",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cef0671e_d65298f2",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-26T21:29:53Z",
+      "side": 1,
+      "message": "Doh, leftover.  Removed.",
+      "parentUuid": "4817590e_52f45de4",
+      "range": {
+        "startLine": 34,
+        "startChar": 2,
+        "endLine": 39,
+        "endChar": 11
+      },
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e6320cc8_d9a6736d",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-26T21:29:53Z",
+      "side": 1,
+      "message": "Ah, works fine -- I just wasn\u0027t familiar with that idiom.",
+      "parentUuid": "e016340b_28662933",
+      "range": {
+        "startLine": 42,
+        "startChar": 24,
+        "endLine": 42,
+        "endChar": 81
+      },
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12053ef0_aa5c52f2",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -82,6 +154,24 @@
       "writtenOn": "2018-11-26T20:58:30Z",
       "side": 1,
       "message": "manually editing js classes should rarely be necessary.  Adding this._render() after this.play() would have the same effect, assuming the template is set up appropriately.",
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2dd9b859_400f1325",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-26T21:29:53Z",
+      "side": 1,
+      "message": "Changed to toggle the hidden attribute.\n\nIsn\u0027t render() somewhat expensive (rebuilding the whole DOM fragment)?  Or is lit-html smart enough to sync to the existing DOM?",
+      "parentUuid": "12053ef0_aa5c52f2",
       "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
