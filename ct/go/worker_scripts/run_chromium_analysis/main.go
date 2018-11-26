@@ -50,7 +50,8 @@ var (
 )
 
 func runChromiumAnalysis() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -67,8 +68,6 @@ func runChromiumAnalysis() error {
 	if *benchmarkName == "" {
 		return errors.New("Must specify --benchmark_name")
 	}
-
-	ctx := context.Background()
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(ctx); err != nil {

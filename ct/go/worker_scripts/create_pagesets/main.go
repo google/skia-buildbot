@@ -24,14 +24,13 @@ var (
 )
 
 func createPagesets() error {
-	worker_common.Init()
+	ctx := context.Background()
+	worker_common.Init(ctx)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
 	defer util.TimeTrack(time.Now(), "Creating Pagesets")
 	defer sklog.Flush()
-
-	ctx := context.Background()
 
 	// Delete and remake the local pagesets directory.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
