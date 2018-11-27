@@ -30,7 +30,7 @@ type PopRepoI interface {
 	GetLast(ctx context.Context) (int64, int64, string, error)
 
 	// Add a new buildid to the repo.
-	Add(ctx context.Context, buildid, ts int64) error
+	Add(ctx context.Context, buildid, ts int64, branch string) error
 
 	// LookupBuildID looks up a buildid from the git hash.
 	LookupBuildID(ctx context.Context, hash string) (int64, error)
@@ -97,7 +97,7 @@ func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, error)
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
 //
-func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
+func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64, branch string) error {
 	rollback := false
 	defer func() {
 		if !rollback {
@@ -112,14 +112,15 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64) error {
 	output := bytes.Buffer{}
 	cmd := exec.Command{
 		Name:           "git",
-		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d", p.subdomain, buildid), fmt.Sprintf("--date=%d", ts)},
+		Args:           []string{"commit", "-m", fmt.Sprintf("https://%s.skia.org/r/%d?branch=%s", p.subdomain, buildid, branch), fmt.Sprintf("--date=%d", ts)},
 		Env:            []string{fmt.Sprintf("GIT_COMMITTER_DATE=%d", ts)},
 		Dir:            p.checkout.Dir(),
 		InheritEnv:     true,
 		CombinedOutput: &output,
 	}
 	if !p.local {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=/home/default"))
+		// Should be set by server.
+		cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=/home/skia"))
 	}
 
 	// Also needs to confirm that the buildids are ascending, which means they should be ints.
