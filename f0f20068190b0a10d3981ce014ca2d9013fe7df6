@@ -117,6 +117,30 @@
       "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "418753a5_41117165",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-27T15:33:26Z",
+      "side": 1,
+      "message": "I was going to file a bug asking for the missing permissions after I figure out what is missing (still trying to see if this change actually works).",
+      "parentUuid": "2a463327_902d77bc",
+      "range": {
+        "startLine": 95,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
