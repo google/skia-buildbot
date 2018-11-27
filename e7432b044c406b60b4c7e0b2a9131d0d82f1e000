@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7852fda8_82652853",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "Discussed in person.\n\nI think we could lose messages for a few reasons, like the process dying while there are messages in the queue or request timeouts sending messages to pubsub.\n\nThe idea of the heartbeat would be to send messages to all subscribers notifying them of which publishers they should expect to hear from (identified by a UUID). When a publisher detects an error that could cause the subscribers to miss messages, the publisher stops sending the heartbeat so that subscribers know there is something wrong (as opposed to no new modifications). The publisher could continue publishing with a new UUID.",
+      "parentUuid": "2b4b1924_eb9b4744",
+      "range": {
+        "startLine": 176,
+        "startChar": 3,
+        "endLine": 176,
+        "endChar": 13
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5d49be0c_8efe1787",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "33b53742_568d299f",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "I think you meant to change this?",
+      "parentUuid": "330ea065_776959a4",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b429bc0d_a24974bc",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -187,6 +235,30 @@
       "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7a8d192_d11fc2cc",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "It looks like there\u0027s no mutex in Stop, so it should be fine.",
+      "parentUuid": "cfaa29ac_7dc9b004",
+      "range": {
+        "startLine": 118,
+        "startChar": 11,
+        "endLine": 118,
+        "endChar": 19
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -331,6 +403,30 @@
     },
     {
       "key": {
+        "uuid": "1aaaa1c6_68465509",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "I think there are some things we know could be a problem, and it\u0027s not necessarily worth the time to make it bulletproof.\n\nThe in-memory impl. of GetModifiedTasks also guarantees that it\u0027s returning a consistent snapshot of tasks. There are ways we could ensure that with the pubsub impl., but right now we could get messages out of order or a partial set of updates for tasks modified in an atomic transaction.",
+      "parentUuid": "2f406127_426d8160",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "db377eac_82377494",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -403,6 +499,24 @@
       "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f67e066_8508a5f9",
+        "filename": "task_scheduler/go/db/pubsub/pubsub.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4130e808_94096781",
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

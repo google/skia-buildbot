@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41b9b8b7_2a80504a",
+        "filename": "task_scheduler/go/db/db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "nit: doc this param\n\nSame for TrackModifiedJobsGOB.",
+      "range": {
+        "startLine": 95,
+        "startChar": 23,
+        "endLine": 95,
+        "endChar": 32
+      },
+      "revId": "4a1c0fd04664a2f6dc8ecdb4172bfb8419b37f8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68876b30_ad88769c",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "nit: we might want to check that now \u003e job.DbModified.",
+      "revId": "4a1c0fd04664a2f6dc8ecdb4172bfb8419b37f8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c3ee70b_2446af6f",
+        "filename": "task_scheduler/go/db/local_db/local_db.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 626,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T18:41:38Z",
+      "side": 1,
+      "message": "nit: declare var here, but assign within the transaction.\n\n(Since BoltDB allows only one write transaction at a time, assigning now within the transaction ensures that DbModified is monotonically increasing.)\n\nSame for PutJobs.",
+      "range": {
+        "startLine": 626,
+        "startChar": 1,
+        "endLine": 626,
+        "endChar": 24
+      },
+      "revId": "4a1c0fd04664a2f6dc8ecdb4172bfb8419b37f8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
