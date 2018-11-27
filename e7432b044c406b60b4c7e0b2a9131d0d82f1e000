@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "0d4eeb3a_d222b27f",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T20:03:24Z",
+      "side": 1,
+      "message": "I wrote the comment before I implemented what I said in the comment, but left it to be clear about why.",
+      "parentUuid": "33b53742_568d299f",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b429bc0d_a24974bc",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -250,6 +274,30 @@
       "side": 1,
       "message": "It looks like there\u0027s no mutex in Stop, so it should be fine.",
       "parentUuid": "cfaa29ac_7dc9b004",
+      "range": {
+        "startLine": 118,
+        "startChar": 11,
+        "endLine": 118,
+        "endChar": 19
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6bbb2464_6cf10219",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T20:03:24Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d7a8d192_d11fc2cc",
       "range": {
         "startLine": 118,
         "startChar": 11,
@@ -427,6 +475,30 @@
     },
     {
       "key": {
+        "uuid": "5c7f97c8_641d1425",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T20:03:24Z",
+      "side": 1,
+      "message": "Gotcha. I\u0027m not overly concerned about out-of-order messages, as long as the results returned by each call to GetModified returns sensible results, ie. some modified tasks may not show up until a later call, but if a given task was modified multiple times (and we received multiple messages for it), we return the latest version.  We can work around blamelist inconsistencies by processing tasks in chronological order by DbModified timestamp.",
+      "parentUuid": "1aaaa1c6_68465509",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "db377eac_82377494",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -482,6 +554,30 @@
       "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "443d99b5_0b9b1f19",
+        "filename": "task_scheduler/go/db/pubsub/pubsub.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T20:03:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e658c2a_f9eef1f0",
+      "range": {
+        "startLine": 63,
+        "startChar": 24,
+        "endLine": 63,
+        "endChar": 48
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
