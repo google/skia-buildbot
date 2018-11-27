@@ -14,7 +14,7 @@ func TestParseLog(t *testing.T) {
 	}
 	log := `6dab50c23b3927daf7487b4a6f105fc74aff5fa7 https://android-ingest.skia.org/r/3553310
 3133350e05eb07629d681c3bb61a91a51e2ff2ef https://android-ingest.skia.org/r/3553227
-eceadc0434451cfdce5dc6814cd48ef0f36b1dc2 https://android-ingest.skia.org/r/3553052
+eceadc0434451cfdce5dc6814cd48ef0f36b1dc2 https://android-ingest.skia.org/r/3553052?branch=foo
 716b074f2a057324148d1af51fedd30c603da538 https://android-ingest.skia.org/r/3553049
 `
 	err := c.parseLog(log)
