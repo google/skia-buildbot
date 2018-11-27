@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "609303be_ba9a99c2",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-27T13:10:37Z",
+      "side": 1,
+      "message": "This is called with e of type Event.  e.currentTarget or e.target should remove the need for the querySelector on line 210",
+      "range": {
+        "startLine": 209,
+        "startChar": 2,
+        "endLine": 209,
+        "endChar": 12
+      },
+      "revId": "eba0819c757967f24f656a9be0c668f90568e01b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
