@@ -12,23 +12,23 @@ task-driver-sk {
   }
 
   div.SUCCESS {
-    border-left-color: $green;
+    border-left-color: var(--green);
   }
 
   div.FAILURE {
-    border-left-color: $red;
+    border-left-color: var(--red);
   }
 
   div.EXCEPTION {
-    border-left-color: $purple;
+    border-left-color: var(--purple);
   }
 
   div.IN_PROGRESS {
-    border-left-color: $light-orange;
+    border-left-color: var(--light-orange);
   }
 
   div.h2 {
-    color: $blue;
+    color: var(--blue);
     font-size: 1.3em;
     font-weight: bold;
     margin: 10px;
@@ -54,7 +54,7 @@ task-driver-sk {
   }
 
   span.expando {
-    color: $blue;
+    color: var(--blue);
     cursor: pointer;
     font-family: monospace;
   }
