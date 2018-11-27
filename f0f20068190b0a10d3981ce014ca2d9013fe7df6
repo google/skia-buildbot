@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e0c2b0f_77166bcb",
+        "filename": "autoroll/go/autoroll-be-kube/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-27T15:20:58Z",
+      "side": 1,
+      "message": "Useful for debugging on roller.",
+      "range": {
+        "startLine": 5,
+        "startChar": 82,
+        "endLine": 5,
+        "endChar": 88
+      },
+      "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
