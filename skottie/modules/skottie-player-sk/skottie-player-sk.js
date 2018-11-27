@@ -32,6 +32,8 @@ const runningTemplate = (ele) => html`
   <div class=skottie-player-controls ?hidden=${!ele._config.controls}>
     <play-arrow-icon-sk @click=${ele._onPlay} ?hidden=${!ele._state.paused}></play-arrow-icon-sk>
     <pause-icon-sk @click=${ele._onPause} ?hidden=${ele._state.paused}></pause-icon-sk>
+    <input type=range min=1 max=100 @input=${ele._onScrub}
+           class=skottie-player-scrubber>
   </div>
 </div>`;
 
@@ -161,6 +163,9 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
   _updateSeekPoint() {
     this._state.seekPoint = ((Date.now() - this._state.timeOrigin) / this.duration()) % 1;
+    if (this._config.controls) {
+      this.querySelector('.skottie-player-scrubber').value = this._state.seekPoint * 100;
+    }
   }
 
   _drawFrame() {
@@ -199,5 +204,9 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
   _onPause() {
     this.pause();
     this._render();
+  }
+
+  _onScrub(e) {
+    this.seek(e.currentTarget.value / 100);
   }
 });
