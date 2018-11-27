@@ -124,9 +124,10 @@ func readGSAndTriggerCompileTask(ctx context.Context, g *gsFileLocation) error {
 		return fmt.Errorf("Failed to retrieve currently waiting/running compile tasks and keys: %s", err)
 	}
 	for _, existingTaskAndKey := range append(waitingTasksAndKeys, runningTasksAndKeys...) {
-		if (task.Hash != "" && task.Hash == existingTaskAndKey.task.Hash) ||
-			(task.Hash == "" && task.Issue == existingTaskAndKey.task.Issue && task.PatchSet == existingTaskAndKey.task.PatchSet) {
-			sklog.Infof("Got request for already existing task [hash: %s, issue: %d, patchset: %d, id: %d]", task.Hash, task.Issue, task.PatchSet, existingTaskAndKey.key.ID)
+		if task.LunchTarget == existingTaskAndKey.task.LunchTarget &&
+			((task.Hash != "" && task.Hash == existingTaskAndKey.task.Hash) ||
+				(task.Hash == "" && task.Issue == existingTaskAndKey.task.Issue && task.PatchSet == existingTaskAndKey.task.PatchSet)) {
+			sklog.Infof("Got request for already existing task [lunch_target: %s, hash: %s, issue: %d, patchset: %d, id: %d]", task.LunchTarget, task.Hash, task.Issue, task.PatchSet, existingTaskAndKey.key.ID)
 			return nil
 		}
 	}
@@ -308,7 +309,7 @@ func main() {
 		for _, taskAndKey := range runningTasksAndKeys {
 			sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
 			// Fetch the object attributes.
-			fileName := fmt.Sprintf("%d-%d.json", taskAndKey.task.Issue, taskAndKey.task.PatchSet)
+			fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
 			objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
 			if err != nil {
 				sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
