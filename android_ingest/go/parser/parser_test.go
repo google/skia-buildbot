@@ -50,7 +50,7 @@ func (l lookupMockBad) Lookup(buildid int64) (string, error) {
 
 func TestConvert(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "google-marlin-marlin-O")
+	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
 	benchData, err := c.Convert(r)
 	assert.NoError(t, err)
@@ -58,22 +58,38 @@ func TestConvert(t *testing.T) {
 	assert.Len(t, benchData.Results, 7)
 	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
 	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
+	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
+}
+
+func TestConvertSecondBranch(t *testing.T) {
+	testutils.SmallTest(t)
+	// If our branch isn't listed as the master branch it should become part of the key.
+	c := New(lookupMockGood{})
+	r := bytes.NewBufferString(INCOMING)
+	benchData, err := c.Convert(r)
+	assert.NoError(t, err)
+	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
+	assert.Len(t, benchData.Results, 7)
+	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
+	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
+	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
 }
 
 func TestConvert2(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "google-angler-angler-O")
+	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING2)
 	benchData, err := c.Convert(r)
 	assert.NoError(t, err)
 	assert.Equal(t, "8dcc84f7dc8523dd90501a4feb1f632808337c34", benchData.Hash)
 	assert.Len(t, benchData.Results, 1)
 	assert.Equal(t, 5439.620216, benchData.Results["coremark"]["default"]["score"])
+	assert.Equal(t, "google-angler-angler-O", benchData.Key["branch"])
 }
 
 func TestConvertFailHashLookup(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockBad{}, "google-marlin-marlin-O")
+	c := New(lookupMockBad{})
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)
 	assert.Error(t, err)
@@ -81,10 +97,10 @@ func TestConvertFailHashLookup(t *testing.T) {
 
 func TestConvertFailWrongBranch(t *testing.T) {
 	testutils.SmallTest(t)
-	c := New(lookupMockGood{}, "this-isnt-the-branch-youre-looking-for")
+	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
 	_, err := c.Convert(r)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 const INCOMING = `{

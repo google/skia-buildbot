@@ -22,10 +22,12 @@ import (
 	"go.skia.org/infra/android_ingest/go/parser"
 	"go.skia.org/infra/android_ingest/go/recent"
 	"go.skia.org/infra/android_ingest/go/upload"
+	"go.skia.org/infra/go/allowed"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -41,7 +43,6 @@ const (
 
 // flags
 var (
-	branch       = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -50,6 +51,7 @@ var (
 	storageUrl   = flag.String("storage_url", "gs://skia-perf/android-ingest", "The GCS URL of where to store the ingested perf data.")
 	workRoot     = flag.String("work_root", "", "Directory location where all the work is done.")
 	subdomain    = flag.String("subdomain", "android-ingest", "The subdomain [foo].skia.org of where this app is running.")
+	authorEmail  = flag.String("author_email", "skia-android-ingest@skia-public.iam.gserviceaccount.com", "Email address of the git author.")
 )
 
 var (
@@ -72,7 +74,7 @@ func Init() {
 	txLogWriteFailure = metrics2.GetCounter("tx_log_write_failure", nil)
 	uploads = metrics2.GetCounter("uploads", nil)
 	// Create a new auth'd client for androidbuildinternal.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", "", androidbuildinternal.AndroidbuildInternalScope)
+	ts, err := auth.NewDefaultTokenSource(*local, androidbuildinternal.AndroidbuildInternalScope, storage.ScopeReadWrite, auth.SCOPE_GERRIT)
 	if err != nil {
 		sklog.Fatalf("Unable to create authenticated token source: %s", err)
 	}
@@ -80,6 +82,12 @@ func Init() {
 
 	if err := os.MkdirAll(*workRoot, 0755); err != nil {
 		sklog.Fatalf("Failed to create directory %q: %s", *workRoot, err)
+	}
+
+	if !*local {
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, *authorEmail); err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// The repo we're adding commits to.
@@ -99,17 +107,13 @@ func Init() {
 	}
 
 	// Start process that adds buildids to the git repo.
-	process, err = continuous.New(*branch, checkout, lookupCache, client, *local, *subdomain)
+	process, err = continuous.New(checkout, lookupCache, client, *local, *subdomain)
 	if err != nil {
 		sklog.Fatalf("Failed to start continuous process of adding new buildids to git repo: %s", err)
 	}
 	process.Start(ctx)
 
-	storageTs, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
-	if err != nil {
-		sklog.Fatalf("Problem setting up client OAuth: %s", err)
-	}
-	storageHttpClient := httputils.DefaultClientConfig().WithTokenSource(storageTs).With2xxOnly().Client()
+	storageHttpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(storageHttpClient))
 	if err != nil {
 		sklog.Fatalf("Problem creating storage client: %s", err)
@@ -126,7 +130,7 @@ func Init() {
 
 	recentRequests = recent.New()
 
-	converter = parser.New(lookupCache, *branch)
+	converter = parser.New(lookupCache)
 }
 
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
@@ -230,8 +234,13 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
+	redirBranch := r.FormValue("branch")
 
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", *branch, id, id), http.StatusFound)
+	// If this is an old link, before we recorded branches, then we want to link to the old master branch.
+	if redirBranch == "" {
+		redirBranch = "git_master-skia"
+	}
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/branches/%s/grid?head=%s&tail=%s", redirBranch, id, id), http.StatusFound)
 }
 
 // rangeRedirectHandler handles the commit range links that we added to cluster-summary2-sk and redirects
@@ -256,7 +265,12 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, *branch, endID), http.StatusFound)
+	redirBranch := r.FormValue("branch")
+	// If this is an old link, before we recorded branches, then we want to link to the "master" branch.
+	if redirBranch == "" {
+		redirBranch = "master"
+	}
+	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, redirBranch, endID), http.StatusFound)
 }
 
 func loadTemplates() {
@@ -272,7 +286,6 @@ func main() {
 	common.InitWithMust(
 		filepath.Base(os.Args[0]),
 		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
 	)
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag must be supplied.")
@@ -280,7 +293,9 @@ func main() {
 	if *repoUrl == "" {
 		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
-	login.SimpleInitMust(*port, *local)
+	if !*local {
+		login.InitWithAllow(*port, *local, nil, nil, allowed.Googlers())
+	}
 
 	Init()
 
@@ -290,11 +305,13 @@ func main() {
 	r.HandleFunc("/r/{id:[a-zA-Z0-9]+}", redirectHandler)
 	r.HandleFunc("/rr/{begin:[a-zA-Z0-9]+}/{end:[a-zA-Z0-9]+}", rangeRedirectHandler)
 	r.HandleFunc("/", MainHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	h := httputils.LoggingGzipRequestResponse(r)
+	if !*local {
+		h = httputils.HealthzAndHTTPS(h)
+	}
+
+	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

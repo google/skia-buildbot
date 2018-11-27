@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	branch  = flag.String("branch", "git_master-skia", "The branch where to look for buildids.")
 	buildid = flag.Int64("buildid", 3529135, "Return all buildids newer than this.")
 )
 
@@ -32,7 +31,7 @@ func main() {
 		sklog.Fatalf("Failed to create client: %s", err)
 	}
 	// List all the buildids that come after the given buildid.
-	builds, err := api.List(*branch, *buildid)
+	builds, err := api.List(*buildid)
 	if err != nil {
 		sklog.Fatalf("Failed to retrieve builds: %s", err)
 	}

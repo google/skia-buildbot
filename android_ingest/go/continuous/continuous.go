@@ -1,11 +1,12 @@
 // Package continuous periodically queries the android build api and looks for
-// new buildids against a given branch and then updates poprepo with those new
-// buildids.
+// new buildids against a given list of branches and then updates poprepo with
+// those new buildids.
 package continuous
 
 import (
 	"context"
 	"net/http"
+	"sort"
 	"time"
 
 	"go.skia.org/infra/android_ingest/go/buildapi"
@@ -17,13 +18,12 @@ import (
 )
 
 // Process periodically queries the android build api and looks for new
-// buildids against a given branch and then updates poprepo with those new
-// buildids.
+// buildids against a given list of branches and then updates poprepo with
+// those new buildids.
 type Process struct {
 	Repo *poprepo.PopRepo
 
 	api    *buildapi.API
-	branch string
 	lookup *lookup.Cache
 }
 
@@ -32,7 +32,7 @@ type Process struct {
 // The lookupCache has entries added as they are found in Start().
 //
 // If running in production then 'local' should be false.
-func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, client *http.Client, local bool, subdomain string) (*Process, error) {
+func New(checkout *git.Checkout, lookupCache *lookup.Cache, client *http.Client, local bool, subdomain string) (*Process, error) {
 	repo := poprepo.NewPopRepo(checkout, local, subdomain)
 	api, err := buildapi.NewAPI(client)
 	if err != nil {
@@ -41,7 +41,6 @@ func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, clien
 	return &Process{
 		api:    api,
 		Repo:   repo,
-		branch: branch,
 		lookup: lookupCache,
 	}, nil
 }
@@ -51,6 +50,12 @@ func New(branch string, checkout *git.Checkout, lookupCache *lookup.Cache, clien
 func (c *Process) Last(ctx context.Context) (int64, int64, string, error) {
 	return c.Repo.GetLast(ctx)
 }
+
+type BuildSlice []buildapi.Build
+
+func (p BuildSlice) Len() int           { return len(p) }
+func (p BuildSlice) Less(i, j int) bool { return p[i].BuildId < p[j].BuildId }
+func (p BuildSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Start a Go routine that does the work.
 func (c *Process) Start(ctx context.Context) {
@@ -66,14 +71,15 @@ func (c *Process) Start(ctx context.Context) {
 				sklog.Errorf("Failed to get last buildid: %s", err)
 				continue
 			}
-			builds, err := c.api.List(c.branch, buildid)
+			builds, err := c.api.List(buildid)
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
+			sort.Sort(BuildSlice(builds))
 			for _, b := range builds {
-				if err := c.Repo.Add(ctx, b.BuildId, b.TS); err != nil {
+				if err := c.Repo.Add(ctx, b.BuildId, b.TS, b.Branch); err != nil {
 					failures.Inc(1)
 					sklog.Errorf("Failed to add new buildid to repo: %s", err)
 					// Break since we don't want to add anymore buildids until this one

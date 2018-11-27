@@ -4,6 +4,7 @@ package lookup
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -53,7 +54,7 @@ func (c *Cache) parseLog(log string) error {
 	// The oneline log format looks like
 	//
 	//   6dab50c23b3927daf7487b4a6f105fc74aff5fa7 https://android-ingest.skia.org/r/3553310
-	//   3133350e05eb07629d681c3bb61a91a51e2ff2ef https://android-ingest.skia.org/r/3553227
+	//   3133350e05eb07629d681c3bb61a91a51e2ff2ef https://android-ingest.skia.org/r/3553227?branch=foo
 	//
 	// if you include the commit message that poprepo adds.
 	lines := strings.Split(log, "\n")
@@ -67,15 +68,19 @@ func (c *Cache) parseLog(log string) error {
 			return fmt.Errorf("Found invalid line: %q", line)
 		}
 		hash := parts[0]
-		url := parts[1]
-		// Split the URL on the slashes.
-		urlParts := strings.Split(url, "/")
-		if len(urlParts) != 5 {
-			return fmt.Errorf("Found invalid url: %q", url)
-		}
-		buildid, err := strconv.ParseInt(urlParts[4], 10, 64)
+		u, err := url.Parse(parts[1])
 		if err != nil {
-			return fmt.Errorf("Found invalid buildid: %q", urlParts[4])
+			return fmt.Errorf("Found invalid url: %q", parts[1])
+		}
+
+		// Split the URL on the slashes.
+		urlParts := strings.Split(u.Path, "/")
+		if len(urlParts) != 3 {
+			return fmt.Errorf("Found invalid url: %q", urlParts)
+		}
+		buildid, err := strconv.ParseInt(urlParts[2], 10, 64)
+		if err != nil {
+			return fmt.Errorf("Found invalid buildid: %q", urlParts[2])
 		}
 		c.hashes[buildid] = hash
 	}
