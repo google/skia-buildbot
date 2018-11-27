@@ -32,7 +32,7 @@ const runningTemplate = (ele) => html`
   <div class=skottie-player-controls ?hidden=${!ele._config.controls}>
     <play-arrow-icon-sk @click=${ele._onPlay} ?hidden=${!ele._state.paused}></play-arrow-icon-sk>
     <pause-icon-sk @click=${ele._onPause} ?hidden=${ele._state.paused}></pause-icon-sk>
-    <input type=range min=1 max=100 @input=${ele._onScrub}
+    <input type=range min=1 max=100 @input=${ele._onScrub} @change=${ele._onScrubEnd}
            class=skottie-player-scrubber>
   </div>
 </div>`;
@@ -56,11 +56,12 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     };
 
     this._state = {
-      loading:    true,
-      paused:     this.hasAttribute('paused'),
-      duration:   0,   // Animation duration (ms).
-      timeOrigin: 0,   // Animation start time (ms).
-      seekPoint:  0,   // Normalized [0..1] animation progress.
+      loading:      true,
+      paused:       this.hasAttribute('paused'),
+      scrubPlaying: false, // Animation was playing when the user started scrubbing.
+      duration:     0,     // Animation duration (ms).
+      timeOrigin:   0,     // Animation start time (ms).
+      seekPoint:    0,     // Normalized [0..1] animation progress.
     };
   }
 
@@ -206,7 +207,22 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     this._render();
   }
 
+  // This fires every time the user moves the scrub slider.
   _onScrub(e) {
     this.seek(e.currentTarget.value / 100);
+
+    // Pause the animation while dragging the slider.
+    if (this.isPlaying()) {
+      this._state.scrubPlaying = true;
+      this.pause();
+    }
+  }
+
+  // This fires when the user releases the scrub slider.
+  _onScrubEnd(e) {
+    if (this._state.scrubPlaying) {
+      this._state.scrubPlaying = false;
+      this.play();
+    }
   }
 });
