@@ -93,6 +93,30 @@
       "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2a463327_902d77bc",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T15:29:24Z",
+      "side": 1,
+      "message": "There must be a way to work around that, either by only running the hooks which can actually succeed, or by giving the service account permission to access the assets needed by all of the hooks.",
+      "parentUuid": "bb809db1_aafc6266",
+      "range": {
+        "startLine": 95,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
