@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "036a4973_13dc97b1",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T21:45:46Z",
+      "side": 1,
+      "message": "nit: This should be !now.After(job.DbModified).\n\nIf DbModified doesn\u0027t change, then it breaks detection of db.ErrConcurrentUpdate.\n\n(DbModified could easily be just an int64 field that we increment on each change, but a timestamp seems a bit more useful.)",
+      "range": {
+        "startLine": 95,
+        "startChar": 5,
+        "endLine": 95,
+        "endChar": 31
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fd28d90_b8221335",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T21:45:46Z",
+      "side": 1,
+      "message": "GetModifiedTasks is stateful. It\u0027s possible that the first call will return only expect[0] and the second call will return only expect[1] (or vice-versa).",
+      "range": {
+        "startLine": 1574,
+        "startChar": 6,
+        "endLine": 1574,
+        "endChar": 31
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e341312c_2b69bb60",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1632,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T21:45:46Z",
+      "side": 1,
+      "message": "It would be nice to test that GetModifiedTasks never returns the RUNNING version of the task, but I don\u0027t know how to do that without sleeping.",
+      "range": {
+        "startLine": 1632,
+        "startChar": 5,
+        "endLine": 1632,
+        "endChar": 20
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

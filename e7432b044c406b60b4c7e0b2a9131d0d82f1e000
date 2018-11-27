@@ -215,6 +215,30 @@
     },
     {
       "key": {
+        "uuid": "b834877a_f355996a",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T21:45:46Z",
+      "side": 1,
+      "message": "You made a lot of changes to plumb DbModified thru as ATTR_TIMESTAMP, but you aren\u0027t looking at ATTR_TIMESTAMP here.",
+      "parentUuid": "0d4eeb3a_d222b27f",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b429bc0d_a24974bc",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -487,6 +511,30 @@
       "side": 1,
       "message": "Gotcha. I\u0027m not overly concerned about out-of-order messages, as long as the results returned by each call to GetModified returns sensible results, ie. some modified tasks may not show up until a later call, but if a given task was modified multiple times (and we received multiple messages for it), we return the latest version.  We can work around blamelist inconsistencies by processing tasks in chronological order by DbModified timestamp.",
       "parentUuid": "1aaaa1c6_68465509",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e05ebb11_886aa26f",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-27T21:45:46Z",
+      "side": 1,
+      "message": "With the current implementation, I don\u0027t think we have a way to know when the subscriber has processed all messages that a publisher generated for an atomic transaction. Any snapshot from GetModifiedTasks could include partial changes from a transaction. Processing in chronological order will help, but without a sequence number, we wouldn\u0027t know when we\u0027ve received all the messages.",
+      "parentUuid": "5c7f97c8_641d1425",
       "range": {
         "startLine": 134,
         "startChar": 5,
