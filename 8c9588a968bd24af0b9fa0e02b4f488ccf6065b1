@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0080c174_ffd073b8",
+        "filename": "infra-sk/modules/colors.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-27T19:02:26Z",
+      "side": 1,
+      "message": "Can we delete these then?  Maybe on the next major version update?",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 24
+      },
+      "revId": "8c9588a968bd24af0b9fa0e02b4f488ccf6065b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
