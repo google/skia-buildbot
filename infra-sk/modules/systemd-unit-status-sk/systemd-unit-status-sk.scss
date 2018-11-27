@@ -24,16 +24,16 @@ systemd-unit-status-sk {
     width: 4em;
   }
   .running {
-    color: $green;
+    color: var(--green);
   }
   .failed {
-    color: $red;
+    color: var(--red);
   }
   .halted {
-    color: $orange;
+    color: var(--orange);
   }
   .dead {
-    color: $purple;
+    color: var(--purple);
   }
   .exited {
     color: black;
