@@ -31,7 +31,6 @@ func TestParse2(t *testing.T) {
 	f, err := in.Metrics["coremark"]["score"].Float64()
 	assert.NoError(t, err)
 	assert.Equal(t, 5439.620216, f)
-	assert.Equal(t, "coremarkcom.google.android.performance.CoreMarkTest#coremark", in.ResultsName)
 }
 
 type lookupMockGood struct {
