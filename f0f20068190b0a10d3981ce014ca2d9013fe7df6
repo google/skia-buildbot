@@ -141,6 +141,30 @@
       "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e6c25ed_b513e5e5",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T15:34:17Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "418753a5_41117165",
+      "range": {
+        "startLine": 95,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "f0f20068190b0a10d3981ce014ca2d9013fe7df6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
