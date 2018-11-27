@@ -68,7 +68,12 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse during convert: %s", err)
 	}
-	sklog.Infof("POST for buildid: %s branch: %s flavor: %s results_name: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, in.ResultsName, len(in.Metrics))
+	resultsName := in.ResultsName
+
+	if len(resultsName) > 1024 {
+		resultsName = resultsName[0:1024]
+	}
+	sklog.Infof("POST for buildid: %s branch: %s flavor: %s results_name: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, resultsName, len(in.Metrics))
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse buildid %q: %s", in.BuildId, err)
