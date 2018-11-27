@@ -308,7 +308,7 @@ func main() {
 		for _, taskAndKey := range runningTasksAndKeys {
 			sklog.Infof("Found orphaned task %d. Retriggering it...", taskAndKey.key.ID)
 			// Fetch the object attributes.
-			fileName := fmt.Sprintf("%d-%d.json", taskAndKey.task.Issue, taskAndKey.task.PatchSet)
+			fileName := fmt.Sprintf("%s-%d-%d.json", taskAndKey.task.LunchTarget, taskAndKey.task.Issue, taskAndKey.task.PatchSet)
 			objAttr, err := storageClient.Bucket(*storageBucket).Object(fileName).Attrs(ctx)
 			if err != nil {
 				sklog.Fatalf("Unable to get handle for orphaned task '%s/%s': %s", *storageBucket, fileName, err)
