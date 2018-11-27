@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2b4b1924_eb9b4744",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "Can you explain a little more about the heartbeat idea?  Is the primary concern here that the scheduler might restart before it finishes sending messages?",
+      "parentUuid": "9c587f46_15e40901",
+      "range": {
+        "startLine": 176,
+        "startChar": 3,
+        "endLine": 176,
+        "endChar": 13
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5d49be0c_8efe1787",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4d05c51_28672a66",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5d49be0c_8efe1787",
+      "range": {
+        "startLine": 79,
+        "startChar": 14,
+        "endLine": 79,
+        "endChar": 28
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "330ea065_776959a4",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "The only way I can see to make that work is to add the modification time to some parts of the API (ie. TrackModifiedTasksGOB and TrackModifiedJobsGOB) so that we can use the timestamp as an attribute of the message.  Otherwise, we\u0027d need to copy/paste this code and decode a task or job.",
+      "parentUuid": "654fda06_f7bbc97f",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b429bc0d_a24974bc",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2018-11-26T18:47:21Z",
       "side": 1,
       "message": "Is it possible that this will deadlock? I.e. this sequence of calls:\n - stopTrackingModifiedData takes c.mtx\n - pubsub calls the callback passed to newSubscriber, which waits on c.mtx\n - stopTrackingModifiedData calls s.Stop -- is it possible there is a mutex here to ensure the callback finishes before the subscriber is stopped?",
+      "range": {
+        "startLine": 118,
+        "startChar": 11,
+        "endLine": 118,
+        "endChar": 19
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfaa29ac_7dc9b004",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "I don\u0027t understand the third point.  Can you explain this in more detail?  IIUC in the above sequence, the callback would just run after s.Stop().  That\u0027s currently problematic because we don\u0027t check that the subscriber actually exists, but I\u0027ve fixed that in the next patchset.  So the callback would run and we\u0027d get a warning in the logs indicating that we don\u0027t know about that subscriber, and the message is dropped.",
+      "parentUuid": "b429bc0d_a24974bc",
       "range": {
         "startLine": 118,
         "startChar": 11,
@@ -163,6 +259,78 @@
     },
     {
       "key": {
+        "uuid": "84f24411_28c6b410",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d4836fc_229b17ff",
+      "range": {
+        "startLine": 134,
+        "startChar": 40,
+        "endLine": 134,
+        "endChar": 45
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a899a9bf_096ec9b5",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36ca4102_5e9c90b0",
+      "range": {
+        "startLine": 134,
+        "startChar": 47,
+        "endLine": 134,
+        "endChar": 52
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2f406127_426d8160",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "I\u0027d like for that not to be the case :)  I think we should be able to figure out a way to guarantee accuracy under the assumption that pubsub works as expected.",
+      "parentUuid": "ac8d983c_7cd29c6f",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "db377eac_82377494",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -177,6 +345,24 @@
       "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af313934_e83be954",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-27T14:27:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db377eac_82377494",
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
