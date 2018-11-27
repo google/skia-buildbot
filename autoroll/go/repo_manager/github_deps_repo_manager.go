@@ -92,7 +92,9 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 			}
 			// Run gclient hooks to bring in any required binaries.
 			if _, err := exec.RunCwd(ctx, rm.parentDir, filepath.Join(rm.depotTools, "gclient"), "runhooks"); err != nil {
-				return fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
+				// The service account does not have permission to download some artifacts but they are not
+				// needed for the roller anyway.
+				sklog.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
 			}
 		} else {
 			return fmt.Errorf("Error when running os.Stat on %s: %s", rm.parentDir, err)
