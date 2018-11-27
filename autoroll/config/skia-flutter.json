@@ -19,7 +19,7 @@
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/skia",
-    "parentBranch": "master",
+    "parentBranch": "skia-master",
     "preUploadSteps": [
       "FlutterLicenseScripts"
     ],
