@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "69a898f3_ad197ea4",
+        "filename": "android_ingest/go/androidingest/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-27T20:47:03Z",
+      "side": 1,
+      "message": "nit: auth.SCOPE_GERRIT",
+      "range": {
+        "startLine": 76,
+        "startChar": 120,
+        "endLine": 76,
+        "endChar": 168
+      },
+      "revId": "0456a0922fbc8a3e9b0982cf8ee43dd4fffbdc50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e716a94_a586880b",
+        "filename": "android_ingest/go/androidingest/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-27T20:47:03Z",
+      "side": 1,
+      "message": "Should the service account be passed in as a flag?",
+      "range": {
+        "startLine": 87,
+        "startChar": 54,
+        "endLine": 87,
+        "endChar": 109
+      },
+      "revId": "0456a0922fbc8a3e9b0982cf8ee43dd4fffbdc50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc842977_800c82fa",
+        "filename": "android_ingest/go/androidingest/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-27T20:47:03Z",
+      "side": 1,
+      "message": "Nit: combine this line with above.",
+      "revId": "0456a0922fbc8a3e9b0982cf8ee43dd4fffbdc50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
