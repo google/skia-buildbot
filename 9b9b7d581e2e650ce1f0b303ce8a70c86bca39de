@@ -193,6 +193,24 @@
       "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0ff82acf_e0df4d57",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-27T13:05:34Z",
+      "side": 1,
+      "message": "Exactly!",
+      "parentUuid": "8b8a3cd6_3ff209ca",
+      "revId": "9b9b7d581e2e650ce1f0b303ce8a70c86bca39de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
