@@ -112,12 +112,13 @@ func (m *modifiedData) StopTrackingModifiedEntries(id string) {
 	delete(m.expiration, id)
 }
 
-type ModifiedTasks struct {
+// ModifiedTasksImpl is an implementation of the ModifiedTasks interface.
+type ModifiedTasksImpl struct {
 	m modifiedData
 }
 
-// See docs for TaskReader interface.
-func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) GetModifiedTasks(id string) ([]*Task, error) {
 	tasks, err := m.m.GetModifiedEntries(id)
 	if err != nil {
 		return nil, err
@@ -136,14 +137,13 @@ func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
 	return rv, nil
 }
 
-// See docs for TaskReader interface.
-func (m *ModifiedTasks) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
 	return m.m.GetModifiedEntries(id)
 }
 
-// TrackModifiedTask indicates the given Task should be returned from the next
-// call to GetModifiedTasks from each subscriber.
-func (m *ModifiedTasks) TrackModifiedTask(t *Task) {
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) TrackModifiedTask(t *Task) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
 		sklog.Fatal(err)
@@ -151,30 +151,27 @@ func (m *ModifiedTasks) TrackModifiedTask(t *Task) {
 	m.m.TrackModifiedEntries(map[string][]byte{t.Id: buf.Bytes()})
 }
 
-// TrackModifiedTasksGOB is a batch, GOB version of TrackModifiedTask. Given a
-// map from Task.Id to GOB-encoded task, it is equivalent to GOB-decoding each
-// value of gobs as a Task and calling TrackModifiedTask on each one. Values of
-// gobs must not be modified after this call.
-func (m *ModifiedTasks) TrackModifiedTasksGOB(gobs map[string][]byte) {
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) TrackModifiedTasksGOB(_ time.Time, gobs map[string][]byte) {
 	m.m.TrackModifiedEntries(gobs)
 }
 
-// See docs for TaskReader interface.
-func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) StartTrackingModifiedTasks() (string, error) {
 	return m.m.StartTrackingModifiedEntries()
 }
 
-// See docs for TaskReader interface.
-func (m *ModifiedTasks) StopTrackingModifiedTasks(id string) {
+// See docs for ModifiedTasks interface.
+func (m *ModifiedTasksImpl) StopTrackingModifiedTasks(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
 
-type ModifiedJobs struct {
+type ModifiedJobsImpl struct {
 	m modifiedData
 }
 
-// See docs for JobReader interface.
-func (m *ModifiedJobs) GetModifiedJobs(id string) ([]*Job, error) {
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) GetModifiedJobs(id string) ([]*Job, error) {
 	jobs, err := m.m.GetModifiedEntries(id)
 	if err != nil {
 		return nil, err
@@ -193,14 +190,13 @@ func (m *ModifiedJobs) GetModifiedJobs(id string) ([]*Job, error) {
 	return rv, nil
 }
 
-// See docs for JobReader interface.
-func (m *ModifiedJobs) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
 	return m.m.GetModifiedEntries(id)
 }
 
-// TrackModifiedJob indicates the given Job should be returned from the next
-// call to GetModifiedJobs from each subscriber.
-func (m *ModifiedJobs) TrackModifiedJob(j *Job) {
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) TrackModifiedJob(j *Job) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(j); err != nil {
 		sklog.Fatal(err)
@@ -208,20 +204,20 @@ func (m *ModifiedJobs) TrackModifiedJob(j *Job) {
 	m.m.TrackModifiedEntries(map[string][]byte{j.Id: buf.Bytes()})
 }
 
-// TrackModifiedJobsGOB is a batch, GOB version of TrackModifiedJob. Given a
-// map from Job.Id to GOB-encoded task, it is equivalent to GOB-decoding each
-// value of gobs as a Job and calling TrackModifiedJob on each one. Values of
-// gobs must not be modified after this call.
-func (m *ModifiedJobs) TrackModifiedJobsGOB(gobs map[string][]byte) {
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) TrackModifiedJobsGOB(_ time.Time, gobs map[string][]byte) {
 	m.m.TrackModifiedEntries(gobs)
 }
 
-// See docs for JobReader interface.
-func (m *ModifiedJobs) StartTrackingModifiedJobs() (string, error) {
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) StartTrackingModifiedJobs() (string, error) {
 	return m.m.StartTrackingModifiedEntries()
 }
 
-// See docs for JobReader interface.
-func (m *ModifiedJobs) StopTrackingModifiedJobs(id string) {
+// See docs for ModifiedJobs interface.
+func (m *ModifiedJobsImpl) StopTrackingModifiedJobs(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
+
+var _ ModifiedTasks = &ModifiedTasksImpl{}
+var _ ModifiedJobs = &ModifiedJobsImpl{}
