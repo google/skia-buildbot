@@ -1473,6 +1473,7 @@ func main() {
 	common.InitWithMust(
 		"skiaperf",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	Init()
