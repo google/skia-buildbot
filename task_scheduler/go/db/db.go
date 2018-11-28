@@ -51,26 +51,21 @@ func IsUnknownId(e error) bool {
 	return e != nil && e.Error() == ErrUnknownId.Error()
 }
 
-// TaskReader is a read-only view of a TaskDB.
-type TaskReader interface {
+// ModifiedTasksReader tracks which tasks have been modified and returns results
+// to subscribers based on what has changed since the last call to
+// GetModifiedTasks.
+type ModifiedTasksReader interface {
 	// GetModifiedTasks returns all tasks modified since the last time
 	// GetModifiedTasks was run with the given id. The returned tasks are sorted
-	// by Created timestamp.
+	// by Created timestamp. If GetModifiedTasks returns an error, the caller
+	// should call StopTrackingModifiedTasks and StartTrackingModifiedTasks
+	// again, and load all data from scratch to be sure that no tasks were
+	// missed.
 	GetModifiedTasks(string) ([]*Task, error)
 
 	// GetModifiedTasksGOB returns the GOB-encoded results of GetModifiedTasks,
 	// keyed by Task.Id.
 	GetModifiedTasksGOB(string) (map[string][]byte, error)
-
-	// GetTaskById returns the task with the given Id field. Returns nil, nil if
-	// task is not found.
-	GetTaskById(string) (*Task, error)
-
-	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
-	// The returned tasks are sorted by Created timestamp. The string field is
-	// an optional repository; if provided, only return tasks associated with
-	// that repo.
-	GetTasksFromDateRange(time.Time, time.Time, string) ([]*Task, error)
 
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
 	// the current caller. Returns a unique ID which can be used by the caller
@@ -81,6 +76,39 @@ type TaskReader interface {
 	// StopTrackingModifiedTasks cancels tracking of modified tasks for the
 	// provided ID.
 	StopTrackingModifiedTasks(string)
+}
+
+// ModifiedTasks tracks which tasks have been modified and returns results to
+// subscribers based on what has changed since the last call to
+// GetModifiedTasks.
+type ModifiedTasks interface {
+	ModifiedTasksReader
+
+	// TrackModifiedTask indicates the given Task should be returned from the next
+	// call to GetModifiedTasks from each subscriber.
+	TrackModifiedTask(*Task)
+
+	// TrackModifiedTasksGOB is a batch, GOB version of TrackModifiedTask. Given a
+	// map from Task.Id to GOB-encoded task, it is equivalent to GOB-decoding each
+	// value of gobs as a Task and calling TrackModifiedTask on each one. Values of
+	// gobs must not be modified after this call. The time parameter is the
+	// DbModified timestamp of the tasks.
+	TrackModifiedTasksGOB(time.Time, map[string][]byte)
+}
+
+// TaskReader is a read-only view of a TaskDB.
+type TaskReader interface {
+	ModifiedTasksReader
+
+	// GetTaskById returns the task with the given Id field. Returns nil, nil if
+	// task is not found.
+	GetTaskById(string) (*Task, error)
+
+	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
+	// The returned tasks are sorted by Created timestamp. The string field is
+	// an optional repository; if provided, only return tasks associated with
+	// that repo.
+	GetTasksFromDateRange(time.Time, time.Time, string) ([]*Task, error)
 }
 
 // TaskDB is used by the task scheduler to store Tasks.
@@ -162,24 +190,21 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, er
 	}
 }
 
-// JobReader is a read-only view of a JobDB.
-type JobReader interface {
+// ModifiedJobsReader tracks which tasks have been modified and returns results
+// to subscribers based on what has changed since the last call to
+// GetModifiedJobs.
+type ModifiedJobsReader interface {
 	// GetModifiedJobs returns all jobs modified since the last time
 	// GetModifiedJobs was run with the given id. The returned jobs are sorted by
-	// Created timestamp.
+	// Created timestamp. If GetModifiedJobs returns an error, the caller
+	// should call StopTrackingModifiedJobs and StartTrackingModifiedJobs
+	// again, and load all data from scratch to be sure that no jobs were
+	// missed.
 	GetModifiedJobs(string) ([]*Job, error)
 
 	// GetModifiedJobsGOB returns the GOB-encoded results of GetModifiedJobs,
 	// keyed by Job.Id.
 	GetModifiedJobsGOB(string) (map[string][]byte, error)
-
-	// GetJobById returns the job with the given Id field. Returns nil, nil if
-	// job is not found.
-	GetJobById(string) (*Job, error)
-
-	// GetJobsFromDateRange retrieves all jobs with Created in the given range.
-	// The returned jobs are sorted by Created timestamp.
-	GetJobsFromDateRange(time.Time, time.Time) ([]*Job, error)
 
 	// StartTrackingModifiedJobs initiates tracking of modified jobs for
 	// the current caller. Returns a unique ID which can be used by the caller
@@ -190,6 +215,37 @@ type JobReader interface {
 	// StopTrackingModifiedJobs cancels tracking of modified jobs for the
 	// provided ID.
 	StopTrackingModifiedJobs(string)
+}
+
+// ModifiedJobs tracks which tasks have been modified and returns results to
+// subscribers based on what has changed since the last call to
+// GetModifiedJobs.
+type ModifiedJobs interface {
+	ModifiedJobsReader
+
+	// TrackModifiedJob indicates the given Job should be returned from the next
+	// call to GetModifiedJobs from each subscriber.
+	TrackModifiedJob(*Job)
+
+	// TrackModifiedJobsGOB is a batch, GOB version of TrackModifiedJob. Given a
+	// map from Job.Id to GOB-encoded task, it is equivalent to GOB-decoding each
+	// value of gobs as a Job and calling TrackModifiedJob on each one. Values of
+	// gobs must not be modified after this call. The time parameter is the
+	// DbModified timestamp of the jobs.
+	TrackModifiedJobsGOB(time.Time, map[string][]byte)
+}
+
+// JobReader is a read-only view of a JobDB.
+type JobReader interface {
+	ModifiedJobsReader
+
+	// GetJobById returns the job with the given Id field. Returns nil, nil if
+	// job is not found.
+	GetJobById(string) (*Job, error)
+
+	// GetJobsFromDateRange retrieves all jobs with Created in the given range.
+	// The returned jobs are sorted by Created timestamp.
+	GetJobsFromDateRange(time.Time, time.Time) ([]*Job, error)
 }
 
 // JobDB is used by the task scheduler to store Jobs.

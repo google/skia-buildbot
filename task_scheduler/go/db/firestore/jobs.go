@@ -92,6 +92,9 @@ func (d *firestoreDB) putJobs(jobs []*db.Job, tx *fs.Transaction) (rvErr error) 
 		}
 		isNew[idx] = util.TimeIsZero(job.DbModified)
 		prevModified[idx] = job.DbModified
+		if !now.After(job.DbModified) {
+			return fmt.Errorf("Job modification time is in the future: %s (current time is %s)", job.DbModified, now)
+		}
 		job.DbModified = now
 	}
 	defer func() {

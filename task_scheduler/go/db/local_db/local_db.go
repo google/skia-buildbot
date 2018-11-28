@@ -226,10 +226,10 @@ type localDB struct {
 	metricWriteJobQueries  metrics2.Counter
 	metricWriteJobRows     metrics2.Counter
 
-	// ModifiedTasks and ModifiedJobs are embedded in order to implement
-	// db.TaskReader and db.JobReader.
-	db.ModifiedTasks
-	db.ModifiedJobs
+	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
+	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
+	db.ModifiedTasksImpl
+	db.ModifiedJobsImpl
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -623,12 +623,13 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 			tasks[i].DbModified = data.DbModified
 		}
 	}
+	var now time.Time
 	gobs := make(map[string][]byte, len(tasks))
 	err := d.update("PutTasks", func(tx *bolt.Tx) error {
 		bucket := tasksBucket(tx)
 		// Assign Ids and encode.
 		e := db.TaskEncoder{}
-		now := time.Now().UTC()
+		now = time.Now().UTC()
 		for _, t := range tasks {
 			if t.Id == "" {
 				if err := d.assignTaskId(tx, t, now); err != nil {
@@ -670,7 +671,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		return err
 	} else {
 		d.metricWriteTaskRows.Inc(int64(len(gobs)))
-		d.TrackModifiedTasksGOB(gobs)
+		d.TrackModifiedTasksGOB(now, gobs)
 	}
 	return nil
 }
@@ -803,12 +804,13 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 			jobs[i].DbModified = data.DbModified
 		}
 	}
+	var now time.Time
 	gobs := make(map[string][]byte, len(jobs))
 	err := d.update("PutJobs", func(tx *bolt.Tx) error {
 		bucket := jobsBucket(tx)
 		// Assign Ids and encode.
 		e := db.JobEncoder{}
-		now := time.Now().UTC()
+		now = time.Now().UTC()
 		for _, job := range jobs {
 			if job.Id == "" {
 				if err := d.assignJobId(tx, job); err != nil {
@@ -850,7 +852,7 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 		return err
 	} else {
 		d.metricWriteJobRows.Inc(int64(len(gobs)))
-		d.TrackModifiedJobsGOB(gobs)
+		d.TrackModifiedJobsGOB(now, gobs)
 	}
 	return nil
 }

@@ -53,10 +53,10 @@ type firestoreDB struct {
 	client    *firestore.Client
 	parentDoc string
 
-	// ModifiedTasks and ModifiedJobs are embedded in order to implement
-	// db.TaskReader and db.JobReader.
-	db.ModifiedTasks
-	db.ModifiedJobs
+	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
+	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
+	db.ModifiedTasksImpl
+	db.ModifiedJobsImpl
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage. The parentDoc

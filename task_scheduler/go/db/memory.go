@@ -14,7 +14,7 @@ import (
 type inMemoryTaskDB struct {
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
-	ModifiedTasks
+	ModifiedTasksImpl
 }
 
 // See docs for TaskDB interface. Does not take any locks.
@@ -108,7 +108,7 @@ func NewInMemoryTaskDB() TaskDB {
 type inMemoryJobDB struct {
 	jobs    map[string]*Job
 	jobsMtx sync.RWMutex
-	ModifiedJobs
+	ModifiedJobsImpl
 }
 
 func (db *inMemoryJobDB) assignId(j *Job) error {
