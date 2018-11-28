@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e0e7140_88c250d9",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T19:17:45Z",
+      "side": 1,
+      "message": "Maybe use https://ct-perf.skia.org/e/?request_type\u003d1 which pre-sets the \"Dense\" option. IIUC, that means only commits relating to the target group_name will be shown.\n\nSame for other ct-perf links.",
+      "range": {
+        "startLine": 114,
+        "startChar": 42,
+        "endLine": 114,
+        "endChar": 65
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7ce72f7_fbded365",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T19:17:45Z",
+      "side": 1,
+      "message": "nit: \"calculated traces\" to match perf nomenclature.",
+      "range": {
+        "startLine": 115,
+        "startChar": 18,
+        "endLine": 115,
+        "endChar": 32
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcc5eadf_0c6743c6",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T19:17:45Z",
+      "side": 1,
+      "message": "nit: li?",
+      "range": {
+        "startLine": 116,
+        "startChar": 5,
+        "endLine": 116,
+        "endChar": 11
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0dc1f399_19e3c415",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T19:17:45Z",
+      "side": 1,
+      "message": "nit: \u0026amp; x3",
+      "range": {
+        "startLine": 116,
+        "startChar": 51,
+        "endLine": 116,
+        "endChar": 52
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2347d691_d61a62a4",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T19:17:45Z",
+      "side": 1,
+      "message": "nit: I would expect this filter to result in a single trace, so \"ave\" doesn\u0027t really make sense. Maybe replace with \"norm\"?",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 16
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d75e48c9_8b5df64a",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T19:17:45Z",
+      "side": 1,
+      "message": "Need to HTML-escape this.",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 12
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
