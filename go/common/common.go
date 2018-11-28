@@ -28,6 +28,7 @@ const (
 	REPO_PDFIUM             = "https://pdfium.googlesource.com/pdfium.git"
 	REPO_SKCMS              = "https://skia.googlesource.com/skcms.git"
 	REPO_SKIA               = "https://skia.googlesource.com/skia.git"
+	REPO_SKIABOT_TEST       = "https://skia.googlesource.com/skiabot-test.git"
 	REPO_SKIA_INFRA         = "https://skia.googlesource.com/buildbot.git"
 	REPO_SKIA_INTERNAL      = "https://skia.googlesource.com/skia_internal.git"
 	REPO_SKIA_INTERNAL_TEST = "https://skia.googlesource.com/internal_test.git"
@@ -50,6 +51,7 @@ var (
 		REPO_LOTTIE_CI:          "lottie-ci",
 		REPO_SKCMS:              "skcms",
 		REPO_SKIA:               "skia",
+		REPO_SKIABOT_TEST:       "skiabot-test",
 		REPO_SKIA_INFRA:         "skiabuildbot",
 		REPO_SKIA_INTERNAL:      "skia-internal",
 		REPO_SKIA_INTERNAL_TEST: "skia-internal-test",
