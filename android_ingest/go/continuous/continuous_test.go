@@ -1,0 +1,61 @@
+package continuous
+
+import (
+	"sort"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/android_ingest/go/buildapi"
+	"go.skia.org/infra/go/testutils"
+)
+
+func TestRationalize(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// startTS is much later.
+	builds := []buildapi.Build{
+		{TS: 120},
+		{TS: 123},
+		{TS: 125},
+	}
+	builds = rationalizeTimestamps(builds, 200)
+	assert.Equal(t, int64(201), builds[0].TS)
+	assert.Equal(t, int64(202), builds[1].TS)
+	assert.Equal(t, int64(203), builds[2].TS)
+
+	// startTS is in middle.
+	builds = []buildapi.Build{
+		{TS: 120},
+		{TS: 123},
+		{TS: 125},
+	}
+	builds = rationalizeTimestamps(builds, 122)
+	assert.Equal(t, int64(123), builds[0].TS)
+	assert.Equal(t, int64(124), builds[1].TS)
+	assert.Equal(t, int64(125), builds[2].TS)
+
+	// startTS is way before.
+	builds = []buildapi.Build{
+		{TS: 120},
+		{TS: 123},
+		{TS: 125},
+	}
+	builds = rationalizeTimestamps(builds, 100)
+	assert.Equal(t, int64(120), builds[0].TS)
+	assert.Equal(t, int64(121), builds[1].TS)
+	assert.Equal(t, int64(122), builds[2].TS)
+}
+
+func TestSort(t *testing.T) {
+	testutils.SmallTest(t)
+	builds := []buildapi.Build{
+		{TS: 120, BuildId: 12},
+		{TS: 123, BuildId: 11},
+		{TS: 125, BuildId: 13},
+	}
+	sort.Sort(BuildSlice(builds))
+	assert.Equal(t, int64(11), builds[0].BuildId)
+	assert.Equal(t, int64(123), builds[0].TS)
+	assert.Equal(t, int64(12), builds[1].BuildId)
+	assert.Equal(t, int64(13), builds[2].BuildId)
+}

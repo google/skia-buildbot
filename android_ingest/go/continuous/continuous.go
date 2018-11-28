@@ -5,6 +5,7 @@ package continuous
 
 import (
 	"context"
+	"math"
 	"net/http"
 	"sort"
 	"time"
@@ -51,6 +52,26 @@ func (c *Process) Last(ctx context.Context) (int64, int64, string, error) {
 	return c.Repo.GetLast(ctx)
 }
 
+// rationalizeTimestamps Fixes the timestamps so they are all ascending,
+// are greater than startTS, and are at least 1 second apart.
+func rationalizeTimestamps(builds []buildapi.Build, startTS int64) []buildapi.Build {
+	ret := []buildapi.Build{}
+	earliest := int64(math.MaxInt64)
+	for _, b := range builds {
+		if b.TS < earliest {
+			earliest = b.TS
+		}
+	}
+	if earliest < startTS {
+		earliest = startTS + 1
+	}
+	for i, b := range builds {
+		b.TS = earliest + int64(i)
+		ret = append(ret, b)
+	}
+	return ret
+}
+
 type BuildSlice []buildapi.Build
 
 func (p BuildSlice) Len() int           { return len(p) }
@@ -65,7 +86,7 @@ func (c *Process) Start(ctx context.Context) {
 		failures := metrics2.GetCounter("process_failures", nil)
 		for range time.Tick(time.Minute) {
 			t.Start()
-			buildid, _, _, err := c.Repo.GetLast(ctx)
+			buildid, startTS, _, err := c.Repo.GetLast(ctx)
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get last buildid: %s", err)
@@ -78,6 +99,7 @@ func (c *Process) Start(ctx context.Context) {
 				continue
 			}
 			sort.Sort(BuildSlice(builds))
+			builds = rationalizeTimestamps(builds, startTS)
 			for _, b := range builds {
 				if err := c.Repo.Add(ctx, b.BuildId, b.TS, b.Branch); err != nil {
 					failures.Inc(1)
