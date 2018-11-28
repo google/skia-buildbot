@@ -23,10 +23,7 @@ process_failures
 The process of creating git commits to mirror buildids has too
 high on an error rate.
 
-Make sure the git-cookie-authdaemon is running and that it is populating the
-git cookie at /home/default/.git-credentials-cache/cookie.
-
-Also check the logs for the exact operation in the process that is failing.
+Check the logs for the exact operation in the process that is failing.
 
 tx_log
 ------

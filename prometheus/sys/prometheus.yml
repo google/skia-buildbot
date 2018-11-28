@@ -13,14 +13,6 @@ rule_files:
   - "absent.rules"
 
 scrape_configs:
-  - job_name: 'androidingest'
-    static_configs:
-      - targets: ['skia-android-ingest:20000']
-
-  - job_name: 'android-master-ingest'
-    static_configs:
-      - targets: ['skia-android-ingest:20001']
-
   - job_name: 'collectd'
     static_configs:
       - targets: ['skia-monitoring:20002']
@@ -144,7 +136,6 @@ scrape_configs:
 # pulld for every server.
   - job_name: 'pulld'
     static_configs:
-      - targets: ['skia-android-ingest:11000']
       - targets: ['skia-android-perf:11000']
       - targets: ['skia-ct-pixel-diff:11000']
       - targets: ['skia-datahopper2:11000']
