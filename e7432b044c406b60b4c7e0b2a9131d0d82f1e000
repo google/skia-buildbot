@@ -239,6 +239,30 @@
     },
     {
       "key": {
+        "uuid": "12bd59b5_cf9fcd51",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-28T13:29:14Z",
+      "side": 1,
+      "message": "Whoops. Fixed.",
+      "parentUuid": "b834877a_f355996a",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b429bc0d_a24974bc",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -535,6 +559,30 @@
       "side": 1,
       "message": "With the current implementation, I don\u0027t think we have a way to know when the subscriber has processed all messages that a publisher generated for an atomic transaction. Any snapshot from GetModifiedTasks could include partial changes from a transaction. Processing in chronological order will help, but without a sequence number, we wouldn\u0027t know when we\u0027ve received all the messages.",
       "parentUuid": "5c7f97c8_641d1425",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8744d102_4e2a33e6",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-28T13:29:14Z",
+      "side": 1,
+      "message": "Right. That\u0027s what my comment about blamelist inconsistencies was about; I don\u0027t think it\u0027s too big a problem.  If it is, we could change the API a bit and send one pubsub message with all modified tasks for a given transaction.  In that case we *might* have to start worrying about message size (and therefore maybe only insert multiple tasks in a transaction when we really need to).",
+      "parentUuid": "e05ebb11_886aa26f",
       "range": {
         "startLine": 134,
         "startChar": 5,

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5b280f37_e1a66818",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-28T13:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "036a4973_13dc97b1",
+      "range": {
+        "startLine": 95,
+        "startChar": 5,
+        "endLine": 95,
+        "endChar": 31
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7fd28d90_b8221335",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 6
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "af5d2f2c_650677f1",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-28T13:29:14Z",
+      "side": 1,
+      "message": "Err, right. I think I\u0027ve fixed that.",
+      "parentUuid": "7fd28d90_b8221335",
+      "range": {
+        "startLine": 1574,
+        "startChar": 6,
+        "endLine": 1574,
+        "endChar": 31
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e341312c_2b69bb60",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 6
@@ -59,6 +107,30 @@
       "writtenOn": "2018-11-27T21:45:46Z",
       "side": 1,
       "message": "It would be nice to test that GetModifiedTasks never returns the RUNNING version of the task, but I don\u0027t know how to do that without sleeping.",
+      "range": {
+        "startLine": 1632,
+        "startChar": 5,
+        "endLine": 1632,
+        "endChar": 20
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42e856cb_73515de6",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1632,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-28T13:29:14Z",
+      "side": 1,
+      "message": "I don\u0027t think there\u0027s any way to ensure that that\u0027s the case for a pubsub implementation, since the message for SUCCESS could easily arrive much later than the message for RUNNING.  It\u0027s also possible that the messages arrive in the wrong order, which is handled by the pubsub implementation in the case that they both arrive between calls to GetModified, but the client still needs to handle the case where GetModified returns an older version than what they\u0027ve already seen.  I added a note to the docs indicating such.",
+      "parentUuid": "e341312c_2b69bb60",
       "range": {
         "startLine": 1632,
         "startChar": 5,
