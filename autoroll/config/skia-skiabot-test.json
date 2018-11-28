@@ -1,0 +1,34 @@
+{
+  "childName": "Skia",
+  "contacts": [
+    "borenet@google.com"
+  ],
+  "gerritURL": "https://skia-review.googlesource.com",
+  "isInternal": false,
+  "parentName": "Skiabot Test",
+  "parentWaterfall": "https://status-staging.skia.org/repo/skiabot-test",
+  "rollerName": "skia-skiabot-test-autoroll",
+  "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "borenet@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "skia",
+    "childRepo": "https://skia.googlesource.com/skia.git",
+    "gerritProject": "skiabot-test",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://skia.googlesource.com/skiabot-test.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
