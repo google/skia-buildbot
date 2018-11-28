@@ -157,6 +157,7 @@ func main() {
 	common.InitWithMust(
 		"perf-ingest",
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 
 	// nackCounter is the number files we weren't able to ingest.

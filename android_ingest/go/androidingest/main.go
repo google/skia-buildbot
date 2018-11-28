@@ -286,6 +286,7 @@ func main() {
 	common.InitWithMust(
 		filepath.Base(os.Args[0]),
 		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
 	)
 	if *workRoot == "" {
 		sklog.Fatal("The --work_root flag must be supplied.")
