@@ -48,6 +48,12 @@ push_internal: all
 	go install -v ../push/go/pushcli
 	pushcli task-scheduler-internal skia-task-scheduler-internal
 
+.PHONY: push_staging
+push_staging: all
+	./build_staging_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli task-scheduler-staging skia-task-scheduler-staging
+
 .PHONY: push_backup
 push_backup: all
 	./build_backup_release "`git log -n1 --format=%s`"
@@ -78,12 +84,12 @@ vm_create_internal:
 vm_delete_internal:
 	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=internal
 
-.PHONY: vm_create_test
-vm_create_test:
-	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=test
+.PHONY: vm_create_staging
+vm_create_staging:
+	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=staging
 
-.PHONY: vm_delete_test
-vm_delete_test:
-	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=test
+.PHONY: vm_delete_staging
+vm_delete_staging:
+	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=staging
 
 include ../webtools/webtools.mk

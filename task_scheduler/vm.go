@@ -39,9 +39,16 @@ func TaskSchedulerInternal() *gce.Instance {
 	return vm
 }
 
+func TaskSchedulerStaging() *gce.Instance {
+	vm := TaskSchedulerBase("skia-task-scheduler-staging", "")
+	vm.ServiceAccount = "task-scheduler@skia-buildbots.google.com.iam.gserviceaccount.com"
+	return vm
+}
+
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
 		"prod":     TaskSchedulerProd(),
 		"internal": TaskSchedulerInternal(),
+		"staging":  TaskSchedulerStaging(),
 	})
 }

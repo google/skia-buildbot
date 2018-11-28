@@ -20,5 +20,14 @@
         "pulld",
       ],
     },
+    "skia-task-scheduler-staging": {
+      "AppNames": [
+        "task-scheduler-staging",
+        "task-scheduler-trigger-nightly",
+        "task-scheduler-trigger-weekly",
+        "git-cookie-authdaemon",
+        "pulld",
+      ],
+    },
   }
 }
