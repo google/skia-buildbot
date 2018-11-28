@@ -73,7 +73,6 @@ var (
 	AUTOROLLERS = map[string]string{
 		"android-master-autoroll":   "Android",
 		"skia-flutter-autoroll":     "Flutter",
-		"fuchsia-autoroll":          "Fuchsia",
 		"skia-autoroll":             "Chrome",
 		"google3-autoroll":          "Google3",
 		"angle-skia-autoroll":       "ANGLE",
