@@ -60,6 +60,8 @@ func NewPopRepo(checkout *git.Checkout, local bool, subdomain string) *PopRepo {
 
 // GetLast returns the last buildid, the timestamp of when that buildid was
 // added, and the git hash.
+//
+// The timestamp is seconds since the Unix epoch.
 func (p *PopRepo) GetLast(ctx context.Context) (int64, int64, string, error) {
 	fullpath := filepath.Join(p.checkout.Dir(), BUILDID_FILENAME)
 	b, err := ioutil.ReadFile(fullpath)
