@@ -180,3 +180,19 @@ groups:
       severity: critical
     annotations:
       description: 'The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
+
+# Perf
+  - alert: AndroidIngestFailures
+    expr: rate(process_failures[1h]) > 0
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures'
+  - alert: AndroidTxLogFailures
+    expr: tx_log_write_failure > 0
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log'

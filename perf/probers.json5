@@ -21,7 +21,6 @@
    },
    "android_ingest": {
      "urls": [
-       "https://android-ingest.skia.org",
        "https://android-master-ingest.skia.org",
      ],
      "method": "GET",

@@ -44,12 +44,6 @@ buildk:
 pushk: buildk skia-public
 	pushk androidingest
 
-.PHONY: push
-push: build
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli androidingest skia-android-ingest
-
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html

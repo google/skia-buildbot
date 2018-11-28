@@ -102,27 +102,6 @@ ALERT TooManyOpenFDs
     description = "Too many open file handles on {{ $labels.host }}.",
   }
 
-# Perf
-ALERT AndroidIngestFailures
-  IF rate(process_failures[1h]) > 0
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures"
-  }
-
-ALERT AndroidTxLogFailures
-  IF tx_log_write_failure > 0
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log"
-  }
-
-ALERT IngestErrorTooHigh
-  IF rate(ingestion{metric="errors"}[5m]) > 1
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    description = "{{ $labels.ingester }} ingestion error rate too high. See https://prom.skia.org/graph?g0.range_input=1h&g0.expr=rate(ingestion%7Bmetric%3D%22errors%22%7D%5B5m%5D)&g0.tab=0"
-  }
 
 # Datahopper
 
