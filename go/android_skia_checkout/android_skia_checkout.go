@@ -17,6 +17,7 @@ var (
 	SkUserConfigRelPath        = path.Join("include", "config", "SkUserConfig.h")
 	SkUserConfigAndroidRelPath = path.Join("include", "config", "android", "SkUserConfig.h")
 	SkUserConfigLinuxRelPath   = path.Join("include", "config", "linux", "SkUserConfig.h")
+	SkUserConfigMacRelPath     = path.Join("include", "config", "mac", "SkUserConfig.h")
 	AndroidBpRelPath           = path.Join("Android.bp")
 )
 
