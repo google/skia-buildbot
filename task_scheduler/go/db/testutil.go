@@ -1548,3 +1548,204 @@ func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 	test(time.Duration(0), 100, repos, 35)
 	test(time.Duration(0), 3, repos, 9)
 }
+
+func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
+	_, err := m.GetModifiedTasks("dummy-id")
+	assert.True(t, IsUnknownId(err))
+
+	id, err := m.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	tasks, err := m.GetModifiedTasks(id)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(tasks))
+
+	t1 := MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1.Id = "1"
+
+	// Insert the task.
+	m.TrackModifiedTask(t1)
+
+	// Ensure that the task shows up in the modified list.
+	check := func(expect ...*Task) {
+		// Note that the slice only works because we don't call
+		// TrackModifiedTask more than once for any given task,
+		// otherwise we'd have to use a map and compare DbModified.
+		actual := []*Task{}
+		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+			tasks, err = m.GetModifiedTasks(id)
+			assert.NoError(t, err)
+			actual = append(actual, tasks...)
+			if len(actual) != len(expect) {
+				time.Sleep(100 * time.Millisecond)
+				return testutils.TryAgainErr
+			}
+			sort.Sort(TaskSlice(actual))
+			deepequal.AssertDeepEqual(t, expect, actual)
+			return nil
+		}))
+	}
+	check(t1)
+
+	// Insert two more tasks.
+	t2 := MakeTestTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
+	t2.Id = "2"
+	m.TrackModifiedTask(t2)
+	t3 := MakeTestTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
+	t3.Id = "3"
+	m.TrackModifiedTask(t3)
+
+	// Ensure that both tasks show up in the modified list.
+	check(t2, t3)
+
+	// Check StopTrackingModifiedTasks.
+	m.StopTrackingModifiedTasks(id)
+	err = testutils.EventuallyConsistent(10*time.Second, func() error {
+		_, err := m.GetModifiedTasks(id)
+		if err == nil {
+			return testutils.TryAgainErr
+		}
+		return err
+	})
+	assert.True(t, IsUnknownId(err))
+}
+
+// Test that if a Task is modified multiple times, it only appears once in the
+// result of GetModifiedTasks.
+func TestMultipleTaskModifications(t testutils.TestingT, m ModifiedTasks) {
+	id, err := m.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	t1 := MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1.Id = "1"
+
+	// Insert the task.
+	m.TrackModifiedTask(t1)
+
+	// Make several more modifications.
+	t1.Status = TASK_STATUS_RUNNING
+	t1.DbModified = t1.DbModified.Add(time.Second)
+	m.TrackModifiedTask(t1)
+	t1.Status = TASK_STATUS_SUCCESS
+	t1.DbModified = t1.DbModified.Add(time.Second)
+	m.TrackModifiedTask(t1)
+
+	// Ensure that the task shows up only once in the modified list and is
+	// the most recent value.
+	var actual *Task
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		tasks, err := m.GetModifiedTasks(id)
+		if err != nil {
+			return err
+		}
+		if len(tasks) == 1 {
+			if actual == nil || actual.DbModified.Before(tasks[0].DbModified) {
+				actual = tasks[0]
+			}
+		}
+		if deepequal.DeepEqual(t1, actual) {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+		return testutils.TryAgainErr
+	}))
+}
+
+func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
+	_, err := m.GetModifiedJobs("dummy-id")
+	assert.True(t, IsUnknownId(err))
+
+	id, err := m.StartTrackingModifiedJobs()
+	assert.NoError(t, err)
+
+	time.Sleep(time.Second)
+	jobs, err := m.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	j1 := makeJob(time.Unix(0, 1470674132000000))
+	j1.Id = "1"
+
+	// Insert the job.
+	m.TrackModifiedJob(j1)
+
+	// Ensure that the job shows up in the modified list.
+	check := func(expect ...*Job) {
+		// Note that the slice only works because we don't call
+		// TrackModifiedJob more than once for any given job, otherwise
+		// we'd have to use a map and compare DbModified.
+		actual := []*Job{}
+		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+			jobs, err = m.GetModifiedJobs(id)
+			assert.NoError(t, err)
+			actual = append(actual, jobs...)
+			if len(actual) != len(expect) {
+				time.Sleep(100 * time.Millisecond)
+				return testutils.TryAgainErr
+			}
+			sort.Sort(JobSlice(actual))
+			deepequal.AssertDeepEqual(t, expect, actual)
+			return nil
+		}))
+	}
+	check(j1)
+
+	// Insert two more jobs.
+	j2 := makeJob(time.Unix(0, 1470674376000000))
+	j2.Id = "2"
+	m.TrackModifiedJob(j2)
+	j3 := makeJob(time.Unix(0, 1470674884000000))
+	j3.Id = "3"
+	m.TrackModifiedJob(j3)
+
+	// Ensure that both jobs show up in the modified list.
+	check(j2, j3)
+
+	// Check StopTrackingModifiedJobs.
+	m.StopTrackingModifiedJobs(id)
+	err = testutils.EventuallyConsistent(10*time.Second, func() error {
+		_, err := m.GetModifiedJobs(id)
+		if err == nil {
+			return testutils.TryAgainErr
+		}
+		return err
+	})
+	assert.True(t, IsUnknownId(err))
+}
+
+func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
+	id, err := m.StartTrackingModifiedJobs()
+	assert.NoError(t, err)
+
+	j1 := makeJob(time.Unix(0, 1470674132000000))
+	j1.Id = "1"
+
+	// Insert the job.
+	m.TrackModifiedJob(j1)
+
+	// Make several more modifications.
+	j1.Status = JOB_STATUS_IN_PROGRESS
+	m.TrackModifiedJob(j1)
+	j1.Status = JOB_STATUS_SUCCESS
+	m.TrackModifiedJob(j1)
+
+	// Ensure that the task shows up only once in the modified list and is
+	// the most recent value.
+	var actual *Job
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		jobs, err := m.GetModifiedJobs(id)
+		if err != nil {
+			return err
+		}
+		if len(jobs) == 1 {
+			if actual == nil || actual.DbModified.Before(jobs[0].DbModified) {
+				actual = jobs[0]
+			}
+		}
+		if deepequal.DeepEqual(j1, actual) {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+		return testutils.TryAgainErr
+	}))
+}

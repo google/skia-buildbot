@@ -101,6 +101,9 @@ func (d *firestoreDB) putTasks(tasks []*db.Task, tx *fs.Transaction) (rvErr erro
 		}
 		isNew[idx] = util.TimeIsZero(task.DbModified)
 		prevModified[idx] = task.DbModified
+		if !now.After(task.DbModified) {
+			return fmt.Errorf("Task modification time is in the future: %s (current time is %s)", task.DbModified, now)
+		}
 		task.DbModified = now
 	}
 	defer func() {
