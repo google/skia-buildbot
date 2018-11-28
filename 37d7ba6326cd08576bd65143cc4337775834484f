@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "198b8720_36dbe656",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T15:22:27Z",
+      "side": 1,
+      "message": "Oh. Yuck. Could we change modifiedClient.getModifiedData so that it just clears the entry.data field rather than clearing the entire \"c.modified[id]\" map? (And also skip any entries with empty data.) That would prevent this problem.\n\nWe probably also should clean up entries where ts is older than some time period (could be done in modifiedClient.getModifiedData), and reject messages where the ATTR_TIMESTAMP is older than that period.",
+      "range": {
+        "startLine": 181,
+        "startChar": 43,
+        "endLine": 183,
+        "endChar": 77
+      },
+      "revId": "37d7ba6326cd08576bd65143cc4337775834484f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

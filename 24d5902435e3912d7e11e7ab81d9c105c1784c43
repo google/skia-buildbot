@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "29479399_3cc348d3",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1574,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T15:22:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "af5d2f2c_650677f1",
+      "range": {
+        "startLine": 1574,
+        "startChar": 6,
+        "endLine": 1574,
+        "endChar": 31
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e341312c_2b69bb60",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 6
@@ -140,6 +164,30 @@
       "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2224f86_ac0bc583",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 1632,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T15:22:27Z",
+      "side": 1,
+      "message": "Agreed on the first point. Commented on the added doc for the second point.",
+      "parentUuid": "42e856cb_73515de6",
+      "range": {
+        "startLine": 1632,
+        "startChar": 5,
+        "endLine": 1632,
+        "endChar": 20
+      },
+      "revId": "24d5902435e3912d7e11e7ab81d9c105c1784c43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

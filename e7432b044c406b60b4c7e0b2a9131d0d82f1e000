@@ -263,6 +263,30 @@
     },
     {
       "key": {
+        "uuid": "91f07b84_544aca40",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T15:22:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "12bd59b5_cf9fcd51",
+      "range": {
+        "startLine": 80,
+        "startChar": 27,
+        "endLine": 80,
+        "endChar": 40
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b429bc0d_a24974bc",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 3
@@ -583,6 +607,30 @@
       "side": 1,
       "message": "Right. That\u0027s what my comment about blamelist inconsistencies was about; I don\u0027t think it\u0027s too big a problem.  If it is, we could change the API a bit and send one pubsub message with all modified tasks for a given transaction.  In that case we *might* have to start worrying about message size (and therefore maybe only insert multiple tasks in a transaction when we really need to).",
       "parentUuid": "e05ebb11_886aa26f",
+      "range": {
+        "startLine": 134,
+        "startChar": 5,
+        "endLine": 134,
+        "endChar": 21
+      },
+      "revId": "e7432b044c406b60b4c7e0b2a9131d0d82f1e000",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d116322_8e5bff3a",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T15:22:27Z",
+      "side": 1,
+      "message": "I still think it would be good to mention in the docs that this implementation has some limitations.",
+      "parentUuid": "8744d102_4e2a33e6",
       "range": {
         "startLine": 134,
         "startChar": 5,
