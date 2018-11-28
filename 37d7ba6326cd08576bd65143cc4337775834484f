@@ -46,6 +46,30 @@
       "revId": "37d7ba6326cd08576bd65143cc4337775834484f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdafd197_13dcfcca",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-28T16:20:29Z",
+      "side": 1,
+      "message": "Ok, SGTM.",
+      "parentUuid": "0c5bf1b0_4585121c",
+      "range": {
+        "startLine": 181,
+        "startChar": 43,
+        "endLine": 183,
+        "endChar": 77
+      },
+      "revId": "37d7ba6326cd08576bd65143cc4337775834484f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
