@@ -6,10 +6,12 @@
 package sklog
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,6 +35,9 @@ const (
 	// PROJECT_ID is defined here instead of in go/common to prevent an
 	// import cycle.
 	PROJECT_ID = "google.com:skia-buildbots"
+
+	// b/120145392
+	KUBERNETES_FILE_LINE_NUMBER_WORKAROUND = true
 )
 
 type MetricsCallback func(severity string)
@@ -262,7 +267,29 @@ func log(depthOffset int, severity, reportName, payload string) {
 
 // logToGlog creates a glog entry.  Depth is how far up the call stack to extract file information.
 // Severity and msg (message) are self explanatory.
-func logToGlog(depth int, severity string, msg interface{}) {
+func logToGlog(depth int, severity string, msg string) {
+	if KUBERNETES_FILE_LINE_NUMBER_WORKAROUND {
+		_, file, line, ok := runtime.Caller(depth)
+		if !ok {
+			file = "???"
+			line = 1
+		} else {
+			slash := strings.LastIndex(file, "/")
+			if slash >= 0 {
+				file = file[slash+1:]
+			}
+		}
+
+		// Following the example of glog, avoiding fmt.Printf for performance reasons
+		//https://github.com/golang/glog/blob/master/glog.go#L560
+		buf := bytes.Buffer{}
+		buf.WriteString(file)
+		buf.WriteRune(':')
+		buf.WriteString(strconv.Itoa(line))
+		buf.WriteRune(' ')
+		buf.WriteString(msg)
+		msg = buf.String()
+	}
 	switch severity {
 	case DEBUG:
 		glog.InfoDepth(depth, msg)
