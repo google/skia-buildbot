@@ -73,13 +73,6 @@
       numFailed: 0,
       numBehind: 0,
     }));
-    server.respondWith("GET","https://fuchsia-roll.skia.org/json/ministatus", JSON.stringify({
-      currentRollRev: "ee1c73fc1b8a616ac79572759b02435698171fbf",
-      lastRollRev: "138ea97c1acaed4b968540220724dd5bf671e8db",
-      mode: "running",
-      numFailed: 3,
-      numBehind: 25,
-    }));
     server.respondWith("GET","https://google3-roll.skia.org/json/ministatus", JSON.stringify({
       currentRollRev: "ee1c73fc1b8a616ac79572759b02435698171fbf",
       lastRollRev: "138ea97c1acaed4b968540220724dd5bf671e8db",
