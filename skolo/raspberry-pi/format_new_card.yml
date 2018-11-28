@@ -9,14 +9,15 @@
     nfs_ip: 192.168.1.100
     # override with --extra-vars "nfs_mount_point=/opt/stage"
     nfs_mount_point: /opt/prod
-    drive: /dev/sdb
-    total_sectors: "{{ansible_devices.sdb.sectors}}"
+    # If drive is changed, also change total_sectors.
+    drive: /dev/sda
+    total_sectors: "{{ansible_devices.sda.sectors}}"
     # Generate this with sfdisk -d [drive]
     partition_templ: "./partition.j2"
     expanded_partitions: "/tmp/partitions"
   vars_prompt:
     - name: "static_ip"
-      prompt: "We will be formatting /dev/sdb.  If that is not okay, stop the script. \n\nWhat are the last two bytes of the static IP address of this bot?  192.168.X.Y "
+      prompt: "We will be formatting /dev/sda.  If that is not okay, stop the script. \n\nWhat are the last two bytes of the static IP address of this bot?  192.168.X.Y "
       private: no
     - name: "hostname"
       prompt: "What is the hostname of this bot?  skia-rpi-*"
