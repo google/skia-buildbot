@@ -22,6 +22,30 @@
       "revId": "37d7ba6326cd08576bd65143cc4337775834484f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c5bf1b0_4585121c",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-28T15:37:56Z",
+      "side": 1,
+      "message": "Yes, we could do that.  I wasn\u0027t thinking of modifiedClient as a cache because Status maintains its own cache.  Status already loops through the results of GetModifiedTasks and adds them to the cache, so it would probably be simplest just to insert an if-statement so that we only add the task to the cache if it\u0027s newer than what\u0027s already there.  I don\u0027t feel too strongly about it though, so if we wanted to make a stronger guarantee in ModifiedData we could do that.",
+      "parentUuid": "198b8720_36dbe656",
+      "range": {
+        "startLine": 181,
+        "startChar": 43,
+        "endLine": 183,
+        "endChar": 77
+      },
+      "revId": "37d7ba6326cd08576bd65143cc4337775834484f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
