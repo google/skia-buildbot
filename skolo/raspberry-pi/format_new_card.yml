@@ -9,17 +9,20 @@
     nfs_ip: 192.168.1.100
     # override with --extra-vars "nfs_mount_point=/opt/stage"
     nfs_mount_point: /opt/prod
-    drive: /dev/sdb
-    total_sectors: "{{ansible_devices.sdb.sectors}}"
+    # If drive is changed, also change total_sectors.
+    drive: /dev/sda
+    total_sectors: "{{ansible_devices.sda.sectors}}"
+    # override with --extra-vars "hostname_prefix=skia-i-rpi-"
+    hostname_prefix: "skia-rpi-"
     # Generate this with sfdisk -d [drive]
     partition_templ: "./partition.j2"
     expanded_partitions: "/tmp/partitions"
   vars_prompt:
     - name: "static_ip"
-      prompt: "We will be formatting /dev/sdb.  If that is not okay, stop the script. \n\nWhat are the last two bytes of the static IP address of this bot?  192.168.X.Y "
+      prompt: "We will be formatting {{ drive }}.  If that is not okay, stop the script. \n\nWhat are the last two bytes of the static IP address of this bot?  192.168.X.Y "
       private: no
     - name: "hostname"
-      prompt: "What is the hostname of this bot?  skia-rpi-*"
+      prompt: "What is the hostname of this bot?  {{ hostname_prefix }}xxx"
       private: no
 
   tasks:
@@ -70,8 +73,8 @@
 
     - name: deleting /boot/cmdline.txt
       file: path=/media/boot/cmdline.txt state=absent
-    - name: "writing /boot/cmdline.txt with hostname skia-rpi-{{hostname}} and ip 192.168.{{static_ip}}"
-      lineinfile: dest=/media/boot/cmdline.txt create=yes line="smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:{{nfs_mount_point}}/root,nfsvers=3 ip=192.168.{{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
+    - name: "writing /boot/cmdline.txt with hostname {{hostname_prefix}}{{hostname}} and ip 192.168.{{static_ip}}"
+      lineinfile: dest=/media/boot/cmdline.txt create=yes line="smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:{{nfs_mount_point}}/root,nfsvers=3 ip=192.168.{{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:{{hostname_prefix}}{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
 
     - name: unmounting /boot
       mount: src="{{drive}}1" name="/media/boot" fstype="auto" state="absent"
