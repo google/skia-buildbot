@@ -196,11 +196,10 @@
                   <td>{{chromiumPerfTask.CCList}}</td>
                 </tr>
               </template>
-              <!-- TODO(rmistry): Make the group name a link to ct-perf.skia.org -->
               <template is="dom-if" if="{{chromiumPerfTask.GroupName}}">
                 <tr>
                   <td>GroupName:</td>
-                  <td>{{chromiumPerfTask.GroupName}}</td>
+                  <td><a href="https://ct-perf.skia.org/e/?request_type=1">{{chromiumPerfTask.GroupName}}</a></td>
                 </tr>
               </template>
             </table>

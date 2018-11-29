@@ -4,6 +4,7 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -104,6 +105,23 @@ func GetFailureEmailHtml(runID string) string {
 			"Please check the logs of triggered swarming tasks <a href='%s'>here</a>."+
 			"<br/>Contact the admins %s for assistance.<br/><br/>",
 		fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
+}
+
+func GetCTPerfEmailHtml(groupName string) string {
+	if groupName == "" {
+		return ""
+	} else {
+		return fmt.Sprintf(`
+			<br/>See graphed data for your run on <a href='https://ct-perf.skia.org/e/?request_type=1'>ct-perf.skia.org</a> by selecting %s for group_name and then selecting a sub_result and/or test.
+			<br/>Example calculated traces:
+			<ul>
+				<li>ave(filter("group_name=test_group_name&sub_result=rasterize_time__ms_"))</li>
+				<li>norm(filter("group_name=test_group_name&sub_result=rasterize_time__ms_&test=http___amazon.co.uk"))</li>
+			</ul>
+			Documentation for Perf is available <a href='http://go/perf-user-doc'>here</a>.
+			<br/><br/>`,
+			html.EscapeString(groupName))
+	}
 }
 
 func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, description string) error {

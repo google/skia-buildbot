@@ -110,7 +110,7 @@ const (
 
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 
-	MAX_GROUPNAME_LEN = 20
+	MAX_GROUPNAME_LEN = 30
 )
 
 var DomainsWithViewAccess = []string{"google.com"}

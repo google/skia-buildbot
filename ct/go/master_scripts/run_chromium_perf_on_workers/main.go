@@ -62,6 +62,7 @@ func sendEmail(recipients []string) {
 	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (#%d)", *taskID)
 	failureHtml := ""
 	viewActionMarkup := ""
+	ctPerfHtml := ""
 	var err error
 
 	if taskCompletedSuccessfully {
@@ -69,6 +70,7 @@ func sendEmail(recipients []string) {
 			sklog.Errorf("Failed to get view action markup: %s", err)
 			return
 		}
+		ctPerfHtml = util.GetCTPerfEmailHtml(*groupName)
 	} else {
 		emailSubject += " with failures"
 		failureHtml = util.GetFailureEmailHtml(*runID)
@@ -77,10 +79,10 @@ func sendEmail(recipients []string) {
 			return
 		}
 	}
-	// TODO(rmistry): If groupName is specified then include a link to ct-perf.skia.org.
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed. %s.<br/>
 	Run description: %s<br/>
+	%s
 	%s
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
@@ -92,7 +94,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, ctPerfHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, v8PatchLink, catapultPatchLink, customWebpagesLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
