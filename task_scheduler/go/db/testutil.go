@@ -9,18 +9,20 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 const (
-	DEFAULT_TEST_REPO = "go-on-now.git"
-	TS_RESOLUTION     = time.Microsecond
+	TS_RESOLUTION = time.Microsecond
 )
 
 // AssertDeepEqual does a deep equals comparison using the testutils.TestingT interface.
@@ -31,33 +33,6 @@ const (
 //
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t testutils.TestingT, expected, actual interface{})
-
-func MakeTestTask(ts time.Time, commits []string) *Task {
-	return &Task{
-		Created: ts,
-		TaskKey: TaskKey{
-			RepoState: RepoState{
-				Repo:     DEFAULT_TEST_REPO,
-				Revision: commits[0],
-			},
-			Name: "Test-Task",
-		},
-		Commits:        commits,
-		SwarmingTaskId: "swarmid",
-	}
-}
-
-func makeJob(ts time.Time) *Job {
-	return &Job{
-		Created:      ts,
-		Dependencies: map[string][]string{},
-		RepoState: RepoState{
-			Repo: DEFAULT_TEST_REPO,
-		},
-		Name:  "Test-Job",
-		Tasks: map[string][]*TaskSummary{},
-	}
-}
 
 // TestTaskDB performs basic tests for an implementation of TaskDB.
 func TestTaskDB(t testutils.TestingT, db TaskDB) {
@@ -71,7 +46,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 
 	// AssignId should fill in t1.Id.
 	assert.Equal(t, "", t1.Id)
@@ -106,7 +81,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	// Ensure that the task shows up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	// Ensure that the task shows up in the correct date ranges.
 	t1Before := t1.Created
@@ -117,16 +92,16 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	assert.Equal(t, 0, len(tasks))
 	tasks, err = db.GetTasksFromDateRange(t1Before, t1After, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
 	// Insert two more tasks. Ensure at least 1 microsecond between task Created
 	// times so that t1After != t2Before and t2After != t3Before.
-	t2 := MakeTestTask(now.Add(TS_RESOLUTION), []string{"e", "f"})
-	t3 := MakeTestTask(now.Add(2*TS_RESOLUTION), []string{"g", "h"})
-	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
+	t2 := types.MakeTestTask(now.Add(TS_RESOLUTION), []string{"e", "f"})
+	t3 := types.MakeTestTask(now.Add(2*TS_RESOLUTION), []string{"g", "h"})
+	assert.NoError(t, db.PutTasks([]*types.Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
 	assert.NotEqual(t, "", t2.Id)
@@ -138,20 +113,20 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	// Ensure that both tasks show up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	// Make an update to t1 and t2. Ensure modified times change.
 	t2LastModified := t2.DbModified
-	t1.Status = TASK_STATUS_RUNNING
-	t2.Status = TASK_STATUS_SUCCESS
-	assert.NoError(t, db.PutTasks([]*Task{t1, t2}))
+	t1.Status = types.TASK_STATUS_RUNNING
+	t2.Status = types.TASK_STATUS_SUCCESS
+	assert.NoError(t, db.PutTasks([]*types.Task{t1, t2}))
 	assert.False(t, t1.DbModified.Equal(t1LastModified))
 	assert.False(t, t2.DbModified.Equal(t2LastModified))
 
 	// Ensure that both tasks show up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
@@ -168,51 +143,51 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1After, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t2Before, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t2After, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t3Before, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1, t2}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t3After, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t1Before, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t1, t2, t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t1, t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t1After, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t2Before, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t2After, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t3Before, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{t3}, tasks)
+	AssertDeepEqual(t, []*types.Task{t3}, tasks)
 
 	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd, "")
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Task{}, tasks)
+	AssertDeepEqual(t, []*types.Task{}, tasks)
 }
 
 // Test that a TaskDB properly tracks its maximum number of users.
@@ -230,7 +205,7 @@ func TestTaskDBTooManyUsers(t testutils.TestingT, db TaskDB) {
 // has been updated in the DB.
 func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	// Insert a task.
-	t1 := MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(time.Now(), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Retrieve a copy of the task.
@@ -243,7 +218,7 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update the cached copy; should get concurrent update error.
-	t1Cached.Status = TASK_STATUS_RUNNING
+	t1Cached.Status = types.TASK_STATUS_RUNNING
 	err = db.PutTask(t1Cached)
 	assert.True(t, IsConcurrentUpdate(err))
 
@@ -255,13 +230,13 @@ func TestTaskDBConcurrentUpdate(t testutils.TestingT, db TaskDB) {
 	}
 
 	// Insert a second task.
-	t2 := MakeTestTask(time.Now(), []string{"e", "f"})
+	t2 := types.MakeTestTask(time.Now(), []string{"e", "f"})
 	assert.NoError(t, db.PutTask(t2))
 
 	// Update t2 at the same time as t1Cached; should still get an error.
 	t2Before := t2.Copy()
-	t2.Status = TASK_STATUS_MISHAP
-	err = db.PutTasks([]*Task{t2, t1Cached})
+	t2.Status = types.TASK_STATUS_MISHAP
+	err = db.PutTasks([]*types.Task{t2, t1Cached})
 	assert.True(t, IsConcurrentUpdate(err))
 
 	{
@@ -281,35 +256,35 @@ func testUpdateTasksWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Test no-op.
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		return nil, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
 	// Create new task t1. (UpdateTasksWithRetries isn't actually useful in this case.)
-	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
-		t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
+	tasks, err = UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
+		t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 		assert.NoError(t, db.AssignId(t1))
 		t1.Created = time.Now().Add(TS_RESOLUTION)
-		return []*Task{t1}, nil
+		return []*types.Task{t1}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	t1 := tasks[0]
 
 	// Update t1 and create t2.
-	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
+	tasks, err = UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		t1, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
-		t1.Status = TASK_STATUS_RUNNING
-		t2 := MakeTestTask(t1.Created.Add(TS_RESOLUTION), []string{"e", "f"})
-		return []*Task{t1, t2}, nil
+		t1.Status = types.TASK_STATUS_RUNNING
+		t2 := types.MakeTestTask(t1.Created.Add(TS_RESOLUTION), []string{"e", "f"})
+		return []*types.Task{t1, t2}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, TASK_STATUS_RUNNING, tasks[0].Status)
+	assert.Equal(t, types.TASK_STATUS_RUNNING, tasks[0].Status)
 	assert.Equal(t, []string{"e", "f"}, tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
@@ -333,17 +308,17 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
 	// Update original.
-	t1.Status = TASK_STATUS_RUNNING
+	t1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		callCount++
 		if callCount >= 3 {
 			if task, err := db.GetTaskById(t1.Id); err != nil {
@@ -352,15 +327,15 @@ func testUpdateTasksWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 				t1Cached = task
 			}
 		}
-		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
-		return []*Task{t1Cached, t2}, nil
+		t1Cached.Status = types.TASK_STATUS_SUCCESS
+		t2 := types.MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
+		return []*types.Task{t1Cached, t2}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, callCount)
 	assert.Equal(t, 2, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, TASK_STATUS_SUCCESS, tasks[0].Status)
+	assert.Equal(t, types.TASK_STATUS_SUCCESS, tasks[0].Status)
 	assert.Equal(t, []string{"e", "f"}, tasks[1].Commits)
 
 	// Check that return value matches what's in the DB.
@@ -385,11 +360,11 @@ func testUpdateTasksWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 
 	myErr := fmt.Errorf("NO! Bad dog!")
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		callCount++
 		// Return a task just for fun.
-		return []*Task{
-			MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"}),
+		return []*types.Task{
+			types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"}),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -408,11 +383,11 @@ func testUpdateTasksWithRetriesErrorInPutTasks(t testutils.TestingT, db TaskDB) 
 	begin := time.Now()
 
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		callCount++
 		// Task has zero Created time.
-		return []*Task{
-			MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"}),
+		return []*types.Task{
+			types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"}),
 		}, nil
 	})
 	assert.Error(t, err)
@@ -431,21 +406,21 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 	t1Cached := t1.Copy()
 
 	// Update original.
-	t1.Status = TASK_STATUS_RUNNING
+	t1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		callCount++
-		t1Cached.Status = TASK_STATUS_SUCCESS
-		t2 := MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
-		return []*Task{t1Cached, t2}, nil
+		t1Cached.Status = types.TASK_STATUS_SUCCESS
+		t2 := types.MakeTestTask(begin.Add(2*TS_RESOLUTION), []string{"e", "f"})
+		return []*types.Task{t1Cached, t2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
 	assert.Equal(t, NUM_RETRIES, callCount)
@@ -456,7 +431,7 @@ func testUpdateTasksWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
 	assert.Equal(t, t1.Id, tasks[0].Id)
-	assert.Equal(t, TASK_STATUS_RUNNING, tasks[0].Status)
+	assert.Equal(t, types.TASK_STATUS_RUNNING, tasks[0].Status)
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
@@ -464,19 +439,19 @@ func testUpdateTaskWithRetriesSimple(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(time.Time{}, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.AssignId(t1))
 	t1.Created = time.Now().Add(TS_RESOLUTION)
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update t1.
-	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *Task) error {
-		task.Status = TASK_STATUS_RUNNING
+	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
+		task.Status = types.TASK_STATUS_RUNNING
 		return nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, t1.Id, t1Updated.Id)
-	assert.Equal(t, TASK_STATUS_RUNNING, t1Updated.Status)
+	assert.Equal(t, types.TASK_STATUS_RUNNING, t1Updated.Status)
 	assert.NotEqual(t, t1.DbModified, t1Updated.DbModified)
 
 	// Check that return value matches what's in the DB.
@@ -496,25 +471,25 @@ func testUpdateTaskWithRetriesSuccess(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
-	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *Task) error {
+	t1Updated, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		callCount++
 		if callCount < 3 {
 			// Sneakily make an update in the background.
 			t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
 			assert.NoError(t, db.PutTask(t1))
 		}
-		task.Status = TASK_STATUS_SUCCESS
+		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, callCount)
 	assert.Equal(t, t1.Id, t1Updated.Id)
-	assert.Equal(t, TASK_STATUS_SUCCESS, t1Updated.Status)
+	assert.Equal(t, types.TASK_STATUS_SUCCESS, t1Updated.Status)
 
 	// Check that return value matches what's in the DB.
 	t1Again, err := db.GetTaskById(t1.Id)
@@ -533,16 +508,16 @@ func testUpdateTaskWithRetriesErrorInFunc(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update and return an error.
 	myErr := fmt.Errorf("Um, actually, I didn't want to update that task.")
 	callCount := 0
-	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *Task) error {
+	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		callCount++
 		// Update task to test nothing changes in DB.
-		task.Status = TASK_STATUS_RUNNING
+		task.Status = types.TASK_STATUS_RUNNING
 		return myErr
 	})
 	assert.Error(t, err)
@@ -567,22 +542,22 @@ func testUpdateTaskWithRetriesExhausted(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
-	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Update original.
-	t1.Status = TASK_STATUS_RUNNING
+	t1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, db.PutTask(t1))
 
 	// Attempt update.
 	callCount := 0
-	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *Task) error {
+	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		callCount++
 		// Sneakily make an update in the background.
 		t1.Commits = append(t1.Commits, fmt.Sprintf("z%d", callCount))
 		assert.NoError(t, db.PutTask(t1))
 
-		task.Status = TASK_STATUS_SUCCESS
+		task.Status = types.TASK_STATUS_SUCCESS
 		return nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -606,14 +581,14 @@ func testUpdateTaskWithRetriesTaskNotFound(t testutils.TestingT, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
-	t1 := MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(begin.Add(TS_RESOLUTION), []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.AssignId(t1))
 
 	// Attempt to update non-existent task. Function shouldn't be called.
 	callCount := 0
-	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *Task) error {
+	noTask, err := UpdateTaskWithRetries(db, t1.Id, func(task *types.Task) error {
 		callCount++
-		task.Status = TASK_STATUS_RUNNING
+		task.Status = types.TASK_STATUS_RUNNING
 		return nil
 	})
 	assert.True(t, IsNotFound(err))
@@ -653,7 +628,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, 0, len(jobs))
 
 	now := time.Now().Add(TS_RESOLUTION)
-	j1 := makeJob(now)
+	j1 := types.MakeTestJob(now)
 
 	// Insert the job.
 	assert.NoError(t, db.PutJob(j1))
@@ -674,7 +649,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	// Ensure that the job shows up in the modified list.
 	jobs, err = db.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
 	// Ensure that the job shows up in the correct date ranges.
 	timeStart := util.TimeUnixZero
@@ -686,16 +661,16 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, 0, len(jobs))
 	jobs, err = db.GetJobsFromDateRange(j1Before, j1After)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 
 	// Insert two more jobs. Ensure at least 1 microsecond between job Created
 	// times so that j1After != j2Before and j2After != j3Before.
-	j2 := makeJob(now.Add(TS_RESOLUTION))
-	j3 := makeJob(now.Add(2 * TS_RESOLUTION))
-	assert.NoError(t, db.PutJobs([]*Job{j2, j3}))
+	j2 := types.MakeTestJob(now.Add(TS_RESOLUTION))
+	j3 := types.MakeTestJob(now.Add(2 * TS_RESOLUTION))
+	assert.NoError(t, db.PutJobs([]*types.Job{j2, j3}))
 
 	// Check that PutJobs assigned Ids.
 	assert.NotEqual(t, "", j2.Id)
@@ -707,20 +682,20 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	// Ensure that both jobs show up in the modified list.
 	jobs, err = db.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
 	// Make an update to j1 and j2. Ensure modified times change.
 	j2LastModified := j2.DbModified
-	j1.Status = JOB_STATUS_IN_PROGRESS
-	j2.Status = JOB_STATUS_SUCCESS
-	assert.NoError(t, db.PutJobs([]*Job{j1, j2}))
+	j1.Status = types.JOB_STATUS_IN_PROGRESS
+	j2.Status = types.JOB_STATUS_SUCCESS
+	assert.NoError(t, db.PutJobs([]*types.Job{j1, j2}))
 	assert.False(t, j1.DbModified.Equal(j1LastModified))
 	assert.False(t, j2.DbModified.Equal(j2LastModified))
 
 	// Ensure that both jobs show up in the modified list.
 	jobs, err = db.GetModifiedJobs(id)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
 	// Ensure that all jobs show up in the correct time ranges, in sorted order.
 	j2Before := j2.Created
@@ -737,51 +712,51 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j1After)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j2After)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, j3After)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{j3}, jobs)
+	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
 	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd)
 	assert.NoError(t, err)
-	AssertDeepEqual(t, []*Job{}, jobs)
+	AssertDeepEqual(t, []*types.Job{}, jobs)
 }
 
 // Test that a JobDB properly tracks its maximum number of users.
@@ -799,7 +774,7 @@ func TestJobDBTooManyUsers(t testutils.TestingT, db JobDB) {
 // has been updated in the DB.
 func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 	// Insert a job.
-	j1 := makeJob(time.Now())
+	j1 := types.MakeTestJob(time.Now())
 	assert.NoError(t, db.PutJob(j1))
 
 	// Retrieve a copy of the job.
@@ -812,7 +787,7 @@ func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update the cached copy; should get concurrent update error.
-	j1Cached.Status = JOB_STATUS_IN_PROGRESS
+	j1Cached.Status = types.JOB_STATUS_IN_PROGRESS
 	err = db.PutJob(j1Cached)
 	assert.True(t, IsConcurrentUpdate(err))
 
@@ -824,13 +799,13 @@ func TestJobDBConcurrentUpdate(t testutils.TestingT, db JobDB) {
 	}
 
 	// Insert a second job.
-	j2 := makeJob(time.Now())
+	j2 := types.MakeTestJob(time.Now())
 	assert.NoError(t, db.PutJob(j2))
 
 	// Update j2 at the same time as j1Cached; should still get an error.
 	j2Before := j2.Copy()
-	j2.Status = JOB_STATUS_MISHAP
-	err = db.PutJobs([]*Job{j2, j1Cached})
+	j2.Status = types.JOB_STATUS_MISHAP
+	err = db.PutJobs([]*types.Job{j2, j1Cached})
 	assert.True(t, IsConcurrentUpdate(err))
 
 	{
@@ -850,35 +825,35 @@ func testUpdateJobsWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Test no-op.
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		return nil, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 
 	// Create new job j1. (UpdateJobsWithRetries isn't actually useful in this case.)
-	jobs, err = UpdateJobsWithRetries(db, func() ([]*Job, error) {
-		j1 := makeJob(time.Time{})
+	jobs, err = UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
+		j1 := types.MakeTestJob(time.Time{})
 		j1.Created = time.Now().Add(TS_RESOLUTION)
-		return []*Job{j1}, nil
+		return []*types.Job{j1}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	j1 := jobs[0]
 
 	// Update j1 and create j2.
-	jobs, err = UpdateJobsWithRetries(db, func() ([]*Job, error) {
+	jobs, err = UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		j1, err := db.GetJobById(j1.Id)
 		assert.NoError(t, err)
-		j1.Status = JOB_STATUS_IN_PROGRESS
-		j2 := makeJob(j1.Created.Add(TS_RESOLUTION))
+		j1.Status = types.JOB_STATUS_IN_PROGRESS
+		j2 := types.MakeTestJob(j1.Created.Add(TS_RESOLUTION))
 		j2.Repo = "j2-repo"
-		return []*Job{j1, j2}, nil
+		return []*types.Job{j1, j2}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
-	assert.Equal(t, JOB_STATUS_IN_PROGRESS, jobs[0].Status)
+	assert.Equal(t, types.JOB_STATUS_IN_PROGRESS, jobs[0].Status)
 	assert.Equal(t, "j2-repo", jobs[1].Repo)
 
 	// Check that return value matches what's in the DB.
@@ -902,17 +877,17 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	j1 := makeJob(begin.Add(TS_RESOLUTION))
+	j1 := types.MakeTestJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 	j1Cached := j1.Copy()
 
 	// Update original.
-	j1.Status = JOB_STATUS_IN_PROGRESS
+	j1.Status = types.JOB_STATUS_IN_PROGRESS
 	assert.NoError(t, db.PutJob(j1))
 
 	// Attempt update.
 	callCount := 0
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		callCount++
 		if callCount >= 3 {
 			if job, err := db.GetJobById(j1.Id); err != nil {
@@ -921,16 +896,16 @@ func testUpdateJobsWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 				j1Cached = job
 			}
 		}
-		j1Cached.Status = JOB_STATUS_SUCCESS
-		j2 := makeJob(begin.Add(2 * TS_RESOLUTION))
+		j1Cached.Status = types.JOB_STATUS_SUCCESS
+		j2 := types.MakeTestJob(begin.Add(2 * TS_RESOLUTION))
 		j2.Repo = "j2-repo"
-		return []*Job{j1Cached, j2}, nil
+		return []*types.Job{j1Cached, j2}, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, callCount)
 	assert.Equal(t, 2, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
-	assert.Equal(t, JOB_STATUS_SUCCESS, jobs[0].Status)
+	assert.Equal(t, types.JOB_STATUS_SUCCESS, jobs[0].Status)
 	assert.Equal(t, "j2-repo", jobs[1].Repo)
 
 	// Check that return value matches what's in the DB.
@@ -955,11 +930,11 @@ func testUpdateJobsWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 
 	myErr := fmt.Errorf("NO! Bad dog!")
 	callCount := 0
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		callCount++
 		// Return a job just for fun.
-		return []*Job{
-			makeJob(begin.Add(TS_RESOLUTION)),
+		return []*types.Job{
+			types.MakeTestJob(begin.Add(TS_RESOLUTION)),
 		}, myErr
 	})
 	assert.Error(t, err)
@@ -978,11 +953,11 @@ func testUpdateJobsWithRetriesErrorInPutJobs(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	callCount := 0
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		callCount++
 		// Job has zero Created time.
-		return []*Job{
-			makeJob(time.Time{}),
+		return []*types.Job{
+			types.MakeTestJob(time.Time{}),
 		}, nil
 	})
 	assert.Error(t, err)
@@ -1001,21 +976,21 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create and cache.
-	j1 := makeJob(begin.Add(TS_RESOLUTION))
+	j1 := types.MakeTestJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 	j1Cached := j1.Copy()
 
 	// Update original.
-	j1.Status = JOB_STATUS_IN_PROGRESS
+	j1.Status = types.JOB_STATUS_IN_PROGRESS
 	assert.NoError(t, db.PutJob(j1))
 
 	// Attempt update.
 	callCount := 0
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		callCount++
-		j1Cached.Status = JOB_STATUS_SUCCESS
-		j2 := makeJob(begin.Add(2 * TS_RESOLUTION))
-		return []*Job{j1Cached, j2}, nil
+		j1Cached.Status = types.JOB_STATUS_SUCCESS
+		j2 := types.MakeTestJob(begin.Add(2 * TS_RESOLUTION))
+		return []*types.Job{j1Cached, j2}, nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
 	assert.Equal(t, NUM_RETRIES, callCount)
@@ -1026,7 +1001,7 @@ func testUpdateJobsWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, j1.Id, jobs[0].Id)
-	assert.Equal(t, JOB_STATUS_IN_PROGRESS, jobs[0].Status)
+	assert.Equal(t, types.JOB_STATUS_IN_PROGRESS, jobs[0].Status)
 }
 
 // Test UpdateJobWithRetries when no errors or retries.
@@ -1034,17 +1009,17 @@ func testUpdateJobWithRetriesSimple(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(time.Now())
+	j1 := types.MakeTestJob(time.Now())
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update j1.
-	j1Updated, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
-		job.Status = JOB_STATUS_IN_PROGRESS
+	j1Updated, err := UpdateJobWithRetries(db, j1.Id, func(job *types.Job) error {
+		job.Status = types.JOB_STATUS_IN_PROGRESS
 		return nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, j1.Id, j1Updated.Id)
-	assert.Equal(t, JOB_STATUS_IN_PROGRESS, j1Updated.Status)
+	assert.Equal(t, types.JOB_STATUS_IN_PROGRESS, j1Updated.Status)
 	assert.NotEqual(t, j1.DbModified, j1Updated.DbModified)
 
 	// Check that return value matches what's in the DB.
@@ -1064,25 +1039,25 @@ func testUpdateJobWithRetriesSuccess(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(TS_RESOLUTION))
+	j1 := types.MakeTestJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 
 	// Attempt update.
 	callCount := 0
-	j1Updated, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+	j1Updated, err := UpdateJobWithRetries(db, j1.Id, func(job *types.Job) error {
 		callCount++
 		if callCount < 3 {
 			// Sneakily make an update in the background.
 			j1.Repo = "some-other-repo.git"
 			assert.NoError(t, db.PutJob(j1))
 		}
-		job.Status = JOB_STATUS_SUCCESS
+		job.Status = types.JOB_STATUS_SUCCESS
 		return nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, callCount)
 	assert.Equal(t, j1.Id, j1Updated.Id)
-	assert.Equal(t, JOB_STATUS_SUCCESS, j1Updated.Status)
+	assert.Equal(t, types.JOB_STATUS_SUCCESS, j1Updated.Status)
 
 	// Check that return value matches what's in the DB.
 	j1Again, err := db.GetJobById(j1.Id)
@@ -1101,16 +1076,16 @@ func testUpdateJobWithRetriesErrorInFunc(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(TS_RESOLUTION))
+	j1 := types.MakeTestJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update and return an error.
 	myErr := fmt.Errorf("Um, actually, I didn't want to update that job.")
 	callCount := 0
-	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *types.Job) error {
 		callCount++
 		// Update job to test nothing changes in DB.
-		job.Status = JOB_STATUS_IN_PROGRESS
+		job.Status = types.JOB_STATUS_IN_PROGRESS
 		return myErr
 	})
 	assert.Error(t, err)
@@ -1135,22 +1110,22 @@ func testUpdateJobWithRetriesExhausted(t testutils.TestingT, db JobDB) {
 	begin := time.Now()
 
 	// Create new job j1.
-	j1 := makeJob(begin.Add(TS_RESOLUTION))
+	j1 := types.MakeTestJob(begin.Add(TS_RESOLUTION))
 	assert.NoError(t, db.PutJob(j1))
 
 	// Update original.
-	j1.Status = JOB_STATUS_IN_PROGRESS
+	j1.Status = types.JOB_STATUS_IN_PROGRESS
 	assert.NoError(t, db.PutJob(j1))
 
 	// Attempt update.
 	callCount := 0
-	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *types.Job) error {
 		callCount++
 		// Sneakily make an update in the background.
 		j1.Repo = "some-other-repo"
 		assert.NoError(t, db.PutJob(j1))
 
-		job.Status = JOB_STATUS_SUCCESS
+		job.Status = types.JOB_STATUS_SUCCESS
 		return nil
 	})
 	assert.True(t, IsConcurrentUpdate(err))
@@ -1182,47 +1157,6 @@ func TestUpdateJobsWithRetries(t testutils.TestingT, db JobDB) {
 	testUpdateJobWithRetriesExhausted(t, db)
 }
 
-// makeTaskComment creates a comment with its ID fields based on the given repo,
-// name, commit, and ts, and other fields based on n.
-func makeTaskComment(n int, repo int, name int, commit int, ts time.Time) *TaskComment {
-	return &TaskComment{
-		Repo:      fmt.Sprintf("r%d", repo),
-		Revision:  fmt.Sprintf("c%d", commit),
-		Name:      fmt.Sprintf("n%d", name),
-		Timestamp: ts,
-		TaskId:    fmt.Sprintf("id%d", n),
-		User:      fmt.Sprintf("u%d", n),
-		Message:   fmt.Sprintf("m%d", n),
-	}
-}
-
-// makeTaskSpecComment creates a comment with its ID fields based on the given
-// repo, name, and ts, and other fields based on n.
-func makeTaskSpecComment(n int, repo int, name int, ts time.Time) *TaskSpecComment {
-	return &TaskSpecComment{
-		Repo:          fmt.Sprintf("r%d", repo),
-		Name:          fmt.Sprintf("n%d", name),
-		Timestamp:     ts,
-		User:          fmt.Sprintf("u%d", n),
-		Flaky:         n%2 == 0,
-		IgnoreFailure: n>>1%2 == 0,
-		Message:       fmt.Sprintf("m%d", n),
-	}
-}
-
-// makeCommitComment creates a comment with its ID fields based on the given
-// repo, commit, and ts, and other fields based on n.
-func makeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment {
-	return &CommitComment{
-		Repo:          fmt.Sprintf("r%d", repo),
-		Revision:      fmt.Sprintf("c%d", commit),
-		Timestamp:     ts,
-		User:          fmt.Sprintf("u%d", n),
-		IgnoreFailure: n>>1%2 == 0,
-		Message:       fmt.Sprintf("m%d", n),
-	}
-}
-
 // TestCommentDB validates that db correctly implements the CommentDB interface.
 func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	now := time.Now()
@@ -1243,35 +1177,35 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	}
 
 	// Add some comments.
-	tc1 := makeTaskComment(1, 1, 1, 1, now)
-	tc2 := makeTaskComment(2, 1, 1, 1, now.Add(2*time.Second))
-	tc3 := makeTaskComment(3, 1, 1, 1, now.Add(time.Second))
-	tc4 := makeTaskComment(4, 1, 1, 2, now)
-	tc5 := makeTaskComment(5, 1, 2, 2, now)
-	tc6 := makeTaskComment(6, 2, 3, 3, now)
-	for _, c := range []*TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
+	tc1 := types.MakeTaskComment(1, 1, 1, 1, now)
+	tc2 := types.MakeTaskComment(2, 1, 1, 1, now.Add(2*time.Second))
+	tc3 := types.MakeTaskComment(3, 1, 1, 1, now.Add(time.Second))
+	tc4 := types.MakeTaskComment(4, 1, 1, 2, now)
+	tc5 := types.MakeTaskComment(5, 1, 2, 2, now)
+	tc6 := types.MakeTaskComment(6, 2, 3, 3, now)
+	for _, c := range []*types.TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
 		assert.NoError(t, db.PutTaskComment(c))
 	}
 	tc6copy := tc6.Copy()
 	tc6.Message = "modifying after Put shouldn't affect stored comment"
 
-	sc1 := makeTaskSpecComment(1, 1, 1, now)
-	sc2 := makeTaskSpecComment(2, 1, 1, now.Add(2*time.Second))
-	sc3 := makeTaskSpecComment(3, 1, 1, now.Add(time.Second))
-	sc4 := makeTaskSpecComment(4, 1, 2, now)
-	sc5 := makeTaskSpecComment(5, 2, 3, now)
-	for _, c := range []*TaskSpecComment{sc1, sc2, sc3, sc4, sc5} {
+	sc1 := types.MakeTaskSpecComment(1, 1, 1, now)
+	sc2 := types.MakeTaskSpecComment(2, 1, 1, now.Add(2*time.Second))
+	sc3 := types.MakeTaskSpecComment(3, 1, 1, now.Add(time.Second))
+	sc4 := types.MakeTaskSpecComment(4, 1, 2, now)
+	sc5 := types.MakeTaskSpecComment(5, 2, 3, now)
+	for _, c := range []*types.TaskSpecComment{sc1, sc2, sc3, sc4, sc5} {
 		assert.NoError(t, db.PutTaskSpecComment(c))
 	}
 	sc5copy := sc5.Copy()
 	sc5.Message = "modifying after Put shouldn't affect stored comment"
 
-	cc1 := makeCommitComment(1, 1, 1, now)
-	cc2 := makeCommitComment(2, 1, 1, now.Add(2*time.Second))
-	cc3 := makeCommitComment(3, 1, 1, now.Add(time.Second))
-	cc4 := makeCommitComment(4, 1, 2, now)
-	cc5 := makeCommitComment(5, 2, 3, now)
-	for _, c := range []*CommitComment{cc1, cc2, cc3, cc4, cc5} {
+	cc1 := types.MakeCommitComment(1, 1, 1, now)
+	cc2 := types.MakeCommitComment(2, 1, 1, now.Add(2*time.Second))
+	cc3 := types.MakeCommitComment(3, 1, 1, now.Add(time.Second))
+	cc4 := types.MakeCommitComment(4, 1, 2, now)
+	cc5 := types.MakeCommitComment(5, 2, 3, now)
+	for _, c := range []*types.CommitComment{cc1, cc2, cc3, cc4, cc5} {
 		assert.NoError(t, db.PutCommitComment(c))
 	}
 	cc5copy := cc5.Copy()
@@ -1288,11 +1222,11 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	cc1different.Message = "not the same"
 	assert.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
 
-	expected := []*RepoComments{
+	expected := []*types.RepoComments{
 		{Repo: "r0"},
 		{
 			Repo: "r1",
-			TaskComments: map[string]map[string][]*TaskComment{
+			TaskComments: map[string]map[string][]*types.TaskComment{
 				"c1": {
 					"n1": {tc1, tc3, tc2},
 				},
@@ -1301,26 +1235,26 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 					"n2": {tc5},
 				},
 			},
-			TaskSpecComments: map[string][]*TaskSpecComment{
+			TaskSpecComments: map[string][]*types.TaskSpecComment{
 				"n1": {sc1, sc3, sc2},
 				"n2": {sc4},
 			},
-			CommitComments: map[string][]*CommitComment{
+			CommitComments: map[string][]*types.CommitComment{
 				"c1": {cc1, cc3, cc2},
 				"c2": {cc4},
 			},
 		},
 		{
 			Repo: "r2",
-			TaskComments: map[string]map[string][]*TaskComment{
+			TaskComments: map[string]map[string][]*types.TaskComment{
 				"c3": {
 					"n3": {tc6copy},
 				},
 			},
-			TaskSpecComments: map[string][]*TaskSpecComment{
+			TaskSpecComments: map[string][]*types.TaskSpecComment{
 				"n3": {sc5copy},
 			},
-			CommitComments: map[string][]*CommitComment{
+			CommitComments: map[string][]*types.CommitComment{
 				"c3": {cc5copy},
 			},
 		},
@@ -1377,20 +1311,20 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	assert.NoError(t, db.DeleteTaskSpecComment(sc1different))
 	assert.NoError(t, db.DeleteCommitComment(cc1different))
 	// Delete of nonexistent task should succeed.
-	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
-	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 1, 1, 99, now)))
-	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 1, 99, 1, now)))
-	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 99, 1, 1, now)))
-	assert.NoError(t, db.DeleteTaskSpecComment(makeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
-	assert.NoError(t, db.DeleteTaskSpecComment(makeTaskSpecComment(99, 1, 99, now)))
-	assert.NoError(t, db.DeleteTaskSpecComment(makeTaskSpecComment(99, 99, 1, now)))
-	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 1, 1, now.Add(99*time.Second))))
-	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 1, 99, now)))
-	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 99, 1, now)))
+	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
+	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 1, 99, now)))
+	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 1, 99, 1, now)))
+	assert.NoError(t, db.DeleteTaskComment(types.MakeTaskComment(99, 99, 1, 1, now)))
+	assert.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
+	assert.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 1, 99, now)))
+	assert.NoError(t, db.DeleteTaskSpecComment(types.MakeTaskSpecComment(99, 99, 1, now)))
+	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 1, now.Add(99*time.Second))))
+	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 1, 99, now)))
+	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 99, 1, now)))
 
-	expected[1].TaskComments["c1"]["n1"] = []*TaskComment{tc2}
-	expected[1].TaskSpecComments["n1"] = []*TaskSpecComment{sc2}
-	expected[1].CommitComments["c1"] = []*CommitComment{cc2}
+	expected[1].TaskComments["c1"]["n1"] = []*types.TaskComment{tc2}
+	expected[1].TaskSpecComments["n1"] = []*types.TaskSpecComment{sc2}
+	expected[1].CommitComments["c1"] = []*types.CommitComment{cc2}
 	{
 		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
@@ -1398,13 +1332,13 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	}
 
 	// Delete all the comments.
-	for _, c := range []*TaskComment{tc2, tc4, tc5, tc6} {
+	for _, c := range []*types.TaskComment{tc2, tc4, tc5, tc6} {
 		assert.NoError(t, db.DeleteTaskComment(c))
 	}
-	for _, c := range []*TaskSpecComment{sc2, sc4, sc5} {
+	for _, c := range []*types.TaskSpecComment{sc2, sc4, sc5} {
 		assert.NoError(t, db.DeleteTaskSpecComment(c))
 	}
-	for _, c := range []*CommitComment{cc2, cc4, cc5} {
+	for _, c := range []*types.CommitComment{cc2, cc4, cc5} {
 		assert.NoError(t, db.DeleteCommitComment(c))
 	}
 	{
@@ -1422,6 +1356,11 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	}
 }
 
+// GetRevisionTimestamp is a function signature that retrieves the timestamp of
+// a revision. NewJobCache accepts this type rather than repograph.Map to aide
+// testing.
+type GetRevisionTimestamp func(repo, revision string) (time.Time, error)
+
 func DummyGetRevisionTimestamp(ts time.Time) GetRevisionTimestamp {
 	return func(string, string) (time.Time, error) { return ts, nil }
 }
@@ -1435,7 +1374,7 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	end := start
 	for _, repo := range repos {
 		for i := 0; i < 10; i++ {
-			task := MakeTestTask(end, []string{"c"})
+			task := types.MakeTestTask(end, []string{"c"})
 			task.Repo = repo
 			assert.NoError(t, db.PutTask(task))
 			end = end.Add(TS_RESOLUTION)
@@ -1444,12 +1383,12 @@ func TestTaskDBGetTasksFromDateRangeByRepo(t testutils.TestingT, db TaskDB) {
 	tasks, err := db.GetTasksFromDateRange(start, end, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 30, len(tasks))
-	assert.True(t, sort.IsSorted(TaskSlice(tasks)))
+	assert.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 	for _, repo := range repos {
 		tasks, err := db.GetTasksFromDateRange(start, end, repo)
 		assert.NoError(t, err)
 		assert.Equal(t, 10, len(tasks))
-		assert.True(t, sort.IsSorted(TaskSlice(tasks)))
+		assert.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 		for _, task := range tasks {
 			assert.Equal(t, repo, task.Repo)
 		}
@@ -1473,7 +1412,7 @@ func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 			ts := t0.Add(time.Duration(i) * timeWindow / time.Duration(numCommits))
 			gb.AddGen(ctx, f)
 			hash := gb.CommitMsgAt(ctx, fmt.Sprintf("Commit %d", i), ts)
-			task := MakeTestTask(ts, []string{hash})
+			task := types.MakeTestTask(ts, []string{hash})
 			task.Repo = repoUrl
 			assert.NoError(t, db.PutTask(task))
 		}
@@ -1501,16 +1440,7 @@ func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 		tasks, err := GetTasksFromWindow(db, w, now)
 		assert.NoError(t, err)
 		assert.Equal(t, expectTasks, len(tasks))
-		assert.True(t, sort.IsSorted(TaskSlice(tasks)))
-
-		// Verify that TaskCache behaves correctly too.
-		cache, err := NewTaskCache(db, w)
-		assert.NoError(t, err)
-		tasks2, err := cache.GetTasksFromDateRange(time.Time{}, now)
-		assert.NoError(t, err)
-		assert.Equal(t, expectTasks, len(tasks2))
-		assert.True(t, sort.IsSorted(TaskSlice(tasks2)))
-		deepequal.AssertDeepEqual(t, tasks, tasks2)
+		assert.True(t, sort.IsSorted(types.TaskSlice(tasks)))
 	}
 
 	// Test 1: No repos in window. Only the timeWindow matters in this case,
@@ -1560,18 +1490,18 @@ func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	t1 := MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
 	t1.Id = "1"
 
 	// Insert the task.
 	m.TrackModifiedTask(t1)
 
 	// Ensure that the task shows up in the modified list.
-	check := func(expect ...*Task) {
+	check := func(expect ...*types.Task) {
 		// Note that the slice only works because we don't call
 		// TrackModifiedTask more than once for any given task,
 		// otherwise we'd have to use a map and compare DbModified.
-		actual := []*Task{}
+		actual := []*types.Task{}
 		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 			tasks, err = m.GetModifiedTasks(id)
 			assert.NoError(t, err)
@@ -1580,7 +1510,7 @@ func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
 				time.Sleep(100 * time.Millisecond)
 				return testutils.TryAgainErr
 			}
-			sort.Sort(TaskSlice(actual))
+			sort.Sort(types.TaskSlice(actual))
 			deepequal.AssertDeepEqual(t, expect, actual)
 			return nil
 		}))
@@ -1588,10 +1518,10 @@ func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
 	check(t1)
 
 	// Insert two more tasks.
-	t2 := MakeTestTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
+	t2 := types.MakeTestTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
 	t2.Id = "2"
 	m.TrackModifiedTask(t2)
-	t3 := MakeTestTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
+	t3 := types.MakeTestTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
 	t3.Id = "3"
 	m.TrackModifiedTask(t3)
 
@@ -1616,23 +1546,23 @@ func TestMultipleTaskModifications(t testutils.TestingT, m ModifiedTasks) {
 	id, err := m.StartTrackingModifiedTasks()
 	assert.NoError(t, err)
 
-	t1 := MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1 := types.MakeTestTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
 	t1.Id = "1"
 
 	// Insert the task.
 	m.TrackModifiedTask(t1)
 
 	// Make several more modifications.
-	t1.Status = TASK_STATUS_RUNNING
+	t1.Status = types.TASK_STATUS_RUNNING
 	t1.DbModified = t1.DbModified.Add(time.Second)
 	m.TrackModifiedTask(t1)
-	t1.Status = TASK_STATUS_SUCCESS
+	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.DbModified = t1.DbModified.Add(time.Second)
 	m.TrackModifiedTask(t1)
 
 	// Ensure that the task shows up only once in the modified list and is
 	// the most recent value.
-	var actual *Task
+	var actual *types.Task
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		tasks, err := m.GetModifiedTasks(id)
 		if err != nil {
@@ -1663,18 +1593,18 @@ func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 
-	j1 := makeJob(time.Unix(0, 1470674132000000))
+	j1 := types.MakeTestJob(time.Unix(0, 1470674132000000))
 	j1.Id = "1"
 
 	// Insert the job.
 	m.TrackModifiedJob(j1)
 
 	// Ensure that the job shows up in the modified list.
-	check := func(expect ...*Job) {
+	check := func(expect ...*types.Job) {
 		// Note that the slice only works because we don't call
 		// TrackModifiedJob more than once for any given job, otherwise
 		// we'd have to use a map and compare DbModified.
-		actual := []*Job{}
+		actual := []*types.Job{}
 		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 			jobs, err = m.GetModifiedJobs(id)
 			assert.NoError(t, err)
@@ -1683,7 +1613,7 @@ func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
 				time.Sleep(100 * time.Millisecond)
 				return testutils.TryAgainErr
 			}
-			sort.Sort(JobSlice(actual))
+			sort.Sort(types.JobSlice(actual))
 			deepequal.AssertDeepEqual(t, expect, actual)
 			return nil
 		}))
@@ -1691,10 +1621,10 @@ func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
 	check(j1)
 
 	// Insert two more jobs.
-	j2 := makeJob(time.Unix(0, 1470674376000000))
+	j2 := types.MakeTestJob(time.Unix(0, 1470674376000000))
 	j2.Id = "2"
 	m.TrackModifiedJob(j2)
-	j3 := makeJob(time.Unix(0, 1470674884000000))
+	j3 := types.MakeTestJob(time.Unix(0, 1470674884000000))
 	j3.Id = "3"
 	m.TrackModifiedJob(j3)
 
@@ -1717,23 +1647,23 @@ func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
 	id, err := m.StartTrackingModifiedJobs()
 	assert.NoError(t, err)
 
-	j1 := makeJob(time.Unix(0, 1470674132000000))
+	j1 := types.MakeTestJob(time.Unix(0, 1470674132000000))
 	j1.Id = "1"
 
 	// Insert the job.
 	m.TrackModifiedJob(j1)
 
 	// Make several more modifications.
-	j1.Status = JOB_STATUS_IN_PROGRESS
+	j1.Status = types.JOB_STATUS_IN_PROGRESS
 	j1.DbModified = j1.DbModified.Add(time.Second)
 	m.TrackModifiedJob(j1)
-	j1.Status = JOB_STATUS_SUCCESS
+	j1.Status = types.JOB_STATUS_SUCCESS
 	j1.DbModified = j1.DbModified.Add(time.Second)
 	m.TrackModifiedJob(j1)
 
 	// Ensure that the task shows up only once in the modified list and is
 	// the most recent value.
-	var actual *Job
+	var actual *types.Job
 	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
 		jobs, err := m.GetModifiedJobs(id)
 		if err != nil {
@@ -1750,4 +1680,202 @@ func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
 		time.Sleep(100 * time.Millisecond)
 		return testutils.TryAgainErr
 	}))
+}
+
+func TestUpdateDBFromSwarmingTask(t testutils.TestingT, db TaskDB) {
+	// Create task, initialize from swarming, and save.
+	now := time.Now().UTC().Round(time.Microsecond)
+	task := &types.Task{
+		TaskKey: types.TaskKey{
+			RepoState: types.RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
+		},
+		Commits:        []string{"D", "Z"},
+		Status:         types.TASK_STATUS_PENDING,
+		ParentTaskIds:  []string{"E", "F"},
+		SwarmingTaskId: "E",
+	}
+	assert.NoError(t, db.AssignId(task))
+
+	s := &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     swarming.TASK_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
+		},
+	}
+	modified, err := task.UpdateFromSwarming(s)
+	assert.NoError(t, err)
+	assert.True(t, modified)
+	assert.NoError(t, db.PutTask(task))
+
+	// Get update from Swarming.
+	s.StartedTs = now.Add(time.Minute).Format(swarming.TIMESTAMP_FORMAT)
+	s.CompletedTs = now.Add(2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT)
+	s.State = swarming.TASK_STATE_COMPLETED
+	s.Failure = true
+	s.OutputsRef = &swarming_api.SwarmingRpcsFilesRef{
+		Isolated: "G",
+	}
+	s.BotId = "H"
+
+	assert.NoError(t, UpdateDBFromSwarmingTask(db, s))
+
+	updatedTask, err := db.GetTaskById(task.Id)
+	assert.NoError(t, err)
+	deepequal.AssertDeepEqual(t, updatedTask, &types.Task{
+		Id: task.Id,
+		TaskKey: types.TaskKey{
+			RepoState: types.RepoState{
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
+		},
+		Created:        now.Add(time.Second),
+		Commits:        []string{"D", "Z"},
+		Started:        now.Add(time.Minute),
+		Finished:       now.Add(2 * time.Minute),
+		Status:         types.TASK_STATUS_FAILURE,
+		SwarmingTaskId: "E",
+		IsolatedOutput: "G",
+		SwarmingBotId:  "H",
+		ParentTaskIds:  []string{"E", "F"},
+		// Use value from updatedTask so they are deep-equal.
+		DbModified: updatedTask.DbModified,
+	})
+
+	lastDbModified := updatedTask.DbModified
+
+	// Make an unrelated change; assert no change to Task.
+	s.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
+
+	assert.NoError(t, UpdateDBFromSwarmingTask(db, s))
+	updatedTask, err = db.GetTaskById(task.Id)
+	assert.NoError(t, err)
+	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))
+}
+
+func TestUpdateDBFromSwarmingTaskTryJob(t testutils.TestingT, db TaskDB) {
+	// Create task, initialize from swarming, and save.
+	now := time.Now().UTC().Round(time.Microsecond)
+	task := &types.Task{
+		TaskKey: types.TaskKey{
+			RepoState: types.RepoState{
+				Patch: types.Patch{
+					Server:   "A",
+					Issue:    "B",
+					Patchset: "P",
+				},
+				Repo:     "C",
+				Revision: "D",
+			},
+			Name:        "B",
+			ForcedJobId: "G",
+		},
+		Commits:        []string{"D", "Z"},
+		Status:         types.TASK_STATUS_PENDING,
+		ParentTaskIds:  []string{"E", "F"},
+		SwarmingTaskId: "E",
+	}
+	assert.NoError(t, db.AssignId(task))
+
+	s := &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     swarming.TASK_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:A", types.SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:P", types.SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err := task.UpdateFromSwarming(s)
+	assert.NoError(t, err)
+	assert.True(t, modified)
+
+	// Make sure we can't change the server, issue, or patchset.
+	s = &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     swarming.TASK_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:BAD", types.SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:P", types.SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err = task.UpdateFromSwarming(s)
+	assert.NotNil(t, err)
+	assert.False(t, modified)
+
+	// Make sure we can't change the server, issue, or patchset.
+	s = &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     swarming.TASK_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:A", types.SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:BAD", types.SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:P", types.SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err = task.UpdateFromSwarming(s)
+	assert.NotNil(t, err)
+	assert.False(t, modified)
+
+	// Make sure we can't change the server, issue, or patchset.
+	s = &swarming_api.SwarmingRpcsTaskResult{
+		TaskId:    "E", // This is the Swarming TaskId.
+		CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+		State:     swarming.TASK_STATE_PENDING,
+		Tags: []string{
+			fmt.Sprintf("%s:%s", types.SWARMING_TAG_ID, task.Id),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_NAME),
+			fmt.Sprintf("%s:C", types.SWARMING_TAG_REPO),
+			fmt.Sprintf("%s:D", types.SWARMING_TAG_REVISION),
+			fmt.Sprintf("%s:E", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:F", types.SWARMING_TAG_PARENT_TASK_ID),
+			fmt.Sprintf("%s:G", types.SWARMING_TAG_FORCED_JOB_ID),
+			fmt.Sprintf("%s:A", types.SWARMING_TAG_SERVER),
+			fmt.Sprintf("%s:B", types.SWARMING_TAG_ISSUE),
+			fmt.Sprintf("%s:BAD", types.SWARMING_TAG_PATCHSET),
+		},
+	}
+	modified, err = task.UpdateFromSwarming(s)
+	assert.NotNil(t, err)
+	assert.False(t, modified)
 }

@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
+	memory "go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestMain(m *testing.M) {
@@ -39,19 +41,19 @@ func (b *clientWithBackdoor) Close() error {
 	return nil
 }
 
-func (b *clientWithBackdoor) AssignId(task *db.Task) error {
+func (b *clientWithBackdoor) AssignId(task *types.Task) error {
 	return b.backdoor.AssignId(task)
 }
-func (b *clientWithBackdoor) PutTask(task *db.Task) error {
+func (b *clientWithBackdoor) PutTask(task *types.Task) error {
 	return b.backdoor.PutTask(task)
 }
-func (b *clientWithBackdoor) PutTasks(tasks []*db.Task) error {
+func (b *clientWithBackdoor) PutTasks(tasks []*types.Task) error {
 	return b.backdoor.PutTasks(tasks)
 }
-func (b *clientWithBackdoor) PutJob(job *db.Job) error {
+func (b *clientWithBackdoor) PutJob(job *types.Job) error {
 	return b.backdoor.PutJob(job)
 }
-func (b *clientWithBackdoor) PutJobs(jobs []*db.Job) error {
+func (b *clientWithBackdoor) PutJobs(jobs []*types.Job) error {
 	return b.backdoor.PutJobs(jobs)
 }
 
@@ -92,7 +94,7 @@ func newReqCountingTransport(rt http.RoundTripper) http.RoundTripper {
 
 // makeDB sets up a client/server pair wrapped in a clientWithBackdoor.
 func makeDB(t *testing.T) db.DBCloser {
-	baseDB := db.NewInMemoryDB()
+	baseDB := memory.NewInMemoryDB()
 	r := mux.NewRouter()
 	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter())
 	assert.NoError(t, err)
@@ -193,11 +195,11 @@ func TestRemoteDBGetTasksFromDateRange(t *testing.T) {
 	tp := d.(*clientWithBackdoor).RemoteDB.(*client).client.Transport.(*reqCountingTransport)
 
 	timeStart := time.Now().Add(-3 * MAX_TASK_TIME_RANGE)
-	t1 := db.MakeTestTask(timeStart.Add(time.Nanosecond), []string{"a", "b"})
+	t1 := types.MakeTestTask(timeStart.Add(time.Nanosecond), []string{"a", "b"})
 	assert.NoError(t, d.PutTask(t1))
-	t2 := db.MakeTestTask(t1.Created.Add(MAX_TASK_TIME_RANGE), []string{"c"})
+	t2 := types.MakeTestTask(t1.Created.Add(MAX_TASK_TIME_RANGE), []string{"c"})
 	assert.NoError(t, d.PutTask(t2))
-	t3 := db.MakeTestTask(t2.Created.Add(MAX_TASK_TIME_RANGE), []string{"d"})
+	t3 := types.MakeTestTask(t2.Created.Add(MAX_TASK_TIME_RANGE), []string{"d"})
 	assert.NoError(t, d.PutTask(t3))
 
 	// Request time ranges, and ensure that we get back the correct number

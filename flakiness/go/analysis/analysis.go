@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -32,7 +33,7 @@ type Results struct {
 // Flake is a struct representing a particular instance of a flake,
 // illustrated by a sequence of tasks.
 type Flake struct {
-	Tasks []*db.Task
+	Tasks []*types.Task
 }
 
 // Analyze loads tasks from the given time period, finds various types of
@@ -45,7 +46,7 @@ func Analyze(d db.TaskReader, start, end time.Time, repos repograph.Map) (map[st
 	}
 
 	// Organize by repo and task spec.
-	byTaskSpec := make(map[string]map[string][]*db.Task, len(repos))
+	byTaskSpec := make(map[string]map[string][]*types.Task, len(repos))
 	for _, t := range tasks {
 		// Filter by repo, since the DB might contain tasks from repos
 		// we don't care about.
@@ -55,7 +56,7 @@ func Analyze(d db.TaskReader, start, end time.Time, repos repograph.Map) (map[st
 
 		m, ok := byTaskSpec[t.Repo]
 		if !ok {
-			m = map[string][]*db.Task{}
+			m = map[string][]*types.Task{}
 			byTaskSpec[t.Repo] = m
 		}
 		m[t.Name] = append(m[t.Name], t)
@@ -85,12 +86,12 @@ func Analyze(d db.TaskReader, start, end time.Time, repos repograph.Map) (map[st
 }
 
 // InfraFailures finds infrastructure-related failures in the given set of tasks.
-func InfraFailures(tasks []*db.Task) []*Flake {
+func InfraFailures(tasks []*types.Task) []*Flake {
 	rv := []*Flake{}
 	for _, t := range tasks {
-		if t.Status == db.TASK_STATUS_MISHAP {
+		if t.Status == types.TASK_STATUS_MISHAP {
 			rv = append(rv, &Flake{
-				[]*db.Task{t},
+				[]*types.Task{t},
 			})
 		}
 	}
@@ -98,9 +99,9 @@ func InfraFailures(tasks []*db.Task) []*Flake {
 }
 
 // DefinitelyFlaky finds tasks which failed and whose retries succeeded.
-func DefinitelyFlaky(tasks []*db.Task) []*Flake {
+func DefinitelyFlaky(tasks []*types.Task) []*Flake {
 	// Organize the tasks by ID so that we can find them later.
-	byId := make(map[string]*db.Task, len(tasks))
+	byId := make(map[string]*types.Task, len(tasks))
 	for _, t := range tasks {
 		byId[t.Id] = t
 	}
@@ -115,12 +116,12 @@ func DefinitelyFlaky(tasks []*db.Task) []*Flake {
 				sklog.Warningf("Failed to retrieve task %q: not in range", t.RetryOf)
 				continue
 			}
-			if orig.Status == db.TASK_STATUS_MISHAP {
+			if orig.Status == types.TASK_STATUS_MISHAP {
 				// Infra failures are handled elsewhere.
 				continue
 			}
 			rv = append(rv, &Flake{
-				[]*db.Task{orig, t},
+				[]*types.Task{orig, t},
 			})
 		}
 	}
@@ -128,9 +129,9 @@ func DefinitelyFlaky(tasks []*db.Task) []*Flake {
 }
 
 // findTaskSequences finds sequences of N consecutive (commit-wise) tasks.
-func findTaskSequences(n int, tasks []*db.Task, start, end time.Time, repo *repograph.Graph) [][]*db.Task {
+func findTaskSequences(n int, tasks []*types.Task, start, end time.Time, repo *repograph.Graph) [][]*types.Task {
 	// First, organize tasks by blamelist.
-	byBlamelist := make(map[string]*db.Task, len(tasks))
+	byBlamelist := make(map[string]*types.Task, len(tasks))
 	for _, t := range tasks {
 		for _, c := range t.Commits {
 			byBlamelist[c] = t
@@ -138,10 +139,10 @@ func findTaskSequences(n int, tasks []*db.Task, start, end time.Time, repo *repo
 	}
 
 	// Traverse the commit history, obtain all tasks.
-	sequences := [][]*db.Task{}
-	visited := map[*db.Task]bool{}
+	sequences := [][]*types.Task{}
+	visited := map[*types.Task]bool{}
 	for _, b := range repo.Branches() {
-		seq := make([]*db.Task, 0, n)
+		seq := make([]*types.Task, 0, n)
 		if err := repo.Get(b).Recurse(func(c *repograph.Commit) (bool, error) {
 			if start.After(c.Timestamp) {
 				return false, nil
@@ -161,7 +162,7 @@ func findTaskSequences(n int, tasks []*db.Task, start, end time.Time, repo *repo
 			}
 
 			// Multiple commits in a row may share the same task.
-			var last *db.Task
+			var last *types.Task
 			if len(seq) > 0 {
 				last = seq[len(seq)-1]
 			}
@@ -190,7 +191,7 @@ func findTaskSequences(n int, tasks []*db.Task, start, end time.Time, repo *repo
 				}
 
 				// Save the sequence.
-				cpy := make([]*db.Task, len(seq))
+				cpy := make([]*types.Task, len(seq))
 				copy(cpy, seq)
 				sequences = append(sequences, cpy)
 			}
@@ -223,7 +224,7 @@ func revertOf(c *repograph.Commit) string {
 
 // MaybeFlaky finds sequences of tasks which display ping-ponging between
 // success and failure states.
-func MaybeFlaky(tasks []*db.Task, start, end time.Time, repo *repograph.Graph) []*Flake {
+func MaybeFlaky(tasks []*types.Task, start, end time.Time, repo *repograph.Graph) []*Flake {
 	rv := []*Flake{}
 
 	// TODO(borenet): Should we also look for sequences of four states, eg.
@@ -235,7 +236,7 @@ func MaybeFlaky(tasks []*db.Task, start, end time.Time, repo *repograph.Graph) [
 		// Infra failures are handled elsewhere.
 		mishap := false
 		for _, t := range seq {
-			if t.Status == db.TASK_STATUS_MISHAP {
+			if t.Status == types.TASK_STATUS_MISHAP {
 				mishap = true
 				break
 			}
@@ -274,7 +275,7 @@ func MaybeFlaky(tasks []*db.Task, start, end time.Time, repo *repograph.Graph) [
 		}
 
 		// Add the flake to the results.
-		flake := make([]*db.Task, len(seq))
+		flake := make([]*types.Task, len(seq))
 		copy(flake, seq)
 		rv = append(rv, &Flake{
 			Tasks: flake,

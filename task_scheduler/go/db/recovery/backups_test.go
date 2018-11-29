@@ -34,6 +34,8 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	memory "go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -134,7 +136,7 @@ func getMockedDBBackupWithContent(t *testing.T, mockMux *mux.Router, content io.
 	assert.NoError(t, os.MkdirAll(path.Join(dir, TRIGGER_DIRNAME), os.ModePerm))
 
 	db := &testDB{
-		DB:      db.NewInMemoryDB(),
+		DB:      memory.NewInMemoryDB(),
 		content: content,
 		ts:      time.Unix(TEST_DB_TIME, 0),
 	}
@@ -890,21 +892,21 @@ func TestParseIdFromJobObjectName(t *testing.T) {
 }
 
 // makeJob returns a dummy Job without Id and DbModified set.
-func makeJob(now time.Time) *db.Job {
-	return &db.Job{
+func makeJob(now time.Time) *types.Job {
+	return &types.Job{
 		Created:      now.UTC(),
 		Dependencies: map[string][]string{},
-		RepoState: db.RepoState{
-			Repo: db.DEFAULT_TEST_REPO,
+		RepoState: types.RepoState{
+			Repo: types.DEFAULT_TEST_REPO,
 		},
 		Name:  "Test-Job",
-		Tasks: map[string][]*db.TaskSummary{},
+		Tasks: map[string][]*types.TaskSummary{},
 	}
 }
 
 // makeExistingJob returns a dummy Job with Id and DbModified set to the given
 // values.
-func makeExistingJob(now time.Time, id string) *db.Job {
+func makeExistingJob(now time.Time, id string) *types.Job {
 	job := makeJob(now)
 	job.Id = id
 	job.DbModified = now.UTC()
@@ -995,7 +997,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 	{
 		gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name1]))
 		assert.NoError(t, err)
-		var j1Copy *db.Job
+		var j1Copy *types.Job
 		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j1Copy))
 		assert.NoError(t, gzR.Close())
 		deepequal.AssertDeepEqual(t, j1, j1Copy)
@@ -1009,9 +1011,9 @@ func TestIncrementalBackupStep(t *testing.T) {
 	assert.Equal(t, beforeCount+1, b.jobBackupCount.Get())
 
 	// Modify j1 and add j2.
-	j1.Status = db.JOB_STATUS_CANCELED
+	j1.Status = types.JOB_STATUS_CANCELED
 	j2 := makeJob(now.Add(time.Second))
-	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
+	assert.NoError(t, b.db.PutJobs([]*types.Job{j1, j2}))
 	name2 := namePrefix + j2.Id + ".gob"
 
 	assert.NoError(t, b.incrementalBackupStep(now))
@@ -1020,7 +1022,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 	{
 		gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name1]))
 		assert.NoError(t, err)
-		var j1Copy *db.Job
+		var j1Copy *types.Job
 		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j1Copy))
 		assert.NoError(t, gzR.Close())
 		deepequal.AssertDeepEqual(t, j1, j1Copy)
@@ -1029,7 +1031,7 @@ func TestIncrementalBackupStep(t *testing.T) {
 	{
 		gzR, err := gzip.NewReader(bytes.NewReader(actualBytesGzip[name2]))
 		assert.NoError(t, err)
-		var j2Copy *db.Job
+		var j2Copy *types.Job
 		assert.NoError(t, gob.NewDecoder(gzR).Decode(&j2Copy))
 		assert.NoError(t, gzR.Close())
 		deepequal.AssertDeepEqual(t, j2, j2Copy)
@@ -1056,7 +1058,7 @@ func TestIncrementalBackupStepSingleUploadError(t *testing.T) {
 	// Add two jobs.
 	j1 := makeJob(now)
 	j2 := makeJob(now.Add(time.Second))
-	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
+	assert.NoError(t, b.db.PutJobs([]*types.Job{j1, j2}))
 
 	count := 0
 	gsRoute(r).Methods("POST").Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
@@ -1114,7 +1116,7 @@ func TestIncrementalBackupStepMultipleUploadError(t *testing.T) {
 	// Add two jobs.
 	j1 := makeJob(now)
 	j2 := makeJob(now.Add(time.Second))
-	assert.NoError(t, b.db.PutJobs([]*db.Job{j1, j2}))
+	assert.NoError(t, b.db.PutJobs([]*types.Job{j1, j2}))
 
 	gsRoute(r).Methods("POST").Path(fmt.Sprintf("/upload/storage/v1/b/%s/o", TEST_BUCKET)).
 		Queries("uploadType", "multipart").
@@ -1224,7 +1226,7 @@ func addGetObjectHandler(t *testing.T, r *mux.Router, name string, contents []by
 
 // addGetJobGOBHandler causes r to respond to a request for the given job (in
 // TEST_BUCKET with name given by formatJobObjectName) with the GOB-encoded Job.
-func addGetJobGOBHandler(t *testing.T, r *mux.Router, job *db.Job) {
+func addGetJobGOBHandler(t *testing.T, r *mux.Router, job *types.Job) {
 	buf := &bytes.Buffer{}
 	assert.NoError(t, gob.NewEncoder(buf).Encode(job))
 	addGetObjectHandler(t, r, formatJobObjectName(job.DbModified, job.Id), buf.Bytes())
@@ -1243,7 +1245,7 @@ func TestDownloadGOB(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
-	var jobCopy db.Job
+	var jobCopy types.Job
 	name := formatJobObjectName(job.DbModified, job.Id)
 	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &jobCopy)
 	assert.NoError(t, err)
@@ -1263,11 +1265,11 @@ func TestDownloadGOBNotFound(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
-	var dummy db.Job
+	var dummy types.Job
 	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
 	assert.Error(t, err)
 	assert.Regexp(t, "object doesn't exist", err.Error())
-	deepequal.AssertDeepEqual(t, db.Job{}, dummy)
+	deepequal.AssertDeepEqual(t, types.Job{}, dummy)
 }
 
 // downloadGOB should return an error if the data is not GOB-encoded.
@@ -1282,17 +1284,17 @@ func TestDownloadGOBNotGOB(t *testing.T) {
 	b, cancel := getMockedDBBackup(t, r)
 	defer cancel()
 
-	var dummy db.Job
+	var dummy types.Job
 	err := downloadGOB(b.ctx, b.gsClient.Bucket(b.gsBucket), name, &dummy)
 	assert.Error(t, err)
 	assert.Regexp(t, "Error decoding GOB data", err.Error())
-	deepequal.AssertDeepEqual(t, db.Job{}, dummy)
+	deepequal.AssertDeepEqual(t, types.Job{}, dummy)
 }
 
 // addGetJobGOBsHandlers causes r to respond to list and get requests for the
 // given Jobs. Calls addGetJobGOBHandler for each Job. Calls
 // addListObjectsHandler for each dir.
-func addGetJobGOBsHandlers(t *testing.T, r *mux.Router, jobsByDir map[string][]*db.Job) {
+func addGetJobGOBsHandlers(t *testing.T, r *mux.Router, jobsByDir map[string][]*types.Job) {
 	for dir, jobs := range jobsByDir {
 		objs := make([]object, len(jobs), len(jobs))
 		for i, job := range jobs {
@@ -1306,7 +1308,7 @@ func addGetJobGOBsHandlers(t *testing.T, r *mux.Router, jobsByDir map[string][]*
 
 // assertJobMapsEqual asserts expected and actual are deep equal. If not,
 // provides a useful indication of their differences to FailNow.
-func assertJobMapsEqual(t *testing.T, expected map[string]*db.Job, actual map[string]*db.Job) {
+func assertJobMapsEqual(t *testing.T, expected map[string]*types.Job, actual map[string]*types.Job) {
 	msg := &bytes.Buffer{}
 	for id, eJob := range expected {
 		if aJob, ok := actual[id]; ok {
@@ -1339,7 +1341,7 @@ func TestRetrieveJobsSimple(t *testing.T) {
 
 	now := time.Now().Round(time.Second)
 	since := now.Add(-1 * time.Hour)
-	expectedJobs := map[string]*db.Job{}
+	expectedJobs := map[string]*types.Job{}
 
 	job1 := makeExistingJob(since.Add(-10*time.Minute), "before")
 	job1dir := path.Dir(formatJobObjectName(job1.DbModified, job1.Id))
@@ -1349,16 +1351,16 @@ func TestRetrieveJobsSimple(t *testing.T) {
 	expectedJobs[job2.Id] = job2.Copy()
 
 	r := mux.NewRouter()
-	allJobsByDir := map[string][]*db.Job{}
+	allJobsByDir := map[string][]*types.Job{}
 	if job1dir == job2dir {
-		allJobsByDir[job1dir] = []*db.Job{job1, job2}
+		allJobsByDir[job1dir] = []*types.Job{job1, job2}
 	} else {
-		allJobsByDir[job1dir] = []*db.Job{job1}
-		allJobsByDir[job2dir] = []*db.Job{job2}
+		allJobsByDir[job1dir] = []*types.Job{job1}
+		allJobsByDir[job2dir] = []*types.Job{job2}
 	}
 	nowdir := path.Dir(formatJobObjectName(time.Now(), "dummy"))
 	if job2dir != nowdir {
-		allJobsByDir[nowdir] = []*db.Job{}
+		allJobsByDir[nowdir] = []*types.Job{}
 	}
 	addGetJobGOBsHandlers(t, r, allJobsByDir)
 	b, cancel := getMockedDBBackup(t, r)
@@ -1376,8 +1378,8 @@ func TestRetrieveJobsMultipleDirs(t *testing.T) {
 
 	now := time.Now().Round(time.Second)
 	since := now.Add(-26 * time.Hour)
-	allJobsByDir := map[string][]*db.Job{}
-	expectedJobs := map[string]*db.Job{}
+	allJobsByDir := map[string][]*types.Job{}
+	expectedJobs := map[string]*types.Job{}
 	// Add jobs before since. Not expected from RetrieveJobs.
 	for i := -26 * time.Hour; i < 0; i += time.Hour {
 		ts := since.Add(i)
@@ -1411,15 +1413,15 @@ func TestRetrieveJobsMultipleVersions(t *testing.T) {
 
 	now := time.Now().Round(time.Second)
 	since := now.Add(-26 * time.Hour)
-	allJobsByDir := map[string][]*db.Job{}
-	expectedJobs := map[string]*db.Job{}
+	allJobsByDir := map[string][]*types.Job{}
+	expectedJobs := map[string]*types.Job{}
 	// Add and modify jobs before since. Not expected from RetrieveJobs.
 	for i := -26 * time.Hour; i < -time.Hour; i += time.Hour {
 		ts := since.Add(i)
 		origjob := makeExistingJob(ts, fmt.Sprintf("before-mod-before-%s", i))
 		origdir := path.Dir(formatJobObjectName(origjob.DbModified, origjob.Id))
 		modjob := origjob.Copy()
-		modjob.Status = db.JOB_STATUS_CANCELED
+		modjob.Status = types.JOB_STATUS_CANCELED
 		modjob.DbModified = ts.Add(time.Hour).UTC()
 		moddir := path.Dir(formatJobObjectName(modjob.DbModified, modjob.Id))
 		allJobsByDir[moddir] = append(allJobsByDir[moddir], modjob)
@@ -1434,7 +1436,7 @@ func TestRetrieveJobsMultipleVersions(t *testing.T) {
 		origjob := makeExistingJob(ts, fmt.Sprintf("before-mod-after-%s", i))
 		origdir := path.Dir(formatJobObjectName(origjob.DbModified, origjob.Id))
 		modjob := origjob.Copy()
-		modjob.Status = db.JOB_STATUS_CANCELED
+		modjob.Status = types.JOB_STATUS_CANCELED
 		modjob.DbModified = since.Add(i).UTC()
 		moddir := path.Dir(formatJobObjectName(modjob.DbModified, modjob.Id))
 		allJobsByDir[moddir] = append(allJobsByDir[moddir], modjob)
@@ -1449,7 +1451,7 @@ func TestRetrieveJobsMultipleVersions(t *testing.T) {
 		origjob := makeExistingJob(ts, fmt.Sprintf("after-mod-after-%s", i))
 		origdir := path.Dir(formatJobObjectName(origjob.DbModified, origjob.Id))
 		modjob := origjob.Copy()
-		modjob.Status = db.JOB_STATUS_SUCCESS
+		modjob.Status = types.JOB_STATUS_SUCCESS
 		modjob.DbModified = ts.Add(time.Hour).UTC()
 		moddir := path.Dir(formatJobObjectName(modjob.DbModified, modjob.Id))
 		allJobsByDir[moddir] = append(allJobsByDir[moddir], modjob)

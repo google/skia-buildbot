@@ -1,4 +1,4 @@
-package db
+package modified
 
 import (
 	"bytes"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // modifiedData allows subscribers to keep track of DB entries that have been
@@ -27,10 +29,10 @@ func (m *modifiedData) GetModifiedEntries(id string) (map[string][]byte, error) 
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
 	if _, ok := m.expiration[id]; !ok {
-		return nil, ErrUnknownId
+		return nil, db.ErrUnknownId
 	}
 	rv := m.data[id]
-	m.expiration[id] = time.Now().Add(MODIFIED_DATA_TIMEOUT)
+	m.expiration[id] = time.Now().Add(db.MODIFIED_DATA_TIMEOUT)
 	delete(m.data, id)
 	return rv, nil
 }
@@ -95,11 +97,11 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 		m.data = map[string]map[string][]byte{}
 		m.expiration = map[string]time.Time{}
 		go m.clearExpiredSubscribers()
-	} else if len(m.expiration) >= MAX_MODIFIED_DATA_USERS {
-		return "", ErrTooManyUsers
+	} else if len(m.expiration) >= db.MAX_MODIFIED_DATA_USERS {
+		return "", db.ErrTooManyUsers
 	}
 	id := uuid.New()
-	m.expiration[id] = time.Now().Add(MODIFIED_DATA_TIMEOUT)
+	m.expiration[id] = time.Now().Add(db.MODIFIED_DATA_TIMEOUT)
 	return id, nil
 }
 
@@ -118,12 +120,12 @@ type ModifiedTasksImpl struct {
 }
 
 // See docs for ModifiedTasks interface.
-func (m *ModifiedTasksImpl) GetModifiedTasks(id string) ([]*Task, error) {
+func (m *ModifiedTasksImpl) GetModifiedTasks(id string) ([]*types.Task, error) {
 	tasks, err := m.m.GetModifiedEntries(id)
 	if err != nil {
 		return nil, err
 	}
-	d := TaskDecoder{}
+	d := types.TaskDecoder{}
 	for _, g := range tasks {
 		if !d.Process(g) {
 			break
@@ -133,7 +135,7 @@ func (m *ModifiedTasksImpl) GetModifiedTasks(id string) ([]*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	sort.Sort(TaskSlice(rv))
+	sort.Sort(types.TaskSlice(rv))
 	return rv, nil
 }
 
@@ -143,7 +145,7 @@ func (m *ModifiedTasksImpl) GetModifiedTasksGOB(id string) (map[string][]byte, e
 }
 
 // See docs for ModifiedTasks interface.
-func (m *ModifiedTasksImpl) TrackModifiedTask(t *Task) {
+func (m *ModifiedTasksImpl) TrackModifiedTask(t *types.Task) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
 		sklog.Fatal(err)
@@ -171,12 +173,12 @@ type ModifiedJobsImpl struct {
 }
 
 // See docs for ModifiedJobs interface.
-func (m *ModifiedJobsImpl) GetModifiedJobs(id string) ([]*Job, error) {
+func (m *ModifiedJobsImpl) GetModifiedJobs(id string) ([]*types.Job, error) {
 	jobs, err := m.m.GetModifiedEntries(id)
 	if err != nil {
 		return nil, err
 	}
-	d := JobDecoder{}
+	d := types.JobDecoder{}
 	for _, g := range jobs {
 		if !d.Process(g) {
 			break
@@ -186,7 +188,7 @@ func (m *ModifiedJobsImpl) GetModifiedJobs(id string) ([]*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	sort.Sort(JobSlice(rv))
+	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
@@ -196,7 +198,7 @@ func (m *ModifiedJobsImpl) GetModifiedJobsGOB(id string) (map[string][]byte, err
 }
 
 // See docs for ModifiedJobs interface.
-func (m *ModifiedJobsImpl) TrackModifiedJob(j *Job) {
+func (m *ModifiedJobsImpl) TrackModifiedJob(j *types.Job) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(j); err != nil {
 		sklog.Fatal(err)
@@ -219,5 +221,5 @@ func (m *ModifiedJobsImpl) StopTrackingModifiedJobs(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
 
-var _ ModifiedTasks = &ModifiedTasksImpl{}
-var _ ModifiedJobs = &ModifiedJobsImpl{}
+var _ db.ModifiedTasks = &ModifiedTasksImpl{}
+var _ db.ModifiedJobs = &ModifiedJobsImpl{}

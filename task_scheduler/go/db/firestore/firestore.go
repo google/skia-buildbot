@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"golang.org/x/oauth2"
 )
 
@@ -55,8 +56,8 @@ type firestoreDB struct {
 
 	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
 	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
-	db.ModifiedTasksImpl
-	db.ModifiedJobsImpl
+	db.ModifiedTasks
+	db.ModifiedJobs
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage. The parentDoc
@@ -69,7 +70,9 @@ func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource)
 		return nil, err
 	}
 	return &firestoreDB{
-		client: client,
+		client:        client,
+		ModifiedTasks: &modified.ModifiedTasksImpl{},
+		ModifiedJobs:  &modified.ModifiedJobsImpl{},
 	}, nil
 }
 

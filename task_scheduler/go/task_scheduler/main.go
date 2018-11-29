@@ -40,6 +40,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -361,17 +362,17 @@ func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
 
 	j, _, c := ts.RecentSpecsAndCommits()
 	page := struct {
-		Repos    []string       `json:"recent_repos"`
-		JobSpecs []string       `json:"recent_job_names"`
-		Commits  []string       `json:"recent_commits"`
-		Servers  []string       `json:"recent_servers"`
-		Statuses []db.JobStatus `json:"valid_statuses"`
+		Repos    []string          `json:"recent_repos"`
+		JobSpecs []string          `json:"recent_job_names"`
+		Commits  []string          `json:"recent_commits"`
+		Servers  []string          `json:"recent_servers"`
+		Statuses []types.JobStatus `json:"valid_statuses"`
 	}{
 		Repos:    *repoUrls,
 		JobSpecs: j,
 		Commits:  c,
 		Servers:  []string{gerrit.GERRIT_SKIA_URL},
-		Statuses: db.VALID_JOB_STATUSES,
+		Statuses: types.VALID_JOB_STATUSES,
 	}
 	if err := jobSearchTemplate.Execute(w, &page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
@@ -445,7 +446,7 @@ func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var task db.Task
+	var task types.Task
 	if err := json.NewDecoder(bytes.NewReader(data)).Decode(&task); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
