@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "06d76381_06d63f6e",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-29T13:04:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b316dbd0_7d59ceb9",
+      "range": {
+        "startLine": 155,
+        "startChar": 1,
+        "endLine": 155,
+        "endChar": 7
+      },
+      "revId": "068b44097e64af4e236f879d728c1bfbf0fa0727",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b7c9fa11_2234434c",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "61d2136b_41d88203",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-29T13:04:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7c9fa11_2234434c",
+      "range": {
+        "startLine": 164,
+        "startChar": 4,
+        "endLine": 164,
+        "endChar": 38
+      },
+      "revId": "068b44097e64af4e236f879d728c1bfbf0fa0727",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b8812e27_a6b96a2a",
         "filename": "task_scheduler/go/db/pubsub/modified.go",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "068b44097e64af4e236f879d728c1bfbf0fa0727",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84098d56_53bcb2a5",
+        "filename": "task_scheduler/go/db/pubsub/modified.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-29T13:04:50Z",
+      "side": 1,
+      "message": "Good idea. Done. It\u0027s reasonable to delete the subscriber, since the existing implementation of ModifiedTasks deletes them after 30 minutes of inactivity.",
+      "parentUuid": "b8812e27_a6b96a2a",
+      "range": {
+        "startLine": 166,
+        "startChar": 39,
+        "endLine": 166,
+        "endChar": 40
+      },
+      "revId": "068b44097e64af4e236f879d728c1bfbf0fa0727",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
