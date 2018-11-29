@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4cdb965c_fa8e3afe",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T14:03:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e0e7140_88c250d9",
+      "range": {
+        "startLine": 114,
+        "startChar": 42,
+        "endLine": 114,
+        "endChar": 65
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f7ce72f7_fbded365",
         "filename": "ct/go/util/mail.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d223a7b_7da4514a",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T14:03:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f7ce72f7_fbded365",
+      "range": {
+        "startLine": 115,
+        "startChar": 18,
+        "endLine": 115,
+        "endChar": 32
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "d61e02b4_3087c9d2",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T14:03:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dcc5eadf_0c6743c6",
+      "range": {
+        "startLine": 116,
+        "startChar": 5,
+        "endLine": 116,
+        "endChar": 11
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "312c9aeb_bdabf20f",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T14:03:00Z",
+      "side": 1,
+      "message": "No longer needed.",
+      "parentUuid": "0dc1f399_19e3c415",
+      "range": {
+        "startLine": 116,
+        "startChar": 51,
+        "endLine": 116,
+        "endChar": 52
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2347d691_d61a62a4",
         "filename": "ct/go/util/mail.go",
         "patchSetId": 2
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "78edaacc_24a7b2d7",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T14:03:00Z",
+      "side": 1,
+      "message": "That makes sense. Done.",
+      "parentUuid": "2347d691_d61a62a4",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 16
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d75e48c9_8b5df64a",
         "filename": "ct/go/util/mail.go",
         "patchSetId": 2
@@ -137,6 +257,30 @@
       "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b77e2e3_7eb8a825",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T14:03:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d75e48c9_8b5df64a",
+      "range": {
+        "startLine": 120,
+        "startChar": 3,
+        "endLine": 120,
+        "endChar": 12
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
