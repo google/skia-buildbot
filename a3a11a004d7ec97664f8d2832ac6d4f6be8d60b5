@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "34c26344_6a9a5b31",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-29T21:37:13Z",
+      "side": 1,
+      "message": "still needed?\n\nmany other no-op package aliases in this CL",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 7
+      },
+      "revId": "a3a11a004d7ec97664f8d2832ac6d4f6be8d60b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
