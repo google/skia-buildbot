@@ -292,6 +292,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 	commitMsg := buf.String()
+	sklog.Infof("COMMIT MESSAGE IS: %s", commitMsg)
 
 	versions, err := rm.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
 	if err != nil {
@@ -327,7 +328,10 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Grab the first line of the commit msg to use as the title of the pull request.
 	title := strings.Split(commitMsg, "\n")[0]
 	// Use the remaining part of the commit message as the pull request description.
+	sklog.Infof("COMMIT MESSAGE IS: %s", commitMsg)
 	descComment := strings.Split(commitMsg, "\n")[1:]
+	sklog.Infof("COMMIT MESSAGE IS: %s", descComment)
+	sklog.Infof("COMMIT MESSAGE IS: %s", strings.Join(descComment, "\n"))
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", strings.Split(rm.user, "@")[0], ROLL_BRANCH)
 	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
