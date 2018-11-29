@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73ecfb22_dfb47b13",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-29T14:50:48Z",
+      "side": 1,
+      "message": "Switching to backtick quoting means backslash is not an escape char. x4",
+      "range": {
+        "startLine": 118,
+        "startChar": 20,
+        "endLine": 118,
+        "endChar": 21
+      },
+      "revId": "54f8eef4a68937a360b696e96ceec64e59cb48ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

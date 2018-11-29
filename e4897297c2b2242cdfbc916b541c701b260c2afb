@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "55f068ac_a2cd700e",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-11-29T14:50:48Z",
+      "side": 1,
+      "message": "Not sure what you mean. GMail seems to fix it for you though.",
+      "parentUuid": "312c9aeb_bdabf20f",
+      "range": {
+        "startLine": 116,
+        "startChar": 51,
+        "endLine": 116,
+        "endChar": 52
+      },
+      "revId": "e4897297c2b2242cdfbc916b541c701b260c2afb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2347d691_d61a62a4",
         "filename": "ct/go/util/mail.go",
         "patchSetId": 2
