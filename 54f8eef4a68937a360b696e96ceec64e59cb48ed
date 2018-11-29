@@ -46,6 +46,30 @@
       "revId": "54f8eef4a68937a360b696e96ceec64e59cb48ed",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d74d0617_9926d06f",
+        "filename": "ct/go/util/mail.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-11-29T15:23:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90578978_4c4e08e7",
+      "range": {
+        "startLine": 118,
+        "startChar": 20,
+        "endLine": 118,
+        "endChar": 21
+      },
+      "revId": "54f8eef4a68937a360b696e96ceec64e59cb48ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
