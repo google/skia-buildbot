@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type entry struct {
@@ -226,14 +227,14 @@ func NewModifiedTasks(c *pubsub.Client, topic, label string) (db.ModifiedTasks, 
 }
 
 // See documentation for db.ModifiedTasks interface.
-func (c *taskClient) GetModifiedTasks(id string) ([]*db.Task, error) {
+func (c *taskClient) GetModifiedTasks(id string) ([]*types.Task, error) {
 	gobs, err := c.GetModifiedTasksGOB(id)
 	if err != nil {
 		return nil, err
 	}
-	rv := make([]*db.Task, 0, len(gobs))
+	rv := make([]*types.Task, 0, len(gobs))
 	for _, g := range gobs {
-		var t db.Task
+		var t types.Task
 		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&t); err != nil {
 			// We didn't attempt to decode the blob in the pubsub
 			// message when we received it. Ignore this task.
@@ -242,7 +243,7 @@ func (c *taskClient) GetModifiedTasks(id string) ([]*db.Task, error) {
 			rv = append(rv, &t)
 		}
 	}
-	sort.Sort(db.TaskSlice(rv))
+	sort.Sort(types.TaskSlice(rv))
 	return rv, nil
 }
 
@@ -262,7 +263,7 @@ func (c *taskClient) StopTrackingModifiedTasks(id string) {
 }
 
 // See documentation for db.ModifiedTasks interface.
-func (c *taskClient) TrackModifiedTask(t *db.Task) {
+func (c *taskClient) TrackModifiedTask(t *types.Task) {
 	c.publisher.publish(t.Id, t.DbModified, t)
 }
 
@@ -291,14 +292,14 @@ func NewModifiedJobs(c *pubsub.Client, topic, label string) (db.ModifiedJobs, er
 }
 
 // See documentation for db.ModifiedJobs interface.
-func (c *jobClient) GetModifiedJobs(id string) ([]*db.Job, error) {
+func (c *jobClient) GetModifiedJobs(id string) ([]*types.Job, error) {
 	gobs, err := c.GetModifiedJobsGOB(id)
 	if err != nil {
 		return nil, err
 	}
-	rv := make([]*db.Job, 0, len(gobs))
+	rv := make([]*types.Job, 0, len(gobs))
 	for _, g := range gobs {
-		var j db.Job
+		var j types.Job
 		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&j); err != nil {
 			// We didn't attempt to decode the blob in the pubsub
 			// message when we received it. Ignore this job.
@@ -307,7 +308,7 @@ func (c *jobClient) GetModifiedJobs(id string) ([]*db.Job, error) {
 			rv = append(rv, &j)
 		}
 	}
-	sort.Sort(db.JobSlice(rv))
+	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
@@ -327,7 +328,7 @@ func (c *jobClient) StopTrackingModifiedJobs(id string) {
 }
 
 // See documentation for db.ModifiedJobs interface.
-func (c *jobClient) TrackModifiedJob(j *db.Job) {
+func (c *jobClient) TrackModifiedJob(j *types.Job) {
 	c.publisher.publish(j.Id, j.DbModified, j)
 }
 

@@ -13,14 +13,14 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // tasksPerCommitCache is a struct used for caching the number of task specs
 // for various commits.
 type tasksPerCommitCache struct {
-	cached map[db.RepoState]int
+	cached map[types.RepoState]int
 	mtx    sync.Mutex
 	period time.Duration
 	repos  repograph.Map
@@ -56,7 +56,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []stri
 		return nil, err
 	}
 	c := &tasksPerCommitCache{
-		cached: map[db.RepoState]int{},
+		cached: map[types.RepoState]int{},
 		period: period,
 		repos:  repos,
 		tcc:    tcc,
@@ -70,7 +70,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []stri
 }
 
 // Get returns the number of tasks expected to run at the given commit.
-func (c *tasksPerCommitCache) Get(ctx context.Context, rs db.RepoState) (int, error) {
+func (c *tasksPerCommitCache) Get(ctx context.Context, rs types.RepoState) (int, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 

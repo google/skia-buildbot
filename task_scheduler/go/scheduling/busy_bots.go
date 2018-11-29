@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/trie"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -152,7 +152,7 @@ func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskResult) 
 
 	b.pendingTasks = trie.New()
 	for _, t := range pending {
-		dims := db.DimensionsFromTags(t.Tags)
+		dims := types.DimensionsFromTags(t.Tags)
 		b.pendingTasks.Insert(dims, t.TaskId)
 	}
 }

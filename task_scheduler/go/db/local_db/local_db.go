@@ -18,6 +18,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/modified"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -228,8 +230,8 @@ type localDB struct {
 
 	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
 	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
-	db.ModifiedTasksImpl
-	db.ModifiedJobsImpl
+	modified.ModifiedTasksImpl
+	modified.ModifiedJobsImpl
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -393,7 +395,7 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 		}
 	}()
 
-	comments := map[string]*db.RepoComments{}
+	comments := map[string]*types.RepoComments{}
 
 	if err := d.update("NewDB", func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(BUCKET_TASKS)); err != nil {
@@ -456,7 +458,7 @@ func (d *localDB) Close() error {
 }
 
 // Sets t.Id either based on t.Created or now. tx must be an update transaction.
-func (d *localDB) assignTaskId(tx *bolt.Tx, t *db.Task, now time.Time) error {
+func (d *localDB) assignTaskId(tx *bolt.Tx, t *types.Task, now time.Time) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -475,7 +477,7 @@ func (d *localDB) assignTaskId(tx *bolt.Tx, t *db.Task, now time.Time) error {
 }
 
 // See docs for TaskDB interface.
-func (d *localDB) AssignId(t *db.Task) error {
+func (d *localDB) AssignId(t *types.Task) error {
 	oldId := t.Id
 	err := d.update("AssignId", func(tx *bolt.Tx) error {
 		return d.assignTaskId(tx, t, time.Now())
@@ -487,9 +489,9 @@ func (d *localDB) AssignId(t *db.Task) error {
 }
 
 // See docs for TaskDB interface.
-func (d *localDB) GetTaskById(id string) (*db.Task, error) {
+func (d *localDB) GetTaskById(id string) (*types.Task, error) {
 	d.metricReadTaskQueries.Inc(1)
-	var rv *db.Task
+	var rv *types.Task
 	if err := d.view("GetTaskById", func(tx *bolt.Tx) error {
 		value := tasksBucket(tx).Get([]byte(id))
 		if value == nil {
@@ -499,7 +501,7 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 		if err != nil {
 			return err
 		}
-		var t db.Task
+		var t types.Task
 		if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&t); err != nil {
 			return err
 		}
@@ -519,11 +521,11 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 }
 
 // See docs for TaskDB interface.
-func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*db.Task, error) {
+func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
 	d.metricReadTaskQueries.Inc(1)
 	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.Add(MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
-	decoder := db.TaskDecoder{}
+	decoder := types.TaskDecoder{}
 	if err := d.view("GetTasksFromDateRange", func(tx *bolt.Tx) error {
 		c := tasksBucket(tx).Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
@@ -545,7 +547,7 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*d
 	if err != nil {
 		return nil, err
 	}
-	sort.Sort(db.TaskSlice(result))
+	sort.Sort(types.TaskSlice(result))
 	// The Tasks retrieved based on Id timestamp may include Tasks with Created
 	// time before/after the desired range.
 	// TODO(benjaminwagner): Biased binary search might be faster.
@@ -561,7 +563,7 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*d
 		d.metricReadTaskRows.Inc(int64(endIdx - startIdx))
 		return result[startIdx:endIdx], nil
 	}
-	rv := make([]*db.Task, 0, len(result[startIdx:endIdx]))
+	rv := make([]*types.Task, 0, len(result[startIdx:endIdx]))
 	for _, t := range result[startIdx:endIdx] {
 		if t.Repo == repo {
 			rv = append(rv, t)
@@ -572,13 +574,13 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*d
 }
 
 // See documentation for TaskDB interface.
-func (d *localDB) PutTask(t *db.Task) error {
-	return d.PutTasks([]*db.Task{t})
+func (d *localDB) PutTask(t *types.Task) error {
+	return d.PutTasks([]*types.Task{t})
 }
 
 // validateTask returns an error if the task can not be inserted into the DB.
 // Does not modify task.
-func (d *localDB) validateTask(task *db.Task) error {
+func (d *localDB) validateTask(task *types.Task) error {
 	if util.TimeIsZero(task.Created) {
 		return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
 	}
@@ -598,7 +600,7 @@ func (d *localDB) validateTask(task *db.Task) error {
 }
 
 // See documentation for TaskDB interface.
-func (d *localDB) PutTasks(tasks []*db.Task) error {
+func (d *localDB) PutTasks(tasks []*types.Task) error {
 	d.metricWriteTaskQueries.Inc(1)
 	// If there is an error during the transaction, we should leave the tasks
 	// unchanged. Save the old Ids and DbModified times since we set them below.
@@ -628,7 +630,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 	err := d.update("PutTasks", func(tx *bolt.Tx) error {
 		bucket := tasksBucket(tx)
 		// Assign Ids and encode.
-		e := db.TaskEncoder{}
+		e := types.TaskEncoder{}
 		now = time.Now().UTC()
 		for _, t := range tasks {
 			if t.Id == "" {
@@ -677,7 +679,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 }
 
 // Sets job.Id based on job.Created. tx must be an update transaction.
-func (d *localDB) assignJobId(tx *bolt.Tx, job *db.Job) error {
+func (d *localDB) assignJobId(tx *bolt.Tx, job *types.Job) error {
 	if job.Id != "" {
 		return fmt.Errorf("Job Id already assigned: %v", job.Id)
 	}
@@ -694,9 +696,9 @@ func (d *localDB) assignJobId(tx *bolt.Tx, job *db.Job) error {
 }
 
 // See docs for JobDB interface.
-func (d *localDB) GetJobById(id string) (*db.Job, error) {
+func (d *localDB) GetJobById(id string) (*types.Job, error) {
 	d.metricReadJobQueries.Inc(1)
-	var rv *db.Job
+	var rv *types.Job
 	if err := d.view("GetJobById", func(tx *bolt.Tx) error {
 		value := jobsBucket(tx).Get([]byte(id))
 		if value == nil {
@@ -706,7 +708,7 @@ func (d *localDB) GetJobById(id string) (*db.Job, error) {
 		if err != nil {
 			return err
 		}
-		var job db.Job
+		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&job); err != nil {
 			return err
 		}
@@ -726,11 +728,11 @@ func (d *localDB) GetJobById(id string) (*db.Job, error) {
 }
 
 // See docs for JobDB interface.
-func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) {
+func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
 	d.metricReadJobQueries.Inc(1)
 	min := []byte(start.UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
-	decoder := db.JobDecoder{}
+	decoder := types.JobDecoder{}
 	if err := d.view("GetJobsFromDateRange", func(tx *bolt.Tx) error {
 		c := jobsBucket(tx).Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
@@ -752,19 +754,19 @@ func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) 
 	if err != nil {
 		return nil, err
 	}
-	sort.Sort(db.JobSlice(result))
+	sort.Sort(types.JobSlice(result))
 	d.metricReadJobRows.Inc(int64(len(result)))
 	return result, nil
 }
 
 // See documentation for JobDB interface.
-func (d *localDB) PutJob(job *db.Job) error {
-	return d.PutJobs([]*db.Job{job})
+func (d *localDB) PutJob(job *types.Job) error {
+	return d.PutJobs([]*types.Job{job})
 }
 
 // validateJob returns an error if the job can not be inserted into the DB. Does not
 // modify job.
-func (d *localDB) validateJob(job *db.Job) error {
+func (d *localDB) validateJob(job *types.Job) error {
 	if util.TimeIsZero(job.Created) {
 		return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
 	}
@@ -781,7 +783,7 @@ func (d *localDB) validateJob(job *db.Job) error {
 }
 
 // See documentation for JobDB interface.
-func (d *localDB) PutJobs(jobs []*db.Job) error {
+func (d *localDB) PutJobs(jobs []*types.Job) error {
 	d.metricWriteJobQueries.Inc(1)
 	// If there is an error during the transaction, we should leave the jobs
 	// unchanged. Save the old Ids and DbModified times since we set them below.
@@ -809,7 +811,7 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 	err := d.update("PutJobs", func(tx *bolt.Tx) error {
 		bucket := jobsBucket(tx)
 		// Assign Ids and encode.
-		e := db.JobEncoder{}
+		e := types.JobEncoder{}
 		now = time.Now().UTC()
 		for _, job := range jobs {
 			if job.Id == "" {
@@ -859,7 +861,7 @@ func (d *localDB) PutJobs(jobs []*db.Job) error {
 
 // writeCommentsMap is passed to db.NewCommentBoxWithPersistence to persist
 // comments after every change. Updates the value stored in BUCKET_COMMENTS.
-func (d *localDB) writeCommentsMap(comments map[string]*db.RepoComments) error {
+func (d *localDB) writeCommentsMap(comments map[string]*types.RepoComments) error {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(comments); err != nil {
 		return err

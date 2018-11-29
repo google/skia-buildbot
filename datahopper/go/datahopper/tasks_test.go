@@ -11,11 +11,13 @@ import (
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // Create a db.TaskDB and taskEventDB.
 func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB) {
-	tdb := db.NewInMemoryTaskDB()
+	tdb := memory.NewInMemoryTaskDB()
 	edb := &taskEventDB{
 		cached: []*events.Event{},
 		db:     tdb,
@@ -24,10 +26,10 @@ func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB) {
 }
 
 // makeTask returns a fake task with only the fields relevant to this test set.
-func makeTask(created time.Time, name string, status db.TaskStatus) *db.Task {
-	task := &db.Task{
+func makeTask(created time.Time, name string, status types.TaskStatus) *types.Task {
+	task := &types.Task{
 		Created: created,
-		TaskKey: db.TaskKey{
+		TaskKey: types.TaskKey{
 			Name: name,
 		},
 		Status: status,
@@ -36,9 +38,9 @@ func makeTask(created time.Time, name string, status db.TaskStatus) *db.Task {
 }
 
 // assertTaskEvent checks that ev.Data contains task.
-func assertTaskEvent(t *testing.T, ev *events.Event, task *db.Task) {
+func assertTaskEvent(t *testing.T, ev *events.Event, task *types.Task) {
 	assert.Equal(t, TASK_STREAM, ev.Stream)
-	var other db.Task
+	var other types.Task
 	assert.NoError(t, gob.NewDecoder(bytes.NewReader(ev.Data)).Decode(&other))
 	deepequal.AssertDeepEqual(t, task, &other)
 	assert.True(t, task.Created.Equal(ev.Timestamp))
@@ -50,17 +52,17 @@ func TestTaskUpdate(t *testing.T) {
 	now := time.Now()
 	edb, tdb := setupTasks(t, now)
 	start := now.Add(-TIME_PERIODS[len(TIME_PERIODS)-1])
-	tasks := []*db.Task{
+	tasks := []*types.Task{
 		// 0: Filtered out -- too early.
-		makeTask(start.Add(-time.Minute), "A", db.TASK_STATUS_SUCCESS),
-		makeTask(start.Add(time.Minute), "A", db.TASK_STATUS_SUCCESS),
-		makeTask(start.Add(2*time.Minute), "A", db.TASK_STATUS_FAILURE),
+		makeTask(start.Add(-time.Minute), "A", types.TASK_STATUS_SUCCESS),
+		makeTask(start.Add(time.Minute), "A", types.TASK_STATUS_SUCCESS),
+		makeTask(start.Add(2*time.Minute), "A", types.TASK_STATUS_FAILURE),
 		// 3: Filtered out -- not Done.
-		makeTask(start.Add(3*time.Minute), "A", db.TASK_STATUS_RUNNING),
-		makeTask(start.Add(4*time.Minute), "A", db.TASK_STATUS_MISHAP),
-		makeTask(start.Add(5*time.Minute), "A", db.TASK_STATUS_FAILURE),
-		makeTask(start.Add(6*time.Minute), "B", db.TASK_STATUS_SUCCESS),
-		makeTask(start.Add(7*time.Minute), "A", db.TASK_STATUS_SUCCESS),
+		makeTask(start.Add(3*time.Minute), "A", types.TASK_STATUS_RUNNING),
+		makeTask(start.Add(4*time.Minute), "A", types.TASK_STATUS_MISHAP),
+		makeTask(start.Add(5*time.Minute), "A", types.TASK_STATUS_FAILURE),
+		makeTask(start.Add(6*time.Minute), "B", types.TASK_STATUS_SUCCESS),
+		makeTask(start.Add(7*time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
 	assert.NoError(t, tdb.PutTasks(tasks))
 	assert.NoError(t, edb.update())
@@ -80,11 +82,11 @@ func TestTaskRange(t *testing.T) {
 	now := time.Now()
 	edb, tdb := setupTasks(t, now)
 	base := now.Add(-time.Hour)
-	tasks := []*db.Task{
-		makeTask(base.Add(-time.Nanosecond), "A", db.TASK_STATUS_SUCCESS),
-		makeTask(base, "A", db.TASK_STATUS_SUCCESS),
-		makeTask(base.Add(time.Nanosecond), "A", db.TASK_STATUS_SUCCESS),
-		makeTask(base.Add(time.Minute), "A", db.TASK_STATUS_SUCCESS),
+	tasks := []*types.Task{
+		makeTask(base.Add(-time.Nanosecond), "A", types.TASK_STATUS_SUCCESS),
+		makeTask(base, "A", types.TASK_STATUS_SUCCESS),
+		makeTask(base.Add(time.Nanosecond), "A", types.TASK_STATUS_SUCCESS),
+		makeTask(base.Add(time.Minute), "A", types.TASK_STATUS_SUCCESS),
 	}
 	assert.NoError(t, tdb.PutTasks(tasks))
 	assert.NoError(t, edb.update())
@@ -139,7 +141,7 @@ func TestComputeTaskFlakeRate(t *testing.T) {
 	}
 
 	taskCount := 0
-	addTask := func(name, commit string, status db.TaskStatus) {
+	addTask := func(name, commit string, status types.TaskStatus) {
 		taskCount++
 		task := makeTask(created, name, status)
 		task.Revision = commit
@@ -147,54 +149,54 @@ func TestComputeTaskFlakeRate(t *testing.T) {
 	}
 	{
 		name := "NoFlakes"
-		addTask(name, "a", db.TASK_STATUS_SUCCESS)
-		addTask(name, "b", db.TASK_STATUS_SUCCESS)
-		addTask(name, "c", db.TASK_STATUS_SUCCESS)
-		addTask(name, "d", db.TASK_STATUS_FAILURE)
-		addTask(name, "d", db.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_SUCCESS)
+		addTask(name, "b", types.TASK_STATUS_SUCCESS)
+		addTask(name, "c", types.TASK_STATUS_SUCCESS)
+		addTask(name, "d", types.TASK_STATUS_FAILURE)
+		addTask(name, "d", types.TASK_STATUS_FAILURE)
 		expect(name, "flake-rate", 0, 5)
 	}
 	{
 		name := "Mishaps"
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "b", db.TASK_STATUS_FAILURE)
-		addTask(name, "c", db.TASK_STATUS_FAILURE)
-		addTask(name, "c", db.TASK_STATUS_MISHAP)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "b", types.TASK_STATUS_FAILURE)
+		addTask(name, "c", types.TASK_STATUS_FAILURE)
+		addTask(name, "c", types.TASK_STATUS_MISHAP)
 		expect(name, "flake-rate", 1, 4)
 	}
 	{
 		name := "RetrySucceeded"
-		addTask(name, "a", db.TASK_STATUS_SUCCESS)
-		addTask(name, "b", db.TASK_STATUS_FAILURE)
-		addTask(name, "b", db.TASK_STATUS_SUCCESS)
+		addTask(name, "a", types.TASK_STATUS_SUCCESS)
+		addTask(name, "b", types.TASK_STATUS_FAILURE)
+		addTask(name, "b", types.TASK_STATUS_SUCCESS)
 		expect(name, "flake-rate", 1, 3)
 	}
 	{
 		name := "RetryFailed"
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
 		expect(name, "flake-rate", 0, 2)
 	}
 	{
 		name := "Mix"
-		addTask(name, "a", db.TASK_STATUS_SUCCESS)
-		addTask(name, "b", db.TASK_STATUS_FAILURE)
-		addTask(name, "c", db.TASK_STATUS_FAILURE)
-		addTask(name, "b", db.TASK_STATUS_FAILURE)
-		addTask(name, "c", db.TASK_STATUS_SUCCESS)
-		addTask(name, "d", db.TASK_STATUS_MISHAP)
-		addTask(name, "d", db.TASK_STATUS_SUCCESS)
+		addTask(name, "a", types.TASK_STATUS_SUCCESS)
+		addTask(name, "b", types.TASK_STATUS_FAILURE)
+		addTask(name, "c", types.TASK_STATUS_FAILURE)
+		addTask(name, "b", types.TASK_STATUS_FAILURE)
+		addTask(name, "c", types.TASK_STATUS_SUCCESS)
+		addTask(name, "d", types.TASK_STATUS_MISHAP)
+		addTask(name, "d", types.TASK_STATUS_SUCCESS)
 		expect(name, "flake-rate", 2, 7)
 	}
 	{
 		name := "LongRetryChain"
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_FAILURE)
-		addTask(name, "a", db.TASK_STATUS_SUCCESS)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_FAILURE)
+		addTask(name, "a", types.TASK_STATUS_SUCCESS)
 		expect(name, "flake-rate", 6, 7)
 	}
 

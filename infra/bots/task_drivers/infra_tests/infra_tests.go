@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/task_driver/go/lib/checkout"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -117,10 +117,10 @@ func main() {
 
 	// Check out code.
 	*repo = strings.TrimSuffix(*repo, ".git")
-	repoState := db.RepoState{
+	repoState := types.RepoState{
 		Repo:     *repo,
 		Revision: *revision,
-		Patch: db.Patch{
+		Patch: types.Patch{
 			Issue:    *patchIssue,
 			Patchset: *patchSet,
 			Server:   *patchServer,
