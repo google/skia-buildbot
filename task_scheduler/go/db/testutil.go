@@ -1725,8 +1725,10 @@ func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
 
 	// Make several more modifications.
 	j1.Status = JOB_STATUS_IN_PROGRESS
+	j1.DbModified = j1.DbModified.Add(time.Second)
 	m.TrackModifiedJob(j1)
 	j1.Status = JOB_STATUS_SUCCESS
+	j1.DbModified = j1.DbModified.Add(time.Second)
 	m.TrackModifiedJob(j1)
 
 	// Ensure that the task shows up only once in the modified list and is

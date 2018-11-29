@@ -30,7 +30,7 @@ type modifiedClient struct {
 
 	// Protects subscribers and modified data.
 	mtx         sync.Mutex
-	modified    map[string]map[string]entry
+	modified    map[string]map[string]*entry
 	subscribers map[string]context.CancelFunc
 	senderId    map[string]string
 	errors      map[string]error
@@ -47,7 +47,7 @@ func newModifiedClient(c *pubsub.Client, topic, subscriberLabel string) (*modifi
 		publisher:   publisher,
 		topic:       topic,
 		label:       subscriberLabel,
-		modified:    map[string]map[string]entry{},
+		modified:    map[string]map[string]*entry{},
 		subscribers: map[string]context.CancelFunc{},
 		senderId:    map[string]string{},
 		errors:      map[string]error{},
@@ -66,10 +66,12 @@ func (c *modifiedClient) getModifiedData(id string) (map[string][]byte, error) {
 	if !ok {
 		return nil, db.ErrUnknownId
 	}
-	c.modified[id] = map[string]entry{}
-	rv := make(map[string][]byte, len(mod))
+	rv := map[string][]byte{}
 	for k, v := range mod {
-		rv[k] = v.data
+		if v.data != nil {
+			rv[k] = v.data
+			v.data = nil
+		}
 	}
 	return rv, nil
 }
@@ -123,8 +125,8 @@ func (c *modifiedClient) startTrackingModifiedData() (string, error) {
 		}
 		prev, ok := c.modified[id][dataId]
 		if !ok || prev.ts.Before(dbModified) {
-			c.modified[id][dataId] = entry{
-				ts:   m.PublishTime,
+			c.modified[id][dataId] = &entry{
+				ts:   dbModified,
 				data: m.Data,
 			}
 		} else {
@@ -140,14 +142,54 @@ func (c *modifiedClient) startTrackingModifiedData() (string, error) {
 	id = s.SubscriberID()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.modified[id] = map[string]entry{}
+	c.modified[id] = map[string]*entry{}
 
 	// Start receiving pubsub messages.
 	cancel, err := s.start()
 	if err != nil {
 		return "", err
 	}
-	c.subscribers[id] = cancel
+
+	// Delete old entries.
+	doneCh := make(chan bool)
+	cleanup := func() {
+		cancel()
+		delete(c.modified, id)
+		delete(c.subscribers, id)
+		delete(c.senderId, id)
+		delete(c.errors, id)
+	}
+	go func() {
+		ticker := time.NewTicker(10 * time.Minute)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-doneCh:
+				return
+			case <-ticker.C:
+				c.mtx.Lock()
+				now := time.Now()
+				entries := c.modified[id]
+				for entryId, entry := range entries {
+					if now.Sub(entry.ts) > time.Hour {
+						if entry.data == nil {
+							delete(entries, entryId)
+						} else {
+							// If the client hasn't called GetModified in over an hour,
+							// assume that something is wrong and delete the subscriber.
+							// The next call to GetModified will return an error.
+							cleanup()
+						}
+					}
+				}
+				c.mtx.Unlock()
+			}
+		}
+	}()
+	c.subscribers[id] = func() {
+		doneCh <- true
+		cleanup()
+	}
 	return id, nil
 }
 
@@ -162,10 +204,6 @@ func (c *modifiedClient) stopTrackingModifiedData(id string) {
 		return
 	}
 	cancel()
-	delete(c.modified, id)
-	delete(c.subscribers, id)
-	delete(c.senderId, id)
-	delete(c.errors, id)
 }
 
 // taskClient implements db.ModifiedTasks using pubsub.
@@ -178,9 +216,7 @@ type taskClient struct {
 // subscriberLabel is included in the subscription ID, along with a timestamp;
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
-// ModifiedTasks, unique to each instance. It is important to note that, since
-// pubsub messages may arrive out of order, it is possible for GetModifiedTasks
-// to return an older version of a task than was returned in a previous call.
+// ModifiedTasks, unique to each instance.
 func NewModifiedTasks(c *pubsub.Client, topic, label string) (db.ModifiedTasks, error) {
 	mc, err := newModifiedClient(c, topic, label)
 	if err != nil {
@@ -245,9 +281,7 @@ type jobClient struct {
 // subscriberLabel is included in the subscription ID, along with a timestamp;
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
-// ModifiedJobs, unique to each instance. It is important to note that, since
-// pubsub messages may arrive out of order, it is possible for GetModifiedJobs
-// to return an older version of a job than was returned in a previous call.
+// ModifiedJobs, unique to each instance.
 func NewModifiedJobs(c *pubsub.Client, topic, label string) (db.ModifiedJobs, error) {
 	mc, err := newModifiedClient(c, topic, label)
 	if err != nil {
