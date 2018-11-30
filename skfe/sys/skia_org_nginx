@@ -99,27 +99,18 @@ server {
     return 301 https://perf.skia.org$request_uri;
 }
 
-#####   android-perf.skia.org   ###########################
+#####   android-perf.skia.org (REDIRECT)   ###########################
 server {
-    listen      443;
+    listen 80;
+    listen 443 ssl;
+
     server_name android-perf.skia.org;
 
-    ssl on;
+    return 301 https://android-master-perf.skia.org$request_uri;
 
     access_log /var/log/nginx/android-perf.access.log;
     error_log /var/log/nginx/android-perf.error.log error;
-
-    location / {
-        proxy_pass http://skia-android-perf:8000;
-        proxy_set_header Host $host;
-    }
 }
-server {
-    listen      80;
-    server_name android-perf.skia.org;
-    return 301 https://android-perf.skia.org$request_uri;
-}
-
 
 #####   android-ingest.skia.org   ###########################
 server {
