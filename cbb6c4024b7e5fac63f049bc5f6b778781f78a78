@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c82d3cd0_0b75dbb1",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T15:03:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3d76933a_8e4e85f1",
+      "range": {
+        "startLine": 60,
+        "startChar": 9,
+        "endLine": 60,
+        "endChar": 10
+      },
+      "revId": "cbb6c4024b7e5fac63f049bc5f6b778781f78a78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da0cde3b_62a1ea2b",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-11-30T14:49:56Z",
       "side": 1,
       "message": "Now that I think about it, did you want this to be parseInt?",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 21
+      },
+      "revId": "cbb6c4024b7e5fac63f049bc5f6b778781f78a78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "392f4206_75cd88c4",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T15:03:22Z",
+      "side": 1,
+      "message": "This is converting from JSColor -\u003e HTML hex color string.  I guess casting to Number() is redundant?  Removed cast.",
+      "parentUuid": "da0cde3b_62a1ea2b",
       "range": {
         "startLine": 61,
         "startChar": 12,

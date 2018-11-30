@@ -399,6 +399,30 @@
       "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "30092e9c_0cdcd31d",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T15:03:22Z",
+      "side": 1,
+      "message": "Done.  Does nesting also provide scoping to \u003cskottie-player-sk\u003e?  I\u0027m always wary of short names for fear of clashing.",
+      "parentUuid": "999a765c_ff54896d",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 25
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
