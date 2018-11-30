@@ -9,8 +9,10 @@
  */
 import 'elements-sk/icon/pause-icon-sk'
 import 'elements-sk/icon/play-arrow-icon-sk'
+import 'elements-sk/icon/settings-icon-sk'
 import 'elements-sk/spinner-sk'
 import { html, render } from 'lit-html'
+import { repeat } from 'lit-html/directives/repeat';
 
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
@@ -21,20 +23,63 @@ const loadingTemplate = (ele) => html`
   <spinner-sk active></spinner-sk>
 </div>`;
 
-const runningTemplate = (ele) => html`
-<div class=skottie-player-wrapper>
-  <canvas class=skottie-canvas id=skottie
-          width=${ele._config.width * window.devicePixelRatio}
-          height=${ele._config.height * window.devicePixelRatio}
-          style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
-    Your browser does not support the canvas tag.
-  </canvas>
-  <div class=skottie-player-controls ?hidden=${!ele._config.controls}>
-    <play-arrow-icon-sk @click=${ele._onPlay} ?hidden=${!ele._state.paused}></play-arrow-icon-sk>
-    <pause-icon-sk @click=${ele._onPause} ?hidden=${ele._state.paused}></pause-icon-sk>
-    <input type=range min=1 max=100 @input=${ele._onScrub} @change=${ele._onScrubEnd}
-           class=skottie-player-scrubber>
+const settingsTemplate = (ele) => html`
+<div class=skottie-player-settings-container ?hidden=${!ele._state.showSettings}>
+  <div class=skottie-player-settings-row>
+    <div class=skottie-player-settings-label>Colors</div>
+    <select id=color-prop-select class=skottie-player-property-select
+            @input=${ele._onPropertySelect} ?disabled=${ele._props.color.empty()}>
+      ${repeat(ele._props.color.list, (c) => c.key, (c, index) => html`
+        <option value=${index}>${c.key}</option>
+      `)}
+    <select>
+    <input type=color class=skottie-player-picker id=color-picker
+           value=${hexColor(ele._props.color.current().value)}
+           @input=${ele._onColorInput} ?disabled=${ele._props.color.empty()}>
+    <hr class=skottie-player-settings-divider>
   </div>
+  <div class=skottie-player-settings-row>
+    <div class=skottie-player-settings-label>Opacity</div>
+    <select id=opacity-prop-select class=skottie-player-property-select
+            @input=${ele._onPropertySelect} ?disabled=${ele._props.opacity.empty()}>
+      ${repeat(ele._props.opacity.list, (o) => o.key, (o, index) => html`
+        <option value=${index}>${o.key}</option>
+      `)}
+    <select>
+    <input type=range min=0 max=100 class=skottie-player-picker id=opacity-picker
+           value=${ele._props.color.current().value}
+           @input=${ele._onOpacityInput} ?disabled=${ele._props.opacity.empty()}>
+    <hr class=skottie-player-settings-divider>
+  </div>
+  <div class=skottie-player-settings-row>
+    <input type=button value=Close @click=${ele._onSettings}>
+  </div>
+</div>
+`;
+
+function hexColor(c) {
+  let rgb = c & 0x00ffffff;
+  return '#' + rgb.toString(16).padStart(6, '0');
+}
+
+const runningTemplate = (ele) => html`
+<div class=container>
+  <div class=wrapper>
+    <canvas class=skottie-canvas id=skottie
+            width=${ele._config.width * window.devicePixelRatio}
+            height=${ele._config.height * window.devicePixelRatio}
+            style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
+      Your browser does not support the canvas tag.
+    </canvas>
+    <div class=controls ?hidden=${!ele._config.controls}>
+      <play-arrow-icon-sk @click=${ele._onPlay} ?hidden=${!ele._state.paused}></play-arrow-icon-sk>
+      <pause-icon-sk @click=${ele._onPause} ?hidden=${ele._state.paused}></pause-icon-sk>
+      <input type=range min=0 max=100 @input=${ele._onScrub} @change=${ele._onScrubEnd}
+             class=skottie-player-scrubber>
+      <settings-icon-sk @click=${ele._onSettings}></settings-icon-sk>
+    </div>
+  </div>
+  ${settingsTemplate(ele)}
 </div>`;
 
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
@@ -62,6 +107,24 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       duration:     0,     // Animation duration (ms).
       timeOrigin:   0,     // Animation start time (ms).
       seekPoint:    0,     // Normalized [0..1] animation progress.
+      showSettings: (new URL(document.location)).searchParams.has('settings'),
+    };
+
+    function PropList(list, defaultVal) {
+      this.list       = list;
+      this.defaultVal = defaultVal;
+      this.index      = 0;
+      this.empty      = () => { return !this.list.length; }
+      this.current    = () => {
+        return this.index >= this.list.length
+            ? this.defaultVal
+            : this.list[this.index];
+      }
+    };
+
+    this._props = {
+      color:   new PropList([], 0.0),
+      opacity: new PropList([], 1.0),
     };
   }
 
@@ -151,13 +214,18 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._engine.animation && this._engine.animation.delete();
 
-    this._engine.animation = this._engine.kit.MakeAnimation(JSON.stringify(lottieJSON));
+    this._engine.animation = this._engine.kit.MakeManagedAnimation(JSON.stringify(lottieJSON));
     if (!this._engine.surface) {
       throw new Error('Could not parse Lottie JSON.');
     }
 
     this._state.duration = this._engine.animation.duration() * 1000;
     this.seek(0);
+
+    this._props.color.list   = this._engine.animation.getColorProps();
+    this._props.opacity.list = this._engine.animation.getOpacityProps();
+
+    this._render(); // re-render for animation-dependent elements (properties, etc).
 
     this._drawFrame();
   }
@@ -224,5 +292,43 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       this._state.scrubPlaying = false;
       this.play();
     }
+  }
+
+  _onSettings() {
+    this._state.showSettings = !this._state.showSettings;
+    this._render();
+  }
+
+  _onPropertySelect(e) {
+    switch (e.target.id) {
+    case 'color-prop-select':
+      this._props.color.index = e.target.value;
+      this.querySelector('#color-picker').value = hexColor(this._props.color.current().value);
+      break;
+    case 'opacity-prop-select':
+      this._props.opacity.index = e.target.value;
+      this.querySelector('#opacity-picker').value = this._props.color.current().value;
+      break;
+    }
+  }
+
+  _onColorInput(e) {
+    let val = e.target.value;
+    let prop = this._props.color.current();
+    prop.value = this._engine.kit.Color(parseInt(val.substring(1, 3), 16),
+                                        parseInt(val.substring(3, 5), 16),
+                                        parseInt(val.substring(5, 7), 16),
+                                        1.0); // Treat colors as fully opaque.
+
+    this._engine.animation.setColor(prop.key, prop.value);
+    this._render();
+  }
+
+  _onOpacityInput(e) {
+    let prop = this._props.opacity.current();
+    prop.value = Number(e.target.value);
+
+    this._engine.animation.setOpacity(prop.key, prop.value);
+    this._render();
   }
 });
