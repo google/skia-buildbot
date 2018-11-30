@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
@@ -57,7 +58,7 @@ type DBBackup interface {
 	ImmediateBackup() error
 	// RetrieveJobs returns all backed-up Jobs created or modified since the given
 	// time, as a map[Job.Id]*Job. Only the most recent backup is returned.
-	RetrieveJobs(since time.Time) (map[string]*db.Job, error)
+	RetrieveJobs(since time.Time) (map[string]*types.Job, error)
 }
 
 // gsDBBackup implements DBBackup.
@@ -488,10 +489,10 @@ func downloadGOB(ctx context.Context, bucket *storage.BucketHandle, objectname s
 }
 
 // RetrieveJobs implements DBBackup.RetrieveJobs for gsDBBackup.
-func RetrieveJobs(ctx context.Context, since time.Time, gsClient *storage.Client, gsBucket string) (map[string]*db.Job, error) {
+func RetrieveJobs(ctx context.Context, since time.Time, gsClient *storage.Client, gsBucket string) (map[string]*types.Job, error) {
 	sinceDir := path.Dir(formatJobObjectName(since, "dummy")) + "/"
 	bucket := gsClient.Bucket(gsBucket)
-	rv := map[string]*db.Job{}
+	rv := map[string]*types.Job{}
 	// Iterate from today backwards to sinceDir.
 	for t := time.Now(); ; t = t.Add(-24 * time.Hour) {
 		curDir := path.Dir(formatJobObjectName(t, "dummy")) + "/"
@@ -518,7 +519,7 @@ func RetrieveJobs(ctx context.Context, since time.Time, gsClient *storage.Client
 			}
 
 			// TODO(benjaminwagner): Download and decode in parallel.
-			var job db.Job
+			var job types.Job
 			if err := downloadGOB(ctx, bucket, obj.Name, &job); err != nil {
 				return nil, fmt.Errorf("Unable to read %s/%s: %s", gsBucket, obj.Name, err)
 			}
@@ -529,6 +530,6 @@ func RetrieveJobs(ctx context.Context, since time.Time, gsClient *storage.Client
 }
 
 // See docs for DBBackup interface.
-func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*db.Job, error) {
+func (b *gsDBBackup) RetrieveJobs(since time.Time) (map[string]*types.Job, error) {
 	return RetrieveJobs(b.ctx, since, b.gsClient, b.gsBucket)
 }

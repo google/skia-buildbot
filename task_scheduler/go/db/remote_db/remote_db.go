@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -144,9 +145,9 @@ func interpretStatusCode(r *http.Response) error {
 	}
 }
 
-// writeTaskList encodes a list of db.Task to w. Writes a GOB stream; first
-// object is the number of tasks, the remaining objects are db.Tasks.
-func writeTaskList(w http.ResponseWriter, tasks []*db.Task) error {
+// writeTaskList encodes a list of types.Task to w. Writes a GOB stream; first
+// object is the number of tasks, the remaining objects are types.Tasks.
+func writeTaskList(w http.ResponseWriter, tasks []*types.Task) error {
 	w.Header().Set("Content-Type", "application/gob")
 	enc := gob.NewEncoder(w)
 	if err := enc.Encode(len(tasks)); err != nil {
@@ -162,8 +163,8 @@ func writeTaskList(w http.ResponseWriter, tasks []*db.Task) error {
 }
 
 // getTaskList sends an HTTP request to the given URL and decodes the response
-// body as a list of db.Task, as written by writeTaskList.
-func (c *client) getTaskList(url string) ([]*db.Task, error) {
+// body as a list of types.Task, as written by writeTaskList.
+func (c *client) getTaskList(url string) ([]*types.Task, error) {
 	r, err := c.client.Get(url)
 	if err != nil {
 		return nil, err
@@ -177,9 +178,9 @@ func (c *client) getTaskList(url string) ([]*db.Task, error) {
 	if err := dec.Decode(&count); err != nil {
 		return nil, err
 	}
-	rv := make([]*db.Task, count)
+	rv := make([]*types.Task, count)
 	for i := range rv {
-		var t db.Task
+		var t types.Task
 		if err := dec.Decode(&t); err != nil {
 			return nil, err
 		}
@@ -188,9 +189,9 @@ func (c *client) getTaskList(url string) ([]*db.Task, error) {
 	return rv, nil
 }
 
-// writeJobList encodes a list of db.Job to w. Writes a GOB stream; first object
-// is the number of jobs, the remaining objects are db.Jobs.
-func writeJobList(w http.ResponseWriter, jobs []*db.Job) error {
+// writeJobList encodes a list of types.Job to w. Writes a GOB stream; first object
+// is the number of jobs, the remaining objects are types.Jobs.
+func writeJobList(w http.ResponseWriter, jobs []*types.Job) error {
 	w.Header().Set("Content-Type", "application/gob")
 	enc := gob.NewEncoder(w)
 	if err := enc.Encode(len(jobs)); err != nil {
@@ -206,8 +207,8 @@ func writeJobList(w http.ResponseWriter, jobs []*db.Job) error {
 }
 
 // getJobList sends an HTTP request to the given URL and decodes the response
-// body as a list of db.Job, as written by writeJobList.
-func (c *client) getJobList(url string) ([]*db.Job, error) {
+// body as a list of types.Job, as written by writeJobList.
+func (c *client) getJobList(url string) ([]*types.Job, error) {
 	r, err := c.client.Get(url)
 	if err != nil {
 		return nil, err
@@ -221,9 +222,9 @@ func (c *client) getJobList(url string) ([]*db.Job, error) {
 	if err := dec.Decode(&count); err != nil {
 		return nil, err
 	}
-	rv := make([]*db.Job, count)
+	rv := make([]*types.Job, count)
 	for i := range rv {
-		var t db.Job
+		var t types.Job
 		if err := dec.Decode(&t); err != nil {
 			return nil, err
 		}
@@ -297,12 +298,12 @@ func (c *client) doStartTrackingModifiedDataRequest(path string) (string, error)
 	return id, nil
 }
 
-// See documentation for db.TaskReader.
+// See documentation for types.TaskReader.
 func (c *client) StartTrackingModifiedTasks() (string, error) {
 	return c.doStartTrackingModifiedDataRequest(MODIFIED_TASKS_PATH)
 }
 
-// See documentation for db.JobReader.
+// See documentation for types.JobReader.
 func (c *client) StartTrackingModifiedJobs() (string, error) {
 	return c.doStartTrackingModifiedDataRequest(MODIFIED_JOBS_PATH)
 }
@@ -360,12 +361,12 @@ func (c *client) doStopTrackingModifiedDataRequest(path, id string) {
 	}
 }
 
-// See documentation for db.TaskReader.
+// See documentation for types.TaskReader.
 func (c *client) StopTrackingModifiedTasks(id string) {
 	c.doStopTrackingModifiedDataRequest(MODIFIED_TASKS_PATH, id)
 }
 
-// See documentation for db.JobReader.
+// See documentation for types.JobReader.
 func (c *client) StopTrackingModifiedJobs(id string) {
 	c.doStopTrackingModifiedDataRequest(MODIFIED_JOBS_PATH, id)
 }
@@ -374,7 +375,7 @@ func (c *client) StopTrackingModifiedJobs(id string) {
 //   - format: must be "gob"; default "gob"
 //   - id: id returned from PostModifiedTasksHandler
 // Response is GOB stream; first object is the number of tasks, the remaining
-// objects are db.Tasks.
+// objects are types.Tasks.
 // Warning: not RESTful: the same URI will return different results each time.
 func (s *server) GetModifiedTasksHandler(w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
@@ -403,7 +404,7 @@ func (s *server) GetModifiedTasksHandler(w http.ResponseWriter, r *http.Request)
 //   - format: must be "gob"; default "gob"
 //   - id: id returned from PostModifiedJobsHandler
 // Response is GOB stream; first object is the number of jobs, the remaining
-// objects are db.Jobs.
+// objects are types.Jobs.
 // Warning: not RESTful: the same URI will return different results each time.
 func (s *server) GetModifiedJobsHandler(w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
@@ -428,8 +429,8 @@ func (s *server) GetModifiedJobsHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-// See documentation for db.TaskReader.
-func (c *client) GetModifiedTasks(id string) ([]*db.Task, error) {
+// See documentation for types.TaskReader.
+func (c *client) GetModifiedTasks(id string) ([]*types.Task, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	params.Set("id", id)
@@ -441,8 +442,8 @@ func (c *client) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
 	return nil, fmt.Errorf("GetModifiedTasksGOB is not implemented.")
 }
 
-// See documentation for db.JobReader.
-func (c *client) GetModifiedJobs(id string) ([]*db.Job, error) {
+// See documentation for types.JobReader.
+func (c *client) GetModifiedJobs(id string) ([]*types.Job, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	params.Set("id", id)
@@ -460,7 +461,7 @@ func (c *client) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
 //   - id: Task.Id; may not be repeated
 //   - from, to: nanoseconds since the Unix epoch. (base-10 string)
 // Response is GOB stream; first object is the number of tasks, the remaining
-// objects are db.Tasks.
+// objects are types.Tasks.
 func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 	if format != "" && format != "gob" {
@@ -475,7 +476,7 @@ func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, "Only lookup by id or date range is implemented. Missing id/from/to params")
 		return
 	}
-	var tasks []*db.Task
+	var tasks []*types.Task
 	if id != "" {
 		task, err := s.d.GetTaskById(id)
 		if err != nil {
@@ -483,9 +484,9 @@ func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if task == nil {
-			tasks = []*db.Task{}
+			tasks = []*types.Task{}
 		} else {
-			tasks = []*db.Task{task}
+			tasks = []*types.Task{task}
 		}
 	} else {
 		fromInt, err := strconv.ParseInt(fromStr, 10, 64)
@@ -515,8 +516,8 @@ func (s *server) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// See documentation for db.TaskReader.
-func (c *client) GetTaskById(id string) (*db.Task, error) {
+// See documentation for types.TaskReader.
+func (c *client) GetTaskById(id string) (*types.Task, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	params.Set("id", id)
@@ -533,14 +534,14 @@ func (c *client) GetTaskById(id string) (*db.Task, error) {
 	return tasks[0], nil
 }
 
-// See documentation for db.TaskReader.
-func (c *client) GetTasksFromDateRange(from time.Time, to time.Time, repo string) ([]*db.Task, error) {
+// See documentation for types.TaskReader.
+func (c *client) GetTasksFromDateRange(from time.Time, to time.Time, repo string) ([]*types.Task, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	if repo != "" {
 		params.Set("repo", repo)
 	}
-	tasks := make([]*db.Task, 0, 1024)
+	tasks := make([]*types.Task, 0, 1024)
 	if err := util.IterTimeChunks(from, to, MAX_TASK_TIME_RANGE, func(chunkStart, chunkEnd time.Time) error {
 		params.Set("from", strconv.FormatInt(chunkStart.UnixNano(), 10))
 		params.Set("to", strconv.FormatInt(chunkEnd.UnixNano(), 10))
@@ -563,7 +564,7 @@ func (c *client) GetTasksFromDateRange(from time.Time, to time.Time, repo string
 //   - id: Job.Id; may not be repeated
 //   - from, to: nanoseconds since the Unix epoch. (base-10 string)
 // Response is GOB stream; first object is the number of jobs, the remaining
-// objects are db.Jobs.
+// objects are types.Jobs.
 func (s *server) GetJobsHandler(w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 	if format != "" && format != "gob" {
@@ -577,7 +578,7 @@ func (s *server) GetJobsHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, nil, "Only lookup by id or date range is implemented. Missing id/from/to params")
 		return
 	}
-	var jobs []*db.Job
+	var jobs []*types.Job
 	if id != "" {
 		job, err := s.d.GetJobById(id)
 		if err != nil {
@@ -585,9 +586,9 @@ func (s *server) GetJobsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if job == nil {
-			jobs = []*db.Job{}
+			jobs = []*types.Job{}
 		} else {
-			jobs = []*db.Job{job}
+			jobs = []*types.Job{job}
 		}
 	} else {
 		fromInt, err := strconv.ParseInt(fromStr, 10, 64)
@@ -612,8 +613,8 @@ func (s *server) GetJobsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// See documentation for db.JobReader.
-func (c *client) GetJobById(id string) (*db.Job, error) {
+// See documentation for types.JobReader.
+func (c *client) GetJobById(id string) (*types.Job, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	params.Set("id", id)
@@ -630,8 +631,8 @@ func (c *client) GetJobById(id string) (*db.Job, error) {
 	return jobs[0], nil
 }
 
-// See documentation for db.JobReader.
-func (c *client) GetJobsFromDateRange(from time.Time, to time.Time) ([]*db.Job, error) {
+// See documentation for types.JobReader.
+func (c *client) GetJobsFromDateRange(from time.Time, to time.Time) ([]*types.Job, error) {
 	params := url.Values{}
 	params.Set("format", "gob")
 	params.Set("from", strconv.FormatInt(from.UnixNano(), 10))
@@ -643,8 +644,8 @@ func (c *client) GetJobsFromDateRange(from time.Time, to time.Time) ([]*db.Job, 
 //   - format: must be "gob"; default "gob"
 //   - repo: repo for which to return comments (may be repeated)
 //   - from (optional): nanoseconds since the Unix epoch. (base-10 string)
-// Response is GOB stream; first object is the number of db.RepoComments, the
-// remaining objects are db.RepoComments.
+// Response is GOB stream; first object is the number of types.RepoComments, the
+// remaining objects are types.RepoComments.
 func (s *server) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 	if format != "" && format != "gob" {
@@ -686,7 +687,7 @@ func (s *server) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) GetCommentsForRepos(repos []string, from time.Time) ([]*db.RepoComments, error) {
+func (c *client) GetCommentsForRepos(repos []string, from time.Time) ([]*types.RepoComments, error) {
 	params := url.Values{"repo": repos}
 	params.Set("format", "gob")
 	if !util.TimeIsZero(from) {
@@ -705,9 +706,9 @@ func (c *client) GetCommentsForRepos(repos []string, from time.Time) ([]*db.Repo
 	if err := dec.Decode(&count); err != nil {
 		return nil, err
 	}
-	rv := make([]*db.RepoComments, count)
+	rv := make([]*types.RepoComments, count)
 	for i := range rv {
-		var c db.RepoComments
+		var c types.RepoComments
 		if err := dec.Decode(&c); err != nil {
 			return nil, err
 		}
@@ -717,7 +718,7 @@ func (c *client) GetCommentsForRepos(repos []string, from time.Time) ([]*db.Repo
 }
 
 // sharedTaskCommentsHandler translates a POST or DELETE request where the body
-// is a GOB-encoded db.TaskComment to PutTaskComment or DeleteTaskComment.
+// is a GOB-encoded types.TaskComment to PutTaskComment or DeleteTaskComment.
 //   - format: must be "gob"; default "gob"
 // No response body.
 func (s *server) sharedTaskCommentsHandler(w http.ResponseWriter, r *http.Request, isPut bool) {
@@ -727,7 +728,7 @@ func (s *server) sharedTaskCommentsHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	dec := gob.NewDecoder(r.Body)
-	var c db.TaskComment
+	var c types.TaskComment
 	if err := dec.Decode(&c); err != nil {
 		httputils.ReportError(w, r, err, "Unable to decode TaskComment")
 		return
@@ -749,7 +750,7 @@ func (s *server) sharedTaskCommentsHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // PostTaskCommentsHandler translates a POST or DELETE request where the body
-// is a GOB-encoded db.TaskComment to PutTaskComment.
+// is a GOB-encoded types.TaskComment to PutTaskComment.
 //   - format: must be "gob"; default "gob"
 // No response body.
 func (s *server) PostTaskCommentsHandler(w http.ResponseWriter, r *http.Request) {
@@ -757,7 +758,7 @@ func (s *server) PostTaskCommentsHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // DeleteTaskCommentsHandler translates a DELETE request where the body is a
-// GOB-encoded db.TaskComment to DeleteTaskComment.
+// GOB-encoded types.TaskComment to DeleteTaskComment.
 //   - format: must be "gob"; default "gob"
 // No response body.
 func (s *server) DeleteTaskCommentsHandler(w http.ResponseWriter, r *http.Request) {
@@ -765,7 +766,7 @@ func (s *server) DeleteTaskCommentsHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // See documentation for sharedTaskCommentsHandler; this method is the same for
-// db.TaskSpecComment.
+// types.TaskSpecComment.
 func (s *server) sharedTaskSpecCommentsHandler(w http.ResponseWriter, r *http.Request, isPut bool) {
 	format := r.URL.Query().Get("format")
 	if format != "" && format != "gob" {
@@ -773,7 +774,7 @@ func (s *server) sharedTaskSpecCommentsHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 	dec := gob.NewDecoder(r.Body)
-	var c db.TaskSpecComment
+	var c types.TaskSpecComment
 	if err := dec.Decode(&c); err != nil {
 		httputils.ReportError(w, r, err, "Unable to decode TaskSpecComment")
 		return
@@ -795,19 +796,19 @@ func (s *server) sharedTaskSpecCommentsHandler(w http.ResponseWriter, r *http.Re
 }
 
 // See documentation for PostTaskCommentsHandler; this method is the same for
-// db.TaskSpecComment.
+// types.TaskSpecComment.
 func (s *server) PostTaskSpecCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	s.sharedTaskSpecCommentsHandler(w, r, true)
 }
 
 // See documentation for DeleteTaskCommentsHandler; this method is the same for
-// db.TaskSpecComment.
+// types.TaskSpecComment.
 func (s *server) DeleteTaskSpecCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	s.sharedTaskSpecCommentsHandler(w, r, false)
 }
 
 // See documentation for sharedTaskCommentsHandler; this method is the same for
-// db.CommitComment.
+// types.CommitComment.
 func (s *server) sharedCommitCommentsHandler(w http.ResponseWriter, r *http.Request, isPut bool) {
 	format := r.URL.Query().Get("format")
 	if format != "" && format != "gob" {
@@ -815,7 +816,7 @@ func (s *server) sharedCommitCommentsHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	dec := gob.NewDecoder(r.Body)
-	var c db.CommitComment
+	var c types.CommitComment
 	if err := dec.Decode(&c); err != nil {
 		httputils.ReportError(w, r, err, "Unable to decode CommitComment")
 		return
@@ -837,13 +838,13 @@ func (s *server) sharedCommitCommentsHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // See documentation for PostTaskCommentsHandler; this method is the same for
-// db.CommitComment.
+// types.CommitComment.
 func (s *server) PostCommitCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	s.sharedCommitCommentsHandler(w, r, true)
 }
 
 // See documentation for DeleteTaskCommentsHandler; this method is the same for
-// db.CommitComment.
+// types.CommitComment.
 func (s *server) DeleteCommitCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	s.sharedCommitCommentsHandler(w, r, false)
 }
@@ -869,7 +870,7 @@ func (c *client) doCommentRequest(method, path string, gob io.Reader) error {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) PutTaskComment(tc *db.TaskComment) error {
+func (c *client) PutTaskComment(tc *types.TaskComment) error {
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(tc); err != nil {
 		return err
@@ -878,7 +879,7 @@ func (c *client) PutTaskComment(tc *db.TaskComment) error {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) DeleteTaskComment(tc *db.TaskComment) error {
+func (c *client) DeleteTaskComment(tc *types.TaskComment) error {
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(tc); err != nil {
 		return err
@@ -887,7 +888,7 @@ func (c *client) DeleteTaskComment(tc *db.TaskComment) error {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) PutTaskSpecComment(sc *db.TaskSpecComment) error {
+func (c *client) PutTaskSpecComment(sc *types.TaskSpecComment) error {
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(sc); err != nil {
 		return err
@@ -896,7 +897,7 @@ func (c *client) PutTaskSpecComment(sc *db.TaskSpecComment) error {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) DeleteTaskSpecComment(sc *db.TaskSpecComment) error {
+func (c *client) DeleteTaskSpecComment(sc *types.TaskSpecComment) error {
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(sc); err != nil {
 		return err
@@ -905,7 +906,7 @@ func (c *client) DeleteTaskSpecComment(sc *db.TaskSpecComment) error {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) PutCommitComment(cc *db.CommitComment) error {
+func (c *client) PutCommitComment(cc *types.CommitComment) error {
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(cc); err != nil {
 		return err
@@ -914,7 +915,7 @@ func (c *client) PutCommitComment(cc *db.CommitComment) error {
 }
 
 // See documentation for db.CommentDB.
-func (c *client) DeleteCommitComment(cc *db.CommitComment) error {
+func (c *client) DeleteCommitComment(cc *types.CommitComment) error {
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(cc); err != nil {
 		return err

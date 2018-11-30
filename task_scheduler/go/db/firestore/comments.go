@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -34,26 +35,26 @@ func (d *firestoreDB) taskSpecComments() *fs.CollectionRef {
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db.RepoComments, error) {
+func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*types.RepoComments, error) {
 	from = fixTimestamp(from)
 	// TODO(borenet): We should come up with something more efficient, but
 	// this is convenient because it doesn't require composite indexes.
-	commentsByRepo := make(map[string]*db.RepoComments, len(repos))
+	commentsByRepo := make(map[string]*types.RepoComments, len(repos))
 	for _, repo := range repos {
-		commentsByRepo[repo] = &db.RepoComments{
+		commentsByRepo[repo] = &types.RepoComments{
 			Repo: repo,
 		}
 	}
 
 	q := d.commitComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
 	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
-		var c db.CommitComment
+		var c types.CommitComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
 		}
 		if comments, ok := commentsByRepo[c.Repo]; ok {
 			if comments.CommitComments == nil {
-				comments.CommitComments = map[string][]*db.CommitComment{}
+				comments.CommitComments = map[string][]*types.CommitComment{}
 			}
 			comments.CommitComments[c.Revision] = append(comments.CommitComments[c.Revision], &c)
 		}
@@ -64,17 +65,17 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 
 	q = d.taskComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
 	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
-		var c db.TaskComment
+		var c types.TaskComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
 		}
 		if comments, ok := commentsByRepo[c.Repo]; ok {
 			if comments.TaskComments == nil {
-				comments.TaskComments = map[string]map[string][]*db.TaskComment{}
+				comments.TaskComments = map[string]map[string][]*types.TaskComment{}
 			}
 			byCommit, ok := comments.TaskComments[c.Revision]
 			if !ok {
-				byCommit = map[string][]*db.TaskComment{}
+				byCommit = map[string][]*types.TaskComment{}
 				comments.TaskComments[c.Revision] = byCommit
 			}
 			byCommit[c.Name] = append(byCommit[c.Name], &c)
@@ -86,13 +87,13 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 
 	q = d.taskSpecComments().OrderBy("Timestamp", fs.Asc)
 	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
-		var c db.TaskSpecComment
+		var c types.TaskSpecComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
 		}
 		if comments, ok := commentsByRepo[c.Repo]; ok {
 			if comments.TaskSpecComments == nil {
-				comments.TaskSpecComments = map[string][]*db.TaskSpecComment{}
+				comments.TaskSpecComments = map[string][]*types.TaskSpecComment{}
 			}
 			comments.TaskSpecComments[c.Name] = append(comments.TaskSpecComments[c.Name], &c)
 		}
@@ -101,7 +102,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 		return nil, err
 	}
 
-	rv := make([]*db.RepoComments, 0, len(repos))
+	rv := make([]*types.RepoComments, 0, len(repos))
 	for _, repo := range repos {
 		rv = append(rv, commentsByRepo[repo])
 	}
@@ -109,12 +110,12 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*db
 }
 
 // taskCommentId returns an ID for the TaskComment.
-func taskCommentId(c *db.TaskComment) string {
+func taskCommentId(c *types.TaskComment) string {
 	return fmt.Sprintf("%s#%s#%s#%s", c.Repo, c.Revision, c.Name, fixTimestamp(c.Timestamp).Format(local_db.TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) PutTaskComment(c *db.TaskComment) error {
+func (d *firestoreDB) PutTaskComment(c *types.TaskComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := taskCommentId(c)
 	_, err := firestore.Create(d.taskComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
@@ -125,19 +126,19 @@ func (d *firestoreDB) PutTaskComment(c *db.TaskComment) error {
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) DeleteTaskComment(c *db.TaskComment) error {
+func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 	id := taskCommentId(c)
 	_, err := firestore.Delete(d.taskComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	return err
 }
 
 // taskSpecCommentId returns an ID for the TaskSpecComment.
-func taskSpecCommentId(c *db.TaskSpecComment) string {
+func taskSpecCommentId(c *types.TaskSpecComment) string {
 	return fmt.Sprintf("%s#%s#%s", c.Repo, c.Name, c.Timestamp.Format(local_db.TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) PutTaskSpecComment(c *db.TaskSpecComment) error {
+func (d *firestoreDB) PutTaskSpecComment(c *types.TaskSpecComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := taskSpecCommentId(c)
 	_, err := firestore.Create(d.taskSpecComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
@@ -148,19 +149,19 @@ func (d *firestoreDB) PutTaskSpecComment(c *db.TaskSpecComment) error {
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) DeleteTaskSpecComment(c *db.TaskSpecComment) error {
+func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 	id := taskSpecCommentId(c)
 	_, err := firestore.Delete(d.taskSpecComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	return err
 }
 
 // commitCommentId returns an ID for the CommitComment.
-func commitCommentId(c *db.CommitComment) string {
+func commitCommentId(c *types.CommitComment) string {
 	return fmt.Sprintf("%s#%s#%s", c.Repo, c.Revision, c.Timestamp.Format(local_db.TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) PutCommitComment(c *db.CommitComment) error {
+func (d *firestoreDB) PutCommitComment(c *types.CommitComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := commitCommentId(c)
 	_, err := firestore.Create(d.commitComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
@@ -171,7 +172,7 @@ func (d *firestoreDB) PutCommitComment(c *db.CommitComment) error {
 }
 
 // See documentation for db.CommentDB interface.
-func (d *firestoreDB) DeleteCommitComment(c *db.CommitComment) error {
+func (d *firestoreDB) DeleteCommitComment(c *types.CommitComment) error {
 	id := commitCommentId(c)
 	_, err := firestore.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	return err

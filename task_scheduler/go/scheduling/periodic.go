@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // Trigger all jobs with the given trigger name.
 func triggerPeriodicJobsWithName(ctx context.Context, s *TaskScheduler, trigger string) error {
 	// Obtain the TasksCfg at tip of master in each repo.
-	cfgs := make(map[db.RepoState]*specs.TasksCfg, len(s.repos))
+	cfgs := make(map[types.RepoState]*specs.TasksCfg, len(s.repos))
 	for url, repo := range s.repos {
 		head := repo.Get("master")
-		rs := db.RepoState{
+		rs := types.RepoState{
 			Repo:     url,
 			Revision: head.Hash,
 		}
@@ -26,7 +26,7 @@ func triggerPeriodicJobsWithName(ctx context.Context, s *TaskScheduler, trigger 
 	}
 	// Trigger the periodic tasks.
 	sklog.Infof("Triggering %s tasks", trigger)
-	jobs := []*db.Job{}
+	jobs := []*types.Job{}
 	for rs, cfg := range cfgs {
 		for name, spec := range cfg.Jobs {
 			if spec.Trigger == trigger {

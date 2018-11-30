@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestBusyBots(t *testing.T) {
@@ -24,7 +24,7 @@ func TestBusyBots(t *testing.T) {
 	task := func(id string, dims map[string]string) *swarming_api.SwarmingRpcsTaskResult {
 		tags := make([]string, 0, len(dims))
 		for k, v := range dims {
-			tags = append(tags, fmt.Sprintf("%s%s:%s", db.SWARMING_TAG_DIMENSION_PREFIX, k, v))
+			tags = append(tags, fmt.Sprintf("%s%s:%s", types.SWARMING_TAG_DIMENSION_PREFIX, k, v))
 		}
 		return &swarming_api.SwarmingRpcsTaskResult{
 			Tags:   tags,

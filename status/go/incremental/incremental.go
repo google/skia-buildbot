@@ -17,18 +17,19 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-// Task is a trimmed-down version of db.Task for minimizing the amount of data
+// Task is a trimmed-down version of types.Task for minimizing the amount of data
 // we send to the client.
 type Task struct {
-	Commits        []string      `json:"commits"`
-	Name           string        `json:"name"`
-	Id             string        `json:"id"`
-	Revision       string        `json:"revision"`
-	Status         db.TaskStatus `json:"status"`
-	SwarmingTaskId string        `json:"swarming_task_id"`
+	Commits        []string         `json:"commits"`
+	Name           string           `json:"name"`
+	Id             string           `json:"id"`
+	Revision       string           `json:"revision"`
+	Status         types.TaskStatus `json:"status"`
+	SwarmingTaskId string           `json:"swarming_task_id"`
 }
 
 // Update represents all of the new information we obtained in a single Update()

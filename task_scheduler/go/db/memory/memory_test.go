@@ -1,4 +1,4 @@
-package db
+package memory
 
 import (
 	"os"
@@ -6,59 +6,70 @@ import (
 
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestMain(m *testing.M) {
-	AssertDeepEqual = deepequal.AssertDeepEqual
+	db.AssertDeepEqual = deepequal.AssertDeepEqual
 	os.Exit(m.Run())
 }
 
 func TestInMemoryTaskDB(t *testing.T) {
 	testutils.SmallTest(t)
-	TestTaskDB(t, NewInMemoryTaskDB())
+	db.TestTaskDB(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBTooManyUsers(t *testing.T) {
 	testutils.SmallTest(t)
-	TestTaskDBTooManyUsers(t, NewInMemoryTaskDB())
+	db.TestTaskDBTooManyUsers(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
-	TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
+	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBUpdateTasksWithRetries(t *testing.T) {
 	testutils.SmallTest(t)
-	TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
+	db.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
 	testutils.SmallTest(t)
-	TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
+	db.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBGetTasksFromWindow(t *testing.T) {
 	testutils.LargeTest(t)
-	TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
+	db.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
+}
+
+func TestInMemoryUpdateDBFromSwarmingTask(t *testing.T) {
+	testutils.SmallTest(t)
+	db.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB())
+}
+
+func TestInMemoryUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
+	testutils.SmallTest(t)
+	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryJobDB(t *testing.T) {
 	testutils.SmallTest(t)
-	TestJobDB(t, NewInMemoryJobDB())
+	db.TestJobDB(t, NewInMemoryJobDB())
 }
 
 func TestInMemoryJobDBTooManyUsers(t *testing.T) {
 	testutils.SmallTest(t)
-	TestJobDBTooManyUsers(t, NewInMemoryJobDB())
+	db.TestJobDBTooManyUsers(t, NewInMemoryJobDB())
 }
 
 func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
-	TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
+	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
 }
 
 func TestInMemoryJobDBUpdateJobsWithRetries(t *testing.T) {
 	testutils.SmallTest(t)
-	TestUpdateJobsWithRetries(t, NewInMemoryJobDB())
+	db.TestUpdateJobsWithRetries(t, NewInMemoryJobDB())
 }

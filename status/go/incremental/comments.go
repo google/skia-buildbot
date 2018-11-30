@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -15,32 +16,32 @@ import (
 type commentsCache struct {
 	db           db.CommentDB
 	mtx          sync.Mutex
-	prevComments map[string]*db.RepoComments
+	prevComments map[string]*types.RepoComments
 	repos        []string
 }
 
-// CommitComment is a wrapper around db.CommitComment which interprets the
+// CommitComment is a wrapper around types.CommitComment which interprets the
 // timestamp (in nanoseconds) as the ID, for convenience.
 type CommitComment struct {
-	db.CommitComment
+	types.CommitComment
 	Id string `json:"id"`
 }
 
-// TaskComment is a wrapper around db.TaskComment which interprets the
+// TaskComment is a wrapper around types.TaskComment which interprets the
 // timestamp (in nanoseconds) as the ID, for convenience.
 type TaskComment struct {
-	db.TaskComment
+	types.TaskComment
 	Id string `json:"id"`
 }
 
-// TaskSpecComment is a wrapper around db.TaskSpecComment which interprets the
+// TaskSpecComment is a wrapper around types.TaskSpecComment which interprets the
 // timestamp (in nanoseconds) as the ID, for convenience.
 type TaskSpecComment struct {
-	db.TaskSpecComment
+	types.TaskSpecComment
 	Id string `json:"id"`
 }
 
-// RepoComments is a variant of db.RepoComments which uses the above wrappers
+// RepoComments is a variant of types.RepoComments which uses the above wrappers
 // around the typical comment types.
 type RepoComments struct {
 	// CommitComments maps commit hash to the comments for that commit,
@@ -54,8 +55,8 @@ type RepoComments struct {
 	TaskSpecComments map[string][]*TaskSpecComment
 }
 
-// commitComments converts the db.CommitComments to CommitComments.
-func commitComments(inp map[string][]*db.CommitComment) map[string][]*CommitComment {
+// commitComments converts the types.CommitComments to CommitComments.
+func commitComments(inp map[string][]*types.CommitComment) map[string][]*CommitComment {
 	rv := make(map[string][]*CommitComment, len(inp))
 	for k, v := range inp {
 		comments := make([]*CommitComment, 0, len(v))
@@ -70,8 +71,8 @@ func commitComments(inp map[string][]*db.CommitComment) map[string][]*CommitComm
 	return rv
 }
 
-// taskComments converts the db.TaskComments to TaskComments.
-func taskComments(inp map[string]map[string][]*db.TaskComment) map[string]map[string][]*TaskComment {
+// taskComments converts the types.TaskComments to TaskComments.
+func taskComments(inp map[string]map[string][]*types.TaskComment) map[string]map[string][]*TaskComment {
 	rv := make(map[string]map[string][]*TaskComment, len(inp))
 	for k, v := range inp {
 		submap := make(map[string][]*TaskComment, len(v))
@@ -90,8 +91,8 @@ func taskComments(inp map[string]map[string][]*db.TaskComment) map[string]map[st
 	return rv
 }
 
-// taskSpecComments converts the db.TaskSpecComments to TaskSpecComments.
-func taskSpecComments(inp map[string][]*db.TaskSpecComment) map[string][]*TaskSpecComment {
+// taskSpecComments converts the types.TaskSpecComments to TaskSpecComments.
+func taskSpecComments(inp map[string][]*types.TaskSpecComment) map[string][]*TaskSpecComment {
 	rv := make(map[string][]*TaskSpecComment, len(inp))
 	for k, v := range inp {
 		comments := make([]*TaskSpecComment, 0, len(v))
@@ -112,9 +113,9 @@ func newCommentsCache(d db.CommentDB, repos repograph.Map) *commentsCache {
 	for repo, _ := range repos {
 		repoNames = append(repoNames, repo)
 	}
-	pc := make(map[string]*db.RepoComments, len(repoNames))
+	pc := make(map[string]*types.RepoComments, len(repoNames))
 	for _, repo := range repoNames {
-		pc[repo] = &db.RepoComments{}
+		pc[repo] = &types.RepoComments{}
 	}
 	return &commentsCache{
 		db:           d,
@@ -128,9 +129,9 @@ func newCommentsCache(d db.CommentDB, repos repograph.Map) *commentsCache {
 func (c *commentsCache) Reset() {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.prevComments = make(map[string]*db.RepoComments, len(c.repos))
+	c.prevComments = make(map[string]*types.RepoComments, len(c.repos))
 	for _, repo := range c.repos {
-		c.prevComments[repo] = &db.RepoComments{}
+		c.prevComments[repo] = &types.RepoComments{}
 	}
 }
 

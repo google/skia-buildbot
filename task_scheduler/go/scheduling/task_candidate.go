@@ -15,12 +15,13 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func jobSet(jobs ...*db.Job) map[*db.Job]struct{} {
-	rv := make(map[*db.Job]struct{}, len(jobs))
+func jobSet(jobs ...*types.Job) map[*types.Job]struct{} {
+	rv := make(map[*types.Job]struct{}, len(jobs))
 	for _, j := range jobs {
 		rv[j] = struct{}{}
 	}
@@ -33,22 +34,22 @@ type taskCandidate struct {
 	// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 	// could be inherited from any matching Job. Therefore, this should be
 	// used for non-critical, informational purposes only.
-	BuildbucketBuildId int64                `json:"buildbucketBuildId"`
-	Commits            []string             `json:"commits"`
-	IsolatedInput      string               `json:"isolatedInput"`
-	IsolatedHashes     []string             `json:"isolatedHashes"`
-	Jobs               map[*db.Job]struct{} `json:"jobs"`
-	ParentTaskIds      []string             `json:"parentTaskIds"`
-	RetryOf            string               `json:"retryOf"`
-	Score              float64              `json:"score"`
-	StealingFromId     string               `json:"stealingFromId"`
-	db.TaskKey
+	BuildbucketBuildId int64                   `json:"buildbucketBuildId"`
+	Commits            []string                `json:"commits"`
+	IsolatedInput      string                  `json:"isolatedInput"`
+	IsolatedHashes     []string                `json:"isolatedHashes"`
+	Jobs               map[*types.Job]struct{} `json:"jobs"`
+	ParentTaskIds      []string                `json:"parentTaskIds"`
+	RetryOf            string                  `json:"retryOf"`
+	Score              float64                 `json:"score"`
+	StealingFromId     string                  `json:"stealingFromId"`
+	types.TaskKey
 	TaskSpec *specs.TaskSpec `json:"taskSpec"`
 }
 
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
-	jobs := make(map[*db.Job]struct{}, len(c.Jobs))
+	jobs := make(map[*types.Job]struct{}, len(c.Jobs))
 	for j, _ := range c.Jobs {
 		jobs[j] = struct{}{}
 	}
@@ -79,8 +80,8 @@ func (c *taskCandidate) MakeId() string {
 }
 
 // parseId generates taskCandidate information from the ID.
-func parseId(id string) (db.TaskKey, error) {
-	var rv db.TaskKey
+func parseId(id string) (types.TaskKey, error) {
+	var rv types.TaskKey
 	split := strings.Split(id, "|")
 	if len(split) != 2 {
 		return rv, fmt.Errorf("Invalid ID, not enough parts: %q", id)
@@ -98,8 +99,8 @@ func parseId(id string) (db.TaskKey, error) {
 	return rv, nil
 }
 
-// MakeTask instantiates a db.Task from the taskCandidate.
-func (c *taskCandidate) MakeTask() *db.Task {
+// MakeTask instantiates a types.Task from the taskCandidate.
+func (c *taskCandidate) MakeTask() *types.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
 	jobs := make([]string, 0, len(c.Jobs))
@@ -113,7 +114,7 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	if maxAttempts == 0 {
 		maxAttempts = specs.DEFAULT_TASK_SPEC_MAX_ATTEMPTS
 	}
-	return &db.Task{
+	return &types.Task{
 		Attempt:       c.Attempt,
 		Commits:       commits,
 		Id:            "", // Filled in when the task is inserted into the DB.
@@ -154,10 +155,10 @@ func getPatchStorage(server string) string {
 // replaceVars replaces variable names with their values in a given string.
 func replaceVars(c *taskCandidate, s, taskId string) string {
 	issueShort := ""
-	if len(c.Issue) < db.ISSUE_SHORT_LENGTH {
+	if len(c.Issue) < types.ISSUE_SHORT_LENGTH {
 		issueShort = c.Issue
 	} else {
-		issueShort = c.Issue[len(c.Issue)-db.ISSUE_SHORT_LENGTH:]
+		issueShort = c.Issue[len(c.Issue)-types.ISSUE_SHORT_LENGTH:]
 	}
 	replacements := map[string]string{
 		specs.VARIABLE_BUILDBUCKET_BUILD_ID: strconv.FormatInt(c.BuildbucketBuildId, 10),
@@ -293,7 +294,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 		PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
 		PubsubUserdata: id,
 		ServiceAccount: c.TaskSpec.ServiceAccount,
-		Tags:           db.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
+		Tags:           types.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
 		User:           "skiabot@google.com",
 	}, nil
 }
@@ -301,7 +302,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 // allDepsMet determines whether all dependencies for the given task candidate
 // have been satisfied, and if so, returns a map of whose keys are task IDs and
 // values are their isolated outputs.
-func (c *taskCandidate) allDepsMet(cache db.TaskCache) (bool, map[string]string, error) {
+func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
 	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
 	for _, depName := range c.TaskSpec.Dependencies {
 		key := c.TaskKey.Copy()

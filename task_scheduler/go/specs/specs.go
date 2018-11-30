@@ -22,11 +22,11 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
-	DEFAULT_TASK_SPEC_MAX_ATTEMPTS = db.DEFAULT_MAX_TASK_ATTEMPTS
+	DEFAULT_TASK_SPEC_MAX_ATTEMPTS = types.DEFAULT_MAX_TASK_ATTEMPTS
 	DEFAULT_NUM_WORKERS            = 10
 
 	// The default JobSpec.Priority, when unspecified or invalid.
@@ -401,12 +401,12 @@ type TasksCfgFileHash [sha1.Size]byte
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
 	// protected by mtx
-	cache         map[db.RepoState]*cacheEntry
+	cache         map[types.RepoState]*cacheEntry
 	depotToolsDir string
 	file          string
 	mtx           sync.RWMutex
 	// protected by mtx
-	addedTasksCache map[db.RepoState]util.StringSet
+	addedTasksCache map[types.RepoState]util.StringSet
 	recentCommits   map[string]time.Time
 	recentJobSpecs  map[string]time.Time
 	// protects recentCommits, recentJobSpecs, and recentTaskSpecs. When
@@ -429,7 +429,7 @@ type gobCacheValue struct {
 
 // gobTaskCfgCache is a struct used for (de)serializing TaskCfgCache instance.
 type gobTaskCfgCache struct {
-	AddedTasksCache map[db.RepoState]util.StringSet
+	AddedTasksCache map[types.RepoState]util.StringSet
 	Values          []gobCacheValue
 	RecentCommits   map[string]time.Time
 	RecentJobSpecs  map[string]time.Time
@@ -437,7 +437,7 @@ type gobTaskCfgCache struct {
 	// Map value is an index into Values. (We can't just use pointers pointing to
 	// the same object because GOB-encoding flattens/dereferences all pointers,
 	// resulting in multiple copies in the encoded file.)
-	RepoStates map[db.RepoState]int
+	RepoStates map[types.RepoState]int
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
@@ -460,7 +460,7 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, wo
 		}
 		util.Close(f)
 		c.addedTasksCache = gobCache.AddedTasksCache
-		c.cache = make(map[db.RepoState]*cacheEntry, len(gobCache.RepoStates))
+		c.cache = make(map[types.RepoState]*cacheEntry, len(gobCache.RepoStates))
 		c.recentCommits = gobCache.RecentCommits
 		c.recentJobSpecs = gobCache.RecentJobSpecs
 		c.recentTaskSpecs = gobCache.RecentTaskSpecs
@@ -480,8 +480,8 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, wo
 	} else if !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Failed to read cache file: %s", err)
 	} else {
-		c.cache = map[db.RepoState]*cacheEntry{}
-		c.addedTasksCache = map[db.RepoState]util.StringSet{}
+		c.cache = map[types.RepoState]*cacheEntry{}
+		c.addedTasksCache = map[types.RepoState]util.StringSet{}
 		c.recentCommits = map[string]time.Time{}
 		c.recentJobSpecs = map[string]time.Time{}
 		c.recentTaskSpecs = map[string]time.Time{}
@@ -509,7 +509,7 @@ type cacheEntry struct {
 	err  string
 	hash TasksCfgFileHash
 	mtx  sync.Mutex
-	rs   db.RepoState
+	rs   types.RepoState
 }
 
 // Get returns the TasksCfg for this cache entry. If it does not already exist
@@ -584,7 +584,7 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, bool, error) {
 	return cfg, true, nil
 }
 
-func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
+func (c *TaskCfgCache) getEntry(rs types.RepoState) *cacheEntry {
 	rv, ok := c.cache[rs]
 	if !ok {
 		rv = &cacheEntry{
@@ -599,7 +599,7 @@ func (c *TaskCfgCache) getEntry(rs db.RepoState) *cacheEntry {
 // ReadTasksCfg reads the task cfg file from the given RepoState and returns it.
 // Stores a cache of already-read task cfg files. Syncs the repo and reads the
 // file if needed.
-func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs db.RepoState) (*TasksCfg, error) {
+func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs types.RepoState) (*TasksCfg, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	entry := c.getEntry(rs)
@@ -616,22 +616,22 @@ func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs db.RepoState) (*Task
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
 // given set of RepoStates, keyed by RepoState and TaskSpec name.
-func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []db.RepoState) (map[db.RepoState]map[string]*TaskSpec, error) {
+func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []types.RepoState) (map[types.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	entries := make(map[db.RepoState]*cacheEntry, len(rs))
+	entries := make(map[types.RepoState]*cacheEntry, len(rs))
 	for _, s := range rs {
 		entries[s] = c.getEntry(s)
 	}
 
 	var m sync.Mutex
 	var wg sync.WaitGroup
-	rv := make(map[db.RepoState]map[string]*TaskSpec, len(rs))
+	rv := make(map[types.RepoState]map[string]*TaskSpec, len(rs))
 	errs := []error{}
 	mustWrite := false
 	for s, entry := range entries {
 		wg.Add(1)
-		go func(s db.RepoState, entry *cacheEntry) {
+		go func(s types.RepoState, entry *cacheEntry) {
 			defer wg.Done()
 			cfg, w, err := entry.Get(ctx)
 			if err != nil {
@@ -669,7 +669,7 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []db.Re
 
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
-func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs db.RepoState, name string) (*TaskSpec, error) {
+func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name string) (*TaskSpec, error) {
 	cfg, err := c.ReadTasksCfg(ctx, rs)
 	if err != nil {
 		return nil, err
@@ -683,15 +683,15 @@ func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs db.RepoState, name st
 
 // GetAddedTaskSpecsForRepoStates returns a mapping from each input RepoState to
 // the set of task names that were added at that RepoState.
-func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(ctx context.Context, rss []db.RepoState) (map[db.RepoState]util.StringSet, error) {
-	rv := make(map[db.RepoState]util.StringSet, len(rss))
+func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(ctx context.Context, rss []types.RepoState) (map[types.RepoState]util.StringSet, error) {
+	rv := make(map[types.RepoState]util.StringSet, len(rss))
 	// todoParents collects the RepoStates in rss that are not in
 	// c.addedTasksCache. We also save the RepoStates' parents so we don't
 	// have to recompute them later.
-	todoParents := make(map[db.RepoState][]db.RepoState, 0)
+	todoParents := make(map[types.RepoState][]types.RepoState, 0)
 	// allTodoRs collects the RepoStates for which we need to look up
 	// TaskSpecs.
-	allTodoRs := []db.RepoState{}
+	allTodoRs := []types.RepoState{}
 	if err := func() error {
 		c.mtx.RLock()
 		defer c.mtx.RUnlock()
@@ -747,7 +747,7 @@ func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(ctx context.Context, rss [
 
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
-func (c *TaskCfgCache) GetJobSpec(ctx context.Context, rs db.RepoState, name string) (*JobSpec, error) {
+func (c *TaskCfgCache) GetJobSpec(ctx context.Context, rs types.RepoState, name string) (*JobSpec, error) {
 	cfg, err := c.ReadTasksCfg(ctx, rs)
 	if err != nil {
 		return nil, err
@@ -761,7 +761,7 @@ func (c *TaskCfgCache) GetJobSpec(ctx context.Context, rs db.RepoState, name str
 
 // MakeJob is a helper function which retrieves the given JobSpec at the given
 // RepoState and uses it to create a Job instance.
-func (c *TaskCfgCache) MakeJob(ctx context.Context, rs db.RepoState, name string) (*db.Job, error) {
+func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name string) (*types.Job, error) {
 	cfg, err := c.ReadTasksCfg(ctx, rs)
 	if err != nil {
 		return nil, err
@@ -775,13 +775,13 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs db.RepoState, name string
 		return nil, err
 	}
 
-	return &db.Job{
+	return &types.Job{
 		Created:      time.Now(),
 		Dependencies: deps,
 		Name:         name,
 		Priority:     spec.Priority,
 		RepoState:    rs,
-		Tasks:        map[string][]*db.TaskSummary{},
+		Tasks:        map[string][]*types.TaskSummary{},
 	}, nil
 }
 
@@ -836,7 +836,7 @@ func (c *TaskCfgCache) write() error {
 			RecentCommits:   c.recentCommits,
 			RecentJobSpecs:  c.recentJobSpecs,
 			RecentTaskSpecs: c.recentTaskSpecs,
-			RepoStates:      make(map[db.RepoState]int, len(c.cache)),
+			RepoStates:      make(map[types.RepoState]int, len(c.cache)),
 		}
 		// When deduplicating gobCacheValue, we need to key by both hash and err. In
 		// the case that a patch doesn't apply, hash will always be all-zero, but
@@ -963,7 +963,7 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 //
 // This method uses a worker pool; if all workers are busy, it will block until
 // one is free.
-func (c *TaskCfgCache) TempGitRepo(ctx context.Context, rs db.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
+func (c *TaskCfgCache) TempGitRepo(ctx context.Context, rs types.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
 	rvErr := make(chan error)
 	c.queue <- func(workerId int) {
 		var gr *git.TempCheckout
@@ -997,7 +997,7 @@ func (c *TaskCfgCache) TempGitRepo(ctx context.Context, rs db.RepoState, botUpda
 
 // tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepo(ctx context.Context, repo *git.Repo, rs db.RepoState) (rv *git.TempCheckout, rvErr error) {
+func tempGitRepo(ctx context.Context, repo *git.Repo, rs types.RepoState) (rv *git.TempCheckout, rvErr error) {
 	if rs.IsTryJob() {
 		return nil, fmt.Errorf("specs.tempGitRepo does not apply patches, and should not be called for try jobs.")
 	}
@@ -1023,7 +1023,7 @@ func tempGitRepo(ctx context.Context, repo *git.Repo, rs db.RepoState) (rv *git.
 
 // tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepoBotUpdate(ctx context.Context, rs db.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
 	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")

@@ -15,7 +15,7 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_driver/go/td"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestEnsureGitCheckout(t *testing.T) {
@@ -27,7 +27,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 	gb := git_testutils.GitInit(t, ctx)
 	c1 := gb.CommitGen(ctx, f)
 
-	rs := db.RepoState{
+	rs := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
@@ -35,7 +35,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 	// check is a helper function which creates a temporary dir, runs the
 	// passed-in function so that the caller can manipulate the dir, then
 	// runs EnsureGitCheckout and verifies that it did the correct thing.
-	check := func(rs db.RepoState, fn func(string)) {
+	check := func(rs types.RepoState, fn func(string)) {
 		assert.True(t, rs.Valid())
 
 		// Create temp dir.

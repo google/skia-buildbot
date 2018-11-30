@@ -17,7 +17,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -71,7 +73,7 @@ type TryJobIntegrator struct {
 	db                 db.JobDB
 	gerrit             gerrit.GerritInterface
 	host               string
-	jCache             db.JobCache
+	jCache             cache.JobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
@@ -85,7 +87,7 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 		return nil, err
 	}
 	bb.BasePath = apiUrl
-	jCache, err := db.NewJobCache(d, w, db.GitRepoGetRevisionTimestamp(rm))
+	jCache, err := cache.NewJobCache(d, w, cache.GitRepoGetRevisionTimestamp(rm))
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +149,8 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	}
 
 	// Divide up finished and unfinished Jobs.
-	finished := make([]*db.Job, 0, len(jobs))
-	unfinished := make([]*db.Job, 0, len(jobs))
+	finished := make([]*types.Job, 0, len(jobs))
+	unfinished := make([]*types.Job, 0, len(jobs))
 	for _, j := range jobs {
 		if j.Done() {
 			finished = append(finished, j)
@@ -169,7 +171,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	// Send updates for finished Jobs, empty the lease keys to mark them
 	// as inactive in the DB.
 	errs := []error{}
-	insert := make([]*db.Job, 0, len(finished))
+	insert := make([]*types.Job, 0, len(finished))
 	for _, j := range finished {
 		if err := t.jobFinished(j); err != nil {
 			errs = append(errs, err)
@@ -195,7 +197,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 
 // sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
 // Jobs.
-func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
+func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) error {
 	defer metrics2.FuncTimer().Stop()
 
 	expiration := now.Add(LEASE_DURATION).Unix() * 1000000
@@ -203,7 +205,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
 	errs := []error{}
 
 	// Send heartbeats for all leases.
-	send := func(jobs []*db.Job) {
+	send := func(jobs []*types.Job) {
 		heartbeats := make([]*buildbucket_api.ApiHeartbeatBatchRequestMessageOneHeartbeat, 0, len(jobs))
 		for _, j := range jobs {
 			heartbeats = append(heartbeats, &buildbucket_api.ApiHeartbeatBatchRequestMessageOneHeartbeat{
@@ -225,7 +227,7 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*db.Job) error {
 			errs = append(errs, fmt.Errorf("Heartbeat result has incorrect number of jobs (%d vs %d)", len(resp.Results), len(jobs)))
 			return
 		}
-		cancelJobs := []*db.Job{}
+		cancelJobs := []*types.Job{}
 		for i, result := range resp.Results {
 			if result.Error != nil {
 				// Cancel the job.
@@ -295,10 +297,10 @@ func (t *TryJobIntegrator) getRevision(repo *repograph.Graph, revision string, i
 	return c.Hash, nil
 }
 
-func (t *TryJobIntegrator) localCancelJobs(jobs []*db.Job) error {
+func (t *TryJobIntegrator) localCancelJobs(jobs []*types.Job) error {
 	for _, j := range jobs {
 		j.BuildbucketLeaseKey = 0
-		j.Status = db.JOB_STATUS_CANCELED
+		j.Status = types.JOB_STATUS_CANCELED
 		j.Finished = time.Now()
 	}
 	return t.db.PutJobs(jobs)
@@ -342,7 +344,7 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error)
 	return resp.Build.LeaseKey, nil
 }
 
-func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_api.ApiCommonBuildMessage, now time.Time) (*db.Job, error) {
+func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_api.ApiCommonBuildMessage, now time.Time) (*types.Job, error) {
 	// Parse the build parameters.
 	var params buildbucket.Parameters
 	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
@@ -367,8 +369,8 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 	} else {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid patch storage: %s", params.Properties.PatchStorage))
 	}
-	rs := db.RepoState{
-		Patch: db.Patch{
+	rs := types.RepoState{
+		Patch: types.Patch{
 			Server:    server,
 			Issue:     fmt.Sprintf("%d", issue),
 			PatchRepo: patchRepoUrl,
@@ -422,7 +424,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 	// TODO(borenet): Buildbot maintains a maximum lease count. Should we do
 	// that too?
 	cursor := ""
-	jobs := []*db.Job{}
+	jobs := []*types.Job{}
 	errs := []error{}
 	for {
 		sklog.Infof("Running 'peek' on %s", t.bucket)
@@ -463,7 +465,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 	// notification if the process is interrupted. However, we need to
 	// include the Job ID with the notification, so we have to insert the
 	// Job into the DB first.
-	cancelJobs := []*db.Job{}
+	cancelJobs := []*types.Job{}
 	for _, j := range jobs {
 		if err := t.jobStarted(j); err != nil {
 			errs = append(errs, err)
@@ -485,7 +487,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 }
 
 // jobStarted notifies Buildbucket that the given Job has started.
-func (t *TryJobIntegrator) jobStarted(j *db.Job) error {
+func (t *TryJobIntegrator) jobStarted(j *types.Job) error {
 	resp, err := t.bb.Start(j.BuildbucketBuildId, &buildbucket_api.ApiStartRequestBodyMessage{
 		LeaseKey: j.BuildbucketLeaseKey,
 		Url:      j.URL(t.host),
@@ -502,19 +504,19 @@ func (t *TryJobIntegrator) jobStarted(j *db.Job) error {
 }
 
 // jobFinished notifies Buildbucket that the given Job has finished.
-func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
+func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("JobFinished called for unfinished Job!")
 	}
 	b, err := json.Marshal(struct {
-		Job *db.Job `json:"job"`
+		Job *types.Job `json:"job"`
 	}{
 		Job: j,
 	})
 	if err != nil {
 		return err
 	}
-	if j.Status == db.JOB_STATUS_SUCCESS {
+	if j.Status == types.JOB_STATUS_SUCCESS {
 		resp, err := t.bb.Succeed(j.BuildbucketBuildId, &buildbucket_api.ApiSucceedRequestBodyMessage{
 			LeaseKey:          j.BuildbucketLeaseKey,
 			ResultDetailsJson: string(b),
@@ -532,7 +534,7 @@ func (t *TryJobIntegrator) jobFinished(j *db.Job) error {
 		}
 	} else {
 		failureReason := "BUILD_FAILURE"
-		if j.Status == db.JOB_STATUS_MISHAP {
+		if j.Status == types.JOB_STATUS_MISHAP {
 			failureReason = "INFRA_FAILURE"
 		}
 		resp, err := t.bb.Fail(j.BuildbucketBuildId, &buildbucket_api.ApiFailRequestBodyMessage{

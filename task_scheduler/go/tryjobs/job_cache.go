@@ -7,13 +7,14 @@ import (
 
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 // tryJobCache is a struct which provides more useful views of Jobs than the
 // database itself can.
 type tryJobCache struct {
-	activeTryJobs map[string]*db.Job
+	activeTryJobs map[string]*types.Job
 	db            db.JobDB
 	mtx           sync.RWMutex
 	queryId       string
@@ -22,16 +23,16 @@ type tryJobCache struct {
 
 // GetActiveTryJobs returns all active try Jobs. A try Job is
 // considered to be active if it has a non-zero Buildbucket lease key.
-func (c *tryJobCache) GetActiveTryJobs() ([]*db.Job, error) {
+func (c *tryJobCache) GetActiveTryJobs() ([]*types.Job, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
-	rv := make([]*db.Job, 0, len(c.activeTryJobs))
+	rv := make([]*types.Job, 0, len(c.activeTryJobs))
 	for _, j := range c.activeTryJobs {
 		rv = append(rv, j.Copy())
 	}
 	// Sort to maintain deterministic testing.
-	sort.Sort(db.JobSlice(rv))
+	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
@@ -55,7 +56,7 @@ func (c *tryJobCache) expireJobs() {
 
 // insertOrUpdateJob inserts the new/updated job into the cache. Assumes the
 // caller holds a lock. This is a helper for expireAndUpdate.
-func (c *tryJobCache) insertOrUpdateJob(job *db.Job) {
+func (c *tryJobCache) insertOrUpdateJob(job *types.Job) {
 	// Active try jobs.
 	if job.BuildbucketLeaseKey == 0 {
 		delete(c.activeTryJobs, job.Id)
@@ -66,7 +67,7 @@ func (c *tryJobCache) insertOrUpdateJob(job *db.Job) {
 
 // expireAndUpdate removes Jobs before the Window and inserts the
 // new/updated jobs into the cache. Assumes the caller holds a lock.
-func (c *tryJobCache) expireAndUpdate(jobs []*db.Job) {
+func (c *tryJobCache) expireAndUpdate(jobs []*types.Job) {
 	c.expireJobs()
 	for _, job := range jobs {
 		if !c.timeWindow.TestTime(job.Repo, job.Created) {
@@ -94,7 +95,7 @@ func (c *tryJobCache) reset() error {
 		c.db.StopTrackingModifiedJobs(queryId)
 		return err
 	}
-	c.activeTryJobs = map[string]*db.Job{}
+	c.activeTryJobs = map[string]*types.Job{}
 	c.queryId = queryId
 	c.expireAndUpdate(jobs)
 	return nil

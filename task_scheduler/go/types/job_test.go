@@ -1,4 +1,4 @@
-package db
+package types
 
 import (
 	"bytes"
@@ -13,35 +13,9 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func makeFullJob(now time.Time) *Job {
-	return &Job{
-		BuildbucketBuildId:  12345,
-		BuildbucketLeaseKey: 987,
-		Created:             now.Add(time.Nanosecond),
-		DbModified:          now.Add(time.Millisecond),
-		Dependencies:        map[string][]string{"A": {"B"}, "B": {}},
-		Finished:            now.Add(time.Second),
-		Id:                  "abc123",
-		IsForce:             true,
-		Name:                "C",
-		Priority:            1.2,
-		RepoState: RepoState{
-			Repo: DEFAULT_TEST_REPO,
-		},
-		Status: JOB_STATUS_SUCCESS,
-		Tasks: map[string][]*TaskSummary{
-			"task-name": {&TaskSummary{
-				Id:             "12345",
-				Status:         TASK_STATUS_FAILURE,
-				SwarmingTaskId: "abc123",
-			}},
-		},
-	}
-}
-
 func TestJobCopy(t *testing.T) {
 	testutils.SmallTest(t)
-	v := makeFullJob(time.Now())
+	v := MakeFullJob(time.Now())
 	deepequal.AssertCopy(t, v, v.Copy())
 }
 

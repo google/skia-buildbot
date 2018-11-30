@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestCopyTaskCandidate(t *testing.T) {
@@ -18,15 +18,15 @@ func TestCopyTaskCandidate(t *testing.T) {
 		Commits:            []string{"a", "b"},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
-		Jobs: jobSet(&db.Job{
+		Jobs: jobSet(&types.Job{
 			Id: "dummy",
 		}),
 		ParentTaskIds:  []string{"38", "39", "40"},
 		RetryOf:        "41",
 		Score:          99,
 		StealingFromId: "rich",
-		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
+		TaskKey: types.TaskKey{
+			RepoState: types.RepoState{
 				Repo:     "nou.git",
 				Revision: "1",
 			},

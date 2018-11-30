@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -292,7 +293,7 @@ func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *sp
 				if t.Id != "buildbot-id" {
 					cfg, ok := cfgs[commit]
 					if !ok {
-						c, err := tcc.ReadTasksCfg(ctx, db.RepoState{
+						c, err := tcc.ReadTasksCfg(ctx, types.RepoState{
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})

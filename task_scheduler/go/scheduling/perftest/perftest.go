@@ -31,12 +31,13 @@ import (
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -268,14 +269,14 @@ func main() {
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)
-	tCache, err := db.NewTaskCache(d, w)
+	tCache, err := cache.NewTaskCache(d, w)
 	assertNoError(err)
 	// Use dummy GetRevisionTimestamp function so that nothing ever expires from
 	// the cache.
 	dummyGetRevisionTimestamp := func(string, string) (time.Time, error) {
 		return time.Now(), nil
 	}
-	jCache, err := db.NewJobCache(d, w, dummyGetRevisionTimestamp)
+	jCache, err := cache.NewJobCache(d, w, dummyGetRevisionTimestamp)
 	assertNoError(err)
 
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
@@ -303,19 +304,19 @@ func main() {
 		assertNoError(tCache.Update())
 		tasks, err := tCache.GetTasksForCommits(repoName, commits)
 		assertNoError(err)
-		newTasks := map[string]*db.Task{}
+		newTasks := map[string]*types.Task{}
 		for _, v := range tasks {
 			for _, task := range v {
-				if task.Status == db.TASK_STATUS_PENDING {
+				if task.Status == types.TASK_STATUS_PENDING {
 					if _, ok := newTasks[task.Id]; !ok {
 						newTasks[task.Id] = task
 					}
 				}
 			}
 		}
-		insert := make([]*db.Task, 0, len(newTasks))
+		insert := make([]*types.Task, 0, len(newTasks))
 		for _, task := range newTasks {
-			task.Status = db.TASK_STATUS_SUCCESS
+			task.Status = types.TASK_STATUS_SUCCESS
 			task.Finished = time.Now()
 			task.IsolatedOutput = "abc123"
 			insert = append(insert, task)

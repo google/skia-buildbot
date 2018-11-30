@@ -4,29 +4,30 @@ import (
 	"fmt"
 	"time"
 
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-// cacheWrapper is an implementation of db.TaskCache which allows insertion of
+// cacheWrapper is an implementation of types.TaskCache which allows insertion of
 // fake Tasks. Use one per task spec.
 type cacheWrapper struct {
-	byCommit map[string]*db.Task
-	byId     map[string]*db.Task
-	c        db.TaskCache
+	byCommit map[string]*types.Task
+	byId     map[string]*types.Task
+	c        cache.TaskCache
 	known    bool
 }
 
-func newCacheWrapper(c db.TaskCache) *cacheWrapper {
+func newCacheWrapper(c cache.TaskCache) *cacheWrapper {
 	return &cacheWrapper{
-		byCommit: map[string]*db.Task{},
-		byId:     map[string]*db.Task{},
+		byCommit: map[string]*types.Task{},
+		byId:     map[string]*types.Task{},
 		c:        c,
 		known:    false,
 	}
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTask(id string) (*db.Task, error) {
+func (c *cacheWrapper) GetTask(id string) (*types.Task, error) {
 	if t, ok := c.byId[id]; ok {
 		return t, nil
 	}
@@ -34,12 +35,12 @@ func (c *cacheWrapper) GetTask(id string) (*db.Task, error) {
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTaskMaybeExpired(string) (*db.Task, error) {
+func (c *cacheWrapper) GetTaskMaybeExpired(string) (*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTaskMaybeExpired not implemented.")
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*db.Task, error) {
+func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*types.Task, error) {
 	if t, ok := c.byCommit[commit]; ok {
 		return t, nil
 	}
@@ -47,17 +48,17 @@ func (c *cacheWrapper) GetTaskForCommit(repo, commit, name string) (*db.Task, er
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTasksByKey(*db.TaskKey) ([]*db.Task, error) {
+func (c *cacheWrapper) GetTasksByKey(*types.TaskKey) ([]*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTasksByKey not implemented.")
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTasksForCommits(string, []string) (map[string]map[string]*db.Task, error) {
+func (c *cacheWrapper) GetTasksForCommits(string, []string) (map[string]map[string]*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTasksForCommits not implemented.")
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) GetTasksFromDateRange(time.Time, time.Time) ([]*db.Task, error) {
+func (c *cacheWrapper) GetTasksFromDateRange(time.Time, time.Time) ([]*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.GetTasksFromDateRange not implemented.")
 }
 
@@ -70,7 +71,7 @@ func (c *cacheWrapper) KnownTaskName(repo, name string) bool {
 }
 
 // See documentation for TaskCache interface.
-func (c *cacheWrapper) UnfinishedTasks() ([]*db.Task, error) {
+func (c *cacheWrapper) UnfinishedTasks() ([]*types.Task, error) {
 	return nil, fmt.Errorf("cacheWrapper.UnfinishedTasks not implemented.")
 }
 
@@ -81,7 +82,7 @@ func (c *cacheWrapper) Update() error {
 
 // insert adds a task to the cacheWrapper's fake layer so that it will be
 // included in query results but not actually inserted into the DB.
-func (c *cacheWrapper) insert(t *db.Task) {
+func (c *cacheWrapper) insert(t *types.Task) {
 	c.byId[t.Id] = t
 	for _, commit := range t.Commits {
 		c.byCommit[commit] = t

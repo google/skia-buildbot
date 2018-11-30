@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/flakes"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -113,9 +114,9 @@ func (t *taskEventDB) update() error {
 
 // computeTaskFlakeRate is an events.DynamicAggregateFn that returns metrics for Task flake rate, given
 // a slice of Events created by taskEventDB.update. The first return value will contain the tags
-// "task_name" (db.Task.Name) and "metric" (one of "failure-rate", "mishap-rate"),
+// "task_name" (types.Task.Name) and "metric" (one of "failure-rate", "mishap-rate"),
 // and the second return value will be the corresponding ratio of failed/mishap Task to all
-// completed Tasks. Returns an error if Event.Data can't be GOB-decoded as a db.Task.
+// completed Tasks. Returns an error if Event.Data can't be GOB-decoded as a types.Task.
 func computeTaskFlakeRate(ev []*events.Event) ([]map[string]string, []float64, error) {
 	if len(ev) > 0 {
 		// ev should be ordered by timestamp
@@ -126,9 +127,9 @@ func computeTaskFlakeRate(ev []*events.Event) ([]map[string]string, []float64, e
 		count  int
 	}
 	byTask := map[string]*taskSum{}
-	tasks := make([]*db.Task, 0, len(ev))
+	tasks := make([]*types.Task, 0, len(ev))
 	for _, e := range ev {
-		var task db.Task
+		var task types.Task
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&task); err != nil {
 			return nil, nil, err
 		}

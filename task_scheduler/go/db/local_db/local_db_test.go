@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestMain(m *testing.M) {
@@ -161,7 +162,7 @@ func TestAssignIdAlreadyAssigned(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	task := &db.Task{}
+	task := &types.Task{}
 	assert.NoError(t, d.AssignId(task))
 	assert.Error(t, d.AssignId(task))
 }
@@ -175,9 +176,9 @@ func TestAssignIdsFromCreatedTs(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	tasks := []*db.Task{}
+	tasks := []*types.Task{}
 	addTask := func(ts time.Time) {
-		task := &db.Task{
+		task := &types.Task{
 			Created: ts,
 		}
 		assert.NoError(t, d.AssignId(task))
@@ -204,7 +205,7 @@ func TestAssignIdsFromCreatedTs(t *testing.T) {
 	}
 
 	// Stable-sort tasks.
-	sort.Stable(db.TaskSlice(tasks))
+	sort.Stable(types.TaskSlice(tasks))
 
 	// Sort IDs.
 	sort.Strings(ids)
@@ -230,9 +231,9 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	tasks := []*db.Task{}
+	tasks := []*types.Task{}
 	for i := 0; i < 260; i++ {
-		tasks = append(tasks, &db.Task{})
+		tasks = append(tasks, &types.Task{})
 	}
 
 	begin := time.Now()
@@ -257,7 +258,7 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 	assert.Equal(t, id6, tasks[6].Id)
 
 	// Order tasks by time of ID assignment.
-	first2 := []*db.Task{tasks[5], tasks[6]}
+	first2 := []*types.Task{tasks[5], tasks[6]}
 	copy(tasks[2:7], tasks[0:5])
 	copy(tasks[0:2], first2)
 
@@ -293,7 +294,7 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	task := &db.Task{}
+	task := &types.Task{}
 	beforeAssignId := time.Now().Add(-time.Nanosecond)
 	assert.NoError(t, d.AssignId(task))
 	afterAssignId := time.Now().Add(time.Nanosecond)
@@ -377,7 +378,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	begin := time.Now().Add(-time.Nanosecond)
 
 	// Create and insert a task that will cause ErrConcurrentUpdate.
-	task1 := &db.Task{
+	task1 := &types.Task{
 		Created: time.Now(),
 	}
 	assert.NoError(t, d.PutTask(task1))
@@ -385,25 +386,25 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	// Retrieve a copy, modify original.
 	task1Cached, err := d.GetTaskById(task1.Id)
 	assert.NoError(t, err)
-	task1.Status = db.TASK_STATUS_RUNNING
+	task1.Status = types.TASK_STATUS_RUNNING
 	assert.NoError(t, d.PutTask(task1))
 	task1InDb := task1.Copy()
 
 	// Create and insert a task to check PutTasks doesn't change DbModified.
-	task2 := &db.Task{
+	task2 := &types.Task{
 		Created: time.Now(),
 	}
 	assert.NoError(t, d.PutTask(task2))
 	task2InDb := task2.Copy()
-	task2.Status = db.TASK_STATUS_MISHAP
+	task2.Status = types.TASK_STATUS_MISHAP
 
 	// Create a task with an Id already set.
-	task3 := &db.Task{}
+	task3 := &types.Task{}
 	assert.NoError(t, d.AssignId(task3))
 	task3.Created = time.Now()
 
 	// Create a task without an Id set.
-	task4 := &db.Task{
+	task4 := &types.Task{
 		Created: time.Now(),
 	}
 
@@ -411,12 +412,12 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 	task1Cached.Commits = []string{"a", "b"}
 
 	// Copy to compare later.
-	expectedTasks := []*db.Task{task1Cached.Copy(), task2.Copy(), task3.Copy(), task4.Copy()}
+	expectedTasks := []*types.Task{task1Cached.Copy(), task2.Copy(), task3.Copy(), task4.Copy()}
 
 	// Attempt to insert; put task1Cached last so that the error comes last.
-	err = d.PutTasks([]*db.Task{task2, task3, task4, task1Cached})
+	err = d.PutTasks([]*types.Task{task2, task3, task4, task1Cached})
 	assert.True(t, db.IsConcurrentUpdate(err))
-	deepequal.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
+	deepequal.AssertDeepEqual(t, expectedTasks, []*types.Task{task1Cached, task2, task3, task4})
 
 	// Check that nothing was updated in the DB.
 	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now(), "")
@@ -443,9 +444,9 @@ func TestJobIdsFromCreatedTs(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	jobs := []*db.Job{}
+	jobs := []*types.Job{}
 	addJob := func(ts time.Time) {
-		job := &db.Job{
+		job := &types.Job{
 			Created: ts,
 		}
 		assert.NoError(t, d.PutJob(job))
@@ -472,7 +473,7 @@ func TestJobIdsFromCreatedTs(t *testing.T) {
 	}
 
 	// Stable-sort jobs.
-	sort.Stable(db.JobSlice(jobs))
+	sort.Stable(types.JobSlice(jobs))
 
 	// Sort IDs.
 	sort.Strings(ids)
@@ -498,7 +499,7 @@ func TestPutJobValidateCreatedTime(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
-	job := &db.Job{}
+	job := &types.Job{}
 
 	// Test "not set".
 	{
@@ -542,7 +543,7 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 	begin := time.Now().Add(-time.Nanosecond)
 
 	// Create and insert a job that will cause ErrConcurrentUpdate.
-	job1 := &db.Job{
+	job1 := &types.Job{
 		Created: time.Now(),
 	}
 	assert.NoError(t, d.PutJob(job1))
@@ -550,33 +551,33 @@ func TestPutJobLeavesJobsUnchanged(t *testing.T) {
 	// Retrieve a copy, modify original.
 	job1Cached, err := d.GetJobById(job1.Id)
 	assert.NoError(t, err)
-	job1.Status = db.JOB_STATUS_SUCCESS
+	job1.Status = types.JOB_STATUS_SUCCESS
 	assert.NoError(t, d.PutJob(job1))
 	job1InDb := job1.Copy()
 
 	// Create and insert a job to check PutJobs doesn't change DbModified.
-	job2 := &db.Job{
+	job2 := &types.Job{
 		Created: time.Now(),
 	}
 	assert.NoError(t, d.PutJob(job2))
 	job2InDb := job2.Copy()
-	job2.Status = db.JOB_STATUS_MISHAP
+	job2.Status = types.JOB_STATUS_MISHAP
 
 	// Create a job without an Id set.
-	job3 := &db.Job{
+	job3 := &types.Job{
 		Created: time.Now(),
 	}
 
 	// Make an update to job1Cached.
-	job1Cached.Status = db.JOB_STATUS_FAILURE
+	job1Cached.Status = types.JOB_STATUS_FAILURE
 
 	// Copy to compare later.
-	expectedJobs := []*db.Job{job1Cached.Copy(), job2.Copy(), job3.Copy()}
+	expectedJobs := []*types.Job{job1Cached.Copy(), job2.Copy(), job3.Copy()}
 
 	// Attempt to insert; put job1Cached last so that the error comes last.
-	err = d.PutJobs([]*db.Job{job2, job3, job1Cached})
+	err = d.PutJobs([]*types.Job{job2, job3, job1Cached})
 	assert.True(t, db.IsConcurrentUpdate(err))
-	deepequal.AssertDeepEqual(t, expectedJobs, []*db.Job{job1Cached, job2, job3})
+	deepequal.AssertDeepEqual(t, expectedJobs, []*types.Job{job1Cached, job2, job3})
 
 	// Check that nothing was updated in the DB.
 	jobsInDb, err := d.GetJobsFromDateRange(begin, time.Now())
@@ -640,6 +641,22 @@ func TestLocalDBTaskDBGetTasksFromWindow(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDBGetTasksFromWindow(t, d)
+}
+
+func TestLocalDBUpdateDBFromSwarmingTask(t *testing.T) {
+	testutils.LargeTest(t)
+	d, tmpdir := makeDB(t, "TestLocalDBUpdateDBFromSwarmingTask")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+	db.TestUpdateDBFromSwarmingTask(t, d)
+}
+
+func TestLocalDBUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
+	testutils.LargeTest(t)
+	d, tmpdir := makeDB(t, "TestLocalDBUpdateFromSwarmingTaskTryjob")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+	db.TestUpdateDBFromSwarmingTaskTryJob(t, d)
 }
 
 func TestLocalDBJobDB(t *testing.T) {

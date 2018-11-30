@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -178,7 +179,7 @@ type Failure struct {
 	OrigMessage string
 
 	// The task which incurred the failure.
-	Task *db.Task
+	Task *types.Task
 }
 
 // FailureParser is a struct used for parsing failure messages from Swarming
@@ -232,7 +233,7 @@ func ParseFailures(stdout string) []*Failure {
 }
 
 // Download task logs, parse them for failures.
-func (fp *FailureParser) GetFailuresFromTask(t *db.Task) ([]*Failure, error) {
+func (fp *FailureParser) GetFailuresFromTask(t *types.Task) ([]*Failure, error) {
 	out, err := fp.swarming.GetStdoutOfTask(t.SwarmingTaskId)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get swarming task output: %s", err)
@@ -250,8 +251,8 @@ func (fp *FailureParser) GetFailuresFromTask(t *db.Task) ([]*Failure, error) {
 }
 
 // Load newly-finished tasks.
-func (fp *FailureParser) GetNewlyFinishedTasks() ([]*db.Task, error) {
-	var modTasks []*db.Task
+func (fp *FailureParser) GetNewlyFinishedTasks() ([]*types.Task, error) {
+	var modTasks []*types.Task
 	var err error
 	if fp.queryId != "" {
 		modTasks, err = fp.db.GetModifiedTasks(fp.queryId)
@@ -275,7 +276,7 @@ func (fp *FailureParser) GetNewlyFinishedTasks() ([]*db.Task, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	rv := make([]*db.Task, 0, len(modTasks))
+	rv := make([]*types.Task, 0, len(modTasks))
 	for _, t := range modTasks {
 		if t.Done() && !t.Success() {
 			rv = append(rv, t)
@@ -292,13 +293,13 @@ func (fp *FailureParser) Tick() error {
 	}
 
 	// Remove tasks we don't care about.
-	filteredTasks := make([]*db.Task, 0, len(tasks))
+	filteredTasks := make([]*types.Task, 0, len(tasks))
 	for _, t := range tasks {
 		if t.Name == "Google3-Autoroller" {
 			continue
 		}
 		// TODO(borenet): Re-enable these. Filtered because they're hard to parse.
-		if t.Status == db.TASK_STATUS_MISHAP {
+		if t.Status == types.TASK_STATUS_MISHAP {
 			continue
 		}
 		filteredTasks = append(filteredTasks, t)

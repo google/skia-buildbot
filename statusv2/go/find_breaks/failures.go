@@ -3,7 +3,7 @@ package find_breaks
 import (
 	"fmt"
 
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // failure is a struct which represents a failure of a given task spec,
@@ -57,9 +57,9 @@ func (f *failure) valid() error {
 // of Tasks within the given slice of commits. Assumes all tasks are of the same
 // TaskSpec, and that the given slice of commits are in chronological order, ie.
 // oldest first.
-func findFailuresForSpec(tasks []*db.Task, commits []string) ([]*failure, error) {
+func findFailuresForSpec(tasks []*types.Task, commits []string) ([]*failure, error) {
 	rv := []*failure{}
-	byCommit := map[string]*db.Task{}
+	byCommit := map[string]*types.Task{}
 	for _, t := range tasks {
 		for _, c := range t.Commits {
 			byCommit[c] = t
@@ -72,7 +72,7 @@ func findFailuresForSpec(tasks []*db.Task, commits []string) ([]*failure, error)
 	wildCardStart := -1
 	for idx, c := range commits {
 		t := byCommit[c]
-		if t != nil && t.Status == db.TASK_STATUS_FAILURE {
+		if t != nil && t.Status == types.TASK_STATUS_FAILURE {
 			if f == nil {
 				brokeIn := makeSlice(t.Commits, commits)
 				if wildCardStart != -1 {
@@ -92,7 +92,7 @@ func findFailuresForSpec(tasks []*db.Task, commits []string) ([]*failure, error)
 			}
 			lastFailed = idx + 1
 			wildCardStart = -1
-		} else if t != nil && t.Status == db.TASK_STATUS_SUCCESS {
+		} else if t != nil && t.Status == types.TASK_STATUS_SUCCESS {
 			if f != nil {
 				f.fixedIn = makeSlice(t.Commits, commits)
 				if wildCardStart != -1 {
@@ -153,9 +153,9 @@ func findFailuresForSpec(tasks []*db.Task, commits []string) ([]*failure, error)
 
 // findFailures creates a slice of failure instances from the given slice of
 // Tasks within the given slice of commits.
-func findFailures(tasks []*db.Task, commits []string) ([]*failure, error) {
+func findFailures(tasks []*types.Task, commits []string) ([]*failure, error) {
 	rv := []*failure{}
-	bySpec := map[string][]*db.Task{}
+	bySpec := map[string][]*types.Task{}
 	for _, t := range tasks {
 		if !t.Done() {
 			continue

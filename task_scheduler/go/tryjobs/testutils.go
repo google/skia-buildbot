@@ -22,9 +22,9 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -64,7 +64,7 @@ const (
 )
 
 var (
-	gerritPatch = db.Patch{
+	gerritPatch = types.Patch{
 		Server:   gerritUrl,
 		Issue:    fmt.Sprintf("%d", gerritIssue),
 		Patchset: gerritPatchset,
@@ -85,7 +85,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	gb.Add(ctx, tasksJson, testTasksCfg)
 	gb.Commit(ctx)
 
-	rs := db.RepoState{
+	rs := types.RepoState{
 		Patch:    gerritPatch,
 		Repo:     gb.RepoUrl(),
 		Revision: "master",
@@ -163,14 +163,14 @@ func Build(t testutils.TestingT, now time.Time) *buildbucket_api.ApiCommonBuildM
 	}
 }
 
-func tryjob(repoName string) *db.Job {
-	return &db.Job{
+func tryjob(repoName string) *types.Job {
+	return &types.Job{
 		BuildbucketBuildId:  rand.Int63(),
 		BuildbucketLeaseKey: rand.Int63(),
 		Created:             time.Now(),
 		Name:                "fake-name",
-		RepoState: db.RepoState{
-			Patch: db.Patch{
+		RepoState: types.RepoState{
+			Patch: types.Patch{
 				Server:   "fake-server",
 				Issue:    "fake-issue",
 				Patchset: "fake-patchset",
@@ -196,7 +196,7 @@ type heartbeatResp struct {
 	Error   *errMsg `json:"error,omitempty"`
 }
 
-func MockHeartbeats(t testutils.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*db.Job, resps map[string]*heartbeatResp) {
+func MockHeartbeats(t testutils.TestingT, mock *mockhttpclient.URLMock, now time.Time, jobs []*types.Job, resps map[string]*heartbeatResp) {
 	// Create the request data.
 	expiry := fmt.Sprintf("%d", now.Add(LEASE_DURATION).Unix()*1000000)
 	heartbeats := make([]*heartbeat, 0, len(jobs))
@@ -271,7 +271,7 @@ func MockJobStarted(mock *mockhttpclient.URLMock, id int64, now time.Time, err e
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/start?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func serializeJob(j *db.Job) string {
+func serializeJob(j *types.Job) string {
 	jobBytes, err := json.Marshal(j)
 	if err != nil {
 		sklog.Fatal(err)
@@ -283,7 +283,7 @@ func serializeJob(j *db.Job) string {
 	return string(escape[1 : len(escape)-1])
 }
 
-func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error, dontCareRequest bool) {
+func MockJobSuccess(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr error, dontCareRequest bool) {
 	req := mockhttpclient.DONT_CARE_REQUEST
 	if !dontCareRequest {
 		req = []byte(fmt.Sprintf("{\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
@@ -295,7 +295,7 @@ func MockJobSuccess(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expe
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/succeed?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
+func MockJobFailure(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr error) {
 	req := []byte(fmt.Sprintf("{\"failure_reason\":\"BUILD_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	resp := []byte("{}")
 	if expectErr != nil {
@@ -304,7 +304,7 @@ func MockJobFailure(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expe
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/fail?alt=json&prettyPrint=false", API_URL_TESTING, j.BuildbucketBuildId), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobMishap(mock *mockhttpclient.URLMock, j *db.Job, now time.Time, expectErr error) {
+func MockJobMishap(mock *mockhttpclient.URLMock, j *types.Job, now time.Time, expectErr error) {
 	req := []byte(fmt.Sprintf("{\"failure_reason\":\"INFRA_FAILURE\",\"lease_key\":\"%d\",\"result_details_json\":\"{\\\"job\\\":%s}\",\"url\":\"fake-server/job/%s\"}\n", j.BuildbucketLeaseKey, serializeJob(j), j.Id))
 	resp := []byte("{}")
 	if expectErr != nil {

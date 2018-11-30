@@ -16,12 +16,12 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // ValidateCheckout returns true if the git checkout in the given destination
 // dir is in a reasonable state. Assumes that the dest dir exists.
-func ValidateCheckout(ctx context.Context, dest string, rs db.RepoState) (bool, error) {
+func ValidateCheckout(ctx context.Context, dest string, rs types.RepoState) (bool, error) {
 	if _, err := os_steps.Stat(ctx, filepath.Join(dest, ".git")); err == nil {
 		gd := git.GitDir(dest)
 
@@ -105,7 +105,7 @@ func ValidateCheckout(ctx context.Context, dest string, rs db.RepoState) (bool, 
 
 // EnsureGitCheckout obtains a clean git checkout of the given repo, at the
 // given commit, in the given destination dir.
-func EnsureGitCheckout(ctx context.Context, dest string, rs db.RepoState) (*git.Checkout, error) {
+func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*git.Checkout, error) {
 	ctx = td.StartStep(ctx, td.Props("Ensure Git Checkout").Infra())
 	defer td.EndStep(ctx)
 
@@ -179,7 +179,7 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs db.RepoState) (*git.
 // EnsureGitCheckoutWithDEPS obtains a clean git checkout of the given repo,
 // at the given commit, in the given workdir, and syncs the DEPS as well. The
 // checkout itself will be a subdirectory of the workdir.
-func EnsureGitCheckoutWithDEPS(ctx context.Context, workdir string, rs db.RepoState) (co *git.Checkout, err error) {
+func EnsureGitCheckoutWithDEPS(ctx context.Context, workdir string, rs types.RepoState) (co *git.Checkout, err error) {
 	ctx = td.StartStep(ctx, td.Props("Ensure Git Checkout (with DEPS)").Infra())
 	defer td.EndStep(ctx)
 	// TODO(borenet): Implement this code using gclient or bot_update.

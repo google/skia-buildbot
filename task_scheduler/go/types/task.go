@@ -1,9 +1,8 @@
-package db
+package types
 
 import (
 	"bytes"
 	"encoding/gob"
-	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -339,31 +338,6 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 		return true, nil
 	}
 	return false, nil
-}
-
-var errNotModified = errors.New("Task not modified")
-
-// UpdateDBFromSwarmingTask updates a task in db from data in s.
-func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult) error {
-	id, err := swarming.GetTagValue(s, SWARMING_TAG_ID)
-	if err != nil {
-		return err
-	}
-	_, err = UpdateTaskWithRetries(db, id, func(task *Task) error {
-		modified, err := task.UpdateFromSwarming(s)
-		if err != nil {
-			return err
-		}
-		if !modified {
-			return errNotModified
-		}
-		return nil
-	})
-	if err == errNotModified {
-		return nil
-	} else {
-		return err
-	}
 }
 
 func (t *Task) Done() bool {

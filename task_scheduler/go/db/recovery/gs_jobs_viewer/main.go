@@ -18,8 +18,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/recovery"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -54,15 +54,15 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	jobs := make([]*db.Job, 0, len(jobsMap))
+	jobs := make([]*types.Job, 0, len(jobsMap))
 	for _, job := range jobsMap {
 		jobs = append(jobs, job)
 	}
-	sort.Sort(db.JobSlice(jobs))
+	sort.Sort(types.JobSlice(jobs))
 
 	v := struct {
 		Begin time.Time
-		Jobs  []*db.Job
+		Jobs  []*types.Job
 	}{
 		Begin: begin,
 		Jobs:  jobs,

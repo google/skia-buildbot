@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/sync/syncmap"
 )
 
@@ -32,7 +33,7 @@ const (
 )
 
 // Ingest a single Task's log.
-func ingestLog(gs *storage.Client, s swarming.ApiClient, t *db.Task) error {
+func ingestLog(gs *storage.Client, s swarming.ApiClient, t *types.Task) error {
 	gsPath := fmt.Sprintf(GS_PATH, GS_PREFIX_RAW, t.Created.Year(), t.Created.Month(), t.Created.Day(), t.Created.Hour(), t.SwarmingTaskId+".log")
 	gsObj := gs.Bucket(GS_BUCKET).Object(gsPath)
 
@@ -64,7 +65,7 @@ func ingestLogsChunk(taskDb db.TaskReader, gcs *storage.Client, s swarming.ApiCl
 		return nil, err
 	}
 	sklog.Infof("Ingesting logs for %d tasks created between %s and %s.", len(tasks), start, end)
-	queue := make(chan *db.Task)
+	queue := make(chan *types.Task)
 	go func() {
 		for _, t := range tasks {
 			if !t.Done() || t.SwarmingTaskId == "" {

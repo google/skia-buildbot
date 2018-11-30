@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,7 +21,7 @@ const (
 )
 
 // Fix all timestamps for the given job.
-func fixJobTimestamps(job *db.Job) {
+func fixJobTimestamps(job *types.Job) {
 	job.Created = fixTimestamp(job.Created)
 	job.DbModified = fixTimestamp(job.DbModified)
 	job.Finished = fixTimestamp(job.Finished)
@@ -31,33 +32,33 @@ func (d *firestoreDB) jobs() *fs.CollectionRef {
 	return d.client.Collection(COLLECTION_JOBS)
 }
 
-// See documentation for db.JobReader interface.
-func (d *firestoreDB) GetJobById(id string) (*db.Job, error) {
+// See documentation for types.JobReader interface.
+func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
 	doc, err := firestore.Get(d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	var rv db.Job
+	var rv types.Job
 	if err := doc.DataTo(&rv); err != nil {
 		return nil, err
 	}
 	return &rv, nil
 }
 
-// See documentation for db.JobReader interface.
-func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, error) {
-	var jobs [][]*db.Job
+// See documentation for types.JobReader interface.
+func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
+	var jobs [][]*types.Job
 	init := func(numGoroutines int) {
-		jobs = make([][]*db.Job, numGoroutines)
+		jobs = make([][]*types.Job, numGoroutines)
 		for i := 0; i < numGoroutines; i++ {
 			estResults := estResultSize(end.Sub(start) / time.Duration(numGoroutines))
-			jobs[i] = make([]*db.Job, 0, estResults)
+			jobs[i] = make([]*types.Job, 0, estResults)
 		}
 	}
 	elem := func(idx int, doc *fs.DocumentSnapshot) error {
-		var job db.Job
+		var job types.Job
 		if err := doc.DataTo(&job); err != nil {
 			return err
 		}
@@ -71,17 +72,17 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*db.Job, err
 	for _, jobList := range jobs {
 		totalResults += len(jobList)
 	}
-	rv := make([]*db.Job, 0, totalResults)
+	rv := make([]*types.Job, 0, totalResults)
 	for _, jobList := range jobs {
 		rv = append(rv, jobList...)
 	}
-	sort.Sort(db.JobSlice(rv))
+	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
 // putJobs sets the contents of the given jobs in Firestore, as part of the
 // given transaction. It is used by PutJob and PutJobs.
-func (d *firestoreDB) putJobs(jobs []*db.Job, tx *fs.Transaction) (rvErr error) {
+func (d *firestoreDB) putJobs(jobs []*types.Job, tx *fs.Transaction) (rvErr error) {
 	// Set the modification time of the jobs.
 	now := fixTimestamp(time.Now())
 	isNew := make([]bool, len(jobs))
@@ -132,7 +133,7 @@ func (d *firestoreDB) putJobs(jobs []*db.Job, tx *fs.Transaction) (rvErr error) 
 		// If the job already exists, check the DbModified timestamp
 		// to ensure that someone else didn't update it.
 		if !isNew[idx] {
-			var old db.Job
+			var old types.Job
 			if err := doc.DataTo(&old); err != nil {
 				return err
 			}
@@ -152,13 +153,13 @@ func (d *firestoreDB) putJobs(jobs []*db.Job, tx *fs.Transaction) (rvErr error) 
 	return nil
 }
 
-// See documentation for db.JobDB interface.
-func (d *firestoreDB) PutJob(job *db.Job) error {
-	return d.PutJobs([]*db.Job{job})
+// See documentation for types.JobDB interface.
+func (d *firestoreDB) PutJob(job *types.Job) error {
+	return d.PutJobs([]*types.Job{job})
 }
 
-// See documentation for db.JobDB interface.
-func (d *firestoreDB) PutJobs(jobs []*db.Job) error {
+// See documentation for types.JobDB interface.
+func (d *firestoreDB) PutJobs(jobs []*types.Job) error {
 	if len(jobs) > MAX_TRANSACTION_DOCS/2 {
 		sklog.Warningf("Inserting %d jobs; Firestore maximum per transaction is %d", len(jobs), MAX_TRANSACTION_DOCS)
 	}

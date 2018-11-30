@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -24,9 +25,9 @@ func newTaskCache(d db.TaskReader) *taskCache {
 	}
 }
 
-// mapTasks converts a slice of db.Tasks to a map of pared-down Task objects,
+// mapTasks converts a slice of types.Tasks to a map of pared-down Task objects,
 // keyed by repo.
-func mapTasks(tasks []*db.Task) map[string][]*Task {
+func mapTasks(tasks []*types.Task) map[string][]*Task {
 	rv := map[string][]*Task{}
 	for _, t := range tasks {
 		rv[t.Repo] = append(rv[t.Repo], &Task{

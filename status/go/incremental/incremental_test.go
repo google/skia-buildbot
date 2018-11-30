@@ -14,12 +14,14 @@ import (
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
 	testutils.LargeTest(t)
-	taskDb := db.NewInMemoryTaskDB()
+	taskDb := memory.NewInMemoryTaskDB()
 	commentDb := &db.CommentBox{}
 	d := db.NewDB(taskDb, nil, commentDb)
 
@@ -34,12 +36,12 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 		gb.RepoUrl(): repo,
 	}
 
-	initialTask := &db.Task{
+	initialTask := &types.Task{
 		Created:    time.Now(),
 		DbModified: time.Now(),
 		Id:         "0",
-		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
+		TaskKey: types.TaskKey{
+			RepoState: types.RepoState{
 				Repo:     gb.RepoUrl(),
 				Revision: c0,
 			},
@@ -102,7 +104,7 @@ func TestIncrementalCache(t *testing.T) {
 	// Modify the task.
 	t0, err := taskDb.GetTaskById(u.Tasks[0].Id)
 	assert.NoError(t, err)
-	t0.Status = db.TASK_STATUS_SUCCESS
+	t0.Status = types.TASK_STATUS_SUCCESS
 	assert.NoError(t, taskDb.PutTask(t0))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
@@ -117,7 +119,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// Add a TaskComment.
-	tc := db.TaskComment{
+	tc := types.TaskComment{
 		Repo:      t0.Repo,
 		Revision:  t0.Revision,
 		Name:      t0.Name,
@@ -153,7 +155,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// CommitComment.
-	cc := db.CommitComment{
+	cc := types.CommitComment{
 		Repo:          t0.Repo,
 		Revision:      t0.Revision,
 		Timestamp:     time.Now(),
@@ -175,7 +177,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.Equal(t, map[string][]*TaskSpecComment(nil), u.TaskSpecComments)
 
 	// TaskSpecComment.
-	tsc := db.TaskSpecComment{
+	tsc := types.TaskSpecComment{
 		Repo:          t0.Repo,
 		Name:          t0.Name,
 		Timestamp:     time.Now(),

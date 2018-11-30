@@ -27,9 +27,11 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -99,11 +101,11 @@ type TaskScheduler struct {
 	db                  db.DB
 	depotToolsDir       string
 	isolate             *isolate.Client
-	jCache              db.JobCache
+	jCache              cache.JobCache
 	lastScheduled       time.Time // protected by queueMtx.
 
 	// TODO(benjaminwagner): newTasks probably belongs in the TaskCfgCache.
-	newTasks    map[db.RepoState]util.StringSet
+	newTasks    map[types.RepoState]util.StringSet
 	newTasksMtx sync.RWMutex
 
 	periodicTriggers *periodic_triggers.Triggerer
@@ -114,7 +116,7 @@ type TaskScheduler struct {
 	repos            repograph.Map
 	swarming         swarming.ApiClient
 	taskCfgCache     *specs.TaskCfgCache
-	tCache           db.TaskCache
+	tCache           cache.TaskCache
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
 	// Metric for age of commit with no completed job, in ns.
@@ -135,12 +137,12 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 	}
 
 	// Create caches.
-	tCache, err := db.NewTaskCache(d, w)
+	tCache, err := cache.NewTaskCache(d, w)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
 	}
 
-	jCache, err := db.NewJobCache(d, w, db.GitRepoGetRevisionTimestamp(repos))
+	jCache, err := cache.NewJobCache(d, w, cache.GitRepoGetRevisionTimestamp(repos))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
@@ -167,7 +169,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 		depotToolsDir:    depotTools,
 		isolate:          isolateClient,
 		jCache:           jCache,
-		newTasks:         map[db.RepoState]util.StringSet{},
+		newTasks:         map[types.RepoState]util.StringSet{},
 		newTasksMtx:      sync.RWMutex{},
 		periodicTriggers: pt,
 		pools:            pools,
@@ -248,7 +250,7 @@ func (s *TaskScheduler) Status() *TaskSchedulerStatus {
 
 // TaskCandidateSearchTerms includes fields used for searching task candidates.
 type TaskCandidateSearchTerms struct {
-	db.TaskKey
+	types.TaskKey
 	Dimensions []string `json:"dimensions"`
 }
 
@@ -309,7 +311,7 @@ func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
 
 // TriggerJob adds the given Job to the database and returns its ID.
 func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName string) (string, error) {
-	j, err := s.taskCfgCache.MakeJob(ctx, db.RepoState{
+	j, err := s.taskCfgCache.MakeJob(ctx, types.RepoState{
 		Repo:     repo,
 		Revision: commit,
 	}, jobName)
@@ -325,7 +327,7 @@ func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName st
 }
 
 // CancelJob cancels the given Job if it is not already finished.
-func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
+func (s *TaskScheduler) CancelJob(id string) (*types.Job, error) {
 	// TODO(borenet): Prevent concurrent update of the Job.
 	j, err := s.jCache.GetJobMaybeExpired(id)
 	if err != nil {
@@ -334,7 +336,7 @@ func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
 	if j.Done() {
 		return nil, fmt.Errorf("Job %s is already finished with status %s", id, j.Status)
 	}
-	j.Status = db.JOB_STATUS_CANCELED
+	j.Status = types.JOB_STATUS_CANCELED
 	if err := s.jobFinished(j); err != nil {
 		return nil, err
 	}
@@ -368,9 +370,9 @@ func (s *TaskScheduler) CancelJob(id string) (*db.Job, error) {
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(ctx context.Context, cache db.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, newTasks map[db.RepoState]util.StringSet) ([]string, *db.Task, error) {
+func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograph.Graph, taskName, repoName string, revision *repograph.Commit, commitsBuf []*repograph.Commit, newTasks map[types.RepoState]util.StringSet) ([]string, *types.Task, error) {
 	commitsBuf = commitsBuf[:0]
-	var stealFrom *db.Task
+	var stealFrom *types.Task
 
 	// Run the helper function to recurse on commit history.
 	if err := revision.Recurse(func(commit *repograph.Commit) (bool, error) {
@@ -430,7 +432,7 @@ func ComputeBlamelist(ctx context.Context, cache db.TaskCache, repo *repograph.G
 		commitsBuf = append(commitsBuf, commit)
 
 		// If the task is new at this commit, stop now.
-		rs := db.RepoState{
+		rs := types.RepoState{
 			Repo:     repoName,
 			Revision: commit.Hash,
 		}
@@ -455,11 +457,11 @@ func ComputeBlamelist(ctx context.Context, cache db.TaskCache, repo *repograph.G
 
 // findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
 // currently-unfinished jobs.
-func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*db.Job) (map[db.TaskKey]*taskCandidate, error) {
+func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
-	candidates := map[db.TaskKey]*taskCandidate{}
+	candidates := map[types.TaskKey]*taskCandidate{}
 	for _, j := range unfinishedJobs {
 		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
@@ -492,7 +494,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 
 // filterTaskCandidates reduces the set of taskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
-func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
+func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	candidatesBySpec := map[string]map[string][]*taskCandidate{}
@@ -518,14 +520,14 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[db.TaskKey]
 		if err != nil {
 			return nil, err
 		}
-		var previous *db.Task
+		var previous *types.Task
 		if len(prevTasks) > 0 {
 			// Just choose the last (most recently created) previous
 			// Task.
 			previous = prevTasks[len(prevTasks)-1]
 		}
 		if previous != nil {
-			if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+			if previous.Status == types.TASK_STATUS_PENDING || previous.Status == types.TASK_STATUS_RUNNING {
 				continue
 			}
 			if previous.Success() {
@@ -605,7 +607,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	priority := 1 - inversePriorityProduct
 
 	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
-	var earliestJob *db.Job
+	var earliestJob *types.Job
 	for j := range c.Jobs {
 		if earliestJob == nil || earliestJob.Created.After(j.Created) {
 			earliestJob = j
@@ -631,7 +633,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	if revision == nil {
 		return fmt.Errorf("No such commit %s in %s.", c.Revision, c.Repo)
 	}
-	var stealingFrom *db.Task
+	var stealingFrom *types.Task
 	var commits []string
 	if !s.window.TestTime(c.Repo, revision.Timestamp) {
 		// If the commit has scrolled out of our window, don't bother computing
@@ -958,7 +960,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 
 // isolateTasks sets up the given RepoState and isolates the given
 // taskCandidates.
-func (s *TaskScheduler) isolateTasks(ctx context.Context, rs db.RepoState, candidates []*taskCandidate) error {
+func (s *TaskScheduler) isolateTasks(ctx context.Context, rs types.RepoState, candidates []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
 	// Create and check out a temporary repo.
 	return s.taskCfgCache.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
@@ -992,7 +994,7 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 
 	// First, group by RepoState since we have to isolate the code at
 	// that state for each task.
-	byRepoState := map[db.RepoState][]*taskCandidate{}
+	byRepoState := map[types.RepoState][]*taskCandidate{}
 	for _, c := range candidates {
 		byRepoState[c.RepoState] = append(byRepoState[c.RepoState], c)
 	}
@@ -1002,7 +1004,7 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 	var wg sync.WaitGroup
 	for rs, candidates := range byRepoState {
 		wg.Add(1)
-		go func(rs db.RepoState, candidates []*taskCandidate) {
+		go func(rs types.RepoState, candidates []*taskCandidate) {
 			defer wg.Done()
 			if err := s.isolateTasks(ctx, rs, candidates); err != nil {
 				names := make([]string, 0, len(candidates))
@@ -1027,9 +1029,9 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
 // a channel of the successfully-triggered tasks which is closed after all tasks
 // have been triggered or failed. Each failure is sent to errCh.
-func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<- error) <-chan *db.Task {
+func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<- error) <-chan *types.Task {
 	defer metrics2.FuncTimer().Stop()
-	triggered := make(chan *db.Task)
+	triggered := make(chan *types.Task)
 	var wg sync.WaitGroup
 	for candidate := range isolated {
 		wg.Add(1)
@@ -1098,11 +1100,11 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 
 	// Collect the tasks we triggered.
 	numTriggered := 0
-	insert := map[string]map[string][]*db.Task{}
+	insert := map[string]map[string][]*types.Task{}
 	for t := range triggered {
 		byRepo, ok := insert[t.Repo]
 		if !ok {
-			byRepo = map[string][]*db.Task{}
+			byRepo = map[string][]*types.Task{}
 			insert[t.Repo] = byRepo
 		}
 		byRepo[t.Name] = append(byRepo[t.Name], t)
@@ -1117,7 +1119,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
 		} else {
 			// Organize the triggered task by TaskKey.
-			remove := make(map[db.TaskKey]*db.Task, numTriggered)
+			remove := make(map[types.TaskKey]*types.Task, numTriggered)
 			for _, byRepo := range insert {
 				for _, byName := range byRepo {
 					for _, t := range byName {
@@ -1208,7 +1210,7 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find all new Jobs for all new commits.
-	newJobs := []*db.Job{}
+	newJobs := []*types.Job{}
 	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
 		scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
 		if err != nil {
@@ -1217,7 +1219,7 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 		if scheduled {
 			return false, nil
 		}
-		rs := db.RepoState{
+		rs := types.RepoState{
 			Repo:     repoUrl,
 			Revision: c.Hash,
 		}
@@ -1273,9 +1275,9 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 // updateAddedTaskSpecs updates the mapping of RepoStates to the new task specs
 // they added.
 func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
-	repoStates := []db.RepoState{}
+	repoStates := []types.RepoState{}
 	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
-		repoStates = append(repoStates, db.RepoState{
+		repoStates = append(repoStates, types.RepoState{
 			Repo:     repoUrl,
 			Revision: c.Hash,
 		})
@@ -1555,7 +1557,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	if err != nil {
 		return err
 	}
-	sort.Sort(db.TaskSlice(tasks))
+	sort.Sort(types.TaskSlice(tasks))
 
 	// Query Swarming for all unfinished tasks.
 	// TODO(borenet): This would be faster if Swarming had a
@@ -1565,7 +1567,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 	errs := make([]error, len(tasks))
 	for i, t := range tasks {
 		wg.Add(1)
-		go func(idx int, t *db.Task) {
+		go func(idx int, t *types.Task) {
 			defer wg.Done()
 			swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId, false)
 			if err != nil {
@@ -1589,7 +1591,7 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 }
 
 // jobFinished marks the Job as finished.
-func (s *TaskScheduler) jobFinished(j *db.Job) error {
+func (s *TaskScheduler) jobFinished(j *types.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("jobFinished called on Job with status %q", j.Status)
 	}
@@ -1606,16 +1608,16 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		return err
 	}
 
-	modifiedJobs := make([]*db.Job, 0, len(jobs))
-	modifiedTasks := make(map[string]*db.Task, len(jobs))
+	modifiedJobs := make([]*types.Job, 0, len(jobs))
+	modifiedTasks := make(map[string]*types.Task, len(jobs))
 	for _, j := range jobs {
 		tasks, err := s.getTasksForJob(j)
 		if err != nil {
 			return err
 		}
-		summaries := make(map[string][]*db.TaskSummary, len(tasks))
+		summaries := make(map[string][]*types.TaskSummary, len(tasks))
 		for k, v := range tasks {
-			cpy := make([]*db.TaskSummary, 0, len(v))
+			cpy := make([]*types.TaskSummary, 0, len(v))
 			for _, t := range v {
 				if existing := modifiedTasks[t.Id]; existing != nil {
 					t = existing
@@ -1642,7 +1644,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		}
 	}
 	if len(modifiedTasks) > 0 {
-		tasks := make([]*db.Task, 0, len(modifiedTasks))
+		tasks := make([]*types.Task, 0, len(modifiedTasks))
 		for _, t := range modifiedTasks {
 			tasks = append(tasks, t)
 		}
@@ -1664,8 +1666,8 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 
 // getTasksForJob finds all Tasks for the given Job. It returns the Tasks
 // in a map keyed by name.
-func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error) {
-	tasks := map[string][]*db.Task{}
+func (s *TaskScheduler) getTasksForJob(j *types.Job) (map[string][]*types.Task, error) {
+	tasks := map[string][]*types.Task{}
 	for d := range j.Dependencies {
 		key := j.MakeTaskKey(d)
 		gotTasks, err := s.tCache.GetTasksByKey(&key)
@@ -1678,20 +1680,20 @@ func (s *TaskScheduler) getTasksForJob(j *db.Job) (map[string][]*db.Task, error)
 }
 
 // GetJob returns the given Job.
-func (s *TaskScheduler) GetJob(id string) (*db.Job, error) {
+func (s *TaskScheduler) GetJob(id string) (*types.Job, error) {
 	return s.jCache.GetJobMaybeExpired(id)
 }
 
 // GetTask returns the given Task.
-func (s *TaskScheduler) GetTask(id string) (*db.Task, error) {
+func (s *TaskScheduler) GetTask(id string) (*types.Task, error) {
 	return s.tCache.GetTaskMaybeExpired(id)
 }
 
 // addTasksSingleTaskSpec computes the blamelist for each task in tasks, all of
 // which must have the same Repo and Name fields, and inserts/updates them in
 // the TaskDB. Also adjusts blamelists of existing tasks.
-func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*db.Task) error {
-	sort.Sort(db.TaskSlice(tasks))
+func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*types.Task) error {
+	sort.Sort(types.TaskSlice(tasks))
 	cache := newCacheWrapper(s.tCache)
 	repoName := tasks[0].Repo
 	taskName := tasks[0].Name
@@ -1701,7 +1703,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*db.
 	}
 
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
-	updatedTasks := map[string]*db.Task{}
+	updatedTasks := map[string]*types.Task{}
 	for _, task := range tasks {
 		if task.Repo != repoName || task.Name != taskName {
 			return fmt.Errorf("Mismatched Repo or Name: %v", tasks)
@@ -1750,7 +1752,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*db.
 			cache.insert(stealingFrom)
 		}
 	}
-	putTasks := make([]*db.Task, 0, len(updatedTasks))
+	putTasks := make([]*types.Task, 0, len(updatedTasks))
 	for _, task := range updatedTasks {
 		putTasks = append(putTasks, task)
 	}
@@ -1763,7 +1765,7 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*db.
 // AddTasks updates existing Tasks' blamelists, if needed. The provided map
 // groups Tasks by repo and TaskSpec name. May return error on partial success.
 // May modify Commits and Id of argument tasks on error.
-func (s *TaskScheduler) AddTasks(ctx context.Context, taskMap map[string]map[string][]*db.Task) error {
+func (s *TaskScheduler) AddTasks(ctx context.Context, taskMap map[string]map[string][]*types.Task) error {
 	type queueItem struct {
 		Repo string
 		Name string
@@ -1797,7 +1799,7 @@ func (s *TaskScheduler) AddTasks(ctx context.Context, taskMap map[string]map[str
 		wg := sync.WaitGroup{}
 		for item := range queue {
 			wg.Add(1)
-			go func(item queueItem, tasks []*db.Task) {
+			go func(item queueItem, tasks []*types.Task) {
 				defer wg.Done()
 				if err := s.addTasksSingleTaskSpec(ctx, tasks); err != nil {
 					errs <- err
@@ -1837,7 +1839,7 @@ func (s *TaskScheduler) AddTasks(ctx context.Context, taskMap map[string]map[str
 // task should have all fields initialized except for Commits and Id, which must
 // be empty. Updates existing Tasks' blamelists, if needed. May modify Commits
 // and Id on error.
-func (s *TaskScheduler) ValidateAndAddTask(ctx context.Context, task *db.Task) error {
+func (s *TaskScheduler) ValidateAndAddTask(ctx context.Context, task *types.Task) error {
 	if task.Id != "" {
 		return fmt.Errorf("Can not specify Id when adding task. Got: %q", task.Id)
 	}
@@ -1866,7 +1868,7 @@ func (s *TaskScheduler) ValidateAndAddTask(ctx context.Context, task *db.Task) e
 	}
 	task.Commits = nil
 
-	return s.AddTasks(ctx, map[string]map[string][]*db.Task{
+	return s.AddTasks(ctx, map[string]map[string][]*types.Task{
 		task.Repo: {
 			task.Name: {task},
 		},
@@ -1876,13 +1878,13 @@ func (s *TaskScheduler) ValidateAndAddTask(ctx context.Context, task *db.Task) e
 // ValidateAndUpdateTask modifies the given task in the TaskDB. Ensures the
 // task's blamelist, repo, revision, etc. do not change. The task should have
 // all fields initialized.
-func (s *TaskScheduler) ValidateAndUpdateTask(task *db.Task) error {
+func (s *TaskScheduler) ValidateAndUpdateTask(task *types.Task) error {
 	return validateAndUpdateTask(s.db, task)
 }
 
 // validateAndUpdateTask implements ValidateAndUpdateTask. Function instead of
 // method for easier testing.
-func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
+func validateAndUpdateTask(d db.TaskDB, task *types.Task) error {
 	if task.Id == "" {
 		return fmt.Errorf("Must specify Id when updating task.")
 	}
@@ -1918,7 +1920,7 @@ func validateAndUpdateTask(d db.TaskDB, task *db.Task) error {
 }
 
 // HandleSwarmingPubSub loads the given Swarming task ID from Swarming and
-// updates the associated db.Task in the database. Returns a bool indicating
+// updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
 	// First, make sure we have the task in our DB.
@@ -1958,7 +1960,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 		// TODO(borenet): Some of these cases should never be hit, after all tasks
 		// start supplying the ID in msg.UserData. We should be able to remove the logic.
 		if err == db.ErrNotFound {
-			id, err := swarming.GetTagValue(res, db.SWARMING_TAG_ID)
+			id, err := swarming.GetTagValue(res, types.SWARMING_TAG_ID)
 			if err != nil {
 				id = "<MISSING ID TAG>"
 			}
@@ -1975,7 +1977,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			return true
 		} else if err == db.ErrUnknownId {
 			expectedSwarmingTaskId := "<unknown>"
-			id, err := swarming.GetTagValue(res, db.SWARMING_TAG_ID)
+			id, err := swarming.GetTagValue(res, types.SWARMING_TAG_ID)
 			if err != nil {
 				id = "<MISSING ID TAG>"
 			} else {
@@ -2008,7 +2010,7 @@ func (s *TaskScheduler) updateOverdueJobSpecMetrics(ctx context.Context, now tim
 		if head == nil {
 			return sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
 		}
-		headTaskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, db.RepoState{
+		headTaskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, types.RepoState{
 			Repo:     repoUrl,
 			Revision: head.Hash,
 		})
@@ -2034,7 +2036,7 @@ func (s *TaskScheduler) updateOverdueJobSpecMetrics(ctx context.Context, now tim
 			} else if !in {
 				return false, nil
 			}
-			rs := db.RepoState{
+			rs := types.RepoState{
 				Repo:     repoUrl,
 				Revision: c.Hash,
 			}

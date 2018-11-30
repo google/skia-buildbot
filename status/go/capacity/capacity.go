@@ -16,13 +16,14 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type CapacityClient struct {
 	tcc   *specs.TaskCfgCache
-	tasks db.TaskCache
+	tasks cache.TaskCache
 	repos repograph.Map
 	// The cached measurements
 	lastMeasurements map[string]BotConfig
@@ -30,7 +31,7 @@ type CapacityClient struct {
 }
 
 // Caller is responsible for periodically updating the arguments.
-func New(tcc *specs.TaskCfgCache, tasks db.TaskCache, repos repograph.Map) *CapacityClient {
+func New(tcc *specs.TaskCfgCache, tasks cache.TaskCache, repos repograph.Map) *CapacityClient {
 	return &CapacityClient{tcc: tcc, tasks: tasks, repos: repos}
 }
 
@@ -119,10 +120,10 @@ func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[st
 	// branches of all the repos. If the dimensions were updated recently, this may lead
 	// to some inaccuracies. In practice, this probably won't happen because updates
 	// tend to update, say, all the Nexus10s to a new OS version, which is effectively no change.
-	tips := []db.RepoState{}
+	tips := []types.RepoState{}
 	for name, graph := range c.repos {
 		master := graph.Get("master")
-		tips = append(tips, db.RepoState{
+		tips = append(tips, types.RepoState{
 			Repo:     name,
 			Revision: master.Hash,
 		})

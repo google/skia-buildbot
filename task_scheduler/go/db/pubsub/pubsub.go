@@ -12,8 +12,8 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 const (
@@ -119,7 +119,7 @@ func NewTaskPublisher(c *pubsub.Client, topic string) (*TaskPublisher, error) {
 }
 
 // Publish publishes a pubsub message for the given task.
-func (p *TaskPublisher) Publish(t *db.Task) {
+func (p *TaskPublisher) Publish(t *types.Task) {
 	p.publish(t.Id, t.DbModified, t)
 }
 
@@ -139,7 +139,7 @@ func NewJobPublisher(c *pubsub.Client, topic string) (*JobPublisher, error) {
 }
 
 // Publish publishes a pubsub message for the given job.
-func (p *JobPublisher) Publish(j *db.Job) {
+func (p *JobPublisher) Publish(j *types.Job) {
 	p.publish(j.Id, j.DbModified, j)
 }
 
@@ -235,9 +235,9 @@ func (s *subscriber) start() (context.CancelFunc, error) {
 // is Ack'd and will not be re-sent. Therefore, if the task is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewTaskSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*db.Task) error) (context.CancelFunc, error) {
+func NewTaskSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*types.Task) error) (context.CancelFunc, error) {
 	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var t db.Task
+		var t types.Task
 		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&t); err != nil {
 			sklog.Errorf("Failed to decode task from pubsub message: %s", err)
 			return nil // We will never be able to process this message.
@@ -260,9 +260,9 @@ func NewTaskSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback
 // is Ack'd and will not be re-sent. Therefore, if the job is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewJobSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*db.Job) error) (context.CancelFunc, error) {
+func NewJobSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*types.Job) error) (context.CancelFunc, error) {
 	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
-		var j db.Job
+		var j types.Job
 		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&j); err != nil {
 			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
 			return nil // We will never be able to process this message.
