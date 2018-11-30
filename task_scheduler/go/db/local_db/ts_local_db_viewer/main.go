@@ -13,8 +13,8 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -58,8 +58,8 @@ func main() {
 	v := struct {
 		Begin time.Time
 		End   time.Time
-		Tasks []*db.Task
-		Jobs  []*db.Job
+		Tasks []*types.Task
+		Jobs  []*types.Job
 	}{
 		Begin: begin,
 		End:   end,

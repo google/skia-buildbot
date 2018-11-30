@@ -7,8 +7,11 @@ import (
 	"sort"
 	"time"
 
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -28,7 +31,7 @@ var (
 	ErrConcurrentUpdate = errors.New("Concurrent update")
 	ErrNotFound         = errors.New("Task/Job with given ID does not exist")
 	ErrTooManyUsers     = errors.New("Too many users")
-	ErrUnknownId        = errors.New("Unknown ID")
+	ErrUnknownId        = types.ErrUnknownId
 )
 
 func IsAlreadyExists(e error) bool {
@@ -61,7 +64,7 @@ type ModifiedTasksReader interface {
 	// should call StopTrackingModifiedTasks and StartTrackingModifiedTasks
 	// again, and load all data from scratch to be sure that no tasks were
 	// missed.
-	GetModifiedTasks(string) ([]*Task, error)
+	GetModifiedTasks(string) ([]*types.Task, error)
 
 	// GetModifiedTasksGOB returns the GOB-encoded results of GetModifiedTasks,
 	// keyed by Task.Id.
@@ -86,7 +89,7 @@ type ModifiedTasks interface {
 
 	// TrackModifiedTask indicates the given Task should be returned from the next
 	// call to GetModifiedTasks from each subscriber.
-	TrackModifiedTask(*Task)
+	TrackModifiedTask(*types.Task)
 
 	// TrackModifiedTasksGOB is a batch, GOB version of TrackModifiedTask. Given a
 	// map from Task.Id to GOB-encoded task, it is equivalent to GOB-decoding each
@@ -102,13 +105,13 @@ type TaskReader interface {
 
 	// GetTaskById returns the task with the given Id field. Returns nil, nil if
 	// task is not found.
-	GetTaskById(string) (*Task, error)
+	GetTaskById(string) (*types.Task, error)
 
 	// GetTasksFromDateRange retrieves all tasks with Created in the given range.
 	// The returned tasks are sorted by Created timestamp. The string field is
 	// an optional repository; if provided, only return tasks associated with
 	// that repo.
-	GetTasksFromDateRange(time.Time, time.Time, string) ([]*Task, error)
+	GetTasksFromDateRange(time.Time, time.Time, string) ([]*types.Task, error)
 }
 
 // TaskDB is used by the task scheduler to store Tasks.
@@ -117,16 +120,16 @@ type TaskDB interface {
 
 	// AssignId sets the given task's Id field. Does not insert the task into the
 	// database.
-	AssignId(*Task) error
+	AssignId(*types.Task) error
 
 	// PutTask inserts or updates the Task in the database. Task's Id field must
 	// be empty or set with AssignId. PutTask will set Task.DbModified.
-	PutTask(*Task) error
+	PutTask(*types.Task) error
 
 	// PutTasks inserts or updates the Tasks in the database. Each Task's Id field
 	// must be empty or set with AssignId. Each Task's DbModified field will be
 	// set.
-	PutTasks([]*Task) error
+	PutTasks([]*types.Task) error
 }
 
 // UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
@@ -140,7 +143,7 @@ type TaskDB interface {
 //
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
-func UpdateTasksWithRetries(db TaskDB, f func() ([]*Task, error)) ([]*Task, error) {
+func UpdateTasksWithRetries(db TaskDB, f func() ([]*types.Task, error)) ([]*types.Task, error) {
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
 		t, err := f()
@@ -168,8 +171,8 @@ func UpdateTasksWithRetries(db TaskDB, f func() ([]*Task, error)) ([]*Task, erro
 // Immediately returns ErrNotFound if db.GetTaskById(id) returns nil.
 // Immediately returns any error returned from f or from PutTasks (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
-func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, error) {
-	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
+func UpdateTaskWithRetries(db TaskDB, id string, f func(*types.Task) error) (*types.Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*types.Task, error) {
 		t, err := db.GetTaskById(id)
 		if err != nil {
 			return nil, err
@@ -181,7 +184,7 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, er
 		if err != nil {
 			return nil, err
 		}
-		return []*Task{t}, nil
+		return []*types.Task{t}, nil
 	})
 	if err != nil {
 		return nil, err
@@ -200,7 +203,7 @@ type ModifiedJobsReader interface {
 	// should call StopTrackingModifiedJobs and StartTrackingModifiedJobs
 	// again, and load all data from scratch to be sure that no jobs were
 	// missed.
-	GetModifiedJobs(string) ([]*Job, error)
+	GetModifiedJobs(string) ([]*types.Job, error)
 
 	// GetModifiedJobsGOB returns the GOB-encoded results of GetModifiedJobs,
 	// keyed by Job.Id.
@@ -225,7 +228,7 @@ type ModifiedJobs interface {
 
 	// TrackModifiedJob indicates the given Job should be returned from the next
 	// call to GetModifiedJobs from each subscriber.
-	TrackModifiedJob(*Job)
+	TrackModifiedJob(*types.Job)
 
 	// TrackModifiedJobsGOB is a batch, GOB version of TrackModifiedJob. Given a
 	// map from Job.Id to GOB-encoded task, it is equivalent to GOB-decoding each
@@ -241,11 +244,11 @@ type JobReader interface {
 
 	// GetJobById returns the job with the given Id field. Returns nil, nil if
 	// job is not found.
-	GetJobById(string) (*Job, error)
+	GetJobById(string) (*types.Job, error)
 
 	// GetJobsFromDateRange retrieves all jobs with Created in the given range.
 	// The returned jobs are sorted by Created timestamp.
-	GetJobsFromDateRange(time.Time, time.Time) ([]*Job, error)
+	GetJobsFromDateRange(time.Time, time.Time) ([]*types.Job, error)
 }
 
 // JobDB is used by the task scheduler to store Jobs.
@@ -254,12 +257,12 @@ type JobDB interface {
 
 	// PutJob inserts or updates the Job in the database. Job's Id field
 	// must be empty if it is a new Job. PutJob will set Job.DbModified.
-	PutJob(*Job) error
+	PutJob(*types.Job) error
 
 	// PutJobs inserts or updates the Jobs in the database. Each Jobs' Id
 	// field must be empty if it is a new Job. Each Jobs' DbModified field
 	// will be set.
-	PutJobs([]*Job) error
+	PutJobs([]*types.Job) error
 }
 
 // UpdateJobsWithRetries wraps a call to db.PutJobs with retries. It calls
@@ -274,7 +277,7 @@ type JobDB interface {
 // Within f, jobs should be refreshed from the DB, e.g. with
 // db.GetModifiedJobs or db.GetJobById.
 // TODO(borenet): We probably don't need this; consider removing.
-func UpdateJobsWithRetries(db JobDB, f func() ([]*Job, error)) ([]*Job, error) {
+func UpdateJobsWithRetries(db JobDB, f func() ([]*types.Job, error)) ([]*types.Job, error) {
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
 		t, err := f()
@@ -303,8 +306,8 @@ func UpdateJobsWithRetries(db JobDB, f func() ([]*Job, error)) ([]*Job, error) {
 // Immediately returns any error returned from f or from PutJobs (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
 // TODO(borenet): We probably don't need this; consider removing.
-func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error) {
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+func UpdateJobWithRetries(db JobDB, id string, f func(*types.Job) error) (*types.Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
 		t, err := db.GetJobById(id)
 		if err != nil {
 			return nil, err
@@ -316,7 +319,7 @@ func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error)
 		if err != nil {
 			return nil, err
 		}
-		return []*Job{t}, nil
+		return []*types.Job{t}, nil
 	})
 	if err != nil {
 		return nil, err
@@ -330,13 +333,13 @@ func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error)
 // any value for that field. If either of TimeStart or TimeEnd is not provided,
 // the search defaults to the last 24 hours.
 type JobSearchParams struct {
-	RepoState
-	BuildbucketBuildId *int64    `json:"buildbucket_build_id,string,omitempty"`
-	IsForce            *bool     `json:"is_force,omitempty"`
-	Name               string    `json:"name"`
-	Status             JobStatus `json:"status"`
-	TimeStart          time.Time `json:"time_start"`
-	TimeEnd            time.Time `json:"time_end"`
+	types.RepoState
+	BuildbucketBuildId *int64          `json:"buildbucket_build_id,string,omitempty"`
+	IsForce            *bool           `json:"is_force,omitempty"`
+	Name               string          `json:"name"`
+	Status             types.JobStatus `json:"status"`
+	TimeStart          time.Time       `json:"time_start"`
+	TimeEnd            time.Time       `json:"time_end"`
 }
 
 // searchBoolEqual compares the two bools and returns true if the first is
@@ -367,14 +370,14 @@ func searchStringEqual(search, test string) bool {
 }
 
 // matchJobs returns Jobs which match the given search parameters.
-func matchJobs(jobs []*Job, p *JobSearchParams) ([]*Job, error) {
+func matchJobs(jobs []*types.Job, p *JobSearchParams) ([]*types.Job, error) {
 	// We accept a regex for the job name.
 	nameRe, err := regexp.Compile(p.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	rv := []*Job{}
+	rv := []*types.Job{}
 	for _, j := range jobs {
 		// Compare all attributes which are provided.
 		if true &&
@@ -397,7 +400,7 @@ func matchJobs(jobs []*Job, p *JobSearchParams) ([]*Job, error) {
 
 // SearchJobs returns Jobs in the given time range which match the given search
 // parameters.
-func SearchJobs(db JobReader, p *JobSearchParams) ([]*Job, error) {
+func SearchJobs(db JobReader, p *JobSearchParams) ([]*types.Job, error) {
 	if util.TimeIsZero(p.TimeStart) || util.TimeIsZero(p.TimeEnd) {
 		p.TimeEnd = time.Now()
 		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
@@ -410,8 +413,8 @@ func SearchJobs(db JobReader, p *JobSearchParams) ([]*Job, error) {
 }
 
 // matchTasks returns Tasks which match the given search parameters.
-func matchTasks(tasks []*Task, p *TaskSearchParams) []*Task {
-	rv := []*Task{}
+func matchTasks(tasks []*types.Task, p *TaskSearchParams) []*types.Task {
+	rv := []*types.Task{}
 	for _, t := range tasks {
 		// Compare all attributes which are provided.
 		if true &&
@@ -437,16 +440,16 @@ func matchTasks(tasks []*Task, p *TaskSearchParams) []*Task {
 // any value for that field. If either of TimeStart or TimeEnd is not provided,
 // the search defaults to the last 24 hours.
 type TaskSearchParams struct {
-	Attempt *int64     `json:"attempt,string,omitempty"`
-	Status  TaskStatus `json:"status"`
-	TaskKey
+	Attempt *int64           `json:"attempt,string,omitempty"`
+	Status  types.TaskStatus `json:"status"`
+	types.TaskKey
 	TimeStart time.Time `json:"time_start"`
 	TimeEnd   time.Time `json:"time_end"`
 }
 
 // SearchTasks returns Tasks in the given time range which match the given search
 // parameters.
-func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*Task, error) {
+func SearchTasks(db TaskReader, p *TaskSearchParams) ([]*types.Task, error) {
 	if util.TimeIsZero(p.TimeStart) || util.TimeIsZero(p.TimeEnd) {
 		p.TimeEnd = time.Now()
 		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
@@ -513,14 +516,14 @@ type BackupDBCloser interface {
 
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
-func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*Task, error) {
+func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*types.Task, error) {
 	startTimesByRepo := w.StartTimesByRepo()
 	if len(startTimesByRepo) == 0 {
 		// If the timeWindow has no associated repos, default to loading
 		// tasks for all repos from the beginning of the timeWindow.
 		startTimesByRepo[""] = w.EarliestStart()
 	}
-	tasks := make([]*Task, 0, 1024)
+	tasks := make([]*types.Task, 0, 1024)
 	for repo, start := range startTimesByRepo {
 		sklog.Infof("Reading Tasks from %s to %s.", start, now)
 		t, err := db.GetTasksFromDateRange(start, now, repo)
@@ -529,6 +532,31 @@ func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*Task
 		}
 		tasks = append(tasks, t...)
 	}
-	sort.Sort(TaskSlice(tasks))
+	sort.Sort(types.TaskSlice(tasks))
 	return tasks, nil
+}
+
+var errNotModified = errors.New("Task not modified")
+
+// UpdateDBFromSwarmingTask updates a task in db from data in s.
+func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult) error {
+	id, err := swarming.GetTagValue(s, types.SWARMING_TAG_ID)
+	if err != nil {
+		return err
+	}
+	_, err = UpdateTaskWithRetries(db, id, func(task *types.Task) error {
+		modified, err := task.UpdateFromSwarming(s)
+		if err != nil {
+			return err
+		}
+		if !modified {
+			return errNotModified
+		}
+		return nil
+	})
+	if err == errNotModified {
+		return nil
+	} else {
+		return err
+	}
 }

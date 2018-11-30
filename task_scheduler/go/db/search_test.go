@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 func TestJobSearch(t *testing.T) {
@@ -15,7 +16,7 @@ func TestJobSearch(t *testing.T) {
 
 	now := time.Now()
 
-	j := makeFullJob(now)
+	j := types.MakeFullJob(now)
 	j.Name = "Build-Win-Clang-x86_64-Debug-Vulkan"
 
 	emptyParams := func() *JobSearchParams {
@@ -28,8 +29,8 @@ func TestJobSearch(t *testing.T) {
 	*isForce = j.IsForce
 	matchParams := func() *JobSearchParams {
 		return &JobSearchParams{
-			RepoState: RepoState{
-				Patch: Patch{
+			RepoState: types.RepoState{
+				Patch: types.Patch{
 					Issue:    j.Issue,
 					Patchset: j.Patchset,
 					Server:   j.Server,
@@ -47,13 +48,13 @@ func TestJobSearch(t *testing.T) {
 	}
 
 	checkMatches := func(p *JobSearchParams) {
-		jobs, err := matchJobs([]*Job{j}, p)
+		jobs, err := matchJobs([]*types.Job{j}, p)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(jobs))
 		deepequal.AssertDeepEqual(t, j, jobs[0])
 	}
 	checkNoMatch := func(p *JobSearchParams) {
-		jobs, err := matchJobs([]*Job{j}, p)
+		jobs, err := matchJobs([]*types.Job{j}, p)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(jobs))
 	}
@@ -138,7 +139,7 @@ func TestJobSearch(t *testing.T) {
 	p.Name = "^T.*"
 	checkNoMatch(p)
 	p.Name = "((("
-	_, err := matchJobs([]*Job{}, p)
+	_, err := matchJobs([]*types.Job{}, p)
 	assert.EqualError(t, err, "error parsing regexp: missing closing ): `(((`")
 
 	// Status

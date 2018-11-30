@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -132,9 +133,9 @@ func (j *jobEventDB) update() error {
 
 // computeAvgJobDuration is an events.DynamicAggregateFn that returns metrics for average Job duration
 // for Jobs with status SUCCESS or FAILURE, given a slice of Events created by jobEventDB.update.
-// The first return value will contain the tags "job_name" (db.Job.Name) and "job_type" (one of
+// The first return value will contain the tags "job_name" (types.Job.Name) and "job_type" (one of
 // "normal", "tryjob", "forced"), and the second return value will be the corresponding average Job
-// duration. Returns an error if Event.Data can't be GOB-decoded as a db.Job.
+// duration. Returns an error if Event.Data can't be GOB-decoded as a types.Job.
 func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, error) {
 	if len(ev) > 0 {
 		// ev should be ordered by timestamp
@@ -151,11 +152,11 @@ func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, 
 	}
 	byJob := map[string]*jobSums{}
 	for _, e := range ev {
-		var job db.Job
+		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
 			return nil, nil, err
 		}
-		if !(job.Status == db.JOB_STATUS_SUCCESS || job.Status == db.JOB_STATUS_FAILURE) {
+		if !(job.Status == types.JOB_STATUS_SUCCESS || job.Status == types.JOB_STATUS_FAILURE) {
 			continue
 		}
 		entry, ok := byJob[job.Name]
@@ -198,9 +199,9 @@ func computeAvgJobDuration(ev []*events.Event) ([]map[string]string, []float64, 
 
 // computeJobFailureMishapRate is an events.DynamicAggregateFn that returns metrics for Job failure rate and
 // mishap rate, given a slice of Events created by jobEventDB.update. The first return value will
-// contain the tags "job_name" (db.Job.Name) and "metric" (one of "failure-rate", "mishap-rate"),
+// contain the tags "job_name" (types.Job.Name) and "metric" (one of "failure-rate", "mishap-rate"),
 // and the second return value will be the corresponding ratio of failed/mishap Jobs to all
-// completed Jobs. Returns an error if Event.Data can't be GOB-decoded as a db.Job.
+// completed Jobs. Returns an error if Event.Data can't be GOB-decoded as a types.Job.
 func computeJobFailureMishapRate(ev []*events.Event) ([]map[string]string, []float64, error) {
 	if len(ev) > 0 {
 		// ev should be ordered by timestamp
@@ -213,7 +214,7 @@ func computeJobFailureMishapRate(ev []*events.Event) ([]map[string]string, []flo
 	}
 	byJob := map[string]*jobSum{}
 	for _, e := range ev {
-		var job db.Job
+		var job types.Job
 		if err := gob.NewDecoder(bytes.NewReader(e.Data)).Decode(&job); err != nil {
 			return nil, nil, err
 		}
@@ -223,9 +224,9 @@ func computeJobFailureMishapRate(ev []*events.Event) ([]map[string]string, []flo
 			byJob[job.Name] = entry
 		}
 		entry.count++
-		if job.Status == db.JOB_STATUS_FAILURE {
+		if job.Status == types.JOB_STATUS_FAILURE {
 			entry.fails++
-		} else if job.Status == db.JOB_STATUS_MISHAP {
+		} else if job.Status == types.JOB_STATUS_MISHAP {
 			entry.mishaps++
 		}
 	}

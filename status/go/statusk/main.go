@@ -37,8 +37,10 @@ import (
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/status/go/lkgr"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -67,7 +69,7 @@ var (
 	lkgrObj          *lkgr.LKGR                    = nil
 	taskDb           db.RemoteDB                   = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
-	tCache           db.TaskCache                  = nil
+	tCache           cache.TaskCache               = nil
 
 	// AUTOROLLERS maps roller IDs to their human-friendly display names.
 	AUTOROLLERS = map[string]string{
@@ -283,7 +285,7 @@ func addTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %s", err))
 		return
 	}
-	c := db.TaskComment{
+	c := types.TaskComment{
 		Repo:      task.Repo,
 		Revision:  task.Revision,
 		Name:      task.Name,
@@ -321,7 +323,7 @@ func deleteTaskCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	c := &db.TaskComment{
+	c := &types.TaskComment{
 		Repo:      task.Repo,
 		Revision:  task.Revision,
 		Name:      task.Name,
@@ -364,7 +366,7 @@ func addTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := db.TaskSpecComment{
+	c := types.TaskSpecComment{
 		Repo:          repoUrl,
 		Name:          taskSpec,
 		Timestamp:     time.Now().UTC(),
@@ -401,7 +403,7 @@ func deleteTaskSpecCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid timestamp: %v", err))
 		return
 	}
-	c := db.TaskSpecComment{
+	c := types.TaskSpecComment{
 		Repo:      repoUrl,
 		Name:      taskSpec,
 		Timestamp: time.Unix(0, timestamp),
@@ -435,7 +437,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := db.CommitComment{
+	c := types.CommitComment{
 		Repo:          repoUrl,
 		Revision:      commit,
 		Timestamp:     time.Now().UTC(),
@@ -467,7 +469,7 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	c := db.CommitComment{
+	c := types.CommitComment{
 		Repo:      repoUrl,
 		Revision:  commit,
 		Timestamp: time.Unix(0, timestamp),
@@ -580,7 +582,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	tasksForCommit, err := tasksPerCommit.Get(context.Background(), db.RepoState{
+	tasksForCommit, err := tasksPerCommit.Get(context.Background(), types.RepoState{
 		Repo:     repoUrl,
 		Revision: hash,
 	})
@@ -770,7 +772,7 @@ func main() {
 	iCache.UpdateLoop(60*time.Second, ctx)
 
 	// Create a regular task cache.
-	tCache, err = db.NewTaskCache(taskDb, w)
+	tCache, err = cache.NewTaskCache(taskDb, w)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCache: %s", err)
 	}

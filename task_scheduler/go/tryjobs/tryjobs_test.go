@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 // Verify that updateJobs sends heartbeats for unfinished try Jobs and
@@ -24,11 +24,11 @@ func TestUpdateJobs(t *testing.T) {
 
 	now := time.Now()
 
-	assertActiveTryJob := func(j *db.Job) {
+	assertActiveTryJob := func(j *types.Job) {
 		assert.NoError(t, trybots.tjCache.Update())
 		active, err := trybots.tjCache.GetActiveTryJobs()
 		assert.NoError(t, err)
-		expect := []*db.Job{}
+		expect := []*types.Job{}
 		if j != nil {
 			expect = append(expect, j)
 		}
@@ -45,17 +45,17 @@ func TestUpdateJobs(t *testing.T) {
 
 	// One unfinished try job.
 	j1 := tryjob(gb.RepoUrl())
-	MockHeartbeats(t, mock, now, []*db.Job{j1}, nil)
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
+	MockHeartbeats(t, mock, now, []*types.Job{j1}, nil)
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
 	assert.NoError(t, trybots.tjCache.Update())
 	assert.NoError(t, trybots.updateJobs(now))
 	assert.True(t, mock.Empty())
 	assertActiveTryJob(j1)
 
 	// Send success/failure for finished jobs, not heartbeats.
-	j1.Status = db.JOB_STATUS_SUCCESS
+	j1.Status = types.JOB_STATUS_SUCCESS
 	j1.Finished = now
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
 	assert.NoError(t, trybots.tjCache.Update())
 	MockJobSuccess(mock, j1, now, nil, false)
 	assert.NoError(t, trybots.updateJobs(now))
@@ -66,8 +66,8 @@ func TestUpdateJobs(t *testing.T) {
 	j1, err := trybots.db.GetJobById(j1.Id)
 	assert.NoError(t, err)
 	j1.BuildbucketLeaseKey = 12345
-	j1.Status = db.JOB_STATUS_FAILURE
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
+	j1.Status = types.JOB_STATUS_FAILURE
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
 	assert.NoError(t, trybots.tjCache.Update())
 	MockJobFailure(mock, j1, now, nil)
 	assert.NoError(t, trybots.updateJobs(now))
@@ -75,11 +75,11 @@ func TestUpdateJobs(t *testing.T) {
 	assertNoActiveTryJobs()
 
 	// More than one batch of heartbeats.
-	jobs := []*db.Job{}
+	jobs := []*types.Job{}
 	for i := 0; i < LEASE_BATCH_SIZE+2; i++ {
 		jobs = append(jobs, tryjob(gb.RepoUrl()))
 	}
-	sort.Sort(db.JobSlice(jobs))
+	sort.Sort(types.JobSlice(jobs))
 	MockHeartbeats(t, mock, now, jobs[:LEASE_BATCH_SIZE], nil)
 	MockHeartbeats(t, mock, now, jobs[LEASE_BATCH_SIZE:], nil)
 	assert.NoError(t, trybots.db.PutJobs(jobs))
@@ -90,7 +90,7 @@ func TestUpdateJobs(t *testing.T) {
 	// Test heartbeat failure for one job, ensure that it gets canceled.
 	j1, j2 := jobs[0], jobs[1]
 	for _, j := range jobs[2:] {
-		j.Status = db.JOB_STATUS_SUCCESS
+		j.Status = types.JOB_STATUS_SUCCESS
 		j.Finished = time.Now()
 	}
 	assert.NoError(t, trybots.db.PutJobs(jobs[2:]))
@@ -98,7 +98,7 @@ func TestUpdateJobs(t *testing.T) {
 	for _, j := range jobs[2:] {
 		MockJobSuccess(mock, j, now, nil, false)
 	}
-	MockHeartbeats(t, mock, now, []*db.Job{j1, j2}, map[string]*heartbeatResp{
+	MockHeartbeats(t, mock, now, []*types.Job{j1, j2}, map[string]*heartbeatResp{
 		j1.Id: {
 			BuildId: fmt.Sprintf("%d", j1.BuildbucketBuildId),
 			Error: &errMsg{
@@ -111,11 +111,11 @@ func TestUpdateJobs(t *testing.T) {
 	assert.NoError(t, trybots.tjCache.Update())
 	active, err := trybots.tjCache.GetActiveTryJobs()
 	assert.NoError(t, err)
-	deepequal.AssertDeepEqual(t, []*db.Job{j2}, active)
+	deepequal.AssertDeepEqual(t, []*types.Job{j2}, active)
 	canceled, err := trybots.tjCache.db.GetJobById(j1.Id)
 	assert.NoError(t, err)
 	assert.True(t, canceled.Done())
-	assert.Equal(t, db.JOB_STATUS_CANCELED, canceled.Status)
+	assert.Equal(t, types.JOB_STATUS_CANCELED, canceled.Status)
 }
 
 func TestGetRepo(t *testing.T) {
@@ -256,9 +256,9 @@ func TestJobFinished(t *testing.T) {
 	assert.EqualError(t, trybots.jobFinished(j), "JobFinished called for unfinished Job!")
 
 	// Successful job.
-	j.Status = db.JOB_STATUS_SUCCESS
+	j.Status = types.JOB_STATUS_SUCCESS
 	j.Finished = now
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
 	assert.NoError(t, trybots.tjCache.Update())
 	MockJobSuccess(mock, j, now, nil, false)
 	assert.NoError(t, trybots.jobFinished(j))
@@ -271,8 +271,8 @@ func TestJobFinished(t *testing.T) {
 	assert.True(t, mock.Empty())
 
 	// Failed job.
-	j.Status = db.JOB_STATUS_FAILURE
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
+	j.Status = types.JOB_STATUS_FAILURE
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
 	assert.NoError(t, trybots.tjCache.Update())
 	MockJobFailure(mock, j, now, nil)
 	assert.NoError(t, trybots.jobFinished(j))
@@ -284,8 +284,8 @@ func TestJobFinished(t *testing.T) {
 	assert.True(t, mock.Empty())
 
 	// Mishap.
-	j.Status = db.JOB_STATUS_MISHAP
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j}))
+	j.Status = types.JOB_STATUS_MISHAP
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j}))
 	assert.NoError(t, trybots.tjCache.Update())
 	MockJobMishap(mock, j, now, nil)
 	assert.NoError(t, trybots.jobFinished(j))
@@ -404,7 +404,7 @@ func TestRetry(t *testing.T) {
 	assert.Equal(t, j1.BuildbucketLeaseKey, b1.LeaseKey)
 	assert.True(t, j1.Valid())
 	assert.False(t, j1.IsForce)
-	assert.NoError(t, trybots.db.PutJobs([]*db.Job{j1}))
+	assert.NoError(t, trybots.db.PutJobs([]*types.Job{j1}))
 	assert.NoError(t, trybots.updateCaches())
 
 	// Obtain a second try job, ensure that it gets IsForce = true.
@@ -429,12 +429,12 @@ func TestPoll(t *testing.T) {
 		assert.NoError(t, trybots.tjCache.Update())
 		jobs, err := trybots.tjCache.GetActiveTryJobs()
 		assert.NoError(t, err)
-		byId := make(map[int64]*db.Job, len(jobs))
+		byId := make(map[int64]*types.Job, len(jobs))
 		for _, j := range jobs {
 			// Check that the job creation time is reasonable.
 			assert.True(t, j.Created.Year() > 1969 && j.Created.Year() < 3000)
 			byId[j.BuildbucketBuildId] = j
-			j.Status = db.JOB_STATUS_SUCCESS
+			j.Status = types.JOB_STATUS_SUCCESS
 			j.Finished = now
 		}
 		for _, b := range builds {

@@ -1,4 +1,4 @@
-package db
+package memory
 
 import (
 	"fmt"
@@ -9,16 +9,19 @@ import (
 	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/modified"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type inMemoryTaskDB struct {
-	tasks    map[string]*Task
+	tasks    map[string]*types.Task
 	tasksMtx sync.RWMutex
-	ModifiedTasksImpl
+	modified.ModifiedTasksImpl
 }
 
 // See docs for TaskDB interface. Does not take any locks.
-func (db *inMemoryTaskDB) AssignId(t *Task) error {
+func (d *inMemoryTaskDB) AssignId(t *types.Task) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -27,42 +30,42 @@ func (db *inMemoryTaskDB) AssignId(t *Task) error {
 }
 
 // See docs for TaskDB interface.
-func (db *inMemoryTaskDB) GetTaskById(id string) (*Task, error) {
-	db.tasksMtx.RLock()
-	defer db.tasksMtx.RUnlock()
-	if task := db.tasks[id]; task != nil {
+func (d *inMemoryTaskDB) GetTaskById(id string) (*types.Task, error) {
+	d.tasksMtx.RLock()
+	defer d.tasksMtx.RUnlock()
+	if task := d.tasks[id]; task != nil {
 		return task.Copy(), nil
 	}
 	return nil, nil
 }
 
 // See docs for TaskDB interface.
-func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*Task, error) {
-	db.tasksMtx.RLock()
-	defer db.tasksMtx.RUnlock()
+func (d *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
+	d.tasksMtx.RLock()
+	defer d.tasksMtx.RUnlock()
 
-	rv := []*Task{}
+	rv := []*types.Task{}
 	// TODO(borenet): Binary search.
-	for _, b := range db.tasks {
+	for _, b := range d.tasks {
 		if (b.Created.Equal(start) || b.Created.After(start)) && b.Created.Before(end) {
 			if repo == "" || b.Repo == repo {
 				rv = append(rv, b.Copy())
 			}
 		}
 	}
-	sort.Sort(TaskSlice(rv))
+	sort.Sort(types.TaskSlice(rv))
 	return rv, nil
 }
 
 // See docs for TaskDB interface.
-func (db *inMemoryTaskDB) PutTask(task *Task) error {
-	return db.PutTasks([]*Task{task})
+func (d *inMemoryTaskDB) PutTask(task *types.Task) error {
+	return d.PutTasks([]*types.Task{task})
 }
 
 // See docs for TaskDB interface.
-func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
-	db.tasksMtx.Lock()
-	defer db.tasksMtx.Unlock()
+func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
+	d.tasksMtx.Lock()
+	defer d.tasksMtx.Unlock()
 
 	// Validate.
 	for _, task := range tasks {
@@ -70,10 +73,10 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 			return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
 		}
 
-		if existing := db.tasks[task.Id]; existing != nil {
+		if existing := d.tasks[task.Id]; existing != nil {
 			if !existing.DbModified.Equal(task.DbModified) {
 				sklog.Warningf("Cached Task has been modified in the DB. Current:\n%v\nCached:\n%v", existing, task)
-				return ErrConcurrentUpdate
+				return db.ErrConcurrentUpdate
 			}
 		}
 	}
@@ -81,7 +84,7 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 	// Insert.
 	for _, task := range tasks {
 		if task.Id == "" {
-			if err := db.AssignId(task); err != nil {
+			if err := d.AssignId(task); err != nil {
 				// Should never happen.
 				return err
 			}
@@ -90,28 +93,28 @@ func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 		task.DbModified = time.Now()
 
 		// TODO(borenet): Keep tasks in a sorted slice.
-		db.tasks[task.Id] = task.Copy()
-		db.TrackModifiedTask(task)
+		d.tasks[task.Id] = task.Copy()
+		d.TrackModifiedTask(task)
 	}
 	return nil
 }
 
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryTaskDB() TaskDB {
+func NewInMemoryTaskDB() db.TaskDB {
 	db := &inMemoryTaskDB{
-		tasks: map[string]*Task{},
+		tasks: map[string]*types.Task{},
 	}
 	return db
 }
 
 type inMemoryJobDB struct {
-	jobs    map[string]*Job
+	jobs    map[string]*types.Job
 	jobsMtx sync.RWMutex
-	ModifiedJobsImpl
+	modified.ModifiedJobsImpl
 }
 
-func (db *inMemoryJobDB) assignId(j *Job) error {
+func (d *inMemoryJobDB) assignId(j *types.Job) error {
 	if j.Id != "" {
 		return fmt.Errorf("Job Id already assigned: %v", j.Id)
 	}
@@ -120,40 +123,40 @@ func (db *inMemoryJobDB) assignId(j *Job) error {
 }
 
 // See docs for JobDB interface.
-func (db *inMemoryJobDB) GetJobById(id string) (*Job, error) {
-	db.jobsMtx.RLock()
-	defer db.jobsMtx.RUnlock()
-	if job := db.jobs[id]; job != nil {
+func (d *inMemoryJobDB) GetJobById(id string) (*types.Job, error) {
+	d.jobsMtx.RLock()
+	defer d.jobsMtx.RUnlock()
+	if job := d.jobs[id]; job != nil {
 		return job.Copy(), nil
 	}
 	return nil, nil
 }
 
 // See docs for JobDB interface.
-func (db *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*Job, error) {
-	db.jobsMtx.RLock()
-	defer db.jobsMtx.RUnlock()
+func (d *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
+	d.jobsMtx.RLock()
+	defer d.jobsMtx.RUnlock()
 
-	rv := []*Job{}
+	rv := []*types.Job{}
 	// TODO(borenet): Binary search.
-	for _, b := range db.jobs {
+	for _, b := range d.jobs {
 		if (b.Created.Equal(start) || b.Created.After(start)) && b.Created.Before(end) {
 			rv = append(rv, b.Copy())
 		}
 	}
-	sort.Sort(JobSlice(rv))
+	sort.Sort(types.JobSlice(rv))
 	return rv, nil
 }
 
 // See docs for JobDB interface.
-func (db *inMemoryJobDB) PutJob(job *Job) error {
-	return db.PutJobs([]*Job{job})
+func (d *inMemoryJobDB) PutJob(job *types.Job) error {
+	return d.PutJobs([]*types.Job{job})
 }
 
 // See docs for JobDB interface.
-func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
-	db.jobsMtx.Lock()
-	defer db.jobsMtx.Unlock()
+func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
+	d.jobsMtx.Lock()
+	defer d.jobsMtx.Unlock()
 
 	// Validate.
 	for _, job := range jobs {
@@ -161,10 +164,10 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
 		}
 
-		if existing := db.jobs[job.Id]; existing != nil {
+		if existing := d.jobs[job.Id]; existing != nil {
 			if !existing.DbModified.Equal(job.DbModified) {
 				sklog.Warningf("Cached Job has been modified in the DB. Current:\n%v\nCached:\n%v", existing, job)
-				return ErrConcurrentUpdate
+				return db.ErrConcurrentUpdate
 			}
 		}
 	}
@@ -172,7 +175,7 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 	// Insert.
 	for _, job := range jobs {
 		if job.Id == "" {
-			if err := db.assignId(job); err != nil {
+			if err := d.assignId(job); err != nil {
 				// Should never happen.
 				return err
 			}
@@ -180,23 +183,23 @@ func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
 		job.DbModified = time.Now()
 
 		// TODO(borenet): Keep jobs in a sorted slice.
-		db.jobs[job.Id] = job.Copy()
-		db.TrackModifiedJob(job)
+		d.jobs[job.Id] = job.Copy()
+		d.TrackModifiedJob(job)
 	}
 	return nil
 }
 
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
 // implementation.
-func NewInMemoryJobDB() JobDB {
+func NewInMemoryJobDB() db.JobDB {
 	db := &inMemoryJobDB{
-		jobs: map[string]*Job{},
+		jobs: map[string]*types.Job{},
 	}
 	return db
 }
 
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
-func NewInMemoryDB() DB {
-	return NewDB(NewInMemoryTaskDB(), NewInMemoryJobDB(), &CommentBox{})
+func NewInMemoryDB() db.DB {
+	return db.NewDB(NewInMemoryTaskDB(), NewInMemoryJobDB(), &db.CommentBox{})
 }

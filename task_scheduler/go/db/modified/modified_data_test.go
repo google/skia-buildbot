@@ -1,22 +1,23 @@
-package db
+package modified
 
 import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func TestDefaultModifiedTasks(t *testing.T) {
 	testutils.MediumTest(t)
-	TestModifiedTasks(t, &ModifiedTasksImpl{})
+	db.TestModifiedTasks(t, &ModifiedTasksImpl{})
 }
 
 // Test that if a Task is modified multiple times, it only appears once in the
 // result of GetModifiedTasks.
 func TestDefaultMultipleTaskModifications(t *testing.T) {
 	testutils.MediumTest(t)
-	TestMultipleTaskModifications(t, &ModifiedTasksImpl{})
+	db.TestMultipleTaskModifications(t, &ModifiedTasksImpl{})
 }
 
 func TestDefaultModifiedTasksTooManyUsers(t *testing.T) {
@@ -25,13 +26,13 @@ func TestDefaultModifiedTasksTooManyUsers(t *testing.T) {
 
 	var oneId string
 	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
+	for i := 0; i < db.MAX_MODIFIED_DATA_USERS; i++ {
 		id, err := m.StartTrackingModifiedTasks()
 		assert.NoError(t, err)
 		oneId = id
 	}
 	_, err := m.StartTrackingModifiedTasks()
-	assert.True(t, IsTooManyUsers(err))
+	assert.True(t, db.IsTooManyUsers(err))
 
 	m.StopTrackingModifiedTasks(oneId)
 	_, err = m.StartTrackingModifiedTasks()
@@ -40,12 +41,12 @@ func TestDefaultModifiedTasksTooManyUsers(t *testing.T) {
 
 func TestDefaultModifiedJobs(t *testing.T) {
 	testutils.MediumTest(t)
-	TestModifiedJobs(t, &ModifiedJobsImpl{})
+	db.TestModifiedJobs(t, &ModifiedJobsImpl{})
 }
 
 func TestDefaultMultipleJobModifications(t *testing.T) {
 	testutils.MediumTest(t)
-	TestMultipleJobModifications(t, &ModifiedJobsImpl{})
+	db.TestMultipleJobModifications(t, &ModifiedJobsImpl{})
 }
 
 func TestDefaultModifiedJobsTooManyUsers(t *testing.T) {
@@ -54,13 +55,13 @@ func TestDefaultModifiedJobsTooManyUsers(t *testing.T) {
 
 	var oneId string
 	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
+	for i := 0; i < db.MAX_MODIFIED_DATA_USERS; i++ {
 		id, err := m.StartTrackingModifiedJobs()
 		assert.NoError(t, err)
 		oneId = id
 	}
 	_, err := m.StartTrackingModifiedJobs()
-	assert.True(t, IsTooManyUsers(err))
+	assert.True(t, db.IsTooManyUsers(err))
 
 	m.StopTrackingModifiedJobs(oneId)
 	_, err = m.StartTrackingModifiedJobs()

@@ -19,8 +19,10 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
@@ -77,10 +79,10 @@ func htoi(h string) int {
 
 // makeTask generates task with random Name, Repo, and Revision. Revision will
 // be picked randomly from a range starting at recentCommitsBegin.
-func makeTask(recentCommitsBegin int) *db.Task {
-	return &db.Task{
-		TaskKey: db.TaskKey{
-			RepoState: db.RepoState{
+func makeTask(recentCommitsBegin int) *types.Task {
+	return &types.Task{
+		TaskKey: types.TaskKey{
+			RepoState: types.RepoState{
 				Repo:     fmt.Sprintf("Repo-%d", rand.Intn(kNumRepos)),
 				Revision: itoh(recentCommitsBegin + rand.Intn(kRecentCommitRange)),
 			},
@@ -92,10 +94,10 @@ func makeTask(recentCommitsBegin int) *db.Task {
 // updateBlamelists sets t's Commits based on t.Revision and previously-inserted
 // tasks' Commits and returns t. If another task's Commits needs to change, also
 // returns that task with its updated Commits.
-func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
+func updateBlamelists(cache cache.TaskCache, t *types.Task) ([]*types.Task, error) {
 	if !cache.KnownTaskName(t.Repo, t.Name) {
 		t.Commits = []string{t.Revision}
-		return []*db.Task{t}, nil
+		return []*types.Task{t}, nil
 	}
 	stealFrom, err := cache.GetTaskForCommit(t.Repo, t.Revision, t.Name)
 	if err != nil {
@@ -108,7 +110,7 @@ func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
 	for i := lastCommit - 1; i > 0; i-- {
 		if lastCommit-firstCommit+1 > scheduling.MAX_BLAMELIST_COMMITS && stealFrom == nil {
 			t.Commits = []string{t.Revision}
-			return []*db.Task{t}, nil
+			return []*types.Task{t}, nil
 		}
 		hash := itoh(i)
 		prev, err := cache.GetTaskForCommit(t.Repo, hash, t.Name)
@@ -136,9 +138,9 @@ func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
 			}
 		}
 		stealFrom.Commits = newCommits
-		return []*db.Task{t, stealFrom}, nil
+		return []*types.Task{t, stealFrom}, nil
 	} else {
-		return []*db.Task{t}, nil
+		return []*types.Task{t}, nil
 	}
 }
 
@@ -183,7 +185,7 @@ func putTasks(d db.TaskDB) {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	cache, err := db.NewTaskCache(d, w)
+	cache, err := cache.NewTaskCache(d, w)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -201,7 +203,7 @@ func putTasks(d db.TaskDB) {
 			t := makeTask(currentCommit)
 			putTasksDur := time.Duration(0)
 			before := time.Now()
-			updatedTasks, err := db.UpdateTasksWithRetries(d, func() ([]*db.Task, error) {
+			updatedTasks, err := db.UpdateTasksWithRetries(d, func() ([]*types.Task, error) {
 				putTasksDur += time.Now().Sub(before)
 				t := t.Copy()
 				if err := cache.Update(); err != nil {
@@ -247,7 +249,7 @@ func putTasks(d db.TaskDB) {
 
 // updateEntry is an item in updateEntryHeap.
 type updateEntry struct {
-	task *db.Task
+	task *types.Task
 	// updateTime is the key for updateEntryHeap.
 	updateTime time.Time
 	// heapIndex is the index of this updateEntry in updateEntryHeap. It is kept
@@ -289,12 +291,12 @@ func updateTasks(d db.TaskDB) {
 	updateQueue := updateEntryHeap{}
 	idMap := map[string]*updateEntry{}
 
-	freshenQueue := func(task *db.Task) {
+	freshenQueue := func(task *types.Task) {
 		entry := idMap[task.Id]
 		// Currently only updating pending and running tasks.
-		if task.Status == db.TASK_STATUS_PENDING || task.Status == db.TASK_STATUS_RUNNING {
+		if task.Status == types.TASK_STATUS_PENDING || task.Status == types.TASK_STATUS_RUNNING {
 			meanUpdateDelay := kMedianPendingDuration
-			if task.Status == db.TASK_STATUS_RUNNING {
+			if task.Status == types.TASK_STATUS_RUNNING {
 				meanUpdateDelay = kMedianRunningDuration
 			}
 			updateDelayNanos := int64(math.Max(0, (rand.NormFloat64()+1)*float64(meanUpdateDelay)))
@@ -368,29 +370,29 @@ func updateTasks(d db.TaskDB) {
 			delete(idMap, task.Id)
 			putTasksDur := time.Duration(0)
 			before := time.Now()
-			_, err := db.UpdateTaskWithRetries(d, task.Id, func(task *db.Task) error {
+			_, err := db.UpdateTaskWithRetries(d, task.Id, func(task *types.Task) error {
 				putTasksDur += time.Now().Sub(before)
 				switch task.Status {
-				case db.TASK_STATUS_PENDING:
+				case types.TASK_STATUS_PENDING:
 					task.Started = now
 					isMishap := rand.Intn(100) == 0
 					if isMishap {
-						task.Status = db.TASK_STATUS_MISHAP
+						task.Status = types.TASK_STATUS_MISHAP
 						task.Finished = now
 					} else {
-						task.Status = db.TASK_STATUS_RUNNING
+						task.Status = types.TASK_STATUS_RUNNING
 					}
-				case db.TASK_STATUS_RUNNING:
+				case types.TASK_STATUS_RUNNING:
 					task.Finished = now
 					statusRand := rand.Intn(25)
 					isMishap := statusRand == 0
 					isFailure := statusRand < 5
 					if isMishap {
-						task.Status = db.TASK_STATUS_MISHAP
+						task.Status = types.TASK_STATUS_MISHAP
 					} else if isFailure {
-						task.Status = db.TASK_STATUS_FAILURE
+						task.Status = types.TASK_STATUS_FAILURE
 					} else {
-						task.Status = db.TASK_STATUS_SUCCESS
+						task.Status = types.TASK_STATUS_SUCCESS
 						task.IsolatedOutput = fmt.Sprintf("%x", rand.Int63())
 					}
 				default:

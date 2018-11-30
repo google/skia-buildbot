@@ -21,8 +21,8 @@ import (
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
+	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
@@ -102,15 +102,15 @@ func TestTaskSpecs(t *testing.T) {
 	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
-	rs1 := db.RepoState{
+	rs1 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	rs2 := db.RepoState{
+	rs2 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
-	specs, err := cache.GetTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2})
+	specs, err := cache.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	// c1 has a Build and Test task, c2 has a Build, Test, and Perf task.
 	total, countC1, countC2, countBuild, countTest, countPerf := 0, 0, 0, 0, 0, 0
@@ -164,16 +164,16 @@ func TestAddedTaskSpecs(t *testing.T) {
 	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
-	rs1 := db.RepoState{
+	rs1 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	rs2 := db.RepoState{
+	rs2 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
 
-	addedTaskSpecs, err := cache.GetAddedTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2})
+	addedTaskSpecs, err := cache.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))
 	assert.True(t, addedTaskSpecs[rs1][specs_testutils.BuildTask])
@@ -220,25 +220,25 @@ func TestAddedTaskSpecs(t *testing.T) {
 	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
 	c6 := gb.Commit(ctx)
 
-	rs3 := db.RepoState{
+	rs3 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c3,
 	}
-	rs4 := db.RepoState{
+	rs4 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c4,
 	}
-	rs5 := db.RepoState{
+	rs5 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c5,
 	}
-	rs6 := db.RepoState{
+	rs6 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c6,
 	}
 
 	assert.NoError(t, repos.Update(ctx))
-	addedTaskSpecs, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2, rs3, rs4, rs5, rs6})
+	addedTaskSpecs, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2, rs3, rs4, rs5, rs6})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))
 	assert.True(t, addedTaskSpecs[rs1][specs_testutils.BuildTask])
@@ -276,18 +276,18 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
-	rs1 := db.RepoState{
+	rs1 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	rs2 := db.RepoState{
+	rs2 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
-	_, err = cache.GetTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2})
+	_, err = cache.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.cache))
-	_, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []db.RepoState{rs1, rs2})
+	_, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.addedTasksCache))
 
@@ -432,7 +432,7 @@ PROJECT: skia`)
 	return ctx, gb, c1, c2
 }
 
-func tempGitRepoBotUpdateTests(t *testing.T, cases map[db.RepoState]error) {
+func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
@@ -481,7 +481,7 @@ func TestTempGitRepo(t *testing.T) {
 	_, gb, c1, c2 := tempGitRepoSetup(t)
 	defer gb.Cleanup()
 
-	cases := map[db.RepoState]error{
+	cases := map[types.RepoState]error{
 		{
 			Repo:     gb.RepoUrl(),
 			Revision: c1,
@@ -508,9 +508,9 @@ func TestTempGitRepoPatch(t *testing.T) {
 	patchset := "3"
 	gb.CreateFakeGerritCLGen(ctx, issue, patchset)
 
-	cases := map[db.RepoState]error{
+	cases := map[types.RepoState]error{
 		{
-			Patch: db.Patch{
+			Patch: types.Patch{
 				Server:   gb.RepoUrl(),
 				Issue:    issue,
 				Patchset: patchset,
@@ -538,7 +538,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
 
-	rs := db.RepoState{
+	rs := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
@@ -576,8 +576,8 @@ func TestTempGitRepoErr(t *testing.T) {
 	assert.NoError(t, err)
 
 	// bot_update will fail to apply the issue if we don't fake it in Git.
-	rs := db.RepoState{
-		Patch: db.Patch{
+	rs := types.RepoState{
+		Patch: types.Patch{
 			Issue:    "my-issue",
 			Patchset: "my-patchset",
 			Server:   "my-server",
@@ -665,7 +665,7 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 	check()
 
 	// Insert one commit's worth of specs into the cache.
-	_, err = c.ReadTasksCfg(ctx, db.RepoState{
+	_, err = c.ReadTasksCfg(ctx, types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: r1,
 	})
@@ -679,7 +679,7 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 	check()
 
 	// Insert an error into the cache.
-	rs2 := db.RepoState{
+	rs2 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: r2,
 	}
@@ -693,17 +693,17 @@ func TestTaskCfgCacheSerialization(t *testing.T) {
 
 	// Add two commits with identical tasks.json hash and check serialization.
 	r3 := gb.CommitGen(ctx, "otherfile.txt")
-	rs3 := db.RepoState{
+	rs3 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: r3,
 	}
 	r4 := gb.CommitGen(ctx, "otherfile.txt")
-	rs4 := db.RepoState{
+	rs4 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: r4,
 	}
 	assert.NoError(t, repos.Update(ctx))
-	_, err = c.GetTaskSpecsForRepoStates(ctx, []db.RepoState{rs3, rs4})
+	_, err = c.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs3, rs4})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(c.cache))
 	check()
