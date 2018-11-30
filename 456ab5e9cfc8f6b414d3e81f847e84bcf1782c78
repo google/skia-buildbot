@@ -423,6 +423,30 @@
       "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "beecf765_2583b052",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T15:13:17Z",
+      "side": 1,
+      "message": "Yeah - if you pull up your dev tools, you\u0027ll see the rule you just wrote is \"scoped\" to only container classes that are an ancestor of skottie-player-sk.  You can do the same with wrapper, contorls and the hover logic down below, if you like.",
+      "parentUuid": "30092e9c_0cdcd31d",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 25
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
