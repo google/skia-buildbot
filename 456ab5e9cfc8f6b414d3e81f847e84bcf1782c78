@@ -303,6 +303,30 @@
       "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f663a10_cd8bd1c9",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T14:47:34Z",
+      "side": 1,
+      "message": "oh, I missed this one, will do.",
+      "parentUuid": "2b98c54e_8291f36a",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 25
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
