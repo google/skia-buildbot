@@ -27,16 +27,12 @@ const (
 git log {{.From}}..{{.To}} --no-merges --oneline
 {{.LogStr}}
 
-{{.Footer}}
-`
-
-	GITHUB_COMMIT_MSG_FOOTER_TMPL = `
-The AutoRoll server is located here: %s
+The AutoRoll server is located here: {{.ServerURL}}
 
 Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 
-If the roll is causing failures, please contact the current sheriff (%s), and stop
+If the roll is causing failures, please contact the current sheriff ({{.SheriffEmails}}), and stop
 the roller if necessary.
 
 `
@@ -276,7 +272,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		LogURL              string
 		LogStr              string
 		ServerURL           string
-		Footer              string
+		SheriffEmails       string
 	}{
 		ChildPath:           rm.childPath,
 		ChildRepoCompareUrl: githubCompareUrl,
@@ -285,7 +281,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		NumCommits:          len(strings.Split(logStr, "\n")),
 		LogStr:              logStr,
 		ServerURL:           rm.serverURL,
-		Footer:              fmt.Sprintf(GITHUB_COMMIT_MSG_FOOTER_TMPL, rm.serverURL, strings.Join(emails, ",")),
+		SheriffEmails:       strings.Join(emails, ","),
 	}
 	var buf bytes.Buffer
 	if err := githubCommitMsgTmpl.Execute(&buf, data); err != nil {
