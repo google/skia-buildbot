@@ -112,27 +112,6 @@ server {
     error_log /var/log/nginx/android-perf.error.log error;
 }
 
-#####   android-ingest.skia.org   ###########################
-server {
-    listen      443;
-    server_name android-ingest.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/android-ingest.access.log;
-    error_log /var/log/nginx/android-ingest.error.log error;
-
-    location / {
-        proxy_pass http://skia-android-ingest:8000;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name android-ingest.skia.org;
-    return 301 https://android-ingest.skia.org$request_uri;
-}
-
 #####   android-master-ingest.skia.org   ###########################
 server {
     listen      443;
