@@ -22,6 +22,30 @@
       "revId": "a3a11a004d7ec97664f8d2832ac6d4f6be8d60b5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99264807_73353f82",
+        "filename": "status/go/capacity/capacity.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-11-30T12:26:34Z",
+      "side": 1,
+      "message": "Fixed, thanks.",
+      "parentUuid": "34c26344_6a9a5b31",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 7
+      },
+      "revId": "a3a11a004d7ec97664f8d2832ac6d4f6be8d60b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
