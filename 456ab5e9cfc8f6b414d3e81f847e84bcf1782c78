@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "ab515df7_f3c43a75",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T14:41:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18713afa_a43c8ebb",
+      "range": {
+        "startLine": 45,
+        "startChar": 14,
+        "endLine": 45,
+        "endChar": 15
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12e18c50_de517a91",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -82,6 +106,30 @@
       "writtenOn": "2018-11-30T14:18:01Z",
       "side": 1,
       "message": "Is this just a list of key value pairs?",
+      "range": {
+        "startLine": 109,
+        "startChar": 11,
+        "endLine": 109,
+        "endChar": 15
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75831410_d9fefa86",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T14:41:45Z",
+      "side": 1,
+      "message": "Yes, or more specifically a list of objects with \u0027key\u0027,\u0027value\u0027 properties (as returned by ManagedAnimation::get{Color,Opacity}Props).",
+      "parentUuid": "12e18c50_de517a91",
       "range": {
         "startLine": 109,
         "startChar": 11,
@@ -117,6 +165,30 @@
     },
     {
       "key": {
+        "uuid": "e7b9e8c9_f6243f97",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T14:41:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8b7dc5b_34cd28e7",
+      "range": {
+        "startLine": 112,
+        "startChar": 39,
+        "endLine": 112,
+        "endChar": 55
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "af67c3b1_c020f19b",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -140,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "65c23731_16a68b51",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T14:41:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af67c3b1_c020f19b",
+      "range": {
+        "startLine": 263,
+        "startChar": 2,
+        "endLine": 266,
+        "endChar": 3
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cca5e897_02995f6a",
         "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
         "patchSetId": 2
@@ -151,6 +247,30 @@
       "writtenOn": "2018-11-30T14:18:01Z",
       "side": 1,
       "message": "Why?",
+      "range": {
+        "startLine": 321,
+        "startChar": 49,
+        "endLine": 321,
+        "endChar": 78
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b500943_271c73cc",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2018-11-30T14:41:45Z",
+      "side": 1,
+      "message": "HTML color pickers don\u0027t provide an alpha channel.  IIUC the rationale is alpha is CSS color property, HTML colors are RGB-only.\n\nMaybe we can add a color-picker-sk component and switch over, but it\u0027s kind of a minor limitation.",
+      "parentUuid": "cca5e897_02995f6a",
       "range": {
         "startLine": 321,
         "startChar": 49,
