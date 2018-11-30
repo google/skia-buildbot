@@ -1,8 +1,18 @@
+@import '~infra-sk/modules/colors';
+
 skottie-player-sk {
   display: inline-block;
   padding: 0;
   margin: 0;
   border: 0;
+
+  .container {
+    position: relative;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
 
   .player-loading {
     position: relative;
@@ -20,42 +30,94 @@ skottie-player-sk {
   .skottie-canvas {
     display: block;
   }
-}
 
-.skottie-player-wrapper {
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-  margin: 0px;
-  padding: 0px;
-  border: 0px;
-}
+  .wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
 
-.skottie-player-controls {
-  position: absolute;
-  bottom: -24px; // height of controls container
-  width: 50%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0px;
-  background: rgba(128, 128, 128, .50);
-  transition: bottom .25s ease-in;
-}
+  .controls {
+    position: absolute;
+    bottom: -26px; // height of controls container
+    width: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0px;
+    background: rgba(128, 128, 128, .50);
+    transition: bottom .25s ease-in;
+  }
 
-.skottie-player-wrapper:hover > .skottie-player-controls {
-  bottom: 12px;
-  z-index: 2;
+  .wrapper:hover > .controls {
+    bottom: 12px;
+    z-index: 2;
+  }
 }
 
 .skottie-player-scrubber {
   appearance: none;
   outline: none;
   display: inline-block;
-  width: calc(100% - 34px);
+  width: calc(100% - 60px);
   height: 10px;
   vertical-align: middle;
   background: #e3e3e3;
-  margin: 0px;
-  padding: 0px;
-  border: 0px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.skottie-player-settings-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  background-color: rgba(64, 64, 64, .75);
+  z-index: 3;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.skottie-player-settings-row {
+  text-align: center;
+  margin: 0;
+  padding: 10px;
+  border: 0;
+}
+
+.skottie-player-settings-divider {
+  margin: 5px 0 0 0;
+}
+
+.skottie-player-settings-label {
+  text-align: left;
+  font-family: sans-serif;
+  color: white;
+  margin: 0;
+  padding: 0 0 5px 0;
+  border: 0;
+}
+
+.skottie-player-property-select {
+  display: inline;
+  width: 65%;
+  height: 25px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.skottie-player-picker {
+  display: inline;
+  width: 30%;
+  height: 25px;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
