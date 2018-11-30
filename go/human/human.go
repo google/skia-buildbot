@@ -148,8 +148,11 @@ func FlotTickMarks(ts []int64, tz string) []interface{} {
 	}
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
-		sklog.Errorf("Failed to load the timezone: %s", err)
-		return []interface{}{}
+		loc, err = time.LoadLocation("UTC")
+		if err != nil {
+			sklog.Errorf("Failed to load the timezone %q: %s", tz, err)
+			return []interface{}{}
+		}
 	}
 	return ToFlot(TickMarks(ts, loc))
 }
