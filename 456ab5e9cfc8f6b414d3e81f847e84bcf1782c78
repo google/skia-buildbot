@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afba7f96_6baddf07",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "Good use of this directive.  In a previous version, this was a bit laggy for large lists, but I think they fixed that recently.  If you notice any perf problems, there are alternatives using just a simple list.map((item) \u003d\u003e templateIWanteRepeated(ele, item))",
+      "range": {
+        "startLine": 15,
+        "startChar": 9,
+        "endLine": 15,
+        "endChar": 14
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "608b752d_c537d4ec",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "I\u0027m fine with this template in a template since it\u0027s short. If this gets more complex or used in more than 2 places, we should consider breaking it out as a subtemplate.",
+      "range": {
+        "startLine": 32,
+        "startChar": 67,
+        "endLine": 34,
+        "endChar": 7
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "18713afa_a43c8ebb",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "nit: no space here",
+      "range": {
+        "startLine": 45,
+        "startChar": 14,
+        "endLine": 45,
+        "endChar": 15
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12e18c50_de517a91",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "Is this just a list of key value pairs?",
+      "range": {
+        "startLine": 109,
+        "startChar": 11,
+        "endLine": 109,
+        "endChar": 15
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8b7dc5b_34cd28e7",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "!this.list.length",
+      "range": {
+        "startLine": 112,
+        "startChar": 39,
+        "endLine": 112,
+        "endChar": 55
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af67c3b1_c020f19b",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "Since this doesn\u0027t refer to this at all, we could consider making it a function outside the custom element (put it just below the template that first uses it).",
+      "range": {
+        "startLine": 263,
+        "startChar": 2,
+        "endLine": 266,
+        "endChar": 3
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cca5e897_02995f6a",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "Why?",
+      "range": {
+        "startLine": 321,
+        "startChar": 49,
+        "endLine": 321,
+        "endChar": 78
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b98c54e_8291f36a",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-11-30T14:18:01Z",
+      "side": 1,
+      "message": "potential refactoring - you could change this to just \u0027container\u0027 and put it inside the skottie-player-sk declaration.  By nesting things in scss, you are automatically making stronger css rules like:\n\nskottie-player-sk container\n\nThis means we could have shorter classnames in our templates.  Not required, just a potential thing to clean up.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 25
+      },
+      "revId": "456ab5e9cfc8f6b414d3e81f847e84bcf1782c78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
