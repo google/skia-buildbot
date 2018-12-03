@@ -39,6 +39,7 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
 
   connectedCallback() {
     this._render();
+    this._dialog = $$('dialog-sk');
   }
 
   /**
@@ -51,7 +52,7 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
   open(emails) {
     this._emails = emails;
     this._render();
-    this.firstChild.shown = true;
+    this._dialog.shown = true;
     $$('select', this).focus();
     return new Promise((resolve, reject) => {
       this._resolve = resolve;
@@ -64,12 +65,12 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
   }
 
   _dismiss() {
-    this.firstChild.shown = false;
+    this._dialog.shown = false;
     this._reject();
   }
 
   _confirm() {
-    this.firstChild.shown = false;
+    this._dialog.shown = false;
     this._resolve(this._selected);
   }
 
