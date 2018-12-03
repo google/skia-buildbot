@@ -592,7 +592,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 		DefaultSrc: []string{csp.SourceNone},
 		ConnectSrc: []string{"https://skia.org", "https://skia-tree-status.appspot.com", csp.SourceSelf},
 		ImgSrc:     []string{csp.SourceSelf},
-		StyleSrc:   []string{csp.SourceSelf},
+		StyleSrc:   []string{csp.SourceSelf, csp.SourceUnsafeInline},
 		ScriptSrc:  []string{csp.SourceSelf},
 	}
 
@@ -614,7 +614,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 	})
 
 	h = secureMiddleware.Handler(h)
-	h = csrf.Protect(srv.salt, csrf.Secure(!*local))(h)
+	h = csrf.Protect(srv.salt, csrf.Secure(!*local), csrf.Path("/"))(h)
 	return h
 }
 

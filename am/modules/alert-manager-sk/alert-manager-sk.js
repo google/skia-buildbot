@@ -64,7 +64,7 @@ function classOfSilenceH2(ele, silence) {
 
 function editIncident(ele) {
   if (ele._selected) {
-    return html`<incident-sk silences=${ele._silences} state=${ele._selected}
+    return html`<incident-sk .silences=${ele._silences} .state=${ele._selected}
       ></incident-sk>`
   } else {
     return ``
@@ -72,14 +72,12 @@ function editIncident(ele) {
 }
 
 function editSilence(ele) {
-  return html`<silence-sk
-    state=${ele._current_silence}
-    incidents=${ele._incidents}
+  return html`<silence-sk .state=${ele._current_silence} .incidents=${ele._incidents}
     ></silence-sk>`;
 }
 
 function viewStats(ele) {
-  return ele._incident_stats.map((i, index) =>  html`<incident-sk state=${i} ?minimized params=${index===0}></incident-sk>`)
+  return ele._incident_stats.map((i, index) =>  html`<incident-sk .state=${i} ?minimized params=${index===0}></incident-sk>`)
 }
 
 function rightHandSide(ele) {
@@ -163,7 +161,7 @@ const template = (ele) => html`
     </section>
     <section class=silences>
       ${ele._silences.map(i => html`
-        <h2 class=${classOfSilenceH2(ele, i)} @click=${ele._silenceClick}>
+        <h2 class=${classOfSilenceH2(ele, i)} @click=${e => ele._silenceClick(i)}>
           <span>
             ${displaySilence(i)}
           </span>
