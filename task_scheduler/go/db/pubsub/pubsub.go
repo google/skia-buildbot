@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -56,7 +56,7 @@ func newPublisher(c *pubsub.Client, topic string) (*publisher, error) {
 		}
 	}
 	p := &publisher{
-		senderId: uuid.New(),
+		senderId: uuid.New().String(),
 		topic:    t,
 	}
 	cleanup.AtExit(func() {

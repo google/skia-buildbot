@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
 	multierror "github.com/hashicorp/go-multierror"
-	"github.com/pborman/uuid"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -62,7 +62,7 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 // Create a step.
 func StartStep(ctx context.Context, props *StepProperties) context.Context {
 	parent := getStep(ctx)
-	return newStep(ctx, uuid.New(), parent, props)
+	return newStep(ctx, uuid.New().String(), parent, props)
 }
 
 // infraErrors collects all infrastructure errors.
