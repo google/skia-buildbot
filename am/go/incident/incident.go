@@ -148,6 +148,10 @@ func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 
 // AlertArrival turns alerts into Incidents, or archives Incidents if
 // the arriving state is resolved.
+//
+// Note that it is possible for the returned incident to be nil even if the
+// returned error is non-nil. An example of when this could happen: If we
+// receive an alert for an incident that is no longer active.
 func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 	// If there is a matching active alert then just update its LastUpdated
 	// value, otherwise create a new Incident and store it.
@@ -187,7 +191,8 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 		// Either create a new Incident or update an existing Incident.
 		if len(active) == 0 {
 			if alertState == alerts.STATE_RESOLVED {
-				return nil, fmt.Errorf("Received alert for incident that isn't active.")
+				sklog.Warningf("Received alert for incident that isn't active: %s", id)
+				return nil, nil
 			}
 			sklog.Infof("New: %s", id)
 			in := s.inFromAlert(m, id)
