@@ -28,6 +28,8 @@ var choices = []struct {
 	{24 * 3 * time.Hour, func(t time.Time) string { return t.Format("2") + suffix(t.Day()) }}, // Day of month
 	{24 * time.Hour, func(t time.Time) string { return t.Format("Mon") }},                     // Weekdays
 	{2 * time.Hour, func(t time.Time) string { return t.Format("3pm") }},                      // Hours
+	{2 * time.Minute, func(t time.Time) string { return t.Format("03:04pm") }},                // Minutes
+	{2 * time.Second, func(t time.Time) string { return t.Format("03:04:05pm") }},             // Seconds
 }
 
 // suffix returns the correct suffix for a day number.
