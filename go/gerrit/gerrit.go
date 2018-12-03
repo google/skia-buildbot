@@ -69,8 +69,23 @@ const (
 
 	URL_TMPL_CHANGE = "/changes/%d/detail?o=ALL_REVISIONS"
 
+	// Kinds of patchsets.
+	PATCHSET_KIND_MERGE_FIRST_PARENT_UPDATE = "MERGE_FIRST_PARENT_UPDATE"
+	PATCHSET_KIND_NO_CHANGE                 = "NO_CHANGE"
+	PATCHSET_KIND_NO_CODE_CHANGE            = "NO_CODE_CHANGE"
+	PATCHSET_KIND_REWORK                    = "REWORK"
+	PATCHSET_KIND_TRIVIAL_REBASE            = "TRIVIAL_REBASE"
+
 	// extractReg is the regular expression used by ExtractIssueFromCommit.
 	extractRegTmpl = `^\s*Reviewed-on:.*%s.*/([0-9]+)\s*$`
+)
+
+var (
+	TRIVIAL_PATCHSET_KINDS = []string{
+		PATCHSET_KIND_TRIVIAL_REBASE,
+		PATCHSET_KIND_NO_CHANGE,
+		PATCHSET_KIND_NO_CODE_CHANGE,
+	}
 )
 
 // ChangeInfo contains information about a Gerrit issue.
@@ -94,6 +109,31 @@ type ChangeInfo struct {
 	Labels          map[string]*LabelEntry `json:"labels"`
 	Owner           *Owner                 `json:"owner"`
 	Status          string                 `json:"status"`
+}
+
+// Find the set of non-trivial patchsets. Returns the Revisions in order of
+// patchset number.
+func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
+	allPatchSets := make([]int, 0, len(ci.Revisions))
+	byNumber := make(map[int]*Revision, len(ci.Revisions))
+	for _, rev := range ci.Revisions {
+		allPatchSets = append(allPatchSets, int(rev.Number))
+		byNumber[int(rev.Number)] = rev
+	}
+	sort.Ints(allPatchSets)
+	rv := make([]*Revision, 0, len(ci.Revisions))
+	for idx, num := range allPatchSets {
+		rev := byNumber[num]
+		// Skip the last patch set for merged CLs, since it is auto-
+		// generated.
+		if ci.Status == CHANGE_STATUS_MERGED && idx == len(allPatchSets)-1 {
+			continue
+		}
+		if !util.In(rev.Kind, TRIVIAL_PATCHSET_KINDS) {
+			rv = append(rv, rev)
+		}
+	}
+	return rv
 }
 
 // The RelatedChangesInfo entity contains information about related changes.
@@ -150,6 +190,7 @@ type Revision struct {
 	Number        int64     `json:"_number"`
 	CreatedString string    `json:"created"`
 	Created       time.Time `json:"-"`
+	Kind          string    `json:"kind"`
 }
 
 type GerritInterface interface {

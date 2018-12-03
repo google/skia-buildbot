@@ -461,12 +461,3 @@ type tryResultSlice []*TryResult
 func (s tryResultSlice) Len() int           { return len(s) }
 func (s tryResultSlice) Less(i, j int) bool { return s[i].Builder < s[j].Builder }
 func (s tryResultSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
-// GetTryResultsFromGerrit returns trybot results for the given roll.
-func GetTryResultsFromGerrit(g *gerrit.Gerrit, roll *AutoRollIssue) ([]*TryResult, error) {
-	tries, err := g.GetTrybotResults(roll.Issue, roll.Patchsets[0])
-	if err != nil {
-		return nil, err
-	}
-	return TryResultsFromBuildbucket(tries)
-}
