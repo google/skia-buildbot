@@ -16,6 +16,24 @@
       "revId": "cc9503fea5dd5383fc82493497011e282dbb92f6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "40e9cf8a_5ab3c5dd",
+        "filename": "debugger/go/instances/instances.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-03T20:13:13Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "cbda1a53_735549cd",
+      "revId": "cc9503fea5dd5383fc82493497011e282dbb92f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
