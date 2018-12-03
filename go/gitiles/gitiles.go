@@ -1,6 +1,7 @@
 package gitiles
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -34,6 +35,8 @@ type Repo struct {
 	client         *http.Client
 	gitCookiesPath string
 	URL            string
+
+	allCommits []*vcsinfo.LongCommit
 }
 
 // NewRepo creates and returns a new Repo object.
@@ -267,3 +270,36 @@ func (r *Repo) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
 	}
 	return rv, nil
 }
+
+// NOOP since we don't have a local copy.
+func (r *Repo) Update(ctx context.Context, pull, allBranches bool) error {
+	return nil
+}
+
+//
+func (r *Repo) From(start time.Time) []string {
+	// Lazily load the logs that we don't have in RAM yet.
+	return nil
+}
+
+func (r *Repo) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
+
+func (r *Repo) LastNIndex(N int) []*vcsinfo.IndexCommit {
+	return nil
+}
+
+func (r *Repo) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
+
+func (r *Repo) IndexOf(ctx context.Context, hash string) (int, error) { return 0, nil }
+
+func (r *Repo) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) { return nil, nil }
+
+func (r *Repo) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
+	return "", nil
+}
+
+func (r *Repo) ResolveCommit(ctx context.Context, commitHash string) (string, error) { return "", nil }
+
+var _ vcsinfo.VCS = (*Repo)(nil)
