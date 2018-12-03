@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -100,7 +100,7 @@ func (m *modifiedData) StartTrackingModifiedEntries() (string, error) {
 	} else if len(m.expiration) >= db.MAX_MODIFIED_DATA_USERS {
 		return "", db.ErrTooManyUsers
 	}
-	id := uuid.New()
+	id := uuid.New().String()
 	m.expiration[id] = time.Now().Add(db.MODIFIED_DATA_TIMEOUT)
 	return id, nil
 }

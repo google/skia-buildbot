@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -57,7 +57,7 @@ var (
 
 // NewInstanceID creates a new id for an instance of skiaserve.
 func NewInstanceID() string {
-	return fmt.Sprintf("%x", uuid.NewRandom())
+	return uuid.New().String()
 }
 
 // instance represents a single skiaserve instance, which may or may not
