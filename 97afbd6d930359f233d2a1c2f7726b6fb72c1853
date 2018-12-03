@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "54545f77_c560e8fd",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-03T13:45:20Z",
+      "side": 1,
+      "message": "TryResultsFromBuildbucket seems to be focused only on converting []*buildbucket.Build to []*autoroll.TryResult; I don\u0027t think it makes sense to add extra logic / functionality there.",
+      "parentUuid": "a9d16428_0dc57ce3",
+      "range": {
+        "startLine": 46,
+        "startChar": 29,
+        "endLine": 46,
+        "endChar": 54
+      },
+      "revId": "97afbd6d930359f233d2a1c2f7726b6fb72c1853",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10e71b6d_5ba192d1",
         "filename": "go/gerrit/gerrit.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "97afbd6d930359f233d2a1c2f7726b6fb72c1853",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f16df100_a7bb457b",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-03T13:45:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10e71b6d_5ba192d1",
+      "range": {
+        "startLine": 115,
+        "startChar": 47,
+        "endLine": 115,
+        "endChar": 58
+      },
+      "revId": "97afbd6d930359f233d2a1c2f7726b6fb72c1853",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
