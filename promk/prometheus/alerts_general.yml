@@ -101,6 +101,22 @@ groups:
     annotations:
       description: 'Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll'
 
+  - alert: HighExternalQPS
+    expr: sum(rate(http_request_metrics{host!="www.googleapis.com"}[30m])) by (host) > 25
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'QPS to {{ $labels.host }} is high. Verify that this is expected.'
+
+  - alert: HighExternalQPSGoogleAPIs
+    expr: sum(rate(http_request_metrics{host="www.googleapis.com"}[30m])) > 60
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'QPS to www.googleapis.com is high. Verify that this is expected.'
+
 # skia-flutter-autoroll takes a long time to transition because it's pre-upload
 # scripts run flutter's license script which can take around 20 minutes.
   - alert: AutoRollLastTransition
