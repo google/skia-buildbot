@@ -52,10 +52,24 @@ const settingsTemplate = (ele) => html`
     <hr class=skottie-player-settings-divider>
   </div>
   <div class=skottie-player-settings-row>
+    <div class=skottie-player-settings-label>Segments</div>
+    <select id=segment-prop-select class=skottie-player-property-select
+            style='width: 100%' @input=${ele._onPropertySelect}>
+      ${repeat(ele._props.segments, (s) => s.name, (s, index) => html`
+        <option value=${index}>${segmentLabel(s)}</option>
+      `)}
+    <select>
+    <hr class=skottie-player-settings-divider>
+  </div>
+  <div class=skottie-player-settings-row>
     <input type=button value=Close @click=${ele._onSettings}>
   </div>
 </div>
 `;
+
+function segmentLabel(s) {
+  return s.name + ' [' + s.t0.toFixed(2) + ' .. ' + s.t1.toFixed(2) + ']';
+}
 
 function hexColor(c) {
   let rgb = c & 0x00ffffff;
@@ -101,13 +115,14 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     };
 
     this._state = {
-      loading:      true,
-      paused:       this.hasAttribute('paused'),
-      scrubPlaying: false, // Animation was playing when the user started scrubbing.
-      duration:     0,     // Animation duration (ms).
-      timeOrigin:   0,     // Animation start time (ms).
-      seekPoint:    0,     // Normalized [0..1] animation progress.
-      showSettings: (new URL(document.location)).searchParams.has('settings'),
+      loading:        true,
+      paused:         this.hasAttribute('paused'),
+      scrubPlaying:   false, // Animation was playing when the user started scrubbing.
+      duration:       0,     // Animation duration (ms).
+      timeOrigin:     0,     // Animation start time (ms).
+      seekPoint:      0,     // Normalized [0..1] animation progress.
+      showSettings:   (new URL(document.location)).searchParams.has('settings'),
+      currentSegment: { 'name': '', 't0': 0, 't1': 1},  // One of the _props.segments
     };
 
     function PropList(list, defaultVal) {
@@ -123,8 +138,9 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     };
 
     this._props = {
-      color:   new PropList([], 0.0),
-      opacity: new PropList([], 1.0),
+      color:    new PropList([], 0.0), // Configurable color properties
+      opacity:  new PropList([], 1.0), // Configurable opacity properties
+      segments: [],                    // Selectable animation segments
     };
   }
 
@@ -156,15 +172,15 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
   }
 
   duration() {
-    return this._state.duration;
+    return this._state.duration * (this._state.currentSegment.t1 - this._state.currentSegment.t0);
   }
 
   seek(t) {
-    this._state.seekPoint = t;
-    this._state.timeOrigin = (Date.now() - this._state.duration * t);
+    this._state.timeOrigin = (Date.now() - this.duration() * t);
 
     if (!this.isPlaying()) {
       // Force-draw a static frame when paused.
+      this._updateSeekPoint();
       this._drawFrame();
     }
   }
@@ -224,6 +240,9 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._props.color.list   = this._engine.animation.getColorProps();
     this._props.opacity.list = this._engine.animation.getOpacityProps();
+    this._props.segments     = [ { 'name': 'Full timeline', 't0': 0, 't1': 1 } ]
+                                   .concat(this._engine.animation.getMarkers());
+    this._currentSegment     = this._props.segments[0];
 
     this._render(); // re-render for animation-dependent elements (properties, etc).
 
@@ -231,9 +250,17 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
   }
 
   _updateSeekPoint() {
-    this._state.seekPoint = ((Date.now() - this._state.timeOrigin) / this.duration()) % 1;
+    // t is in animation segment domain.
+    let t = ((Date.now() - this._state.timeOrigin) / this.duration()) % 1;
+
+    // map to the global animation timeline
+    this._state.seekPoint = this._state.currentSegment.t0
+                          + t * (this._state.currentSegment.t1 - this._state.currentSegment.t0);
     if (this._config.controls) {
-      this.querySelector('.skottie-player-scrubber').value = this._state.seekPoint * 100;
+      let scrubber = this.querySelector('.skottie-player-scrubber');
+      if (scrubber) {
+        scrubber.value = this._state.seekPoint * 100;
+      }
     }
   }
 
@@ -308,6 +335,11 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     case 'opacity-prop-select':
       this._props.opacity.index = e.target.value;
       this.querySelector('#opacity-picker').value = this._props.color.current().value;
+      break;
+    case 'segment-prop-select':
+      this._state.currentSegment = this._props.segments[e.target.value];
+      this.seek(0);
+      this._render();
       break;
     }
   }
