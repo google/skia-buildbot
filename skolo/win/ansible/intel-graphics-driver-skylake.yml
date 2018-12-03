@@ -6,27 +6,17 @@
     win_file:
       path: c:\Temp
       state: directory
-  # For v25.20.100.6326, the EXE installer doesn't seem to work. If we want to switch back to using
-  # the EXE in the future, see git history.
-  - name: Copy the Intel Graphics Driver Skylake ZIP to the host
-    win_copy:
-      src: "{{ win_package_src }}/Intel Graphics Skylake win64_25.20.100.6326.zip"
-      dest: c:\Temp\intel_gfx.zip
-  - name: Extract the Intel Graphics Skylake driver ZIP
-    win_unzip:
-      src: c:\Temp\intel_gfx.zip
-      dest: C:\Temp\Intel
   # The Intel driver uses the same product_id for multiple versions, so win_package doesn't work.
+  - name: Copy the Intel Graphics Driver EXE to the host
+    win_copy:
+      src: "{{ win_package_src }}/Intel Graphics Skylake dch_win64_25.20.100.6444.exe"
+      dest: c:\Temp\intel_gfx.exe
   - name: Install Intel Graphics Driver for Skylake and later
     # See https://www.intel.com/content/www/us/en/support/articles/000006773/graphics-drivers.html
     # The "-overwrite" option allows downgrading the driver if a newer one is already installed for
     # some reason (e.g. Windows Update).
-    win_command: c:\Temp\Intel\igxpin.exe -overwrite -s
-  - name: Cleanup Intel
+    win_command: c:\Temp\intel_gfx.exe -s -A -overwrite -s
+  - name: Cleanup
     win_file:
-      path: c:\Temp\Intel
-      state: absent
-  - name: Cleanup ZIP
-    win_file:
-      path: c:\Temp\intel_gfx.zip
+      path: c:\Temp\intel_gfx.exe
       state: absent
