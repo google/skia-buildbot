@@ -46,6 +46,30 @@
       "revId": "a64f2b19dd7193272ea045d1d8053a796b53608e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91213c99_a3a7d4f8",
+        "filename": "skolo/win/ansible/intel-graphics-driver-skylake.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-03T21:37:03Z",
+      "side": 1,
+      "message": "I didn\u0027t see what -A meant there.",
+      "parentUuid": "1b0d9ca9_cd42526e",
+      "range": {
+        "startLine": 18,
+        "startChar": 39,
+        "endLine": 18,
+        "endChar": 44
+      },
+      "revId": "a64f2b19dd7193272ea045d1d8053a796b53608e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
