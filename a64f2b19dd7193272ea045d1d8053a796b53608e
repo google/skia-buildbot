@@ -22,6 +22,30 @@
       "revId": "a64f2b19dd7193272ea045d1d8053a796b53608e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b0d9ca9_cd42526e",
+        "filename": "skolo/win/ansible/intel-graphics-driver-skylake.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-03T20:59:25Z",
+      "side": 1,
+      "message": "Should I copy from the linked doc?",
+      "parentUuid": "08ee8936_42f50590",
+      "range": {
+        "startLine": 18,
+        "startChar": 39,
+        "endLine": 18,
+        "endChar": 44
+      },
+      "revId": "a64f2b19dd7193272ea045d1d8053a796b53608e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
