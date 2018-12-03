@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9d16428_0dc57ce3",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-03T13:29:43Z",
+      "side": 1,
+      "message": "The above logic could be done in TryResultsFromBuildbucket instead, but what you have looks good too.",
+      "range": {
+        "startLine": 46,
+        "startChar": 29,
+        "endLine": 46,
+        "endChar": 54
+      },
+      "revId": "97afbd6d930359f233d2a1c2f7726b6fb72c1853",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "10e71b6d_5ba192d1",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-03T13:29:43Z",
+      "side": 1,
+      "message": "Document the order of revisions.",
+      "range": {
+        "startLine": 115,
+        "startChar": 47,
+        "endLine": 115,
+        "endChar": 58
+      },
+      "revId": "97afbd6d930359f233d2a1c2f7726b6fb72c1853",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
