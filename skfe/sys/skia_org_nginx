@@ -1112,6 +1112,27 @@ server {
     return 301 https://task-scheduler-internal.skia.org$request_uri;
 }
 
+#####   task-scheduler-staging.skia.org   ###########################
+server {
+    listen      443;
+    server_name task-scheduler-staging.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/task-scheduler-staging.access.log;
+    error_log /var/log/nginx/task-scheduler-staging.error.log error;
+
+    location / {
+        proxy_pass http://skia-task-scheduler-staging:8000;
+        proxy_set_header Host $host;
+    }
+}
+server {
+    listen      80;
+    server_name task-scheduler-staging.skia.org;
+    return 301 https://task-scheduler-staging.skia.org$request_uri;
+}
+
 #####   prom.skia.org   ###########################
 server {
     listen      443;
