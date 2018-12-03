@@ -14,7 +14,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
@@ -182,7 +182,7 @@ func RunStepFunc(ctx context.Context) (rvErr error) {
 	// 3. OS or filesystem interactions. We provide a library of steps which
 	//    wrap the normal Go library functions so that they can be run as
 	//    Steps.
-	dir := filepath.Join(os.TempDir(), "task_driver_basic_example", uuid.New())
+	dir := filepath.Join(os.TempDir(), "task_driver_basic_example", uuid.New().String())
 	if err := os_steps.MkdirAll(ctx, dir); err != nil {
 		return td.FailStep(ctx, err)
 	}
