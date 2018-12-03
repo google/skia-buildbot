@@ -467,14 +467,6 @@ ALERT HighExternalQPS
     description = "QPS to {{ $labels.host }} is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
   }
 
-# Perf has a different threshold than the above due to high QPS to Google Storage.
-ALERT HighExternalQPSSkiaPerf
-  IF sum(rate(http_request_metrics{job="skiaperf"}[30m])) by (host) > 75
-  LABELS { category = "infra", severity = "warning" }
-  ANNOTATIONS {
-    description = "QPS to {{ $labels.host }} from skiaperfd is high. Verify that this is expected. See https://mon.skia.org/dashboard/db/outgoing-qps"
-  }
-
 # www.googleapis.com has a higher threshold.
 ALERT HighExternalQPSGoogleAPIs
   IF sum(rate(http_request_metrics{host="www.googleapis.com"}[30m])) > 60
