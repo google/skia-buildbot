@@ -37,9 +37,15 @@ func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
-	tryResults, err := autoroll.GetTryResultsFromGerrit(g, a)
+	// Use try results from the most recent non-trivial patchset.
+	nontrivial := info.GetNonTrivialPatchSets()
+	tries, err := g.GetTrybotResults(a.Issue, nontrivial[len(nontrivial)-1].Number)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+	}
+	tryResults, err := autoroll.TryResultsFromBuildbucket(tries)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to process try results: %s", err)
 	}
 	a.TryResults = tryResults
 	return info, a, nil
