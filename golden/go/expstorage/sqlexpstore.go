@@ -455,14 +455,19 @@ func (c *CachingExpectationStore) AddChange(changedTests types.TestExp, userId s
 	if err := c.store.AddChange(changedTests, userId); err != nil {
 		return err
 	}
-	// Fire an event that will trigger the addition to the cache.
-	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
+	// Fire an event that will trigger the addition to the cache and wait for it to complete.
+	// This is necessary because events that change the cache could also come from the distributed
+	// eventbus.
+	waitCh := make(chan bool)
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID, waitCh), true)
+	<-waitCh
 	return nil
 }
 
 // addChangeToCache updates the cache and fires the change event.
 func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) {
-	changedTests := evtChangedTests.(*EventExpectationChange).TestChanges
+	evtData := evtChangedTests.(*EventExpectationChange)
+	changedTests := evtData.TestChanges
 
 	// Split the changes into removal and addition.
 	forRemoval := make(types.TestExp, len(changedTests))
@@ -496,6 +501,9 @@ func (c *CachingExpectationStore) addChangeToCache(evtChangedTests interface{}) 
 			sklog.Errorf("Error adding changed expectations to cache: %s", err)
 		}
 	}
+	if evtData.waitCh != nil {
+		evtData.waitCh <- true
+	}
 	sklog.Infof("Expectations change has been added to the cache.")
 }
 
@@ -506,7 +514,9 @@ func (c *CachingExpectationStore) removeChange(changedDigests types.TestExp) err
 	}
 
 	// Fire an event that will trigger the addition to the cache.
-	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID), true)
+	waitCh := make(chan bool)
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedDigests, masterIssueID, waitCh), true)
+	<-waitCh
 	return nil
 }
 
@@ -523,7 +533,9 @@ func (c *CachingExpectationStore) UndoChange(changeID int64, userID string) (typ
 	}
 
 	// Fire an event that will trigger the addition to the cache.
-	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID), true)
+	waitCh := make(chan bool)
+	c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, evExpChange(changedTests, masterIssueID, waitCh), true)
+	<-waitCh
 	return changedTests, nil
 }
 

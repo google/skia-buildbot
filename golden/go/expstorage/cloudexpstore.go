@@ -430,7 +430,7 @@ func (c *CloudExpStore) removeChange(changes types.TestExp) (err error) {
 
 	if c.eventBus != nil {
 		// This is always a local event since it's only used for testing.
-		c.eventBus.Publish(c.eventExpChange, evExpChange(changes, c.issueID), false)
+		c.eventBus.Publish(c.eventExpChange, evExpChange(changes, c.issueID, nil), false)
 	}
 	return nil
 }
@@ -519,7 +519,7 @@ func (c *CloudExpStore) makeChange(changes types.TestExp, userId string, timeSta
 	}
 
 	if c.eventBus != nil {
-		c.eventBus.Publish(c.eventExpChange, evExpChange(changes, c.issueID), c.globalEvent)
+		c.eventBus.Publish(c.eventExpChange, evExpChange(changes, c.issueID, nil), c.globalEvent)
 	}
 	return changeKey, nil
 }
