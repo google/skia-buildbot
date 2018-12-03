@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/swarming_logger/go/process"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	logging "google.golang.org/api/logging/v2"
 	"google.golang.org/api/option"
@@ -52,6 +53,8 @@ var (
 	swarmingServer     = flag.String("swarming", swarming.SWARMING_SERVER, "Swarming server URL")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory")
+	tasksPubsubTopic   = flag.String("pubsub_topic_tasks", pubsub.TOPIC_TASKS, "Pubsub topic for tasks.")
+	jobsPubsubTopic    = flag.String("pubsub_topic_jobs", pubsub.TOPIC_JOBS, "Pubsub topic for jobs.")
 
 	tl *taskLogger
 )
@@ -300,7 +303,11 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, swarming.PUBSUB_TOPIC_SWARMING_TASKS, PUBSUB_SUBSCRIBER_NAME); err != nil {
 		sklog.Fatal(err)
 	}
-	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl, httputils.NewTimeoutClient())
+	ts, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	taskDb, err := remote_db.NewClient(*taskSchedulerDbUrl, *tasksPubsubTopic, *jobsPubsubTopic, "swarming-logger", ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

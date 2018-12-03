@@ -481,8 +481,8 @@ type DBCloser interface {
 	DB
 }
 
-// federatedDB joins an independent TaskDB, JobDB, and CommentDB into a DB.
-type federatedDB struct {
+// FederatedDB joins an independent TaskDB, JobDB, and CommentDB into a DB.
+type FederatedDB struct {
 	TaskDB
 	JobDB
 	CommentDB
@@ -491,7 +491,7 @@ type federatedDB struct {
 // NewDB returns a DB that delegates to independent TaskDB, JobDB, and
 // CommentDB.
 func NewDB(tdb TaskDB, jdb JobDB, cdb CommentDB) DB {
-	return &federatedDB{
+	return &FederatedDB{
 		TaskDB:    tdb,
 		JobDB:     jdb,
 		CommentDB: cdb,

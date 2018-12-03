@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
@@ -21,6 +20,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -267,8 +267,8 @@ func addJobAggregates(s *events.EventStream) error {
 }
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
-func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
-	db, err := remote_db.NewClient(taskSchedulerDbUrl, httputils.NewTimeoutClient())
+func StartJobMetrics(ctx context.Context, taskSchedulerDbUrl, tasksTopic, jobsTopic string, ts oauth2.TokenSource) error {
+	db, err := remote_db.NewClient(taskSchedulerDbUrl, tasksTopic, jobsTopic, "datahopper-job-metrics", ts)
 	if err != nil {
 		return err
 	}

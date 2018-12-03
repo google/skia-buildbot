@@ -19,7 +19,9 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -78,7 +80,7 @@ const (
 	// util.RFC3339NanoZeroPad, but since Task.Id can not contain colons, we omit
 	// most of the punctuation. This timestamp can only be used to format and
 	// parse times in UTC.
-	TIMESTAMP_FORMAT = "20060102T150405.000000000Z"
+	TIMESTAMP_FORMAT = util.SAFE_TIMESTAMP_FORMAT
 	// SEQUENCE_NUMBER_FORMAT is a format string passed to fmt.Sprintf or
 	// fmt.Sscanf to format/parse the sequence number in the Task ID. It is a
 	// 16-digit zero-padded lowercase hexidecimal number.
@@ -230,8 +232,8 @@ type localDB struct {
 
 	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
 	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
-	modified.ModifiedTasksImpl
-	modified.ModifiedJobsImpl
+	db.ModifiedTasks
+	db.ModifiedJobs
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -316,11 +318,21 @@ func jobsBucket(tx *bolt.Tx) *bolt.Bucket {
 }
 
 // NewDB returns a local DB instance.
-func NewDB(name, filename string) (db.BackupDBCloser, error) {
+func NewDB(name, filename, tasksTopic, jobsTopic, label string, ts oauth2.TokenSource) (db.BackupDBCloser, error) {
 	boltdb, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
+	modTasks, err := pubsub.NewModifiedTasks(tasksTopic, label, ts)
+	if err != nil {
+		return nil, err
+	}
+	modTasks = modified.NewMuxModifiedTasks(modTasks, &modified.ModifiedTasksImpl{})
+	modJobs, err := pubsub.NewModifiedJobs(jobsTopic, label, ts)
+	if err != nil {
+		return nil, err
+	}
+	modJobs = modified.NewMuxModifiedJobs(modJobs, &modified.ModifiedJobsImpl{})
 	d := &localDB{
 		name:     name,
 		filename: path.Base(filename),
@@ -378,6 +390,8 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 			"bucket":   BUCKET_JOBS,
 			"count":    "rows",
 		}),
+		ModifiedTasks: modTasks,
+		ModifiedJobs:  modJobs,
 	}
 
 	stopReportActiveTx := make(chan bool)
