@@ -97,6 +97,60 @@ func TestTickMarks(t *testing.T) {
 	}
 	testTickMarks(t, ts, expected)
 
+	// Test Minues.
+	ts = []int64{
+		time.Date(2014, 8, 1, 1, 10, 0, 0, time.UTC).Unix(),
+		time.Date(2014, 8, 1, 1, 11, 0, 0, time.UTC).Unix(),
+		time.Date(2014, 8, 1, 1, 20, 0, 0, time.UTC).Unix(),
+		time.Date(2014, 8, 1, 1, 23, 0, 0, time.UTC).Unix(),
+	}
+	expected = []*Tick{
+		{
+			X:     0,
+			Value: "01:10am",
+		},
+		{
+			X:     0.5,
+			Value: "01:11am",
+		},
+		{
+			X:     1.5,
+			Value: "01:20am",
+		},
+		{
+			X:     2.5,
+			Value: "01:23am",
+		},
+	}
+	testTickMarks(t, ts, expected)
+
+	// Test Seconds.
+	ts = []int64{
+		time.Date(2014, 8, 1, 1, 10, 5, 0, time.UTC).Unix(),
+		time.Date(2014, 8, 1, 1, 10, 6, 0, time.UTC).Unix(),
+		time.Date(2014, 8, 1, 1, 10, 10, 0, time.UTC).Unix(),
+		time.Date(2014, 8, 1, 1, 10, 20, 0, time.UTC).Unix(),
+	}
+	expected = []*Tick{
+		{
+			X:     0,
+			Value: "01:10:05am",
+		},
+		{
+			X:     0.5,
+			Value: "01:10:06am",
+		},
+		{
+			X:     1.5,
+			Value: "01:10:10am",
+		},
+		{
+			X:     2.5,
+			Value: "01:10:20am",
+		},
+	}
+	testTickMarks(t, ts, expected)
+
 	// Test Weekdays.
 	ts = []int64{
 		time.Date(2014, 8, 1, 1, 0, 0, 0, time.UTC).Unix(),
