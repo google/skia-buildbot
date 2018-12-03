@@ -34,7 +34,7 @@ package pdag
 import (
 	"sync"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -64,8 +64,8 @@ func NewNode(fn ProcessFn, parents ...*Node) *Node {
 	// Create a new node with a unique id.
 	id := uuid.New()
 	node := &Node{
-		id:       id,
-		name:     id,
+		id:       id.String(),
+		name:     id.String(),
 		children: map[string]*Node{},
 		procFn:   fn,
 		inputCh:  make(chan *call),
@@ -98,7 +98,7 @@ func (n *Node) Child(fn ProcessFn) *Node {
 func (n *Node) Trigger(state interface{}) error {
 	// Create a call message.
 	msg := call{
-		id:    uuid.New(),
+		id:    uuid.New().String(),
 		state: state,
 		errCh: make(chan error, 1),
 	}

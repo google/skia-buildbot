@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pborman/uuid"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -311,7 +311,7 @@ func (r *run) Finish(id string) {
 
 // Open a log stream.
 func (r *run) LogStream(stepId, logName, severity string) io.Writer {
-	logId := uuid.New() // TODO(borenet): Come up with a better ID.
+	logId := uuid.New().String() // TODO(borenet): Come up with a better ID.
 	rv, err := r.receiver.LogStream(stepId, logId, severity)
 	if err != nil {
 		panic(err)
