@@ -40,7 +40,7 @@ func TaskSchedulerInternal() *gce.Instance {
 }
 
 func TaskSchedulerStaging() *gce.Instance {
-	vm := TaskSchedulerBase("skia-task-scheduler-staging", "")
+	vm := TaskSchedulerBase("skia-task-scheduler-staging", "35.239.145.127" /* Whitelisted in swarming, isolate and buildbucket servers */)
 	vm.ServiceAccount = "task-scheduler@skia-buildbots.google.com.iam.gserviceaccount.com"
 	return vm
 }
