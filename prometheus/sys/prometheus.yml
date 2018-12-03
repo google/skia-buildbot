@@ -100,10 +100,6 @@ scrape_configs:
       - targets: ['skia-status:20000']
       - targets: ['skia-status-internal:20000']
 
-  - job_name: 'swarming_logger'
-    static_configs:
-      - targets: ['skia-swarming-logger:20000']
-
   - job_name: 'task_scheduler'
     static_configs:
       - targets: ['skia-task-scheduler:20000']
