@@ -41,8 +41,8 @@ push_internal: all
 	pushcli status-internal skia-status-internal
 
 push_staging: all
-	./build_release "`git log -n1 --format=%s`"
-	pushcli statusd skia-status-staging
+	./build_staging_release "`git log -n1 --format=%s`"
+	pushcli status-staging skia-status-staging
 
 statusk: web skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/statusk

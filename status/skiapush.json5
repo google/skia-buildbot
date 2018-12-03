@@ -18,7 +18,7 @@
       "AppNames": [
         "git-cookie-authdaemon",
         "pulld",
-        "statusd",
+        "status-staging",
       ],
     },
   }
