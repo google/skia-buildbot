@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08ee8936_42f50590",
+        "filename": "skolo/win/ansible/intel-graphics-driver-skylake.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-03T20:28:23Z",
+      "side": 1,
+      "message": "I\u0027m gussing -s is \"silent\" mode.  What is -A ?",
+      "range": {
+        "startLine": 18,
+        "startChar": 39,
+        "endLine": 18,
+        "endChar": 44
+      },
+      "revId": "a64f2b19dd7193272ea045d1d8053a796b53608e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
