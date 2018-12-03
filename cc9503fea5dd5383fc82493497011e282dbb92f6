@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cbda1a53_735549cd",
+        "filename": "debugger/go/instances/instances.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-03T20:12:28Z",
+      "side": 1,
+      "message": "This changes behavior. I think it doesn\u0027t matter, but you might want to deploy after this change to be sure.",
+      "revId": "cc9503fea5dd5383fc82493497011e282dbb92f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
