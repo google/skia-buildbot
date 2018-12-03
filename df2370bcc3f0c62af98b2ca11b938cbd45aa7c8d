@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7881fe9b_b262cdf8",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-03T20:05:06Z",
+      "side": 1,
+      "message": "html comments should be in \u003c!-- --\u003e",
+      "range": {
+        "startLine": 57,
+        "startChar": 32,
+        "endLine": 57,
+        "endChar": 83
+      },
+      "revId": "df2370bcc3f0c62af98b2ca11b938cbd45aa7c8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f225b35a_a0a5cd52",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-03T20:05:06Z",
+      "side": 1,
+      "message": "this is borderline complicated enough to break out as a helper function - might help with documenting a bit too.  WDYT?\n\nAlso, if you are trying to get a floating pt value to a fixed number of digits, try\nt0.toFixed(2) where the argument is the number of decimal points.",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 66
+      },
+      "revId": "df2370bcc3f0c62af98b2ca11b938cbd45aa7c8d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
