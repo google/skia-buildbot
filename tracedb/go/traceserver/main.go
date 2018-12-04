@@ -15,7 +15,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	tracedb "go.skia.org/infra/go/trace/db"
-	"go.skia.org/infra/go/trace/service"
+	traceservice "go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
 
