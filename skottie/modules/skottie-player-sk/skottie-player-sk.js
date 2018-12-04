@@ -47,7 +47,7 @@ const settingsTemplate = (ele) => html`
       `)}
     <select>
     <input type=range min=0 max=100 class=skottie-player-picker id=opacity-picker
-           value=${ele._props.color.current().value}
+           value=${ele._props.opacity.current().value}
            @input=${ele._onOpacityInput} ?disabled=${ele._props.opacity.empty()}>
     <hr class=skottie-player-settings-divider>
   </div>
@@ -334,7 +334,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       break;
     case 'opacity-prop-select':
       this._props.opacity.index = e.target.value;
-      this.querySelector('#opacity-picker').value = this._props.color.current().value;
+      this.querySelector('#opacity-picker').value = this._props.opacity.current().value;
       break;
     case 'segment-prop-select':
       this._state.currentSegment = this._props.segments[e.target.value];
@@ -354,6 +354,10 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._engine.animation.setColor(prop.key, prop.value);
     this._render();
+
+    if (!this.isPlaying()) {
+      this._drawFrame();
+    }
   }
 
   _onOpacityInput(e) {
@@ -362,5 +366,9 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._engine.animation.setOpacity(prop.key, prop.value);
     this._render();
+
+    if (!this.isPlaying()) {
+      this._drawFrame();
+    }
   }
 });
