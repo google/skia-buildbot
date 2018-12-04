@@ -72,9 +72,8 @@ skottie-player-sk {
 
 .skottie-player-settings-container {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  right: 0px;
+  bottom: 0px;
   width: 200px;
   background-color: rgba(64, 64, 64, .75);
   z-index: 3;
