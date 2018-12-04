@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/trace/service"
+	traceservice "go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/grpc"
 )

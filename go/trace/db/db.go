@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/trace/service"
+	traceservice "go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
 

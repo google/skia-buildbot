@@ -4,7 +4,7 @@ import (
 	"net"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/trace/service"
+	traceservice "go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
 

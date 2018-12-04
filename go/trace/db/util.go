@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"go.skia.org/infra/go/trace/db/perftypes"
-	"go.skia.org/infra/go/trace/service"
+	traceservice "go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/grpc"
 )
