@@ -130,7 +130,7 @@ function incidentList(ele, incidents) {
   return incidents.map(i => html`
     <h2 class=${classOfH2(ele, i)} @click=${e => ele._select(i)}>
     <span>
-      <checkbox-sk ?checked=${ele._checked.has(i.key)} @on-change=${ele._check_selected} @click=${ele._suppress} id=${i.key}></checkbox-sk>
+      <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._suppress} id=${i.key}></checkbox-sk>
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
@@ -187,7 +187,7 @@ const template = (ele) => html`
 `;
 
 function findParent(ele, tagName) {
-  while (!ele && ele.tagName !== tagName) {
+  while (ele && (ele.tagName !== tagName)) {
     ele = ele.parentElement;
   }
   return ele;
