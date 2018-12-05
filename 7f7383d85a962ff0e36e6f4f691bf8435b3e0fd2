@@ -46,6 +46,30 @@
       "revId": "7f7383d85a962ff0e36e6f4f691bf8435b3e0fd2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e669924b_2f106228",
+        "filename": "kube/go/auth-proxy/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-05T16:01:30Z",
+      "side": 1,
+      "message": "Merp.  Don\u0027t know how I missed that.",
+      "parentUuid": "1c0726e7_b616f47c",
+      "range": {
+        "startLine": 24,
+        "startChar": 46,
+        "endLine": 24,
+        "endChar": 81
+      },
+      "revId": "7f7383d85a962ff0e36e6f4f691bf8435b3e0fd2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
