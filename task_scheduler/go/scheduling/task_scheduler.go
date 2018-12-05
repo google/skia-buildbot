@@ -131,6 +131,13 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
 	}
 
+	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
+	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
+	for _, r := range repos {
+		if err := r.Update(ctx); err != nil {
+			return nil, fmt.Errorf("Failed initial repo sync: %s", err)
+		}
+	}
 	w, err := window.New(period, numCommits, repos)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create window: %s", err)
