@@ -2,9 +2,6 @@
 
 set -x -e
 
-# Build the binaries
-make k8s-binaries
-
 # Builds and uploads a container image for the ingestion server.
 APPNAME="gold-ingestion"
 

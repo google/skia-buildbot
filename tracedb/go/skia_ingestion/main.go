@@ -111,15 +111,20 @@ func main() {
 		eventBus = eventbus.New()
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore)
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
-	}
-	for _, oneIngester := range ingesters {
-		if err := oneIngester.Start(ctx); err != nil {
-			sklog.Fatalf("Unable to start ingester: %s", err)
+	// Set up the ingesters in the background.
+	var ingesters []*ingestion.Ingester
+	go func() {
+		var err error
+		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore)
+		if err != nil {
+			sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 		}
-	}
+		for _, oneIngester := range ingesters {
+			if err := oneIngester.Start(ctx); err != nil {
+				sklog.Fatalf("Unable to start ingester: %s", err)
+			}
+		}
+	}()
 
 	// Enable the memory profiler if memProfile was set.
 	if *memProfile > 0 {
