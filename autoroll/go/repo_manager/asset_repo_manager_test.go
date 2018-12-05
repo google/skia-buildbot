@@ -122,7 +122,7 @@ func setupAsset(t *testing.T) (context.Context, RepoManager, *gitiles_testutils.
 	mockChild.MockReadFile(ctx, assetVersionFile, childMaster)
 
 	recipesCfg := path.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-	rm, err := NewAssetRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client())
+	rm, err := NewAssetRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))

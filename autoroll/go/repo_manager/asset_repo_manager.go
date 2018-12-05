@@ -91,11 +91,11 @@ type assetRepoManager struct {
 // NewAssetRepoManager returns a RepoManager instance which rolls infra asset
 // versions so that the "parent" repo's versions match the "child" repo's
 // versions.
-func NewAssetRepoManager(ctx context.Context, c *AssetRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
+func NewAssetRepoManager(ctx context.Context, c *AssetRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL, g, client)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL, g, client, local)
 	if err != nil {
 		return nil, err
 	}
@@ -229,11 +229,13 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 	}()
 
 	// Create the roll CL.
-	if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(rm.user)); err != nil {
-		return 0, err
-	}
-	if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.email", rm.user); err != nil {
-		return 0, err
+	if !rm.local {
+		if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(rm.user)); err != nil {
+			return 0, err
+		}
+		if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.email", rm.user); err != nil {
+			return 0, err
+		}
 	}
 	assetFile := path.Join(rm.parentDir, fmt.Sprintf(ASSET_VERSION_TMPL, rm.asset))
 	if err := util.WithWriteFile(assetFile, func(w io.Writer) error {

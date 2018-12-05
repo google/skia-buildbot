@@ -151,7 +151,7 @@ func TestGithubRepoManager(t *testing.T) {
 
 	g, _ := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -186,7 +186,7 @@ func TestCreateNewGithubRoll(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -208,7 +208,7 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -237,7 +237,7 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil)
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))

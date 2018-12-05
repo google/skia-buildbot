@@ -47,7 +47,7 @@ be CC'd on the roll, and stop the roller if necessary.
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newDEPSRepoManager
+	NewDEPSRepoManager func(context.Context, *DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, bool) (RepoManager, error) = newDEPSRepoManager
 
 	commitMsgTmpl = template.Must(template.New("commitMsg").Parse(TMPL_COMMIT_MESSAGE))
 )
@@ -84,11 +84,11 @@ func (c *DEPSRepoManagerConfig) Validate() error {
 
 // newDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
+func newDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, local)
 	if err != nil {
 		return nil, err
 	}
@@ -235,11 +235,13 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(dr.user)); err != nil {
-		return 0, err
-	}
-	if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
-		return 0, err
+	if !dr.local {
+		if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(dr.user)); err != nil {
+			return 0, err
+		}
+		if _, err := exec.RunCwd(ctx, dr.parentDir, "git", "config", "user.email", dr.user); err != nil {
+			return 0, err
+		}
 	}
 
 	// Find relevant bugs.

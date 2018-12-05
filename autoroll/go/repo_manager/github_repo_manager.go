@@ -41,7 +41,7 @@ the roller if necessary.
 var (
 	// Use this function to instantiate a NewGithubRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client) (RepoManager, error) = newGithubRepoManager
+	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, bool) (RepoManager, error) = newGithubRepoManager
 
 	githubCommitMsgTmpl = template.Must(template.New("githubCommitMsg").Parse(GITHUB_COMMIT_MSG_TMPL))
 
@@ -80,7 +80,7 @@ type githubRepoManager struct {
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
+func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		return nil, err
 	}
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil, client)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil, client, local)
 	if err != nil {
 		return nil, err
 	}
@@ -244,11 +244,13 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	}
 
 	// Make sure the right name and email are set.
-	if _, err := rm.parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
-		return 0, err
-	}
-	if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.userEmail); err != nil {
-		return 0, err
+	if !rm.local {
+		if _, err := rm.parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
+			return 0, err
+		}
+		if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.userEmail); err != nil {
+			return 0, err
+		}
 	}
 
 	// Build the commit message.

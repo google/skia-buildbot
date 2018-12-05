@@ -92,7 +92,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 	})
 	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
-	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client())
+	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_FUCHSIA_SDK))
 	assert.NoError(t, rm.Update(ctx))

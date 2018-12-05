@@ -35,7 +35,7 @@ const (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewCopyRepoManager func(context.Context, *CopyRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newCopyRepoManager
+	NewCopyRepoManager func(context.Context, *CopyRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, bool) (RepoManager, error) = newCopyRepoManager
 )
 
 // CopyRepoManagerConfig provides configuration for the copy
@@ -72,11 +72,11 @@ type copyRepoManager struct {
 
 // newCopyRepoManager returns a RepoManager instance which rolls a dependency
 // which is copied directly into a subdir of the parent repo.
-func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
+func newCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, local)
 	if err != nil {
 		return nil, err
 	}
@@ -162,11 +162,13 @@ func (rm *copyRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
-		return 0, err
-	}
-	if _, err := parentRepo.Git(ctx, "config", "user.email", rm.user); err != nil {
-		return 0, err
+	if !rm.local {
+		if _, err := parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
+			return 0, err
+		}
+		if _, err := parentRepo.Git(ctx, "config", "user.email", rm.user); err != nil {
+			return 0, err
+		}
 	}
 
 	// Find relevant bugs.

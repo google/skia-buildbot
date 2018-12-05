@@ -38,7 +38,7 @@ var (
 
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewAFDORepoManager func(context.Context, *AFDORepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client) (RepoManager, error) = newAfdoRepoManager
+	NewAFDORepoManager func(context.Context, *AFDORepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, bool) (RepoManager, error) = newAfdoRepoManager
 )
 
 // Shorten the AFDO version.
@@ -62,7 +62,7 @@ type afdoRepoManager struct {
 }
 
 // Return an afdoRepoManager instance.
-func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client) (RepoManager, error) {
+func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func newAfdoRepoManager(ctx context.Context, c *AFDORepoManagerConfig, workdir s
 		afdoVersionFile: AFDO_VERSION_FILE_PATH,
 		authClient:      client,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, rv.buildCommitMessage, rv.updateHelper)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, rv.buildCommitMessage, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}

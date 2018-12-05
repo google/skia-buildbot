@@ -43,9 +43,8 @@ func (c *NoCheckoutRepoManagerConfig) Validate() error {
 	return nil
 }
 
-// noCheckoutRepoManager is a RepoManager which rolls Android AFDO profile version
-// numbers into Chromium. Unlike other rollers, there is no child repo to sync;
-// the version number is obtained from Google Cloud Storage.
+// noCheckoutRepoManager is a RepoManager which rolls without the use of a
+// local checkout.
 type noCheckoutRepoManager struct {
 	*commonRepoManager
 	baseCommit         string
@@ -69,11 +68,11 @@ type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy,
 type noCheckoutBuildCommitMessageFunc func(string, string, string, string, []string) (string, error)
 
 // Return a noCheckoutRepoManager instance.
-func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, buildCommitMessage noCheckoutBuildCommitMessageFunc, updateHelper noCheckoutUpdateHelperFunc) (*noCheckoutRepoManager, error) {
+func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, buildCommitMessage noCheckoutBuildCommitMessageFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client, local)
 	if err != nil {
 		return nil, err
 	}
