@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8d2f71f6_c9cb33e2",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 2
+      },
+      "lineNbr": 1616,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-05T15:27:56Z",
+      "side": 1,
+      "message": "I am not sure if we have the whole /24 range.  E.g. for our internal ip, we only have the /27 addresses",
+      "range": {
+        "startLine": 1616,
+        "startChar": 14,
+        "endLine": 1616,
+        "endChar": 30
+      },
+      "revId": "6d47d926c114823caf4b77a448f63ba0308811da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8f263d8_49df3732",
+        "filename": "skfe/sys/skia_org_nginx",
+        "patchSetId": 2
+      },
+      "lineNbr": 1618,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-05T15:27:56Z",
+      "side": 1,
+      "message": "I don\u0027t know about this one way or the other.",
+      "range": {
+        "startLine": 1618,
+        "startChar": 14,
+        "endLine": 1618,
+        "endChar": 30
+      },
+      "revId": "6d47d926c114823caf4b77a448f63ba0308811da",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
