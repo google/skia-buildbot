@@ -50,7 +50,7 @@ const (
 
 var (
 	// instancePrefixRe is used to strip out the instance uuid.
-	instancePrefixRe = regexp.MustCompile("^/([A-Fa-f0-9]+)(/.*)")
+	instancePrefixRe = regexp.MustCompile("^/([A-Fa-f0-9-]+)(/.*)")
 
 	runningInstances = metrics2.GetCounter("running_instances", nil)
 )
