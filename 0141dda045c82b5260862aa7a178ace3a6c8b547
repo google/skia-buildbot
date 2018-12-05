@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a78c397_000634bb",
+        "filename": "prometheus/sys/prometheus.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-05T15:24:47Z",
+      "side": 1,
+      "message": "Also delete this.",
+      "revId": "0141dda045c82b5260862aa7a178ace3a6c8b547",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
