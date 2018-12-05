@@ -26,3 +26,11 @@ k8s-binaries:
 	rm -f ./build/*
 	$(KGO) -o build/traceserver_k8s  -a ./go/traceserver/main.go
 	$(KGO) -o build/skia_ingestion_k8s  -a ./go/skia_ingestion/main.go
+
+.PHONY: k8s-release-ingestion
+k8s-release-ingestion: k8s-binaries
+	./k8s_push_ingestion
+
+.PHONY: k8s-release-traceserver
+k8s-release-traceserver: k8s-binaries
+	./k8s_push_traceserver
