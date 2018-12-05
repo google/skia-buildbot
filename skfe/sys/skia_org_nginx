@@ -1157,34 +1157,6 @@ server {
     return 301 https://prom.skia.org$request_uri;
 }
 
-#####   swarming-logger.skia.org   ###########################
-server {
-    listen      443;
-    server_name swarming-logger.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/swarming_logger.access.log;
-    error_log /var/log/nginx/swarming_logger.error.log error;
-
-    client_max_body_size 500M;
-
-    location / {
-        proxy_pass http://skia-swarming-logger:8000;
-        proxy_set_header Host $host;
-    }
-    location /google2c59f97e1ced9fdc.html {
-        add_header Content-Type text/html;
-        return 200 'google-site-verification: google2c59f97e1ced9fdc.html';
-    }
-}
-
-server {
-    listen      80;
-    server_name swarming-logger.skia.org;
-    return 301 https://swarming-logger.skia.org$request_uri;
-}
-
 #####   webhooks.skia.org   ###########################
 server {
     listen      443;
