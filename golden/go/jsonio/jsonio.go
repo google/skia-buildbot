@@ -44,16 +44,19 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/asaskevich/govalidator"
 )
 
 var (
 	rawGoldResultsJsonMap map[string]string
 	goldResultsJsonMap    map[string]string
 	resultJsonMap         map[string]string
+
+	// regexp to validate basic types.
+	regExHexadecimal = regexp.MustCompile(`^[0-9a-fA-F]+$`)
+	regExInt         = regexp.MustCompile(`^(?:[-+]?(?:0|[1-9][0-9]*))$`)
 )
 
 func init() {
@@ -124,7 +127,7 @@ func (r *rawGoldResults) parseValidate() []string {
 
 	f := []string{"Issue", r.Issue, "Patchset", r.Patchset, "BuildBucketID", r.BuildBucketID}
 	for i := 0; i < len(f); i += 2 {
-		valid := f[i+1] == "" || govalidator.IsInt(f[i+1])
+		valid := f[i+1] == "" || regExInt.MatchString(f[i+1])
 		addErrMessage(&ret, valid, "field '%s' must be empty or contain a valid integer", jn[f[i]])
 	}
 
@@ -146,7 +149,7 @@ func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
 	errMsg := []string{}
 
 	// Validate the fields
-	addErrMessage(&errMsg, govalidator.IsHexadecimal(g.GitHash), "field '%s' must be hexadecimal. Received '%s'", jn["GitHash"], g.GitHash)
+	addErrMessage(&errMsg, regExHexadecimal.MatchString(g.GitHash), "field '%s' must be hexadecimal. Received '%s'", jn["GitHash"], g.GitHash)
 	addErrMessage(&errMsg, len(g.Key) > 0 && hasNonEmptyKV(g.Key), "field '%s' must not be empty and must not have empty keys or values", jn["Key"])
 
 	validIssue := g.Issue == 0 || (g.Issue > 0 && g.Patchset > 0 && g.BuildBucketID > 0)
@@ -178,7 +181,7 @@ func (r *Result) validate(errMsg *[]string, parentField string) {
 	jn := resultJsonMap
 	addErrMessage(errMsg, len(r.Key) > 0 && hasNonEmptyKV(r.Key), "field '%s' must be non-empty and must not have empty keys or values", parentField+"."+jn["Key"])
 	addErrMessage(errMsg, hasNonEmptyKV(r.Options), "field '%s' must not have empty keys or values", parentField+"."+jn["Options"])
-	addErrMessage(errMsg, govalidator.IsHexadecimal(r.Digest), "field '%s' must be hexadecimal", parentField+"."+jn["Digest"])
+	addErrMessage(errMsg, regExHexadecimal.MatchString(r.Digest), "field '%s' must be hexadecimal", parentField+"."+jn["Digest"])
 }
 
 // addErrMessage adds an error message to errMsg if isValid is false. The
