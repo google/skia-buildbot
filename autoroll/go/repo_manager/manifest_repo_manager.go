@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
@@ -280,4 +282,9 @@ func (mr *manifestRepoManager) updateManifestFile(prevHash, newHash string) erro
 		return fmt.Errorf("Could not write to %s: %s", manifestFilePath, err)
 	}
 	return nil
+}
+
+// See documentation for RepoManager interface.
+func (mr *manifestRepoManager) RetrieveRoll(ctx context.Context, recent *recent_rolls.RecentRolls, issue int64, cb func(context.Context, roll.RollImpl) error) (roll.RollImpl, error) {
+	return roll.NewGerritRoll(ctx, mr.g, mr.FullChildHash, recent, issue, cb)
 }

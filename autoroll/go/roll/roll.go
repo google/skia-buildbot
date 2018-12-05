@@ -1,4 +1,4 @@
-package roller
+package roll
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	github_api "github.com/google/go-github/github"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
-	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
@@ -26,13 +26,13 @@ type RollImpl interface {
 	InsertIntoDB(ctx context.Context) error
 }
 
-func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
+func retrieveGerritIssue(ctx context.Context, g gerrit.GerritInterface, fullHash func(context.Context, string) (string, error), rollIntoAndroid bool, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
 	info, err := g.GetIssueProperties(issueNum)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get issue properties: %s", err)
 	}
 	a, err := autoroll.FromGerritChangeInfo(info, func(h string) (string, error) {
-		return rm.FullChildHash(ctx, h)
+		return fullHash(ctx, h)
 	}, rollIntoAndroid)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
@@ -53,20 +53,20 @@ func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.
 
 // gerritRoll is an implementation of RollImpl.
 type gerritRoll struct {
+	c                *codereview.GerritConfig
 	ci               *gerrit.ChangeInfo
 	issue            *autoroll.AutoRollIssue
 	finishedCallback func(context.Context, RollImpl) error
-	g                *gerrit.Gerrit
+	g                gerrit.GerritInterface
 	recent           *recent_rolls.RecentRolls
 	retrieveRoll     func(context.Context, int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error)
 	result           string
-	rm               repo_manager.RepoManager
 }
 
-// newGerritRoll obtains a gerritRoll instance from the given Gerrit issue
+// NewGerritRoll obtains a gerritRoll instance from the given Gerrit issue
 // number.
-func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, issue, err := retrieveGerritIssue(ctx, g, rm, false, issueNum)
+func NewGerritRoll(ctx context.Context, g gerrit.GerritInterface, fullHash func(context.Context, string) (string, error), recent *recent_rolls.RecentRolls, issueNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	ci, issue, err := retrieveGerritIssue(ctx, g, fullHash, false, issueNum)
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +77,8 @@ func newGerritRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoMa
 		g:                g,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
-			return retrieveGerritIssue(ctx, g, rm, false, issueNum)
+			return retrieveGerritIssue(ctx, g, fullHash, false, issueNum)
 		},
-		rm: rm,
 	}, nil
 }
 
@@ -206,7 +205,7 @@ func (r *gerritRoll) IssueID() string {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) IssueURL() string {
-	return fmt.Sprintf("%s%d", r.rm.GetIssueUrlBase(), r.issue.Issue)
+	return fmt.Sprintf("%s%d", r.c.GetIssueUrlBase(), r.issue.Issue)
 }
 
 // Special type for Android rolls.
@@ -214,9 +213,9 @@ type gerritAndroidRoll struct {
 	*gerritRoll
 }
 
-// newGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
-func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, issueNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	ci, issue, err := retrieveGerritIssue(ctx, g, rm, true, issueNum)
+// NewGerritAndroidRoll obtains a gerritAndroidRoll instance from the given Gerrit issue number.
+func NewGerritAndroidRoll(ctx context.Context, g gerrit.GerritInterface, fullHash func(context.Context, string) (string, error), recent *recent_rolls.RecentRolls, issueNum int64, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	ci, issue, err := retrieveGerritIssue(ctx, g, fullHash, true, issueNum)
 	if err != nil {
 		return nil, err
 	}
@@ -227,9 +226,8 @@ func newGerritAndroidRoll(ctx context.Context, g *gerrit.Gerrit, rm repo_manager
 		g:                g,
 		recent:           recent,
 		retrieveRoll: func(ctx context.Context, issueNum int64) (*gerrit.ChangeInfo, *autoroll.AutoRollIssue, error) {
-			return retrieveGerritIssue(ctx, g, rm, true, issueNum)
+			return retrieveGerritIssue(ctx, g, fullHash, true, issueNum)
 		},
-		rm: rm,
 	}}, nil
 }
 
@@ -292,6 +290,7 @@ func (r *gerritAndroidRoll) RetryDryRun(ctx context.Context) error {
 // githubRoll is an implementation of RollImpl.
 // TODO(rmistry): Add tests after a code-review abstraction later exists.
 type githubRoll struct {
+	c                *codereview.GithubConfig
 	finishedCallback func(context.Context, RollImpl) error
 	g                *github.GitHub
 	issue            *autoroll.AutoRollIssue
@@ -299,14 +298,13 @@ type githubRoll struct {
 	recent           *recent_rolls.RecentRolls
 	result           string
 	retrieveRoll     func(context.Context, int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error)
-	rm               repo_manager.RepoManager
 	t                *travisci.TravisCI
 	checksNum        int
 	checksWaitFor    []string
 	mergeMethodURL   string
 }
 
-func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, issueNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
+func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, fullHash func(context.Context, string) (string, error), issueNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
 
 	// Retrieve the pull request from github.
 	pullRequest, err := g.GetPullRequest(int(issueNum))
@@ -314,7 +312,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		return nil, nil, fmt.Errorf("Failed to get pull request for %d: %s", issueNum, err)
 	}
 	a, err := autoroll.FromGitHubPullRequest(pullRequest, g, func(h string) (string, error) {
-		return rm.FullChildHash(ctx, h)
+		return fullHash(ctx, h)
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
@@ -429,23 +427,23 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 	return pullRequest, a, nil
 }
 
-// newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
-func newGithubRoll(ctx context.Context, g *github.GitHub, rm repo_manager.RepoManager, recent *recent_rolls.RecentRolls, pullRequestNum int64, checksNum int, checksWaitFor []string, mergeMethodURL string, cb func(context.Context, RollImpl) error) (RollImpl, error) {
-	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor, mergeMethodURL)
+// NewGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
+func NewGithubRoll(ctx context.Context, g *github.GitHub, fullHash func(context.Context, string) (string, error), recent *recent_rolls.RecentRolls, pullRequestNum int64, config *codereview.GithubConfig, cb func(context.Context, RollImpl) error) (RollImpl, error) {
+	pullRequest, issue, err := retrieveGithubPullRequest(ctx, g, fullHash, pullRequestNum, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 	if err != nil {
 		return nil, err
 	}
 	return &githubRoll{
+		c:              config,
 		pullRequest:    pullRequest,
 		issue:          issue,
 		g:              g,
 		recent:         recent,
-		checksNum:      checksNum,
-		mergeMethodURL: mergeMethodURL,
+		checksNum:      config.ChecksNum,
+		mergeMethodURL: config.MergeMethodURL,
 		retrieveRoll: func(ctx context.Context, pullRequestNum int64) (*github_api.PullRequest, *autoroll.AutoRollIssue, error) {
-			return retrieveGithubPullRequest(ctx, g, rm, pullRequestNum, checksNum, checksWaitFor, mergeMethodURL)
+			return retrieveGithubPullRequest(ctx, g, fullHash, pullRequestNum, config.ChecksNum, config.ChecksWaitFor, config.MergeMethodURL)
 		},
-		rm: rm,
 	}, nil
 }
 
@@ -572,5 +570,5 @@ func (r *githubRoll) IssueID() string {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IssueURL() string {
-	return fmt.Sprintf("%s%d", r.rm.GetIssueUrlBase(), r.issue.Issue)
+	return fmt.Sprintf("%s%d", r.c.GetIssueUrlBase(), r.issue.Issue)
 }

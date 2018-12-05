@@ -4,7 +4,18 @@
     "brianosman@google.com",
     "mtklein@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skcms",
+    "commitQueueLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 2
+    },
+    "commitQueueDryRunLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 1
+    }
+  },
   "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",

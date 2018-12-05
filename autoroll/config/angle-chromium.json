@@ -3,7 +3,18 @@
   "contacts": [
     "jmadill@google.com"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "commitQueueLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 2
+    },
+    "commitQueueDryRunLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 1
+    }
+  },
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
@@ -19,7 +30,6 @@
     "childBranch": "master",
     "childPath": "src/third_party/angle",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "gerritProject": "chromium/src",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

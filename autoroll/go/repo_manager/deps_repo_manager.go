@@ -13,6 +13,8 @@ import (
 	"text/template"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/issues"
@@ -365,4 +367,9 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 		return 0, err
 	}
 	return issue.Issue, nil
+}
+
+// See documentation for RepoManager interface.
+func (r *depsRepoManager) RetrieveRoll(ctx context.Context, recent *recent_rolls.RecentRolls, issue int64, cb func(context.Context, roll.RollImpl) error) (roll.RollImpl, error) {
+	return roll.NewGerritRoll(ctx, r.g, r.FullChildHash, recent, issue, cb)
 }

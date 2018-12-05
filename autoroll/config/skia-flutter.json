@@ -12,10 +12,12 @@
   "sheriff": [
     "https://skia-tree-status.appspot.com/current-sheriff"
   ],
-  "githubRepoOwner": "flutter",
-  "githubRepoName": "engine",
-  "githubChecksNum": 4,
-  "githubChecksWaitFor": [],
+  "github": {
+    "repoOwner": "flutter",
+    "repoName": "flutter",
+    "checksNum": 12,
+    "checksWaitFor": []
+  },
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/skia",

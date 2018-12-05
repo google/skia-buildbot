@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roll"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
@@ -78,9 +80,6 @@ type RepoManager interface {
 	// user.
 	GetFullHistoryUrl() string
 
-	// Return the base URL used for building the URLs of uploaded rolls.
-	GetIssueUrlBase() string
-
 	// Create a new NextRollRevStrategy from the given name.
 	CreateNextRollStrategy(context.Context, string) (strategy.NextRollStrategy, error)
 
@@ -92,6 +91,9 @@ type RepoManager interface {
 
 	// Return the list of valid strategy names for this RepoManager.
 	ValidStrategies() []string
+
+	// Retrieve the given roll.
+	RetrieveRoll(context.Context, *recent_rolls.RecentRolls, int64, func(context.Context, roll.RollImpl) error) (roll.RollImpl, error)
 }
 
 // Start makes the RepoManager begin the periodic update process.
@@ -252,11 +254,6 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 // See documentation for RepoManager interface.
 func (r *commonRepoManager) GetFullHistoryUrl() string {
 	return r.g.Url(0) + "/q/owner:" + r.User()
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) GetIssueUrlBase() string {
-	return r.g.Url(0) + "/c/"
 }
 
 // See documentation for RepoManager interface.

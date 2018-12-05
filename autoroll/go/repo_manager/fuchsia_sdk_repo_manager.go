@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roll"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
@@ -32,7 +35,7 @@ const (
 )
 
 var (
-	NewFuchsiaSDKRepoManager func(context.Context, *FuchsiaSDKRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, bool) (RepoManager, error) = newFuchsiaSDKRepoManager
+	NewFuchsiaSDKRepoManager func(context.Context, *FuchsiaSDKRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, *codereview.GerritConfig, bool) (RepoManager, error) = newFuchsiaSDKRepoManager
 )
 
 // fuchsiaSDKVersion corresponds to one version of the Fuchsia SDK.
@@ -89,7 +92,7 @@ type fuchsiaSDKRepoManager struct {
 }
 
 // Return a fuchsiaSDKRepoManager instance.
-func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, authClient *http.Client, local bool) (RepoManager, error) {
+func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, authClient *http.Client, gerritConfig *codereview.GerritConfig, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -104,7 +107,7 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 		storageClient: storageClient,
 	}
 
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, rv.buildCommitMessage, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, gerritConfig, rv.buildCommitMessage, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}
@@ -247,4 +250,9 @@ func (r *fuchsiaSDKRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_FUCHSIA_SDK,
 	}
+}
+
+// See documentation for RepoManager interface.
+func (r *fuchsiaSDKRepoManager) RetrieveRoll(ctx context.Context, recent *recent_rolls.RecentRolls, issue int64, cb func(context.Context, roll.RollImpl) error) (roll.RollImpl, error) {
+	return roll.NewGerritRoll(ctx, r.g, r.FullChildHash, recent, issue, cb)
 }

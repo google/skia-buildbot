@@ -16,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roll"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
@@ -364,4 +366,9 @@ func (rm *assetRepoManager) RolledPast(ctx context.Context, version string) (boo
 		return false, err
 	}
 	return lastInt >= versionInt, nil
+}
+
+// See documentation for RepoManager interface.
+func (r *commonRepoManager) RetrieveRoll(ctx context.Context, recent *recent_rolls.RecentRolls, issue int64, cb func(context.Context, roll.RollImpl) error) (roll.RollImpl, error) {
+	return roll.NewGerritRoll(ctx, r.g, r.FullChildHash, recent, issue, cb)
 }

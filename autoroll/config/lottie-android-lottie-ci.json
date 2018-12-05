@@ -3,7 +3,18 @@
   "contacts": [
     "borenet@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "lottie-ci",
+    "commitQueueLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 2
+    },
+    "commitQueueDryRunLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 1
+    }
+  },
   "isInternal": false,
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
@@ -16,7 +27,6 @@
     "childBranch": "master",
     "childPath": "lottie-android",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git",
-    "gerritProject": "lottie-ci",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

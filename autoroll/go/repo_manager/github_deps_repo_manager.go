@@ -9,6 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/roll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -23,7 +26,7 @@ const (
 var (
 	// Use this function to instantiate a NewGithubDEPSRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, bool) (RepoManager, error) = newGithubDEPSRepoManager
+	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, *codereview.GithubConfig, bool) (RepoManager, error) = newGithubDEPSRepoManager
 )
 
 // GithubDEPSRepoManagerConfig provides configuration for the Github RepoManager.
@@ -43,11 +46,12 @@ func (c *GithubDEPSRepoManagerConfig) Validate() error {
 type githubDEPSRepoManager struct {
 	*depsRepoManager
 	githubClient *github.GitHub
+	githubConfig *codereview.GithubConfig
 }
 
 // newGithubDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
+func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, githubConfig *codereview.GithubConfig, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -70,6 +74,7 @@ func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	gr := &githubDEPSRepoManager{
 		depsRepoManager: dr,
 		githubClient:    githubClient,
+		githubConfig:    githubConfig,
 	}
 
 	return gr, nil
@@ -277,6 +282,6 @@ func (rm *githubDEPSRepoManager) GetFullHistoryUrl() string {
 }
 
 // See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) GetIssueUrlBase() string {
-	return rm.githubClient.GetIssueUrlBase()
+func (r *githubDEPSRepoManager) RetrieveRoll(ctx context.Context, recent *recent_rolls.RecentRolls, issue int64, cb func(context.Context, roll.RollImpl) error) (roll.RollImpl, error) {
+	return roll.NewGithubRoll(ctx, r.githubClient, r.FullChildHash, recent, issue, r.githubConfig, cb)
 }
