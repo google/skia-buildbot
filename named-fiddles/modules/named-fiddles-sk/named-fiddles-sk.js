@@ -25,7 +25,7 @@ const template = (ele) => html`
 </header>
 <main>
   <section>
-   ${repeat(ele._named_fiddles, (i) => i.name, (i, index) => html`<named-fiddle-sk state=${i}></named-fiddle-sk>`)}
+   ${repeat(ele._named_fiddles, (i) => i.name, (i, index) => html`<named-fiddle-sk .state=${i}></named-fiddle-sk>`)}
   </section>
   <button @click=${ele._new} class=fab>+</button>
   <spinner-sk id=busy></spinner-sk>

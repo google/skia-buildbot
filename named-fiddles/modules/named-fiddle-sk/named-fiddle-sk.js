@@ -18,11 +18,11 @@ import { html, render } from 'lit-html'
 import 'elements-sk/styles/buttons'
 
 function status(ele) {
-  return ele._state.status !== 'OK'  ? ele._state.status : '';
+  return ele._state.status !== ''  ? 'Failed' : '';
 }
 
 const template = (ele) => html`<span class=name><a href='https://fiddle.skia.org/c/${ele._state.hash}'>${ele._state.name}</a></span>
-  <span class=status>${status(ele)}</span>
+  <span class=status title=${ele._state.status}>${status(ele)}</span>
   <button @click=${ele._editClick}>Edit</button>
   <button @click=${ele._deleteClick}>Delete</button>
   <span class=user>${ele._state.user}</span>
