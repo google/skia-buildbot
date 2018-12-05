@@ -17,6 +17,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -223,7 +224,7 @@ func log(depthOffset int, severity, reportName, payload string) {
 	// We want to start at least 3 levels up, which is where the caller called
 	// sklog.Infof (or whatever). Otherwise, we'll be including unneeded stack lines.
 	stackDepth := 3 + depthOffset
-	stacks := CallStack(5, stackDepth)
+	stacks := skerr.CallStack(5, stackDepth)
 
 	// TODO(kjlubick): After cloud logging has baked in a while, remove the backup logs to glog
 	if severity == ALERT {
@@ -306,50 +307,6 @@ func logToGlog(depth int, severity string, msg string) {
 	}
 }
 
-type StackTrace struct {
-	File string
-	Line int
-}
-
-func (st *StackTrace) String() string {
-	return fmt.Sprintf("%s:%d", st.File, st.Line)
-}
-
-// CallStack returns a slice of StackTrace representing the current stack trace.
-// The lines returned start at the depth specified by startAt: 1 means the call to CallStack,
-// 2 means CallStack's caller, 3 means CallStack's caller's caller and so on, height means how
-// many lines to include, counting deeper into the stack. If there aren't enough lines, a dummy
-// value is used instead.
-// Suppose the stacktrace looks like:
-// sklog.go:300  <- the call to runtime.Caller in sklog.CallStack
-// alpha.go:123
-// beta.go:456
-// gamma.go:789
-// delta.go:123
-// main.go: 70
-// A typical call may look like sklog.CallStack(2, 6), which returns
-// [{File:alpha.go, Line:123}, {File:beta.go, Line:456},...,
-//  {File:main.go, Line:70}, {File:???, Line:1}], omitting the not-helpful reference to
-// CallStack and padding the response with a dummy value, since the stack was not tall enough to
-// show 6 items, starting at the second one.
-func CallStack(height, startAt int) []StackTrace {
-	stack := []StackTrace{}
-	for i := 0; i < height; i++ {
-		_, file, line, ok := runtime.Caller(startAt + i)
-		if !ok {
-			file = "???"
-			line = 1
-		} else {
-			slash := strings.LastIndex(file, "/")
-			if slash >= 0 {
-				file = file[slash+1:]
-			}
-		}
-		stack = append(stack, StackTrace{File: file, Line: line})
-	}
-	return stack
-}
-
 // LogLink returns a link to the logs for this process.
 func LogLink() string {
 	return fmt.Sprintf(LOG_LINK_TMPL, PROJECT_ID, logGroupingName, PROJECT_ID, defaultReportName)
@@ -366,7 +323,7 @@ func AddLogsRedirect(r *mux.Router) {
 // FmtError is a wrapper around fmt.Errorf that prepends the source location
 // (filename and line number) of the caller.
 func FmtErrorf(fmtStr string, args ...interface{}) error {
-	stackEntry := CallStack(1, 2)[0]
+	stackEntry := skerr.CallStack(1, 2)[0]
 	codeRef := fmt.Sprintf("%s:%d:", stackEntry.File, stackEntry.Line)
 	return fmt.Errorf(codeRef+fmtStr, args...)
 }
