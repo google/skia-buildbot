@@ -426,13 +426,11 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 
 	d.CommentBox = db.NewCommentBoxWithPersistence(comments, d.writeCommentsMap)
 
-	// For some reason occasionally this ends up taking a really really long time, blocking all other
-	// reads/writes. Disable it for now.
-	//if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_JOBS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
-	//	return nil, err
-	//} else {
-	//	d.dbMetric = dbMetric
-	//}
+	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_JOBS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
+		return nil, err
+	} else {
+		d.dbMetric = dbMetric
+	}
 
 	return d, nil
 }
@@ -448,10 +446,10 @@ func (d *localDB) Close() error {
 		c <- true
 	}
 	d.txActive = map[int64]string{}
-	//if err := d.dbMetric.Delete(); err != nil {
-	//	return err
-	//}
-	//d.dbMetric = nil
+	if err := d.dbMetric.Delete(); err != nil {
+		return err
+	}
+	d.dbMetric = nil
 	if err := d.txCount.Delete(); err != nil {
 		return err
 	}
