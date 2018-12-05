@@ -209,15 +209,6 @@ ALERT WindowsSkoloOSVersion
   }
 
 
-# Swarming Logger
-
-ALERT SwarmingLoggerErrorRate
-  IF rate(num_log_lines{level="ERROR",log_source="swarming_logger"}[10m]) > 1
-  LABELS { category = "infra", severity = "critical"}
-  ANNOTATIONS {
-    description = "The error rate for swarming_logger is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2Fskia-swarming-logger2&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fswarming_logger"
-  }
-
 # Status
 
 ALERT StatusLatency
