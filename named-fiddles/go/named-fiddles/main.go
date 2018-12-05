@@ -10,18 +10,21 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/99designs/goodies/http/secure_headers/csp"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/fiddlek/go/store"
+	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -32,6 +35,7 @@ var (
 	authGroup          = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	period             = flag.Duration("period", time.Hour, "How often to check if the named fiddles are valid.")
 	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
@@ -42,6 +46,9 @@ type Server struct {
 	store     *store.Store
 	templates *template.Template
 	salt      []byte // Salt for csrf cookies.
+
+	liveness    metrics2.Liveness
+	errorsInRun metrics2.Counter
 }
 
 func New() (*Server, error) {
@@ -65,9 +72,70 @@ func New() (*Server, error) {
 	srv := &Server{
 		store: st,
 		salt:  salt,
+
+		liveness:    metrics2.NewLiveness("named_fiddles_check"),
+		errorsInRun: metrics2.GetCounter("named_fiddles_errors_in_run", nil),
 	}
 	srv.loadTemplates()
+	go srv.checkValid()
 	return srv, nil
+}
+
+// step is a single run of the fiddle verifier.
+func (srv *Server) step() {
+	named, err := srv.store.ListAllNames()
+	if err != nil {
+		sklog.Errorf("Failed to retrive the named fiddles to check: %s ", err)
+	}
+	c := httputils.NewTimeoutClient()
+	defer srv.liveness.Reset()
+	srv.errorsInRun.Reset()
+	sklog.Infof("Starting validation run.")
+	for _, n := range named {
+		sklog.Infof("Validating: %s", n.Name)
+		// Load the fiddle.
+		getResp, err := c.Get(fmt.Sprintf("https://fiddle.skia.org/e/%s", n.Hash))
+		if err != nil {
+			sklog.Warningf("Failed to fetch %q = %q: %s", n.Name, n.Hash, err)
+			srv.errorsInRun.Inc(1)
+			continue
+		}
+
+		// Then re-run it.
+		resp, err := c.Post("https://fiddle.skia.org/_/run", "application/json", getResp.Body)
+		if err != nil || resp.StatusCode != 200 {
+			sklog.Errorf("Failed to run %q: %s %s", n.Name, err, resp.Status)
+			srv.errorsInRun.Inc(1)
+			continue
+		}
+		var runResults types.RunResults
+		if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
+			sklog.Errorf("Failed to decode run results: %s", err)
+			srv.errorsInRun.Inc(1)
+			continue
+		}
+		// Update the status.
+		status := ""
+		if len(runResults.CompileErrors) > 0 || runResults.RunTimeError != "" {
+			// update validity
+			status := fmt.Sprintf("%v %s", runResults.CompileErrors, runResults.RunTimeError)
+			if len(status) > 100 {
+				status = status[:100]
+			}
+		}
+		if err := srv.store.SetStatus(n.Name, status); err != nil {
+			sklog.Errorf("Failed to write updated status for %s: %s", n.Name, err)
+			srv.errorsInRun.Inc(1)
+		}
+	}
+}
+
+// checkValid periodically checks if all the named fiddles are valid.
+func (srv *Server) checkValid() {
+	srv.step()
+	for _ = range time.Tick(time.Minute) {
+		srv.step()
+	}
 }
 
 func (srv *Server) loadTemplates() {
@@ -188,7 +256,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 		DefaultSrc: []string{csp.SourceNone},
 		ConnectSrc: []string{"https://skia.org", csp.SourceSelf},
 		ImgSrc:     []string{csp.SourceSelf},
-		StyleSrc:   []string{csp.SourceSelf},
+		StyleSrc:   []string{csp.SourceSelf, csp.SourceUnsafeInline},
 		ScriptSrc:  []string{csp.SourceSelf},
 	}
 

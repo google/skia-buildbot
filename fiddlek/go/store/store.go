@@ -31,6 +31,7 @@ const (
 	// *_METADATA are the keys used to store the metadata values in Google Storage.
 	USER_METADATA                   = "user"
 	HASH_METADATA                   = "hash"
+	STATUS_METADATA                 = "status"
 	WIDTH_METADATA                  = "width"
 	HEIGHT_METADATA                 = "height"
 	SOURCE_METADATA                 = "source"
@@ -437,9 +438,10 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 
 // Named is the information about a named fiddle.
 type Named struct {
-	Name string
-	User string
-	Hash string
+	Name   string
+	User   string
+	Hash   string
+	Status string
 }
 
 // ListAllNames returns the list of all named fiddles.
@@ -456,9 +458,10 @@ func (s *Store) ListAllNames() ([]Named, error) {
 		}
 		filename := strings.Split(obj.Name, "/")[1]
 		named := Named{
-			Name: filename,
-			User: obj.Metadata[USER_METADATA],
-			Hash: obj.Metadata[HASH_METADATA],
+			Name:   filename,
+			User:   obj.Metadata[USER_METADATA],
+			Hash:   obj.Metadata[HASH_METADATA],
+			Status: obj.Metadata[STATUS_METADATA],
 		}
 		if named.Hash == "" {
 			sklog.Infof("Need to update metadata: %v", named)
@@ -519,6 +522,22 @@ func (s *Store) WriteName(name, hash, user string) error {
 	}
 	if err := w.Close(); err != nil {
 		return fmt.Errorf("Failed to close after writing named file %q: %s", name, err)
+	}
+	return nil
+}
+
+func (s *Store) SetStatus(name, status string) error {
+	if !s.ValidName(name) {
+		return fmt.Errorf("Invalid character found in name.")
+	}
+	ctx := context.Background()
+	atts := storage.ObjectAttrsToUpdate{
+		Metadata: map[string]string{
+			STATUS_METADATA: status,
+		},
+	}
+	if _, err := s.bucket.Object(fmt.Sprintf("named/%s", name)).Update(ctx, atts); err != nil {
+		return fmt.Errorf("Failed to update attributes for named file %q: %s", name, err)
 	}
 	return nil
 }
