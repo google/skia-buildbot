@@ -93,7 +93,7 @@ function matchingSilences(ele) {
     return ``;
   }
   let ret = ele._silences.filter(silence => paramset.match(silence.param_set, ele._state.params)).map( silence =>
-    html`<silence-sk state=${silence} collapsable collapsed></silence-sk>`
+    html`<silence-sk .state=${silence} collapsable collapsed></silence-sk>`
   );
   if (!ret.length) {
     ret.push(html`<div class=nosilences>None</div>`);
