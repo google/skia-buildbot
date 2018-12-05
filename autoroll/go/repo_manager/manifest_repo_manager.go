@@ -21,7 +21,7 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewManifestRepoManager func(context.Context, *ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (RepoManager, error) = newManifestRepoManager
+	NewManifestRepoManager func(context.Context, *ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, bool) (RepoManager, error) = newManifestRepoManager
 
 	// TODO(rmistry): Make this configurable.
 	manifestFileName = filepath.Join("fuchsia", "topaz", "skia")
@@ -44,11 +44,11 @@ type manifestRepoManager struct {
 
 // newManifestRepoManager returns a RepoManager instance which operates in the
 // given working directory and updates at the given frequency.
-func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client) (RepoManager, error) {
+func newManifestRepoManager(ctx context.Context, c *ManifestRepoManagerConfig, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, local)
 	if err != nil {
 		return nil, err
 	}
@@ -142,11 +142,13 @@ func (mr *manifestRepoManager) CreateNewRoll(ctx context.Context, from, to strin
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(mr.user)); err != nil {
-		return 0, err
-	}
-	if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.email", mr.user); err != nil {
-		return 0, err
+	if !mr.local {
+		if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(mr.user)); err != nil {
+			return 0, err
+		}
+		if _, err := exec.RunCwd(ctx, mr.parentDir, "git", "config", "user.email", mr.user); err != nil {
+			return 0, err
+		}
 	}
 
 	// Update the manifest file.

@@ -40,13 +40,13 @@ func NewRepoManager(t testutils.TestingT, rollIntoAndroid bool) *MockRepoManager
 
 // MockRepoManagers fakes out the New*RepoManager functions.
 func MockDEPSRepoManager(t testutils.TestingT) {
-	repo_manager.NewDEPSRepoManager = func(context.Context, *repo_manager.DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (repo_manager.RepoManager, error) {
+	repo_manager.NewDEPSRepoManager = func(context.Context, *repo_manager.DEPSRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, bool) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, false), nil
 	}
-	repo_manager.NewAndroidRepoManager = func(context.Context, *repo_manager.AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client) (repo_manager.RepoManager, error) {
+	repo_manager.NewAndroidRepoManager = func(context.Context, *repo_manager.AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, bool) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, true), nil
 	}
-	repo_manager.NewManifestRepoManager = func(context.Context, *repo_manager.ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client) (repo_manager.RepoManager, error) {
+	repo_manager.NewManifestRepoManager = func(context.Context, *repo_manager.ManifestRepoManagerConfig, string, *gerrit.Gerrit, string, string, *http.Client, bool) (repo_manager.RepoManager, error) {
 		return NewRepoManager(t, false), nil
 	}
 }

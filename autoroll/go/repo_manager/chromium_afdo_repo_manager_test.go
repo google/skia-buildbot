@@ -87,7 +87,7 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 		afdoRevBase: afdoTimeBase,
 	})
 
-	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client())
+	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_AFDO))
 	assert.NoError(t, rm.Update(ctx))

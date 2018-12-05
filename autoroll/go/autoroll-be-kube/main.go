@@ -171,8 +171,10 @@ func main() {
 
 	// The rollers use the gitcookie created by gitauth package.
 	gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
-	if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
-		sklog.Fatalf("Failed to create git cookie updater: %s", err)
+	if !*local {
+		if _, err := gitauth.New(ts, gitcookiesPath, true, cfg.ServiceAccount); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
 	}
 
 	if cfg.GerritURL != "" {
@@ -228,7 +230,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName)
+	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName, *local)
 	if err != nil {
 		sklog.Fatal(err)
 	}
