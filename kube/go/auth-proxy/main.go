@@ -21,6 +21,7 @@ var (
 	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	targetPort = flag.String("target_port", ":9000", "The port we are proxying to.")
+	allowPost  = flag.Bool("allow_post", false, "Allow POST requests to bypass auth.")
 )
 
 type Proxy struct {
@@ -35,6 +36,10 @@ func NewProxy(target *url.URL) *Proxy {
 
 func (p Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Requesting: %s", r.RequestURI)
+	if r.Method == "POST" && *allowPost {
+		p.reverseProxy.ServeHTTP(w, r)
+		return
+	}
 	if login.LoggedInAs(r) == "" {
 		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
 		return
