@@ -58,9 +58,6 @@ setup-internal-config-repo:
 ROLLER_CONFIGS_KUBE_INTERNAL=$(wildcard /tmp/skia-autoroll-internal-config/*.json)
 ROLLER_CONFIGS_KUBE_EXTERNAL=$(wildcard config/*.json)
 
-release-be: autoroll-be
-	./deprecated_build_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
-
 release-be-kube: autoroll-be-kube
 	CONFIG_DIR="$(CONFIG_DIR)" ./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
 
