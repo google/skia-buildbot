@@ -25,6 +25,10 @@ push_reposync:
 	./build_reposync_release
 	pushk repo-sync
 
-push: pushk
+push: release_auth_proxy release_continuous_deploy release_configmap_reload
 	pushk --cluster=skia-public auth-proxy configmap-reload continuous-deploy
 	pushk --cluster=skia-corp configmap-reload
+
+pushk_authproxy: release_auth_proxy
+	pushk --cluster=skia-public auth-proxy
+
