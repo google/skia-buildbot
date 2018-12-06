@@ -262,8 +262,14 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				defer util.Close(resp.Body)
 
 				var fiddlerResp types.FiddlerMainResponse
-				if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
+				b, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
 					sklog.Warningf("Failed to read status: %s", err)
+					continue
+				}
+				buf := bytes.NewBuffer(b)
+				if err := json.NewDecoder(buf).Decode(&fiddlerResp); err != nil {
+					sklog.Warningf("Failed to read status %q: %s", buf.String(), err)
 					continue
 				}
 				if fiddlerResp.State == types.IDLE {
