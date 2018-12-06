@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ec39ea9_7685a654",
+        "filename": "fiddlek/go/store/store.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:05:01Z",
+      "side": 1,
+      "message": "Optional: Is StatusIfBroken a more descriptive name? Status makes me think like something that is always populated regardless of brokenness or now. Upto you.",
+      "range": {
+        "startLine": 444,
+        "startChar": 1,
+        "endLine": 444,
+        "endChar": 7
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf9d3086_6f415ea8",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:05:01Z",
+      "side": 1,
+      "message": "Optional: This flag could also be a little more descriptive. Upto you.",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 7
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b6ccfce_3603008a",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:05:01Z",
+      "side": 1,
+      "message": "Should this be false since there is an error?",
+      "range": {
+        "startLine": 102,
+        "startChar": 9,
+        "endLine": 102,
+        "endChar": 13
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e500b50_ff547aab",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:05:01Z",
+      "side": 1,
+      "message": "Should this be false since there is an error?",
+      "range": {
+        "startLine": 121,
+        "startChar": 9,
+        "endLine": 121,
+        "endChar": 13
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "964522eb_2f90b373",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:05:01Z",
+      "side": 1,
+      "message": "Should this be false since there is an error?",
+      "range": {
+        "startLine": 127,
+        "startChar": 9,
+        "endLine": 127,
+        "endChar": 13
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5c75787_0a0dfb88",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:05:01Z",
+      "side": 1,
+      "message": "Should we return false here since we are incrementing errorsInRun?",
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
