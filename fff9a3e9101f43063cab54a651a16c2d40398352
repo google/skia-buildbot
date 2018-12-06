@@ -22,6 +22,47 @@
       "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcbb9f73_6385271c",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T15:56:22Z",
+      "side": 1,
+      "message": "Should it return an error then?",
+      "parentUuid": "4b12252e_2e6c24d9",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 42,
+        "endChar": 75
+      },
+      "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "197b25d4_b4aae9f7",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T15:56:22Z",
+      "side": 1,
+      "message": "Should this return an error instead? Seems like if a change is created with only trivial patchsets then something went wrong.\nAndroid roller does a merge but that patchset shows up as \"REWORK\", which I believe is not a trivial patchset.",
+      "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
