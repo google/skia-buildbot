@@ -364,6 +364,7 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 			return false
 		}
 	}
+	sklog.Info("AllTrybotsSucceeded returning true")
 	return true
 }
 
