@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f43f6d7_6f289bbd",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T19:01:40Z",
+      "side": 1,
+      "message": "Nit: extra space on this line",
+      "revId": "339ecd9a9a76453aa3dce05ff7d2ffe7c2574278",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
