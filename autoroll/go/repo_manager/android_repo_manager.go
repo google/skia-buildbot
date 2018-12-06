@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/common"
@@ -28,7 +29,7 @@ const (
 var (
 	// Use this function to instantiate a NewAndroidRepoManager. This is able to be
 	// overridden for testing.
-	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, bool) (RepoManager, error) = newAndroidRepoManager
+	NewAndroidRepoManager func(context.Context, *AndroidRepoManagerConfig, string, gerrit.GerritInterface, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newAndroidRepoManager
 
 	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath}
 
@@ -49,7 +50,7 @@ type androidRepoManager struct {
 	repoToolPath string
 }
 
-func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, local bool) (RepoManager, error) {
+func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 
 	wd := path.Join(workdir, "android_repo")
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g, client, local)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -226,22 +227,10 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 	return r.g.SetTopic(topic, changeNum)
 }
 
-// setChangeLabels sets the appropriate labels on the Gerrit change.
-// It uses the Gerrit REST API to set the following labels on the change:
-// * Code-Review=2
-// * Autosubmit=1 (if dryRun=false else 0 is set)
-// * Presubmit-Ready=1
+// setChangeLabels sets the appropriate labels on the Gerrit change, according
+// to the Gerrit config.
 func (r *androidRepoManager) setChangeLabels(change *gerrit.ChangeInfo, dryRun bool) error {
-	labelValues := map[string]interface{}{
-		gerrit.CODEREVIEW_LABEL:      "2",
-		gerrit.PRESUBMIT_READY_LABEL: "1",
-	}
-	if dryRun {
-		labelValues[gerrit.AUTOSUBMIT_LABEL] = gerrit.AUTOSUBMIT_LABEL_NONE
-	} else {
-		labelValues[gerrit.AUTOSUBMIT_LABEL] = gerrit.AUTOSUBMIT_LABEL_SUBMIT
-	}
-	return r.g.SetReview(change, "Roller setting labels to auto-land change.", labelValues, nil)
+	return r.g.SetReview(change, "Roller setting labels to auto-land change.", r.codereview.Config().(*codereview.GerritConfig).GetLabels(dryRun), nil)
 }
 
 func ExtractBugNumbers(line string) map[string]bool {
@@ -471,11 +460,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	}
 
 	return change.Issue, nil
-}
-
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) User() string {
-	return r.user
 }
 
 func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev string) ([]*vcsinfo.LongCommit, error) {

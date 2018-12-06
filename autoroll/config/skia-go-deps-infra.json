@@ -3,7 +3,18 @@
   "contacts": [
     "borenet@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "buildbot",
+    "commitQueueLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 2
+    },
+    "commitQueueDryRunLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 1
+    }
+  },
   "isInternal": false,
   "parentName": "Infra Assets",
   "parentWaterfall": "https://build.chromium.org",

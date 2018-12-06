@@ -122,7 +122,7 @@ func setupAsset(t *testing.T) (context.Context, RepoManager, *gitiles_testutils.
 	mockChild.MockReadFile(ctx, assetVersionFile, childMaster)
 
 	recipesCfg := path.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-	rm, err := NewAssetRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), false)
+	rm, err := NewAssetRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -141,7 +141,6 @@ func TestAssetRepoManager(t *testing.T) {
 	ctx, rm, mockParent, parent, mockChild, child, lastUpload, cleanup := setupAsset(t)
 	defer cleanup()
 
-	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, assetVersionBase, rm.LastRollRev())
 	assert.Equal(t, assetVersionBase, rm.NextRollRev())
 	rolledPast, err := rm.RolledPast(ctx, assetVersionPrev)
@@ -178,7 +177,7 @@ func TestAssetRepoManager(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-	from, to, err := autoroll.RollRev(lastUpload.Subject, nil)
+	from, to, err := autoroll.RollRev(ctx, lastUpload.Subject, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, assetVersionBase, from)
 	assert.Equal(t, assetVersionNext, to)
