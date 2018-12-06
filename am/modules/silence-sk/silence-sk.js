@@ -93,7 +93,6 @@ function matches(ele) {
   return ele._incidents.filter(
     incident => paramset.match(ele._state.param_set, incident.params) && incident.active
   ).map(incident => html`<h2> ${incident.params.alertname} ${abbr(incident)}</h2>`);
-
 }
 
 function classOfH2(silence) {

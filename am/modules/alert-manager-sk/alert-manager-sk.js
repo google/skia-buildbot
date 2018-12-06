@@ -143,6 +143,15 @@ function statsList(ele) {
   return ele._stats.map(stat => html`<h2 @click=${e => ele._statsClick(stat.incident)}>${displayIncident(stat.incident)} <span>${stat.num}</span></h2>`);
 }
 
+function numMatchSilence(ele, s) {
+  if (!ele._incidents) {
+    return ``;
+  }
+  return ele._incidents.filter(
+    (incident) => paramset.match(s.param_set, incident.params) && incident.active
+  ).length;
+}
+
 const template = (ele) => html`
 <header>${trooper(ele)}<login-sk></login-sk></header>
 <section class=nav>
@@ -168,6 +177,7 @@ const template = (ele) => html`
           <span>
             <span title='Expires in'>${expiresIn(i)}</span>
             <comment-icon-sk title='This silence has notes.' class=${hasNotes(i)}></comment-icon-sk>
+            <span title='The number of active alerts that match this silence.'>${numMatchSilence(ele, i)}</span>
           </span>
         </h2>`)}
     </section>
