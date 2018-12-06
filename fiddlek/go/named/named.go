@@ -39,7 +39,7 @@ var (
 // methods that Named uses.
 type NameStore interface {
 	GetHashFromName(name string) (string, error)
-	WriteName(name, hash, user string) error
+	WriteName(name, hash, user, status string) error
 }
 
 // Named deals with creating and dereferencing named fiddles.
@@ -81,7 +81,7 @@ func (n *Named) Add(name, hash, user string, overwrite bool) error {
 	} else {
 		sklog.Infof("Named Fiddle Created: %s %s by %s", name, hash, user)
 	}
-	if err := n.st.WriteName(name, hash, user); err != nil {
+	if err := n.st.WriteName(name, hash, user, ""); err != nil {
 		return fmt.Errorf("Failed to write name: %s", err)
 	}
 	return nil
