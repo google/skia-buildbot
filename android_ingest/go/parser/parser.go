@@ -135,7 +135,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 		for key, value := range metrics {
 			f, err := value.Float64()
 			if err != nil {
-				sklog.Errorf("Couldn't parse %q as a float64: %s", value.String(), err)
+				sklog.Warningf("Couldn't parse %q as a float64: %s", value.String(), err)
 				continue
 			}
 			benchData.Results[test]["default"][key] = f
