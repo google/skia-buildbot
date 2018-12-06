@@ -25,7 +25,7 @@ const template = (ele) => html`
 </header>
 <main>
   <section>
-   ${repeat(ele._named_fiddles, (i) => i.name, (i, index) => html`<named-fiddle-sk state=${i}></named-fiddle-sk>`)}
+   ${repeat(ele._named_fiddles, (i) => i.name, (i, index) => html`<named-fiddle-sk .inflight=${!!ele._inflight[i.name]} .state=${i}></named-fiddle-sk>`)}
   </section>
   <button @click=${ele._new} class=fab>+</button>
   <spinner-sk id=busy></spinner-sk>
@@ -40,6 +40,10 @@ window.customElements.define('named-fiddles-sk', class extends HTMLElement {
   constructor() {
     super();
     this._named_fiddles = [];
+
+    // All the named fiddles that are inflight, i.e. we have updated but
+    // haven't checked if they've become valid yet.
+    this._inflight = {};
   }
 
   connectedCallback() {
@@ -49,6 +53,10 @@ window.customElements.define('named-fiddles-sk', class extends HTMLElement {
     this._busy.active = true;
     this.addEventListener('named-delete', (e) => this._doDelete(e));
     this.addEventListener('named-edit', (e) => this._edit(e));
+    this._reloadAll();
+  }
+
+  _reloadAll() {
     fetch('/_/named', {
       credentials: 'include',
     }).then(jsonOrThrow).then((json) => {
@@ -76,6 +84,15 @@ window.customElements.define('named-fiddles-sk', class extends HTMLElement {
 
   _doUpdate(e) {
     this._doImpl('/_/update', e.detail)
+    // If the fiddle is failed, then wait a minute and reload
+    // the data, since validation should be done by then.
+    if (e.detail.status) {
+      this._inflight[e.detail.name] = true;
+      window.setTimeout(() => {
+        this._reloadAll();
+        this._inflight[e.detail.name] = false;
+      }, 60*1000);
+    }
   }
 
   _doDelete(e) {
