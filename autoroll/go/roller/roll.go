@@ -2,6 +2,7 @@ package roller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -37,17 +38,29 @@ func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
-	// Use try results from the most recent non-trivial patchset.
-	nontrivial := info.GetNonTrivialPatchSets()
-	tries, err := g.GetTrybotResults(a.Issue, nontrivial[len(nontrivial)-1].Number)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+	if !rollIntoAndroid {
+		// Use try results from the most recent non-trivial patchset.
+		if len(info.Patchsets) == 0 {
+			return nil, nil, fmt.Errorf("Issue %d has no patchsets!", issueNum)
+		}
+		nontrivial := info.GetNonTrivialPatchSets()
+		if len(nontrivial) == 0 {
+			msg := fmt.Sprintf("No non-trivial patchsets for %d; trivial patchsets:\n", issueNum)
+			for _, ps := range info.Patchsets {
+				msg += fmt.Sprintf("  %+v\n", ps)
+			}
+			return nil, nil, errors.New(msg)
+		}
+		tries, err := g.GetTrybotResults(a.Issue, nontrivial[len(nontrivial)-1].Number)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+		}
+		tryResults, err := autoroll.TryResultsFromBuildbucket(tries)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to process try results: %s", err)
+		}
+		a.TryResults = tryResults
 	}
-	tryResults, err := autoroll.TryResultsFromBuildbucket(tries)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to process try results: %s", err)
-	}
-	a.TryResults = tryResults
 	return info, a, nil
 }
 

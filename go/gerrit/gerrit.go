@@ -112,7 +112,8 @@ type ChangeInfo struct {
 }
 
 // Find the set of non-trivial patchsets. Returns the Revisions in order of
-// patchset number.
+// patchset number. Note that this is only correct for Chromium Gerrit instances
+// because it makes Chromium-specific assumptions.
 func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 	allPatchSets := make([]int, 0, len(ci.Revisions))
 	byNumber := make(map[int]*Revision, len(ci.Revisions))
@@ -125,7 +126,7 @@ func (ci *ChangeInfo) GetNonTrivialPatchSets() []*Revision {
 	for idx, num := range allPatchSets {
 		rev := byNumber[num]
 		// Skip the last patch set for merged CLs, since it is auto-
-		// generated.
+		// generated for Chromium projects.
 		if ci.Status == CHANGE_STATUS_MERGED && idx == len(allPatchSets)-1 {
 			continue
 		}
