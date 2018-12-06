@@ -369,6 +369,11 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		sklog.Warningf("len(tryResults) != checksNum: %d != %d", len(tryResults), checksNum)
 	}
 
+	sklog.Info("HERE BEFORE THE CHECKS!")
+	sklog.Info(a.AtleastOneTrybotFailure())
+	sklog.Info(len(a.TryResults) >= checksNum && a.AtleastOneTrybotFailure() && pullRequest.GetState() != github.CLOSED_STATE)
+	sklog.Info(a.AllTrybotsSucceeded())
+	sklog.Info(!a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN)
 	if pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY {
 		// Add a comment and close the roll.
 		if err := g.AddComment(int(issueNum), "PullRequest is not longer mergeable. Closing it."); err != nil {
@@ -514,6 +519,7 @@ func (r *githubRoll) Update(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *githubRoll) IsFinished() bool {
+	sklog.Infof("Github IsFinished: closed: %s. Merged: %s, !CommitQueue: %s", r.pullRequest.GetState(), r.pullRequest.GetMerged(), !r.issue.CommitQueue)
 	return r.pullRequest.GetState() == github.CLOSED_STATE || r.pullRequest.GetMerged() || !r.issue.CommitQueue
 }
 
