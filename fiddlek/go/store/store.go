@@ -113,7 +113,7 @@ func shouldBeCached(media Media) bool {
 //
 // local - True if running locally.
 func New(local bool) (*Store, error) {
-	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_FULL_CONTROL)
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
