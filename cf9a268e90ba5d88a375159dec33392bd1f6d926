@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "189b79be_93236095",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-06T20:47:11Z",
+      "side": 1,
+      "message": "nit: no googleplex mentions in commit message",
+      "revId": "cf9a268e90ba5d88a375159dec33392bd1f6d926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d218d7b7_125e8af4",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-06T20:47:11Z",
+      "side": 1,
+      "message": "Wrap in ()",
+      "range": {
+        "startLine": 151,
+        "startChar": 4,
+        "endLine": 151,
+        "endChar": 12
+      },
+      "revId": "cf9a268e90ba5d88a375159dec33392bd1f6d926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
