@@ -101,18 +101,24 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	assert.Equal(t, tryjob_1, found)
 	assert.NoError(t, store.UpdateTryjob(0, tryjob_2, nil))
 
-	time.Sleep(5 * time.Second)
-	foundIssue, err := store.GetIssue(issueID, true)
-	assert.NoError(t, err)
-	assert.NotNil(t, foundIssue)
+	expTryjobs := []*Tryjob{tryjob_1, tryjob_2}
 	foundTryjobs := []*Tryjob{}
-	for _, ps := range foundIssue.PatchsetDetails {
-		for _, tj := range ps.Tryjobs {
-			tj.Key = nil
+	assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
+		foundIssue, err := store.GetIssue(issueID, true)
+		assert.NoError(t, err)
+		assert.NotNil(t, foundIssue)
+		for _, ps := range foundIssue.PatchsetDetails {
+			for _, tj := range ps.Tryjobs {
+				tj.Key = nil
+			}
+			foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
 		}
-		foundTryjobs = append(foundTryjobs, ps.Tryjobs...)
-	}
-	deepequal.AssertDeepEqual(t, []*Tryjob{tryjob_1, tryjob_2}, foundTryjobs)
+		if len(foundTryjobs) != len(expTryjobs) {
+			return testutils.TryAgainErr
+		}
+		return nil
+	}))
+	deepequal.AssertDeepEqual(t, expTryjobs, foundTryjobs)
 
 	listedIssues, total, err := store.ListIssues(0, 1000)
 	assert.NoError(t, err)
@@ -144,11 +150,18 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 		tryjobResults[idx] = results
 	}
 
-	time.Sleep(3 * time.Second)
-
-	foundTJs, foundTJResults, err := store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, true)
-	assert.NoError(t, err)
-	assert.Equal(t, len(allTryjobs), len(foundTJs))
+	var foundTJs []*Tryjob
+	var foundTJResults [][]*TryjobResult
+	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
+		foundTJs, foundTJResults, err = store.GetTryjobs(issueID, []int64{patchsetID, patchsetID_2}, false, true)
+		if err != nil {
+			return err
+		}
+		if len(allTryjobs) != len(foundTJs) {
+			return testutils.TryAgainErr
+		}
+		return nil
+	}))
 	for idx := range allTryjobs {
 		foundTJs[idx].Key = nil
 		assert.Equal(t, allTryjobs[idx], foundTJs[idx])
@@ -205,12 +218,17 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 		expLogEntries = append(expLogEntries, &expstorage.TriageLogEntry{
 			Name: userName, ChangeCount: len(triageDetails), Details: triageDetails,
 		})
-		time.Sleep(1 * time.Second)
 	}
 
-	time.Sleep(10 * time.Second)
-	foundExp, err := expStore.Get()
-	assert.NoError(t, err)
+	var foundExp types.Expectations
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		foundExp, err = expStore.Get()
+		assert.NoError(t, err)
+		if !deepequal.DeepEqual(allChanges, foundExp) {
+			return testutils.TryAgainErr
+		}
+		return nil
+	}))
 	assert.Equal(t, allChanges, foundExp)
 
 	logEntries, total, err := expStore.QueryLog(0, -1, false)
@@ -227,22 +245,28 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 	}
 
 	assert.NoError(t, expStore.AddChange(foundTestExp, userName))
-	time.Sleep(3 * time.Second)
-	untriagedExp, err := expStore.Get()
-	assert.NoError(t, err)
-	untriagedTestExp := untriagedExp.TestExp()
 
-	for testName, digests := range foundTestExp {
-		for digest, label := range digests {
-			assert.Equal(t, label, untriagedTestExp[testName][digest])
+	var untriagedExp types.Expectations
+	var untriagedTestExp types.TestExp
+	assert.NoError(t, testutils.EventuallyConsistent(3*time.Second, func() error {
+		untriagedExp, err = expStore.Get()
+		assert.NoError(t, err)
+		untriagedTestExp = untriagedExp.TestExp()
+		for testName, digests := range foundTestExp {
+			for digest, label := range digests {
+				if label != untriagedTestExp[testName][digest] {
+					return testutils.TryAgainErr
+				}
+			}
 		}
-	}
+		return nil
+	}))
 
 	// Test commiting where the commit fails.
 	assert.Error(t, store.CommitIssueExp(issueID, func() error {
 		return errors.New("Write failed")
 	}))
-	foundIssue, err = store.GetIssue(issueID, false)
+	foundIssue, err := store.GetIssue(issueID, false)
 	assert.NoError(t, err)
 	assert.False(t, foundIssue.Committed)
 
