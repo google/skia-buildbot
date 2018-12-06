@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "bff19dee_ea52133e",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:12:00Z",
+      "side": 1,
+      "message": "Oh I see it now, you check that only in the \"Update the status\" section.",
+      "parentUuid": "21c1566a_3f730438",
+      "range": {
+        "startLine": 102,
+        "startChar": 9,
+        "endLine": 102,
+        "endChar": 13
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e500b50_ff547aab",
         "filename": "named-fiddles/go/named-fiddles/main.go",
         "patchSetId": 7
@@ -163,6 +187,30 @@
       "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8beca9e5_9a72879f",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:12:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2e500b50_ff547aab",
+      "range": {
+        "startLine": 121,
+        "startChar": 9,
+        "endLine": 121,
+        "endChar": 13
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -189,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "39378527_c444bd52",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:12:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "964522eb_2f90b373",
+      "range": {
+        "startLine": 127,
+        "startChar": 9,
+        "endLine": 127,
+        "endChar": 13
+      },
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5c75787_0a0dfb88",
         "filename": "named-fiddles/go/named-fiddles/main.go",
         "patchSetId": 7
@@ -203,6 +275,24 @@
       "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea5c081d_52892b15",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T16:12:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c5c75787_0a0dfb88",
+      "revId": "032f3f3d69a38e2723df0857bc037ffa0b10c5be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
