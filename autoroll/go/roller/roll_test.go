@@ -44,7 +44,7 @@ func TestGerritRoll(t *testing.T) {
 	rm.MockFullChildHash(to[:12], to)
 	roll := rm.RollerWillUpload(123, from, to, false)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err := newGerritRoll(ctx, g.Gerrit, rm, recent, 123, nil)
 	assert.NoError(t, err)
 	assert.False(t, gr.IsFinished())
@@ -70,21 +70,29 @@ func TestGerritRoll(t *testing.T) {
 	// Set dry run.
 	g.MockSetDryRun(roll, "Mode was changed to dry run")
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
 
 	// Set normal.
 	g.MockSetCQ(roll, "Mode was changed to normal")
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
 
 	// Update.
 	roll.Status = gerrit.CHANGE_STATUS_MERGED
+	// Landing a change adds an empty patchset.
+	rev := &gerrit.Revision{
+		Number:  int64(len(roll.Revisions) + 1),
+		Created: time.Now(),
+		Kind:    "",
+	}
+	roll.Revisions[fmt.Sprintf("%d", rev.Number)] = rev
+	roll.Patchsets = append(roll.Patchsets, rev)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.Update(ctx))
 	assert.True(t, gr.IsFinished())
 	assert.True(t, gr.IsSuccess())
@@ -98,7 +106,7 @@ func TestGerritRoll(t *testing.T) {
 		Status:         autoroll.TRYBOT_STATUS_STARTED,
 		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
-	g.MockGetTrybotResults(roll, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	gr, err = newGerritRoll(ctx, g.Gerrit, rm, recent, 124, nil)
 	assert.NoError(t, err)
 	assert.False(t, gr.IsDryRunFinished())
@@ -126,7 +134,7 @@ func TestGerritRoll(t *testing.T) {
 		},
 	}
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
 	assert.True(t, gr.IsDryRunFinished())
 	assert.True(t, gr.IsDryRunSuccess())
@@ -135,7 +143,7 @@ func TestGerritRoll(t *testing.T) {
 	// Close for cleanup.
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
 
 	// Verify that all of the mutation functions handle a conflict (eg.
@@ -144,7 +152,7 @@ func TestGerritRoll(t *testing.T) {
 	// 1. SwitchToDryRun.
 	roll = rm.RollerWillUpload(125, from, to, false)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritRoll(ctx, g.Gerrit, rm, recent, 125, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -154,14 +162,14 @@ func TestGerritRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
 
 	// 2. SwitchToNormal
 	roll = rm.RollerWillUpload(126, from, to, false)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritRoll(ctx, g.Gerrit, rm, recent, 126, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -171,14 +179,14 @@ func TestGerritRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
 
 	// 3. Close.
 	roll = rm.RollerWillUpload(127, from, to, false)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritRoll(ctx, g.Gerrit, rm, recent, 127, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -191,14 +199,14 @@ func TestGerritRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", []byte(req), "CONFLICT", http.StatusConflict))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
 	g.AssertEmpty()
 
 	// Verify that we set the correct status when abandoning a CL.
 	roll = rm.RollerWillUpload(128, from, to, true)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritRoll(ctx, g.Gerrit, rm, recent, 128, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -211,7 +219,7 @@ func TestGerritRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", []byte(req), nil))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
 	g.AssertEmpty()
 	issue, err := recent.Get(ctx, 128)
@@ -242,7 +250,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	rm.MockFullChildHash(to[:12], to)
 	roll := rm.RollerWillUpload(123, from, to, false)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err := newGerritAndroidRoll(ctx, g.Gerrit, rm, recent, 123, nil)
 	assert.NoError(t, err)
 	assert.False(t, gr.IsFinished())
@@ -268,21 +276,29 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Set dry run.
 	g.MockSetDryRun(roll, "Mode was changed to dry run")
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
 
 	// Set normal.
 	g.MockSetCQ(roll, "Mode was changed to normal")
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
 
 	// Update.
 	roll.Status = gerrit.CHANGE_STATUS_MERGED
+	// Landing a change adds an empty patchset.
+	rev := &gerrit.Revision{
+		Number:  int64(len(roll.Revisions) + 1),
+		Created: time.Now(),
+		Kind:    "",
+	}
+	roll.Revisions[fmt.Sprintf("%d", rev.Number)] = rev
+	roll.Patchsets = append(roll.Patchsets, rev)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.Update(ctx))
 	assert.True(t, gr.IsFinished())
 	assert.True(t, gr.IsSuccess())
@@ -296,7 +312,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 		Status:         autoroll.TRYBOT_STATUS_STARTED,
 		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
 	}
-	g.MockGetTrybotResults(roll, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	gr, err = newGerritAndroidRoll(ctx, g.Gerrit, rm, recent, 124, nil)
 	assert.NoError(t, err)
 	assert.False(t, gr.IsDryRunFinished())
@@ -324,7 +340,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 		},
 	}
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
 	assert.True(t, gr.IsDryRunFinished())
 	assert.True(t, gr.IsDryRunSuccess())
@@ -333,7 +349,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Close for cleanup.
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, []*buildbucket.Build{tryjob})
+	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	assert.NoError(t, gr.Update(ctx))
 
 	// Verify that all of the mutation functions handle a conflict (eg.
@@ -342,7 +358,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// 1. SwitchToDryRun.
 	roll = rm.RollerWillUpload(125, from, to, true)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritAndroidRoll(ctx, g.Gerrit, rm, recent, 125, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -352,14 +368,14 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToDryRun(ctx))
 	g.AssertEmpty()
 
 	// 2. SwitchToNormal
 	roll = rm.RollerWillUpload(126, from, to, true)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritAndroidRoll(ctx, g.Gerrit, rm, recent, 126, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -369,14 +385,14 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", reqBytes, "CONFLICT", http.StatusConflict))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.SwitchToNormal(ctx))
 	g.AssertEmpty()
 
 	// 3. Close.
 	roll = rm.RollerWillUpload(127, from, to, true)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritAndroidRoll(ctx, g.Gerrit, rm, recent, 127, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -389,14 +405,14 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostError("application/json", []byte(req), "CONFLICT", http.StatusConflict))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_FAILURE, "close it!"))
 	g.AssertEmpty()
 
 	// Verify that we set the correct status when abandoning a CL.
 	roll = rm.RollerWillUpload(128, from, to, true)
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	gr, err = newGerritAndroidRoll(ctx, g.Gerrit, rm, recent, 128, nil)
 	assert.NoError(t, err)
 	assert.NoError(t, gr.InsertIntoDB(ctx))
@@ -409,7 +425,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	g.Mock.MockOnce(url, mockhttpclient.MockPostDialogue("application/json", []byte(req), nil))
 	roll.Status = gerrit.CHANGE_STATUS_ABANDONED
 	g.MockGetIssueProperties(roll)
-	g.MockGetTrybotResults(roll, nil)
+	g.MockGetTrybotResults(roll, 1, nil)
 	assert.NoError(t, gr.Close(ctx, autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, "close it!"))
 	g.AssertEmpty()
 	issue, err := recent.Get(ctx, 128)
