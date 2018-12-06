@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "647b3ee9_cb5f6a09",
+        "filename": "infra/config/tricium-prod.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-06T19:06:55Z",
+      "side": 1,
+      "message": "What is the difference between this and whitelisted_group on line 31?",
+      "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
