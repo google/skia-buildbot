@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b12252e_2e6c24d9",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-06T15:46:38Z",
+      "side": 1,
+      "message": "This and the below are errors, not warnings, because we expect every CL we upload to have at least one patchset.  If  there are no patchsets (or no non-trivial patchsets) something is wrong.",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 42,
+        "endChar": 75
+      },
+      "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
