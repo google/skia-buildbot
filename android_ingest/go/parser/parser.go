@@ -70,7 +70,7 @@ func (c *Converter) Convert(incoming io.Reader) (*ingestcommon.BenchData, error)
 	sklog.Infof("POST for buildid: %s branch: %s flavor: %s num metrics: %d", in.BuildId, in.Branch, in.BuildFlavor, len(in.Metrics))
 	buildid, err := strconv.ParseInt(in.BuildId, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse buildid %q: %s", in.BuildId, err)
+		return nil, fmt.Warningf("Failed to parse buildid %q: %s", in.BuildId, err)
 	}
 	hash, err := c.lookup.Lookup(buildid)
 	if err != nil {
