@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
@@ -21,8 +22,6 @@ import (
 type NoCheckoutRepoManagerConfig struct {
 	CommonRepoManagerConfig
 
-	// Gerrit project for the parent repo.
-	GerritProject string `json:"gerritProject"`
 	// URL of the parent repo.
 	ParentRepo string `json:"parentRepo"`
 }
@@ -30,9 +29,6 @@ type NoCheckoutRepoManagerConfig struct {
 func (c *NoCheckoutRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
 		return err
-	}
-	if c.GerritProject == "" {
-		return errors.New("GerritProject is required.")
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
@@ -49,7 +45,7 @@ type noCheckoutRepoManager struct {
 	*commonRepoManager
 	baseCommit         string
 	buildCommitMessage noCheckoutBuildCommitMessageFunc
-	gerritProject      string
+	gerritConfig       *codereview.GerritConfig
 	nextRollChanges    map[string]string
 	parentRepo         *gitiles.Repo
 	updateHelper       noCheckoutUpdateHelperFunc
@@ -68,18 +64,18 @@ type noCheckoutUpdateHelperFunc func(context.Context, strategy.NextRollStrategy,
 type noCheckoutBuildCommitMessageFunc func(string, string, string, string, []string) (string, error)
 
 // Return a noCheckoutRepoManager instance.
-func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, buildCommitMessage noCheckoutBuildCommitMessageFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
+func newNoCheckoutRepoManager(ctx context.Context, c NoCheckoutRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, buildCommitMessage noCheckoutBuildCommitMessageFunc, updateHelper noCheckoutUpdateHelperFunc, local bool) (*noCheckoutRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client, local)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
 	rv := &noCheckoutRepoManager{
 		commonRepoManager:  crm,
 		buildCommitMessage: buildCommitMessage,
-		gerritProject:      c.GerritProject,
+		gerritConfig:       cr.Config().(*codereview.GerritConfig),
 		parentRepo:         gitiles.NewRepo(c.ParentRepo, gitcookiesPath, client),
 		updateHelper:       updateHelper,
 	}
@@ -98,7 +94,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	defer rm.infoMtx.Unlock()
 
 	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritProject, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
+	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range rm.nextRollChanges {
 			if err := g.EditFile(ci, file, contents); err != nil {
 				return fmt.Errorf("Failed to edit %s file: %s", file, err)
@@ -116,16 +112,9 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Set the CQ bit as appropriate.
-	cq := gerrit.COMMITQUEUE_LABEL_SUBMIT
-	if dryRun {
-		cq = gerrit.COMMITQUEUE_LABEL_DRY_RUN
-	}
-	if err = rm.g.SetReview(ci, "", map[string]interface{}{
-		gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
-		gerrit.COMMITQUEUE_LABEL: cq,
-	}, emails); err != nil {
+	if err = rm.g.SetReview(ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
-		return 0, err
+		return 0, fmt.Errorf("Failed to set review: %s", err)
 	}
 
 	return ci.Issue, nil
