@@ -38,16 +38,31 @@ func retrieveGerritIssue(ctx context.Context, g *gerrit.Gerrit, rm repo_manager.
 		return nil, nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 	// Use try results from the most recent non-trivial patchset.
-	nontrivial := info.GetNonTrivialPatchSets()
-	tries, err := g.GetTrybotResults(a.Issue, nontrivial[len(nontrivial)-1].Number)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+	if len(info.Patchsets) == 0 {
+		sklog.Errorf("Issue %d has no patchsets; not loading tryjobs.", issueNum)
+	} else {
+		patchset := info.Patchsets[len(info.Patchsets)-1].Number
+		nontrivial := info.GetNonTrivialPatchSets()
+		if len(nontrivial) > 0 {
+			patchset = nontrivial[len(nontrivial)-1].Number
+		} else {
+			msg := fmt.Sprintf("No non-trivial patchsets for %d; trivial patchsets:\n", issueNum)
+			for _, ps := range info.Patchsets {
+				msg += fmt.Sprintf("  %+v\n", ps)
+			}
+			msg += "Will load try jobs from most recent trivial patchset."
+			sklog.Error(msg)
+		}
+		tries, err := g.GetTrybotResults(a.Issue, patchset)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
+		}
+		tryResults, err := autoroll.TryResultsFromBuildbucket(tries)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to process try results: %s", err)
+		}
+		a.TryResults = tryResults
 	}
-	tryResults, err := autoroll.TryResultsFromBuildbucket(tries)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to process try results: %s", err)
-	}
-	a.TryResults = tryResults
 	return info, a, nil
 }
 
