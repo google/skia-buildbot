@@ -34,6 +34,8 @@ type Repo struct {
 	client         *http.Client
 	gitCookiesPath string
 	URL            string
+
+	allCommits []*vcsinfo.LongCommit
 }
 
 // NewRepo creates and returns a new Repo object.
