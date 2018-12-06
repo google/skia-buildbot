@@ -31,6 +31,7 @@ const (
 	// *_METADATA are the keys used to store the metadata values in Google Storage.
 	USER_METADATA                   = "user"
 	HASH_METADATA                   = "hash"
+	STATUS_METADATA                 = "status"
 	WIDTH_METADATA                  = "width"
 	HEIGHT_METADATA                 = "height"
 	SOURCE_METADATA                 = "source"
@@ -437,9 +438,10 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 
 // Named is the information about a named fiddle.
 type Named struct {
-	Name string
-	User string
-	Hash string
+	Name   string
+	User   string
+	Hash   string
+	Status string // If a non-empty string then this named fiddle is broken and the string contains some information about the breakage.
 }
 
 // ListAllNames returns the list of all named fiddles.
@@ -456,9 +458,10 @@ func (s *Store) ListAllNames() ([]Named, error) {
 		}
 		filename := strings.Split(obj.Name, "/")[1]
 		named := Named{
-			Name: filename,
-			User: obj.Metadata[USER_METADATA],
-			Hash: obj.Metadata[HASH_METADATA],
+			Name:   filename,
+			User:   obj.Metadata[USER_METADATA],
+			Hash:   obj.Metadata[HASH_METADATA],
+			Status: obj.Metadata[STATUS_METADATA],
 		}
 		if named.Hash == "" {
 			sklog.Infof("Need to update metadata: %v", named)
@@ -468,7 +471,7 @@ func (s *Store) ListAllNames() ([]Named, error) {
 				return nil, fmt.Errorf("Failed to read named hash in ListAllNames: %s", err)
 			}
 			named.Hash = hash
-			if err := s.WriteName(named.Name, named.Hash, named.User); err != nil {
+			if err := s.WriteName(named.Name, named.Hash, named.User, named.Status); err != nil {
 				return nil, fmt.Errorf("Failed to update hash metadata: %s", err)
 			}
 		}
@@ -504,21 +507,45 @@ func (s *Store) ValidName(name string) bool {
 //   name - The name of the fidde.
 //   hash - The fiddle hash.
 //   user - The email of the user that created the name.
-func (s *Store) WriteName(name, hash, user string) error {
+//   status - The current status of the named fiddle. An empty string means it
+//       is working. Non-empty string implies the fiddle is broken.
+func (s *Store) WriteName(name, hash, user, status string) error {
 	if !s.ValidName(name) {
 		return fmt.Errorf("Invalid character found in name.")
 	}
 	ctx := context.Background()
 	w := s.bucket.Object(fmt.Sprintf("named/%s", name)).NewWriter(ctx)
 	w.ObjectAttrs.Metadata = map[string]string{
-		USER_METADATA: user,
-		HASH_METADATA: hash,
+		USER_METADATA:   user,
+		HASH_METADATA:   hash,
+		STATUS_METADATA: status,
 	}
 	if _, err := w.Write([]byte(hash)); err != nil {
 		return fmt.Errorf("Failed to write named file %q: %s", name, err)
 	}
 	if err := w.Close(); err != nil {
 		return fmt.Errorf("Failed to close after writing named file %q: %s", name, err)
+	}
+	return nil
+}
+
+// SetStatus updates just the status of a named fiddle.
+//
+//   name - The name of the fidde.
+//   status - The current status of the named fiddle. An empty string means it
+//       is working. Non-empty string implies the fiddle is broken.
+func (s *Store) SetStatus(name, status string) error {
+	if !s.ValidName(name) {
+		return fmt.Errorf("Invalid character found in name.")
+	}
+	ctx := context.Background()
+	atts := storage.ObjectAttrsToUpdate{
+		Metadata: map[string]string{
+			STATUS_METADATA: status,
+		},
+	}
+	if _, err := s.bucket.Object(fmt.Sprintf("named/%s", name)).Update(ctx, atts); err != nil {
+		return fmt.Errorf("Failed to update attributes for named file %q: %s", name, err)
 	}
 	return nil
 }

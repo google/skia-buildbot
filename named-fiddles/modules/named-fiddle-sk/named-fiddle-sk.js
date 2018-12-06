@@ -17,12 +17,16 @@
 import { html, render } from 'lit-html'
 import 'elements-sk/styles/buttons'
 
-function status(ele) {
-  return ele._state.status !== 'OK'  ? ele._state.status : '';
+function statusValue(ele) {
+  return ele._state.status !== ''  ? 'Failed' : '';
+}
+
+function statusClass(ele) {
+  return ele._inflight ? 'inflight' : 'status';
 }
 
 const template = (ele) => html`<span class=name><a href='https://fiddle.skia.org/c/${ele._state.hash}'>${ele._state.name}</a></span>
-  <span class=status>${status(ele)}</span>
+  <span class=${statusClass(ele)} title=${ele._state.status}>${statusValue(ele)}</span>
   <button @click=${ele._editClick}>Edit</button>
   <button @click=${ele._deleteClick}>Delete</button>
   <span class=user>${ele._state.user}</span>
@@ -37,6 +41,7 @@ window.customElements.define('named-fiddle-sk', class extends HTMLElement {
       hash: '',
       user: '',
     };
+    this._inflight = false;
   }
 
   _editClick() {
@@ -54,6 +59,13 @@ window.customElements.define('named-fiddle-sk', class extends HTMLElement {
   get state() { return this._state }
   set state(val) {
     this._state = val;
+    this._render();
+  }
+
+  /** @prop inflight {Boolean} Is there a request inflight to determine if this fiddle is still invalid.  */
+  get inflight() { return this._inflight }
+  set inflight(val) {
+    this._inflight = val;
     this._render();
   }
 

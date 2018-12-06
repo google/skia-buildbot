@@ -21,7 +21,7 @@ func (n *namedMock) GetHashFromName(name string) (string, error) {
 	}
 }
 
-func (n *namedMock) WriteName(name, hash, user string) error {
+func (n *namedMock) WriteName(name, hash, user, status string) error {
 	if name == "bad_name_to_trigger_fail" {
 		return fmt.Errorf("Failed to write.")
 	}

@@ -28,13 +28,19 @@ named-fiddle-sk {
 
   .user,
   .name a {
-    color: $blue;
+    color: var(--blue);
     font-size: 110%;
   }
 
   .status {
     font-weight: bold;
     width: 3em;
-    color: $red;
+    color: var(--red);
+  }
+
+  .inflight {
+    font-weight: bold;
+    width: 3em;
+    color: var(--gray);
   }
 }

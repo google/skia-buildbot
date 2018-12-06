@@ -23,7 +23,7 @@ named-fiddles-sk {
     margin: 0;
     padding: 0.2em 1em;
     color: white;
-    background: $blue;
+    background: var(--blue);
     display: flex;
     flex-direction: row;
     justify-content: space-between;
