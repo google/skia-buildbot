@@ -61,8 +61,8 @@ func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
 	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
-func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, results []*buildbucket.Build) {
-	url := fmt.Sprintf("https://cr-buildbucket.appspot.com/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Fgerrit%%2Ffake-skia-review.googlesource.com%%2F%d%%2F1", ci.Issue)
+func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, patchset int, results []*buildbucket.Build) {
+	url := fmt.Sprintf("https://cr-buildbucket.appspot.com/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Fgerrit%%2Ffake-skia-review.googlesource.com%%2F%d%%2F%d", ci.Issue, patchset)
 	serialized, err := json.Marshal(struct {
 		Builds []*buildbucket.Build
 	}{
