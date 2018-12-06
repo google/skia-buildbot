@@ -3,7 +3,11 @@
   "contacts": [
     "borenet@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "lottie-ci",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
