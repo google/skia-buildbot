@@ -39,6 +39,30 @@
       "revId": "cf9a268e90ba5d88a375159dec33392bd1f6d926",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ed736b0_67465b50",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-06T20:50:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d218d7b7_125e8af4",
+      "range": {
+        "startLine": 151,
+        "startChar": 4,
+        "endLine": 151,
+        "endChar": 12
+      },
+      "revId": "cf9a268e90ba5d88a375159dec33392bd1f6d926",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
