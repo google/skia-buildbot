@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f057ab55_3f56f362",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-06T17:22:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fcbb9f73_6385271c",
+      "range": {
+        "startLine": 42,
+        "startChar": 2,
+        "endLine": 42,
+        "endChar": 75
+      },
+      "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "197b25d4_b4aae9f7",
         "filename": "autoroll/go/roller/roll.go",
         "patchSetId": 1
@@ -63,6 +87,24 @@
       "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d204054e_28a38832",
+        "filename": "autoroll/go/roller/roll.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-06T17:22:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "197b25d4_b4aae9f7",
+      "revId": "fff9a3e9101f43063cab54a651a16c2d40398352",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
