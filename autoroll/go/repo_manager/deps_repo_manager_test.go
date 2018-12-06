@@ -196,7 +196,7 @@ func testCreateNewDEPSRoll(t *testing.T, strategy string, expectIdx int) {
 	assert.Equal(t, issueNum, issue)
 	msg, err := ioutil.ReadFile(path.Join(rm.(*depsRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
 	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(strings.Split(string(msg), "\n")[0], func(h string) (string, error) {
+	from, to, err := autoroll.RollRev(ctx, strings.Split(string(msg), "\n")[0], func(ctx context.Context, h string) (string, error) {
 		return git.GitDir(child.Dir()).RevParse(ctx, h)
 	})
 	assert.NoError(t, err)

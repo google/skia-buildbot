@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
@@ -26,6 +27,14 @@ var (
 		"5678888888888888888888888888888888888888",
 		"1234444444444444444444444444444444444444"}
 )
+
+func androidGerritCfg() *codereview.GerritConfig {
+	return &codereview.GerritConfig{
+		URL:     "https://googleplex-android-review.googlesource.com",
+		Project: "platform/external/skia",
+		Config:  codereview.GERRIT_CONFIG_ANDROID,
+	}
+}
 
 func androidCfg() *AndroidRepoManagerConfig {
 	return &AndroidRepoManagerConfig{
@@ -75,7 +84,7 @@ func TestAndroidRepoManager(t *testing.T) {
 	ctx, wd, cleanup := setupAndroid(t)
 	defer cleanup()
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerritCfg(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -92,7 +101,7 @@ func TestCreateNewAndroidRoll(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerritCfg(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -160,7 +169,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	defer cleanup()
 
 	g := &gerrit.MockedGerrit{IssueID: androidIssueNum}
-	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, false)
+	rm, err := NewAndroidRepoManager(ctx, androidCfg(), wd, g, "fake.server.com", "fake-service-account", nil, androidGerritCfg(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_REMOTE_BATCH))
 	assert.NoError(t, rm.Update(ctx))

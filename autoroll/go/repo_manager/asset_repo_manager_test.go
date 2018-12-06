@@ -178,7 +178,7 @@ func TestAssetRepoManager(t *testing.T) {
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)
-	from, to, err := autoroll.RollRev(lastUpload.Subject, nil)
+	from, to, err := autoroll.RollRev(ctx, lastUpload.Subject, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, assetVersionBase, from)
 	assert.Equal(t, assetVersionNext, to)

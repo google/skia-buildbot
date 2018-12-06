@@ -78,9 +78,6 @@ type RepoManager interface {
 	// user.
 	GetFullHistoryUrl() string
 
-	// Return the base URL used for building the URLs of uploaded rolls.
-	GetIssueUrlBase() string
-
 	// Create a new NextRollRevStrategy from the given name.
 	CreateNextRollStrategy(context.Context, string) (strategy.NextRollStrategy, error)
 
@@ -252,11 +249,6 @@ func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 // See documentation for RepoManager interface.
 func (r *commonRepoManager) GetFullHistoryUrl() string {
 	return r.g.Url(0) + "/q/owner:" + r.User()
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) GetIssueUrlBase() string {
-	return r.g.Url(0) + "/c/"
 }
 
 // See documentation for RepoManager interface.

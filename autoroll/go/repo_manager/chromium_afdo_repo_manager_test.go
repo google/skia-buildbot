@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/gerrit"
@@ -40,9 +41,16 @@ func afdoCfg() *AFDORepoManagerConfig {
 				ChildPath:    "unused/by/afdo/repomanager",
 				ParentBranch: "master",
 			},
-			GerritProject: "fake-gerrit-project",
-			ParentRepo:    "", // Filled in after GitInit().
+			ParentRepo: "", // Filled in after GitInit().
 		},
+	}
+}
+
+func gerritCfg() *codereview.GerritConfig {
+	return &codereview.GerritConfig{
+		URL:     "https://skia-review.googlesource.com",
+		Project: "skia",
+		Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 	}
 }
 
@@ -87,7 +95,7 @@ func setupAfdo(t *testing.T) (context.Context, RepoManager, *mockhttpclient.URLM
 		afdoRevBase: afdoTimeBase,
 	})
 
-	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), false)
+	rm, err := NewAFDORepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCfg(), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_AFDO))
 	assert.NoError(t, rm.Update(ctx))
@@ -212,7 +220,7 @@ func TestAFDORepoManager(t *testing.T) {
 	commitMsg := fmt.Sprintf(AFDO_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*afdoRepoManager).gerritProject, subject, rm.(*afdoRepoManager).parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*afdoRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*afdoRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -257,9 +265,7 @@ func TestAFDORepoManager(t *testing.T) {
 	assert.Equal(t, ci.Issue, issue)
 
 	// Ensure that we can parse the commit message.
-	from, to, err = autoroll.RollRev(subject, func(h string) (string, error) {
-		return rm.FullChildHash(ctx, h)
-	})
+	from, to, err = autoroll.RollRev(ctx, subject, rm.FullChildHash)
 	assert.NoError(t, err)
 	assert.Equal(t, afdoRevBase, from)
 	assert.Equal(t, afdoRevNext, to)

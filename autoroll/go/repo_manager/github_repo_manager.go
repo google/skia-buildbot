@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -41,7 +42,7 @@ the roller if necessary.
 var (
 	// Use this function to instantiate a NewGithubRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, bool) (RepoManager, error) = newGithubRepoManager
+	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, *codereview.GithubConfig, bool) (RepoManager, error) = newGithubRepoManager
 
 	githubCommitMsgTmpl = template.Must(template.New("githubCommitMsg").Parse(GITHUB_COMMIT_MSG_TMPL))
 
@@ -68,6 +69,7 @@ type GithubRepoManagerConfig struct {
 type githubRepoManager struct {
 	*commonRepoManager
 	githubClient    *github.GitHub
+	githubConfig    *codereview.GithubConfig
 	parentRepo      *git.Checkout
 	parentRepoURL   string
 	childRepoURL    string
@@ -80,7 +82,7 @@ type githubRepoManager struct {
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
+func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, githubConfig *codereview.GithubConfig, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -125,6 +127,7 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 	gr := &githubRepoManager{
 		commonRepoManager: crm,
 		githubClient:      githubClient,
+		githubConfig:      githubConfig,
 		parentRepo:        parentRepo,
 		parentRepoURL:     c.ParentRepoURL,
 		childRepoURL:      c.ChildRepoURL,
@@ -371,11 +374,6 @@ func (rm *githubRepoManager) User() string {
 // See documentation for RepoManager interface.
 func (rm *githubRepoManager) GetFullHistoryUrl() string {
 	return rm.githubClient.GetFullHistoryUrl(rm.user)
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubRepoManager) GetIssueUrlBase() string {
-	return rm.githubClient.GetIssueUrlBase()
 }
 
 // See documentation for RepoManager interface.

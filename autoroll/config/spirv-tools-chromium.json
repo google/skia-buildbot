@@ -3,7 +3,18 @@
   "contacts": [
     "dsinclair@google.com"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "commitQueueLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 2
+    },
+    "commitQueueDryRunLabels": {
+      "Code-Review": 1,
+      "Commit-Queue": 1
+    }
+  },
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
@@ -16,7 +27,6 @@
     "childBranch": "master",
     "childPath": "src/third_party/SPIRV-Tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
-    "gerritProject": "chromium/src",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",
