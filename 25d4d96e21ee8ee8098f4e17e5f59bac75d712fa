@@ -16,6 +16,41 @@
       "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2250c466_b7cecf30",
+        "filename": "infra/config/tricium-prod.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 8980
+      },
+      "writtenOn": "2018-12-06T19:18:42Z",
+      "side": 1,
+      "message": "This only determines who can directly make Analyze requests to the service for this project, but usually this doesn\u0027t matters, since most Analyze requests are started by the service after polling. In short, this is optional and most of the time doesn\u0027t make a difference, whereas the whitelisted_group one determines who\u0027s CLs get analyzed.",
+      "parentUuid": "647b3ee9_cb5f6a09",
+      "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3107a8d_5401b6c3",
+        "filename": "infra/config/tricium-prod.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 8980
+      },
+      "writtenOn": "2018-12-06T19:18:42Z",
+      "side": 1,
+      "message": "Note, this will use a default set of warnings which should be mostly reasonable, but if the style or desired warnings for skia is different, then we could specify specific warnings to enable here.",
+      "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
