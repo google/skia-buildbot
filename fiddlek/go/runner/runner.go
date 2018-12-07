@@ -250,10 +250,12 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 			shuffle(r.rand, len(pods), func(i, j int) {
 				pods[i], pods[j] = pods[j], pods[i]
 			})
+			sklog.Infof("PodsList: %d", len(pods))
 			// Loop over all the pods looking for an open one.
 			for i, p := range pods {
 				sklog.Infof("Found pod %d: %s", i, p.Name)
 				rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
+				sklog.Infof("Trying: %q", rootURL)
 				resp, err := r.fastClient.Get(rootURL)
 				if err != nil {
 					sklog.Infof("Failed to request fiddler status: %s", err)
