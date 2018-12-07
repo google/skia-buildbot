@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "31e48abf_0f0f08d9",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-07T13:17:39Z",
+      "side": 1,
+      "message": "The config gets validated in NewAutoRoller, so that\u0027s not necessary.",
+      "parentUuid": "e4fc570e_e1220664",
+      "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a58d224c_a1b78d50",
         "filename": "autoroll/go/codereview/config.go",
         "patchSetId": 5
@@ -33,6 +51,24 @@
       "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "641c85a6_95096ba5",
+        "filename": "autoroll/go/codereview/config.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-07T13:17:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a58d224c_a1b78d50",
+      "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "e7f1ae25_b24d5fd5",
+        "filename": "autoroll/go/codereview/config.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-07T13:17:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bcb0986b_bc07b398",
+      "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a689ba53_94723413",
         "filename": "autoroll/go/repo_manager/github_repo_manager.go",
         "patchSetId": 5
@@ -64,6 +118,30 @@
       "writtenOn": "2018-12-06T21:35:29Z",
       "side": 1,
       "message": "This might not work because it was *user.Email before and now it will be *user.Login.\nBut it uses *user.Login for user.email in github_deps_repo_manager. So I\u0027m not sure.",
+      "range": {
+        "startLine": 242,
+        "startChar": 62,
+        "endLine": 242,
+        "endChar": 82
+      },
+      "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dbb1f35_154e5744",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-07T13:17:39Z",
+      "side": 1,
+      "message": "I didn\u0027t give this much thought. In git itself, this doesn\u0027t matter much; it\u0027s only used for display.  I have no idea what the implications are with GitHub (or Gerrit, for that matter).  Added CodeReview.UserName() and CodeReview.UserEmail() to be clear about which one is which, and so that we can support both.  I notice that github.User also has a Name field; I\u0027m not sure which one we need to be using, but I\u0027m assuming that User.Login is the Github user name (ie. probably safe for things like repo and branch names) and User.Name is more of a display name (ie. could contain spaces and other characters).  I guess we could have UserEmail(), UserDisplayName(), and maybe UserNameShort() which is either the part of the email address before \u0027@\u0027 or the login name.",
+      "parentUuid": "a689ba53_94723413",
       "range": {
         "startLine": 242,
         "startChar": 62,
