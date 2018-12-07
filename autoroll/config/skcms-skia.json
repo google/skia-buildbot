@@ -4,7 +4,11 @@
     "brianosman@google.com",
     "mtklein@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skcms",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",

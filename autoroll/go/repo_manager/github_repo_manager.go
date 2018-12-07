@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -41,7 +42,7 @@ the roller if necessary.
 var (
 	// Use this function to instantiate a NewGithubRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, bool) (RepoManager, error) = newGithubRepoManager
+	NewGithubRepoManager func(context.Context, *GithubRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newGithubRepoManager
 
 	githubCommitMsgTmpl = template.Must(template.New("githubCommitMsg").Parse(GITHUB_COMMIT_MSG_TMPL))
 
@@ -75,12 +76,11 @@ type githubRepoManager struct {
 	defaultStrategy string
 	gsBucket        string
 	gsPathTemplates []string
-	userEmail       string
 }
 
 // newGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
+func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -91,26 +91,18 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		}
 	}
 
-	// Find the user.
-	user, err := githubClient.GetAuthenticatedUser()
-	if err != nil {
-		return nil, err
-	}
-	userLogin := *user.Login
-
 	// Create and populate the parent directory if needed.
 	_, repo := GetUserAndRepo(c.ParentRepoURL)
-	userFork := fmt.Sprintf("git@github.com:%s/%s.git", userLogin, repo)
+	userFork := fmt.Sprintf("git@github.com:%s/%s.git", cr.UserName(), repo)
 	parentRepo, err := git.NewCheckout(ctx, userFork, wd)
 	if err != nil {
 		return nil, err
 	}
 
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil, client, local)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, wd, serverURL, nil, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
-	crm.user = userLogin
 
 	// Create and populate the child directory if needed.
 	if _, err := os.Stat(crm.childDir); err != nil {
@@ -132,7 +124,6 @@ func newGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, workd
 		defaultStrategy:   c.DefaultStrategy,
 		gsBucket:          c.StorageBucket,
 		gsPathTemplates:   c.StoragePathTemplates,
-		userEmail:         *user.Email,
 	}
 
 	return gr, nil
@@ -245,10 +236,10 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Make sure the right name and email are set.
 	if !rm.local {
-		if _, err := rm.parentRepo.Git(ctx, "config", "user.name", rm.user); err != nil {
+		if _, err := rm.parentRepo.Git(ctx, "config", "user.name", rm.codereview.UserName()); err != nil {
 			return 0, err
 		}
-		if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.userEmail); err != nil {
+		if _, err := rm.parentRepo.Git(ctx, "config", "user.email", rm.codereview.UserEmail()); err != nil {
 			return 0, err
 		}
 	}
@@ -327,7 +318,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Use the remaining part of the commit message as the pull request description.
 	descComment := strings.Split(commitMsg, "\n")[1:]
 	// Create a pull request.
-	headBranch := fmt.Sprintf("%s:%s", strings.Split(rm.user, "@")[0], ROLL_BRANCH)
+	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), ROLL_BRANCH)
 	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
@@ -361,21 +352,6 @@ func GetUserAndRepo(githubRepo string) (string, string) {
 	user := strings.Split(repoTokens[1], "/")[0]
 	repo := strings.TrimRight(strings.Split(repoTokens[1], "/")[1], ".git")
 	return user, repo
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubRepoManager) User() string {
-	return rm.user
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubRepoManager) GetFullHistoryUrl() string {
-	return rm.githubClient.GetFullHistoryUrl(rm.user)
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubRepoManager) GetIssueUrlBase() string {
-	return rm.githubClient.GetIssueUrlBase()
 }
 
 // See documentation for RepoManager interface.

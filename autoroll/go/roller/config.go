@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/autoroll/go/codereview"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/human"
@@ -135,8 +136,6 @@ type AutoRollerConfig struct {
 	// List of email addresses of contacts for this roller, used for sending
 	// PSAs, asking questions, etc.
 	Contacts []string `json:"contacts"`
-	// Gerrit URL the roller will be uploading issues to.
-	GerritURL string `json:"gerritURL,omitempty"`
 	// If true, the roller is only visible to Googlers.
 	IsInternal bool `json:"isInternal"`
 	// User friendly name of the parent repo.
@@ -155,12 +154,10 @@ type AutoRollerConfig struct {
 	// for Sheriff.
 	SheriffBackup []string `json:"sheriffBackup,omitempty"`
 
-	// Github code review flags.
-	GithubRepoOwner      string   `json:"githubRepoOwner,omitempty"`
-	GithubRepoName       string   `json:"githubRepoName,omitempty"`
-	GithubChecksNum      int      `json:"githubChecksNum,omitempty"`
-	GithubChecksWaitFor  []string `json:"githubChecksWaitFor,omitempty"`
-	GithubMergeMethodURL string   `json:"githubMergeMethodURL,omitempty"`
+	// Code review settings.
+	Gerrit        *codereview.GerritConfig  `json:"gerrit,omitempty"`
+	Github        *codereview.GithubConfig  `json:"github,omitempty"`
+	Google3Review *codereview.Google3Config `json:"google3Review,omitempty"`
 
 	// RepoManager configs. Exactly one must be provided.
 	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager,omitempty"`
@@ -204,9 +201,6 @@ func (c *AutoRollerConfig) Validate() error {
 	if len(c.Contacts) < 1 {
 		return errors.New("At least one contact is required.")
 	}
-	if c.GerritURL == "" && (c.GithubRepoOwner == "" || c.GithubRepoName == "") {
-		return errors.New("Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")
-	}
 	if c.ParentName == "" {
 		return errors.New("ParentName is required.")
 	}
@@ -223,6 +217,23 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
+	}
+
+	cr := []util.Validator{}
+	if c.Gerrit != nil {
+		cr = append(cr, c.Gerrit)
+	}
+	if c.Github != nil {
+		cr = append(cr, c.Github)
+	}
+	if c.Google3Review != nil {
+		cr = append(cr, c.Google3Review)
+	}
+	if len(cr) != 1 {
+		return errors.New("Exactly one of Gerrit, Github, or Google3Review is required.")
+	}
+	if err := cr[0].Validate(); err != nil {
+		return err
 	}
 
 	rm := []util.Validator{}
@@ -305,4 +316,15 @@ func (c *AutoRollerConfig) RollerType() string {
 		}
 	}
 	return c.rollerType
+}
+
+// Return the code review config for the roller.
+func (c *AutoRollerConfig) CodeReview() codereview.CodeReviewConfig {
+	if c.Github != nil {
+		return c.Github
+	}
+	if c.Google3Review != nil {
+		return c.Google3Review
+	}
+	return c.Gerrit
 }

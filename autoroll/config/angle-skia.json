@@ -3,7 +3,11 @@
   "contacts": [
     "jmadill@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skia",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
@@ -16,7 +20,6 @@
     "childBranch": "master",
     "childPath": "third_party/externals/angle2",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "gerritProject": "skia",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

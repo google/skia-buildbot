@@ -3,7 +3,11 @@
   "contacts": [
     "dsinclair@google.com"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
@@ -16,7 +20,6 @@
     "childBranch": "master",
     "childPath": "src/third_party/SPIRV-Tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
-    "gerritProject": "chromium/src",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

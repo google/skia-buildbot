@@ -13,6 +13,7 @@ import (
 
 	github_api "github.com/google/go-github/github"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -22,7 +23,18 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func githubCfg() *GithubRepoManagerConfig {
+func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
+	rv, err := (&codereview.GithubConfig{
+		RepoOwner:     "me",
+		RepoName:      "my-repo",
+		ChecksNum:     3,
+		ChecksWaitFor: []string{"a", "b", "c"},
+	}).Init(nil, g)
+	assert.NoError(t, err)
+	return rv
+}
+
+func githubRmCfg() *GithubRepoManagerConfig {
 	return &GithubRepoManagerConfig{
 		CommonRepoManagerConfig: CommonRepoManagerConfig{
 			ChildBranch:  "master",
@@ -38,7 +50,7 @@ func githubCfg() *GithubRepoManagerConfig {
 func TestGithubConfigValidation(t *testing.T) {
 	testutils.SmallTest(t)
 
-	cfg := githubCfg()
+	cfg := githubRmCfg()
 	assert.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
@@ -150,8 +162,8 @@ func TestGithubRepoManager(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, _ := setupFakeGithub(t, childCommits)
-	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	cfg := githubRmCfg()
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -174,7 +186,6 @@ func TestGithubRepoManager(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, rp)
 	}
-	assert.Equal(t, mockGithubUser, rm.User())
 }
 
 func TestCreateNewGithubRoll(t *testing.T) {
@@ -185,8 +196,8 @@ func TestCreateNewGithubRoll(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, childCommits)
-	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	cfg := githubRmCfg()
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -207,8 +218,8 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, childCommits)
-	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	cfg := githubRmCfg()
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -236,8 +247,8 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, childCommits)
-	cfg := githubCfg()
-	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	cfg := githubRmCfg()
+	rm, err := NewGithubRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))

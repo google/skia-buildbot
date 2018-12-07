@@ -43,7 +43,6 @@ func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
 				ChildPath:    "unused/by/fuchsiaSDK/repomanager",
 				ParentBranch: "master",
 			},
-			GerritProject: "fake-gerrit-project",
 		},
 	}
 }
@@ -92,7 +91,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 	})
 	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
 
-	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), false)
+	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_FUCHSIA_SDK))
 	assert.NoError(t, rm.Update(ctx))
@@ -116,7 +115,6 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDK(t)
 	defer cleanup()
 
-	assert.Equal(t, mockUser, rm.User())
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
 	assert.Equal(t, fuchsiaSDKRevBase, rm.NextRollRev())
 	fch, err := rm.FullChildHash(ctx, rm.LastRollRev())
@@ -164,7 +162,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKRepoManager).gerritProject, subject, rm.(*fuchsiaSDKRepoManager).parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*fuchsiaSDKRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -212,9 +210,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	assert.Equal(t, ci.Issue, issue)
 
 	// Ensure that we can parse the commit message.
-	from, to, err = autoroll.RollRev(subject, func(h string) (string, error) {
-		return rm.FullChildHash(ctx, h)
-	})
+	from, to, err = autoroll.RollRev(ctx, subject, rm.FullChildHash)
 	assert.NoError(t, err)
 	assert.Equal(t, fuchsiaSDKRevBase, from)
 	assert.Equal(t, fuchsiaSDKRevNext, to)

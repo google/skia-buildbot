@@ -3,7 +3,11 @@
   "contacts": [
     "gbiv@chromium.org"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
@@ -15,7 +19,6 @@
   "afdoRepoManager": {
     "childBranch": "master",
     "childPath": "chrome/android/profiles/newest.txt",
-    "gerritProject": "chromium/src",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

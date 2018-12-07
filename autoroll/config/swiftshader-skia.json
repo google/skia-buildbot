@@ -4,7 +4,11 @@
     "benjaminwagner@google.com",
     "halcanary@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skia",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
@@ -17,7 +21,6 @@
     "childBranch": "master",
     "childPath": "third_party/externals/swiftshader",
     "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
-    "gerritProject": "skia",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

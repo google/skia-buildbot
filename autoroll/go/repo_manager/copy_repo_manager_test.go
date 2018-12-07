@@ -90,7 +90,7 @@ func TestCopyRepoManager(t *testing.T) {
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -118,9 +118,6 @@ func TestCopyRepoManager(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, rp)
 	}
-
-	// User, name only.
-	assert.Equal(t, mockUser, rm.User())
 }
 
 func TestCopyCreateNewDEPSRoll(t *testing.T) {
@@ -135,7 +132,7 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewCopyRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -146,7 +143,7 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	assert.Equal(t, issueNum, issue)
 	msg, err := ioutil.ReadFile(path.Join(rm.(*copyRepoManager).parentDir, ".git", "COMMIT_EDITMSG"))
 	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(strings.Split(string(msg), "\n")[0], func(h string) (string, error) {
+	from, to, err := autoroll.RollRev(ctx, strings.Split(string(msg), "\n")[0], func(ctx context.Context, h string) (string, error) {
 		return git.GitDir(child.Dir()).RevParse(ctx, h)
 	})
 	assert.NoError(t, err)

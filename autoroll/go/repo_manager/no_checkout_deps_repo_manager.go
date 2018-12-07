@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -25,7 +26,7 @@ import (
 var (
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewNoCheckoutDEPSRepoManager func(context.Context, *NoCheckoutDEPSRepoManagerConfig, string, gerrit.GerritInterface, string, string, string, *http.Client, bool) (RepoManager, error) = newNoCheckoutDEPSRepoManager
+	NewNoCheckoutDEPSRepoManager func(context.Context, *NoCheckoutDEPSRepoManagerConfig, string, gerrit.GerritInterface, string, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newNoCheckoutDEPSRepoManager
 )
 
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
@@ -48,9 +49,6 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	}
 	if c.ChildRepo == "" {
 		return errors.New("ChildRepo is required.")
-	}
-	if c.GerritProject == "" {
-		return errors.New("GerritProject is required.")
 	}
 	if c.ParentBranch == "" {
 		return errors.New("ParentBranch is required.")
@@ -80,7 +78,7 @@ type noCheckoutDEPSRepoManager struct {
 
 // newNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
 // a local checkout.
-func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL, gitcookiesPath string, client *http.Client, local bool) (RepoManager, error) {
+func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL, gitcookiesPath string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -103,7 +101,7 @@ func newNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 		includeLog:    c.IncludeLog,
 		parentRepoUrl: c.ParentRepo,
 	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, rv.buildCommitMessage, rv.updateHelper, local)
+	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, client, cr, rv.buildCommitMessage, rv.updateHelper, local)
 	if err != nil {
 		return nil, err
 	}

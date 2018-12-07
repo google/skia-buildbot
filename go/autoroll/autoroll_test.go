@@ -1,6 +1,7 @@
 package autoroll
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -25,7 +26,7 @@ func TestTrybotResults(t *testing.T) {
 		Subject:           "Roll src/third_party/skia abc123..def456 (3 commits).",
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := RollRev(roll.Subject, func(h string) (string, error) {
+	from, to, err := RollRev(context.Background(), roll.Subject, func(ctx context.Context, h string) (string, error) {
 		return h, nil
 	})
 	assert.NoError(t, err)
@@ -90,7 +91,7 @@ func TestRollRev(t *testing.T) {
 
 	test := func(msg, from, to string) {
 		assert.True(t, ROLL_REV_REGEX.MatchString(msg))
-		a, b, err := RollRev(msg, nil)
+		a, b, err := RollRev(context.Background(), msg, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, from, a)
 		assert.Equal(t, to, b)

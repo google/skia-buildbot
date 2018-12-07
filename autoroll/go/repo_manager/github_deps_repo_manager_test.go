@@ -105,6 +105,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	// Mock /user endpoint.
 	serializedUser, err := json.Marshal(&github_api.User{
 		Login: &mockGithubUser,
+		Email: &mockGithubUserEmail,
 	})
 	assert.NoError(t, err)
 	urlMock.MockOnce(githubApiUrl+"/user", mockhttpclient.MockGetDialogue(serializedUser))
@@ -156,7 +157,7 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	g, _ := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -184,7 +185,6 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, rp)
 	}
-	assert.Equal(t, mockGithubUser, rm.User())
 }
 
 func TestCreateNewGithubDEPSRoll(t *testing.T) {
@@ -197,7 +197,7 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -213,7 +213,7 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	assert.NoError(t, err)
 	lastUpload, err := p.Details(ctx, head)
 	assert.NoError(t, err)
-	from, to, err := autoroll.RollRev(lastUpload.Subject, func(h string) (string, error) {
+	from, to, err := autoroll.RollRev(ctx, lastUpload.Subject, func(ctx context.Context, h string) (string, error) {
 		return git.GitDir(child.Dir()).RevParse(ctx, h)
 	})
 	assert.NoError(t, err)
@@ -232,7 +232,7 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -262,7 +262,7 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewGithubDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))

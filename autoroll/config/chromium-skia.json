@@ -3,7 +3,11 @@
   "contacts": [
     "borenet@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "skia",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Skia",
   "parentWaterfall": "https://status.skia.org",
@@ -16,7 +20,6 @@
     "childBranch": "master",
     "childPath": "../src",
     "childRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "gerritProject": "skia",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

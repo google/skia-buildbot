@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/modes"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -45,17 +46,18 @@ const (
 type AutoRoller struct {
 	cfg             AutoRollerConfig
 	childName       string
-	currentRoll     RollImpl
+	codereview      codereview.CodeReview
+	currentRoll     codereview.RollImpl
 	emails          []string
 	emailsMtx       sync.RWMutex
 	failureThrottle *state_machine.Throttler
 	gerrit          *gerrit.Gerrit
+	github          *github.GitHub
 	liveness        metrics2.Liveness
 	modeHistory     *modes.ModeHistory
 	notifier        *arb_notifier.AutoRollNotifier
 	parentName      string
 	recent          *recent_rolls.RecentRolls
-	retrieveRoll    func(context.Context, *AutoRoller, int64) (RollImpl, error)
 	rm              repo_manager.RepoManager
 	roller          string
 	runningMtx      sync.Mutex
@@ -79,42 +81,33 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, err
 	}
 
-	retrieveRoll := func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
-		return newGerritRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue, arb.rollFinished)
+	cr, err := c.CodeReview().Init(g, githubClient)
+	if err != nil {
+		return nil, err
 	}
 
 	// Create the RepoManager.
 	var rm repo_manager.RepoManager
-	var err error
 	if c.AFDORepoManager != nil {
-		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, serverURL, gitcookiesPath, nil, local)
+		rm, err = repo_manager.NewAFDORepoManager(ctx, c.AFDORepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
 	} else if c.AndroidRepoManager != nil {
-		retrieveRoll = func(ctx context.Context, arb *AutoRoller, issue int64) (RollImpl, error) {
-			return newGerritAndroidRoll(ctx, arb.gerrit, arb.rm, arb.recent, issue, arb.rollFinished)
-		}
-		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL, c.ServiceAccount, client, local)
+		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
 	} else if c.AssetRepoManager != nil {
-		rm, err = repo_manager.NewAssetRepoManager(ctx, c.AssetRepoManager, workdir, g, recipesCfgFile, serverURL, client, local)
+		rm, err = repo_manager.NewAssetRepoManager(ctx, c.AssetRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.CopyRepoManager != nil {
-		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, workdir, g, recipesCfgFile, serverURL, client, local)
+		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.DEPSRepoManager != nil {
-		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, local)
+		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, gitcookiesPath, nil, local)
+		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, workdir, g, serverURL, gitcookiesPath, nil, cr, local)
 	} else if c.GithubRepoManager != nil {
-		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, local)
-		retrieveRoll = func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
-			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, c.GithubChecksNum, c.GithubChecksWaitFor, c.GithubMergeMethodURL, arb.rollFinished)
-		}
+		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, local)
-		retrieveRoll = func(ctx context.Context, arb *AutoRoller, pullRequestNum int64) (RollImpl, error) {
-			return newGithubRoll(ctx, githubClient, arb.rm, arb.recent, pullRequestNum, c.GithubChecksNum, c.GithubChecksWaitFor, c.GithubMergeMethodURL, arb.rollFinished)
-		}
+		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, workdir, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.ManifestRepoManager != nil {
-		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL, client, local)
+		rm, err = repo_manager.NewManifestRepoManager(ctx, c.ManifestRepoManager, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
-		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, local)
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, workdir, g, recipesCfgFile, serverURL, gitcookiesPath, client, cr, local)
 	} else {
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}
@@ -188,14 +181,15 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 	arb := &AutoRoller{
 		cfg:             c,
+		codereview:      cr,
 		emails:          emails,
 		failureThrottle: failureThrottle,
 		gerrit:          g,
+		github:          githubClient,
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		modeHistory:     mh,
 		notifier:        n,
 		recent:          recent,
-		retrieveRoll:    retrieveRoll,
 		rm:              rm,
 		roller:          rollerName,
 		safetyThrottle:  safetyThrottle,
@@ -215,7 +209,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
-		roll, err := arb.retrieveRoll(ctx, arb, current.Issue)
+		roll, err := arb.retrieveRoll(ctx, current.Issue)
 		if err != nil {
 			return nil, err
 		}
@@ -223,6 +217,11 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 	sklog.Info("Done creating autoroller")
 	return arb, nil
+}
+
+// Retrieve the roll with the given issue ID.
+func (r *AutoRoller) retrieveRoll(ctx context.Context, issue int64) (codereview.RollImpl, error) {
+	return r.codereview.RetrieveRoll(ctx, r.rm.FullChildHash, r.recent, issue, r.rollFinished)
 }
 
 // isSyncError returns true iff the error looks like a sync error.
@@ -336,11 +335,6 @@ func (r *AutoRoller) GetMode() string {
 	return r.modeHistory.CurrentMode().Mode
 }
 
-// Return the AutoRoll user.
-func (r *AutoRoller) GetUser() string {
-	return r.rm.User()
-}
-
 // Reset all of the roller's throttle timers.
 func (r *AutoRoller) unthrottle(ctx context.Context) error {
 	if err := r.failureThrottle.Reset(ctx); err != nil {
@@ -361,7 +355,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to string, dryRun 
 	if err != nil {
 		return err
 	}
-	roll, err := r.retrieveRoll(ctx, r, issueNum)
+	roll, err := r.retrieveRoll(ctx, issueNum)
 	if err != nil {
 		return err
 	}
@@ -448,8 +442,8 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		ChildName:       r.childName,
 		CurrentRoll:     r.recent.CurrentRoll(),
 		Error:           lastError,
-		FullHistoryUrl:  r.rm.GetFullHistoryUrl(),
-		IssueUrlBase:    r.rm.GetIssueUrlBase(),
+		FullHistoryUrl:  r.codereview.GetFullHistoryUrl(),
+		IssueUrlBase:    r.codereview.GetIssueUrlBase(),
 		LastRoll:        r.recent.LastRoll(),
 		LastRollRev:     r.rm.LastRollRev(),
 		Recent:          recent,
@@ -532,7 +526,7 @@ func (r *AutoRoller) AddComment(ctx context.Context, issueNum int64, message, us
 func (r *AutoRoller) AddHandlers(*mux.Router) {}
 
 // Callback function which runs when roll CLs are closed.
-func (r *AutoRoller) rollFinished(ctx context.Context, justFinished RollImpl) error {
+func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.RollImpl) error {
 	recent := r.recent.GetRecentRolls()
 	// Sanity check: pop any rolls which occurred after the one which just
 	// finished.
@@ -566,7 +560,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished RollImpl) er
 		return nil
 	}
 
-	issueURL := fmt.Sprintf("%s%d", r.rm.GetIssueUrlBase(), currentRoll.Issue)
+	issueURL := fmt.Sprintf("%s%d", r.codereview.GetIssueUrlBase(), currentRoll.Issue)
 
 	// Send notifications if this roll had a different result from the last
 	// roll, ie. success -> failure or failure -> success.

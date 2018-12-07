@@ -3,7 +3,11 @@
   "contacts": [
     "jmadill@google.com"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
@@ -19,7 +23,6 @@
     "childBranch": "master",
     "childPath": "src/third_party/angle",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "gerritProject": "chromium/src",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",

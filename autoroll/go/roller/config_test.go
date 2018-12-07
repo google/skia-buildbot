@@ -7,6 +7,7 @@ import (
 
 	"github.com/flynn/json5"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/notifier"
@@ -18,11 +19,15 @@ func validBaseConfig() *AutoRollerConfig {
 	return &AutoRollerConfig{
 		ChildName:       "childName",
 		Contacts:        []string{"me@gmail.com"},
-		GerritURL:       "https://gerrit",
 		ParentName:      "parentName",
 		ParentWaterfall: "parentWaterfall",
 		RollerName:      "test-roller",
 		Sheriff:         []string{"sheriff@gmail.com"},
+		Gerrit: &codereview.GerritConfig{
+			URL:     "https://gerrit",
+			Project: "my/project",
+			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		},
 
 		// Use the fake Google3 repo manager config, so that we don't
 		// have to bother with correctly filling in real configs.
@@ -58,13 +63,8 @@ func TestConfigs(t *testing.T) {
 	}, "At least one contact is required.")
 
 	testErr(func(c *AutoRollerConfig) {
-		c.GerritURL = ""
-	}, "Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")
-
-	testErr(func(c *AutoRollerConfig) {
-		c.GerritURL = ""
-		c.GithubRepoOwner = "superman"
-	}, "Either GerritURL OR both GithubRepoOwner/GithubRepoName is required.")
+		c.Gerrit = nil
+	}, "Exactly one of Gerrit, Github, or Google3Review is required.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.ParentName = ""
@@ -134,6 +134,17 @@ func TestConfigs(t *testing.T) {
 		c.SafetyThrottle = &ThrottleConfig{
 			AttemptCount: 5,
 			TimeWindow:   time.Hour,
+		}
+	})
+
+	testNoErr(func(c *AutoRollerConfig) {
+		c.Gerrit = nil
+		c.Github = &codereview.GithubConfig{
+			RepoOwner:      "me",
+			RepoName:       "my-repo",
+			ChecksNum:      3,
+			ChecksWaitFor:  []string{"a", "b", "c"},
+			MergeMethodURL: "???",
 		}
 	})
 }

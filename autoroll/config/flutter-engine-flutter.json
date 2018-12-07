@@ -12,12 +12,15 @@
   "sheriff": [
     "liyuqian@google.com"
   ],
-  "githubRepoOwner": "flutter",
-  "githubRepoName": "flutter",
-  "githubChecksNum": 12,
-  "githubChecksWaitFor": [
-    "flutter-build"
-  ],
+  "github": {
+    "repoOwner": "flutter",
+    "repoName": "flutter",
+    "checksNum": 12,
+    "checksWaitFor": [
+      "flutter-build"
+    ],
+    "mergeMethodURL": "https://raw.githubusercontent.com/flutter/flutter/master/bin/internal/engine.merge_method"
+  },
   "githubRepoManager": {
     "childBranch": "master",
     "childPath": "engine",
@@ -34,7 +37,6 @@
       "flutter/%s/dart-sdk-windows-x64.zip"
     ]
   },
-  "githubMergeMethodURL":  "https://raw.githubusercontent.com/flutter/flutter/master/bin/internal/engine.merge_method",
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
