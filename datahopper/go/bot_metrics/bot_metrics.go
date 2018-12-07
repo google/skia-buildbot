@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
@@ -31,6 +30,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -401,13 +401,13 @@ func writeTs(workdir string, ts time.Time) error {
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
-func Start(ctx context.Context, dbUrl, workdir, recipesCfgFile string) error {
+func Start(ctx context.Context, dbUrl, tasksTopic, jobsTopic, workdir, recipesCfgFile string, ts oauth2.TokenSource) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
 	}
 
-	taskDb, err := remote_db.NewClient(dbUrl, httputils.NewTimeoutClient())
+	taskDb, err := remote_db.NewClient(dbUrl, tasksTopic, jobsTopic, "datahopper-bot-metrics", ts)
 	if err != nil {
 		return fmt.Errorf("Failed to create new DB client: %s", err)
 	}

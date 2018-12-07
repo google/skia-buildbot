@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 )
 
 const (
@@ -121,7 +122,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	oldDB, err := local_db.NewDB(local_db.DB_NAME, *boltDB)
+	oldDB, err := local_db.NewDB(local_db.DB_NAME, *boltDB, pubsub.TOPIC_TASKS, pubsub.TOPIC_JOBS, "db_migration_src", nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -131,7 +132,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	newDB, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts)
+	newDB, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, pubsub.TOPIC_TASKS, pubsub.TOPIC_JOBS, "db_migration_dst", false, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

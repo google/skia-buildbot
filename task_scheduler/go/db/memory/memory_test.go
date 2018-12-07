@@ -19,11 +19,6 @@ func TestInMemoryTaskDB(t *testing.T) {
 	db.TestTaskDB(t, NewInMemoryTaskDB())
 }
 
-func TestInMemoryTaskDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	db.TestTaskDBTooManyUsers(t, NewInMemoryTaskDB())
-}
-
 func TestInMemoryTaskDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
 	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
@@ -57,11 +52,6 @@ func TestInMemoryUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
 func TestInMemoryJobDB(t *testing.T) {
 	testutils.SmallTest(t)
 	db.TestJobDB(t, NewInMemoryJobDB())
-}
-
-func TestInMemoryJobDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	db.TestJobDBTooManyUsers(t, NewInMemoryJobDB())
 }
 
 func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {

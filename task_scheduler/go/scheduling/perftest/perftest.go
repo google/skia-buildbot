@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/testutils"
@@ -265,7 +266,7 @@ func main() {
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
-	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
+	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"), pubsub.TOPIC_TASKS+"_perftest", pubsub.TOPIC_JOBS+"_perftest", "ts_perftest", nil)
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)
