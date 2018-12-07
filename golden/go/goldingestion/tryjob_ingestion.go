@@ -10,11 +10,9 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/paramtools"
@@ -26,7 +24,6 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
-	gstorage "google.golang.org/api/storage/v1"
 )
 
 // Define configuration options to be used in the config file under
@@ -57,7 +54,7 @@ type goldTryjobProcessor struct {
 }
 
 // newGoldTryjobProcessor implements the ingestion.Constructor function.
-func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, ignoreClient *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
+func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, httpClient *http.Client, eventBus eventbus.EventBus) (ingestion.Processor, error) {
 	gerritURL := config.ExtraParams[CONFIG_GERRIT_CODE_REVIEW_URL]
 	if strings.TrimSpace(gerritURL) == "" {
 		return nil, fmt.Errorf("Missing URL for the Gerrit code review systems. Got value: '%s'", gerritURL)
@@ -103,14 +100,14 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
 
-	// Instantiate the Gerrit API client.
-	ts, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
-	if err != nil {
-		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	// // Instantiate the Gerrit API client.
+	// ts, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
+	// }
+	// client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
-	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
+	gerritReview, err := gerrit.NewGerrit(gerritURL, "", httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +115,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	bbConf := &bbstate.Config{
 		BuildBucketURL:  buildBucketURL,
 		BuildBucketName: buildBucketName,
-		Client:          client,
+		Client:          httpClient,
 		TryjobStore:     tryjobStore,
 		GerritClient:    gerritReview,
 		PollInterval:    pollInterval,
