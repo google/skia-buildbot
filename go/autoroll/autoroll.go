@@ -5,6 +5,7 @@ package autoroll
 */
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -161,9 +162,11 @@ func (a *AutoRollIssue) ToGerritChangeInfo() (*gerrit.ChangeInfo, error) {
 	}, nil
 }
 
+type FullHashFn func(context.Context, string) (string, error)
+
 // FromGitHubPullRequest returns an AutoRollIssue instance based on the given
 // PullRequest.
-func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
+func FromGitHubPullRequest(ctx context.Context, pullRequest *github_api.PullRequest, g *github.GitHub, fullHashFn FullHashFn) (*AutoRollIssue, error) {
 	labels, err := g.GetLabels(pullRequest.GetNumber())
 	if err != nil {
 		return nil, err
@@ -194,7 +197,7 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 		Subject:           pullRequest.GetTitle(),
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := RollRev(roll.Subject, fullHashFn)
+	from, to, err := RollRev(ctx, roll.Subject, fullHashFn)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +208,7 @@ func FromGitHubPullRequest(pullRequest *github_api.PullRequest, g *github.GitHub
 
 // FromGerritChangeInfo returns an AutoRollIssue instance based on the given
 // gerrit.ChangeInfo.
-func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string, error), rollIntoAndroid bool) (*AutoRollIssue, error) {
+func FromGerritChangeInfo(ctx context.Context, i *gerrit.ChangeInfo, fullHashFn FullHashFn, rollIntoAndroid bool) (*AutoRollIssue, error) {
 	cq := false
 	dryRun := false
 	if rollIntoAndroid {
@@ -261,7 +264,7 @@ func FromGerritChangeInfo(i *gerrit.ChangeInfo, fullHashFn func(string) (string,
 		Subject:           i.Subject,
 	}
 	roll.Result = rollResult(roll)
-	from, to, err := RollRev(roll.Subject, fullHashFn)
+	from, to, err := RollRev(ctx, roll.Subject, fullHashFn)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +286,7 @@ func rollResult(roll *AutoRollIssue) string {
 }
 
 // RollRev returns the commit the given roll is rolling from and to.
-func RollRev(subject string, fullHashFn func(string) (string, error)) (string, string, error) {
+func RollRev(ctx context.Context, subject string, fullHashFn FullHashFn) (string, string, error) {
 	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
 	if matches == nil {
 		return "", "", fmt.Errorf("No roll revision found in %q", subject)
@@ -294,11 +297,11 @@ func RollRev(subject string, fullHashFn func(string) (string, error)) (string, s
 	if fullHashFn == nil {
 		return matches[1], matches[2], nil
 	}
-	from, err := fullHashFn(matches[1])
+	from, err := fullHashFn(ctx, matches[1])
 	if err != nil {
 		return "", "", err
 	}
-	to, err := fullHashFn(matches[2])
+	to, err := fullHashFn(ctx, matches[2])
 	if err != nil {
 		return "", "", err
 	}

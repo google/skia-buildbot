@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -23,7 +24,7 @@ const (
 var (
 	// Use this function to instantiate a NewGithubDEPSRepoManager. This is able to be
 	// overridden for testing.
-	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, bool) (RepoManager, error) = newGithubDEPSRepoManager
+	NewGithubDEPSRepoManager func(context.Context, *GithubDEPSRepoManagerConfig, string, *github.GitHub, string, string, *http.Client, codereview.CodeReview, bool) (RepoManager, error) = newGithubDEPSRepoManager
 )
 
 // GithubDEPSRepoManagerConfig provides configuration for the Github RepoManager.
@@ -43,16 +44,17 @@ func (c *GithubDEPSRepoManagerConfig) Validate() error {
 type githubDEPSRepoManager struct {
 	*depsRepoManager
 	githubClient *github.GitHub
+	githubConfig *codereview.GithubConfig
 }
 
 // newGithubDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
+func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfig, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
 	wd := path.Join(workdir, strings.TrimSuffix(path.Base(c.DepotToolsRepoManagerConfig.ParentRepo), ".git"))
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil, client, local)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, wd, recipeCfgFile, serverURL, nil, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -62,11 +64,6 @@ func newGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	if c.GithubParentPath != "" {
 		dr.parentDir = path.Join(wd, c.GithubParentPath)
 	}
-	user, err := githubClient.GetAuthenticatedUser()
-	if err != nil {
-		return nil, err
-	}
-	dr.user = *user.Login
 	gr := &githubDEPSRepoManager{
 		depsRepoManager: dr,
 		githubClient:    githubClient,
@@ -187,10 +184,10 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 	// Make sure the right name and email are set.
 	if !rm.local {
-		if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.name", rm.user); err != nil {
+		if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.name", rm.codereview.UserName()); err != nil {
 			return 0, err
 		}
-		if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.email", rm.user); err != nil {
+		if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.email", rm.codereview.UserEmail()); err != nil {
 			return 0, err
 		}
 	}
@@ -248,7 +245,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	// Use the remaining part of the commit message as the pull request description.
 	descComment := strings.Split(commitMsg, "\n")[1:]
 	// Create a pull request.
-	headBranch := fmt.Sprintf("%s:%s", strings.Split(rm.user, "@")[0], ROLL_BRANCH)
+	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), ROLL_BRANCH)
 	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
 	if err != nil {
 		return 0, err
@@ -264,19 +261,4 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	return int64(pr.GetNumber()), nil
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) User() string {
-	return rm.user
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) GetFullHistoryUrl() string {
-	return rm.githubClient.GetFullHistoryUrl(rm.user)
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubDEPSRepoManager) GetIssueUrlBase() string {
-	return rm.githubClient.GetIssueUrlBase()
 }

@@ -3,7 +3,11 @@
   "contacts": [
     "comms-engprod-sto@google.com"
   ],
-  "gerritURL": "https://chromium-review.googlesource.com",
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
@@ -16,7 +20,6 @@
     "childBranch": "lkgr",
     "childPath": "src/third_party/webrtc",
     "childRepo": "https://webrtc.googlesource.com/src.git",
-    "gerritProject": "chromium/src",
     "includeBugs": true,
     "includeLog": true,
     "parentBranch": "master",
