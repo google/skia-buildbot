@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "40836988_1fc25368",
+        "filename": "infra/config/tricium-prod.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-07T13:13:08Z",
+      "side": 1,
+      "message": "Based on your explanation I am just going to remove this section. Thanks!",
+      "parentUuid": "2250c466_b7cecf30",
+      "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3107a8d_5401b6c3",
         "filename": "infra/config/tricium-prod.cfg",
         "patchSetId": 1
@@ -51,6 +69,24 @@
       "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c56e4b4_afbba50d",
+        "filename": "infra/config/tricium-prod.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-07T13:13:08Z",
+      "side": 1,
+      "message": "I think this is fine because:\n* We can adjust in future as required.\n* If we do not agree with some comments from warnings then we can just ignore them.",
+      "parentUuid": "a3107a8d_5401b6c3",
+      "revId": "25d4d96e21ee8ee8098f4e17e5f59bac75d712fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
