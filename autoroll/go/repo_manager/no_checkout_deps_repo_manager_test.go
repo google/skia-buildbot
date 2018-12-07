@@ -75,7 +75,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig, strateg
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 	mockChild.MockLog(ctx, childCommits[0], "master")
 
-	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client(), false)
+	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy))
 	assert.NoError(t, rm.Update(ctx))
@@ -97,7 +97,6 @@ func noCheckoutDEPSCfg() *NoCheckoutDEPSRepoManagerConfig {
 				ChildPath:    childPath,
 				ParentBranch: "master",
 			},
-			GerritProject: childPath,
 		},
 		IncludeLog: true,
 	}
@@ -227,7 +226,7 @@ be CC'd on the roll, and stop the roller if necessary.
 
 TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNotRolled(), childRepo.RepoUrl(), lastRollRev[:12], nextRollRev[:12], lastRollRev[:12], nextRollRev[:12], logStr, childPath, nextRollRev[:12], "fake.server.com")
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, cfg.GerritProject, subject, cfg.ParentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*noCheckoutDEPSRepoManager).gerritConfig.Project, subject, cfg.ParentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

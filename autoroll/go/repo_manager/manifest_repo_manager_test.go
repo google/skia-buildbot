@@ -163,7 +163,7 @@ func TestManifestRepoManager(t *testing.T) {
 	g := setupManifestFakeGerrit(t, wd)
 	cfg := manifestCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -174,9 +174,6 @@ func TestManifestRepoManager(t *testing.T) {
 	lastCommit := child.CommitGen(ctx, "abc.txt")
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, lastCommit, rm.NextRollRev())
-
-	// User, name only.
-	assert.Equal(t, mockUser, rm.User())
 }
 
 // TestCreateNewManifestRoll tests that CreateNewRoll returns the expected issueNum by mocking out
@@ -191,7 +188,7 @@ func TestCreateNewManifestRoll(t *testing.T) {
 	g := setupManifestFakeGerrit(t, wd)
 	cfg := manifestCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))
@@ -213,7 +210,7 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	g := setupManifestFakeGerrit(t, wd)
 	cfg := manifestCfg()
 	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, false)
+	rm, err := NewManifestRepoManager(ctx, cfg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
 	assert.NoError(t, err)
 	assert.NoError(t, SetStrategy(ctx, rm, strategy.ROLL_STRATEGY_BATCH))
 	assert.NoError(t, rm.Update(ctx))

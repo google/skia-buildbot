@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
@@ -70,16 +71,6 @@ type RepoManager interface {
 	// Update the RepoManager's view of the world. Depending on
 	// implementation, this may sync repos and may take some time.
 	Update(context.Context) error
-
-	// Return the name of the user who owns the uploaded rolls.
-	User() string
-
-	// GetFullHistoryUrl returns a url that contains all changes uploaded by the
-	// user.
-	GetFullHistoryUrl() string
-
-	// Return the base URL used for building the URLs of uploaded rolls.
-	GetIssueUrlBase() string
 
 	// Create a new NextRollRevStrategy from the given name.
 	CreateNextRollStrategy(context.Context, string) (strategy.NextRollStrategy, error)
@@ -157,6 +148,7 @@ type commonRepoManager struct {
 	childPath        string
 	childRepo        *git.Checkout
 	childSubdir      string
+	codereview       codereview.CodeReview
 	commitsNotRolled int
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
@@ -170,12 +162,11 @@ type commonRepoManager struct {
 	serverURL        string
 	strategy         strategy.NextRollStrategy
 	strategyMtx      sync.RWMutex
-	user             string
 	workdir          string
 }
 
 // Returns a commonRepoManager instance.
-func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, local bool) (*commonRepoManager, error) {
+func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*commonRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
@@ -191,27 +182,19 @@ func newCommonRepoManager(c CommonRepoManagerConfig, workdir, serverURL string, 
 	if err != nil {
 		return nil, err
 	}
-	user := ""
-	if g != nil && g.Initialized() {
-		user, err = g.GetUserEmail()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to determine Gerrit user: %s", err)
-		}
-	}
-	sklog.Infof("Repo Manager user: %s", user)
 	return &commonRepoManager{
 		childBranch:    c.ChildBranch,
 		childDir:       childDir,
 		childPath:      c.ChildPath,
 		childRepo:      childRepo,
 		childSubdir:    c.ChildSubdir,
+		codereview:     cr,
 		g:              g,
 		httpClient:     client,
 		local:          local,
 		parentBranch:   c.ParentBranch,
 		preUploadSteps: preUploadSteps,
 		serverURL:      serverURL,
-		user:           user,
 		workdir:        workdir,
 	}, nil
 }
@@ -247,21 +230,6 @@ func (r *commonRepoManager) NextRollRev() string {
 // See documentation for RepoManager interface.
 func (r *commonRepoManager) PreUploadSteps() []PreUploadStep {
 	return r.preUploadSteps
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) GetFullHistoryUrl() string {
-	return r.g.Url(0) + "/q/owner:" + r.User()
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) GetIssueUrlBase() string {
-	return r.g.Url(0) + "/c/"
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) User() string {
-	return r.user
 }
 
 // See documentation for RepoManager interface.
@@ -381,11 +349,11 @@ type depotToolsRepoManager struct {
 }
 
 // Return a depotToolsRepoManager instance.
-func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client, local bool) (*depotToolsRepoManager, error) {
+func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*depotToolsRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client, local)
+	crm, err := newCommonRepoManager(c.CommonRepoManagerConfig, workdir, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}

@@ -177,14 +177,14 @@ func main() {
 		}
 	}
 
-	if cfg.GerritURL != "" {
+	if cfg.Gerrit != nil {
 		// Create the code review API client.
-		g, err = gerrit.NewGerrit(cfg.GerritURL, gitcookiesPath, nil)
+		g, err = gerrit.NewGerrit(cfg.Gerrit.URL, gitcookiesPath, nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
 		g.TurnOnAuthenticatedGets()
-	} else {
+	} else if cfg.Github != nil {
 		pathToGithubToken := path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 		if !*local {
 			pathToGithubToken = path.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
@@ -215,7 +215,7 @@ func main() {
 		}
 		gToken := strings.TrimSpace(string(gBody))
 		githubHttpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
-		githubClient, err = github.NewGitHub(ctx, cfg.GithubRepoOwner, cfg.GithubRepoName, githubHttpClient)
+		githubClient, err = github.NewGitHub(ctx, cfg.Github.RepoOwner, cfg.Github.RepoName, githubHttpClient)
 		if err != nil {
 			sklog.Fatalf("Could not create Github client: %s", err)
 		}

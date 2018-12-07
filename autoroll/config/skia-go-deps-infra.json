@@ -3,7 +3,11 @@
   "contacts": [
     "borenet@google.com"
   ],
-  "gerritURL": "https://skia-review.googlesource.com",
+  "gerrit": {
+    "url": "https://skia-review.googlesource.com",
+    "project": "buildbot",
+    "config": "chromium"
+  },
   "isInternal": false,
   "parentName": "Infra Assets",
   "parentWaterfall": "https://build.chromium.org",
