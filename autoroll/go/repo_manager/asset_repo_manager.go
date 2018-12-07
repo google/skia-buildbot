@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
@@ -91,11 +92,11 @@ type assetRepoManager struct {
 // NewAssetRepoManager returns a RepoManager instance which rolls infra asset
 // versions so that the "parent" repo's versions match the "child" repo's
 // versions.
-func NewAssetRepoManager(ctx context.Context, c *AssetRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, local bool) (RepoManager, error) {
+func NewAssetRepoManager(ctx context.Context, c *AssetRepoManagerConfig, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL, g, client, local)
+	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, workdir, recipeCfgFile, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
 	}
@@ -230,10 +231,10 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 
 	// Create the roll CL.
 	if !rm.local {
-		if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.name", getLocalPartOfEmailAddress(rm.user)); err != nil {
+		if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.name", rm.codereview.UserName()); err != nil {
 			return 0, err
 		}
-		if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.email", rm.user); err != nil {
+		if _, err := exec.RunCwd(ctx, rm.parentDir, "git", "config", "user.email", rm.codereview.UserEmail()); err != nil {
 			return 0, err
 		}
 	}
