@@ -72,6 +72,29 @@
     },
     {
       "key": {
+        "uuid": "5d2f3b2e_10c26d3e",
+        "filename": "autoroll/go/codereview/config.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-07T13:20:11Z",
+      "side": 1,
+      "message": "CR in Android uses +2 but this seems to use the same as GERRIT_CONFIG_CHROMIUM which is +1.",
+      "range": {
+        "startLine": 21,
+        "startChar": 41,
+        "endLine": 21,
+        "endChar": 65
+      },
+      "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bcb0986b_bc07b398",
         "filename": "autoroll/go/codereview/config.go",
         "patchSetId": 5
