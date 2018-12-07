@@ -59,6 +59,15 @@ groups:
     annotations:
       abbr: 'named fiddles failing'
       description: 'Some named fiddles are failing. Visit https://named-fiddles.skia.org to see which ones.'
+  - alert: FiddleFailingToFindIdlePods
+    expr: rate(run_exhaustion[20m]) * 20 * 60 > 1
+    for: 5m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: 'Fiddler pod communication errors.'
+      description: 'Fiddle is having trouble communicating with fiddler pods.'
 
   # CQ Watcher
   - alert: CQWatcherCLsCount
