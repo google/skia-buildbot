@@ -1,6 +1,7 @@
 package remote_db
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,12 +10,13 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/pborman/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	memory "go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -99,10 +101,17 @@ func makeDB(t *testing.T) db.DBCloser {
 	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter())
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
-	c := httputils.NewTimeoutClient()
-	c.Transport = newReqCountingTransport(c.Transport)
-	dbclient, err := NewClient(ts.URL+"/db/", c)
+	label := fmt.Sprintf("remote-db-test-%s", uuid.New())
+	modTasks, err := pubsub.NewModifiedTasks(pubsub.TOPIC_TASKS, label, nil)
 	assert.NoError(t, err)
+	baseDB.(*db.FederatedDB).TaskDB.(*memory.InMemoryTaskDB).ModifiedTasks = modTasks
+	modJobs, err := pubsub.NewModifiedJobs(pubsub.TOPIC_JOBS, label, nil)
+	assert.NoError(t, err)
+	baseDB.(*db.FederatedDB).JobDB.(*memory.InMemoryJobDB).ModifiedJobs = modJobs
+	dbclient, err := NewClient(ts.URL+"/db/", pubsub.TOPIC_TASKS, pubsub.TOPIC_JOBS, label, nil)
+	assert.NoError(t, err)
+	c := dbclient.(*client).client
+	c.Transport = newReqCountingTransport(c.Transport)
 	return &clientWithBackdoor{
 		RemoteDB:   dbclient,
 		backdoor:   baseDB,
@@ -115,13 +124,6 @@ func TestRemoteDBTaskDB(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDB(t, d)
-}
-
-func TestRemoteDBTaskDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	d := makeDB(t)
-	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBTooManyUsers(t, d)
 }
 
 func TestRemoteDBTaskDBConcurrentUpdate(t *testing.T) {
@@ -157,13 +159,6 @@ func TestRemoteDBJobDB(t *testing.T) {
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestJobDB(t, d)
-}
-
-func TestRemoteDBJobDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	d := makeDB(t)
-	defer testutils.AssertCloses(t, d)
-	db.TestJobDBTooManyUsers(t, d)
 }
 
 func TestRemoteDBJobDBConcurrentUpdate(t *testing.T) {

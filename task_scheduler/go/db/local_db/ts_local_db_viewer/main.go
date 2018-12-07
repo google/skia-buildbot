@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	// Global init.
 	common.Init()
 
-	d, err := local_db.NewDB(local_db.DB_NAME, *dbfile)
+	d, err := local_db.NewDB(local_db.DB_NAME, *dbfile, pubsub.TOPIC_TASKS, pubsub.TOPIC_JOBS, "ts_local_db_viewer", nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

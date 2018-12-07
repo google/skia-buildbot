@@ -50,6 +50,11 @@ const (
 	// format ensures that all 9 nanosecond digits are used, padding with
 	// zeroes if necessary.
 	RFC3339NanoZeroPad = sklog.RFC3339NanoZeroPad
+
+	// SAFE_TIMESTAMP_FORMAT is time format which is similar to
+	// RFC3339NanoZeroPad, but with most of the punctuation omitted. This
+	// timestamp can only be used to format and parse times in UTC.
+	SAFE_TIMESTAMP_FORMAT = "20060102T150405.000000000Z"
 )
 
 var (

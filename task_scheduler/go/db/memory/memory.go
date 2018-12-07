@@ -14,14 +14,14 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-type inMemoryTaskDB struct {
+type InMemoryTaskDB struct {
 	tasks    map[string]*types.Task
 	tasksMtx sync.RWMutex
-	modified.ModifiedTasksImpl
+	db.ModifiedTasks
 }
 
 // See docs for TaskDB interface. Does not take any locks.
-func (d *inMemoryTaskDB) AssignId(t *types.Task) error {
+func (d *InMemoryTaskDB) AssignId(t *types.Task) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -30,7 +30,7 @@ func (d *inMemoryTaskDB) AssignId(t *types.Task) error {
 }
 
 // See docs for TaskDB interface.
-func (d *inMemoryTaskDB) GetTaskById(id string) (*types.Task, error) {
+func (d *InMemoryTaskDB) GetTaskById(id string) (*types.Task, error) {
 	d.tasksMtx.RLock()
 	defer d.tasksMtx.RUnlock()
 	if task := d.tasks[id]; task != nil {
@@ -40,7 +40,7 @@ func (d *inMemoryTaskDB) GetTaskById(id string) (*types.Task, error) {
 }
 
 // See docs for TaskDB interface.
-func (d *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
+func (d *InMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*types.Task, error) {
 	d.tasksMtx.RLock()
 	defer d.tasksMtx.RUnlock()
 
@@ -58,12 +58,12 @@ func (d *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string
 }
 
 // See docs for TaskDB interface.
-func (d *inMemoryTaskDB) PutTask(task *types.Task) error {
+func (d *InMemoryTaskDB) PutTask(task *types.Task) error {
 	return d.PutTasks([]*types.Task{task})
 }
 
 // See docs for TaskDB interface.
-func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
+func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 	d.tasksMtx.Lock()
 	defer d.tasksMtx.Unlock()
 
@@ -102,19 +102,20 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
 func NewInMemoryTaskDB() db.TaskDB {
-	db := &inMemoryTaskDB{
-		tasks: map[string]*types.Task{},
+	db := &InMemoryTaskDB{
+		tasks:         map[string]*types.Task{},
+		ModifiedTasks: &modified.ModifiedTasksImpl{},
 	}
 	return db
 }
 
-type inMemoryJobDB struct {
+type InMemoryJobDB struct {
 	jobs    map[string]*types.Job
 	jobsMtx sync.RWMutex
-	modified.ModifiedJobsImpl
+	db.ModifiedJobs
 }
 
-func (d *inMemoryJobDB) assignId(j *types.Job) error {
+func (d *InMemoryJobDB) assignId(j *types.Job) error {
 	if j.Id != "" {
 		return fmt.Errorf("Job Id already assigned: %v", j.Id)
 	}
@@ -123,7 +124,7 @@ func (d *inMemoryJobDB) assignId(j *types.Job) error {
 }
 
 // See docs for JobDB interface.
-func (d *inMemoryJobDB) GetJobById(id string) (*types.Job, error) {
+func (d *InMemoryJobDB) GetJobById(id string) (*types.Job, error) {
 	d.jobsMtx.RLock()
 	defer d.jobsMtx.RUnlock()
 	if job := d.jobs[id]; job != nil {
@@ -133,7 +134,7 @@ func (d *inMemoryJobDB) GetJobById(id string) (*types.Job, error) {
 }
 
 // See docs for JobDB interface.
-func (d *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
+func (d *InMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
 	d.jobsMtx.RLock()
 	defer d.jobsMtx.RUnlock()
 
@@ -149,12 +150,12 @@ func (d *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job
 }
 
 // See docs for JobDB interface.
-func (d *inMemoryJobDB) PutJob(job *types.Job) error {
+func (d *InMemoryJobDB) PutJob(job *types.Job) error {
 	return d.PutJobs([]*types.Job{job})
 }
 
 // See docs for JobDB interface.
-func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
+func (d *InMemoryJobDB) PutJobs(jobs []*types.Job) error {
 	d.jobsMtx.Lock()
 	defer d.jobsMtx.Unlock()
 
@@ -192,8 +193,9 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
 // implementation.
 func NewInMemoryJobDB() db.JobDB {
-	db := &inMemoryJobDB{
-		jobs: map[string]*types.Job{},
+	db := &InMemoryJobDB{
+		jobs:         map[string]*types.Job{},
+		ModifiedJobs: &modified.ModifiedJobsImpl{},
 	}
 	return db
 }

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -111,7 +113,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	assert.NoError(t, err)
 	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
-	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
+	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"), pubsub.TOPIC_TASKS, pubsub.TOPIC_JOBS, fmt.Sprintf("tryjobs_test_%s", uuid.New()), nil)
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{

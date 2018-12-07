@@ -1,11 +1,9 @@
 package pubsub
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
@@ -14,10 +12,8 @@ import (
 
 func setupTasks(t *testing.T) db.ModifiedTasks {
 	testutils.LargeTest(t)
-	c, err := pubsub.NewClient(context.Background(), "fake-project")
-	assert.NoError(t, err)
 	topic := uuid.New()
-	m, err := NewModifiedTasks(c, fmt.Sprintf("modified-tasks-test-%s", topic), "fake-label")
+	m, err := NewModifiedTasks(fmt.Sprintf("modified-tasks-test-%s", topic), "fake-label", nil)
 	assert.NoError(t, err)
 	return m
 }
@@ -34,10 +30,8 @@ func TestPubsubMultipleTaskModifications(t *testing.T) {
 
 func setupJobs(t *testing.T) db.ModifiedJobs {
 	testutils.LargeTest(t)
-	c, err := pubsub.NewClient(context.Background(), "fake-project")
-	assert.NoError(t, err)
 	topic := uuid.New()
-	m, err := NewModifiedJobs(c, fmt.Sprintf("modified-jobs-test-%s", topic), "fake-label")
+	m, err := NewModifiedJobs(fmt.Sprintf("modified-jobs-test-%s", topic), "fake-label", nil)
 	assert.NoError(t, err)
 	return m
 }
