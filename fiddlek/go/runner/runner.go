@@ -64,12 +64,11 @@ func toGrMipMapped(b bool) string {
 }
 
 type Runner struct {
-	sourceDir  string
-	client     *http.Client
-	fastClient *http.Client
-	local      bool
-	clientset  *kubernetes.Clientset
-	rand       *rand.Rand
+	sourceDir string
+	client    *http.Client
+	local     bool
+	clientset *kubernetes.Clientset
+	rand      *rand.Rand
 
 	mutex       sync.Mutex // mutex protects skiaGitHash.
 	skiaGitHash string
@@ -77,11 +76,10 @@ type Runner struct {
 
 func New(local bool, sourceDir string) (*Runner, error) {
 	ret := &Runner{
-		sourceDir:  sourceDir,
-		client:     httputils.NewTimeoutClient(),
-		fastClient: httputils.NewFastTimeoutClient(),
-		local:      local,
-		rand:       rand.New(rand.NewSource(time.Now().UnixNano())),
+		sourceDir: sourceDir,
+		client:    httputils.NewTimeoutClient(),
+		local:     local,
+		rand:      rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 	if !local {
 		config, err := rest.InClusterConfig()
@@ -235,6 +233,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	if local {
 		return r.singleRun(LOCALRUN_URL, body)
 	} else {
+		fastClient := httputils.NewFastTimeoutClient()
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
 		for tries := 0; tries < 6; tries++ {
@@ -250,11 +249,13 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 			shuffle(r.rand, len(pods), func(i, j int) {
 				pods[i], pods[j] = pods[j], pods[i]
 			})
+			sklog.Infof("PodsList: %d", len(pods))
 			// Loop over all the pods looking for an open one.
 			for i, p := range pods {
 				sklog.Infof("Found pod %d: %s", i, p.Name)
 				rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
-				resp, err := r.fastClient.Get(rootURL)
+				sklog.Infof("Trying: %q", rootURL)
+				resp, err := fastClient.Get(rootURL)
 				if err != nil {
 					sklog.Infof("Failed to request fiddler status: %s", err)
 					continue
@@ -264,7 +265,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				var fiddlerResp types.FiddlerMainResponse
 				b, err := ioutil.ReadAll(resp.Body)
 				if err != nil {
-					sklog.Warningf("Failed to read status: %s", err)
+					sklog.Warningf("Failed to read status from %q: %s", p.Status.PodIP, err)
 					continue
 				}
 				buf := bytes.NewBuffer(b)
@@ -291,6 +292,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 }
 
 func (r *Runner) podIPs() []string {
+	// TODO Cache this list and refresh it every minute.
 	if r.local {
 		return []string{"127.0.0.1"}
 	} else {
@@ -314,9 +316,10 @@ func (r *Runner) metricsSingleStep() {
 	// What versions of skia are all the fiddlers running.
 	versions := map[string]int{}
 	ips := r.podIPs()
+	fastClient := httputils.NewFastTimeoutClient()
 	for _, address := range ips {
 		rootURL := fmt.Sprintf("http://%s:8000", address)
-		resp, err := r.client.Get(rootURL)
+		resp, err := fastClient.Get(rootURL)
 		if err != nil {
 			sklog.Infof("Failed to request fiddler status: %s", err)
 			continue
@@ -361,7 +364,7 @@ func (r *Runner) metricsSingleStep() {
 // Metrics captures metrics on the state of all the fiddler pods.
 func (r *Runner) Metrics() {
 	r.metricsSingleStep()
-	for _ = range time.Tick(15 * time.Second) {
+	for _ = range time.Tick(2 * time.Minute) {
 		r.metricsSingleStep()
 	}
 }
