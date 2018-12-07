@@ -95,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "e9b41573_ba022087",
+        "filename": "autoroll/go/codereview/config.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-07T13:25:23Z",
+      "side": 1,
+      "message": "Good catch, fixed.  Also changed to use strings, since the old code in AndroidRepoManager used strings and not ints.",
+      "parentUuid": "5d2f3b2e_10c26d3e",
+      "range": {
+        "startLine": 21,
+        "startChar": 41,
+        "endLine": 21,
+        "endChar": 65
+      },
+      "revId": "f3eb637bf13ba8236d99f3dbb3bf1d6d778f995f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bcb0986b_bc07b398",
         "filename": "autoroll/go/codereview/config.go",
         "patchSetId": 5
