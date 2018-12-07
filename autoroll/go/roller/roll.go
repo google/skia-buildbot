@@ -406,7 +406,7 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 		if _, err := g.ClosePullRequest(int(issueNum)); err != nil {
 			return nil, nil, fmt.Errorf("Could not close %d: %s", issueNum, err)
 		}
-	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && pullRequest.GetMergeableState() == github.MERGEABLE_STATE_CLEAN {
+	} else if !a.CommitQueueDryRun && len(a.TryResults) >= checksNum && a.AllTrybotsSucceeded() && pullRequest.GetState() != github.CLOSED_STATE && shouldStateBeMerged(pullRequest.GetMergeableState()) {
 		// Github and travisci do not have a "commit queue". So changes must be
 		// merged via the API after travisci successfully completes.
 		if err := g.AddComment(int(issueNum), "Auto-roller completed checks. About to merge."); err != nil {
@@ -440,6 +440,15 @@ func retrieveGithubPullRequest(ctx context.Context, g *github.GitHub, rm repo_ma
 	}
 
 	return pullRequest, a, nil
+}
+
+func shouldStateBeMerged(mergeableState string) bool {
+	// Allow "clean" and "unstable" mergeable state.
+	// "unstable" is allowed (for now) because of a bug in Github where a race condition makes
+	// Github believe that a completed Cirrus check is still pending. We verify that all checks
+	// pass before we try to merge, so allowing "unstable" should not break anything. More
+	// details are in http://skbug.com/8598
+	return mergeableState == github.MERGEABLE_STATE_CLEAN || mergeableState == github.MERGEABLE_STATE_UNSTABLE
 }
 
 // newGithubRoll obtains a githubRoll instance from the given Gerrit issue number.
