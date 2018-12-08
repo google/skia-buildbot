@@ -325,6 +325,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
+	sklog.Infof("RemoteAddr: %s %s", r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
 	req := &types.FiddleContext{}
 	dec := json.NewDecoder(r.Body)
 	defer util.Close(r.Body)
