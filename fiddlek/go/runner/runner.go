@@ -64,24 +64,24 @@ func toGrMipMapped(b bool) string {
 }
 
 type Runner struct {
-	sourceDir  string
-	client     *http.Client
-	fastClient *http.Client
-	local      bool
-	clientset  *kubernetes.Clientset
-	rand       *rand.Rand
+	sourceDir string
+	client    *http.Client
+	local     bool
+	clientset *kubernetes.Clientset
+	rand      *rand.Rand
 
-	mutex       sync.Mutex // mutex protects skiaGitHash.
+	mutex       sync.Mutex // mutex protects the members below.
 	skiaGitHash string
+	fiddlerIPs  []string
 }
 
 func New(local bool, sourceDir string) (*Runner, error) {
 	ret := &Runner{
 		sourceDir:  sourceDir,
 		client:     httputils.NewTimeoutClient(),
-		fastClient: httputils.NewFastTimeoutClient(),
 		local:      local,
 		rand:       rand.New(rand.NewSource(time.Now().UnixNano())),
+		fiddlerIPs: []string{},
 	}
 	if !local {
 		config, err := rest.InClusterConfig()
@@ -95,7 +95,44 @@ func New(local bool, sourceDir string) (*Runner, error) {
 		}
 		ret.clientset = clientset
 	}
+	// Start the IP refresher.
+	if err := ret.fiddlerIPsOneStep(); err != nil {
+		return nil, fmt.Errorf("Failed initial population of fiddlerIPs: %s", err)
+	}
+	go ret.fiddlerIPsRefresher()
 	return ret, nil
+}
+
+// fiddlerIPsOneStep refreshes a list of fiddler pod IP addresses just once.
+func (r *Runner) fiddlerIPsOneStep() error {
+	ips := []string{}
+	if r.local {
+		ips = []string{"127.0.0.1"}
+	} else {
+		pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+			LabelSelector: "app=fiddler",
+		})
+		if err != nil {
+			return fmt.Errorf("Could not list fiddler pods: %s", err)
+		}
+		ips = make([]string, 0, len(pods.Items))
+		for _, p := range pods.Items {
+			ips = append(ips, p.Status.PodIP)
+		}
+	}
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	r.fiddlerIPs = ips
+	return nil
+}
+
+// fiddlerIPsRefresher refreshes a list of fiddler pod IP addresses.
+func (r *Runner) fiddlerIPsRefresher() {
+	for _ = range time.Tick(time.Minute) {
+		if err := r.fiddlerIPsOneStep(); err != nil {
+			sklog.Warningf("Failed to refresh fiddler IPs: %s", err)
+		}
+	}
 }
 
 // prepCodeToCompile adds the line numbers and the right prefix code
@@ -163,6 +200,7 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 	var output bytes.Buffer
 	resp, err := r.client.Post(url, "application/json", body)
 	if err != nil {
+		sklog.Errorf("Failed to POST: %s", err)
 		return nil, failedToSendErr
 	}
 	defer util.Close(resp.Body)
@@ -184,32 +222,10 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String()[:20])
 	}
 	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
+		sklog.Errorf("Failed to send valid JSON: res.Execute.Errors : %s", err)
 		return nil, failedToSendErr
 	}
 	return res, nil
-}
-
-// shuffle is copied from the Go 1.10 library until we can switch to Go 1.10.
-func shuffle(r *rand.Rand, n int, swap func(i, j int)) {
-	if n < 0 {
-		panic("invalid argument to Shuffle")
-	}
-
-	// Fisher-Yates shuffle: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-	// Shuffle really ought not be called with n that doesn't fit in 32 bits.
-	// Not only will it take a very long time, but with 2³¹! possible permutations,
-	// there's no way that any PRNG can have a big enough internal state to
-	// generate even a minuscule percentage of the possible permutations.
-	// Nevertheless, the right API signature accepts an int n, so handle it as best we can.
-	i := n - 1
-	for ; i > 1<<31-1-1; i-- {
-		j := int(r.Int63n(int64(i + 1)))
-		swap(i, j)
-	}
-	for ; i > 0; i-- {
-		j := int(r.Int31n(int32(i + 1)))
-		swap(i, j)
-	}
 }
 
 // Run executes fiddle_run and then parses the JSON output into types.Results.
@@ -228,58 +244,26 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	if err != nil {
 		return nil, fmt.Errorf("Failed to encode request: %s", err)
 	}
-	body := bytes.NewReader(b)
 
 	// If not local then use the k8s api to pick an open fiddler pod to send
 	// the request to. Send a GET / to each one until you find an idle instance.
 	if local {
-		return r.singleRun(LOCALRUN_URL, body)
+		return r.singleRun(LOCALRUN_URL, bytes.NewReader(b))
 	} else {
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
-		for tries := 0; tries < 6; tries++ {
-			fiddlerList, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
-				LabelSelector: "app=fiddler",
-			})
-			if err != nil {
-				return nil, fmt.Errorf("Could not list fiddler pods: %s", err)
-			}
-			pods := fiddlerList.Items
-			// The kubernetes API returns the list of pods in sorted order. Shuffle
-			// them in order to avoid pummeling the first pod with tons of traffic.
-			shuffle(r.rand, len(pods), func(i, j int) {
-				pods[i], pods[j] = pods[j], pods[i]
-			})
-			// Loop over all the pods looking for an open one.
-			for i, p := range pods {
-				sklog.Infof("Found pod %d: %s", i, p.Name)
-				rootURL := fmt.Sprintf("http://%s:8000", p.Status.PodIP)
-				resp, err := r.fastClient.Get(rootURL)
-				if err != nil {
-					sklog.Infof("Failed to request fiddler status: %s", err)
+		for tries := 0; tries < 8; tries++ {
+			ips := r.randPodIPs()
+			for _, p := range ips {
+				rootURL := fmt.Sprintf("http://%s:8000", p)
+				sklog.Infof("Trying: %q", rootURL)
+				// Run the fiddle in the open pod.
+				ret, err := r.singleRun(rootURL+"/run", bytes.NewReader(b))
+				if err == alreadyRunningFiddleErr || err == failedToSendErr {
+					sklog.Warningf("Couldn't run on pod: %s", err)
 					continue
-				}
-				defer util.Close(resp.Body)
-
-				var fiddlerResp types.FiddlerMainResponse
-				b, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					sklog.Warningf("Failed to read status: %s", err)
-					continue
-				}
-				buf := bytes.NewBuffer(b)
-				if err := json.NewDecoder(buf).Decode(&fiddlerResp); err != nil {
-					sklog.Warningf("Failed to read status %q: %s", buf.String(), err)
-					continue
-				}
-				if fiddlerResp.State == types.IDLE {
-					// Run the fiddle in the open pod.
-					ret, err := r.singleRun(rootURL+"/run", body)
-					if err == alreadyRunningFiddleErr || err == failedToSendErr {
-						continue
-					} else {
-						return ret, err
-					}
+				} else {
+					return ret, err
 				}
 			}
 			// Let the pods run and see of any new ones open up.
@@ -291,22 +275,20 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 }
 
 func (r *Runner) podIPs() []string {
-	if r.local {
-		return []string{"127.0.0.1"}
-	} else {
-		pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
-			LabelSelector: "app=fiddler",
-		})
-		if err != nil {
-			sklog.Errorf("Could not list fiddler pods: %s", err)
-			return []string{}
-		}
-		ret := make([]string, 0, len(pods.Items))
-		for _, p := range pods.Items {
-			ret = append(ret, p.Status.PodIP)
-		}
-		return ret
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	return append([]string(nil), r.fiddlerIPs...)
+}
+
+// randPodIPs returns 10 random pods IPs.
+func (r *Runner) randPodIPs() []string {
+	ret := []string{}
+	ips := r.podIPs()
+	n := len(ips)
+	for i := 0; i < 10; i++ {
+		ret = append(ret, ips[rand.Intn(n)])
 	}
+	return ret
 }
 
 func (r *Runner) metricsSingleStep() {
@@ -314,17 +296,23 @@ func (r *Runner) metricsSingleStep() {
 	// What versions of skia are all the fiddlers running.
 	versions := map[string]int{}
 	ips := r.podIPs()
+	fastClient := httputils.NewFastTimeoutClient()
 	for _, address := range ips {
 		rootURL := fmt.Sprintf("http://%s:8000", address)
-		resp, err := r.client.Get(rootURL)
+		resp, err := fastClient.Get(rootURL)
 		if err != nil {
 			sklog.Infof("Failed to request fiddler status: %s", err)
 			continue
 		}
-		defer util.Close(resp.Body)
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			sklog.Warningf("Failed to read status body: %s", err)
+			continue
+		}
+		util.Close(resp.Body)
 		if resp.Header.Get("Content-Type") == "application/json" {
 			var fiddlerResp types.FiddlerMainResponse
-			if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
+			if err := json.Unmarshal(b, &fiddlerResp); err != nil {
 				sklog.Warningf("Failed to read status: %s", err)
 				continue
 			}
@@ -332,15 +320,6 @@ func (r *Runner) metricsSingleStep() {
 				idleCount += 1
 			}
 			versions[fiddlerResp.Version] += 1
-		} else {
-			state, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				sklog.Warningf("Failed to read status: %s", err)
-				continue
-			}
-			if types.State(state) == types.IDLE {
-				idleCount += 1
-			}
 		}
 	}
 	// Report the version that appears the most. Usually there will only be one
@@ -361,7 +340,7 @@ func (r *Runner) metricsSingleStep() {
 // Metrics captures metrics on the state of all the fiddler pods.
 func (r *Runner) Metrics() {
 	r.metricsSingleStep()
-	for _ = range time.Tick(15 * time.Second) {
+	for _ = range time.Tick(2 * time.Minute) {
 		r.metricsSingleStep()
 	}
 }

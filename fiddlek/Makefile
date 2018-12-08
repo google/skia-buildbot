@@ -42,6 +42,12 @@ release_ci: build
 push: release skia-public
 	pushk fiddle fiddler
 
+.PHONY: push_fiddle
+push_fiddle: skia-public
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
+	./build_fiddle_release
+	pushk fiddle
+
 .PHONY: cli
 cli:
 	go install -v ./go/fiddlecli
