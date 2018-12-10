@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebd7b38b_c35925f9",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-10T17:17:07Z",
+      "side": 1,
+      "message": "intentional change to orange?",
+      "range": {
+        "startLine": 23,
+        "startChar": 15,
+        "endLine": 23,
+        "endChar": 23
+      },
+      "revId": "ace9e33b16e73ba84882078502cbb5f77ac7c56d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
