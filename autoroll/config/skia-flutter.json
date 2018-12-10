@@ -14,8 +14,8 @@
   ],
   "github": {
     "repoOwner": "flutter",
-    "repoName": "flutter",
-    "checksNum": 12,
+    "repoName": "engine",
+    "checksNum": 4,
     "checksWaitFor": []
   },
   "githubDEPSRepoManager": {
