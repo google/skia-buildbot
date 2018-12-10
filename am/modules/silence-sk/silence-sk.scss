@@ -35,21 +35,21 @@ silence-sk {
 
   .date {
     margin: 0 1em;
-    color: $orange;
+    color: var(--orange);
   }
 
   .author {
-    color: $green;
+    color: var(--green);
   }
 
   delete-icon-sk {
-    fill: $gray;
+    fill: var(--gray);
     cursor: pointer;
     border: solid transparent 1px;
   }
 
   delete-icon-sk:hover {
-    border: solid $gray 1px;
+    border: solid var(--gray) 1px;
   }
 
   section.notes,
@@ -76,22 +76,22 @@ silence-sk {
 
     h2 {
       padding: 0.2em 1em;
-      color: $blue;
+      color: var(--blue);
     }
   }
 
   h2 {
     align-items: center;
-    color: $red;
+    color: var(--red);
     margin: 0;
     padding: 0.2em 1em;
     font-size: 14px;
     cursor: pointer;
-    color: $blue;
+    color: var(--blue);
   }
 
   h2.inactive {
-    color: $gray;
+    color: var(--gray);
   }
 
   p {
