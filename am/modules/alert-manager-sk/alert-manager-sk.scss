@@ -1,4 +1,4 @@
-@import '../colors.scss';
+@import '~infra-sk/modules/colors';
 
 alert-manager-sk {
   spinner-sk[active] {
@@ -20,7 +20,7 @@ alert-manager-sk {
 
   h2 {
     align-items: center;
-    color: $red;
+    color: var(--orange);
     margin: 0;
     padding: 0;
     font-size: 14px;
@@ -28,11 +28,11 @@ alert-manager-sk {
   }
 
   h2.assigned {
-    color: $orange;
+    color: var(--orange);
   }
 
   h2.inactive {
-    color: $gray;
+    color: var(--gray);
   }
 
   h2.selected {
@@ -40,11 +40,11 @@ alert-manager-sk {
   }
 
   h2.silenced {
-    color: $green;
+    color: var(--green);
   }
 
   .silences h2.inactive {
-    color: gray;
+    color: var(--gray);
   }
 
   footer {
@@ -67,7 +67,7 @@ alert-manager-sk {
 
   tabs-sk {
     padding: 5px 0 0 5px;
-    border-bottom: solid $dark-blue 3px;
+    border-bottom: solid var(--dark-blue) 3px;
 
     button {
       border: none;
@@ -115,14 +115,14 @@ alert-manager-sk {
     padding: 1em;
 
     h2 {
-      color: $blue;
+      color: var(--blue);
       display: flex;
       justify-content: space-between;
     }
   }
 
   comment-icon-sk {
-    fill: $green;
+    fill: var(--green);
     padding: 0.2em 0.6em;
   }
 
@@ -131,12 +131,12 @@ alert-manager-sk {
   }
 
   person-icon-sk {
-    fill: $orange;
+    fill: var(--orange);
   }
 
   notifications-icon-sk {
     padding: 0 0.6em;
-    fill: $blue;
+    fill: var(--blue);
   }
 
   .invisible {
@@ -150,15 +150,15 @@ alert-manager-sk {
 
   header {
     grid-area: header;
-    color: $blue;
-    fill: $blue;
+    color: var(--blue);
+    fill: var(--blue);
     padding: 0.4em;
     justify-content: flex-end;
     display: flex;
 
     login-sk .email,
     login-sk .logInOut {
-      color: $blue;
+      color: var(--blue);
     }
   }
 
