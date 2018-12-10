@@ -1,4 +1,4 @@
-package tryjobs
+package search
 
 import (
 	"testing"
@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
@@ -32,13 +33,19 @@ func TestWriteGoldLinkToGerrit(t *testing.T) {
 
 	issueID := int64(12345)
 	buildBucketID := int64(7654321)
-	eventBus := eventbus.New()
 	mockGerrit := &MyGerritMock{MockedGerrit: &gerrit.MockedGerrit{IssueID: issueID}}
+	eventBus := eventbus.New()
 	tjStore, err := tryjobstore.NewCloudTryjobStore(client, nil, eventBus)
 	assert.NoError(t, err)
 
-	siteURL := "https://gold.skia.org"
-	tryjobMonitor := NewTryjobMonitor(tjStore, mockGerrit, siteURL, eventBus, true)
+	storages := &storage.Storage{
+		EventBus:    eventBus,
+		GerritAPI:   mockGerrit,
+		SiteURL:     "https://gold.skia.org",
+		TryjobStore: tjStore,
+	}
+
+	tryjobMonitor := NewTryjobMonitor(storages)
 	_ = tryjobMonitor
 
 	issue1 := &tryjobstore.Issue{
@@ -78,10 +85,10 @@ func TestWriteGoldLinkToGerrit(t *testing.T) {
 	assert.True(t, foundIssue.CommentAdded)
 
 	// Call directly and make sure there is no error.
-	assert.NoError(t, tryjobMonitor.WriteGoldLinkToGerrit(issueID))
+	assert.NoError(t, tryjobMonitor.writeGoldLinkToGerrit(issueID))
 
 	// Call with an invalid issue and make sure we get an error.
-	assert.Error(t, tryjobMonitor.WriteGoldLinkToGerrit(999999))
+	assert.Error(t, tryjobMonitor.writeGoldLinkToGerrit(999999))
 }
 
 // initDS initializes the datastore for testing.
