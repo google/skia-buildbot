@@ -60,6 +60,7 @@ import { abbr, linkify, notes } from '../am'
 import { diffDate, strDuration } from 'common-sk/modules/human'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
+import { until } from 'lit-html/directives/until.js';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
 function classOfH2(ele) {
@@ -156,7 +157,7 @@ const template = (ele) => html`
     </section>
     <section class=history>
       <h3>History</h3>
-      ${history(ele)}
+      ${until(history(ele), html`<div class=loading>Loading...</div>`)}
     </section>
   </section>
 `;

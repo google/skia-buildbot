@@ -29,7 +29,7 @@ incident-sk {
   }
 
   td a {
-    color: $blue;
+    color: var(--blue);
   }
 
   textarea {
@@ -51,21 +51,21 @@ incident-sk {
 
   .date {
     margin: 0 1em;
-    color: $orange;
+    color: var(--orange);
   }
 
   .author {
-    color: $green;
+    color: var(--green);
   }
 
   delete-icon-sk {
-    fill: $gray;
+    fill: var(--gray);
     cursor: pointer;
     border: solid transparent 1px;
   }
 
   delete-icon-sk:hover {
-    border: solid $gray 1px;
+    border: solid var(--gray) 1px;
   }
 
   .meta {
@@ -77,6 +77,11 @@ incident-sk {
   .nosilences {
     padding: 0 1em;
     font-weight: bold;
+  }
+
+  .loading {
+    padding: 0 1em;
+    font-style: italic;
   }
 }
 
