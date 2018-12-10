@@ -3,6 +3,7 @@ package codereview
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -110,6 +111,9 @@ func newGithubCodeReview(cfg *GithubConfig, githubClient *github.GitHub) (CodeRe
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("LOGGING")
+	fmt.Println(user)
+	fmt.Println(user.GetLogin)
 	userEmail := user.GetEmail()
 	if userEmail == "" {
 		return nil, errors.New("Found no email address for github user.")
