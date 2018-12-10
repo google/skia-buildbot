@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "33915436_ed60940e",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-10T15:10:59Z",
+      "side": 1,
+      "message": "Nit: Document 8 tries somewhere or make it const at top?",
+      "range": {
+        "startLine": 255,
+        "startChar": 26,
+        "endLine": 255,
+        "endChar": 27
+      },
+      "revId": "c1e2322b92a3b1bf0105e5f8981413149f28e4dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd232b7a_30951d20",
+        "filename": "fiddlek/go/runner/runner.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-10T15:10:59Z",
+      "side": 1,
+      "message": "Why 10 as opposed to IPs of all available podIPs?",
+      "range": {
+        "startLine": 283,
+        "startChar": 22,
+        "endLine": 283,
+        "endChar": 24
+      },
+      "revId": "c1e2322b92a3b1bf0105e5f8981413149f28e4dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
