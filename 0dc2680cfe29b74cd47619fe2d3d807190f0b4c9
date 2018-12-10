@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e91147e1_61c09322",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-10T21:04:20Z",
+      "side": 1,
+      "message": "Would be more efficient to do this in ReadAllFilesRecursive by passing in a dirsToExclude or something like that.",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab60ff92_7ac820a9",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-10T21:04:20Z",
+      "side": 1,
+      "message": "Should this temp dir be under workdir? To make sure something does not fill up the root disk.",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b83416a_2e67f313",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-10T21:04:20Z",
+      "side": 1,
+      "message": "Golang has https://golang.org/pkg/archive/zip/ for reading zip archives. Have you tried that instead? Looks like we have a go/util/zip.go as well.",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec0bc09f_847b90dc",
+        "filename": "go/fileutil/fileutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-10T21:04:20Z",
+      "side": 1,
+      "message": "Should be easy to add a test for this in fileutil_test.go using testdata. Will also be able to test the new dirsToExclude if done.",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
