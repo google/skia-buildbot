@@ -19,19 +19,20 @@ $light-purple:  #CAB2D6;
 $light-brown:   #FFFF99;
 $light-gray:    #575757;
 
+// Better colorblind safe palett copied from http://jfly.iam.u-tokyo.ac.jp/color/#see.
 :root {
-  --blue:          #175A87;
-  --green:         #33A02C;
-  --red:           #E31A1C;
-  --orange:        #FF7F00;
-  --purple:        #6A3D9A;
-  --brown:         #B15928;
-  --gray:          #4F4F4F;
-  --light-blue:    #A6CEE3;
-  --light-green:   #B2DF8A;
-  --light-red:     #FB9a99;
-  --light-orange:  #FDBF6F;
-  --light-purple:  #CAB2D6;
-  --light-brown:   #FFFF99;
-  --light-gray:    #575757;
+  --blue:          rgb(0,114,178);
+  --green:         rgb(0,158,115);
+  --red:           rgb(213,94,0);
+  --orange:        rgb(230,159,0);
+  --purple:        rgb(204,121,167);
+  --brown:         rgb(177,89,40);
+  --gray:          rgb(79,79,79);
+  --light-blue:    rgba(0,57,89);
+  --light-green:   rgba(0,79,57);
+  --light-red:     rgba(107,47,0);
+  --light-orange:  rgba(115,80,0);
+  --light-purple:  rgba(102,60,83)
+  --light-brown:   rgba(89,45,20);
+  --light-gray:    rgba(40,40,40);
 }
