@@ -13,10 +13,16 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}           ${ROOT}/usr/local/bi
 ${INSTALL} --mode=644 -T ./res/js/core.js                   ${ROOT}/usr/local/share/autoroll/res/js/core.js
 ${INSTALL} --mode=644 -T ./res/vul/elements.html            ${ROOT}/usr/local/share/autoroll/res/vul/elements.html
 cp -r                    ./templates                        ${ROOT}/usr/local/share/autoroll/templates
+chmod 777 ${ROOT}/usr/local/share/autoroll/templates
+chmod 644 ${ROOT}/usr/local/share/autoroll/templates/*
 cp -r                    ./config                           ${ROOT}/usr/local/share/autoroll/config
+chmod 777 ${ROOT}/usr/local/share/autoroll/config
+chmod 644 ${ROOT}/usr/local/share/autoroll/config/*
 
 # /tmp/skia-autoroll-internal-config is created via the target setup-internal-config-repo.
 cp -r                    /tmp/skia-autoroll-internal-config ${ROOT}/usr/local/share/autoroll/internal-config
+chmod 777 ${ROOT}/usr/local/share/autoroll/internal-config
+chmod 644 ${ROOT}/usr/local/share/autoroll/internal-config/*
 }
 
 source ../bash/docker_build.sh
