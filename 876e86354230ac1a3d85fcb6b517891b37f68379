@@ -22,6 +22,30 @@
       "revId": "876e86354230ac1a3d85fcb6b517891b37f68379",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "322e1323_e6269997",
+        "filename": "kube/create-autoroll-be-fuchsia-internal-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-11T18:29:49Z",
+      "side": 1,
+      "message": "Hrm, yeah, this is copypasta.  Let me leave it in for this CL and I\u0027ll follow up with a cleanup to change them all, as well as move them into the autoroll dir.",
+      "parentUuid": "3e9056e1_d91ceac6",
+      "range": {
+        "startLine": 3,
+        "startChar": 47,
+        "endLine": 3,
+        "endChar": 55
+      },
+      "revId": "876e86354230ac1a3d85fcb6b517891b37f68379",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
