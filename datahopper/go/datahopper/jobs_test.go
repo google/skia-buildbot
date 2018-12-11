@@ -18,7 +18,7 @@ import (
 
 // Create a db.JobDB and jobEventDB.
 func setupJobs(t *testing.T, now time.Time) (*jobEventDB, db.JobDB) {
-	jdb := memory.NewInMemoryJobDB()
+	jdb := memory.NewInMemoryJobDB(nil)
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		db:     jdb,

@@ -64,15 +64,21 @@ type firestoreDB struct {
 // parameter is optional and indicates the path of a parent document to which
 // all collections within the DB will belong. If it is not supplied, then the
 // collections will be at the top level.
-func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource) (db.DBCloser, error) {
+func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) (db.DBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
 	}
+	if modTasks == nil {
+		modTasks = &modified.ModifiedTasksImpl{}
+	}
+	if modJobs == nil {
+		modJobs = &modified.ModifiedJobsImpl{}
+	}
 	return &firestoreDB{
 		client:        client,
-		ModifiedTasks: &modified.ModifiedTasksImpl{},
-		ModifiedJobs:  &modified.ModifiedJobsImpl{},
+		ModifiedTasks: modTasks,
+		ModifiedJobs:  modJobs,
 	}, nil
 }
 

@@ -33,7 +33,7 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *types.Task) {
 
 func TestTaskCache(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -74,7 +74,7 @@ func TestTaskCache(t *testing.T) {
 
 func TestTaskCacheKnownTaskName(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 	w, err := window.New(time.Hour, 0, nil)
 	assert.NoError(t, err)
 	c, err := NewTaskCache(d, w)
@@ -106,7 +106,7 @@ func TestTaskCacheKnownTaskName(t *testing.T) {
 
 func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 
 	// Pre-load a task into the DB.
 	timeStart := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -193,7 +193,7 @@ func TestTaskCacheGetTasksFromDateRange(t *testing.T) {
 
 func TestTaskCacheMultiRepo(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 
 	// Insert several tasks with different repos.
 	startTime := time.Now().Add(-30 * time.Minute)          // Arbitrary starting point.
@@ -256,7 +256,7 @@ func TestTaskCacheMultiRepo(t *testing.T) {
 
 func TestTaskCacheReset(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -301,7 +301,7 @@ func TestTaskCacheReset(t *testing.T) {
 
 func TestTaskCacheUnfinished(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 
 	// Insert a task.
 	startTime := time.Now().Add(-30 * time.Minute)
@@ -409,7 +409,7 @@ func assertTasksNotCached(t *testing.T, c TaskCache, tasks []*types.Task) {
 
 func TestTaskCacheExpiration(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryTaskDB()
+	d := memory.NewInMemoryTaskDB(nil)
 
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
@@ -545,7 +545,7 @@ func TestTaskCacheExpiration(t *testing.T) {
 
 func TestJobCache(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -582,7 +582,7 @@ func TestJobCache(t *testing.T) {
 
 func TestJobCacheTriggeredForCommit(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	// Insert several jobs with different repos.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -625,7 +625,7 @@ func testGetUnfinished(t *testing.T, expect []*types.Job, cache JobCache) {
 
 func TestJobCacheReset(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	// Pre-load a job into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
@@ -654,7 +654,7 @@ func TestJobCacheReset(t *testing.T) {
 
 func TestJobCacheUnfinished(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	// Insert a job.
 	startTime := time.Now().Add(-30 * time.Minute)
@@ -774,7 +774,7 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 
 func TestJobCacheExpiration(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)
@@ -860,7 +860,7 @@ func TestJobCacheExpiration(t *testing.T) {
 
 func TestJobCacheGetRevisionTimestampError(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	period := 10 * time.Minute
 	w, err := window.New(period, 0, nil)

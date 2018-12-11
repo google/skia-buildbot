@@ -111,7 +111,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	assert.NoError(t, err)
 	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
 	assert.NoError(t, err)
-	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"))
+	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"), nil, nil)
 	assert.NoError(t, err)
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{

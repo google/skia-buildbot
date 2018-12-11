@@ -15,9 +15,11 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/flakes"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -175,8 +177,18 @@ func addTaskAggregates(s *events.EventStream) error {
 }
 
 // StartTaskMetrics starts a goroutine which ingests metrics data based on Tasks.
-func StartTaskMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
-	db, err := remote_db.NewClient(taskSchedulerDbUrl, httputils.NewTimeoutClient())
+func StartTaskMetrics(ctx context.Context, taskSchedulerDbUrl, tasksTopic, jobsTopic string, ts oauth2.TokenSource) error {
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	label := "datahopper-task-metrics"
+	modTasks, err := pubsub.NewModifiedTasks(tasksTopic, label, ts)
+	if err != nil {
+		return err
+	}
+	modJobs, err := pubsub.NewModifiedJobs(jobsTopic, label, ts)
+	if err != nil {
+		return err
+	}
+	db, err := remote_db.NewClient(taskSchedulerDbUrl, c, modTasks, modJobs)
 	if err != nil {
 		return err
 	}

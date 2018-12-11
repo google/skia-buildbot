@@ -150,7 +150,7 @@ func TestPackUnpackV1(t *testing.T) {
 func makeDB(t *testing.T, name string) (db.BackupDBCloser, string) {
 	tmpdir, err := ioutil.TempDir("", name)
 	assert.NoError(t, err)
-	d, err := NewDB(name, filepath.Join(tmpdir, "task.db"))
+	d, err := NewDB(name, filepath.Join(tmpdir, "task.db"), nil, nil)
 	assert.NoError(t, err)
 	return d, tmpdir
 }
@@ -603,14 +603,6 @@ func TestLocalDBTaskDB(t *testing.T) {
 	db.TestTaskDB(t, d)
 }
 
-func TestLocalDBTaskDBTooManyUsers(t *testing.T) {
-	testutils.MediumTest(t)
-	d, tmpdir := makeDB(t, "TestLocalDBTaskDBTooManyUsers")
-	defer util.RemoveAll(tmpdir)
-	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBTooManyUsers(t, d)
-}
-
 func TestLocalDBTaskDBConcurrentUpdate(t *testing.T) {
 	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBTaskDBConcurrentUpdate")
@@ -665,14 +657,6 @@ func TestLocalDBJobDB(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 	db.TestJobDB(t, d)
-}
-
-func TestLocalDBJobDBTooManyUsers(t *testing.T) {
-	testutils.MediumTest(t)
-	d, tmpdir := makeDB(t, "TestLocalDBJobDBTooManyUsers")
-	defer util.RemoveAll(tmpdir)
-	defer testutils.AssertCloses(t, d)
-	db.TestJobDBTooManyUsers(t, d)
 }
 
 func TestLocalDBJobDBConcurrentUpdate(t *testing.T) {
