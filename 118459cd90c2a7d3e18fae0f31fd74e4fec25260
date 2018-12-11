@@ -1,0 +1,543 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "75df7a8d_be586e3c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Can you include a brief description of these booleans?  Of note, I only see one set to freshState in this file and no reads.",
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4579d9ea_4771e02c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Suggestion: call this gcsImagePath or getGCSImagePath",
+      "range": {
+        "startLine": 109,
+        "startChar": 32,
+        "endLine": 109,
+        "endChar": 44
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3fc2a0c_0f899ebb",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Let\u0027s be consistent about GCS, not GS",
+      "range": {
+        "startLine": 110,
+        "startChar": 36,
+        "endLine": 110,
+        "endChar": 44
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4d6a916_2f94f469",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "The name of this function is not intuitive to me.  An alternative is not clear to me either.",
+      "range": {
+        "startLine": 136,
+        "startChar": 3,
+        "endLine": 136,
+        "endChar": 16
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d56024b2_83c08c67",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "typo?  In any case, I\u0027m not sure what geresultStateFile should return, just from the name.",
+      "range": {
+        "startLine": 141,
+        "startChar": 42,
+        "endLine": 141,
+        "endChar": 44
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f87e291_483cf73f",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "I don\u0027t understand this comment.  Is the JSON a fast-path and if we load from there we are all done?",
+      "range": {
+        "startLine": 146,
+        "startChar": 4,
+        "endLine": 146,
+        "endChar": 77
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36bbf586_aea8ad90",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "instance?",
+      "range": {
+        "startLine": 151,
+        "startChar": 25,
+        "endLine": 151,
+        "endChar": 32
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2501711c_bd38157e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Dangling",
+      "range": {
+        "startLine": 177,
+        "startChar": 65,
+        "endLine": 177,
+        "endChar": 73
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7ba172d_3841ac3e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Is there an implementation of this in the main gold ingestion that this can re-use?",
+      "range": {
+        "startLine": 201,
+        "startChar": 5,
+        "endLine": 201,
+        "endChar": 21
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6f7585e_68e03918",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Is this really a stop everything failure?  What if its the first time and there are no known hashes?",
+      "range": {
+        "startLine": 256,
+        "startChar": 9,
+        "endLine": 256,
+        "endChar": 17
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c7c4bbc_6a15e332",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Add a comment \"If the state is not on disk, return a corresponding nil state\"",
+      "range": {
+        "startLine": 271,
+        "startChar": 9,
+        "endLine": 271,
+        "endChar": 8
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2683cf65_17b5059c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Delete?",
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f9957ed_a0a9f0e7",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Check to see if line is the correct length (maybe a regex for md5 too)?  Otherwise there may be corrupt data that sneaks in.",
+      "range": {
+        "startLine": 327,
+        "startChar": 5,
+        "endLine": 327,
+        "endChar": 15
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9a5d12b_1d3b1643",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "If there is only one place expsIssueTmpl and expsTmpl are used, perhaps bundle the %s in with them.",
+      "range": {
+        "startLine": 338,
+        "startChar": 20,
+        "endLine": 338,
+        "endChar": 25
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "989ebc92_9c6d6b2d",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Why not defer util.Close(resp.Body) ?",
+      "range": {
+        "startLine": 347,
+        "startChar": 16,
+        "endLine": 347,
+        "endChar": 37
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e70cc25_8e3fc1b1",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "I would add a comment: \"As a reminder, the time-based folder is just to help the humans look up data after the fact and prevent duplication of filename. If the time isn\u0027t exact or out of sync with other machines, that will not impede Gold\u0027s ingestion.\"",
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ad829d0_73673984",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Two things: If you are using fmt.Sprintf, I don\u0027t think you need FormatInt also?\n\nWhy divide by milliseconds?  Why not just use UnixNano directly?  If the goal is to prevent duplicates, wouldn\u0027t UnixNano provide the most \"entropy\" and \"uniqueness\"?",
+      "range": {
+        "startLine": 357,
+        "startChar": 45,
+        "endLine": 357,
+        "endChar": 106
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12c0b228_fda5649b",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Some of your WriteFile use 0644 and others 0600.  Why the differences?  Consider making a few consts like \"const PERM_PRIVATE \u003d 0600\" or something more descriptive if there are categories that you want to keep the same.",
+      "range": {
+        "startLine": 21,
+        "startChar": 53,
+        "endLine": 21,
+        "endChar": 57
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc33925d_4b986780",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "nit: dst for destination is what I typically see for such a variable name.",
+      "range": {
+        "startLine": 36,
+        "startChar": 21,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f3cba46_df16a0d2",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "I might make goldctl take a param that specifies where gsutil is.\n\nI might also make goldctl fail earlier (like, during init) if gsutil is not found on PATH.  An alternative would be to have a --test flag that makes sure gsutil is found and reachable.",
+      "range": {
+        "startLine": 37,
+        "startChar": 25,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a10752af_b5032eb4",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "This appears to be silent unless it errors.  Would it make sense to log \"Uploading ${src} to ${dst}\" so, if something gets stuck or fails, its easier to diagnose?",
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e46c82fa_444d4333",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "How does it handle baselines?  Like, downloading them?  Removing old ones?  A high level overview of what Baseliner does (and what a Baseline is) would be nice. go.skia.org/infra/golden/go/baseline did not explain what a Baseline really was.",
+      "range": {
+        "startLine": 16,
+        "startChar": 35,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9348f8d3_c56318ff",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "Unimplemented for now?  Same question for line 77.",
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25742fc7_7502f7c6",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "unneeded?",
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11a3d6ea_5171ac1a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 1031,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-11T13:09:12Z",
+      "side": 1,
+      "message": "extract",
+      "range": {
+        "startLine": 1031,
+        "startChar": 60,
+        "endLine": 1031,
+        "endChar": 68
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
