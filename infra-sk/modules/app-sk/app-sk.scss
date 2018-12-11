@@ -1,26 +1,33 @@
-/* By default, the app-sk does not include this scss.  It is up to the client to import
-it as part of their scss files, after they have set any variables they like.
+@import url(~elements-sk/colors.css);
 
-For example, in your app's scss, do something like:
+/*
 
-$header-background-color: #5ba17f;
-$sidebar-width: 250px !default
+To style app-sk you can change the values of the CSS variables:
 
-@import '~common/app-sk/app-sk';
+
+  app-sk {
+    --header-background-color: #5ba17f;
+    --sidebar-width: 250px;
+  }
+
+Note that app-sk is more specific than :root so the above variables will
+over-ride the defaults regardless of the processing order of the CSS files.
 
 */
 
-$sidebar-width: 200px !default;
-$sidebar-horiz-padding: 5px !default;
-$sidebar-background-color: #FFF !default;
+:root {
+  --sidebar-width: 200px;
+  --sidebar-horiz-padding: 5px;
+  --sidebar-background-color: var(--white);
 
-$header-height: 50px !default;
-$header-background-color: #1F78B4 !default;
-$header-font-color: #FFF !default;
+  --header-height: 50px;
+  --header-background-color: var(--blue);
+  --header-font-color: var(--white);
 
-$content-horiz-padding: 5px !default
+  --content-horiz-padding: 5px;
 
-$footer-height: 0 !default;
+  --footer-height: 0;
+}
 
 body {
   margin: 0;
@@ -29,18 +36,18 @@ body {
 
 app-sk {
   display: grid;
-  grid-template-columns: $sidebar-width 1fr;
-  grid-template-rows: $header-height 1fr $footer-height;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr var(--footer-height);
 }
 
 app-sk > {
   header {
-    background: $header-background-color;
+    background: var(--header-background-color);
     padding: 0 .5em;
     display: flex;
     flex-flow: row;
     justify-content: flex-start;
-    color: $header-font-color;
+    color: var(--header-font-color);
 
     grid-column: 1 / span 2;
     grid-row: 1;
@@ -52,16 +59,16 @@ app-sk > {
 
   aside {
     border-right: 1px solid #ddd;
-    padding: 0 $sidebar-horiz-padding;
+    padding: 0 var(--sidebar-horiz-padding);
     z-index: 2;
-    background-color: $sidebar-background-color;
+    background-color: var(--sidebar-background-color);
 
     grid-column: 1;
     grid-row: 2;
   }
 
   main {
-    padding: 0 $content-horiz-padding;
+    padding: 0 var(--content-horiz-padding);
     overflow-y: auto;
 
     grid-row: 2;
@@ -95,7 +102,7 @@ app-sk > {
        the transitions will make it slide between the two states. */
     aside {
       position: relative;
-      left: -$sidebar-width - 2*$sidebar-horiz-padding;
+      left: calc(-var(--sidebar-width) - 2*var(--sidebar-horiz-padding));
       transition: 0.5s;
     }
 

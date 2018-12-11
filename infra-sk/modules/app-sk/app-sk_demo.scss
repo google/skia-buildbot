@@ -1,11 +1,3 @@
-
-$header-background-color: #5ba17f;
-$sidebar-width: 250px !default
-
-/* Import this after setting the above variables
-to let the values properly propagate */
-@import '~../app-sk/app-sk';
-
 .no-decorate {
   list-style-type: none;
   padding-left: 10px;
@@ -18,4 +10,9 @@ to let the values properly propagate */
 
 .narrow {
   width: 20vw;
+}
+
+app-sk {
+  --header-background-color: #5ba17f;
+  --sidebar-width: 250px;
 }
