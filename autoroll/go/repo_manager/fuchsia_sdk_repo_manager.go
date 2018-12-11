@@ -100,9 +100,11 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 	}
 
 	rv := &fuchsiaSDKRepoManager{
-		gcsClient:     gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
-		gsBucket:      FUCHSIA_SDK_GS_BUCKET,
-		storageClient: storageClient,
+		gcsClient:        gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
+		gsBucket:         FUCHSIA_SDK_GS_BUCKET,
+		storageClient:    storageClient,
+		versionFileLinux: FUCHSIA_SDK_VERSION_FILE_PATH_LINUX,
+		versionFileMac:   FUCHSIA_SDK_VERSION_FILE_PATH_MAC,
 	}
 
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.buildCommitMessage, rv.updateHelper, local)
@@ -132,7 +134,7 @@ func (rm *fuchsiaSDKRepoManager) buildCommitMessage(from, to, serverURL, cqExtra
 func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strategy.NextRollStrategy, parentRepo *gitiles.Repo, baseCommit string) (string, string, int, map[string]string, error) {
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
-	if err := parentRepo.ReadFileAtRef(FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, baseCommit, buf); err != nil {
+	if err := parentRepo.ReadFileAtRef(rm.versionFileLinux, baseCommit, buf); err != nil {
 		return "", "", 0, nil, err
 	}
 	lastRollRevLinuxStr := strings.TrimSpace(buf.String())
@@ -198,8 +200,8 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 
 	rm.versions = availableVersions
 	return lastRollRevLinuxStr, nextRollRevLinuxStr, commitsNotRolled, map[string]string{
-		FUCHSIA_SDK_VERSION_FILE_PATH_LINUX: nextRollRevLinuxStr,
-		FUCHSIA_SDK_VERSION_FILE_PATH_MAC:   nextRollRevMacStr,
+		rm.versionFileLinux: nextRollRevLinuxStr,
+		rm.versionFileMac:   nextRollRevMacStr,
 	}, nil
 }
 

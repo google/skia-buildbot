@@ -1,10 +1,14 @@
 package fileutil
 
 import (
+	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -39,4 +43,44 @@ func TestCountLines(t *testing.T) {
 	lines, err = CountLines(filepath.Join(TEST_DATA_DIR, "non_existant.txt"))
 	assert.NotNil(t, err)
 	assert.Equal(t, -1, lines)
+}
+
+func TestReadAllFilesRecursive(t *testing.T) {
+	testutils.LargeTest(t)
+
+	test := func(write, expect map[string]string, excludeDirs []string) {
+		wd, err := ioutil.TempDir("", "")
+		assert.NoError(t, err)
+		for k, v := range write {
+			dir := path.Dir(k)
+			if dir != "" {
+				assert.NoError(t, os.MkdirAll(path.Join(wd, dir), os.ModePerm))
+			}
+			assert.NoError(t, ioutil.WriteFile(path.Join(wd, k), []byte(v), os.ModePerm))
+		}
+		actual, err := ReadAllFilesRecursive(wd, excludeDirs)
+		assert.NoError(t, err)
+		expectBytes := make(map[string][]byte, len(expect))
+		for k, v := range expect {
+			expectBytes[k] = []byte(v)
+		}
+		deepequal.AssertDeepEqual(t, expectBytes, actual)
+	}
+	test(nil, map[string]string{}, nil)
+	test(map[string]string{
+		"somefile": "contents",
+	}, map[string]string{
+		"somefile": "contents",
+	}, nil)
+	test(map[string]string{
+		"a/b/c": "contents",
+	}, map[string]string{
+		"a/b/c": "contents",
+	}, nil)
+	test(map[string]string{
+		"a/file": "contents",
+		"b/file": "contents",
+	}, map[string]string{
+		"b/file": "contents",
+	}, []string{"a"})
 }

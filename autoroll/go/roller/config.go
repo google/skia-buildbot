@@ -160,17 +160,18 @@ type AutoRollerConfig struct {
 	Google3Review *codereview.Google3Config `json:"google3Review,omitempty"`
 
 	// RepoManager configs. Exactly one must be provided.
-	AFDORepoManager           *repo_manager.AFDORepoManagerConfig           `json:"afdoRepoManager,omitempty"`
-	AndroidRepoManager        *repo_manager.AndroidRepoManagerConfig        `json:"androidRepoManager,omitempty"`
-	AssetRepoManager          *repo_manager.AssetRepoManagerConfig          `json:"assetRepoManager,omitempty"`
-	CopyRepoManager           *repo_manager.CopyRepoManagerConfig           `json:"copyRepoManager,omitempty"`
-	DEPSRepoManager           *repo_manager.DEPSRepoManagerConfig           `json:"depsRepoManager,omitempty"`
-	FuchsiaSDKRepoManager     *repo_manager.FuchsiaSDKRepoManagerConfig     `json:"fuchsiaSDKRepoManager,omitempty"`
-	GithubRepoManager         *repo_manager.GithubRepoManagerConfig         `json:"githubRepoManager,omitempty"`
-	GithubDEPSRepoManager     *repo_manager.GithubDEPSRepoManagerConfig     `json:"githubDEPSRepoManager,omitempty"`
-	Google3RepoManager        *Google3FakeRepoManagerConfig                 `json:"google3,omitempty"`
-	ManifestRepoManager       *repo_manager.ManifestRepoManagerConfig       `json:"manifestRepoManager,omitempty"`
-	NoCheckoutDEPSRepoManager *repo_manager.NoCheckoutDEPSRepoManagerConfig `json:"noCheckoutDEPSRepoManager,omitempty"`
+	AFDORepoManager              *repo_manager.AFDORepoManagerConfig              `json:"afdoRepoManager,omitempty"`
+	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
+	AssetRepoManager             *repo_manager.AssetRepoManagerConfig             `json:"assetRepoManager,omitempty"`
+	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
+	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
+	FuchsiaSDKAndroidRepoManager *repo_manager.FuchsiaSDKAndroidRepoManagerConfig `json:"fuchsiaSDKAndroidRepoManager,omitempty"`
+	FuchsiaSDKRepoManager        *repo_manager.FuchsiaSDKRepoManagerConfig        `json:"fuchsiaSDKRepoManager,omitempty"`
+	GithubRepoManager            *repo_manager.GithubRepoManagerConfig            `json:"githubRepoManager,omitempty"`
+	GithubDEPSRepoManager        *repo_manager.GithubDEPSRepoManagerConfig        `json:"githubDEPSRepoManager,omitempty"`
+	Google3RepoManager           *Google3FakeRepoManagerConfig                    `json:"google3,omitempty"`
+	ManifestRepoManager          *repo_manager.ManifestRepoManagerConfig          `json:"manifestRepoManager,omitempty"`
+	NoCheckoutDEPSRepoManager    *repo_manager.NoCheckoutDEPSRepoManagerConfig    `json:"noCheckoutDEPSRepoManager,omitempty"`
 
 	// Kubernetes config.
 	// TODO(borenet): Optional right now, but will eventually be required.
@@ -251,6 +252,9 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.DEPSRepoManager != nil {
 		rm = append(rm, c.DEPSRepoManager)
+	}
+	if c.FuchsiaSDKAndroidRepoManager != nil {
+		rm = append(rm, c.FuchsiaSDKAndroidRepoManager)
 	}
 	if c.FuchsiaSDKRepoManager != nil {
 		rm = append(rm, c.FuchsiaSDKRepoManager)
