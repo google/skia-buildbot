@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -514,7 +515,12 @@ func main() {
 	common.Init()
 
 	ts, err := auth.NewDefaultTokenSource(*local)
-	d, err := firestore.NewDB(context.Background(), "skia-firestore", "busywork-borenet-2018-11-09", ts)
+	hostname, err := os.Hostname()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	id := fmt.Sprintf("busywork_%s", hostname)
+	d, err := firestore.NewDB(context.Background(), "skia-firestore", id, ts, nil, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

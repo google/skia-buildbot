@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 type entry struct {
@@ -218,7 +220,11 @@ type taskClient struct {
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
 // ModifiedTasks, unique to each instance.
-func NewModifiedTasks(c *pubsub.Client, topic, label string) (db.ModifiedTasks, error) {
+func NewModifiedTasks(topic, label string, ts oauth2.TokenSource) (db.ModifiedTasks, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
 	mc, err := newModifiedClient(c, topic, label)
 	if err != nil {
 		return nil, err
@@ -283,7 +289,11 @@ type jobClient struct {
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
 // ModifiedJobs, unique to each instance.
-func NewModifiedJobs(c *pubsub.Client, topic, label string) (db.ModifiedJobs, error) {
+func NewModifiedJobs(topic, label string, ts oauth2.TokenSource) (db.ModifiedJobs, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
 	mc, err := newModifiedClient(c, topic, label)
 	if err != nil {
 		return nil, err
