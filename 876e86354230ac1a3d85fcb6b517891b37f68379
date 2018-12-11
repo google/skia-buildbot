@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3e9056e1_d91ceac6",
+        "filename": "kube/create-autoroll-be-fuchsia-internal-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-11T18:26:30Z",
+      "side": 1,
+      "message": "Nit: It is used by AutoRoll backend. Though I think all create-autoroll-be-*-sa.sh has this.",
+      "range": {
+        "startLine": 3,
+        "startChar": 47,
+        "endLine": 3,
+        "endChar": 55
+      },
+      "revId": "876e86354230ac1a3d85fcb6b517891b37f68379",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
