@@ -1,11 +1,11 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 skottie-sk {
   display: block;
 
   header {
-    background: #1f78b4;
-    color: white;
+    background: var(--blue);
+    color: var(--white);
     padding: 0.5em;
     margin: 0;
     display: flex;
@@ -30,7 +30,7 @@ skottie-sk {
   }
 
   header span a {
-    color: white;
+    color: var(--white);
   }
 
   spinner-sk[active] {
@@ -45,7 +45,7 @@ skottie-sk {
 
   figure canvas,
   figure div {
-    border: solid lightgray 1px;
+    border: solid var(--light-gray) 1px;
     margin: 0 auto;
   }
 
@@ -97,7 +97,7 @@ skottie-sk {
   .download,
   .download a {
     display: inline-block;
-    color: $blue;
+    color: var(--blue);
   }
 
   .download a {
@@ -110,7 +110,7 @@ skottie-sk {
 
   .embed input {
     padding: 0.2em;
-    border: solid lightblue 1px;
+    border: solid var(--light-blue) 1px;
     margin: 0.6em;
   }
 

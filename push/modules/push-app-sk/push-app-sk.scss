@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 body {
   margin: 0;
@@ -8,7 +8,7 @@ body {
 push-app-sk {
   a:visited,
   a {
-    color: $blue;
+    color: var(--blue);
   }
 
   main {
@@ -18,8 +18,8 @@ push-app-sk {
   header {
     margin: 0;
     padding: 0.2em 1em;
-    color: white;
-    background: $blue;
+    color: var(--white);
+    background: var(--blue);
     display: flex;
     flex-direction: row;
     justify-content: space-between;

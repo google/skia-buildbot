@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 skottie-player-sk {
   display: inline-block;
@@ -47,7 +47,7 @@ skottie-player-sk {
     left: 50%;
     transform: translateX(-50%);
     padding: 0px;
-    background: rgba(128, 128, 128, .50);
+    background: var(--light-gray);
     transition: bottom .25s ease-in;
   }
 
@@ -64,7 +64,7 @@ skottie-player-sk {
   width: calc(100% - 60px);
   height: 10px;
   vertical-align: middle;
-  background: #e3e3e3;
+  background: var(--light-gray);
   margin: 0;
   padding: 0;
   border: 0;
@@ -75,7 +75,7 @@ skottie-player-sk {
   right: 0px;
   bottom: 0px;
   width: 200px;
-  background-color: rgba(64, 64, 64, .75);
+  background-color: var(--gray);
   z-index: 3;
   margin: 0;
   padding: 0;
@@ -96,7 +96,7 @@ skottie-player-sk {
 .skottie-player-settings-label {
   text-align: left;
   font-family: sans-serif;
-  color: white;
+  color: var(--white);
   margin: 0;
   padding: 0 0 5px 0;
   border: 0;

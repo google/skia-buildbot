@@ -1,4 +1,4 @@
-@import url(~infra-sk/modules/colors.scss);
+@import url(~elements-sk/colors.css);
 
 named-edit-sk {
   dialog-sk {
@@ -27,7 +27,7 @@ named-edit-sk {
     margin: 0;
     padding: 0.6em;
     background: var(--blue);
-    color: #f8f8f8;
+    color: var(--dark-white);
   }
 }
 

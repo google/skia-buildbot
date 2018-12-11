@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 body {
   margin: 0;
@@ -13,8 +13,8 @@ power-index-sk {
   header {
     margin: 0;
     padding: 1em 0.5em;
-    color: white;
-    background: $purple;
+    color: var(--white);
+    background: var(--blue);
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -26,7 +26,7 @@ power-index-sk {
     margin-left: 5px;
   }
   td, th {
-    border: 1px solid #DDD;
+    border: 1px solid var(--dark-white);
     padding: 5px;
   }
   th {
