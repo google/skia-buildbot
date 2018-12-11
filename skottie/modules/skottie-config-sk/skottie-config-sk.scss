@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 skottie-config-sk {
   display: block;
@@ -6,14 +6,14 @@ skottie-config-sk {
   // TODO(jcgregorio) Add a .button-like class to elements-sk to avoid the copy-paste.
   label.file {
     min-width: 5.14em;
-    background-color: #fff;
-    color: #175A87;
-    fill: #175A87;
+    background-color: var(--white);
+    color: var(--blue);
+    fill: var(--blue);
     text-align: center;
     outline: none;
     border-radius: 4px;
     padding: 0.6em 1.2em;
-    border: solid lightgray 1px;
+    border: solid var(--light-gray) 1px;
     margin: 0.6em;
     height: 3em;
     transition: box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -26,7 +26,7 @@ skottie-config-sk {
   }
 
   .filename {
-    border: solid lightgray 1px;
+    border: solid var(--light-gray) 1px;
     padding: 0.4em;
     margin: 0.6em;
     display: inline-block;
@@ -42,7 +42,7 @@ skottie-config-sk {
   input[type=number] {
     margin-right: 0.6em;
     padding: 0.3em;
-    border: solid lightgray 1px;
+    border: solid var(--light-gray) 1px;
   }
 
   label.number {
@@ -62,6 +62,6 @@ skottie-config-sk {
 
   .warning p {
     font-weight: bold;
-    color: $red;
+    color: var(--red);
   }
 }
