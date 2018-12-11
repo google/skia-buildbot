@@ -31,7 +31,7 @@ const (
 	fuchsiaSDKTimeBase = "2009-11-10T23:00:02Z"
 	fuchsiaSDKTimeNext = "2009-11-10T23:00:03Z"
 
-	fuchsiaSDKArchiveUrlTmpl = "https://storage.googleapis.com/fuchsia/sdk/%s/%s"
+	fuchsiaSDKArchiveUrlTmpl = "https://storage.googleapis.com/fuchsia/sdk/core/%s/%s"
 )
 
 var (
