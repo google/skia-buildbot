@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 incident-sk {
   display: block;
@@ -38,7 +38,7 @@ incident-sk {
   }
 
   p {
-    background: #eee;
+    background: var(--white);
     padding: 0.5em;
     display: block;
     border-radius: 0.5em;
@@ -99,5 +99,5 @@ incident-sk[minimized][params] .params {
 
 incident-sk[minimized] {
   margin: 1em;
-  background: #f8f8f8;
+  background: var(--dark-white);
 }
