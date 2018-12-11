@@ -47,7 +47,7 @@
       }
     ]
   },
-  "maxRollFrequency": "0m",
+  "maxRollFrequency": "3h",
   "notifiers": [
     {
       "filter": "info",
