@@ -3,7 +3,7 @@
 # Creates the flutter-engine-ssh-key secret.
 
 set -e -x
-source ./config.sh
+source ../kube/config.sh
 
 if [ "$#" -ne 1 ]; then
   echo "The argument must point to the id_rsa file."

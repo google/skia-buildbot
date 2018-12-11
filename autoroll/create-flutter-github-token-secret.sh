@@ -3,7 +3,7 @@
 # Creates the flutter-github-token secret.
 
 set -e -x
-source ./config.sh
+source ../kube/config.sh
 source ../bash/ramdisk.sh
 
 if [ "$#" -ne 1 ]; then

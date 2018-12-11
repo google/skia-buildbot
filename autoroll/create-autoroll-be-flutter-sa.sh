@@ -1,14 +1,14 @@
 #/bin/bash
 
-# Creates the service account used by AutoRoll Frontend, and export a key for it
+# Creates the service account used by AutoRoll Backend, and export a key for it
 # into the kubernetes cluster as a secret.
 
 set -e -x
-source ./config.sh
+source ../kube/config.sh
 source ../bash/ramdisk.sh
 
 # New service account we will create.
-SA_NAME="flutter-engine-autoroll"
+SA_NAME="flutter-autoroll"
 SA_EMAIL="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
 cd /tmp/ramdisk
