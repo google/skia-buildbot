@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 alert-manager-sk {
   spinner-sk[active] {
@@ -36,7 +36,7 @@ alert-manager-sk {
   }
 
   h2.selected {
-    background: #eee;
+    background: var(--white);
   }
 
   h2.silenced {
@@ -67,12 +67,12 @@ alert-manager-sk {
 
   tabs-sk {
     padding: 5px 0 0 5px;
-    border-bottom: solid var(--dark-blue) 3px;
+    border-bottom: solid var(--blue) 3px;
 
     button {
       border: none;
-      background: white;
-      color: #333;
+      background: var(--white);
+      color: var(--gray);
      }
   }
 
