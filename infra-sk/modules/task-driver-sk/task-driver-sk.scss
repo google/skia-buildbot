@@ -1,10 +1,14 @@
-@import '../colors';
+@import url(~elements-sk/colors.css);
 
 task-driver-sk {
+  a {
+    color: var(--blue);
+  }
+
   div.step {
     border-style: solid;
     border-width: 0px 0px 1px 5px;
-    border-bottom-color: #EEEEEE;
+    border-bottom-color: var(--light-gray);
     font-family: sans-serif;
     margin: 2px;
     padding: 10px;
@@ -78,16 +82,16 @@ task-driver-sk {
   }
 
   tr {
-    border-bottom: 1px solid #EEEEEE;
+    border-bottom: 1px solid var(--gray);
     display: table-row;
   }
 
   tr:hover {
-    background-color: #F5F5F5;
+    background-color: var(--dark-white);
   }
 
   tr:hover tr:hover {
-    background-color: #FFFFFF;
+    background-color: var(--white);
   }
 
   tr-container {
@@ -105,7 +109,7 @@ task-driver-sk {
   }
 
   th {
-    color: #767676;
+    color: var(--gray);
     font-size: 0.75em;
   }
 
