@@ -21,6 +21,7 @@ import (
 	"time"
 	"unicode"
 
+	"cloud.google.com/go/bigtable"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -39,6 +40,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -99,6 +101,8 @@ var (
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
+	pubsubTopicTasks            = flag.String("pubsub_topic_tasks", pubsub.TOPIC_TASKS, "Pubsub topic for tasks.")
+	pubsubTopicJobs             = flag.String("pubsub_topic_jobs", pubsub.TOPIC_JOBS, "Pubsub topic for jobs.")
 
 	repos repograph.Map
 )
@@ -688,7 +692,7 @@ func main() {
 	}
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.ReadonlyScope, pubsub.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -703,15 +707,14 @@ func main() {
 
 	// Create remote Tasks DB.
 	if *testing {
-		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"))
+		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"), nil, nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create local task DB: %s", err)
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		// remote_db relies on non-2xx status codes to communicate errors.
-		remoteDbClient := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, remoteDbClient)
+		label := *host
+		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicTasks, *pubsubTopicJobs, label, ts)
 		if err != nil {
 			sklog.Fatalf("Failed to create remote task DB: %s", err)
 		}

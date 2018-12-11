@@ -17,7 +17,7 @@ import (
 
 // Create a db.TaskDB and taskEventDB.
 func setupTasks(t *testing.T, now time.Time) (*taskEventDB, db.TaskDB) {
-	tdb := memory.NewInMemoryTaskDB()
+	tdb := memory.NewInMemoryTaskDB(nil)
 	edb := &taskEventDB{
 		cached: []*events.Event{},
 		db:     tdb,

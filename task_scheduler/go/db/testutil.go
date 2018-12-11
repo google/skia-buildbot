@@ -34,6 +34,44 @@ const (
 // This is necessary to break the hard linking of this file to the "testing" module.
 var AssertDeepEqual func(t testutils.TestingT, expected, actual interface{})
 
+func findModifiedTasks(t testutils.TestingT, m ModifiedTasksReader, id string, expect ...*types.Task) {
+	// Note that the slice only works because we don't call
+	// TrackModifiedTask more than once for any given task,
+	// otherwise we'd have to use a map and compare DbModified.
+	actual := []*types.Task{}
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		tasks, err := m.GetModifiedTasks(id)
+		assert.NoError(t, err)
+		actual = append(actual, tasks...)
+		if len(actual) != len(expect) {
+			time.Sleep(100 * time.Millisecond)
+			return testutils.TryAgainErr
+		}
+		sort.Sort(types.TaskSlice(actual))
+		deepequal.AssertDeepEqual(t, expect, actual)
+		return nil
+	}))
+}
+
+func findModifiedJobs(t testutils.TestingT, m ModifiedJobsReader, id string, expect ...*types.Job) {
+	// Note that the slice only works because we don't call
+	// TrackModifiedJob more than once for any given job, otherwise
+	// we'd have to use a map and compare DbModified.
+	actual := []*types.Job{}
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		jobs, err := m.GetModifiedJobs(id)
+		assert.NoError(t, err)
+		actual = append(actual, jobs...)
+		if len(actual) != len(expect) {
+			time.Sleep(100 * time.Millisecond)
+			return testutils.TryAgainErr
+		}
+		sort.Sort(types.JobSlice(actual))
+		deepequal.AssertDeepEqual(t, expect, actual)
+		return nil
+	}))
+}
+
 // TestTaskDB performs basic tests for an implementation of TaskDB.
 func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	_, err := db.GetModifiedTasks("dummy-id")
@@ -79,9 +117,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	AssertDeepEqual(t, t1, t1Again)
 
 	// Ensure that the task shows up in the modified list.
-	tasks, err = db.GetModifiedTasks(id)
-	assert.NoError(t, err)
-	AssertDeepEqual(t, []*types.Task{t1}, tasks)
+	findModifiedTasks(t, db, id, t1)
 
 	// Ensure that the task shows up in the correct date ranges.
 	t1Before := t1.Created
@@ -111,9 +147,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	assert.Equal(t, url.QueryEscape(t3.Id), t3.Id)
 
 	// Ensure that both tasks show up in the modified list.
-	tasks, err = db.GetModifiedTasks(id)
-	assert.NoError(t, err)
-	AssertDeepEqual(t, []*types.Task{t2, t3}, tasks)
+	findModifiedTasks(t, db, id, t2, t3)
 
 	// Make an update to t1 and t2. Ensure modified times change.
 	t2LastModified := t2.DbModified
@@ -124,9 +158,7 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	assert.False(t, t2.DbModified.Equal(t2LastModified))
 
 	// Ensure that both tasks show up in the modified list.
-	tasks, err = db.GetModifiedTasks(id)
-	assert.NoError(t, err)
-	AssertDeepEqual(t, []*types.Task{t1, t2}, tasks)
+	findModifiedTasks(t, db, id, t1, t2)
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
@@ -188,17 +220,6 @@ func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	tasks, err = db.GetTasksFromDateRange(t3After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Task{}, tasks)
-}
-
-// Test that a TaskDB properly tracks its maximum number of users.
-func TestTaskDBTooManyUsers(t testutils.TestingT, db TaskDB) {
-	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
-		_, err := db.StartTrackingModifiedTasks()
-		assert.NoError(t, err)
-	}
-	_, err := db.StartTrackingModifiedTasks()
-	assert.True(t, IsTooManyUsers(err))
 }
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
@@ -647,9 +668,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	AssertDeepEqual(t, j1, j1Again)
 
 	// Ensure that the job shows up in the modified list.
-	jobs, err = db.GetModifiedJobs(id)
-	assert.NoError(t, err)
-	AssertDeepEqual(t, []*types.Job{j1}, jobs)
+	findModifiedJobs(t, db, id, j1)
 
 	// Ensure that the job shows up in the correct date ranges.
 	timeStart := util.TimeUnixZero
@@ -680,9 +699,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.Equal(t, url.QueryEscape(j3.Id), j3.Id)
 
 	// Ensure that both jobs show up in the modified list.
-	jobs, err = db.GetModifiedJobs(id)
-	assert.NoError(t, err)
-	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
+	findModifiedJobs(t, db, id, j2, j3)
 
 	// Make an update to j1 and j2. Ensure modified times change.
 	j2LastModified := j2.DbModified
@@ -693,9 +710,7 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	assert.False(t, j2.DbModified.Equal(j2LastModified))
 
 	// Ensure that both jobs show up in the modified list.
-	jobs, err = db.GetModifiedJobs(id)
-	assert.NoError(t, err)
-	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
+	findModifiedJobs(t, db, id, j1, j2)
 
 	// Ensure that all jobs show up in the correct time ranges, in sorted order.
 	j2Before := j2.Created
@@ -1497,25 +1512,7 @@ func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
 	m.TrackModifiedTask(t1)
 
 	// Ensure that the task shows up in the modified list.
-	check := func(expect ...*types.Task) {
-		// Note that the slice only works because we don't call
-		// TrackModifiedTask more than once for any given task,
-		// otherwise we'd have to use a map and compare DbModified.
-		actual := []*types.Task{}
-		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-			tasks, err = m.GetModifiedTasks(id)
-			assert.NoError(t, err)
-			actual = append(actual, tasks...)
-			if len(actual) != len(expect) {
-				time.Sleep(100 * time.Millisecond)
-				return testutils.TryAgainErr
-			}
-			sort.Sort(types.TaskSlice(actual))
-			deepequal.AssertDeepEqual(t, expect, actual)
-			return nil
-		}))
-	}
-	check(t1)
+	findModifiedTasks(t, m, id, t1)
 
 	// Insert two more tasks.
 	t2 := types.MakeTestTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
@@ -1526,7 +1523,7 @@ func TestModifiedTasks(t testutils.TestingT, m ModifiedTasks) {
 	m.TrackModifiedTask(t3)
 
 	// Ensure that both tasks show up in the modified list.
-	check(t2, t3)
+	findModifiedTasks(t, m, id, t2, t3)
 
 	// Check StopTrackingModifiedTasks.
 	m.StopTrackingModifiedTasks(id)
@@ -1600,25 +1597,7 @@ func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
 	m.TrackModifiedJob(j1)
 
 	// Ensure that the job shows up in the modified list.
-	check := func(expect ...*types.Job) {
-		// Note that the slice only works because we don't call
-		// TrackModifiedJob more than once for any given job, otherwise
-		// we'd have to use a map and compare DbModified.
-		actual := []*types.Job{}
-		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
-			jobs, err = m.GetModifiedJobs(id)
-			assert.NoError(t, err)
-			actual = append(actual, jobs...)
-			if len(actual) != len(expect) {
-				time.Sleep(100 * time.Millisecond)
-				return testutils.TryAgainErr
-			}
-			sort.Sort(types.JobSlice(actual))
-			deepequal.AssertDeepEqual(t, expect, actual)
-			return nil
-		}))
-	}
-	check(j1)
+	findModifiedJobs(t, m, id, j1)
 
 	// Insert two more jobs.
 	j2 := types.MakeTestJob(time.Unix(0, 1470674376000000))
@@ -1629,7 +1608,7 @@ func TestModifiedJobs(t testutils.TestingT, m ModifiedJobs) {
 	m.TrackModifiedJob(j3)
 
 	// Ensure that both jobs show up in the modified list.
-	check(j2, j3)
+	findModifiedJobs(t, m, id, j2, j3)
 
 	// Check StopTrackingModifiedJobs.
 	m.StopTrackingModifiedJobs(id)
