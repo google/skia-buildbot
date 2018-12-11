@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03e060a7_586c8623",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-11T16:30:12Z",
+      "side": 1,
+      "message": "I\u0027m not sure this is necessary, the ellipses indicate that there\u0027s more to the message but for whatever reason we didn\u0027t include it all.  Is there a link to the full log in the message?",
+      "range": {
+        "startLine": 323,
+        "startChar": 40,
+        "endLine": 323,
+        "endChar": 100
+      },
+      "revId": "03688da96cda2b28cba29221754af1e0508c885c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
