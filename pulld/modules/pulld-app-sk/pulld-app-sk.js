@@ -10,7 +10,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import 'infra-sk/modules/systemd-unit-status-sk'
 
 const listUnits = (ele) =>  ele._units.map(
-  unit => html`<systemd-unit-status-sk machine="${ele._hostname}" value=${unit}></systemd-unit-status-sk>`
+  unit => html`<systemd-unit-status-sk machine="${ele._hostname}" .value=${unit}></systemd-unit-status-sk>`
 );
 
 const template = (ele) => html`
