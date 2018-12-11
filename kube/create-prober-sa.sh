@@ -1,6 +1,6 @@
 #/bin/bash
 
-# Creates the service account used by AutoRoll Frontend, and export a key for it
+# Creates the service account used by Prober, and export a key for it
 # into the kubernetes cluster as a secret.
 
 set -e -x

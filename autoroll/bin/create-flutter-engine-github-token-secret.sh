@@ -1,20 +1,20 @@
 #/bin/bash
 
-# Creates the flutter-github-token secret.
+# Creates the flutter-engine-github-token secret.
 
 set -e -x
-source ./config.sh
+source ../../kube/config.sh
 source ../bash/ramdisk.sh
 
 if [ "$#" -ne 1 ]; then
   echo "The argument must be the github token."
   echo ""
-  echo "./create-flutter-github-token-secret.sh xyz"
+  echo "./create-flutter-engine-github-token-secret.sh xyz"
   exit 1
 fi
 
 SECRET_VALUE=$1
-SECRET_NAME="flutter-github-token"
+SECRET_NAME="flutter-engine-github-token"
 ORIG_WD=$(pwd)
 
 cd /tmp/ramdisk

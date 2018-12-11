@@ -4,7 +4,7 @@
 # autoroller.
 
 set -e -x
-source ./config.sh
+source ../../kube/config.sh
 source ../bash/ramdisk.sh
 
 SECRET_NAME="autoroll-email-creds"
