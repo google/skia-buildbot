@@ -16,6 +16,24 @@
       "revId": "2aa4ed5fad2c8ca03a6d8b3508733460e509aaf4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07cc122f_9129e06f",
+        "filename": "infra-sk/modules/app-sk/app-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-11T17:54:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e65ef09_e97a8eb1",
+      "revId": "2aa4ed5fad2c8ca03a6d8b3508733460e509aaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
