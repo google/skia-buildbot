@@ -282,7 +282,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	}
 	commitMsg := buf.String()
 
-	versions, err := rm.childRepo.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+	versions, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from, to))
 	if err != nil {
 		return 0, err
 	}
@@ -316,7 +316,15 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Grab the first line of the commit msg to use as the title of the pull request.
 	title := strings.Split(commitMsg, "\n")[0]
 	// Use the remaining part of the commit message as the pull request description.
-	descComment := strings.Split(commitMsg, "\n")[1:]
+	commitMsgLines := strings.Split(commitMsg, "\n")
+	var descComment []string
+	if len(commitMsgLines) > 50 {
+		// Truncate too large description comment because Github API cannot handle large comments.
+		descComment = commitMsgLines[1:50]
+		descComment = append(descComment, "...")
+	} else {
+		descComment = commitMsgLines[1:]
+	}
 	// Create a pull request.
 	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), ROLL_BRANCH)
 	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch, headBranch, strings.Join(descComment, "\n"))
