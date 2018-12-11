@@ -20,9 +20,9 @@ import (
 
 const (
 	FUCHSIA_SDK_GS_BUCKET            = "fuchsia"
-	FUCHSIA_SDK_GS_PATH              = "sdk"
-	FUCHSIA_SDK_GS_LATEST_PATH_LINUX = "sdk/linux-amd64/LATEST_ARCHIVE"
-	FUCHSIA_SDK_GS_LATEST_PATH_MAC   = "sdk/mac-amd64/LATEST_ARCHIVE"
+	FUCHSIA_SDK_GS_PATH              = "sdk/core"
+	FUCHSIA_SDK_GS_LATEST_PATH_LINUX = "sdk/core/linux-amd64/LATEST_ARCHIVE"
+	FUCHSIA_SDK_GS_LATEST_PATH_MAC   = "sdk/core/mac-amd64/LATEST_ARCHIVE"
 
 	FUCHSIA_SDK_VERSION_FILE_PATH_LINUX = "build/fuchsia/linux.sdk.sha1"
 	FUCHSIA_SDK_VERSION_FILE_PATH_MAC   = "build/fuchsia/mac.sdk.sha1"
