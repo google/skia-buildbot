@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 silence-sk {
   display: block;
@@ -95,7 +95,7 @@ silence-sk {
   }
 
   p {
-    background: #eee;
+    background: var(--white);
     padding: 0.5em;
     display: block;
     border-radius: 0.5em;
@@ -114,5 +114,5 @@ silence-sk[collapsable] .matches {
 
 silence-sk[collapsable] {
   margin: 1em;
-  background: #f8f8f8;
+  background: var(--dark-white);
 }
