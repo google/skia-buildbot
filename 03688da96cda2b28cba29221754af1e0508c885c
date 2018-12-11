@@ -22,6 +22,30 @@
       "revId": "03688da96cda2b28cba29221754af1e0508c885c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2641cb08_3c590d06",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-11T17:40:48Z",
+      "side": 1,
+      "message": "Yes a link to the full log is available. I agree that ellipses are enough. Done.",
+      "parentUuid": "03e060a7_586c8623",
+      "range": {
+        "startLine": 323,
+        "startChar": 40,
+        "endLine": 323,
+        "endChar": 100
+      },
+      "revId": "03688da96cda2b28cba29221754af1e0508c885c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
