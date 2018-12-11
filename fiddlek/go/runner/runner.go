@@ -38,9 +38,13 @@ DrawOptions GetDrawOptions() {
 
 %s
 `
+	// NUM_RETRIES is the number of time to try to find a pod to run the fiddle
+	// on before giving up.
+	NUM_RETRIES = 8
 )
 
 var (
+	// LOCALRUN_URL stands in for a fiddler pods URL when running locally.
 	LOCALRUN_URL = "http://localhost:8000/run"
 )
 
@@ -252,7 +256,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	} else {
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
-		for tries := 0; tries < 8; tries++ {
+		for tries := 0; tries < NUM_RETRIES; tries++ {
 			ips := r.randPodIPs()
 			for _, p := range ips {
 				rootURL := fmt.Sprintf("http://%s:8000", p)
@@ -281,6 +285,11 @@ func (r *Runner) podIPs() []string {
 }
 
 // randPodIPs returns 10 random pods IPs.
+//
+// Only return a subset, not the full list, as this may lead to a thundering
+// herd problem. I.e. A large number of incoming requests will hit the backends
+// and cause requests to fail, so requests have to look further down the list
+// of pods, increasing traffic further.
 func (r *Runner) randPodIPs() []string {
 	ret := []string{}
 	ips := r.podIPs()
