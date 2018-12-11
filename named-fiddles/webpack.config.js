@@ -6,6 +6,5 @@ module.exports = (env, argv) => {
   config.output.publicPath='/static/';
   config.resolve = config.resolve || {};
   config.resolve.alias = config.resolve.alias || {};
-  config.resolve.alias['infra-sk'] = resolve(__dirname, '../infra-sk/');
   return config;
 }

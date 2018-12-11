@@ -1,3 +1,5 @@
+@import url(~elements-sk/colors.css);
+
 @media (max-width: 500px) {
   login-sk .email {
     display: none;
@@ -14,6 +16,6 @@ login-sk {
   .email,
   .logInOut {
     font-size: 15px;
-    color: #eee;
+    color: var(--white);
   }
 }
