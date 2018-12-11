@@ -122,6 +122,8 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 // See documentation for RepoManager interface.
 func (rm *noCheckoutRepoManager) Update(ctx context.Context) error {
+	rm.repoMtx.Lock()
+	defer rm.repoMtx.Unlock()
 	// Find HEAD of the desired parent branch. We make sure to provide the
 	// base commit of our change, to avoid clobbering other changes to the
 	// DEPS file.
