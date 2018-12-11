@@ -79,6 +79,7 @@ var (
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	dbPort         = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
+	disableTryjobs = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
 	isolateServer  = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	repoUrls       = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
@@ -720,7 +721,7 @@ func main() {
 	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
-	ts.Start(ctx, b.Tick)
+	ts.Start(ctx, !*disableTryjobs, b.Tick)
 
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)
