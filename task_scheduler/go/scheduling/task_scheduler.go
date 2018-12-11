@@ -199,8 +199,10 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks. beforeMainLoop
 // will be run before each scheduling iteration.
-func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
-	s.tryjobs.Start(ctx)
+func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMainLoop func()) {
+	if enableTryjobs {
+		s.tryjobs.Start(ctx)
+	}
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
 	lvOverdueMetrics := metrics2.NewLiveness("last_successful_overdue_metrics_update")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
