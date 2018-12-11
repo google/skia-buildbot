@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5370ea77_102edb27",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-11T17:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e91147e1_61c09322",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ab60ff92_7ac820a9",
         "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2018-12-10T21:04:20Z",
       "side": 1,
       "message": "Should this temp dir be under workdir? To make sure something does not fill up the root disk.",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "493b172c_5ecdda9d",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-11T17:59:44Z",
+      "side": 1,
+      "message": "Good idea, but removed the temp dir altogether by processing the archive in memory.",
+      "parentUuid": "ab60ff92_7ac820a9",
       "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "25df652c_a300d5b1",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-11T17:59:44Z",
+      "side": 1,
+      "message": "This is a tar archive, not a zip archive, but there are utilities for working with those as well.  Changed to process the archive in memory rather than saving to disk and shelling out to tar.",
+      "parentUuid": "6b83416a_2e67f313",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ec0bc09f_847b90dc",
         "filename": "go/fileutil/fileutil.go",
         "patchSetId": 1
@@ -67,6 +121,24 @@
       "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db33c557_3d8f9792",
+        "filename": "go/fileutil/fileutil.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-11T17:59:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec0bc09f_847b90dc",
+      "revId": "0dc2680cfe29b74cd47619fe2d3d807190f0b4c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
