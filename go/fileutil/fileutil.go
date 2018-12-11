@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -198,4 +199,32 @@ func CountLines(path string) (int, error) {
 	}
 
 	return numLines, nil
+}
+
+// ReadAllFilesRecursive recursively reads all files in the given dir and
+// returns a map of filename to contents.
+func ReadAllFilesRecursive(dir string, excludeDirs []string) (map[string][]byte, error) {
+	contents := map[string][]byte{}
+	if err := filepath.Walk(dir, func(fp string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("Failed to walk filesystem: %s", err)
+		}
+		if info.IsDir() {
+			base := path.Base(fp)
+			if util.In(base, excludeDirs) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		b, err := ioutil.ReadFile(fp)
+		if err != nil {
+			return fmt.Errorf("Failed to read file: %s", err)
+		}
+		relpath := strings.TrimPrefix(strings.TrimPrefix(fp, dir), "/")
+		contents[relpath] = b
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("Failed to walk filesystem: %s", err)
+	}
+	return contents, nil
 }

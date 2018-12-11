@@ -64,6 +64,8 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 		if err := os.MkdirAll(repoToolDir, 0755); err != nil {
 			return nil, err
 		}
+	}
+	if _, err := os.Stat(repoToolPath); err != nil {
 		// Download the repo tool.
 		if _, err := exec.RunCwd(ctx, repoToolDir, "wget", "https://storage.googleapis.com/git-repo-downloads/repo", "-O", repoToolPath); err != nil {
 			return nil, err
@@ -88,12 +90,8 @@ func newAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, wor
 	return r, nil
 }
 
-// See documentation for RepoManager interface.
-func (r *androidRepoManager) Update(ctx context.Context) error {
-	// Sync the projects.
-	r.repoMtx.Lock()
-	defer r.repoMtx.Unlock()
-
+// Helper function for updating the Android checkout.
+func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 	// Create the working directory if needed.
 	if _, err := os.Stat(r.workdir); err != nil {
 		if err := os.MkdirAll(r.workdir, 0755); err != nil {
@@ -133,6 +131,17 @@ func (r *androidRepoManager) Update(ctx context.Context) error {
 
 	// Update the remote to make sure that all new branches are available.
 	if _, err := exec.RunCwd(ctx, r.childRepo.Dir(), "git", "remote", "update", UPSTREAM_REMOTE_NAME, "--prune"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// See documentation for RepoManager interface.
+func (r *androidRepoManager) Update(ctx context.Context) error {
+	// Sync the projects.
+	r.repoMtx.Lock()
+	defer r.repoMtx.Unlock()
+	if err := r.updateAndroidCheckout(ctx); err != nil {
 		return err
 	}
 
