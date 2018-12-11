@@ -11,8 +11,8 @@
   "dependencies": {
     "@webcomponents/custom-elements": "~1.2.1",
     "common-sk": "~3.1.0",
-    "infra-sk": "~0.7.0",
-    "elements-sk": "~2.5.0",
+    "infra-sk": "~0.8.0",
+    "elements-sk": "~2.6.0",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {
