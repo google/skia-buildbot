@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 push-selection-sk {
   display: block;
@@ -11,7 +11,7 @@ push-selection-sk {
 
   .pushSelection[selected]:hover,
   .pushSelection:hover {
-    background: lightgray;
+    background: var(--light-gray);
   }
 
   .pushSelection check-icon-sk {
@@ -23,20 +23,20 @@ push-selection-sk {
   }
 
   .pushSelection[selected] {
-    background: white;
+    background: var(--white);
   }
 
   a {
-    color: $blue;
+    color: var(--blue);
   }
 
   .userid {
-    color: $purple;
+    color: var(--purple);
     width: 6em;
   }
 
   .built {
-    color: $orange;
+    color: var(--orange);
     width: 2em;
   }
 
