@@ -8,13 +8,13 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
-    "common-sk": "^3.0.0",
-    "elements-sk": "^2.5.0",
-    "lit-html": "~0.12.0"
+    "common-sk": "^3.1.0",
+    "elements-sk": "^2.6.0",
+    "lit-html": "~0.14.0"
   },
   "devDependencies": {
-    "pulito": "^4.1.0",
-    "webpack": "^4.15.1",
-    "webpack-cli": "^3.0.8"
+    "pulito": "^4.1.1",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
   }
 }

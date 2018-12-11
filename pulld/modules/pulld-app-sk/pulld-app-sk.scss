@@ -1,4 +1,4 @@
-@import '~infra-sk/modules/colors';
+@import url(~elements-sk/colors.css);
 
 body {
   margin: 0;
@@ -9,7 +9,7 @@ header {
   margin: 0;
   padding: 0.6em;
   color: white;
-  background: $blue;
+  background: var(--blue);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
