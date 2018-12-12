@@ -1,0 +1,135 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a98192c1_c8a0b57c",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "nit: We might consider passing in a db.TaskReader rather than all the params for remote_db.NewClient.",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c795240_c6f2b226",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "nit: Similarly, could pass in db.JobReader.",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d55955c8_bc4bf345",
+        "filename": "datahopper/go/datahopper/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "nit: ditto",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43db6466_18a6744c",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 695,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "Is this related to the task scheduler DB changes?",
+      "range": {
+        "startLine": 695,
+        "startChar": 92,
+        "endLine": 695,
+        "endChar": 114
+      },
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71422e09_75d4531f",
+        "filename": "task_scheduler/go/db/modified/mux.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "nit: It looks like GetModified(Jobs|Tasks)GOB returns these byte slices without copying. We should update the docs to make it clear that the caller can not modify the returned byte slices and double-check that no existing callers do so. (Sorry, I can\u0027t check on that right now.)",
+      "range": {
+        "startLine": 36,
+        "startChar": 51,
+        "endLine": 36,
+        "endChar": 55
+      },
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cc01bb3_6e5c11e5",
+        "filename": "task_scheduler/go/db/modified/mux_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "These tests really only exercise the readWrite impl. There aren\u0027t any assertions on the writeOnly part.",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16fd7637_9dbb9cda",
+        "filename": "task_scheduler/go/db/remote_db/remote_db_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T05:42:36Z",
+      "side": 1,
+      "message": "Oops. :-(",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
