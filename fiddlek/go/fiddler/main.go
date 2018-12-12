@@ -271,11 +271,10 @@ func createWebm(ctx context.Context, prefix, tmpDir string) error {
 	}
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
-		Name:      name,
-		Args:      args,
-		Dir:       tmpDir,
-		LogStderr: true,
-		Stdout:    output,
+		Name:           name,
+		Args:           args,
+		Dir:            tmpDir,
+		CombinedOutput: output,
 	}
 	if err := exec.Run(ctx, runCmd); err != nil {
 		return fmt.Errorf("ffmpeg failed %#v: %s", *runCmd, err)
