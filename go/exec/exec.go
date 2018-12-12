@@ -69,8 +69,8 @@ var (
 	contextKey     = &struct{}{}
 	defaultContext = &execContext{DefaultRun}
 
-	WriteInfoLog  = WriteLog{LogFunc: sklog.Infof}
-	WriteErrorLog = WriteLog{LogFunc: sklog.Errorf}
+	WriteInfoLog    = WriteLog{LogFunc: sklog.Infof}
+	WriteWarningLog = WriteLog{LogFunc: sklog.Warningf}
 )
 
 // WriteLog implements the io.Writer interface and writes to the given log function.
@@ -105,7 +105,7 @@ type Command struct {
 	LogStdout bool
 	// Sends the stdout of the command to this Writer, e.g. os.File or bytes.Buffer.
 	Stdout io.Writer
-	// If true, duplicates stderr of the command to WriteErrorLog.
+	// If true, duplicates stderr of the command to WriteWarningLog.
 	LogStderr bool
 	// Sends the stderr of the command to this Writer, e.g. os.File or bytes.Buffer.
 	Stderr io.Writer
@@ -198,7 +198,7 @@ func createCmd(command *Command) *osexec.Cmd {
 	cmd.Stdout = squashWriters(stdoutLog, command.Stdout, command.CombinedOutput)
 	var stderrLog io.Writer
 	if command.LogStderr {
-		stderrLog = WriteErrorLog
+		stderrLog = WriteWarningLog
 	}
 	cmd.Stderr = squashWriters(stderrLog, command.Stderr, command.CombinedOutput)
 
