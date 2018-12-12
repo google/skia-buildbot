@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/sklog"
 	"google.golang.org/api/option"
 )
 
@@ -181,7 +182,8 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 		}
 	}
 	if lastIdx == -1 {
-		return "", "", 0, nil, fmt.Errorf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevLinuxStr)
+		sklog.Warningf("Last roll rev %q not found in available versions. Not-rolled count will be wrong.", lastRollRevLinuxStr)
+		lastIdx = 0
 	}
 	if nextIdx == -1 {
 		return "", "", 0, nil, fmt.Errorf("Next roll rev %q not found in available versions. Not-rolled count will be wrong.", nextRollRevLinuxStr)
@@ -214,7 +216,9 @@ func (rm *fuchsiaSDKRepoManager) FullChildHash(ctx context.Context, ver string) 
 			return v.Version, nil
 		}
 	}
-	return "", fmt.Errorf("Unable to find version: %s", ver)
+	// Temporary transitional measure.
+	sklog.Errorf("Unable to find version: %s; assuming this is because of the SDK moving and not erroring out.", ver)
+	return ver, nil
 }
 
 // See documentation for RepoManager interface.
