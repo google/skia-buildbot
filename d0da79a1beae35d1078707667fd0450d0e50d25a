@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dffe4c36_61115800",
+        "filename": "infra-sk/modules/app-sk/app-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T14:45:25Z",
+      "side": 1,
+      "message": "Does this bundle in a \"compile\" time?  Or does it load (from the internet) at run time?",
+      "revId": "d0da79a1beae35d1078707667fd0450d0e50d25a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
