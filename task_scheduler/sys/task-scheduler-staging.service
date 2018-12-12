@@ -11,6 +11,8 @@ ExecStart=/usr/local/bin/task_scheduler \
     --isolate_server=https://isolateserver-dev.appspot.com \
     --logtostderr \
     --pool=Skia \
+    --pubsub_topic_tasks=task-scheduler-modified-tasks-staging \
+    --pubsub_topic_jobs=task-scheduler-modified-jobs-staging \
     --pubsub_topic=swarming-tasks-staging \
     --pubsub_subscriber=task-scheduler-staging \
     --repo=https://skia.googlesource.com/skiabot-test.git \

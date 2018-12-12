@@ -27,8 +27,10 @@ const (
 	// Known topic names.
 	TOPIC_TASKS          = "task-scheduler-modified-tasks"
 	TOPIC_TASKS_INTERNAL = "task-scheduler-modified-tasks-internal"
+	TOPIC_TASKS_STAGING  = "task-scheduler-modified-tasks-staging"
 	TOPIC_JOBS           = "task-scheduler-modified-jobs"
 	TOPIC_JOBS_INTERNAL  = "task-scheduler-modified-jobs-internal"
+	TOPIC_JOBS_STAGING   = "task-scheduler-modified-jobs-staging"
 
 	// Attributes sent with all pubsub messages.
 
