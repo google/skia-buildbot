@@ -24,7 +24,7 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	testutils.MediumTest(t)
 	testutils.ManualTest(t)
 	instance := fmt.Sprintf("test-%s", uuid.New())
-	d, err := NewDB(context.Background(), "skia-firestore", instance, nil)
+	d, err := NewDB(context.Background(), "skia-firestore", instance, nil, nil, nil)
 	assert.NoError(t, err)
 	cleanup := func() {
 		c := d.(*firestoreDB).client
@@ -38,12 +38,6 @@ func TestFirestoreDBTaskDB(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
 	db.TestTaskDB(t, d)
-}
-
-func TestFirestoreDBTaskDBTooManyUsers(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
-	db.TestTaskDBTooManyUsers(t, d)
 }
 
 func TestFirestoreDBTaskDBConcurrentUpdate(t *testing.T) {
@@ -74,12 +68,6 @@ func TestFirestoreDBJobDB(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
 	db.TestJobDB(t, d)
-}
-
-func TestFirestoreDBJobDBTooManyUsers(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
-	db.TestJobDBTooManyUsers(t, d)
 }
 
 func TestFirestoreDBJobDBConcurrentUpdate(t *testing.T) {

@@ -136,7 +136,7 @@ func getMockedDBBackupWithContent(t *testing.T, mockMux *mux.Router, content io.
 	assert.NoError(t, os.MkdirAll(path.Join(dir, TRIGGER_DIRNAME), os.ModePerm))
 
 	db := &testDB{
-		DB:      memory.NewInMemoryDB(),
+		DB:      memory.NewInMemoryDB(nil, nil),
 		content: content,
 		ts:      time.Unix(TEST_DB_TIME, 0),
 	}

@@ -21,7 +21,7 @@ func makeJob(created time.Time) *types.Job {
 
 func TestJobCache(t *testing.T) {
 	testutils.SmallTest(t)
-	d := memory.NewInMemoryJobDB()
+	d := memory.NewInMemoryJobDB(nil)
 
 	// Pre-load a job into the DB.
 	now := time.Now()

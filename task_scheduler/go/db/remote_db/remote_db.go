@@ -18,14 +18,14 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
 	// Server handles requests on these paths. See registerHandlers for detail.
-	MODIFIED_TASKS_PATH     = "modified-tasks"
 	TASKS_PATH              = "tasks"
-	MODIFIED_JOBS_PATH      = "modified-jobs"
 	JOBS_PATH               = "jobs"
 	COMMENTS_PATH           = "comments"
 	TASK_COMMENTS_PATH      = "comments/task-comments"
@@ -65,13 +65,7 @@ func RegisterServer(d db.RemoteDB, r *mux.Router) error {
 
 // registerHandlers adds GET, POST, and DELETE handlers to r on various paths.
 func (s *server) registerHandlers(r *mux.Router) {
-	r.HandleFunc("/"+MODIFIED_TASKS_PATH, s.PostModifiedTasksHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+MODIFIED_TASKS_PATH, s.DeleteModifiedTasksHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/"+MODIFIED_TASKS_PATH, s.GetModifiedTasksHandler).Methods(http.MethodGet)
 	r.HandleFunc("/"+TASKS_PATH, s.GetTasksHandler).Methods(http.MethodGet)
-	r.HandleFunc("/"+MODIFIED_JOBS_PATH, s.PostModifiedJobsHandler).Methods(http.MethodPost)
-	r.HandleFunc("/"+MODIFIED_JOBS_PATH, s.DeleteModifiedJobsHandler).Methods(http.MethodDelete)
-	r.HandleFunc("/"+MODIFIED_JOBS_PATH, s.GetModifiedJobsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/"+JOBS_PATH, s.GetJobsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/"+COMMENTS_PATH, s.GetCommentsHandler).Methods(http.MethodGet)
 	r.HandleFunc("/"+TASK_COMMENTS_PATH, s.PostTaskCommentsHandler).Methods(http.MethodPost)
@@ -86,14 +80,27 @@ func (s *server) registerHandlers(r *mux.Router) {
 type client struct {
 	serverRoot string
 	client     *http.Client
+	db.ModifiedTasks
+	db.ModifiedJobs
 }
 
 // NewClient returns a db.RemoteDB that connects to the server created by
 // NewServer. serverRoot should end with a slash.
-func NewClient(serverRoot string, c *http.Client) (db.RemoteDB, error) {
+func NewClient(serverRoot, tasksTopic, jobsTopic, label string, ts oauth2.TokenSource) (db.RemoteDB, error) {
+	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	modTasks, err := pubsub.NewModifiedTasks(tasksTopic, label, ts)
+	if err != nil {
+		return nil, err
+	}
+	modJobs, err := pubsub.NewModifiedJobs(jobsTopic, label, ts)
+	if err != nil {
+		return nil, err
+	}
 	return &client{
-		serverRoot: serverRoot,
-		client:     c,
+		serverRoot:    serverRoot,
+		client:        c,
+		ModifiedTasks: modTasks,
+		ModifiedJobs:  modJobs,
 	}, nil
 }
 
@@ -231,228 +238,6 @@ func (c *client) getJobList(url string) ([]*types.Job, error) {
 		rv[i] = &t
 	}
 	return rv, nil
-}
-
-// postModifiedDataHandler translates a POST request with empty body to
-// StartTrackingModified(Tasks|Jobs). kind is "tasks" or "jobs". startFn and
-// stopFn are (Start|Stop)TrackingModified(Tasks|Jobs).
-//   - format: must be "gob"; default "gob"
-// Response is GOB of string id.
-func postModifiedDataHandler(w http.ResponseWriter, r *http.Request, kind string, startFn func() (string, error), stopFn func(string)) {
-	format := r.URL.Query().Get("format")
-	if format != "" && format != "gob" {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Unsupported format %q", format))
-		return
-	}
-	id, err := startFn()
-	if err != nil {
-		reportDBError(w, r, err, fmt.Sprintf("Unable to start tracking %s", kind))
-		return
-	}
-	w.Header().Set("Content-Type", "application/gob")
-	enc := gob.NewEncoder(w)
-	if err := enc.Encode(id); err != nil {
-		stopFn(id)
-		httputils.ReportError(w, r, err, "Unable to encode start id")
-		return
-	}
-}
-
-// PostModifiedTasksHandler translates a POST request with empty body to
-// StartTrackingModifiedTasks.
-//   - format: must be "gob"; default "gob"
-// Response is GOB of string id.
-func (s *server) PostModifiedTasksHandler(w http.ResponseWriter, r *http.Request) {
-	postModifiedDataHandler(w, r, "tasks", s.d.StartTrackingModifiedTasks, s.d.StopTrackingModifiedTasks)
-}
-
-// PostModifiedJobsHandler translates a POST request with empty body to
-// StartTrackingModifiedJobs.
-//   - format: must be "gob"; default "gob"
-// Response is GOB of string id.
-func (s *server) PostModifiedJobsHandler(w http.ResponseWriter, r *http.Request) {
-	postModifiedDataHandler(w, r, "jobs", s.d.StartTrackingModifiedJobs, s.d.StopTrackingModifiedJobs)
-}
-
-// doStartTrackingModifiedDataRequest implements the client side of
-// StartTrackingModified(Tasks|Jobs). Sends an HTTP request to the given path
-// and returns the ID from the response body.
-func (c *client) doStartTrackingModifiedDataRequest(path string) (string, error) {
-	req, err := http.NewRequest(http.MethodPost, c.serverRoot+path+"?format=gob", nil)
-	if err != nil {
-		return "", err
-	}
-	r, err := c.client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer util.Close(r.Body)
-	if err := interpretStatusCode(r); err != nil {
-		return "", err
-	}
-	dec := gob.NewDecoder(r.Body)
-	var id string
-	if err := dec.Decode(&id); err != nil {
-		return "", err
-	}
-	return id, nil
-}
-
-// See documentation for types.TaskReader.
-func (c *client) StartTrackingModifiedTasks() (string, error) {
-	return c.doStartTrackingModifiedDataRequest(MODIFIED_TASKS_PATH)
-}
-
-// See documentation for types.JobReader.
-func (c *client) StartTrackingModifiedJobs() (string, error) {
-	return c.doStartTrackingModifiedDataRequest(MODIFIED_JOBS_PATH)
-}
-
-// deleteModifiedDataHandler processes a DELETE request with empty body by
-// calling stopFn, which is StopTrackingModified(Tasks|Jobs).
-//   - id: id returned from postModifiedDataHandler
-// No response body.
-func deleteModifiedDataHandler(w http.ResponseWriter, r *http.Request, stopFn func(string)) {
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		httputils.ReportError(w, r, nil, "Missing id param")
-		return
-	}
-	stopFn(id)
-	w.WriteHeader(http.StatusOK)
-}
-
-// DeleteModifiedTasksHandler translates a DELETE request with empty body to
-// StopTrackingModifiedTasks.
-//   - id: id returned from PostModifiedTasksHandler
-// No response body.
-func (s *server) DeleteModifiedTasksHandler(w http.ResponseWriter, r *http.Request) {
-	deleteModifiedDataHandler(w, r, s.d.StopTrackingModifiedTasks)
-}
-
-// DeleteModifiedJobsHandler translates a DELETE request with empty body to
-// StopTrackingModifiedJobs.
-//   - id: id returned from PostModifiedJobsHandler
-// No response body.
-func (s *server) DeleteModifiedJobsHandler(w http.ResponseWriter, r *http.Request) {
-	deleteModifiedDataHandler(w, r, s.d.StopTrackingModifiedJobs)
-}
-
-// doStopTrackingModifiedDataRequest implements the client side of
-// StopTrackingModified(Tasks|Jobs). Sends an HTTP request to the given path
-// with the given id param.
-func (c *client) doStopTrackingModifiedDataRequest(path, id string) {
-	params := url.Values{}
-	params.Set("id", id)
-	req, err := http.NewRequest(http.MethodDelete, c.serverRoot+path+"?"+params.Encode(), nil)
-	if err != nil {
-		sklog.Error(err)
-		return
-	}
-	r, err := c.client.Do(req)
-	if err != nil {
-		sklog.Error(err)
-		return
-	}
-	defer util.Close(r.Body)
-	if err := interpretStatusCode(r); err != nil {
-		sklog.Error(err)
-		return
-	}
-}
-
-// See documentation for types.TaskReader.
-func (c *client) StopTrackingModifiedTasks(id string) {
-	c.doStopTrackingModifiedDataRequest(MODIFIED_TASKS_PATH, id)
-}
-
-// See documentation for types.JobReader.
-func (c *client) StopTrackingModifiedJobs(id string) {
-	c.doStopTrackingModifiedDataRequest(MODIFIED_JOBS_PATH, id)
-}
-
-// GetModifiedTasksHandler translates a GET request to GetModifiedTasks.
-//   - format: must be "gob"; default "gob"
-//   - id: id returned from PostModifiedTasksHandler
-// Response is GOB stream; first object is the number of tasks, the remaining
-// objects are types.Tasks.
-// Warning: not RESTful: the same URI will return different results each time.
-func (s *server) GetModifiedTasksHandler(w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-	if format != "" && format != "gob" {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Unsupported format %q", format))
-		return
-	}
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		httputils.ReportError(w, r, nil, "Missing id param")
-		return
-	}
-	tasks, err := s.d.GetModifiedTasks(id)
-	if err != nil {
-		reportDBError(w, r, err, "Unable to retrieve tasks")
-		return
-	}
-	if err := writeTaskList(w, tasks); err != nil {
-		s.d.StopTrackingModifiedTasks(id)
-		httputils.ReportError(w, r, err, "")
-		return
-	}
-}
-
-// GetModifiedJobsHandler translates a GET request to GetModifiedJobs.
-//   - format: must be "gob"; default "gob"
-//   - id: id returned from PostModifiedJobsHandler
-// Response is GOB stream; first object is the number of jobs, the remaining
-// objects are types.Jobs.
-// Warning: not RESTful: the same URI will return different results each time.
-func (s *server) GetModifiedJobsHandler(w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-	if format != "" && format != "gob" {
-		httputils.ReportError(w, r, nil, fmt.Sprintf("Unsupported format %q", format))
-		return
-	}
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		httputils.ReportError(w, r, nil, "Missing id param")
-		return
-	}
-	jobs, err := s.d.GetModifiedJobs(id)
-	if err != nil {
-		reportDBError(w, r, err, "Unable to retrieve jobs")
-		return
-	}
-	if err := writeJobList(w, jobs); err != nil {
-		s.d.StopTrackingModifiedJobs(id)
-		httputils.ReportError(w, r, err, "")
-		return
-	}
-}
-
-// See documentation for types.TaskReader.
-func (c *client) GetModifiedTasks(id string) ([]*types.Task, error) {
-	params := url.Values{}
-	params.Set("format", "gob")
-	params.Set("id", id)
-	return c.getTaskList(c.serverRoot + MODIFIED_TASKS_PATH + "?" + params.Encode())
-}
-
-// Not implemented, because it's not faster than GetModifiedTasks.
-func (c *client) GetModifiedTasksGOB(id string) (map[string][]byte, error) {
-	return nil, fmt.Errorf("GetModifiedTasksGOB is not implemented.")
-}
-
-// See documentation for types.JobReader.
-func (c *client) GetModifiedJobs(id string) ([]*types.Job, error) {
-	params := url.Values{}
-	params.Set("format", "gob")
-	params.Set("id", id)
-	return c.getJobList(c.serverRoot + MODIFIED_JOBS_PATH + "?" + params.Encode())
-}
-
-// Not implemented, because it's not faster than GetModifiedJobs.
-func (c *client) GetModifiedJobsGOB(id string) (map[string][]byte, error) {
-	return nil, fmt.Errorf("GetModifiedJobsGOB is not implemented.")
 }
 
 // GetTasksHandler translates a GET request to GetTasksFromDateRange or

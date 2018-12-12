@@ -22,13 +22,11 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -195,7 +193,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(ctx context.Context, taskDb db.RemoteDB, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
+func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
 	if err := repos.Update(ctx); err != nil {
 		return err
 	}
@@ -401,17 +399,11 @@ func writeTs(workdir string, ts time.Time) error {
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
-func Start(ctx context.Context, dbUrl, workdir, recipesCfgFile string) error {
+func Start(ctx context.Context, taskDb db.TaskReader, workdir, recipesCfgFile string) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
 	}
-
-	taskDb, err := remote_db.NewClient(dbUrl, httputils.NewTimeoutClient())
-	if err != nil {
-		return fmt.Errorf("Failed to create new DB client: %s", err)
-	}
-
 	repos, err := repograph.NewMap(ctx, common.PUBLIC_REPOS, workdir)
 	if err != nil {
 		return fmt.Errorf("Failed to sync repograph: %s", err)

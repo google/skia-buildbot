@@ -17,7 +17,7 @@ import (
 type inMemoryTaskDB struct {
 	tasks    map[string]*types.Task
 	tasksMtx sync.RWMutex
-	modified.ModifiedTasksImpl
+	db.ModifiedTasks
 }
 
 // See docs for TaskDB interface. Does not take any locks.
@@ -101,9 +101,13 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryTaskDB() db.TaskDB {
+func NewInMemoryTaskDB(modTasks db.ModifiedTasks) db.TaskDB {
+	if modTasks == nil {
+		modTasks = &modified.ModifiedTasksImpl{}
+	}
 	db := &inMemoryTaskDB{
-		tasks: map[string]*types.Task{},
+		tasks:         map[string]*types.Task{},
+		ModifiedTasks: modTasks,
 	}
 	return db
 }
@@ -111,7 +115,7 @@ func NewInMemoryTaskDB() db.TaskDB {
 type inMemoryJobDB struct {
 	jobs    map[string]*types.Job
 	jobsMtx sync.RWMutex
-	modified.ModifiedJobsImpl
+	db.ModifiedJobs
 }
 
 func (d *inMemoryJobDB) assignId(j *types.Job) error {
@@ -191,15 +195,19 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
 // implementation.
-func NewInMemoryJobDB() db.JobDB {
+func NewInMemoryJobDB(modJobs db.ModifiedJobs) db.JobDB {
+	if modJobs == nil {
+		modJobs = &modified.ModifiedJobsImpl{}
+	}
 	db := &inMemoryJobDB{
-		jobs: map[string]*types.Job{},
+		jobs:         map[string]*types.Job{},
+		ModifiedJobs: modJobs,
 	}
 	return db
 }
 
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
-func NewInMemoryDB() db.DB {
-	return db.NewDB(NewInMemoryTaskDB(), NewInMemoryJobDB(), &db.CommentBox{})
+func NewInMemoryDB(modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) db.DB {
+	return db.NewDB(NewInMemoryTaskDB(modTasks), NewInMemoryJobDB(modJobs), &db.CommentBox{})
 }

@@ -16,60 +16,50 @@ func TestMain(m *testing.M) {
 
 func TestInMemoryTaskDB(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestTaskDB(t, NewInMemoryTaskDB())
-}
-
-func TestInMemoryTaskDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	db.TestTaskDBTooManyUsers(t, NewInMemoryTaskDB())
+	db.TestTaskDB(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryTaskDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
+	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryTaskDBUpdateTasksWithRetries(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
+	db.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
+	db.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryTaskDBGetTasksFromWindow(t *testing.T) {
 	testutils.LargeTest(t)
-	db.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
+	db.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryUpdateDBFromSwarmingTask(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB())
+	db.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB())
+	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB(nil))
 }
 
 func TestInMemoryJobDB(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestJobDB(t, NewInMemoryJobDB())
-}
-
-func TestInMemoryJobDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	db.TestJobDBTooManyUsers(t, NewInMemoryJobDB())
+	db.TestJobDB(t, NewInMemoryJobDB(nil))
 }
 
 func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
+	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB(nil))
 }
 
 func TestInMemoryJobDBUpdateJobsWithRetries(t *testing.T) {
 	testutils.SmallTest(t)
-	db.TestUpdateJobsWithRetries(t, NewInMemoryJobDB())
+	db.TestUpdateJobsWithRetries(t, NewInMemoryJobDB(nil))
 }

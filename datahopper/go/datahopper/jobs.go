@@ -13,13 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -267,14 +265,10 @@ func addJobAggregates(s *events.EventStream) error {
 }
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
-func StartJobMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
-	db, err := remote_db.NewClient(taskSchedulerDbUrl, httputils.NewTimeoutClient())
-	if err != nil {
-		return err
-	}
+func StartJobMetrics(ctx context.Context, jobDb db.JobReader) error {
 	edb := &jobEventDB{
 		cached: []*events.Event{},
-		db:     db,
+		db:     jobDb,
 	}
 	em, err := events.NewEventMetrics(edb, "job_metrics")
 	if err != nil {

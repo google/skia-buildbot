@@ -78,7 +78,7 @@ const (
 	// util.RFC3339NanoZeroPad, but since Task.Id can not contain colons, we omit
 	// most of the punctuation. This timestamp can only be used to format and
 	// parse times in UTC.
-	TIMESTAMP_FORMAT = "20060102T150405.000000000Z"
+	TIMESTAMP_FORMAT = util.SAFE_TIMESTAMP_FORMAT
 	// SEQUENCE_NUMBER_FORMAT is a format string passed to fmt.Sprintf or
 	// fmt.Sscanf to format/parse the sequence number in the Task ID. It is a
 	// 16-digit zero-padded lowercase hexidecimal number.
@@ -230,8 +230,8 @@ type localDB struct {
 
 	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
 	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
-	modified.ModifiedTasksImpl
-	modified.ModifiedJobsImpl
+	db.ModifiedTasks
+	db.ModifiedJobs
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -316,10 +316,16 @@ func jobsBucket(tx *bolt.Tx) *bolt.Bucket {
 }
 
 // NewDB returns a local DB instance.
-func NewDB(name, filename string) (db.BackupDBCloser, error) {
+func NewDB(name, filename string, modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) (db.BackupDBCloser, error) {
 	boltdb, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err
+	}
+	if modTasks == nil {
+		modTasks = &modified.ModifiedTasksImpl{}
+	}
+	if modJobs == nil {
+		modJobs = &modified.ModifiedJobsImpl{}
 	}
 	d := &localDB{
 		name:     name,
@@ -378,6 +384,8 @@ func NewDB(name, filename string) (db.BackupDBCloser, error) {
 			"bucket":   BUCKET_JOBS,
 			"count":    "rows",
 		}),
+		ModifiedTasks: modTasks,
+		ModifiedJobs:  modJobs,
 	}
 
 	stopReportActiveTx := make(chan bool)

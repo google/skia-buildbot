@@ -21,7 +21,7 @@ import (
 
 func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
 	testutils.LargeTest(t)
-	taskDb := memory.NewInMemoryTaskDB()
+	taskDb := memory.NewInMemoryTaskDB(nil)
 	commentDb := &db.CommentBox{}
 	d := db.NewDB(taskDb, nil, commentDb)
 
