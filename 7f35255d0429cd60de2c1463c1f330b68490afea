@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b8a80289_855b793f",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T19:23:48Z",
+      "side": 1,
+      "message": "nit: Should this be named DbReader or similar?",
+      "range": {
+        "startLine": 166,
+        "startChar": 10,
+        "endLine": 166,
+        "endChar": 18
+      },
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ca4838a_267c0225",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T19:23:48Z",
+      "side": 1,
+      "message": "nit: Not sure if it would be useful to make this a function, since it seems to be common to use pubsub and firestore together.",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 180,
+        "endChar": 3
+      },
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98384a28_d7c1cb75",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T19:23:48Z",
+      "side": 1,
+      "message": "nit: Should mention this in the commit message.",
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3ec51ef_542e5d96",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T19:23:48Z",
+      "side": 1,
+      "message": "I think you can remove this. It was based on one theory for free pages getting really large, but I think that theory has been disproved.",
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
