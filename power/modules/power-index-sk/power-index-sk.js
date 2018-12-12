@@ -1,3 +1,4 @@
+import 'infra-sk/modules/app-sk'
 import 'elements-sk/error-toast-sk'
 import { errorMessage } from 'elements-sk/errorMessage'
 
@@ -11,16 +12,18 @@ const UPDATE_INTERVAL_MS = 60000;
 
 // Main template for this element
 const template = (ele) => html`
-<header>Power Controller</header>
+<app-sk>
+  <header><h1>Power Controller</h1></header>
 
-<main>
-  <h1>Broken Bots (with powercycle support)</h1>
+  <main>
+    <h2>Broken Bots (with powercycle support)</h2>
 
-  ${downBotsTable(ele._bots, ele._hosts)}
-</main>
-<footer>
-  <error-toast-sk></error-toast-sk>
-</footer>`;
+    ${downBotsTable(ele._bots, ele._hosts)}
+  </main>
+  <footer>
+    <error-toast-sk></error-toast-sk>
+  </footer>
+<app-sk>`;
 
 const downBotsTable = (bots, hosts) => html`
 <table>

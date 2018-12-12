@@ -5,30 +5,25 @@ body {
   padding: 0;
 }
 
+app-sk {
+  --sidebar-width: 0;
+
+  header h1 {
+    margin-left: 0.4em;
+  }
+}
+
 power-index-sk {
-  main {
-    padding: 5px;
-  }
-
-  header {
-    margin: 0;
-    padding: 1em 0.5em;
-    color: var(--white);
-    background: var(--blue);
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    font-weight: bold;
-  }
-
   table {
     border-collapse: collapse;
     margin-left: 5px;
   }
+
   td, th {
     border: 1px solid var(--dark-white);
     padding: 5px;
   }
+
   th {
     position: relative;
   }
