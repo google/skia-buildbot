@@ -215,15 +215,16 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 	if n == types.MAX_JSON_SIZE {
 		return nil, fmt.Errorf("Response too large, truncated at %d bytes.", n)
 	}
-	sklog.Infof("Got response: %q", util.Trunc(output.String(), 20))
+	truncOutput := util.Trunc(output.String(), 20)
+	sklog.Infof("Got response: %q", truncOutput)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response: %s", err)
 	}
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
-		sklog.Errorf("Received erroneous output: %q", output.String()[:20])
-		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, output.String()[:20])
+		sklog.Errorf("Received erroneous output: %q", truncOutput)
+		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, truncOutput)
 	}
 	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
 		sklog.Errorf("Failed to send valid JSON: res.Execute.Errors : %s", err)
