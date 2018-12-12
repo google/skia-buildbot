@@ -37,8 +37,13 @@ import (
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/status/go/lkgr"
+	task_driver_db "go.skia.org/infra/task_driver/go/db"
+	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
+	"go.skia.org/infra/task_driver/go/handlers"
+	"go.skia.org/infra/task_driver/go/logs"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -70,6 +75,8 @@ var (
 	iCache           *incremental.IncrementalCache = nil
 	lkgrObj          *lkgr.LKGR                    = nil
 	taskDb           db.RemoteDB                   = nil
+	taskDriverDb     task_driver_db.DB             = nil
+	taskDriverLogs   *logs.LogsManager             = nil
 	tasksPerCommit   *tasksPerCommitCache          = nil
 	tCache           cache.TaskCache               = nil
 
@@ -88,6 +95,7 @@ var (
 // flags
 var (
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
+	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -662,6 +670,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	commits.Use(login.RestrictEditor)
+	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	sklog.AddLogsRedirect(r)
 	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
 	if !*testing {
@@ -713,15 +722,31 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else {
-		label := *host
-		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicTasks, *pubsubTopicJobs, label, ts)
-		if err != nil {
-			sklog.Fatalf("Failed to create remote task DB: %s", err)
-		}
-
-		// Also create the git cookie updater.
+		// Create the git cookie updater.
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
+
+		if *firestoreInstance != "" {
+			label := *host
+			modTasks, err := pubsub.NewModifiedTasks(*pubsubTopicTasks, label, ts)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			modJobs, err := pubsub.NewModifiedJobs(*pubsubTopicJobs, label, ts)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, modTasks, modJobs)
+			if err != nil {
+				sklog.Fatalf("Failed to create Firestore DB client: %s", err)
+			}
+		} else {
+			label := *host
+			taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicTasks, *pubsubTopicJobs, label, ts)
+			if err != nil {
+				sklog.Fatalf("Failed to create remote task DB: %s", err)
+			}
 		}
 	}
 
@@ -830,6 +855,17 @@ func main() {
 			sklog.Errorf("Failed to update autoroll status: %s", err)
 		}
 	})
+
+	// Create the TaskDriver DB.
+	btProject := "skia-public"
+	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, btProject, bigtable_db.BT_INSTANCE, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	taskDriverLogs, err = logs.NewLogsManager(ctx, btProject, logs.BT_INSTANCE, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Run the server.
 	runServer(serverURL)

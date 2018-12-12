@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/webhook"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
@@ -78,26 +79,27 @@ var (
 	triggerTemplate   *template.Template = nil
 
 	// Flags.
-	host             = flag.String("host", "localhost", "HTTP service host")
-	port             = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	dbPort           = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
-	disableTryjobs   = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
-	isolateServer    = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
-	local            = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	pubsubTopicTasks = flag.String("pubsub_topic_tasks", "", "Pubsub topic for tasks.")
-	pubsubTopicJobs  = flag.String("pubsub_topic_jobs", "", "Pubsub topic for jobs.")
-	repoUrls         = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile   = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	resourcesDir     = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
-	scoreDecay24Hr   = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools    = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
-	swarmingServer   = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	timePeriod       = flag.String("timeWindow", "4d", "Time period to use.")
-	tryJobBucket     = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
-	commitWindow     = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	gsBucket         = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
-	workdir          = flag.String("workdir", "workdir", "Working directory to use.")
-	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	host              = flag.String("host", "localhost", "HTTP service host")
+	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	dbPort            = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
+	disableTryjobs    = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
+	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
+	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	pubsubTopicTasks  = flag.String("pubsub_topic_tasks", "", "Pubsub topic for tasks.")
+	pubsubTopicJobs   = flag.String("pubsub_topic_jobs", "", "Pubsub topic for jobs.")
+	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
+	scoreDecay24Hr    = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingPools     = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
+	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
+	tryJobBucket      = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
+	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	gsBucket          = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
+	workdir           = flag.String("workdir", "workdir", "Working directory to use.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
 	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
@@ -620,7 +622,7 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	tokenSource, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE)
+	tokenSource, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -663,10 +665,16 @@ func main() {
 		sklog.Fatal(err)
 	}
 	modJobs = modified.NewMuxModifiedJobs(&modified.ModifiedJobsImpl{}, modJobs)
-	// TODO(benjaminwagner): Create a signal handler which closes the DB.
-	tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME), modTasks, modJobs)
-	if err != nil {
-		sklog.Fatal(err)
+	if *firestoreInstance != "" {
+		tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, modTasks, modJobs)
+		if err != nil {
+			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
+		}
+	} else {
+		tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME), modTasks, modJobs)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 	cleanup.AtExit(func() {
 		util.Close(tsDb)
@@ -701,15 +709,18 @@ func main() {
 	}
 
 	// Start DB backup.
-	if *local && *gsBucket == "skia-task-scheduler" {
-		sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
-	}
-	// TODO(benjaminwagner): The storage client library already handles buffering
-	// and retrying requests, so we may not want to use BackoffTransport for the
-	// httpClient provided to NewDBBackup.
-	b, err := recovery.NewDBBackup(ctx, *gsBucket, tsDb, local_db.DB_NAME, wdAbs, httpClient)
-	if err != nil {
-		sklog.Fatal(err)
+	var b recovery.DBBackup
+	if *firestoreInstance == "" {
+		if *local && *gsBucket == "skia-task-scheduler" {
+			sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
+		}
+		// TODO(benjaminwagner): The storage client library already handles buffering
+		// and retrying requests, so we may not want to use BackoffTransport for the
+		// httpClient provided to NewDBBackup.
+		b, err = recovery.NewDBBackup(ctx, *gsBucket, tsDb, local_db.DB_NAME, wdAbs, httpClient)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Find depot_tools.
@@ -736,7 +747,11 @@ func main() {
 	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
-	ts.Start(ctx, !*disableTryjobs, b.Tick)
+	ts.Start(ctx, !*disableTryjobs, func() {
+		if b != nil {
+			b.Tick()
+		}
+	})
 
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)
