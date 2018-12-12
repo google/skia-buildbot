@@ -258,6 +258,13 @@ func encodeWebm(prefix, tmpDir string, res *types.Result) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
+func trunc(s string) string {
+	if len(s) < 100 {
+		return s
+	}
+	return s[:100] + "..."
+}
+
 // createWebm runs ffmpeg over the images in the given dir.
 func createWebm(ctx context.Context, prefix, tmpDir string) error {
 	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 output.webm
@@ -271,14 +278,13 @@ func createWebm(ctx context.Context, prefix, tmpDir string) error {
 	}
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
-		Name:      name,
-		Args:      args,
-		Dir:       tmpDir,
-		LogStderr: true,
-		Stdout:    output,
+		Name:           name,
+		Args:           args,
+		Dir:            tmpDir,
+		CombinedOutput: output,
 	}
 	if err := exec.Run(ctx, runCmd); err != nil {
-		return fmt.Errorf("ffmpeg failed %#v: %s", *runCmd, err)
+		return fmt.Errorf("ffmpeg failed %#v %q: %s", *runCmd, trunc(output.String()), err)
 	}
 
 	return nil
