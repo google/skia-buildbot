@@ -1,4 +1,4 @@
-// Package gs implements utility for accessing data in Google Storage.
+// Package gs implements utility for accessing data in Google Storage. Testing.
 package gcs
 
 import (
