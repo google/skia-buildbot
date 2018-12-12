@@ -68,13 +68,25 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 		return nil
 	}
 
-	outPath := g.getBaselinePath(baseLine.Issue)
+	outPath := g.getBaselinePath(baseLine.EndCommit.Hash, baseLine.Issue)
+	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
+}
+
+func (g *GStorageClient) WriteBaseLineForCommit(baseLine *baseline.CommitableBaseLine) (string, error) {
+	writeFn := func(w *gstorage.Writer) error {
+		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
+			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
+		}
+		return nil
+	}
+
+	outPath := g.getBaselinePath(baseLine.EndCommit.Hash, baseLine.Issue)
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 
 // ReadBaseline returns the baseline for the given issue from GCS.
-func (g *GStorageClient) ReadBaseline(issueID int64) (*baseline.CommitableBaseLine, error) {
-	baselinePath := g.getBaselinePath(issueID)
+func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseline.CommitableBaseLine, error) {
+	baselinePath := g.getBaselinePath(commitHash, issueID)
 	bucketName, storagePath := gcs.SplitGSPath(baselinePath)
 
 	ctx := context.Background()
@@ -104,11 +116,15 @@ func (g *GStorageClient) ReadBaseline(issueID int64) (*baseline.CommitableBaseLi
 
 // getBaselinePath returns the baseline path in GCS for the given issueID.
 // If issueID <= 0 it returns the path for the master baseline.
-func (g *GStorageClient) getBaselinePath(issueID int64) string {
+func (g *GStorageClient) getBaselinePath(commitHash string, issueID int64) string {
 	// Change the output file based on whether it's the master branch or a Gerrit issue.
-	outPath := "master.json"
+	var outPath string
 	if issueID > 0 {
 		outPath = fmt.Sprintf("issue_%d.json", issueID)
+	} else if commitHash != "" {
+		outPath = fmt.Sprintf("master_%s.json", commitHash)
+	} else {
+		outPath = "master.json"
 	}
 	return g.options.BaselineGSPath + "/" + outPath
 }
