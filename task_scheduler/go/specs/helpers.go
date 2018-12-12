@@ -164,9 +164,6 @@ func (b *TasksCfgBuilder) GetCipdPackageFromAsset(assetName string) (*CipdPackag
 		Path:    assetName,
 		Version: fmt.Sprintf("version:%s", version),
 	}
-	if assetName == "win_toolchain" {
-		pkg.Path = "t" // Workaround for path length limit on Windows.
-	}
 	b.cipdPackages[assetName] = pkg
 	return pkg, nil
 }
