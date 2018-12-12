@@ -1,8 +1,9 @@
-// Package gs implements utility for accessing data in Google Storage.
+// Package gs implements utility for accessing data in Google Storage. Testing.
 package gcs
 
 import (
 	"context"
+	"crypto/md5"
 	"crypto/sha1"
 	"fmt"
 	"io"
