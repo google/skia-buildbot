@@ -186,7 +186,7 @@
         {
           "name": "skia/bots/go_deps",
           "path": "go_deps",
-          "version": "version:89"
+          "version": "version:90"
         }
       ],
       "command": [
@@ -263,7 +263,7 @@
         {
           "name": "skia/bots/go_deps",
           "path": "go_deps",
-          "version": "version:89"
+          "version": "version:90"
         }
       ],
       "command": [
