@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "960ae194_db86a4b8",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-12T20:26:23Z",
+      "side": 1,
+      "message": "I don\u0027t have any strong opinions. Probably just submit as-is.",
+      "parentUuid": "63900467_dcd8f8aa",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 180,
+        "endChar": 3
+      },
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "98384a28_d7c1cb75",
         "filename": "status/go/statusk/main.go",
         "patchSetId": 3
