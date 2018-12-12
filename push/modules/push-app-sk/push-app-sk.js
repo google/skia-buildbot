@@ -6,6 +6,7 @@ import 'elements-sk/spinner-sk'
 import 'elements-sk/error-toast-sk'
 import { errorMessage } from 'elements-sk/errorMessage'
 
+import 'infra-sk/modules/app-sk'
 import 'infra-sk/modules/confirm-dialog-sk'
 import 'infra-sk/modules/systemd-unit-status-sk'
 import 'infra-sk/modules/login-sk'
@@ -56,7 +57,7 @@ const servicesOf = (ele, installed) => {
 };
 
 const listServices = (ele, server, installed) => servicesOf(ele, installed).map(service => {
-  return html`<systemd-unit-status-sk machine='${server.Name}' value=${ele._state.status[server.Name + ':' + service]} ></systemd-unit-status-sk>`;
+  return html`<systemd-unit-status-sk machine='${server.Name}' .value=${ele._state.status[server.Name + ':' + service]} ></systemd-unit-status-sk>`;
 });
 
 const listApplications = (ele, server) => server.Installed.map(installed => html`
@@ -65,7 +66,7 @@ const listApplications = (ele, server) => server.Installed.map(installed => html
   <warning-icon-sk class='${dirtyVisibility(ele, installed)}' title='Out of date.'></warning-icon-sk>
   <alarm-icon-sk class='${alarmVisibility(ele, installed)}' title='Uncommited changes when the package was built.'></alarm-icon-sk>
   <div class=serviceName><a href='https://github.com/google/skia-buildbot/compare/${fullHash(installed)}...HEAD'>${shorten(installed)}</a></div>
-  <div><a href='${logsFullURI(server.Name, installed)}'>logs</a></div>
+  <div class=logs><a href='${logsFullURI(server.Name, installed)}'>logs</a></div>
   <div>
     ${listServices(ele, server, installed)}
   </div>
@@ -94,20 +95,22 @@ const listServers = (ele) => ele._state.servers.map(server => html`
 </section>`);
 
 const template = (ele) => html`
-<header><h1>Push</h1> <login-sk></login-sk></header>
-<section class=controls>
-  <button id=refresh @click=${ele._refreshClick}>Refresh Packages</button>
-  <spinner-sk id=spinner></spinner-sk>
-  <label>Filter servers/apps: <input type=text @input=${ele._filterInput} value='${ele._query.search}'></input></label>
-</section>
-<main @unit-action=${(e) => ele._unitAction(e.detail)}>
-  ${listServers(ele)}
-</main>
-<footer>
-  <error-toast-sk></error-toast-sk>
-  <push-selection-sk id='push-selection' @package-change=${ele._packageChange}></push-selection-sk>
-  <confirm-dialog-sk id='confirm-dialog'></confirm-dialog-sk>
-</footer>`;
+<app-sk>
+  <header><h1>Push</h1> <login-sk></login-sk></header>
+  <main @unit-action=${(e) => ele._unitAction(e.detail)}>
+    <section class=controls>
+      <button id=refresh @click=${ele._refreshClick}>Refresh Packages</button>
+      <spinner-sk id=spinner></spinner-sk>
+      <label>Filter servers/apps: <input type=text @input=${ele._filterInput} value='${ele._query.search}'></input></label>
+    </section>
+    ${listServers(ele)}
+  </main>
+  <footer>
+    <error-toast-sk></error-toast-sk>
+    <push-selection-sk id='push-selection' @package-change=${ele._packageChange}></push-selection-sk>
+    <confirm-dialog-sk id='confirm-dialog'></confirm-dialog-sk>
+  </footer>
+</app-sk>`;
 
 /** <code>push-app-sk</code> custom element declaration.
  *

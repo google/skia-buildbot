@@ -5,6 +5,16 @@ body {
   padding: 0;
 }
 
+app-sk {
+  --sidebar-width: 0;
+  --sidebar-horiz-padding: 0;
+
+  header h1 {
+    margin-left: 0.4em;
+  }
+}
+
+
 push-app-sk {
   a:visited,
   a {
@@ -61,7 +71,8 @@ push-app-sk {
   }
 
   .serviceName,
-  .appName {
+  .appName,
+  .logs {
     font-family: monospace;
   }
 

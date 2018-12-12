@@ -6,8 +6,8 @@
   "license": "Apache 2.0",
   "dependencies": {
     "common-sk": "~3.1.0",
-    "elements-sk": "~2.6.0",
-    "infra-sk": "~0.8.0",
+    "elements-sk": "~2.6.1",
+    "infra-sk": "~0.8.1",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {
@@ -22,7 +22,7 @@
     "karma-webpack": "3.0.5",
     "mocha": "^5.2.0",
     "pulito": "^4.1.1",
-    "sinon": "^7.2.0",
+    "sinon": "^7.2.2",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2"
   }
