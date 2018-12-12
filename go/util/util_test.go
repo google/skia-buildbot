@@ -912,3 +912,12 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 		test(int32(i), int32(i))
 	}
 }
+
+func TestTrunc(t *testing.T) {
+	testutils.SmallTest(t)
+
+	assert.Equal(t, "foo...", Trunc("foobar", 3))
+	assert.Equal(t, "fooba...", Trunc("foobar", 5))
+	assert.Equal(t, "foobar", Trunc("foobar", 6))
+	assert.Equal(t, "foobar", Trunc("foobar", 7))
+}

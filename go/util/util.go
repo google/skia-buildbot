@@ -118,6 +118,16 @@ func In(s string, a []string) bool {
 	return false
 }
 
+// Trunc returns s truncated to n+3 chars.
+//
+// If len(s) < n then the string is unchanged.
+func Trunc(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "..."
+}
+
 // ContainsAny returns true if |s| contains any element of |a|.
 func ContainsAny(s string, a []string) bool {
 	for _, x := range a {
