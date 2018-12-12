@@ -22,6 +22,30 @@
       "revId": "56428fdd261fd4fd5b27a0de27e60d6a855cfb65",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f4dda21_6f93b6d2",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-12-12T21:00:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46d99c8a_496fd37c",
+      "range": {
+        "startLine": 414,
+        "startChar": 4,
+        "endLine": 414,
+        "endChar": 7
+      },
+      "revId": "56428fdd261fd4fd5b27a0de27e60d6a855cfb65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
