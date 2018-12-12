@@ -104,6 +104,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-task-scheduler:20000']
       - targets: ['skia-task-scheduler-internal:20000']
+      - targets: ['skia-task-scheduler-staging:20000']
 
   - job_name: 'chromevr_gold_traceserver'
     static_configs:
@@ -142,6 +143,7 @@ scrape_configs:
       - targets: ['skia-skfe-2:11000']
       - targets: ['skia-status:11000']
       - targets: ['skia-task-scheduler-internal:11000']
+      - targets: ['skia-task-scheduler-staging:11000']
       - targets: ['skia-task-scheduler:11000']
       - targets: ['skia-tracedb:11000']
 
