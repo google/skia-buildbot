@@ -92,7 +92,6 @@ func (c *instance) Start(uuid string) (<-chan error, error) {
 		Name:      "xvfb-run",
 		Args:      []string{"--server-args", "-screen 0 1280x1024x24", "--server-num", fmt.Sprintf("%d", c.port), SKIASERVE, "--port", fmt.Sprintf("%d", c.port), "--source", "https://debugger-assets.skia.org", "--hosted"},
 		Env:       []string{fmt.Sprintf("DISPLAY=:%d", c.display)},
-		LogStderr: true,
 		LogStdout: true,
 	}
 	process, exitChan, err := exec.RunIndefinitely(runCmd)
