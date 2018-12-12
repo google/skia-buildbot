@@ -244,7 +244,8 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		defer checkoutsMutex.RUnlock()
 	}
 
-	if isMirror && recreateMirror {
+	firstSyncOfMirror := isMirror && recreateMirror
+	if firstSyncOfMirror {
 		sklog.Info("Recreating the mirror.")
 		util.RemoveAll(checkoutPath)
 		if err := createMirrorAndInit(ctx, checkoutPath); err != nil {
@@ -274,7 +275,15 @@ func updateCheckout(ctx context.Context, checkoutPath string, isMirror bool) err
 		defer func() {
 			duration := timerMetric.Stop()
 			if isMirror {
-				recreateMirror = duration > MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION
+				if firstSyncOfMirror {
+					// We did the first sync of a recreated mirror. The first sync takes longer than usual
+					// thus we do not need to check if duration exceeded MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION.
+					// Initialize both recreateMirror and firstSyncOfMirror back to false.
+					recreateMirror = false
+					firstSyncOfMirror = false
+				} else {
+					recreateMirror = duration > MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION
+				}
 				if recreateMirror {
 					sklog.Warningf("Mirror sync time %s was greater than %s", duration, MAX_MIRROR_SYNC_TIME_BEFORE_RECREATION)
 					sklog.Info("Will recreate mirror before next sync.")
