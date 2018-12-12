@@ -14,6 +14,9 @@ import re
 import sys
 import tempfile
 
+import misc   
+
+
 # Add the django settings file to DJANGO_SETTINGS_MODULE.
 import django
 os.environ['DJANGO_SETTINGS_MODULE'] = 'csv-django-settings'
