@@ -26,6 +26,8 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/perf/go/perfclient"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"google.golang.org/api/option"
@@ -33,6 +35,7 @@ import (
 
 // flags
 var (
+	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile     = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
@@ -160,16 +163,33 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	db, err := remote_db.NewClient(*taskSchedulerDbUrl, *tasksPubsubTopic, *jobsPubsubTopic, "datahopper", newTs)
-	if err != nil {
-		sklog.Fatal(err)
+	var d db.RemoteDB
+	if *firestoreInstance != "" {
+		label := "datahopper"
+		modTasks, err := pubsub.NewModifiedTasks(*tasksPubsubTopic, label, newTs)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		modJobs, err := pubsub.NewModifiedJobs(*jobsPubsubTopic, label, newTs)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, modTasks, modJobs)
+		if err != nil {
+			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
+		}
+	} else {
+		d, err = remote_db.NewClient(*taskSchedulerDbUrl, *tasksPubsubTopic, *jobsPubsubTopic, "datahopper", newTs)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
-	if err := StartTaskMetrics(ctx, db); err != nil {
+	if err := StartTaskMetrics(ctx, d); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Jobs metrics.
-	if err := StartJobMetrics(ctx, db); err != nil {
+	if err := StartJobMetrics(ctx, d); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -177,7 +197,7 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
 	}
-	if err := bot_metrics.Start(ctx, db, *workdir, *recipesCfgFile); err != nil {
+	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile); err != nil {
 		sklog.Fatal(err)
 	}
 
