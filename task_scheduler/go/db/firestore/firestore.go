@@ -2,6 +2,8 @@ package firestore
 
 import (
 	"context"
+	"errors"
+	"io"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
@@ -64,7 +66,7 @@ type firestoreDB struct {
 // parameter is optional and indicates the path of a parent document to which
 // all collections within the DB will belong. If it is not supplied, then the
 // collections will be at the top level.
-func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) (db.DBCloser, error) {
+func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) (db.BackupDBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
@@ -137,4 +139,22 @@ func (d *firestoreDB) dateRangeHelper(coll *fs.CollectionRef, start, end time.Ti
 
 	// Run the queries.
 	return firestore.IterDocsInParallel(queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+}
+
+// firestoreDB doesn't support backups, but we implement the interface for
+// compatibility.
+func (d *firestoreDB) WriteBackup(io.Writer) error {
+	return errors.New("WriteBackup not implemented for firestoreDB.")
+}
+
+// firestoreDB doesn't support backups, but we implement the interface for
+// compatibility.
+func (d *firestoreDB) SetIncrementalBackupTime(time.Time) error {
+	return errors.New("SetIncrementalBackupTime not implemented for firestoreDB.")
+}
+
+// firestoreDB doesn't support backups, but we implement the interface for
+// compatibility.
+func (d *firestoreDB) GetIncrementalBackupTime() (time.Time, error) {
+	return time.Time{}, errors.New("GetIncrementalBackupTime not implemented for firestoreDB.")
 }
