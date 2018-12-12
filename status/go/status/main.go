@@ -41,6 +41,7 @@ import (
 	"go.skia.org/infra/task_driver/go/logs"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
@@ -87,6 +88,7 @@ var (
 // flags
 var (
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
+	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -731,6 +733,20 @@ func main() {
 			sklog.Fatalf("Failed to create local task DB: %s", err)
 		}
 		defer util.Close(taskDb.(db.DBCloser))
+	} else if *firestoreInstance != "" {
+		label := *host
+		modTasks, err := pubsub.NewModifiedTasks(*pubsubTopicTasks, label, ts)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		modJobs, err := pubsub.NewModifiedJobs(*pubsubTopicJobs, label, ts)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, modTasks, modJobs)
+		if err != nil {
+			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
+		}
 	} else {
 		label := *host
 		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicTasks, *pubsubTopicJobs, label, ts)
