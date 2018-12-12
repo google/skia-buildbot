@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "46d99c8a_496fd37c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T20:55:33Z",
+      "side": 1,
+      "message": "hour",
+      "range": {
+        "startLine": 414,
+        "startChar": 4,
+        "endLine": 414,
+        "endChar": 7
+      },
+      "revId": "56428fdd261fd4fd5b27a0de27e60d6a855cfb65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

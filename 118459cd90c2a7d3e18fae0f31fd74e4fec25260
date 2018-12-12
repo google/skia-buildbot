@@ -413,6 +413,30 @@
     },
     {
       "key": {
+        "uuid": "eedee37b_6efd9be6",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T20:55:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eeed001f_9f375da6",
+      "range": {
+        "startLine": 201,
+        "startChar": 5,
+        "endLine": 201,
+        "endChar": 21
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c6f7585e_68e03918",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 13
@@ -683,6 +707,30 @@
     },
     {
       "key": {
+        "uuid": "16957d20_89183b03",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T20:55:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "90475055_e8ef64e1",
+      "range": {
+        "startLine": 347,
+        "startChar": 16,
+        "endLine": 347,
+        "endChar": 37
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4e70cc25_8e3fc1b1",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 13
@@ -812,6 +860,30 @@
     },
     {
       "key": {
+        "uuid": "43e1786c_fd8eeef4",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T20:55:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2b88c9d7_3f4ac04e",
+      "range": {
+        "startLine": 21,
+        "startChar": 53,
+        "endLine": 21,
+        "endChar": 57
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cc33925d_4b986780",
         "filename": "gold-client/go/goldclient/gsutil_util.go",
         "patchSetId": 13
@@ -906,6 +978,30 @@
     },
     {
       "key": {
+        "uuid": "b4c28641_3a005a0e",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T20:55:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a0a29368_5d4ef058",
+      "range": {
+        "startLine": 37,
+        "startChar": 25,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a10752af_b5032eb4",
         "filename": "gold-client/go/goldclient/gsutil_util.go",
         "patchSetId": 13
@@ -985,6 +1081,30 @@
       "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "161703ec_4d644287",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-12T20:55:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8283d822_e6b96c60",
+      "range": {
+        "startLine": 16,
+        "startChar": 35,
+        "endLine": 16,
+        "endChar": 53
+      },
+      "revId": "118459cd90c2a7d3e18fae0f31fd74e4fec25260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
