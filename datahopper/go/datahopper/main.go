@@ -26,6 +26,8 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/perf/go/perfclient"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
+	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"google.golang.org/api/option"
 )
 
@@ -37,8 +39,10 @@ var (
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 
-	perfBucket = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	perfBucket       = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix       = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	tasksPubsubTopic = flag.String("pubsub_topic_tasks", pubsub.TOPIC_TASKS, "Pubsub topic for tasks.")
+	jobsPubsubTopic  = flag.String("pubsub_topic_jobs", pubsub.TOPIC_JOBS, "Pubsub topic for jobs.")
 )
 
 var (
@@ -152,12 +156,20 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	if err := StartTaskMetrics(*taskSchedulerDbUrl, ctx); err != nil {
+	newTs, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	db, err := remote_db.NewClient(*taskSchedulerDbUrl, *tasksPubsubTopic, *jobsPubsubTopic, "datahopper", newTs)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := StartTaskMetrics(ctx, db); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Jobs metrics.
-	if err := StartJobMetrics(*taskSchedulerDbUrl, ctx); err != nil {
+	if err := StartJobMetrics(ctx, db); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -165,7 +177,7 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
 	}
-	if err := bot_metrics.Start(ctx, *taskSchedulerDbUrl, *workdir, *recipesCfgFile); err != nil {
+	if err := bot_metrics.Start(ctx, db, *workdir, *recipesCfgFile); err != nil {
 		sklog.Fatal(err)
 	}
 

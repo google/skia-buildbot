@@ -1,6 +1,7 @@
 package remote_db
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -8,13 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	memory "go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -94,15 +96,20 @@ func newReqCountingTransport(rt http.RoundTripper) http.RoundTripper {
 
 // makeDB sets up a client/server pair wrapped in a clientWithBackdoor.
 func makeDB(t *testing.T) db.DBCloser {
-	baseDB := memory.NewInMemoryDB()
+	serverLabel := fmt.Sprintf("remote-db-test-%s", uuid.New())
+	modTasks, err := pubsub.NewModifiedTasks(pubsub.TOPIC_TASKS, serverLabel, nil)
+	assert.NoError(t, err)
+	modJobs, err := pubsub.NewModifiedJobs(pubsub.TOPIC_JOBS, serverLabel, nil)
+	assert.NoError(t, err)
+	baseDB := memory.NewInMemoryDB(modTasks, modJobs)
 	r := mux.NewRouter()
-	err := RegisterServer(baseDB, r.PathPrefix("/db").Subrouter())
+	err = RegisterServer(baseDB, r.PathPrefix("/db").Subrouter())
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
-	c := httputils.NewTimeoutClient()
-	c.Transport = newReqCountingTransport(c.Transport)
-	dbclient, err := NewClient(ts.URL+"/db/", c)
+	clientLabel := fmt.Sprintf("remote-db-test-%s", uuid.New())
+	dbclient, err := NewClient(ts.URL+"/db/", pubsub.TOPIC_TASKS, pubsub.TOPIC_JOBS, clientLabel, nil)
 	assert.NoError(t, err)
+	dbclient.(*client).client.Transport = newReqCountingTransport(dbclient.(*client).client.Transport)
 	return &clientWithBackdoor{
 		RemoteDB:   dbclient,
 		backdoor:   baseDB,
@@ -111,35 +118,28 @@ func makeDB(t *testing.T) db.DBCloser {
 }
 
 func TestRemoteDBTaskDB(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDB(t, d)
 }
 
-func TestRemoteDBTaskDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	d := makeDB(t)
-	defer testutils.AssertCloses(t, d)
-	db.TestTaskDBTooManyUsers(t, d)
-}
-
 func TestRemoteDBTaskDBConcurrentUpdate(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDBConcurrentUpdate(t, d)
 }
 
 func TestRemoteDBTaskDBUpdateTasksWithRetries(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestUpdateTasksWithRetries(t, d)
 }
 
 func TestRemoteDBTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestTaskDBGetTasksFromDateRangeByRepo(t, d)
@@ -153,42 +153,35 @@ func TestRemoteDBTaskDBGetTasksFromWindow(t *testing.T) {
 }
 
 func TestRemoteDBJobDB(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestJobDB(t, d)
 }
 
-func TestRemoteDBJobDBTooManyUsers(t *testing.T) {
-	testutils.SmallTest(t)
-	d := makeDB(t)
-	defer testutils.AssertCloses(t, d)
-	db.TestJobDBTooManyUsers(t, d)
-}
-
 func TestRemoteDBJobDBConcurrentUpdate(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestJobDBConcurrentUpdate(t, d)
 }
 
 func TestRemoteDBUpdateJobsWithRetries(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestUpdateJobsWithRetries(t, d)
 }
 
 func TestRemoteDBCommentDB(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 	db.TestCommentDB(t, d)
 }
 
 func TestRemoteDBGetTasksFromDateRange(t *testing.T) {
-	testutils.SmallTest(t)
+	testutils.LargeTest(t)
 	d := makeDB(t)
 	defer testutils.AssertCloses(t, d)
 

@@ -28,7 +28,7 @@ func main() {
 	// Global init.
 	common.Init()
 
-	d, err := local_db.NewDB(local_db.DB_NAME, *dbfile)
+	d, err := local_db.NewDB(local_db.DB_NAME, *dbfile, nil, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

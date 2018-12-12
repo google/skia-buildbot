@@ -12,11 +12,15 @@ import (
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 const (
+	// Auth scope.
+	AUTH_SCOPE = pubsub.ScopePubSub
+
 	// Default project ID.
 	PROJECT_ID = "skia-public"
 
@@ -110,7 +114,11 @@ type TaskPublisher struct {
 
 // NewTaskPublisher creates a TaskPublisher instance. It creates the given topic
 // if it does not already exist.
-func NewTaskPublisher(c *pubsub.Client, topic string) (*TaskPublisher, error) {
+func NewTaskPublisher(topic string, ts oauth2.TokenSource) (*TaskPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
 	pub, err := newPublisher(c, topic)
 	if err != nil {
 		return nil, err
@@ -130,7 +138,11 @@ type JobPublisher struct {
 
 // NewJobPublisher creates a JobPublisher instance. It creates the given topic
 // if it does not already exist.
-func NewJobPublisher(c *pubsub.Client, topic string) (*JobPublisher, error) {
+func NewJobPublisher(topic string, ts oauth2.TokenSource) (*JobPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
 	pub, err := newPublisher(c, topic)
 	if err != nil {
 		return nil, err
@@ -166,7 +178,7 @@ type subscriber struct {
 func newSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*pubsub.Message) error) (*subscriber, error) {
 	// Create a pubsub subscription. This will return an error if we somehow
 	// reused an ID.
-	id := topic + "+" + subscriberLabel + "_" + time.Now().Format(local_db.TIMESTAMP_FORMAT)
+	id := topic + "+" + subscriberLabel + "_" + time.Now().Format(util.SAFE_TIMESTAMP_FORMAT)
 	return &subscriber{
 		client:   c,
 		callback: callback,
@@ -235,7 +247,11 @@ func (s *subscriber) start() (context.CancelFunc, error) {
 // is Ack'd and will not be re-sent. Therefore, if the task is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewTaskSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*types.Task) error) (context.CancelFunc, error) {
+func NewTaskSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Task) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
 	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
 		var t types.Task
 		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&t); err != nil {
@@ -260,7 +276,11 @@ func NewTaskSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback
 // is Ack'd and will not be re-sent. Therefore, if the job is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewJobSubscriber(c *pubsub.Client, topic, subscriberLabel string, callback func(*types.Job) error) (context.CancelFunc, error) {
+func NewJobSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Job) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
 	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
 		var j types.Job
 		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&j); err != nil {

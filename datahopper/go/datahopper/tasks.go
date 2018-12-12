@@ -9,13 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/flakes"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -175,14 +173,10 @@ func addTaskAggregates(s *events.EventStream) error {
 }
 
 // StartTaskMetrics starts a goroutine which ingests metrics data based on Tasks.
-func StartTaskMetrics(taskSchedulerDbUrl string, ctx context.Context) error {
-	db, err := remote_db.NewClient(taskSchedulerDbUrl, httputils.NewTimeoutClient())
-	if err != nil {
-		return err
-	}
+func StartTaskMetrics(ctx context.Context, taskDb db.TaskReader) error {
 	edb := &taskEventDB{
 		cached: []*events.Event{},
-		db:     db,
+		db:     taskDb,
 	}
 	em, err := events.NewEventMetrics(edb, "task_metrics")
 	if err != nil {

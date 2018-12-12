@@ -67,7 +67,7 @@ type ModifiedTasksReader interface {
 	GetModifiedTasks(string) ([]*types.Task, error)
 
 	// GetModifiedTasksGOB returns the GOB-encoded results of GetModifiedTasks,
-	// keyed by Task.Id.
+	// keyed by Task.Id. Callers should not modify the returned byte slices.
 	GetModifiedTasksGOB(string) (map[string][]byte, error)
 
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
@@ -206,7 +206,7 @@ type ModifiedJobsReader interface {
 	GetModifiedJobs(string) ([]*types.Job, error)
 
 	// GetModifiedJobsGOB returns the GOB-encoded results of GetModifiedJobs,
-	// keyed by Job.Id.
+	// keyed by Job.Id. Callers should not modify the returned byte slices.
 	GetModifiedJobsGOB(string) (map[string][]byte, error)
 
 	// StartTrackingModifiedJobs initiates tracking of modified jobs for
