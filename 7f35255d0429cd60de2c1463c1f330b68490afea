@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "05ad3c60_5abef4e4",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T20:15:17Z",
+      "side": 1,
+      "message": "Probably. I\u0027d rather not do it in this CL though, since it\u0027ll touch a lot of files.",
+      "parentUuid": "b8a80289_855b793f",
+      "range": {
+        "startLine": 166,
+        "startChar": 10,
+        "endLine": 166,
+        "endChar": 18
+      },
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3ca4838a_267c0225",
         "filename": "datahopper/go/datahopper/main.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2018-12-12T19:23:48Z",
       "side": 1,
       "message": "nit: Not sure if it would be useful to make this a function, since it seems to be common to use pubsub and firestore together.",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 180,
+        "endChar": 3
+      },
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63900467_dcd8f8aa",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T20:15:17Z",
+      "side": 1,
+      "message": "In one revision of my previous CL to pass the ModifiedTasks/Jobs into the DB constructors, I had moved the pubsub initialization into firestore.NewDB, and added a parameter indicating whether or not it should also create the in-memory ModifiedTasks/Jobs.  Should I just do that?",
+      "parentUuid": "3ca4838a_267c0225",
       "range": {
         "startLine": 169,
         "startChar": 0,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "af9c07c7_29388665",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T20:15:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "98384a28_d7c1cb75",
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a3ec51ef_542e5d96",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 3
@@ -79,6 +145,24 @@
       "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d48d2d54_6b206dd5",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 679,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T20:15:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3ec51ef_542e5d96",
+      "revId": "7f35255d0429cd60de2c1463c1f330b68490afea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
