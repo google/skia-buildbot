@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3c3b885b_49695c6c",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T15:45:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a98192c1_c8a0b57c",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8c795240_c6f2b226",
         "filename": "datahopper/go/datahopper/jobs.go",
         "patchSetId": 6
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "27db0987_74742e09",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T15:45:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c795240_c6f2b226",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d55955c8_bc4bf345",
         "filename": "datahopper/go/datahopper/tasks.go",
         "patchSetId": 6
@@ -50,6 +86,24 @@
       "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9155d00_6f914fde",
+        "filename": "datahopper/go/datahopper/tasks.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T15:45:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d55955c8_bc4bf345",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -76,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "e30e2a00_651b53ba",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 695,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T15:45:24Z",
+      "side": 1,
+      "message": "This was accidentally left out when I added task driver support to Status.",
+      "parentUuid": "43db6466_18a6744c",
+      "range": {
+        "startLine": 695,
+        "startChar": 92,
+        "endLine": 695,
+        "endChar": 114
+      },
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "71422e09_75d4531f",
         "filename": "task_scheduler/go/db/modified/mux.go",
         "patchSetId": 6
@@ -99,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "33c6cdde_7ff2d23c",
+        "filename": "task_scheduler/go/db/modified/mux.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T15:45:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71422e09_75d4531f",
+      "range": {
+        "startLine": 36,
+        "startChar": 51,
+        "endLine": 36,
+        "endChar": 55
+      },
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7cc01bb3_6e5c11e5",
         "filename": "task_scheduler/go/db/modified/mux_test.go",
         "patchSetId": 6
@@ -110,6 +212,24 @@
       "writtenOn": "2018-12-12T05:42:36Z",
       "side": 1,
       "message": "These tests really only exercise the readWrite impl. There aren\u0027t any assertions on the writeOnly part.",
+      "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9dba7277_157db1c4",
+        "filename": "task_scheduler/go/db/modified/mux_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-12T15:45:24Z",
+      "side": 1,
+      "message": "Added some very simple tests to verify that we write to the writeOnly entries.",
+      "parentUuid": "7cc01bb3_6e5c11e5",
       "revId": "1bb4c1601fe92768c5a91db420eafe1e60179505",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
