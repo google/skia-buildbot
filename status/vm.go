@@ -4,6 +4,8 @@ import (
 	"path"
 	"runtime"
 
+	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -14,6 +16,10 @@ func StatusBase(name string) *gce.Instance {
 	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "kjlubick"
+	vm.Scopes = append(vm.Scopes,
+		bigtable.ReadonlyScope,
+		datastore.ScopeDatastore,
+	)
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)

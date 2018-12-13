@@ -44,8 +44,9 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 
 	// Add some comments.
 	tc1 := types.MakeTaskComment(1, 1, 1, 1, now)
-	expected["r1"] = &types.RepoComments{
-		Repo:             "r1",
+	r1 := tc1.Repo
+	expected[r1] = &types.RepoComments{
+		Repo:             r1,
 		TaskComments:     map[string]map[string][]*types.TaskComment{"c1": {"n1": {tc1}}},
 		TaskSpecComments: map[string][]*types.TaskSpecComment{},
 		CommitComments:   map[string][]*types.CommitComment{},
@@ -53,24 +54,25 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	assert.NoError(t, db.PutTaskComment(tc1))
 
 	tc2 := types.MakeTaskComment(2, 1, 1, 1, now.Add(2*time.Second))
-	expected["r1"].TaskComments["c1"]["n1"] = []*types.TaskComment{tc1, tc2}
+	expected[r1].TaskComments["c1"]["n1"] = []*types.TaskComment{tc1, tc2}
 	assert.NoError(t, db.PutTaskComment(tc2))
 
 	tc3 := types.MakeTaskComment(3, 1, 1, 1, now.Add(time.Second))
-	expected["r1"].TaskComments["c1"]["n1"] = []*types.TaskComment{tc1, tc3, tc2}
+	expected[r1].TaskComments["c1"]["n1"] = []*types.TaskComment{tc1, tc3, tc2}
 	assert.NoError(t, db.PutTaskComment(tc3))
 
 	tc4 := types.MakeTaskComment(4, 1, 1, 2, now)
-	expected["r1"].TaskComments["c2"] = map[string][]*types.TaskComment{"n1": {tc4}}
+	expected[r1].TaskComments["c2"] = map[string][]*types.TaskComment{"n1": {tc4}}
 	assert.NoError(t, db.PutTaskComment(tc4))
 
 	tc5 := types.MakeTaskComment(5, 1, 2, 2, now)
-	expected["r1"].TaskComments["c2"]["n2"] = []*types.TaskComment{tc5}
+	expected[r1].TaskComments["c2"]["n2"] = []*types.TaskComment{tc5}
 	assert.NoError(t, db.PutTaskComment(tc5))
 
 	tc6 := types.MakeTaskComment(6, 2, 3, 3, now)
-	expected["r2"] = &types.RepoComments{
-		Repo:             "r2",
+	r2 := tc6.Repo
+	expected[r2] = &types.RepoComments{
+		Repo:             r2,
 		TaskComments:     map[string]map[string][]*types.TaskComment{"c3": {"n3": {tc6.Copy()}}},
 		TaskSpecComments: map[string][]*types.TaskSpecComment{},
 		CommitComments:   map[string][]*types.CommitComment{},
@@ -84,11 +86,11 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	assert.True(t, callCount >= 6)
 
 	sc1 := types.MakeTaskSpecComment(1, 1, 1, now)
-	expected["r1"].TaskSpecComments["n1"] = []*types.TaskSpecComment{sc1}
+	expected[r1].TaskSpecComments["n1"] = []*types.TaskSpecComment{sc1}
 	assert.NoError(t, db.PutTaskSpecComment(sc1))
 
 	cc1 := types.MakeCommitComment(1, 1, 1, now)
-	expected["r1"].CommitComments["c1"] = []*types.CommitComment{cc1}
+	expected[r1].CommitComments["c1"] = []*types.CommitComment{cc1}
 	assert.NoError(t, db.PutCommitComment(cc1))
 
 	assert.True(t, callCount >= 8)
@@ -109,18 +111,18 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 
 	// Reload DB from persistent.
 	init := map[string]*types.RepoComments{
-		"r1": expected["r1"].Copy(),
-		"r2": expected["r2"].Copy(),
+		r1: expected[r1].Copy(),
+		r2: expected[r2].Copy(),
 	}
 	db = NewCommentBoxWithPersistence(init, testWriter)
 
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{"r0", r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		expectedSlice := []*types.RepoComments{
 			{Repo: "r0"},
-			expected["r1"],
-			expected["r2"],
+			expected[r1],
+			expected[r2],
 		}
 		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
@@ -128,11 +130,11 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	assert.Equal(t, 0, callCount)
 
 	// Delete some comments.
-	expected["r1"].TaskComments["c1"]["n1"] = []*types.TaskComment{tc1, tc2}
+	expected[r1].TaskComments["c1"]["n1"] = []*types.TaskComment{tc1, tc2}
 	assert.NoError(t, db.DeleteTaskComment(tc3))
-	expected["r1"].TaskSpecComments = map[string][]*types.TaskSpecComment{}
+	expected[r1].TaskSpecComments = map[string][]*types.TaskSpecComment{}
 	assert.NoError(t, db.DeleteTaskSpecComment(sc1))
-	expected["r1"].CommitComments = map[string][]*types.CommitComment{}
+	expected[r1].CommitComments = map[string][]*types.CommitComment{}
 	assert.NoError(t, db.DeleteCommitComment(cc1))
 
 	assert.Equal(t, 3, callCount)
@@ -150,30 +152,30 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	assert.NoError(t, db.DeleteCommitComment(types.MakeCommitComment(99, 99, 1, now)))
 
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{"r0", r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		expectedSlice := []*types.RepoComments{
 			{Repo: "r0"},
-			expected["r1"],
-			expected["r2"],
+			expected[r1],
+			expected[r2],
 		}
 		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
 
 	// Reload DB from persistent again.
 	init = map[string]*types.RepoComments{
-		"r1": expected["r1"].Copy(),
-		"r2": expected["r2"].Copy(),
+		r1: expected[r1].Copy(),
+		r2: expected[r2].Copy(),
 	}
 	db = NewCommentBoxWithPersistence(init, testWriter)
 
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{"r0", r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		expectedSlice := []*types.RepoComments{
 			{Repo: "r0"},
-			expected["r1"],
-			expected["r2"],
+			expected[r1],
+			expected[r2],
 		}
 		deepequal.AssertDeepEqual(t, expectedSlice, actual)
 	}
@@ -205,6 +207,8 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	for _, c := range []*types.TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
 		assert.NoError(t, db.PutTaskComment(c))
 	}
+	r1 := tc1.Repo
+	r2 := tc6.Repo
 
 	sc1 := types.MakeTaskSpecComment(1, 1, 1, now)
 	assert.NoError(t, db.PutTaskSpecComment(sc1))
@@ -214,7 +218,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 
 	expected := []*types.RepoComments{
 		{
-			Repo: "r1",
+			Repo: r1,
 			TaskComments: map[string]map[string][]*types.TaskComment{
 				"c1": {
 					"n1": {tc1, tc3, tc2},
@@ -232,7 +236,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 			},
 		},
 		{
-			Repo: "r2",
+			Repo: r2,
 			TaskComments: map[string]map[string][]*types.TaskComment{
 				"c3": {
 					"n3": {tc6},
@@ -244,7 +248,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 	}
 
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		deepequal.AssertDeepEqual(t, expected, actual)
 	}
@@ -268,7 +272,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 
 	// Assert nothing has changed.
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		deepequal.AssertDeepEqual(t, expected, actual)
 	}
@@ -279,7 +283,7 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 
 	// Assert nothing has changed.
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		deepequal.AssertDeepEqual(t, expected, actual)
 	}
