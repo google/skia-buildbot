@@ -581,6 +581,9 @@ func RunCompileTask(ctx context.Context, g *gsFileLocation, task *CompileTask, d
 		if err := UpdateCompileTask(ctx, g, datastoreKey, task); err != nil {
 			return fmt.Errorf("Could not update compile task with ID %d: %s", datastoreKey.ID, err)
 		}
+	} else {
+		// The with patch run succeeded. Mark the android_compile_tree_broken metric accordingly.
+		updateAndroidTreeBrokenMetric(false)
 	}
 
 	return nil
