@@ -22,6 +22,7 @@ import (
 	"unicode"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -713,7 +714,7 @@ func main() {
 	}
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.ReadonlyScope, pubsub.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.ReadonlyScope, pubsub.AUTH_SCOPE, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
