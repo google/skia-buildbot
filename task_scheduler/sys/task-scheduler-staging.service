@@ -8,6 +8,7 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/task_scheduler \
     --gsBucket=skia-task-scheduler-staging \
     --host=task-scheduler-staging.skia.org \
+    --firestore_instance=staging \
     --isolate_server=https://isolateserver-dev.appspot.com \
     --logtostderr \
     --pool=Skia \
