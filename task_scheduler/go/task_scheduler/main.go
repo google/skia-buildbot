@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -622,7 +623,7 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	tokenSource, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE)
+	tokenSource, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}

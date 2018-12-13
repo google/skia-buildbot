@@ -1177,13 +1177,16 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	now := time.Now()
 
 	// Empty db.
+	r0 := fmt.Sprintf("%s%d", common.REPO_SKIA, 0)
+	r1 := fmt.Sprintf("%s%d", common.REPO_SKIA, 1)
+	r2 := fmt.Sprintf("%s%d", common.REPO_SKIA, 2)
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(actual))
-		assert.Equal(t, "r0", actual[0].Repo)
-		assert.Equal(t, "r1", actual[1].Repo)
-		assert.Equal(t, "r2", actual[2].Repo)
+		assert.Equal(t, r0, actual[0].Repo)
+		assert.Equal(t, r1, actual[1].Repo)
+		assert.Equal(t, r2, actual[2].Repo)
 		for _, rc := range actual {
 			assert.Equal(t, 0, len(rc.TaskComments))
 			assert.Equal(t, 0, len(rc.TaskSpecComments))
@@ -1238,9 +1241,9 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	assert.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
 
 	expected := []*types.RepoComments{
-		{Repo: "r0"},
+		{Repo: r0},
 		{
-			Repo: "r1",
+			Repo: r1,
 			TaskComments: map[string]map[string][]*types.TaskComment{
 				"c1": {
 					"n1": {tc1, tc3, tc2},
@@ -1260,7 +1263,7 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 			},
 		},
 		{
-			Repo: "r2",
+			Repo: r2,
 			TaskComments: map[string]map[string][]*types.TaskComment{
 				"c3": {
 					"n3": {tc6copy},
@@ -1275,14 +1278,14 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 		},
 	}
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 	}
 
 	// Specifying a cutoff time shouldn't drop required comments.
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r1"}, now.Add(time.Second))
+		actual, err := db.GetCommentsForRepos([]string{r1}, now.Add(time.Second))
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(actual))
 		{
@@ -1341,7 +1344,7 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	expected[1].TaskSpecComments["n1"] = []*types.TaskSpecComment{sc2}
 	expected[1].CommitComments["c1"] = []*types.CommitComment{cc2}
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
 	}
@@ -1357,12 +1360,12 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 		assert.NoError(t, db.DeleteCommitComment(c))
 	}
 	{
-		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(actual))
-		assert.Equal(t, "r0", actual[0].Repo)
-		assert.Equal(t, "r1", actual[1].Repo)
-		assert.Equal(t, "r2", actual[2].Repo)
+		assert.Equal(t, r0, actual[0].Repo)
+		assert.Equal(t, r1, actual[1].Repo)
+		assert.Equal(t, r2, actual[2].Repo)
 		for _, rc := range actual {
 			assert.Equal(t, 0, len(rc.TaskComments))
 			assert.Equal(t, 0, len(rc.TaskSpecComments))

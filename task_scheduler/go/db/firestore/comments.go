@@ -2,12 +2,13 @@ package firestore
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -111,7 +112,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 
 // taskCommentId returns an ID for the TaskComment.
 func taskCommentId(c *types.TaskComment) string {
-	return fmt.Sprintf("%s#%s#%s#%s", c.Repo, c.Revision, c.Name, fixTimestamp(c.Timestamp).Format(local_db.TIMESTAMP_FORMAT))
+	return fmt.Sprintf("%s#%s#%s#%s", url.QueryEscape(c.Repo), c.Revision, c.Name, fixTimestamp(c.Timestamp).Format(util.SAFE_TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.
@@ -134,7 +135,7 @@ func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 
 // taskSpecCommentId returns an ID for the TaskSpecComment.
 func taskSpecCommentId(c *types.TaskSpecComment) string {
-	return fmt.Sprintf("%s#%s#%s", c.Repo, c.Name, c.Timestamp.Format(local_db.TIMESTAMP_FORMAT))
+	return fmt.Sprintf("%s#%s#%s", url.QueryEscape(c.Repo), c.Name, c.Timestamp.Format(util.SAFE_TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.
@@ -157,7 +158,7 @@ func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 
 // commitCommentId returns an ID for the CommitComment.
 func commitCommentId(c *types.CommitComment) string {
-	return fmt.Sprintf("%s#%s#%s", c.Repo, c.Revision, c.Timestamp.Format(local_db.TIMESTAMP_FORMAT))
+	return fmt.Sprintf("%s#%s#%s", url.QueryEscape(c.Repo), c.Revision, c.Timestamp.Format(util.SAFE_TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.

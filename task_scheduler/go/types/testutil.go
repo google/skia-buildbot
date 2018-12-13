@@ -3,6 +3,8 @@ package types
 import (
 	"fmt"
 	"time"
+
+	"go.skia.org/infra/go/common"
 )
 
 const DEFAULT_TEST_REPO = "go-on-now.git"
@@ -65,7 +67,7 @@ func MakeFullJob(now time.Time) *Job {
 // name, commit, and ts, and other fields based on n.
 func MakeTaskComment(n int, repo int, name int, commit int, ts time.Time) *TaskComment {
 	return &TaskComment{
-		Repo:      fmt.Sprintf("r%d", repo),
+		Repo:      fmt.Sprintf("%s%d", common.REPO_SKIA, repo),
 		Revision:  fmt.Sprintf("c%d", commit),
 		Name:      fmt.Sprintf("n%d", name),
 		Timestamp: ts,
@@ -79,7 +81,7 @@ func MakeTaskComment(n int, repo int, name int, commit int, ts time.Time) *TaskC
 // repo, name, and ts, and other fields based on n.
 func MakeTaskSpecComment(n int, repo int, name int, ts time.Time) *TaskSpecComment {
 	return &TaskSpecComment{
-		Repo:          fmt.Sprintf("r%d", repo),
+		Repo:          fmt.Sprintf("%s%d", common.REPO_SKIA, repo),
 		Name:          fmt.Sprintf("n%d", name),
 		Timestamp:     ts,
 		User:          fmt.Sprintf("u%d", n),
@@ -93,7 +95,7 @@ func MakeTaskSpecComment(n int, repo int, name int, ts time.Time) *TaskSpecComme
 // repo, commit, and ts, and other fields based on n.
 func MakeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment {
 	return &CommitComment{
-		Repo:          fmt.Sprintf("r%d", repo),
+		Repo:          fmt.Sprintf("%s%d", common.REPO_SKIA, repo),
 		Revision:      fmt.Sprintf("c%d", commit),
 		Timestamp:     ts,
 		User:          fmt.Sprintf("u%d", n),

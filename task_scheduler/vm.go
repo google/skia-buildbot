@@ -4,6 +4,7 @@ import (
 	"path"
 	"runtime"
 
+	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
@@ -18,6 +19,7 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 	vm.Metadata["owner_secondary"] = "benjaminwagner"
 	vm.Scopes = append(vm.Scopes,
 		auth.SCOPE_GERRIT,
+		datastore.ScopeDatastore,
 	)
 
 	_, filename, _, _ := runtime.Caller(0)

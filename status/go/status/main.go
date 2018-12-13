@@ -22,6 +22,7 @@ import (
 	"unicode"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -713,7 +714,7 @@ func main() {
 	}
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.ReadonlyScope, pubsub.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.ReadonlyScope, pubsub.AUTH_SCOPE, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -734,6 +735,7 @@ func main() {
 		}
 		defer util.Close(taskDb.(db.DBCloser))
 	} else if *firestoreInstance != "" {
+		sklog.Infof("Creating firestore DB.")
 		label := *host
 		modTasks, err := pubsub.NewModifiedTasks(*pubsubTopicTasks, label, ts)
 		if err != nil {
@@ -748,6 +750,7 @@ func main() {
 			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 		}
 	} else {
+		sklog.Infof("Creating remote DB.")
 		label := *host
 		taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicTasks, *pubsubTopicJobs, label, ts)
 		if err != nil {
@@ -775,7 +778,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, 14*24*time.Hour)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *repoUrls, 14*24*time.Hour)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
