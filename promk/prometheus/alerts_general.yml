@@ -19,6 +19,7 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
           '
+
   - alert: CrashLoop
     expr: max_over_time(liveness_uptime_s[6m]) < 60 * 3
     for: 5m
@@ -34,6 +35,7 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
+
   - alert: TooManyGoRoutines
     expr: go_goroutines{job!="kubernetes-nodes"} > 3000
     for: 2m
@@ -49,17 +51,7 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
-  - alert: ProbeFailure
-    expr: prober{type="failure"} > 0
-    for: 5m
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      abbr: '{{ $labels.probename }} {{ $labels.url }}'
-      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
-        respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{
-        $labels.probename }}+filename%3Aprobersk.json5 for the endpoint URL.'
+
   - alert: TooManyOpenFDs
     expr: process_open_fds > 2000
     labels:
@@ -68,6 +60,7 @@ groups:
     annotations:
       abbr: '{{ $labels.host }}'
       description: 'Too many open file handles on {{ $labels.host }}.'
+
   - alert: PersistentVolumeLowSpace
     expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
     labels:
@@ -76,6 +69,7 @@ groups:
     annotations:
       abbr: '{{ $labels.persistentvolumeclaim }}'
       description: '{{ $labels.persistentvolumeclaim }} is more than 90% full.'
+
   - alert: ContainerVolumeLowSpace
     expr: (container_fs_usage_bytes/container_fs_limit_bytes) > 0.9
     labels:

@@ -6,6 +6,7 @@
 groups:
 - name: general
   rules:
+
   # Container Builder
   - alert: ContainerBuilderFailure
     expr: ci_build_failure >= 2
@@ -15,6 +16,7 @@ groups:
     annotations:
       abbr: 'Container Builder Failed'
       description: 'The build with trigger name {{ $labels.trigger}} has failed when rebuilding twice in a row.'
+
   # Continuous Deploy
   - alert: ContinuousDeployLiveness
     expr: liveness_ci_pubsub_receive_s > 60 * 60 * 24 * 2
@@ -28,6 +30,7 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
+
   - alert: ContinuousDeployFailures
     expr: ci_push_failure > 2
     for: 5m
@@ -40,6 +43,7 @@ groups:
 
           https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
         '
+
   # Fiddle
   - alert: FiddlerPodsTooLow
     expr: avg_over_time(pods_idle[2m]) < 5
@@ -50,6 +54,7 @@ groups:
     annotations:
       abbr: 'Insufficient fiddler pods.'
       description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/master/fiddlek/PROD.md#fiddler_pods'
+
   - alert: NamedFiddlesFailing
     expr: named_fiddles_total_invalid > 0
     for: 15m
@@ -59,6 +64,7 @@ groups:
     annotations:
       abbr: 'named fiddles failing'
       description: 'Some named fiddles are failing. Visit https://named-fiddles.skia.org to see which ones.'
+
   - alert: FiddleFailingToFindIdlePods
     expr: rate(run_exhaustion[20m]) * 20 * 60 > 1
     for: 5m
@@ -79,6 +85,7 @@ groups:
     annotations:
       abbr: 'Too many CLs in CQ.'
       description: 'There are 10 CLs or more in a Skia CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
+
   - alert: CQWatcherTrybotDuration
     expr: max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]) > 2700
     labels:
@@ -87,6 +94,7 @@ groups:
     annotations:
       abbr: 'CQ trybot running for too long.'
       description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQTrybotDurationError%22'
+
   - alert: CQWatcherTrybotsCount
     expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 50
     labels:
@@ -106,6 +114,7 @@ groups:
     annotations:
       abbr: 'Full Upload Queue'
       description: 'Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload'
+
   - alert: FuzzerStaleVersion
     expr: fuzzer_version_age{type="current"}/60/60/24 > 10
     labels:
@@ -114,6 +123,7 @@ groups:
     annotations:
       abbr: 'Fuzzer version stale'
       description: 'The Fuzzer hasnt rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version'
+
   - alert: FuzzerSlowRoll
     expr: fuzzer_version_age{type="pending"}/60/60 > 2
     labels:
@@ -122,6 +132,7 @@ groups:
     annotations:
       abbr: 'Fuzzer roll taking a while'
       description: 'The fuzzer hasnt finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll'
+
   - alert: FuzzerAnalysisQueue
     expr: fuzzer_queue_size_analysis > 900000
     for: 2m
@@ -163,6 +174,7 @@ groups:
     annotations:
       abbr: 'CT poller health check failed.'
       description: 'CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check'
+
   - alert: CTFEPendingTaskCount
     expr: num_pending_tasks{app="ctfe"} >= 10
     for: 5m
@@ -172,6 +184,7 @@ groups:
     annotations:
       abbr: 'CTFE pending task count too high.'
       description: 'There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
+
   - alert: CTFEPendingTaskStatus
     expr: oldest_pending_task_status{app="ctfe"} >= 2
     for: 5m
@@ -207,6 +220,7 @@ groups:
       severity: critical
     annotations:
       description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures'
+
   - alert: AndroidTxLogFailures
     expr: tx_log_write_failure > 0
     labels:
@@ -214,3 +228,26 @@ groups:
       severity: critical
     annotations:
       description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log'
+
+# Prober
+  - alert: ProbeFailure
+    expr: prober{type="failure"} > 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.probename }} {{ $labels.url }}'
+      description: 'Endpoint {{ $labels.probename }} {{ $labels.url }} has failed to
+        respond in at least 5 minutes. See https://github.com/google/skia-buildbot/search?q={{
+        $labels.probename }}+filename%3Aprobersk.json5 for the endpoint URL.'
+
+  - alert: ProberLiveness
+    expr: liveness_probes_s > 300
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.probename }}'
+      description: 'The prober has failed to probe in the last 5 minutes.'
