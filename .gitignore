@@ -102,6 +102,7 @@ lottiecap/filmstrip.png
 # promk
 promk/tmp
 promk/tmpconf
+promk/prometheus/absent_*.yml
 # kube
 **/chat_config.txt
 .vscode

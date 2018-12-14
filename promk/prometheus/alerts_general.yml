@@ -17,7 +17,7 @@ groups:
 
           kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
           '
 
   - alert: CrashLoop
@@ -33,7 +33,7 @@ groups:
 
           kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
         '
 
   - alert: TooManyGoRoutines
@@ -49,7 +49,7 @@ groups:
 
           kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
         '
 
   - alert: TooManyOpenFDs
@@ -80,12 +80,14 @@ groups:
       description: '{{ $labels.device }} on {{ $labels.instance }} in pool {{ $labels.cloud_google_com_gke_nodepool }} is more than 90% full.'
 
   - alert: AutoRollBackendErrorRate
-    expr: rate(num_log_lines{level="ERROR",log_source="autoroll-be"}[1h]) > 0.001
+    expr: rate(num_log_lines{level="ERROR",app=~"autoroll-be.*"}[1h]) > 0.001
     labels:
       category: infra
       severity: critical
     annotations:
-      description: 'The error rate for autoroll on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
+      description: 'The error rate for autoroll on {{ $labels.app }} is too high.
+      https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
+      https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
 
   - alert: AutoRollLastTransition
     expr: liveness_last_successful_autoroll_tick_s{roller!="skia-flutter-autoroll"} > 10*60
@@ -93,7 +95,9 @@ groups:
       category: infra
       severity: critical
     annotations:
-      description: 'Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll'
+      description: 'Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes.
+      https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
+      '
 
   - alert: HighExternalQPS
     expr: sum(rate(http_request_metrics{host!="www.googleapis.com"}[30m])) by (host) > 25
@@ -111,16 +115,6 @@ groups:
     annotations:
       description: 'QPS to www.googleapis.com is high. Verify that this is expected.'
 
-# skia-flutter-autoroll takes a long time to transition because it's pre-upload
-# scripts run flutter's license script which can take around 20 minutes.
-  - alert: AutoRollLastTransition
-    expr: liveness_last_successful_autoroll_tick_s{roller="skia-flutter-autoroll"} > 30*60
-    labels:
-      category: infra
-      severity: critical
-    annotations:
-      description: 'Autoroll on {{ $labels.instance }} has failed to transition for more than 30 minutes. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll'
-
   - alert: AutoRollGetSheriffFailed
     expr: autoroll_get_sheriff_success == 0
     for: 2h
@@ -128,4 +122,6 @@ groups:
       category: infra
       severity: critical
     annotations:
-      description: 'Autoroll on {{ $labels.instance }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2Fautoroll'
+      description: 'Autoroll on {{ $labels.instance }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
+      https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
+      '
