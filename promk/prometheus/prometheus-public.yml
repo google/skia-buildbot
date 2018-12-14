@@ -6,6 +6,9 @@ rule_files:
   - "alerts_public.yml"
   - "alerts_general.yml"
   - "alerts_alert_to_pubsub.yml"
+  - "absent_alerts_public.yml"
+  - "absent_alerts_general.yml"
+  - "absent_alerts_alert_to_pubsub.yml"
 
 alerting:
   alertmanagers:
