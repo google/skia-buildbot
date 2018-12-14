@@ -1,0 +1,11 @@
+groups:
+- name: general
+  rules:
+  - alert: Absent
+    expr: absent(rate(pubsub_send_failure[5m]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AlertToPubSub
+      description: 'There is no data for the Alert: "AlertToPubSub"'

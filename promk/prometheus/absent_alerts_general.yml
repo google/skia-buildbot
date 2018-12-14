@@ -1,0 +1,100 @@
+groups:
+- name: general
+  rules:
+  - alert: Absent
+    expr: absent(up)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: InstanceDown
+      description: 'There is no data for the Alert: "InstanceDown"'
+  - alert: Absent
+    expr: absent(max_over_time(liveness_uptime_s[6m]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CrashLoop
+      description: 'There is no data for the Alert: "CrashLoop"'
+  - alert: Absent
+    expr: absent(go_goroutines{job!="kubernetes-nodes"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: TooManyGoRoutines
+      description: 'There is no data for the Alert: "TooManyGoRoutines"'
+  - alert: Absent
+    expr: absent(process_open_fds)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: TooManyOpenFDs
+      description: 'There is no data for the Alert: "TooManyOpenFDs"'
+  - alert: Absent
+    expr: absent((kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: PersistentVolumeLowSpace
+      description: 'There is no data for the Alert: "PersistentVolumeLowSpace"'
+  - alert: Absent
+    expr: absent((container_fs_usage_bytes/container_fs_limit_bytes))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: ContainerVolumeLowSpace
+      description: 'There is no data for the Alert: "ContainerVolumeLowSpace"'
+  - alert: Absent
+    expr: absent(rate(num_log_lines{level="ERROR",log_source="autoroll-be"}[1h]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AutoRollBackendErrorRate
+      description: 'There is no data for the Alert: "AutoRollBackendErrorRate"'
+  - alert: Absent
+    expr: absent(liveness_last_successful_autoroll_tick_s{roller!="skia-flutter-autoroll"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AutoRollLastTransition
+      description: 'There is no data for the Alert: "AutoRollLastTransition"'
+  - alert: Absent
+    expr: absent(sum(rate(http_request_metrics{host!="www.googleapis.com"}[30m]))
+      by (host))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: HighExternalQPS
+      description: 'There is no data for the Alert: "HighExternalQPS"'
+  - alert: Absent
+    expr: absent(sum(rate(http_request_metrics{host="www.googleapis.com"}[30m])))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: HighExternalQPSGoogleAPIs
+      description: 'There is no data for the Alert: "HighExternalQPSGoogleAPIs"'
+  - alert: Absent
+    expr: absent(liveness_last_successful_autoroll_tick_s{roller="skia-flutter-autoroll"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AutoRollLastTransition
+      description: 'There is no data for the Alert: "AutoRollLastTransition"'
+  - alert: Absent
+    expr: absent(autoroll_get_sheriff_success)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AutoRollGetSheriffFailed
+      description: 'There is no data for the Alert: "AutoRollGetSheriffFailed"'
