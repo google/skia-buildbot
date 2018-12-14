@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
@@ -35,11 +36,11 @@ import (
 
 // Define common routes used by multiple servers
 const (
-	// BASELINE_ROUTE serves the baseline of the master branch
-	BASELINE_ROUTE = "/json/baseline"
+	// BASELINE_ROUTE serves the expectations of the master branch
+	EXPECATIONS_ROUTE = "/json/expecations/commit/{commit_hash}"
 
 	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
-	BASELINE_ISSUE_ROUTE = "/json/baseline/{id}"
+	EXPECATIONS_ISSUE_ROUTE = "/json/expecations/issue/{issue_id}"
 )
 
 const (
@@ -1017,18 +1018,26 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 // baseline and the baseline defined for the issue (usually based on tryjob
 // results).
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
+	commitHash := ""
 	issueID := int64(0)
 	var err error
-	issueIDStr, ok := mux.Vars(r)["id"]
-	if ok {
+	if issueIDStr, ok := mux.Vars(r)["issue_id"]; ok {
 		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
 			return
 		}
+	} else {
+		// Since this was not called for an issue, we need to extract a Git hash.
+		var ok bool
+		if commitHash, ok = mux.Vars(r)["git_hash"]; !ok {
+			msg := "No commit hash provided to fetch expectations"
+			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
+			return
+		}
 	}
 
-	baseline, err := wh.Storages.FetchBaseline(issueID)
+	baseline, err := wh.Storages.Baseliner.FetchBaseline(commitHash, issueID, 0)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
