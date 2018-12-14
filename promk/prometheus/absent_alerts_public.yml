@@ -1,0 +1,195 @@
+groups:
+- name: general
+  rules:
+  - alert: Absent
+    expr: absent(ci_build_failure)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: ContainerBuilderFailure
+      description: 'There is no data for the Alert: "ContainerBuilderFailure"'
+  - alert: Absent
+    expr: absent(liveness_ci_pubsub_receive_s)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: ContinuousDeployLiveness
+      description: 'There is no data for the Alert: "ContinuousDeployLiveness"'
+  - alert: Absent
+    expr: absent(ci_push_failure)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: ContinuousDeployFailures
+      description: 'There is no data for the Alert: "ContinuousDeployFailures"'
+  - alert: Absent
+    expr: absent(avg_over_time(pods_idle[2m]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: FiddlerPodsTooLow
+      description: 'There is no data for the Alert: "FiddlerPodsTooLow"'
+  - alert: Absent
+    expr: absent(named_fiddles_total_invalid)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: NamedFiddlesFailing
+      description: 'There is no data for the Alert: "NamedFiddlesFailing"'
+  - alert: Absent
+    expr: absent(rate(run_exhaustion[20m]) * 20 * 60)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: FiddleFailingToFindIdlePods
+      description: 'There is no data for the Alert: "FiddleFailingToFindIdlePods"'
+  - alert: Absent
+    expr: absent(cq_watcher_in_flight_waiting_in_cq{app="cq-watcher"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CQWatcherCLsCount
+      description: 'There is no data for the Alert: "CQWatcherCLsCount"'
+  - alert: Absent
+    expr: absent(max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CQWatcherTrybotDuration
+      description: 'There is no data for the Alert: "CQWatcherTrybotDuration"'
+  - alert: Absent
+    expr: absent(max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CQWatcherTrybotsCount
+      description: 'There is no data for the Alert: "CQWatcherTrybotsCount"'
+  - alert: Absent
+    expr: absent(fuzzer_queue_size_upload)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: FuzzerUploadQueue
+      description: 'There is no data for the Alert: "FuzzerUploadQueue"'
+  - alert: Absent
+    expr: absent(fuzzer_version_age{type="current"}/60/60/24)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: FuzzerStaleVersion
+      description: 'There is no data for the Alert: "FuzzerStaleVersion"'
+  - alert: Absent
+    expr: absent(fuzzer_version_age{type="pending"}/60/60)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: FuzzerSlowRoll
+      description: 'There is no data for the Alert: "FuzzerSlowRoll"'
+  - alert: Absent
+    expr: absent(fuzzer_queue_size_analysis)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: FuzzerAnalysisQueue
+      description: 'There is no data for the Alert: "FuzzerAnalysisQueue"'
+  - alert: Absent
+    expr: absent(liveness_backup_success_s/60/60)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: BackupNotDone
+      description: 'There is no data for the Alert: "BackupNotDone"'
+  - alert: Absent
+    expr: absent((min(liveness_alive_s) by (location)))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AlertToPubSubLiveness
+      description: 'There is no data for the Alert: "AlertToPubSubLiveness"'
+  - alert: Absent
+    expr: absent(healthy{app="ct-master"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CTPollerHealthCheck
+      description: 'There is no data for the Alert: "CTPollerHealthCheck"'
+  - alert: Absent
+    expr: absent(num_pending_tasks{app="ctfe"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CTFEPendingTaskCount
+      description: 'There is no data for the Alert: "CTFEPendingTaskCount"'
+  - alert: Absent
+    expr: absent(oldest_pending_task_status{app="ctfe"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: CTFEPendingTaskStatus
+      description: 'There is no data for the Alert: "CTFEPendingTaskStatus"'
+  - alert: Absent
+    expr: absent(prober{type="latency",probename="autoroll"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AutoRollLatency
+      description: 'There is no data for the Alert: "AutoRollLatency"'
+  - alert: Absent
+    expr: absent(rate(num_log_lines{level="ERROR",log_source="autoroll-fe"}[1h]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AutoRollFrontendErrorRate
+      description: 'There is no data for the Alert: "AutoRollFrontendErrorRate"'
+  - alert: Absent
+    expr: absent(rate(process_failures[1h]))
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AndroidIngestFailures
+      description: 'There is no data for the Alert: "AndroidIngestFailures"'
+  - alert: Absent
+    expr: absent(tx_log_write_failure)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AndroidTxLogFailures
+      description: 'There is no data for the Alert: "AndroidTxLogFailures"'
+  - alert: Absent
+    expr: absent(prober{type="failure"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: ProbeFailure
+      description: 'There is no data for the Alert: "ProbeFailure"'
+  - alert: Absent
+    expr: absent(liveness_probes_s)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: ProberLiveness
+      description: 'There is no data for the Alert: "ProberLiveness"'

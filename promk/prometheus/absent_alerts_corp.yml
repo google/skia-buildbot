@@ -1,0 +1,51 @@
+groups:
+- name: general
+  rules:
+  - alert: Absent
+    expr: absent(autoroll_last_roll_result{roller="skia-internal-autoroll"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: InternalAutoRoll
+      description: 'There is no data for the Alert: "InternalAutoRoll"'
+  - alert: Absent
+    expr: absent(liveness_last_autoroll_landed_s{roller="skia-internal-autoroll"}/60/60)
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: InternalAutoRoll24H
+      description: 'There is no data for the Alert: "InternalAutoRoll24H"'
+  - alert: Absent
+    expr: absent(android_compile_waiting_tasks{app="android-compile"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AndroidCompileTooManyWaitingTasks
+      description: 'There is no data for the Alert: "AndroidCompileTooManyWaitingTasks"'
+  - alert: Absent
+    expr: absent(android_compile_mirror_sync_failure{app="android-compile"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AndroidCompileMirrorSyncFailed
+      description: 'There is no data for the Alert: "AndroidCompileMirrorSyncFailed"'
+  - alert: Absent
+    expr: absent(android_compile_tree_broken{app="android-compile"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AndroidCompileTreeBroken
+      description: 'There is no data for the Alert: "AndroidCompileTreeBroken"'
+  - alert: Absent
+    expr: absent(android_compile_infra_failure{app="android-compile"})
+    labels:
+      category: infra
+      severify: critical
+    annotations:
+      abbr: AndroidCompileInfraFailure
+      description: 'There is no data for the Alert: "AndroidCompileInfraFailure"'
