@@ -121,7 +121,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	oldDB, err := local_db.NewDB(local_db.DB_NAME, *boltDB, nil, nil)
+	oldDB, err := local_db.NewDB(local_db.DB_NAME, *boltDB, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	newDB, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil, nil)
+	newDB, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

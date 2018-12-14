@@ -265,7 +265,7 @@ func main() {
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
-	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"), nil, nil)
+	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"), nil)
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)

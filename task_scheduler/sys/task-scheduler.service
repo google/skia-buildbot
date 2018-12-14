@@ -8,8 +8,7 @@ After=mnt-pd0.mount network-online.target
 ExecStart=/usr/local/bin/task_scheduler \
     --host=task-scheduler.skia.org \
     --logtostderr \
-    --pubsub_topic_tasks=task-scheduler-modified-tasks \
-    --pubsub_topic_jobs=task-scheduler-modified-jobs \
+    --pubsub_topic_set=prod \
     --workdir=/mnt/pd0/task_scheduler_workdir \
     --resources_dir=/usr/local/share/task-scheduler/
 Restart=always

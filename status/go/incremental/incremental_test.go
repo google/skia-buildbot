@@ -21,9 +21,7 @@ import (
 
 func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.Map, db.DB, *git_testutils.GitBuilder, func()) {
 	testutils.LargeTest(t)
-	taskDb := memory.NewInMemoryTaskDB(nil)
-	commentDb := &db.CommentBox{}
-	d := db.NewDB(taskDb, nil, commentDb)
+	d := memory.NewInMemoryDB(nil)
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
@@ -48,7 +46,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 			Name: "DummyTask",
 		},
 	}
-	assert.NoError(t, taskDb.PutTask(initialTask))
+	assert.NoError(t, d.PutTask(initialTask))
 
 	w, err := window.New(24*time.Hour, 100, repos)
 	assert.NoError(t, err)

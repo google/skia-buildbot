@@ -109,8 +109,7 @@ var (
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
-	pubsubTopicTasks            = flag.String("pubsub_topic_tasks", pubsub.TOPIC_TASKS, "Pubsub topic for tasks.")
-	pubsubTopicJobs             = flag.String("pubsub_topic_jobs", pubsub.TOPIC_JOBS, "Pubsub topic for jobs.")
+	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 
 	repos repograph.Map
 )
@@ -716,7 +715,7 @@ func main() {
 
 	// Create remote Tasks DB.
 	if *testing {
-		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"), nil, nil)
+		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"), nil)
 		if err != nil {
 			sklog.Fatalf("Failed to create local task DB: %s", err)
 		}
@@ -729,21 +728,17 @@ func main() {
 
 		if *firestoreInstance != "" {
 			label := *host
-			modTasks, err := pubsub.NewModifiedTasks(*pubsubTopicTasks, label, ts)
+			mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
 			if err != nil {
 				sklog.Fatal(err)
 			}
-			modJobs, err := pubsub.NewModifiedJobs(*pubsubTopicJobs, label, ts)
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, modTasks, modJobs)
+			taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
 			if err != nil {
 				sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 			}
 		} else {
 			label := *host
-			taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicTasks, *pubsubTopicJobs, label, ts)
+			taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicSet, label, ts)
 			if err != nil {
 				sklog.Fatalf("Failed to create remote task DB: %s", err)
 			}
