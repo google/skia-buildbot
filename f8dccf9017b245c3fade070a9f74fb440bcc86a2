@@ -65,6 +65,41 @@
     },
     {
       "key": {
+        "uuid": "2697a3f9_236dba74",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-14T23:10:23Z",
+      "side": 1,
+      "message": "Realized it wouldn\u0027t work if you hadn\u0027t made changes, so I reviewed.",
+      "parentUuid": "bac4e370_1b10d1c3",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bba0b714_7d9755a3",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-14T23:10:23Z",
+      "side": 1,
+      "message": "I think after adding ModifiedComments this is no longer true.",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7d6a477d_02c89608",
         "filename": "task_scheduler/go/db/memory/comments_test.go",
         "patchSetId": 2
