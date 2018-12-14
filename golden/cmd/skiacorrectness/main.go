@@ -349,7 +349,12 @@ func main() {
 		GerritAPI:            gerritAPI,
 		GStorageClient:       gsClient,
 		Git:                  git,
+		IsAuthoritative:      *authoritative,
+		SiteURL:              *siteURL,
 	}
+
+	// Initialize the Baseliner instance from the values set above.
+	storages.InitBaseliner()
 
 	// Load the whitelist if there is one and disable querying for issues.
 	if *pubWhiteList != "" && *pubWhiteList != WHITELIST_ALL {
@@ -446,8 +451,8 @@ func main() {
 	router.HandleFunc("/json/tryjob/{id}", handlers.JsonTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
-	router.HandleFunc(web.BASELINE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
-	router.HandleFunc(web.BASELINE_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.EXPECATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.EXPECATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 	router.HandleFunc("/json/refresh/{id}", handlers.JsonRefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.

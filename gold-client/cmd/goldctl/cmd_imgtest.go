@@ -18,7 +18,7 @@ type imgTestEnv struct {
 	flagIssueID      string
 	flagPatchsetID   string
 	flagJobID        string
-	flagInstandID    string
+	flagInstanceID   string
 	flagWorkDir      string
 	flagPassFailStep bool
 	flagFailureFile  string
@@ -95,7 +95,7 @@ Check against Gold or local baseline whether the results match the expectations`
 }
 
 func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
-	cmd.Flags().StringVarP(&i.flagInstandID, "instance", "", "", "ID of the Gold instance.")
+	cmd.Flags().StringVarP(&i.flagInstanceID, "instance", "", "", "ID of the Gold instance.")
 	cmd.Flags().StringVarP(&i.flagWorkDir, "work-dir", "", "", "Temporary work directory")
 	cmd.Flags().BoolVarP(&i.flagPassFailStep, "passfail", "", false, "Whether the 'add' call returns a pass/fail for each test.")
 
@@ -139,9 +139,7 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		BuildBucketID: jobID,
 	}
 
-	up, err := goldclient.NewUploadResults(gr, i.flagInstandID, i.flagPassFailStep, i.flagWorkDir)
-	ifErrLogExit(cmd, err)
-	goldClient, err := goldclient.NewCloudClient(up)
+	goldClient, err := goldclient.NewCloudClient(i.flagWorkDir, i.flagInstanceID, i.flagPassFailStep, gr)
 	ifErrLogExit(cmd, err)
 
 	pass, err := goldClient.Test(i.flagTestName, i.flagPNGFile)

@@ -60,8 +60,8 @@ func main() {
 	router := mux.NewRouter()
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
-	router.HandleFunc(web.BASELINE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
-	router.HandleFunc(web.BASELINE_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.EXPECATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(web.EXPECATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)

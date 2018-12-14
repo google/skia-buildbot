@@ -145,6 +145,11 @@ func (r *rawGoldResults) parseValidate() []string {
 // error messages (one for each field) and the returned error contains a
 // concatenation of these error messages.
 func (g *GoldResults) Validate(ignoreResults bool) ([]string, error) {
+	if g == nil {
+		msg := "Received nil pointer for GoldResult"
+		return []string{msg}, fmt.Errorf(msg)
+	}
+
 	jn := goldResultsJsonMap
 	errMsg := []string{}
 

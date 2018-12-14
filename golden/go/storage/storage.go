@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobs"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
@@ -41,10 +40,13 @@ type Storage struct {
 	EventBus             eventbus.EventBus
 	TryjobStore          tryjobstore.TryjobStore
 	TryjobMonitor        *tryjobs.TryjobMonitor
-	GerritAPI            *gerrit.Gerrit
+	GerritAPI            gerrit.GerritInterface
 	GStorageClient       *GStorageClient
+	Baseliner            *Baseliner
 	Git                  *gitinfo.GitInfo
 	WhiteListQuery       paramtools.ParamSet
+	IsAuthoritative      bool
+	SiteURL              string
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
@@ -58,99 +60,12 @@ type Storage struct {
 	mutex                  sync.Mutex
 }
 
-// CanWriteBaseline returns true if this instance was configured to write baseline files.
-func (s *Storage) CanWriteBaseline() bool {
-	return (s.GStorageClient != nil) && (s.GStorageClient.options.BaselineGSPath != "")
-}
+// TODO(stephana): Baseliner will eventually factored into the baseline package and
+// InitBaseliner should go away.
 
-// PushMasterBaseline writes the baseline for the master branch to GCS.
-func (s *Storage) PushMasterBaseline(tile *tiling.Tile) error {
-	if !s.CanWriteBaseline() {
-		return sklog.FmtErrorf("Trying to write baseline while GCS path is not configured.")
-	}
-
-	_, baseLine, err := s.getMasterBaseline(tile)
-	if err != nil {
-		return sklog.FmtErrorf("Error retrieving master baseline: %s", err)
-	}
-
-	// Write the baseline to GCS.
-	outputPath, err := s.GStorageClient.WriteBaseLine(baseLine)
-	if err != nil {
-		return sklog.FmtErrorf("Error writing baseline to GCS: %s", err)
-	}
-	sklog.Infof("Baseline for master written to %s.", outputPath)
-	return nil
-}
-
-// getMasterBaseline retrieves the master baseline based on the given tile.
-func (s *Storage) getMasterBaseline(tile *tiling.Tile) (types.Expectations, *baseline.CommitableBaseLine, error) {
-	exps, err := s.ExpectationsStore.Get()
-	if err != nil {
-		return nil, nil, sklog.FmtErrorf("Unable to retrieve expectations: %s", err)
-	}
-
-	return exps, baseline.GetBaselineForMaster(exps, tile), nil
-}
-
-// PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-func (s *Storage) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *tally.Tallies) error {
-	if !s.CanWriteBaseline() {
-		return sklog.FmtErrorf("Trying to write baseline while GCS path is not configured.")
-	}
-
-	issueExpStore := s.IssueExpStoreFactory(issueID)
-	exp, err := issueExpStore.Get()
-	if err != nil {
-		return sklog.FmtErrorf("Unable to get issue expecations: %s", err)
-	}
-
-	tryjobs, tryjobResults, err := s.TryjobStore.GetTryjobs(issueID, nil, true, true)
-	if err != nil {
-		return sklog.FmtErrorf("Unable to get TryjobResults")
-	}
-	talliesByTest := tallies.ByTest()
-	baseLine := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, tile.Commits, talliesByTest)
-
-	// Write the baseline to GCS.
-	outputPath, err := s.GStorageClient.WriteBaseLine(baseLine)
-	if err != nil {
-		return sklog.FmtErrorf("Error writing baseline to GCS: %s", err)
-	}
-	sklog.Infof("Baseline for issue %d written to %s.", issueID, outputPath)
-	return nil
-}
-
-// FetchBaseline fetches the complete baseline for the given Gerrit issue by
-// loading the master baseline and the issue baseline from GCS and combining
-// them. If either of them doesn't exist an empty baseline is assumed.
-func (s *Storage) FetchBaseline(issueID int64) (*baseline.CommitableBaseLine, error) {
-	var masterBaseline *baseline.CommitableBaseLine
-	var issueBaseline *baseline.CommitableBaseLine
-
-	var egroup errgroup.Group
-	egroup.Go(func() error {
-		var err error
-		masterBaseline, err = s.GStorageClient.ReadBaseline(0)
-		return err
-	})
-
-	if issueID > 0 {
-		egroup.Go(func() error {
-			var err error
-			issueBaseline, err = s.GStorageClient.ReadBaseline(issueID)
-			return err
-		})
-	}
-
-	if err := egroup.Wait(); err != nil {
-		return nil, err
-	}
-
-	if issueBaseline != nil {
-		masterBaseline.Baseline.Update(issueBaseline.Baseline)
-	}
-	return masterBaseline, nil
+// InitBaseliner initializes the Baseliner instance from values already set on the storage instance.
+func (s *Storage) InitBaseliner() {
+	s.Baseliner = NewBaseliner(s.GStorageClient, s.ExpectationsStore, s.IssueExpStoreFactory, s.TryjobStore)
 }
 
 // LoadWhiteList loads the given JSON5 file that defines that query to
@@ -343,6 +258,10 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 	}
 
 	return digestInfo, nil
+}
+
+func (s *Storage) GetExpectationsForCommit(parentCommit string) (types.Expectations, error) {
+	return nil, sklog.FmtErrorf("Not implemented yet !")
 }
 
 // getWhiteListedTile creates a new tile from the given tile that contains

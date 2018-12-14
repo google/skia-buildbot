@@ -8,6 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -23,9 +24,20 @@ const (
 var (
 	issueID = int64(5678)
 
+	startCommit = &tiling.Commit{
+		CommitTime: time.Now().Add(-time.Hour * 10).Unix(),
+		Hash:       "abb84b151a49eca5a6e107c51a1f1b7da73454bf",
+		Author:     "Jon Doe",
+	}
+	endCommit = &tiling.Commit{
+		CommitTime: time.Now().Unix(),
+		Hash:       "51465f0ed60ce2cacff3653c7d1d70317679fc06",
+		Author:     "Jane Doe",
+	}
+
 	masterBaseline = &baseline.CommitableBaseLine{
-		StartCommit: nil,
-		EndCommit:   nil,
+		StartCommit: startCommit,
+		EndCommit:   endCommit,
 		Baseline: types.TestExp{
 			"test-1": map[string]types.Label{"d1": types.POSITIVE},
 		},
@@ -33,8 +45,8 @@ var (
 	}
 
 	issueBaseline = &baseline.CommitableBaseLine{
-		StartCommit: nil,
-		EndCommit:   nil,
+		StartCommit: endCommit,
+		EndCommit:   endCommit,
 		Baseline: types.TestExp{
 			"test-3": map[string]types.Label{"d2": types.POSITIVE},
 		},
@@ -86,7 +98,7 @@ func TestWritingBaselines(t *testing.T) {
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
-	foundBaseline, err := gsClient.ReadBaseline(0)
+	foundBaseline, err := gsClient.ReadBaseline(endCommit.Hash, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, masterBaseline, foundBaseline)
 
@@ -95,20 +107,21 @@ func TestWritingBaselines(t *testing.T) {
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
-	foundBaseline, err = gsClient.ReadBaseline(issueID)
+	foundBaseline, err = gsClient.ReadBaseline("", issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, issueBaseline, foundBaseline)
 
 	// Fetch the combined baselines
 	storages := &Storage{
 		GStorageClient: gsClient,
+		Baseliner:      NewBaseliner(gsClient, nil, nil, nil),
 	}
 	combined := &baseline.CommitableBaseLine{}
 	*combined = *masterBaseline
 	combined.Baseline = masterBaseline.Baseline.DeepCopy()
 	combined.Baseline.Update(issueBaseline.Baseline)
 
-	foundBaseline, err = storages.FetchBaseline(issueID)
+	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, issueID, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, combined, foundBaseline)
 }
@@ -127,12 +140,12 @@ func TestBaselineRobustness(t *testing.T) {
 
 	// Read the master baseline that has not been written
 	emptyBaseline := &baseline.CommitableBaseLine{Baseline: types.TestExp{}}
-	foundBaseline, err := gsClient.ReadBaseline(0)
+	foundBaseline, err := gsClient.ReadBaseline("", 0)
 	assert.NoError(t, err)
 	assert.Equal(t, emptyBaseline, foundBaseline)
 
 	// Test reading a non-existing baseline for an issue
-	foundBaseline, err = gsClient.ReadBaseline(5344)
+	foundBaseline, err = gsClient.ReadBaseline("", 5344)
 	assert.NoError(t, err)
 	assert.Equal(t, emptyBaseline, foundBaseline)
 
@@ -143,8 +156,9 @@ func TestBaselineRobustness(t *testing.T) {
 	// Fetch the combined baselines when there are no baselines for the issue
 	storages := &Storage{
 		GStorageClient: gsClient,
+		Baseliner:      NewBaseliner(gsClient, nil, nil, nil),
 	}
-	foundBaseline, err = storages.FetchBaseline(5344)
+	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, masterBaseline, foundBaseline)
 }
