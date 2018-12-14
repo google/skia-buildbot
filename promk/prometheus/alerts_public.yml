@@ -230,6 +230,7 @@ groups:
       description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log'
 
 # Prober
+<<<<<<< Updated upstream
   - alert: ProbeFailure
     expr: prober{type="failure"} > 0
     for: 5m
@@ -251,3 +252,5 @@ groups:
     annotations:
       abbr: '{{ $labels.probename }}'
       description: 'The prober has failed to probe in the last 5 minutes.'
+=======
+>>>>>>> Stashed changes
