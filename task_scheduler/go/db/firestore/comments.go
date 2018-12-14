@@ -123,14 +123,23 @@ func (d *firestoreDB) PutTaskComment(c *types.TaskComment) error {
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	d.TrackModifiedTaskComment(c)
+	return nil
 }
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 	id := taskCommentId(c)
-	_, err := firestore.Delete(d.taskComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
-	return err
+	if _, err := firestore.Delete(d.taskComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
+		return err
+	}
+	deleted := true
+	c.Deleted = &deleted
+	d.TrackModifiedTaskComment(c)
+	return nil
 }
 
 // taskSpecCommentId returns an ID for the TaskSpecComment.
@@ -146,14 +155,23 @@ func (d *firestoreDB) PutTaskSpecComment(c *types.TaskSpecComment) error {
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	d.TrackModifiedTaskSpecComment(c)
+	return nil
 }
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 	id := taskSpecCommentId(c)
-	_, err := firestore.Delete(d.taskSpecComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
-	return err
+	if _, err := firestore.Delete(d.taskSpecComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
+		return err
+	}
+	deleted := true
+	c.Deleted = &deleted
+	d.TrackModifiedTaskSpecComment(c)
+	return nil
 }
 
 // commitCommentId returns an ID for the CommitComment.
@@ -169,12 +187,21 @@ func (d *firestoreDB) PutCommitComment(c *types.CommitComment) error {
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	d.TrackModifiedCommitComment(c)
+	return nil
 }
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) DeleteCommitComment(c *types.CommitComment) error {
 	id := commitCommentId(c)
-	_, err := firestore.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
-	return err
+	if _, err := firestore.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
+		return err
+	}
+	deleted := true
+	c.Deleted = &deleted
+	d.TrackModifiedCommitComment(c)
+	return nil
 }

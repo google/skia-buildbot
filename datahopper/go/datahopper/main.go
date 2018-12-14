@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -42,10 +43,9 @@ var (
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 
-	perfBucket       = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix       = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
-	tasksPubsubTopic = flag.String("pubsub_topic_tasks", pubsub.TOPIC_TASKS, "Pubsub topic for tasks.")
-	jobsPubsubTopic  = flag.String("pubsub_topic_jobs", pubsub.TOPIC_JOBS, "Pubsub topic for jobs.")
+	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 )
 
 var (
@@ -166,20 +166,16 @@ func main() {
 	var d db.RemoteDB
 	if *firestoreInstance != "" {
 		label := "datahopper"
-		modTasks, err := pubsub.NewModifiedTasks(*tasksPubsubTopic, label, newTs)
+		mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, newTs)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		modJobs, err := pubsub.NewModifiedJobs(*jobsPubsubTopic, label, newTs)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, modTasks, modJobs)
+		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, mod)
 		if err != nil {
 			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 		}
 	} else {
-		d, err = remote_db.NewClient(*taskSchedulerDbUrl, *tasksPubsubTopic, *jobsPubsubTopic, "datahopper", newTs)
+		d, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicSet, "datahopper", newTs)
 		if err != nil {
 			sklog.Fatal(err)
 		}
