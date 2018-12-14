@@ -1,11 +1,16 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    project: skia-corp
 
 rule_files:
   - "alerts_corp.yml"
   - "alerts_general.yml"
   - "alerts_alert_to_pubsub.yml"
+  - "absent_alerts_corp.yml"
+  - "absent_alerts_general.yml"
+  - "absent_alerts_alert_to_pubsub.yml"
 
 alerting:
   alertmanagers:
