@@ -11,11 +11,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"regexp"
 	"strings"
 
-	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/sklog"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -65,14 +64,14 @@ func equationFromExpr(expr string) string {
 }
 
 func main() {
-	common.Init()
+	flag.Parse()
 	b, err := ioutil.ReadFile(*input)
 	if err != nil {
-		sklog.Fatal(err)
+		log.Fatalf("Failed to read %q: %s", *input, err)
 	}
 	var alerts Alerts
 	if err := yaml.Unmarshal(b, &alerts); err != nil {
-		sklog.Fatal(err)
+		log.Fatalf("Failed to parse %q: %s", *input, err)
 	}
 
 	absent := Alerts{
@@ -84,7 +83,7 @@ func main() {
 		for _, rule := range g.Rules {
 			equation := equationFromExpr(rule.Expr)
 			if equation == "" {
-				sklog.Fatalf("Failed to extract an eqation for %q", rule.Alert)
+				log.Fatalf("Failed to extract an eqation for %q", rule.Alert)
 			}
 			rules = append(rules, Rule{
 				Alert: "Absent",
@@ -107,9 +106,9 @@ func main() {
 
 	b, err = yaml.Marshal(absent)
 	if err != nil {
-		sklog.Fatal(err)
+		log.Fatalf("Failed to marshall as YAML: %s", err)
 	}
 	if err := ioutil.WriteFile(*output, b, 0664); err != nil {
-		sklog.Fatal(err)
+		log.Fatalf("Failed to write %q: %s", *output, err)
 	}
 }
