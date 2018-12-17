@@ -11,6 +11,8 @@ import (
 func TestCopyTaskComment(t *testing.T) {
 	testutils.SmallTest(t)
 	v := MakeTaskComment(1, 1, 1, 1, time.Now())
+	deleted := true
+	v.Deleted = &deleted
 	deepequal.AssertCopy(t, v, v.Copy())
 }
 
@@ -19,6 +21,8 @@ func TestCopyTaskSpecComment(t *testing.T) {
 	v := MakeTaskSpecComment(1, 1, 1, time.Now())
 	v.Flaky = true
 	v.IgnoreFailure = true
+	deleted := true
+	v.Deleted = &deleted
 	deepequal.AssertCopy(t, v, v.Copy())
 }
 
@@ -26,6 +30,8 @@ func TestCopyCommitComment(t *testing.T) {
 	testutils.SmallTest(t)
 	v := MakeCommitComment(1, 1, 1, time.Now())
 	v.IgnoreFailure = true
+	deleted := true
+	v.Deleted = &deleted
 	deepequal.AssertCopy(t, v, v.Copy())
 }
 

@@ -45,3 +45,23 @@ func TestPubsubMultipleJobModifications(t *testing.T) {
 	m := setupJobs(t)
 	db.TestMultipleJobModifications(t, m)
 }
+
+func setupComments(t *testing.T) db.ModifiedComments {
+	testutils.LargeTest(t)
+	topic1 := fmt.Sprintf("modified-comments-test-tasks-%s", uuid.New())
+	topic2 := fmt.Sprintf("modified-comments-test-taskspecs-%s", uuid.New())
+	topic3 := fmt.Sprintf("modified-comments-test-commits-%s", uuid.New())
+	m, err := NewModifiedComments(topic1, topic2, topic3, "fake-label", nil)
+	assert.NoError(t, err)
+	return m
+}
+
+func TestPubsubModifiedComments(t *testing.T) {
+	m := setupComments(t)
+	db.TestModifiedComments(t, m)
+}
+
+func TestPubsubMultipleCommentModifications(t *testing.T) {
+	m := setupComments(t)
+	db.TestMultipleCommentModifications(t, m)
+}

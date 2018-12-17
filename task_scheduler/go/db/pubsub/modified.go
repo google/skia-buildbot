@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,6 +18,27 @@ import (
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
+
+// NewModifiedData returns a db.ModifiedData instance which uses pubsub.
+func NewModifiedData(topicSet, label string, ts oauth2.TokenSource) (db.ModifiedData, error) {
+	topicSetObj, ok := topics[topicSet]
+	if !ok {
+		return nil, fmt.Errorf("Topic must be one of %v, not %q", VALID_TOPIC_SETS, topicSet)
+	}
+	t, err := NewModifiedTasks(topicSetObj.tasks, label, ts)
+	if err != nil {
+		return nil, err
+	}
+	j, err := NewModifiedJobs(topicSetObj.jobs, label, ts)
+	if err != nil {
+		return nil, err
+	}
+	c, err := NewModifiedComments(topicSetObj.taskComments, topicSetObj.taskSpecComments, topicSetObj.commitComments, label, ts)
+	if err != nil {
+		return nil, err
+	}
+	return db.NewModifiedData(t, j, c), nil
+}
 
 type entry struct {
 	ts   time.Time
@@ -133,7 +155,7 @@ func (c *modifiedClient) startTrackingModifiedData() (string, error) {
 				data: m.Data,
 			}
 		} else {
-			sklog.Debugf("Received duplicate or outdated message for %s", dataId)
+			sklog.Debugf("Received duplicate or outdated message (%s vs %s) for %s", prev.ts, dbModified, dataId)
 		}
 		return nil
 	})
@@ -345,4 +367,165 @@ func (c *jobClient) TrackModifiedJob(j *types.Job) {
 // See documentation for db.ModifiedJobs interface.
 func (c *jobClient) TrackModifiedJobsGOB(ts time.Time, jobsById map[string][]byte) {
 	c.publisher.publishGOB(ts, jobsById)
+}
+
+// commentClient implements db.ModifiedComments using pubsub.
+type commentClient struct {
+	tasks     *modifiedClient
+	taskSpecs *modifiedClient
+	commits   *modifiedClient
+}
+
+// NewModifiedComments returns a db.ModifiedComments which uses pubsub. The
+// topics should be one of the sets of TOPIC_* constants defined in this
+// package. The subscriberLabel is included in the subscription ID, along with a
+// timestamp; this should help to debug zombie subscriptions. It should be
+// descriptive and unique to this process, or if the process uses multiple
+// instances of ModifiedJobs, unique to each instance.
+func NewModifiedComments(taskCommentsTopic, taskSpecCommentsTopic, commitCommentsTopic string, label string, ts oauth2.TokenSource) (db.ModifiedComments, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	tasks, err := newModifiedClient(c, taskCommentsTopic, label)
+	if err != nil {
+		return nil, err
+	}
+	taskSpecs, err := newModifiedClient(c, taskSpecCommentsTopic, label)
+	if err != nil {
+		return nil, err
+	}
+	commits, err := newModifiedClient(c, commitCommentsTopic, label)
+	if err != nil {
+		return nil, err
+	}
+	return &commentClient{
+		tasks:     tasks,
+		taskSpecs: taskSpecs,
+		commits:   commits,
+	}, nil
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) GetModifiedComments(id string) ([]*types.TaskComment, []*types.TaskSpecComment, []*types.CommitComment, error) {
+	ids := strings.Split(id, "#")
+	if len(ids) != 3 {
+		return nil, nil, nil, db.ErrUnknownId
+	}
+	gobs, err := c.tasks.getModifiedData(ids[0])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	rv1 := make([]*types.TaskComment, 0, len(gobs))
+	for _, g := range gobs {
+		var c types.TaskComment
+		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&c); err != nil {
+			// We didn't attempt to decode the blob in the pubsub
+			// message when we received it. Ignore this job.
+			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
+		} else {
+			rv1 = append(rv1, &c)
+		}
+	}
+	sort.Sort(types.TaskCommentSlice(rv1))
+
+	gobs, err = c.taskSpecs.getModifiedData(ids[1])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	rv2 := make([]*types.TaskSpecComment, 0, len(gobs))
+	for _, g := range gobs {
+		var c types.TaskSpecComment
+		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&c); err != nil {
+			// We didn't attempt to decode the blob in the pubsub
+			// message when we received it. Ignore this job.
+			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
+		} else {
+			rv2 = append(rv2, &c)
+		}
+	}
+	sort.Sort(types.TaskSpecCommentSlice(rv2))
+
+	gobs, err = c.commits.getModifiedData(ids[2])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	rv3 := make([]*types.CommitComment, 0, len(gobs))
+	for _, g := range gobs {
+		var c types.CommitComment
+		if err := gob.NewDecoder(bytes.NewReader(g)).Decode(&c); err != nil {
+			// We didn't attempt to decode the blob in the pubsub
+			// message when we received it. Ignore this job.
+			sklog.Errorf("Failed to decode job from pubsub message: %s", err)
+		} else {
+			rv3 = append(rv3, &c)
+		}
+	}
+	sort.Sort(types.CommitCommentSlice(rv3))
+	return rv1, rv2, rv3, nil
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) StartTrackingModifiedComments() (string, error) {
+	id1, err := c.tasks.startTrackingModifiedData()
+	if err != nil {
+		return "", err
+	}
+	id2, err := c.taskSpecs.startTrackingModifiedData()
+	if err != nil {
+		return "", err
+	}
+	id3, err := c.commits.startTrackingModifiedData()
+	if err != nil {
+		return "", err
+	}
+	return id1 + "#" + id2 + "#" + id3, nil
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) StopTrackingModifiedComments(id string) {
+	ids := strings.Split(id, "#")
+	if len(ids) != 3 {
+		sklog.Errorf("Invalid ID %q", id)
+		return
+	}
+	c.tasks.stopTrackingModifiedData(ids[0])
+	c.taskSpecs.stopTrackingModifiedData(ids[1])
+	c.commits.stopTrackingModifiedData(ids[2])
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) TrackModifiedTaskComment(tc *types.TaskComment) {
+	// Hack: since the timestamp is part of the ID, we can't change it. But,
+	// we have to provide a different timestamp from the one we sent when
+	// the comment was created, or else it'll get de-duplicated.
+	ts := tc.Timestamp
+	if tc.Deleted != nil && *tc.Deleted {
+		ts = time.Now()
+	}
+	c.tasks.publisher.publish(tc.Id(), ts, tc)
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) TrackModifiedTaskSpecComment(tc *types.TaskSpecComment) {
+	// Hack: since the timestamp is part of the ID, we can't change it. But,
+	// we have to provide a different timestamp from the one we sent when
+	// the comment was created, or else it'll get de-duplicated.
+	ts := tc.Timestamp
+	if tc.Deleted != nil && *tc.Deleted {
+		ts = time.Now()
+	}
+	c.taskSpecs.publisher.publish(tc.Id(), ts, tc)
+}
+
+// See documentation for db.ModifiedComments interface.
+func (c *commentClient) TrackModifiedCommitComment(cc *types.CommitComment) {
+	// Hack: since the timestamp is part of the ID, we can't change it. But,
+	// we have to provide a different timestamp from the one we sent when
+	// the comment was created, or else it'll get de-duplicated.
+	ts := cc.Timestamp
+	if cc.Deleted != nil && *cc.Deleted {
+		ts = time.Now()
+	}
+	c.commits.publisher.publish(cc.Id(), ts, cc)
 }
