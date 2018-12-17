@@ -5,30 +5,24 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"sync"
-	"time"
 
+	"go.skia.org/infra/fiddlek/go/client"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"golang.org/x/sync/errgroup"
 )
 
 const (
-	RETRIES = 10
-
 	// VERSION of the application. Update for major and minor changes to functionality.
-	VERSION = "1.0"
+	VERSION = "1.1"
 )
 
 // flags
@@ -47,33 +41,6 @@ var (
 type chanRequest struct {
 	id  string
 	req *types.FiddleContext
-}
-
-// singleRequest does a single request to fiddle.skia.org.
-func singleRequest(c *http.Client, body []byte, domain string) (*types.RunResults, bool) {
-	resp, err := c.Post(domain+"/_/run", "application/json", bytes.NewReader(body))
-	sleep := time.Second
-	if err != nil {
-		sklog.Infof("Send error: %s", err)
-		time.Sleep(sleep)
-		return nil, false
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		if *failFast {
-			sklog.Fatalf("Send failed, with fail_fast set: %s", resp.Status)
-		}
-		sklog.Infof("Send failed: %s", resp.Status)
-		time.Sleep(sleep)
-		return nil, false
-	}
-	var runResults types.RunResults
-	if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
-		sklog.Infof("Malformed response: %s", err)
-		time.Sleep(sleep)
-		return nil, false
-	}
-	return &runResults, true
 }
 
 func main() {
@@ -134,30 +101,20 @@ func main() {
 					mutex.Unlock()
 					continue
 				}
-				success := false
-				var runResults *types.RunResults
-				for tries := 0; tries < RETRIES; tries++ {
-					c := httputils.NewTimeoutClient()
-					// POST to fiddle.
-					b, err = json.Marshal(req.req)
-					if err != nil {
-						sklog.Errorf("Failed to encode an individual request: %s", err)
-						break
-					}
-					runResults, success = singleRequest(c, b, *domain)
-					if success {
-						if fiddleHash != runResults.FiddleHash {
-							sklog.Warningf("Got mismatched hashes for %s: Want %q != Got %q", req.id, fiddleHash, runResults.FiddleHash)
-						} else {
-							break
-						}
-					} else {
-						sklog.Warningf("Send failed for: %s", req.id)
-					}
-					fmt.Print("x")
+				b, err = json.Marshal(req.req)
+				if err != nil {
+					sklog.Errorf("Failed to encode an individual request: %s", err)
+					continue
 				}
+				runResults, success := client.Do(b, *failFast, *domain, func(runResults *types.RunResults) bool {
+					if fiddleHash != runResults.FiddleHash {
+						sklog.Warningf("Got mismatched hashes for %s: Want %q != Got %q", req.id, fiddleHash, runResults.FiddleHash)
+						return false
+					}
+					return true
+				})
 				if !success {
-					sklog.Errorf("Failed to make request after %d tries", RETRIES)
+					sklog.Errorf("Failed to make request after retries")
 					continue
 				}
 
