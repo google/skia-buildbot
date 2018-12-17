@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "032d07ad_295aa473",
+        "filename": "proberk/go/proberk/main_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T15:45:21Z",
+      "side": 1,
+      "message": "Should this be testutils.ManualTest? Or does it need to be here at all, given that we have an alert?",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 9
+      },
+      "revId": "cb726207b15adf2ad46a0daba9967b9d875914d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
