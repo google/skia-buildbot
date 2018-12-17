@@ -45,6 +45,14 @@ function classOfH2(ele, incident) {
   } else if (incident.params.assigned_to) {
     ret.push('assigned');
   }
+  /*"
+  console.log('what is this in classOfH2?');
+  if (ele._selected) {
+    console.log(ele._selected);
+    console.log(ele._selected.key);
+    console.log(incident.key);
+  }
+  */
   if (ele._selected && ele._selected.key === incident.key) {
     ret.push('selected');
   }
@@ -127,10 +135,14 @@ function assignedTo(incident, ele) {
 }
 
 function incidentList(ele, incidents) {
-  return incidents.map(i => html`
-    <h2 class=${classOfH2(ele, i)} @click=${e => ele._select(i)}>
+  // <h2 class=${classOfH2(ele, i)} @click=${e => ele._select(i)}>
+  // rmistry: This removes support for clicking anywhere at all.
+  console.log("incidentList look for incremental ID");
+  console.log(incidents);
+  return incidents.map((i, index) => html`
+    <h2 class=${classOfH2(ele, i)}>
     <span>
-      <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._suppress} id=${i.key}></checkbox-sk>
+      <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._suppress} id=${i.key} incremental_id=${index}></checkbox-sk>
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
@@ -216,6 +228,9 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._checked = new Set();    // Checked incidents, i.e. you clicked the checkbox.
     this._current_silence = null; // A silence under construction.
     this._ignored = [ '__silence_state', 'description', 'id', 'swarming', 'assigned_to']; // Params to ignore when constructing silences.
+    // rmistry
+    this._shift_clicked = false; // something something something.
+    this._last_clicked_incident = null; // The last selected incident. Used for shift/ctrl behavior.
     this._user = 'barney@example.org';
     this._trooper = '';
     fetch('https://skia-tree-status.appspot.com/current-trooper?format=json', {mode: 'cors'}).then(jsonOrThrow).then(json => {
@@ -291,7 +306,13 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   _suppress(e) {
-    e.stopPropagation();
+    // this._shift_clicked = e.shiftKey; I want to use this but not working for some reason.
+    // Ask Joe?
+    this._shift_clicked = e.ctrlKey;
+    // console.log("In _supress before stoppropagation?");
+    // console.log(e);
+    // console.log(e.shiftKey);
+    e.stopPropagation();  // stops event from propagating beyond current element  // stops event from propagating beyond current element..
   }
 
   _silenceClick(silence) {
@@ -309,7 +330,10 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
 
   // Update the paramset for a silence as Incidents are checked and unchecked.
   _check_selected_impl(key, isChecked) {
+    console.log("In _check_selected_impl");
     if (isChecked) {
+      console.log("isChecked");
+      // this._last_clicked_incident = key
       this._checked.add(key);
       this._incidents.forEach(i => {
         if (i.key == key) {
@@ -317,6 +341,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
         }
       });
     } else {
+      console.log("is not Checked");
       this._checked.delete(key);
       this._current_silence.param_set = {};
       this._incidents.forEach(i => {
@@ -328,9 +353,12 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
 
     this._state = EDIT_SILENCE;
     this._render();
+    console.log('DONE');
   }
 
   _check_selected(e) {
+    console.log("In _check_selected");
+    console.log(e);
     let checkbox = findParent(e.target, 'CHECKBOX-SK');
     if (!this._checked.size) {
       // Request a new silence.
@@ -340,15 +368,66 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
         this._selected = null;
         this._current_silence = json;
         // TODO(jcgregorio) Fix this once checkbox-sk is fixed.
+        /*
+        this._incidents.forEach(i => {
+          if (i.key == key) {
+            paramset.add(this._current_silence.param_set, i.params, this._ignored);
+          }
+        });
+        */
         this._check_selected_impl(checkbox.id, checkbox._input.checked);
       }).catch(errorMessage);
     } else {
+
+      console.log("IN THE ELSE!");
+      if (this._shift_clicked && checkbox._input.checked && this._last_clicked_incident) {
+        console.log("SHIFT CLICKED!!");
+        console.log("READY TO LOOP!!");
+        console.log("READY TO LOOP!!");
+        console.log(this._last_clicked_incident);
+        const start = Math.min(this._last_clicked_incident, checkbox.getAttribute("incremental_id"));
+        const end = Math.max(this._last_clicked_incident, checkbox.getAttribute("incremental_id")) + 1;
+        // rmistry: HERE HRE HERE
+        // I NEED TO INSTEAD LOOP THROUGH CHECKBOXES!!!!!!! siblings???? SOME OTHER SIMPLER WAY THERE MUST BE!!!!!!!
+        // Maybe using the keys instead of incremental IDs is better
+        let n = null;
+        console.log(checkbox.nextSibling);
+        console.log(e.target.nextSibling);
+        console.log(e.nextSibling);
+        for ( ; n; n = checkbox.nextSibling ) {
+          console.log("siblings!");
+          console.log(n);
+        }
+        this._incidents.forEach(i => {
+          // console.log("incremental anywhere?");
+          // console.log(i);
+          // if (i.getAttri == key) {
+            // FLIP IT HERE!
+          // }
+        });
+        console.log("HHHHHH");
+        console.log(start);
+        console.log(end);
+
+        this._check_selected_impl(checkbox.id, true);
+        // Update it now.
+      }
+      // Update it now. Combine with the above stuff I guess.
+      if (checkbox._input.checked) {
+        this._last_clicked_incident = checkbox.getAttribute("incremental_id");
+      }
+      console.log(this._shift_clicked);
+      console.log(this._selected); // what is this even used for?? do I need a new one???
+      console.log(this._checked); // Maybe I can just use this.. no I need the last one selected.
+      // rmistry: Do the loop here between the numbers?
+
       // TODO(jcgregorio) Fix this once checkbox-sk is fixed.
       this._check_selected_impl(checkbox.id, checkbox._input.checked);
     }
   }
 
   _select(incident) {
+    console.log("In _select");
     this._state = INCIDENT;
     this._checked = new Set();
     this._selected = incident;
