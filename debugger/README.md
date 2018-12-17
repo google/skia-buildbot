@@ -9,24 +9,17 @@ The Skia Debugger consists of several components:
 
 See `DESIGN.md` for more details.
 
-
 Running
 =======
 
 To run the server locally make sure you have Go installed and then run:
 
 ~~~~bash
-go get go.skia.org/infra/debugger/...
-cd $GOPATH/src/go.skia.org/infra/debugger
-make run_server_local
+    $ docker pull gcr.io/skia-public/skia-release:prod
+    $ make release_ci
+    $ make run_with_local_assets
 ~~~~
 
-Make sure you have `$GOPATH/bin` added to your `PATH`.
-
-This will spin up a local server on port 9000.
-
-Make sure when you run the command-line debugger that it runs looking for
-http://localhost:9000 and not https://debugger.skia.org. I.e
-
-    ./out/Release/skiaserve --source http://localhost:9000
-
+This builds the same docker image that runs in prod, including a copy of
+skiaserve built against SwiftShader, so that GPU will work w/o needing
+a physical GPU.

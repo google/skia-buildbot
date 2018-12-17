@@ -66,6 +66,9 @@ type instance struct {
 	// proxy is the proxy connection to talk to the running skiaserve.
 	proxy *httputil.ReverseProxy
 
+	// source is the schema and domain from where to load assets, e.g. "https://debugger.skia.org".
+	source string
+
 	// port is the port that skiaserve is listening on.
 	port int
 
@@ -90,7 +93,7 @@ type instance struct {
 func (c *instance) Start(uuid string) (<-chan error, error) {
 	runCmd := &exec.Command{
 		Name:      "xvfb-run",
-		Args:      []string{"--server-args", "-screen 0 1280x1024x24", "--server-num", fmt.Sprintf("%d", c.port), SKIASERVE, "--port", fmt.Sprintf("%d", c.port), "--source", "https://debugger-assets.skia.org", "--hosted"},
+		Args:      []string{"--server-args", "-screen 0 1280x1024x24", "--server-num", fmt.Sprintf("%d", c.port), SKIASERVE, "--port", fmt.Sprintf("%d", c.port), "--source", c.source, "--hosted"},
 		Env:       []string{fmt.Sprintf("DISPLAY=:%d", c.display)},
 		LogStdout: true,
 	}
@@ -142,7 +145,7 @@ type Instances struct {
 	mutex sync.Mutex
 }
 
-func New() *Instances {
+func New(source string) *Instances {
 	s := &Instances{
 		pool:      []*instance{},
 		instances: map[string]*instance{},
@@ -158,6 +161,7 @@ func New() *Instances {
 			port:    port,
 			display: i + 100,
 			proxy:   httputil.NewSingleHostReverseProxy(u),
+			source:  source,
 		}
 		s.pool = append(s.pool, c)
 	}
