@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7714d554_5e6af3bc",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Personally I think \"set\" describes this better; it\u0027s the name of the list of pubsub topics to use.  To me, \"tag\" implies that this is some kind of metadata.",
+      "parentUuid": "026315b4_d64f552f",
+      "range": {
+        "startLine": 48,
+        "startChar": 44,
+        "endLine": 48,
+        "endChar": 47
+      },
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a9f7b1bd_84ebad60",
         "filename": "datahopper/go/datahopper/main.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2018-12-14T19:12:36Z",
       "side": 1,
       "message": "nit: naming -- \"modifiedData\" is the impl class. I don\u0027t have suggestions, though.",
+      "range": {
+        "startLine": 169,
+        "startChar": 21,
+        "endLine": 169,
+        "endChar": 36
+      },
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aeec891b_17279c66",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Yeah, I guess this is somewhat confusing, but I can\u0027t think of a better name, and modifiedData is not used directly by clients, so I don\u0027t think it\u0027s so bad.",
+      "parentUuid": "a9f7b1bd_84ebad60",
       "range": {
         "startLine": 169,
         "startChar": 21,
@@ -100,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "416a49f7_ce2dda51",
+        "filename": "task_scheduler/go/db/memory/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Removed, and verified that no callers are doing this.",
+      "parentUuid": "bba0b714_7d9755a3",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d6a477d_02c89608",
         "filename": "task_scheduler/go/db/memory/comments_test.go",
         "patchSetId": 2
@@ -123,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "f9d9ba18_67289c44",
+        "filename": "task_scheduler/go/db/memory/comments_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Nope :(",
+      "parentUuid": "7d6a477d_02c89608",
+      "range": {
+        "startLine": 8,
+        "startChar": 30,
+        "endLine": 8,
+        "endChar": 36
+      },
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "805b943b_43dc0ac0",
         "filename": "task_scheduler/go/db/modified/modified_data.go",
         "patchSetId": 2
@@ -137,6 +227,24 @@
       "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfa8f12a_abbefd3b",
+        "filename": "task_scheduler/go/db/modified/modified_data.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Good catch, done.",
+      "parentUuid": "805b943b_43dc0ac0",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "1e4ea66f_7595264b",
+        "filename": "task_scheduler/go/db/pubsub/pubsub.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7e6679ec_8305934a",
+      "range": {
+        "startLine": 434,
+        "startChar": 55,
+        "endLine": 434,
+        "endChar": 59
+      },
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4c220f0_fd9ef5b8",
         "filename": "task_scheduler/go/db/testutil.go",
         "patchSetId": 2
@@ -177,6 +309,24 @@
       "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc8c7f61_57803e8a",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1272,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4c220f0_fd9ef5b8",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +347,24 @@
     },
     {
       "key": {
+        "uuid": "d22269f0_a65bd733",
+        "filename": "task_scheduler/go/types/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "684003a2_1eefc1e9",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f00d6af_9c9a6bd7",
         "filename": "task_scheduler/go/types/comments.go",
         "patchSetId": 2
@@ -214,6 +382,24 @@
     },
     {
       "key": {
+        "uuid": "fe97a8fb_2fce295c",
+        "filename": "task_scheduler/go/types/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Done. PTAL.",
+      "parentUuid": "0f00d6af_9c9a6bd7",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f8ef5897_d58eadaf",
         "filename": "task_scheduler/go/types/comments.go",
         "patchSetId": 2
@@ -225,6 +411,24 @@
       "writtenOn": "2018-12-14T19:12:36Z",
       "side": 1,
       "message": "Didn\u0027t really review the rest of this file.",
+      "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5bd6aeac_aa94eac5",
+        "filename": "task_scheduler/go/types/comments.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T19:42:04Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f8ef5897_d58eadaf",
       "revId": "f8dccf9017b245c3fade070a9f74fb440bcc86a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
