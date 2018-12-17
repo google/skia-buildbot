@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	"go.skia.org/infra/fiddlek/go/client"
 	"go.skia.org/infra/fiddlek/go/store"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/allowed"
@@ -39,11 +40,6 @@ var (
 	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-)
-
-const (
-	// NUM_RETRIES is the number of time to try to run a fiddle before giving up.
-	NUM_RETRIES = 5
 )
 
 // Server is the state of the server.
@@ -103,26 +99,15 @@ func (srv *Server) validate(n store.Named) bool {
 	}
 
 	// Then re-run it.
-	var resp *http.Response
-	for i := 0; i < NUM_RETRIES; i++ {
-		resp, err = c.Post("https://fiddle.skia.org/_/run", "application/json", getResp.Body)
-		if err != nil || resp.StatusCode != 200 {
-			status := ""
-			if resp != nil {
-				status = resp.Status
-			}
-			sklog.Errorf("Failed to run %q: %s %s", n.Name, status, err)
-			continue
-		}
-		break
-	}
-	if err != nil || resp.StatusCode != 200 {
-		srv.errorsInRun.Inc(1)
+	b, err := ioutil.ReadAll(getResp.Body)
+	if err != nil {
+		sklog.Warningf("Failed to read fiddle: %s", err)
 		return true
 	}
-	var runResults types.RunResults
-	if err := json.NewDecoder(resp.Body).Decode(&runResults); err != nil {
-		sklog.Errorf("Failed to decode run results: %s", err)
+	runResults, success := client.Do(b, false, "https://fiddle.skia.org", func(*types.RunResults) bool {
+		return true
+	})
+	if success {
 		srv.errorsInRun.Inc(1)
 		return true
 	}
