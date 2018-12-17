@@ -1,13 +1,11 @@
 package types
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
-	"sync"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -308,29 +306,7 @@ func (s JobSlice) Swap(i, j int) {
 // concurrent use.
 // TODO(benjaminwagner): Encode in parallel.
 type JobEncoder struct {
-	err    error
-	jobs   []*Job
-	result [][]byte
-}
-
-// Process encodes the Job into a byte slice that will be returned from Next()
-// (in arbitrary order). Returns false if Next is certain to return an error.
-// Caller must ensure j does not change until after the first call to Next().
-// May not be called after calling Next().
-func (e *JobEncoder) Process(j *Job) bool {
-	if e.err != nil {
-		return false
-	}
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(j); err != nil {
-		e.err = err
-		e.jobs = nil
-		e.result = nil
-		return false
-	}
-	e.jobs = append(e.jobs, j)
-	e.result = append(e.result, buf.Bytes())
-	return true
+	util.GobEncoder
 }
 
 // Next returns one of the Jobs provided to Process (in arbitrary order) and
@@ -338,113 +314,42 @@ func (e *JobEncoder) Process(j *Job) bool {
 // bytes, nil. If all jobs have been returned, returns nil, nil, nil. If an
 // error is encountered, returns nil, nil, error.
 func (e *JobEncoder) Next() (*Job, []byte, error) {
-	if e.err != nil {
-		return nil, nil, e.err
-	}
-	if len(e.jobs) == 0 {
+	item, serialized, err := e.GobEncoder.Next()
+	if err != nil {
+		return nil, nil, err
+	} else if item == nil {
 		return nil, nil, nil
 	}
-	j := e.jobs[0]
-	e.jobs = e.jobs[1:]
-	serialized := e.result[0]
-	e.result = e.result[1:]
-	return j, serialized, nil
+	return item.(*Job), serialized, nil
 }
 
 // JobDecoder decodes bytes into Jobs via GOB decoding. Not safe for
 // concurrent use.
 type JobDecoder struct {
-	// input contains the incoming byte slices. Process() sends on this channel,
-	// decode() receives from it, and Result() closes it.
-	input chan []byte
-	// output contains decoded Jobs. decode() sends on this channel, collect()
-	// receives from it, and run() closes it when all decode() goroutines have
-	// finished.
-	output chan *Job
-	// result contains the return value of Result(). collect() sends a single
-	// value on this channel and closes it. Result() receives from it.
-	result chan []*Job
-	// errors contains the first error from any goroutine. It's a channel in case
-	// multiple goroutines experience an error at the same time.
-	errors chan error
+	*util.GobDecoder
 }
 
-// init initializes d if it has not been initialized. May not be called concurrently.
-func (d *JobDecoder) init() {
-	if d.input == nil {
-		d.input = make(chan []byte, kNumDecoderGoroutines*2)
-		d.output = make(chan *Job, kNumDecoderGoroutines)
-		d.result = make(chan []*Job, 1)
-		d.errors = make(chan error, kNumDecoderGoroutines)
-		go d.run()
-		go d.collect()
+// NewJobDecoder returns a JobDecoder instance.
+func NewJobDecoder() *JobDecoder {
+	return &JobDecoder{
+		GobDecoder: util.NewGobDecoder(func() interface{} {
+			return &Job{}
+		}, func(ch <-chan interface{}) interface{} {
+			items := []*Job{}
+			for item := range ch {
+				items = append(items, item.(*Job))
+			}
+			return items
+		}),
 	}
-}
-
-// run starts the decode goroutines and closes d.output when they finish.
-func (d *JobDecoder) run() {
-	// Start decoders.
-	wg := sync.WaitGroup{}
-	for i := 0; i < kNumDecoderGoroutines; i++ {
-		wg.Add(1)
-		go d.decode(&wg)
-	}
-	// Wait for decoders to exit.
-	wg.Wait()
-	// Drain d.input in the case that errors were encountered, to avoid deadlock.
-	for range d.input {
-	}
-	close(d.output)
-}
-
-// decode receives from d.input and sends to d.output until d.input is closed or
-// d.errors is non-empty. Decrements wg when done.
-func (d *JobDecoder) decode(wg *sync.WaitGroup) {
-	for b := range d.input {
-		var j Job
-		if err := gob.NewDecoder(bytes.NewReader(b)).Decode(&j); err != nil {
-			d.errors <- err
-			break
-		}
-		d.output <- &j
-		if len(d.errors) > 0 {
-			break
-		}
-	}
-	wg.Done()
-}
-
-// collect receives from d.output until it is closed, then sends on d.result.
-func (d *JobDecoder) collect() {
-	result := []*Job{}
-	for j := range d.output {
-		result = append(result, j)
-	}
-	d.result <- result
-	close(d.result)
-}
-
-// Process decodes the byte slice into a Job and includes it in Result() (in
-// arbitrary order). Returns false if Result is certain to return an error.
-// Caller must ensure b does not change until after Result() returns.
-func (d *JobDecoder) Process(b []byte) bool {
-	d.init()
-	d.input <- b
-	return len(d.errors) == 0
 }
 
 // Result returns all decoded Jobs provided to Process (in arbitrary order), or
 // any error encountered.
 func (d *JobDecoder) Result() ([]*Job, error) {
-	// Allow JobDecoder to be used without initialization.
-	if d.result == nil {
-		return []*Job{}, nil
-	}
-	close(d.input)
-	select {
-	case err := <-d.errors:
+	res, err := d.GobDecoder.Result()
+	if err != nil {
 		return nil, err
-	case result := <-d.result:
-		return result, nil
 	}
+	return res.([]*Job), nil
 }

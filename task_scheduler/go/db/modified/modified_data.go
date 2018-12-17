@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +13,12 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
+
+// NewModifiedData returns a db.ModifiedData instance which tracks modifications
+// in memory.
+func NewModifiedData() db.ModifiedData {
+	return db.NewModifiedData(&ModifiedTasksImpl{}, &ModifiedJobsImpl{}, &ModifiedCommentsImpl{})
+}
 
 // modifiedData allows subscribers to keep track of DB entries that have been
 // modified. It is designed to be used with wrappers in order to store a desired
@@ -125,7 +132,7 @@ func (m *ModifiedTasksImpl) GetModifiedTasks(id string) ([]*types.Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := types.TaskDecoder{}
+	d := types.NewTaskDecoder()
 	for _, g := range tasks {
 		if !d.Process(g) {
 			break
@@ -178,7 +185,7 @@ func (m *ModifiedJobsImpl) GetModifiedJobs(id string) ([]*types.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	d := types.JobDecoder{}
+	d := types.NewJobDecoder()
 	for _, g := range jobs {
 		if !d.Process(g) {
 			break
@@ -221,5 +228,128 @@ func (m *ModifiedJobsImpl) StopTrackingModifiedJobs(id string) {
 	m.m.StopTrackingModifiedEntries(id)
 }
 
+type ModifiedCommentsImpl struct {
+	tasks     modifiedData
+	taskSpecs modifiedData
+	commits   modifiedData
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) GetModifiedComments(id string) ([]*types.TaskComment, []*types.TaskSpecComment, []*types.CommitComment, error) {
+	ids := strings.Split(id, "#")
+	if len(ids) != 3 {
+		return nil, nil, nil, db.ErrUnknownId
+	}
+	tasks, err := m.tasks.GetModifiedEntries(ids[0])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	d1 := types.NewTaskCommentDecoder()
+	for _, g := range tasks {
+		if !d1.Process(g) {
+			break
+		}
+	}
+	rv1, err := d1.Result()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	sort.Sort(types.TaskCommentSlice(rv1))
+
+	taskSpecs, err := m.taskSpecs.GetModifiedEntries(ids[1])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	d2 := types.NewTaskSpecCommentDecoder()
+	for _, g := range taskSpecs {
+		if !d2.Process(g) {
+			break
+		}
+	}
+	rv2, err := d2.Result()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	sort.Sort(types.TaskSpecCommentSlice(rv2))
+
+	commits, err := m.commits.GetModifiedEntries(ids[2])
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	d3 := types.NewCommitCommentDecoder()
+	for _, g := range commits {
+		if !d3.Process(g) {
+			break
+		}
+	}
+	rv3, err := d3.Result()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	sort.Sort(types.CommitCommentSlice(rv3))
+
+	return rv1, rv2, rv3, nil
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) TrackModifiedTaskComment(c *types.TaskComment) {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
+		sklog.Fatal(err)
+	}
+	m.tasks.TrackModifiedEntries(map[string][]byte{c.Id(): buf.Bytes()})
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) TrackModifiedTaskSpecComment(c *types.TaskSpecComment) {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
+		sklog.Fatal(err)
+	}
+	m.taskSpecs.TrackModifiedEntries(map[string][]byte{c.Id(): buf.Bytes()})
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) TrackModifiedCommitComment(c *types.CommitComment) {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
+		sklog.Fatal(err)
+	}
+	m.commits.TrackModifiedEntries(map[string][]byte{c.Id(): buf.Bytes()})
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) StartTrackingModifiedComments() (string, error) {
+	id1, err := m.tasks.StartTrackingModifiedEntries()
+	if err != nil {
+		return "", err
+	}
+	id2, err := m.taskSpecs.StartTrackingModifiedEntries()
+	if err != nil {
+		m.tasks.StopTrackingModifiedEntries(id1)
+		return "", err
+	}
+	id3, err := m.commits.StartTrackingModifiedEntries()
+	if err != nil {
+		m.tasks.StopTrackingModifiedEntries(id1)
+		m.taskSpecs.StopTrackingModifiedEntries(id2)
+		return "", err
+	}
+	return id1 + "#" + id2 + "#" + id3, nil
+}
+
+// See docs for ModifiedComments interface.
+func (m *ModifiedCommentsImpl) StopTrackingModifiedComments(id string) {
+	ids := strings.Split(id, "#")
+	if len(ids) != 3 {
+		sklog.Errorf("Invalid id %q", id)
+		return
+	}
+	m.tasks.StopTrackingModifiedEntries(ids[0])
+	m.taskSpecs.StopTrackingModifiedEntries(ids[1])
+	m.commits.StopTrackingModifiedEntries(ids[2])
+}
+
 var _ db.ModifiedTasks = &ModifiedTasksImpl{}
 var _ db.ModifiedJobs = &ModifiedJobsImpl{}
+var _ db.ModifiedComments = &ModifiedCommentsImpl{}

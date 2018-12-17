@@ -82,7 +82,7 @@ func TestJobEncoderNoJobs(t *testing.T) {
 
 func TestJobDecoder(t *testing.T) {
 	testutils.SmallTest(t)
-	d := JobDecoder{}
+	d := NewJobDecoder()
 	expectedJobs := map[string]*Job{}
 	for i := 0; i < 250; i++ {
 		job := &Job{}
@@ -109,7 +109,7 @@ func TestJobDecoder(t *testing.T) {
 
 func TestJobDecoderNoJobs(t *testing.T) {
 	testutils.SmallTest(t)
-	d := JobDecoder{}
+	d := NewJobDecoder()
 	result, err := d.Result()
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(result))
@@ -125,7 +125,7 @@ func TestJobDecoderError(t *testing.T) {
 	serialized := buf.Bytes()
 	invalid := append([]byte("Hi Mom!"), serialized...)
 
-	d := JobDecoder{}
+	d := NewJobDecoder()
 	// Process should return true before it encounters an invalid result.
 	assert.True(t, d.Process(serialized))
 	assert.True(t, d.Process(serialized))

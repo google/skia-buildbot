@@ -1,14 +1,11 @@
 package types
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -447,31 +444,8 @@ func (s TaskSlice) Swap(i, j int) {
 
 // TaskEncoder encodes Tasks into bytes via GOB encoding. Not safe for
 // concurrent use.
-// TODO(benjaminwagner): Encode in parallel.
 type TaskEncoder struct {
-	err    error
-	tasks  []*Task
-	result [][]byte
-}
-
-// Process encodes the Task into a byte slice that will be returned from Next()
-// (in arbitrary order). Returns false if Next is certain to return an error.
-// Caller must ensure t does not change until after the first call to Next().
-// May not be called after calling Next().
-func (e *TaskEncoder) Process(t *Task) bool {
-	if e.err != nil {
-		return false
-	}
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
-		e.err = err
-		e.tasks = nil
-		e.result = nil
-		return false
-	}
-	e.tasks = append(e.tasks, t)
-	e.result = append(e.result, buf.Bytes())
-	return true
+	util.GobEncoder
 }
 
 // Next returns one of the Tasks provided to Process (in arbitrary order) and
@@ -479,117 +453,44 @@ func (e *TaskEncoder) Process(t *Task) bool {
 // bytes, nil. If all tasks have been returned, returns nil, nil, nil. If an
 // error is encountered, returns nil, nil, error.
 func (e *TaskEncoder) Next() (*Task, []byte, error) {
-	if e.err != nil {
-		return nil, nil, e.err
-	}
-	if len(e.tasks) == 0 {
+	item, serialized, err := e.GobEncoder.Next()
+	if err != nil {
+		return nil, nil, err
+	} else if item == nil {
 		return nil, nil, nil
 	}
-	t := e.tasks[0]
-	e.tasks = e.tasks[1:]
-	serialized := e.result[0]
-	e.result = e.result[1:]
-	return t, serialized, nil
+	return item.(*Task), serialized, nil
 }
 
 // TaskDecoder decodes bytes into Tasks via GOB decoding. Not safe for
 // concurrent use.
 type TaskDecoder struct {
-	// input contains the incoming byte slices. Process() sends on this channel,
-	// decode() receives from it, and Result() closes it.
-	input chan []byte
-	// output contains decoded Tasks. decode() sends on this channel, collect()
-	// receives from it, and run() closes it when all decode() goroutines have
-	// finished.
-	output chan *Task
-	// result contains the return value of Result(). collect() sends a single
-	// value on this channel and closes it. Result() receives from it.
-	result chan []*Task
-	// errors contains the first error from any goroutine. It's a channel in case
-	// multiple goroutines experience an error at the same time.
-	errors chan error
+	*util.GobDecoder
 }
 
-const kNumDecoderGoroutines = 10
-
-// init initializes d if it has not been initialized. May not be called concurrently.
-func (d *TaskDecoder) init() {
-	if d.input == nil {
-		d.input = make(chan []byte, kNumDecoderGoroutines*2)
-		d.output = make(chan *Task, kNumDecoderGoroutines)
-		d.result = make(chan []*Task, 1)
-		d.errors = make(chan error, kNumDecoderGoroutines)
-		go d.run()
-		go d.collect()
+// NewTaskDecoder returns a TaskDecoder instance.
+func NewTaskDecoder() *TaskDecoder {
+	return &TaskDecoder{
+		GobDecoder: util.NewGobDecoder(func() interface{} {
+			return &Task{}
+		}, func(ch <-chan interface{}) interface{} {
+			items := []*Task{}
+			for item := range ch {
+				items = append(items, item.(*Task))
+			}
+			return items
+		}),
 	}
-}
-
-// run starts the decode goroutines and closes d.output when they finish.
-func (d *TaskDecoder) run() {
-	// Start decoders.
-	wg := sync.WaitGroup{}
-	for i := 0; i < kNumDecoderGoroutines; i++ {
-		wg.Add(1)
-		go d.decode(&wg)
-	}
-	// Wait for decoders to exit.
-	wg.Wait()
-	// Drain d.input in the case that errors were encountered, to avoid deadlock.
-	for range d.input {
-	}
-	close(d.output)
-}
-
-// decode receives from d.input and sends to d.output until d.input is closed or
-// d.errors is non-empty. Decrements wg when done.
-func (d *TaskDecoder) decode(wg *sync.WaitGroup) {
-	for b := range d.input {
-		var t Task
-		if err := gob.NewDecoder(bytes.NewReader(b)).Decode(&t); err != nil {
-			d.errors <- err
-			break
-		}
-		d.output <- &t
-		if len(d.errors) > 0 {
-			break
-		}
-	}
-	wg.Done()
-}
-
-// collect receives from d.output until it is closed, then sends on d.result.
-func (d *TaskDecoder) collect() {
-	result := []*Task{}
-	for t := range d.output {
-		result = append(result, t)
-	}
-	d.result <- result
-	close(d.result)
-}
-
-// Process decodes the byte slice into a Task and includes it in Result() (in
-// arbitrary order). Returns false if Result is certain to return an error.
-// Caller must ensure b does not change until after Result() returns.
-func (d *TaskDecoder) Process(b []byte) bool {
-	d.init()
-	d.input <- b
-	return len(d.errors) == 0
 }
 
 // Result returns all decoded Tasks provided to Process (in arbitrary order), or
 // any error encountered.
 func (d *TaskDecoder) Result() ([]*Task, error) {
-	// Allow TaskDecoder to be used without initialization.
-	if d.result == nil {
-		return []*Task{}, nil
-	}
-	close(d.input)
-	select {
-	case err := <-d.errors:
+	res, err := d.GobDecoder.Result()
+	if err != nil {
 		return nil, err
-	case result := <-d.result:
-		return result, nil
 	}
+	return res.([]*Task), nil
 }
 
 // TagsForTask returns the tags which should be set for a Task.

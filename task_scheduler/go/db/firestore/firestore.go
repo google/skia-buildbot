@@ -56,31 +56,24 @@ type firestoreDB struct {
 	client    *firestore.Client
 	parentDoc string
 
-	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
-	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
-	db.ModifiedTasks
-	db.ModifiedJobs
+	db.ModifiedData
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage. The parentDoc
 // parameter is optional and indicates the path of a parent document to which
 // all collections within the DB will belong. If it is not supplied, then the
 // collections will be at the top level.
-func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) (db.BackupDBCloser, error) {
+func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
 	}
-	if modTasks == nil {
-		modTasks = &modified.ModifiedTasksImpl{}
-	}
-	if modJobs == nil {
-		modJobs = &modified.ModifiedJobsImpl{}
+	if mod == nil {
+		mod = modified.NewModifiedData()
 	}
 	return &firestoreDB{
-		client:        client,
-		ModifiedTasks: modTasks,
-		ModifiedJobs:  modJobs,
+		client:       client,
+		ModifiedData: mod,
 	}, nil
 }
 
