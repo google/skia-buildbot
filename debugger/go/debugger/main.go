@@ -16,9 +16,7 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/debugger/go/instances"
-	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -30,17 +28,12 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	source       = flag.String("source", "https://debugger-assets.skia.org", "Where to load assets from.")
 	versionFile  = flag.String("version_file", "/etc/skia-prod/VERSION", "The full path of the Skia VERSION file.")
 )
 
 var (
 	templates *template.Template
-
-	// repo is the Skia checkout.
-	repo *gitinfo.GitInfo
-
-	// build is responsible to building the LKGR of skiaserve periodically.
-	build *buildskia.ContinuousBuilder
 
 	// co handles proxying requests to skiaserve instances which is spins up and down.
 	co *instances.Instances
@@ -190,7 +183,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-	co = instances.New()
+	co = instances.New(*source)
 
 	Init()
 

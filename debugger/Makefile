@@ -31,7 +31,11 @@ testgo:
 
 .PHONY: run
 run:
-	 docker run -p8000:8000 -ti debugger
+	docker run -p8000:8000 -ti debugger
+
+.PHONY: run_with_local_assets
+run_with_local_assets:
+	docker run -p8000:8000 -ti debugger --source=http://localhost:9000 --logtostderr --resources_dir=/usr/local/share/debugger
 
 .PHONY: tag_skiaserve
 tag_skiaserve:
