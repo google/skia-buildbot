@@ -72,6 +72,33 @@ func findModifiedJobs(t testutils.TestingT, m ModifiedJobsReader, id string, exp
 	}))
 }
 
+func findModifiedComments(t testutils.TestingT, m ModifiedComments, id string, e1 []*types.TaskComment, e2 []*types.TaskSpecComment, e3 []*types.CommitComment) {
+	// Note that the slice only works because we don't call
+	// TrackModifiedJob more than once for any given job, otherwise
+	// we'd have to use a map and compare DbModified.
+	a1 := []*types.TaskComment{}
+	a2 := []*types.TaskSpecComment{}
+	a3 := []*types.CommitComment{}
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		c1, c2, c3, err := m.GetModifiedComments(id)
+		assert.NoError(t, err)
+		a1 = append(a1, c1...)
+		a2 = append(a2, c2...)
+		a3 = append(a3, c3...)
+		if len(a1) != len(e1) || len(a2) != len(e2) || len(a3) != len(e3) {
+			time.Sleep(100 * time.Millisecond)
+			return testutils.TryAgainErr
+		}
+		sort.Sort(types.TaskCommentSlice(a1))
+		sort.Sort(types.TaskSpecCommentSlice(a2))
+		sort.Sort(types.CommitCommentSlice(a3))
+		deepequal.AssertDeepEqual(t, e1, a1)
+		deepequal.AssertDeepEqual(t, e2, a2)
+		deepequal.AssertDeepEqual(t, e3, a3)
+		return nil
+	}))
+}
+
 // TestTaskDB performs basic tests for an implementation of TaskDB.
 func TestTaskDB(t testutils.TestingT, db TaskDB) {
 	_, err := db.GetModifiedTasks("dummy-id")
@@ -1174,7 +1201,19 @@ func TestUpdateJobsWithRetries(t testutils.TestingT, db JobDB) {
 
 // TestCommentDB validates that db correctly implements the CommentDB interface.
 func TestCommentDB(t testutils.TestingT, db CommentDB) {
-	now := time.Now()
+	_, _, _, err := db.GetModifiedComments("dummy-id")
+	assert.True(t, IsUnknownId(err))
+
+	id, err := db.StartTrackingModifiedComments()
+	assert.NoError(t, err)
+
+	c1, c2, c3, err := db.GetModifiedComments(id)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(c1))
+	assert.Equal(t, 0, len(c2))
+	assert.Equal(t, 0, len(c3))
+
+	now := time.Now().Truncate(TS_RESOLUTION)
 
 	// Empty db.
 	r0 := fmt.Sprintf("%s%d", common.REPO_SKIA, 0)
@@ -1195,39 +1234,42 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 	}
 
 	// Add some comments.
-	tc1 := types.MakeTaskComment(1, 1, 1, 1, now)
-	tc2 := types.MakeTaskComment(2, 1, 1, 1, now.Add(2*time.Second))
-	tc3 := types.MakeTaskComment(3, 1, 1, 1, now.Add(time.Second))
-	tc4 := types.MakeTaskComment(4, 1, 1, 2, now)
-	tc5 := types.MakeTaskComment(5, 1, 2, 2, now)
-	tc6 := types.MakeTaskComment(6, 2, 3, 3, now)
+	tc1 := types.MakeTaskComment(1, 1, 1, 1, now.Add(-2*time.Second))
+	tc2 := types.MakeTaskComment(2, 1, 1, 1, now)
+	tc3 := types.MakeTaskComment(3, 1, 1, 1, now.Add(-time.Second))
+	tc4 := types.MakeTaskComment(4, 1, 1, 2, now.Add(-2*time.Second+time.Millisecond))
+	tc5 := types.MakeTaskComment(5, 1, 2, 2, now.Add(-2*time.Second+2*time.Millisecond))
+	tc6 := types.MakeTaskComment(6, 2, 3, 3, now.Add(-2*time.Second+3*time.Millisecond))
 	for _, c := range []*types.TaskComment{tc1, tc2, tc3, tc4, tc5, tc6} {
 		assert.NoError(t, db.PutTaskComment(c))
 	}
 	tc6copy := tc6.Copy()
 	tc6.Message = "modifying after Put shouldn't affect stored comment"
 
-	sc1 := types.MakeTaskSpecComment(1, 1, 1, now)
-	sc2 := types.MakeTaskSpecComment(2, 1, 1, now.Add(2*time.Second))
-	sc3 := types.MakeTaskSpecComment(3, 1, 1, now.Add(time.Second))
-	sc4 := types.MakeTaskSpecComment(4, 1, 2, now)
-	sc5 := types.MakeTaskSpecComment(5, 2, 3, now)
+	sc1 := types.MakeTaskSpecComment(1, 1, 1, now.Add(-2*time.Second))
+	sc2 := types.MakeTaskSpecComment(2, 1, 1, now)
+	sc3 := types.MakeTaskSpecComment(3, 1, 1, now.Add(-time.Second))
+	sc4 := types.MakeTaskSpecComment(4, 1, 2, now.Add(-2*time.Second+time.Millisecond))
+	sc5 := types.MakeTaskSpecComment(5, 2, 3, now.Add(-2*time.Second+2*time.Millisecond))
 	for _, c := range []*types.TaskSpecComment{sc1, sc2, sc3, sc4, sc5} {
 		assert.NoError(t, db.PutTaskSpecComment(c))
 	}
 	sc5copy := sc5.Copy()
 	sc5.Message = "modifying after Put shouldn't affect stored comment"
 
-	cc1 := types.MakeCommitComment(1, 1, 1, now)
-	cc2 := types.MakeCommitComment(2, 1, 1, now.Add(2*time.Second))
-	cc3 := types.MakeCommitComment(3, 1, 1, now.Add(time.Second))
-	cc4 := types.MakeCommitComment(4, 1, 2, now)
-	cc5 := types.MakeCommitComment(5, 2, 3, now)
+	cc1 := types.MakeCommitComment(1, 1, 1, now.Add(-2*time.Second))
+	cc2 := types.MakeCommitComment(2, 1, 1, now)
+	cc3 := types.MakeCommitComment(3, 1, 1, now.Add(-time.Second))
+	cc4 := types.MakeCommitComment(4, 1, 2, now.Add(-2*time.Second+time.Millisecond))
+	cc5 := types.MakeCommitComment(5, 2, 3, now.Add(-2*time.Second+2*time.Millisecond))
 	for _, c := range []*types.CommitComment{cc1, cc2, cc3, cc4, cc5} {
 		assert.NoError(t, db.PutCommitComment(c))
 	}
 	cc5copy := cc5.Copy()
 	cc5.Message = "modifying after Put shouldn't affect stored comment"
+
+	// Ensure that all comments show up in the modified list.
+	findModifiedComments(t, db, id, []*types.TaskComment{tc1, tc4, tc5, tc6copy, tc3, tc2}, []*types.TaskSpecComment{sc1, sc4, sc5copy, sc3, sc2}, []*types.CommitComment{cc1, cc4, cc5copy, cc3, cc2})
 
 	// Check that adding duplicate non-identical comment gives an error.
 	tc1different := tc1.Copy()
@@ -1285,7 +1327,7 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 
 	// Specifying a cutoff time shouldn't drop required comments.
 	{
-		actual, err := db.GetCommentsForRepos([]string{r1}, now.Add(time.Second))
+		actual, err := db.GetCommentsForRepos([]string{r1}, now.Add(-time.Second))
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(actual))
 		{
@@ -1319,6 +1361,9 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 			AssertDeepEqual(t, cc2, ccs[offset+1])
 		}
 	}
+	// Clear out modified comments.
+	_, _, _, err = db.GetModifiedComments(id)
+	assert.NoError(t, err)
 
 	// Delete some comments.
 	assert.NoError(t, db.DeleteTaskComment(tc3))
@@ -1347,6 +1392,14 @@ func TestCommentDB(t testutils.TestingT, db CommentDB) {
 		actual, err := db.GetCommentsForRepos([]string{r0, r1, r2}, now.Add(-10000*time.Hour))
 		assert.NoError(t, err)
 		AssertDeepEqual(t, expected, actual)
+		deleted := true
+		tc1different.Deleted = &deleted
+		sc1different.Deleted = &deleted
+		cc1different.Deleted = &deleted
+		tc3.Deleted = &deleted
+		sc3.Deleted = &deleted
+		cc3.Deleted = &deleted
+		findModifiedComments(t, db, id, []*types.TaskComment{tc1different, tc3}, []*types.TaskSpecComment{sc1different, sc3}, []*types.CommitComment{cc1different, cc3})
 	}
 
 	// Delete all the comments.
@@ -1657,6 +1710,93 @@ func TestMultipleJobModifications(t testutils.TestingT, m ModifiedJobs) {
 			}
 		}
 		if deepequal.DeepEqual(j1, actual) {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+		return testutils.TryAgainErr
+	}))
+}
+
+func TestModifiedComments(t testutils.TestingT, m ModifiedComments) {
+	_, _, _, err := m.GetModifiedComments("dummy-id")
+	assert.True(t, IsUnknownId(err))
+
+	id, err := m.StartTrackingModifiedComments()
+	assert.NoError(t, err)
+
+	time.Sleep(time.Second)
+	a1, a2, a3, err := m.GetModifiedComments(id)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(a1))
+	assert.Equal(t, 0, len(a2))
+	assert.Equal(t, 0, len(a3))
+
+	c1 := types.MakeTaskComment(1, 1, 1, 1, time.Now())
+
+	// Insert the comment.
+	m.TrackModifiedTaskComment(c1)
+
+	// Ensure that the comment shows up in the modified list.
+	findModifiedComments(t, m, id, []*types.TaskComment{c1}, []*types.TaskSpecComment{}, []*types.CommitComment{})
+
+	// Insert two more comments.
+	c2 := types.MakeTaskComment(2, 2, 2, 2, time.Now())
+	m.TrackModifiedTaskComment(c2)
+	c3 := types.MakeTaskComment(3, 3, 3, 3, time.Now())
+	m.TrackModifiedTaskComment(c3)
+
+	// Ensure that both comments show up in the modified list.
+	findModifiedComments(t, m, id, []*types.TaskComment{c2, c3}, []*types.TaskSpecComment{}, []*types.CommitComment{})
+
+	// Insert two more comments.
+	c4 := types.MakeTaskSpecComment(4, 4, 4, time.Now())
+	m.TrackModifiedTaskSpecComment(c4)
+	c5 := types.MakeCommitComment(5, 5, 5, time.Now())
+	m.TrackModifiedCommitComment(c5)
+
+	// Ensure that both comments show up in the modified list.
+	findModifiedComments(t, m, id, []*types.TaskComment{}, []*types.TaskSpecComment{c4}, []*types.CommitComment{c5})
+
+	// Check StopTrackingModifiedComments.
+	m.StopTrackingModifiedComments(id)
+	err = testutils.EventuallyConsistent(10*time.Second, func() error {
+		_, _, _, err := m.GetModifiedComments(id)
+		if err == nil {
+			return testutils.TryAgainErr
+		}
+		return err
+	})
+	assert.True(t, IsUnknownId(err))
+}
+
+func TestMultipleCommentModifications(t testutils.TestingT, m ModifiedComments) {
+	id, err := m.StartTrackingModifiedComments()
+	assert.NoError(t, err)
+
+	c1 := types.MakeTaskComment(1, 1, 1, 1, time.Now())
+
+	// Insert the comment.
+	m.TrackModifiedTaskComment(c1)
+
+	// Delete the comment.
+	deleted := true
+	c1.Deleted = &deleted
+	m.TrackModifiedTaskComment(c1)
+
+	// Ensure that the comment shows up only once in the modified list and
+	// is the most recent value.
+	var actual *types.TaskComment
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		a1, _, _, err := m.GetModifiedComments(id)
+		if err != nil {
+			return err
+		}
+		if len(a1) == 1 {
+			if actual == nil || actual.Deleted == nil {
+				actual = a1[0]
+			}
+		}
+		if deepequal.DeepEqual(c1, actual) {
 			return nil
 		}
 		time.Sleep(100 * time.Millisecond)

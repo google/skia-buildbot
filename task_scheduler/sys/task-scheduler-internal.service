@@ -11,8 +11,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --isolate_server=https://chrome-isolated.appspot.com \
     --logtostderr \
     --pool=SkiaInternal \
-    --pubsub_topic_tasks=task-scheduler-modified-tasks-internal \
-    --pubsub_topic_jobs=task-scheduler-modified-jobs-internal \
+    --pubsub_topic_set=internal \
     --pubsub_topic=swarming-tasks-internal \
     --pubsub_subscriber=task-scheduler-internal \
     --repo=https://skia.googlesource.com/internal_test.git \

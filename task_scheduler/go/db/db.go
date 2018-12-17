@@ -265,6 +265,30 @@ type JobDB interface {
 	PutJobs([]*types.Job) error
 }
 
+// ModifiedData combines ModifiedTasks, ModifiedJobs, and ModifiedComments.
+type ModifiedData interface {
+	ModifiedTasks
+	ModifiedJobs
+	ModifiedComments
+}
+
+// modifiedData implements ModifiedData.
+type modifiedData struct {
+	ModifiedTasks
+	ModifiedJobs
+	ModifiedComments
+}
+
+// NewModifiedData returns a ModifiedData which combines the given
+// ModifiedTasks, ModifiedJobs, and ModifiedComments.
+func NewModifiedData(t ModifiedTasks, j ModifiedJobs, c ModifiedComments) ModifiedData {
+	return &modifiedData{
+		ModifiedTasks:    t,
+		ModifiedJobs:     j,
+		ModifiedComments: c,
+	}
+}
+
 // UpdateJobsWithRetries wraps a call to db.PutJobs with retries. It calls
 // db.PutJobs(f()) repeatedly until one of the following happen:
 //  - f or db.PutJobs returns an error, which is then returned from

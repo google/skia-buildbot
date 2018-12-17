@@ -208,6 +208,9 @@ func NewInMemoryJobDB(modJobs db.ModifiedJobs) db.JobDB {
 
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
-func NewInMemoryDB(modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) db.DB {
-	return db.NewDB(NewInMemoryTaskDB(modTasks), NewInMemoryJobDB(modJobs), &db.CommentBox{})
+func NewInMemoryDB(mod db.ModifiedData) db.DB {
+	if mod == nil {
+		mod = modified.NewModifiedData()
+	}
+	return db.NewDB(NewInMemoryTaskDB(mod), NewInMemoryJobDB(mod), &CommentBox{ModifiedComments: mod})
 }

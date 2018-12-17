@@ -590,7 +590,7 @@ func TestTaskEncoderNoTasks(t *testing.T) {
 
 func TestTaskDecoder(t *testing.T) {
 	testutils.SmallTest(t)
-	d := TaskDecoder{}
+	d := NewTaskDecoder()
 	expectedTasks := map[string]*Task{}
 	for i := 0; i < 250; i++ {
 		task := &Task{}
@@ -617,7 +617,7 @@ func TestTaskDecoder(t *testing.T) {
 
 func TestTaskDecoderNoTasks(t *testing.T) {
 	testutils.SmallTest(t)
-	d := TaskDecoder{}
+	d := NewTaskDecoder()
 	result, err := d.Result()
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(result))
@@ -633,7 +633,7 @@ func TestTaskDecoderError(t *testing.T) {
 	serialized := buf.Bytes()
 	invalid := append([]byte("Hi Mom!"), serialized...)
 
-	d := TaskDecoder{}
+	d := NewTaskDecoder()
 	// Process should return true before it encounters an invalid result.
 	assert.True(t, d.Process(serialized))
 	assert.True(t, d.Process(serialized))

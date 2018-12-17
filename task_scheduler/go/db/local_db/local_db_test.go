@@ -150,7 +150,7 @@ func TestPackUnpackV1(t *testing.T) {
 func makeDB(t *testing.T, name string) (db.BackupDBCloser, string) {
 	tmpdir, err := ioutil.TempDir("", name)
 	assert.NoError(t, err)
-	d, err := NewDB(name, filepath.Join(tmpdir, "task.db"), nil, nil)
+	d, err := NewDB(name, filepath.Join(tmpdir, "task.db"), nil)
 	assert.NoError(t, err)
 	return d, tmpdir
 }

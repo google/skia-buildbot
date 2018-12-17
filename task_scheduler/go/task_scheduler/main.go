@@ -87,8 +87,7 @@ var (
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	pubsubTopicTasks  = flag.String("pubsub_topic_tasks", "", "Pubsub topic for tasks.")
-	pubsubTopicJobs   = flag.String("pubsub_topic_jobs", "", "Pubsub topic for jobs.")
+	pubsubTopicSet    = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
@@ -656,23 +655,18 @@ func main() {
 
 	// Initialize the database.
 	label := *host
-	modTasks, err := pubsub.NewModifiedTasks(*pubsubTopicTasks, label, tokenSource)
+	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	modTasks = modified.NewMuxModifiedTasks(&modified.ModifiedTasksImpl{}, modTasks)
-	modJobs, err := pubsub.NewModifiedJobs(*pubsubTopicJobs, label, tokenSource)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	modJobs = modified.NewMuxModifiedJobs(&modified.ModifiedJobsImpl{}, modJobs)
+	mod = modified.NewMuxModifiedData(modified.NewModifiedData(), mod)
 	if *firestoreInstance != "" {
-		tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, modTasks, modJobs)
+		tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
 		if err != nil {
 			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 		}
 	} else {
-		tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME), modTasks, modJobs)
+		tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME), mod)
 		if err != nil {
 			sklog.Fatal(err)
 		}

@@ -80,27 +80,21 @@ func (s *server) registerHandlers(r *mux.Router) {
 type client struct {
 	serverRoot string
 	client     *http.Client
-	db.ModifiedTasks
-	db.ModifiedJobs
+	db.ModifiedData
 }
 
 // NewClient returns a db.RemoteDB that connects to the server created by
 // NewServer. serverRoot should end with a slash.
-func NewClient(serverRoot, tasksTopic, jobsTopic, label string, ts oauth2.TokenSource) (db.RemoteDB, error) {
+func NewClient(serverRoot, topicSet, label string, ts oauth2.TokenSource) (db.RemoteDB, error) {
 	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	modTasks, err := pubsub.NewModifiedTasks(tasksTopic, label, ts)
-	if err != nil {
-		return nil, err
-	}
-	modJobs, err := pubsub.NewModifiedJobs(jobsTopic, label, ts)
+	mod, err := pubsub.NewModifiedData(topicSet, label, ts)
 	if err != nil {
 		return nil, err
 	}
 	return &client{
-		serverRoot:    serverRoot,
-		client:        c,
-		ModifiedTasks: modTasks,
-		ModifiedJobs:  modJobs,
+		serverRoot:   serverRoot,
+		client:       c,
+		ModifiedData: mod,
 	}, nil
 }
 

@@ -194,7 +194,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, err)
 
 	assert.NoError(t, os.Mkdir(path.Join(tmp, periodic_triggers.TRIGGER_DIRNAME), os.ModePerm))
-	d := memory.NewInMemoryDB(nil, nil)
+	d := memory.NewInMemoryDB(nil)
 	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
@@ -2008,7 +2008,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	gb.Commit(ctx)
 
 	// Setup the scheduler.
-	d := memory.NewInMemoryDB(nil, nil)
+	d := memory.NewInMemoryDB(nil)
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
@@ -3383,7 +3383,7 @@ func TestAddTask(t *testing.T) {
 func TestValidateTaskForUpdate(t *testing.T) {
 	testutils.SmallTest(t)
 
-	d := memory.NewInMemoryDB(nil, nil)
+	d := memory.NewInMemoryDB(nil)
 
 	c1 := "abc123"
 	c2 := "def456"
@@ -3461,7 +3461,7 @@ func TestValidateTaskForUpdate(t *testing.T) {
 func TestUpdateTask(t *testing.T) {
 	testutils.SmallTest(t)
 
-	d := memory.NewInMemoryDB(nil, nil)
+	d := memory.NewInMemoryDB(nil)
 
 	c1 := "abc123"
 	c2 := "def456"

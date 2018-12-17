@@ -24,13 +24,27 @@ const (
 	// Default project ID.
 	PROJECT_ID = "skia-public"
 
+	// Sets of topic, based on scheduler instance.
+	TOPIC_SET_PROD     = "prod"
+	TOPIC_SET_INTERNAL = "internal"
+	TOPIC_SET_STAGING  = "staging"
+
 	// Known topic names.
-	TOPIC_TASKS          = "task-scheduler-modified-tasks"
-	TOPIC_TASKS_INTERNAL = "task-scheduler-modified-tasks-internal"
-	TOPIC_TASKS_STAGING  = "task-scheduler-modified-tasks-staging"
-	TOPIC_JOBS           = "task-scheduler-modified-jobs"
-	TOPIC_JOBS_INTERNAL  = "task-scheduler-modified-jobs-internal"
-	TOPIC_JOBS_STAGING   = "task-scheduler-modified-jobs-staging"
+	TOPIC_TASKS                      = "task-scheduler-modified-tasks"
+	TOPIC_TASKS_INTERNAL             = "task-scheduler-modified-tasks-internal"
+	TOPIC_TASKS_STAGING              = "task-scheduler-modified-tasks-staging"
+	TOPIC_JOBS                       = "task-scheduler-modified-jobs"
+	TOPIC_JOBS_INTERNAL              = "task-scheduler-modified-jobs-internal"
+	TOPIC_JOBS_STAGING               = "task-scheduler-modified-jobs-staging"
+	TOPIC_TASK_COMMENTS              = "task-scheduler-modified-task-comments"
+	TOPIC_TASK_COMMENTS_INTERNAL     = "task-scheduler-modified-task-comments-internal"
+	TOPIC_TASK_COMMENTS_STAGING      = "task-scheduler-modified-task-comments-staging"
+	TOPIC_TASKSPEC_COMMENTS          = "task-scheduler-modified-taskspec-comments"
+	TOPIC_TASKSPEC_COMMENTS_INTERNAL = "task-scheduler-modified-taskspec-comments-internal"
+	TOPIC_TASKSPEC_COMMENTS_STAGING  = "task-scheduler-modified-taskspec-comments-staging"
+	TOPIC_COMMIT_COMMENTS            = "task-scheduler-modified-commit-comments"
+	TOPIC_COMMIT_COMMENTS_INTERNAL   = "task-scheduler-modified-commit-comments-internal"
+	TOPIC_COMMIT_COMMENTS_STAGING    = "task-scheduler-modified-commit-comments-staging"
 
 	// Attributes sent with all pubsub messages.
 
@@ -41,6 +55,47 @@ const (
 	// Unique identifier for the sender of the message.
 	ATTR_SENDER_ID = "sender"
 )
+
+var (
+	VALID_TOPIC_SETS = []string{
+		TOPIC_SET_PROD,
+		TOPIC_SET_INTERNAL,
+		TOPIC_SET_STAGING,
+	}
+
+	topics = map[string]topicSet{
+		TOPIC_SET_PROD: topicSet{
+			tasks:            TOPIC_TASKS,
+			jobs:             TOPIC_JOBS,
+			taskComments:     TOPIC_TASK_COMMENTS,
+			taskSpecComments: TOPIC_TASKSPEC_COMMENTS,
+			commitComments:   TOPIC_COMMIT_COMMENTS,
+		},
+		TOPIC_SET_INTERNAL: topicSet{
+			tasks:            TOPIC_TASKS_INTERNAL,
+			jobs:             TOPIC_JOBS_INTERNAL,
+			taskComments:     TOPIC_TASK_COMMENTS_INTERNAL,
+			taskSpecComments: TOPIC_TASKSPEC_COMMENTS_INTERNAL,
+			commitComments:   TOPIC_COMMIT_COMMENTS_INTERNAL,
+		},
+		TOPIC_SET_STAGING: topicSet{
+			tasks:            TOPIC_TASKS_STAGING,
+			jobs:             TOPIC_JOBS_STAGING,
+			taskComments:     TOPIC_TASK_COMMENTS_STAGING,
+			taskSpecComments: TOPIC_TASKSPEC_COMMENTS_STAGING,
+			commitComments:   TOPIC_COMMIT_COMMENTS_STAGING,
+		},
+	}
+)
+
+// topicSet is used for organizing sets of pubsub topics.
+type topicSet struct {
+	tasks            string
+	jobs             string
+	taskComments     string
+	taskSpecComments string
+	commitComments   string
+}
 
 // publisher sends pubsub messages for modified tasks and jobs.
 type publisher struct {
@@ -155,6 +210,78 @@ func NewJobPublisher(topic string, ts oauth2.TokenSource) (*JobPublisher, error)
 // Publish publishes a pubsub message for the given job.
 func (p *JobPublisher) Publish(j *types.Job) {
 	p.publish(j.Id, j.DbModified, j)
+}
+
+// TaskSpecCommentPublisher sends pubsub messages for comments.
+type TaskSpecCommentPublisher struct {
+	*publisher
+}
+
+// NewTaskSpecCommentPublisher creates a TaskSpecCommentPublisher instance. It
+// creates the given topic if it does not already exist.
+func NewTaskSpecCommentPublisher(topic string, ts oauth2.TokenSource) (*TaskSpecCommentPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	pub, err := newPublisher(c, topic)
+	if err != nil {
+		return nil, err
+	}
+	return &TaskSpecCommentPublisher{pub}, nil
+}
+
+// Publish publishes a pubsub message for the given comment.
+func (p *TaskSpecCommentPublisher) Publish(t *types.TaskSpecComment) {
+	p.publish(t.Id(), t.Timestamp, t)
+}
+
+// TaskCommentPublisher sends pubsub messages for comments.
+type TaskCommentPublisher struct {
+	*publisher
+}
+
+// NewTaskCommentPublisher creates a TaskCommentPublisher instance. It creates the given
+// topic if it does not already exist.
+func NewTaskCommentPublisher(topic string, ts oauth2.TokenSource) (*TaskCommentPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	pub, err := newPublisher(c, topic)
+	if err != nil {
+		return nil, err
+	}
+	return &TaskCommentPublisher{pub}, nil
+}
+
+// Publish publishes a pubsub message for the given comment.
+func (p *TaskCommentPublisher) Publish(t *types.TaskComment) {
+	p.publish(t.Id(), t.Timestamp, t)
+}
+
+// CommitCommentPublisher sends pubsub messages for comments.
+type CommitCommentPublisher struct {
+	*publisher
+}
+
+// NewCommitCommentPublisher creates a CommitCommentPublisher instance. It creates the given
+// topic if it does not already exist.
+func NewCommitCommentPublisher(topic string, ts oauth2.TokenSource) (*CommitCommentPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	pub, err := newPublisher(c, topic)
+	if err != nil {
+		return nil, err
+	}
+	return &CommitCommentPublisher{pub}, nil
+}
+
+// Publish publishes a pubsub message for the given comment.
+func (p *CommitCommentPublisher) Publish(t *types.CommitComment) {
+	p.publish(t.Id(), t.Timestamp, t)
 }
 
 // subscriber uses pubsub to watch for modified data.
@@ -290,6 +417,93 @@ func NewJobSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, call
 			return nil // We will never be able to process this message.
 		}
 		return callback(&j)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return s.start()
+}
+
+// NewTaskCommentSubscriber creates a subscriber which calls the given callback
+// function for every pubsub message. The topic should be one of the TOPIC_*
+// constants defined in this package. The subscriberLabel is included in the
+// subscription ID, along with a timestamp; this should help to debug zombie
+// subscriptions. Acknowledgement of the message is done automatically based on
+// the return value of the callback: if the callback returns an error, the
+// message is Nack'd and will be re-sent at a later time, otherwise the message
+// is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
+// otherwise cannot ever be processed, the callback should return nil to prevent
+// the message from being re-sent.
+func NewTaskCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskComment) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
+		var c types.TaskComment
+		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&c); err != nil {
+			sklog.Errorf("Failed to decode TaskComment from pubsub message: %s", err)
+			return nil // We will never be able to process this message.
+		}
+		return callback(&c)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return s.start()
+}
+
+// NewTaskSpecCommentSubscriber creates a subscriber which calls the given
+// callback function for every pubsub message. The topic should be one of the
+// TOPIC_* constants defined in this package. The subscriberLabel is included in
+// the subscription ID, along with a timestamp; this should help to debug zombie
+// subscriptions. Acknowledgement of the message is done automatically based on
+// the return value of the callback: if the callback returns an error, the
+// message is Nack'd and will be re-sent at a later time, otherwise the message
+// is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
+// otherwise cannot ever be processed, the callback should return nil to prevent
+// the message from being re-sent.
+func NewTaskSpecCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskSpecComment) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
+		var c types.TaskSpecComment
+		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&c); err != nil {
+			sklog.Errorf("Failed to decode TaskSpecComment from pubsub message: %s", err)
+			return nil // We will never be able to process this message.
+		}
+		return callback(&c)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return s.start()
+}
+
+// NewCommitCommentSubscriber creates a subscriber which calls the given
+// callback function for every pubsub message. The topic should be one of the
+// TOPIC_* constants defined in this package. The subscriberLabel is included in
+// the subscription ID, along with a timestamp; this should help to debug zombie
+// subscriptions. Acknowledgement of the message is done automatically based on
+// the return value of the callback: if the callback returns an error, the
+// message is Nack'd and will be re-sent at a later time, otherwise the message
+// is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
+// otherwise cannot ever be processed, the callback should return nil to prevent
+// the message from being re-sent.
+func NewCommitCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.CommitComment) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, err
+	}
+	s, err := newSubscriber(c, topic, subscriberLabel, func(m *pubsub.Message) error {
+		var c types.CommitComment
+		if err := gob.NewDecoder(bytes.NewReader(m.Data)).Decode(&c); err != nil {
+			sklog.Errorf("Failed to decode CommitComment from pubsub message: %s", err)
+			return nil // We will never be able to process this message.
+		}
+		return callback(&c)
 	})
 	if err != nil {
 		return nil, err

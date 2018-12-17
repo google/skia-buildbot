@@ -67,3 +67,34 @@ func TestDefaultModifiedJobsTooManyUsers(t *testing.T) {
 	_, err = m.StartTrackingModifiedJobs()
 	assert.NoError(t, err)
 }
+
+func TestDefaultModifiedComments(t *testing.T) {
+	testutils.MediumTest(t)
+	m := &ModifiedCommentsImpl{}
+	db.TestModifiedComments(t, m)
+}
+
+func TestDefaultMultipleCommentModifications(t *testing.T) {
+	testutils.MediumTest(t)
+	m := &ModifiedCommentsImpl{}
+	db.TestMultipleCommentModifications(t, m)
+}
+
+func TestDefaultModifiedCommentsTooManyUsers(t *testing.T) {
+	testutils.MediumTest(t)
+	m := ModifiedCommentsImpl{}
+
+	var oneId string
+	// Max out the number of modified-tasks users; ensure that we error out.
+	for i := 0; i < db.MAX_MODIFIED_DATA_USERS; i++ {
+		id, err := m.StartTrackingModifiedComments()
+		assert.NoError(t, err)
+		oneId = id
+	}
+	_, err := m.StartTrackingModifiedComments()
+	assert.True(t, db.IsTooManyUsers(err))
+
+	m.StopTrackingModifiedComments(oneId)
+	_, err = m.StartTrackingModifiedComments()
+	assert.NoError(t, err)
+}

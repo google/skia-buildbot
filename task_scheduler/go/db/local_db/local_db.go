@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -230,12 +231,11 @@ type localDB struct {
 
 	// ModifiedTasksImpl and ModifiedJobsImpl are embedded in order to
 	// implement db.ModifiedTasksReader and db.ModifiedJobsReader.
-	db.ModifiedTasks
-	db.ModifiedJobs
+	db.ModifiedData
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
-	*db.CommentBox
+	*memory.CommentBox
 
 	// Close will send on each of these channels to indicate goroutines should
 	// stop.
@@ -316,16 +316,13 @@ func jobsBucket(tx *bolt.Tx) *bolt.Bucket {
 }
 
 // NewDB returns a local DB instance.
-func NewDB(name, filename string, modTasks db.ModifiedTasks, modJobs db.ModifiedJobs) (db.BackupDBCloser, error) {
+func NewDB(name, filename string, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	boltdb, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
-	if modTasks == nil {
-		modTasks = &modified.ModifiedTasksImpl{}
-	}
-	if modJobs == nil {
-		modJobs = &modified.ModifiedJobsImpl{}
+	if mod == nil {
+		mod = modified.NewModifiedData()
 	}
 	d := &localDB{
 		name:     name,
@@ -384,8 +381,7 @@ func NewDB(name, filename string, modTasks db.ModifiedTasks, modJobs db.Modified
 			"bucket":   BUCKET_JOBS,
 			"count":    "rows",
 		}),
-		ModifiedTasks: modTasks,
-		ModifiedJobs:  modJobs,
+		ModifiedData: mod,
 	}
 
 	stopReportActiveTx := make(chan bool)
@@ -432,7 +428,7 @@ func NewDB(name, filename string, modTasks db.ModifiedTasks, modJobs db.Modified
 		return nil, err
 	}
 
-	d.CommentBox = db.NewCommentBoxWithPersistence(comments, d.writeCommentsMap)
+	d.CommentBox = memory.NewCommentBoxWithPersistence(mod, comments, d.writeCommentsMap)
 
 	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_JOBS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
 		return nil, err
@@ -533,7 +529,7 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time, repo string) ([]*t
 	d.metricReadTaskQueries.Inc(1)
 	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.Add(MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
-	decoder := types.TaskDecoder{}
+	decoder := types.NewTaskDecoder()
 	if err := d.view("GetTasksFromDateRange", func(tx *bolt.Tx) error {
 		c := tasksBucket(tx).Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
@@ -740,7 +736,7 @@ func (d *localDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, erro
 	d.metricReadJobQueries.Inc(1)
 	min := []byte(start.UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
-	decoder := types.JobDecoder{}
+	decoder := types.NewJobDecoder()
 	if err := d.view("GetJobsFromDateRange", func(tx *bolt.Tx) error {
 		c := jobsBucket(tx).Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
