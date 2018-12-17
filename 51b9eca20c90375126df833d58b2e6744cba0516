@@ -1,0 +1,193 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3910654f_d0b240ac",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "nit: maybe add to docs:\n// Here\u0027s a template for writing a type-specific encoder:\n//\n// // FooEncoder encodes Foos into bytes via GOB encoding. Not safe for\n// // concurrent use.\n// type FooEncoder struct {\n// \tutil.GobEncoder\n// }\n// \n// // Next returns one of the Foos provided to Process (in arbitrary order) and\n// // its serialized bytes. If any items remain, returns the item, the serialized\n// // bytes, nil. If all items have been returned, returns nil, nil, nil. If an\n// // error is encountered, returns nil, nil, error.\n// func (e *FooEncoder) Next() (*Foo, []byte, error) {\n// \titem, serialized, err :\u003d e.GobEncoder.Next()\n// \tif err !\u003d nil {\n// \t\treturn nil, nil, err\n// \t} else if item \u003d\u003d nil {\n// \t\treturn nil, nil, nil\n// \t}\n// \treturn item.(*Foo), serialized, nil\n// }",
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eefcdd10_42d1d80f",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "nit: item",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 30
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9450d50b_fa04a4a0",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "nit: items x2",
+      "range": {
+        "startLine": 40,
+        "startChar": 32,
+        "endLine": 40,
+        "endChar": 40
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e15c4606_fe4b55ac",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "nit: maybe add to docs:\n// Here\u0027s a template for writing a type-specific decoder:\n//\n// FooDecoder decodes bytes into Foos via GOB decoding. Not safe for\n// concurrent use.\n// type FooDecoder struct {\n// \t*util.GobDecoder\n// }\n// \n// // NewFooDecoder returns a FooDecoder instance.\n// func NewFooDecoder() *FooDecoder {\n// \treturn \u0026FooDecoder{\n// \t\tGobDecoder: util.NewGobDecoder(func() interface{} {\n// \t\t\treturn \u0026Foo{}\n// \t\t}, func(ch \u003c-chan interface{}) interface{} {\n// \t\t\titems :\u003d []*Foo{}\n// \t\t\tfor item :\u003d range ch {\n// \t\t\t\titems \u003d append(items, item.(*Foo))\n// \t\t\t}\n// \t\t\treturn items\n// \t\t}),\n// \t}\n// }\n// \n// // Result returns all decoded Foos provided to Process (in arbitrary order), or\n// // any error encountered.\n// func (d *FooDecoder) Result() ([]*Foo, error) {\n// \tres, err :\u003d d.GobDecoder.Result()\n// \tif err !\u003d nil {\n// \t\treturn nil, err\n// \t}\n// \treturn res.([]*Foo), nil\n// }",
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2adecf42_594766cf",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "nit: maybe mention \"goroutine-safe\"",
+      "range": {
+        "startLine": 78,
+        "startChar": 72,
+        "endLine": 78,
+        "endChar": 80
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b3f937d_24e25738",
+        "filename": "go/util/gob_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "Yay! I love it!",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 32
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f44f649_f868e2c2",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "What was the reason for this change? If it\u0027s a unit test failure, I\u0027m inclined to believe the test is wrong, not the code.",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 12
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70e14bd4_c5d0740b",
+        "filename": "task_scheduler/go/types/job.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "nit: applies to util.GobEncoder, not JobEncoder",
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c7bf8a4b_c5015bba",
+        "filename": "task_scheduler/go/types/job.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T20:24:42Z",
+      "side": 1,
+      "message": "Ug, I forgot that interface{}(nil) !\u003d (*Type)(nil)",
+      "range": {
+        "startLine": 320,
+        "startChar": 11,
+        "endLine": 320,
+        "endChar": 22
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
