@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4f42f4ac_258bf621",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "Good idea. Done.",
+      "parentUuid": "3910654f_d0b240ac",
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eefcdd10_42d1d80f",
         "filename": "go/util/gob.go",
         "patchSetId": 3
@@ -39,6 +57,30 @@
       "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3c5f83b_6183ad3b",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eefcdd10_42d1d80f",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 30
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "9d20f6ef_505a6c02",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e15c4606_fe4b55ac",
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2adecf42_594766cf",
         "filename": "go/util/gob.go",
         "patchSetId": 3
@@ -98,6 +158,53 @@
         "startChar": 72,
         "endLine": 78,
         "endChar": 80
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "028936e5_895d72cb",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2adecf42_594766cf",
+      "range": {
+        "startLine": 78,
+        "startChar": 72,
+        "endLine": 78,
+        "endChar": 80
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f119bc63_4842b439",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "I also considered having this function just be a func(interface{}) which is called for each item.  WDYT?",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 4
       },
       "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -151,6 +258,30 @@
     },
     {
       "key": {
+        "uuid": "d3d8d7a4_d8e1c9e3",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "The test deletes non-existing comments.  We were calling TrackModified for those comments, which was jarring to me, to see comments which never existed showing up in GetModifiedComments().  I guess in reality the worst case is that we call Delete*() multiple times for the same comment, resulting in it showing up multiple times in GetModifiedComments().",
+      "parentUuid": "7f44f649_f868e2c2",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 12
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "70e14bd4_c5d0740b",
         "filename": "task_scheduler/go/types/job.go",
         "patchSetId": 3
@@ -179,6 +310,30 @@
       "writtenOn": "2018-12-17T20:24:42Z",
       "side": 1,
       "message": "Ug, I forgot that interface{}(nil) !\u003d (*Type)(nil)",
+      "range": {
+        "startLine": 320,
+        "startChar": 11,
+        "endLine": 320,
+        "endChar": 22
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "423d9a39_8661a5a5",
+        "filename": "task_scheduler/go/types/job.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-17T20:50:57Z",
+      "side": 1,
+      "message": "Yeah. As an alternative, we could make Next() only return nil if there\u0027s a non-nil error, ie. return nil, ErrNoMoreItems if we have nothing left to return.  I think that\u0027s closer to the idiomatic Go iterator anyway.",
+      "parentUuid": "c7bf8a4b_c5015bba",
       "range": {
         "startLine": 320,
         "startChar": 11,
