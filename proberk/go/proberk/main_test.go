@@ -9,6 +9,7 @@ import (
 )
 
 func TestProbeSSL(t *testing.T) {
+	t.Skip()
 	testutils.LargeTest(t)
 	probes := &types.Probe{
 		URLs: []string{
