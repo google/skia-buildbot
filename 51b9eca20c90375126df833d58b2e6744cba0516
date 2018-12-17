@@ -212,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "51eec887_9c58d656",
+        "filename": "go/util/gob.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T21:05:35Z",
+      "side": 1,
+      "message": "That would make sense to me, OTOH leaving things as-is seems safer.",
+      "parentUuid": "f119bc63_4842b439",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 4
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b3f937d_24e25738",
         "filename": "go/util/gob_test.go",
         "patchSetId": 3
@@ -282,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "305f015c_567493f0",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T21:05:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d3d8d7a4_d8e1c9e3",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 12
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "70e14bd4_c5d0740b",
         "filename": "task_scheduler/go/types/job.go",
         "patchSetId": 3
@@ -334,6 +382,30 @@
       "side": 1,
       "message": "Yeah. As an alternative, we could make Next() only return nil if there\u0027s a non-nil error, ie. return nil, ErrNoMoreItems if we have nothing left to return.  I think that\u0027s closer to the idiomatic Go iterator anyway.",
       "parentUuid": "c7bf8a4b_c5015bba",
+      "range": {
+        "startLine": 320,
+        "startChar": 11,
+        "endLine": 320,
+        "endChar": 22
+      },
+      "revId": "51b9eca20c90375126df833d58b2e6744cba0516",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "93f4a727_ab401628",
+        "filename": "task_scheduler/go/types/job.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-17T21:05:35Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "423d9a39_8661a5a5",
       "range": {
         "startLine": 320,
         "startChar": 11,
