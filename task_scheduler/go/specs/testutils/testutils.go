@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/bt"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 )
@@ -12,6 +14,9 @@ const (
 	BuildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
 	TestTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	PerfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+
+	BT_PROJECT  = "test-project"
+	BT_INSTANCE = "test-instance"
 )
 
 // The test repo has two commits. The first commit adds a tasks.cfg file
@@ -209,4 +214,12 @@ func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBui
 	c2 := gb.CommitMsgAt(ctx, "c2", now)
 
 	return ctx, gb, c1, c2
+}
+
+func SetupBigTable(t testutils.TestingT) {
+	assert.NoError(t, bt.InitBigtable(BT_PROJECT, BT_INSTANCE, bt.TableConfig{
+		"tasks-cfg": {
+			"CFGS",
+		},
+	}))
 }
