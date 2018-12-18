@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"time"
 
+	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
@@ -46,6 +47,8 @@ var (
 	perfPrefix       = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
 	tasksPubsubTopic = flag.String("pubsub_topic_tasks", pubsub.TOPIC_TASKS, "Pubsub topic for tasks.")
 	jobsPubsubTopic  = flag.String("pubsub_topic_jobs", pubsub.TOPIC_JOBS, "Pubsub topic for jobs.")
+	tasksCfgProject  = flag.String("tasks_cfg_project", "", "GCE project to use for tasks cfg cache.")
+	tasksCfgInstance = flag.String("tasks_cfg_instance", "", "BigTable instance to use for tasks cfg cache.")
 )
 
 var (
@@ -159,7 +162,7 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	newTs, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE)
+	newTs, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE, bigtable.Scope)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -197,7 +200,7 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
 	}
-	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile); err != nil {
+	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile, *tasksCfgProject, *tasksCfgInstance, newTs); err != nil {
 		sklog.Fatal(err)
 	}
 
