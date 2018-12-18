@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cfebcbdb_83a4caa0",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:50:09Z",
+      "side": 1,
+      "message": "uber-nit: if this returns an error, we should call b.Close() and return nil\n\n(Doesn\u0027t actually matter since we\u0027re almost certain to sklog.Fatal after an error.)",
+      "range": {
+        "startLine": 56,
+        "startChar": 11,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8268dd5_13a70f1d",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:50:09Z",
+      "side": 1,
+      "message": "nit: Can we just have \"q :\u003d b.coll.Query\"?\n\nSeems like we don\u0027t really need a timestamp on Rule.",
+      "range": {
+        "startLine": 73,
+        "startChar": 6,
+        "endLine": 73,
+        "endChar": 54
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "349d64d7_fa73a9a9",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:50:09Z",
+      "side": 1,
+      "message": "missing defer",
+      "range": {
+        "startLine": 85,
+        "startChar": 1,
+        "endLine": 85,
+        "endChar": 15
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18034a48_52e5e681",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:50:09Z",
+      "side": 1,
+      "message": "nit: Could we either remove Name or use Name as the firestore doc ID?",
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e99c06ba_49660c6e",
+        "filename": "task_scheduler/go/blacklist/blacklist_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:50:09Z",
+      "side": 1,
+      "message": "Do you know why EventuallyConsistent isn\u0027t needed here?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 49
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
