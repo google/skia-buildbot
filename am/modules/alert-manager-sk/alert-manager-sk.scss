@@ -18,6 +18,10 @@ alert-manager-sk {
     height: initial;
   }
 
+  .noselect {
+    user-select: none;
+  }
+
   h2 {
     align-items: center;
     color: var(--red);
