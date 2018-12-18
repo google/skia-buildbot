@@ -1,19 +1,17 @@
 package specs
 
 import (
-	"bytes"
 	"context"
-	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"path"
-	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
@@ -25,11 +23,25 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+const (
+	testProject  = "test-project"
+	testInstance = "test-instance"
+)
+
 var (
 	// Use this as an expected error when you don't care about the actual
 	// error which is returned.
 	ERR_DONT_CARE = fmt.Errorf("DONTCARE")
 )
+
+func setupBigTable(t *testing.T) {
+	// Set up the table and column families.
+	assert.NoError(t, bt.InitBigtable(testProject, testInstance, bt.TableConfig{
+		BT_TABLE: {
+			BT_COLUMN_FAMILY,
+		},
+	}))
+}
 
 func TestCopyTaskSpec(t *testing.T) {
 	testutils.SmallTest(t)
@@ -99,7 +111,8 @@ func TestTaskSpecs(t *testing.T) {
 	}
 	assert.NoError(t, repos.Update(ctx))
 
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	setupBigTable(t)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, testProject, testInstance, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -161,7 +174,8 @@ func TestAddedTaskSpecs(t *testing.T) {
 	}
 	assert.NoError(t, repos.Update(ctx))
 
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	setupBigTable(t)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, testProject, testInstance, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -272,7 +286,8 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 	assert.NoError(t, repos.Update(ctx))
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS)
+	setupBigTable(t)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, testProject, testInstance, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -535,7 +550,8 @@ func TestTempGitRepoParallel(t *testing.T) {
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	setupBigTable(t)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, testProject, testInstance, nil)
 	assert.NoError(t, err)
 
 	rs := types.RepoState{
@@ -572,7 +588,8 @@ func TestTempGitRepoErr(t *testing.T) {
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
+	setupBigTable(t)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, testProject, testInstance, nil)
 	assert.NoError(t, err)
 
 	// bot_update will fail to apply the issue if we don't fake it in Git.
@@ -623,116 +640,4 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		"f": {"c"},
 		"g": {"d", "e", "f"},
 	}, []string{"a", "g"})
-}
-
-func TestTaskCfgCacheSerialization(t *testing.T) {
-	testutils.LargeTest(t)
-
-	ctx, gb, r1, r2 := specs_testutils.SetupTestRepo(t)
-	defer gb.Cleanup()
-
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
-	assert.NoError(t, err)
-	assert.NoError(t, repos.Update(ctx))
-
-	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
-	assert.NoError(t, err)
-
-	check := func() {
-		c2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
-		assert.NoError(t, err)
-
-		// We can't use reflect.DeepEqual on channels, so temporarily
-		// nil out the channels for comparison.
-		c.mtx.Lock()
-		defer c.mtx.Unlock()
-		c2.mtx.Lock()
-		defer c2.mtx.Unlock()
-		c1Queue := c.queue
-		c2Queue := c2.queue
-		c.queue = nil
-		c2.queue = nil
-		deepequal.AssertDeepEqual(t, c, c2)
-		c.queue = c1Queue
-		c2.queue = c2Queue
-	}
-
-	// Empty cache.
-	check()
-
-	// Insert one commit's worth of specs into the cache.
-	_, err = c.ReadTasksCfg(ctx, types.RepoState{
-		Repo:     gb.RepoUrl(),
-		Revision: r1,
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c.cache))
-	check()
-
-	// Cleanup() the cache to remove the entries.
-	assert.NoError(t, c.Cleanup(time.Duration(0)))
-	assert.Equal(t, 0, len(c.cache))
-	check()
-
-	// Insert an error into the cache.
-	rs2 := types.RepoState{
-		Repo:     gb.RepoUrl(),
-		Revision: r2,
-	}
-	c.cache[rs2] = &cacheEntry{
-		c:   c,
-		cfg: nil,
-		err: "fail!",
-		rs:  rs2,
-	}
-	assert.NoError(t, c.write())
-
-	// Add two commits with identical tasks.json hash and check serialization.
-	r3 := gb.CommitGen(ctx, "otherfile.txt")
-	rs3 := types.RepoState{
-		Repo:     gb.RepoUrl(),
-		Revision: r3,
-	}
-	r4 := gb.CommitGen(ctx, "otherfile.txt")
-	rs4 := types.RepoState{
-		Repo:     gb.RepoUrl(),
-		Revision: r4,
-	}
-	assert.NoError(t, repos.Update(ctx))
-	_, err = c.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs3, rs4})
-	assert.NoError(t, err)
-	assert.Equal(t, 3, len(c.cache))
-	check()
-
-	fileName := filepath.Join(tmp, "taskCfgCache.gob")
-	{
-		// Check that rs3 and rs4 share a gobCacheEntry.
-		file, err := ioutil.ReadFile(fileName)
-		assert.NoError(t, err)
-		var gobCache gobTaskCfgCache
-		assert.NoError(t, gob.NewDecoder(bytes.NewReader(file)).Decode(&gobCache))
-		assert.Len(t, gobCache.Values, 2)
-		assert.Equal(t, gobCache.RepoStates[rs3], gobCache.RepoStates[rs4])
-	}
-
-	// Check that different errors get different gobCacheEntry's.
-	c.cache[rs4] = &cacheEntry{
-		c:   c,
-		cfg: nil,
-		err: "To err is human.",
-		rs:  rs4,
-	}
-	assert.NoError(t, c.write())
-	{
-		file, err := ioutil.ReadFile(fileName)
-		assert.NoError(t, err)
-		var gobCache gobTaskCfgCache
-		assert.NoError(t, gob.NewDecoder(bytes.NewReader(file)).Decode(&gobCache))
-		assert.Len(t, gobCache.Values, 3)
-		assert.NotEqual(t, gobCache.RepoStates[rs2], gobCache.RepoStates[rs4])
-	}
 }
