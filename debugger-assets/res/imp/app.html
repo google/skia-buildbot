@@ -318,6 +318,7 @@ The main application element for the Skia Debugger.
                   <paper-icon-button src="https://debugger-assets.skia.org/res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
                   <paper-icon-button src="https://debugger-assets.skia.org/res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
                   <paper-icon-button src="https://debugger-assets.skia.org/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button icon="file-download" title="Save current image" on-tap="_saveImage"></paper-icon-button>
                 </div>
                 <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                   <img id=img src="" class="fit">
@@ -572,6 +573,19 @@ The main application element for the Skia Debugger.
         this.$.img.classList.remove("natural", "fit", "right", "bottom");
         this.$.img.classList.add(ele.dataset.style);
         window.dispatchEvent(new CustomEvent("partial-resize"));
+      },
+
+      _saveImage: function(e) {
+        // Download the current frame by making an anchor tag with a download attribute.
+        var a = document.createElement('a');
+        // download attribute becomes the name of the downloaded file
+        this._correctedOrigin()
+        var src = this.$.img.src
+        a.href = src;
+        a.download = src.substring(this._correctedOrigin().length);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       },
 
       _smallerLeft: function() {
