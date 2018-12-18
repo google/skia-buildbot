@@ -121,7 +121,10 @@ func (r *Runner) fiddlerIPsOneStep() error {
 		}
 		ips = make([]string, 0, len(pods.Items))
 		for _, p := range pods.Items {
-			ips = append(ips, p.Status.PodIP)
+			// Note that the PodIP can be the empty string. Who knew?
+			if p.Status.PodIP != "" {
+				ips = append(ips, p.Status.PodIP)
+			}
 		}
 	}
 	r.mutex.Lock()
@@ -132,9 +135,12 @@ func (r *Runner) fiddlerIPsOneStep() error {
 
 // fiddlerIPsRefresher refreshes a list of fiddler pod IP addresses.
 func (r *Runner) fiddlerIPsRefresher() {
-	for _ = range time.Tick(time.Minute) {
+	fiddlerIPLiveness := metrics2.NewLiveness("fiddler_ips")
+	for _ = range time.Tick(5 * time.Second) {
 		if err := r.fiddlerIPsOneStep(); err != nil {
 			sklog.Warningf("Failed to refresh fiddler IPs: %s", err)
+		} else {
+			fiddlerIPLiveness.Reset()
 		}
 	}
 }
@@ -204,7 +210,7 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 	var output bytes.Buffer
 	resp, err := r.client.Post(url, "application/json", body)
 	if err != nil {
-		sklog.Errorf("Failed to POST: %s", err)
+		sklog.Errorf("Failed to POST to %q: %s", url, err)
 		return nil, failedToSendErr
 	}
 	defer util.Close(resp.Body)
@@ -224,7 +230,7 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
 		sklog.Errorf("Received erroneous output: %q", truncOutput)
-		return nil, fmt.Errorf("Failed to decode results from run: %s, %q", err, truncOutput)
+		return nil, fmt.Errorf("Failed to decode results from run at %q: %s, %q", url, err, truncOutput)
 	}
 	if strings.HasPrefix(res.Execute.Errors, "Invalid JSON Request") {
 		sklog.Errorf("Failed to send valid JSON: res.Execute.Errors : %s", err)
@@ -349,9 +355,11 @@ func (r *Runner) metricsSingleStep() {
 
 // Metrics captures metrics on the state of all the fiddler pods.
 func (r *Runner) Metrics() {
+	metricsLiveness := metrics2.NewLiveness("metrics")
 	r.metricsSingleStep()
-	for _ = range time.Tick(2 * time.Minute) {
+	for _ = range time.Tick(10 * time.Second) {
 		r.metricsSingleStep()
+		metricsLiveness.Reset()
 	}
 }
 
