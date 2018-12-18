@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/dsutil"
@@ -658,7 +659,7 @@ func (c *CloudExpStore) loadCurrentExpectations(tx *datastore.Transaction) (type
 	testExp := types.TestExp{}
 	expState := &expectationsState{}
 	if err := getFn(c.expectationsKey, expState); err != nil && err != datastore.ErrNoSuchEntity {
-		return nil, nil, err
+		return nil, nil, skerr.Fmt("Error retrieving expecations: %s", err)
 	}
 
 	var err error
