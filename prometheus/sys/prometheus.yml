@@ -99,6 +99,7 @@ scrape_configs:
     static_configs:
       - targets: ['skia-status:20000']
       - targets: ['skia-status-internal:20000']
+      - targets: ['skia-status-staging:20000']
 
   - job_name: 'task_scheduler'
     static_configs:
@@ -142,6 +143,8 @@ scrape_configs:
       - targets: ['skia-skfe-1:11000']
       - targets: ['skia-skfe-2:11000']
       - targets: ['skia-status:11000']
+      - targets: ['skia-status-internal:11000']
+      - targets: ['skia-status-staging:11000']
       - targets: ['skia-task-scheduler-internal:11000']
       - targets: ['skia-task-scheduler-staging:11000']
       - targets: ['skia-task-scheduler:11000']
