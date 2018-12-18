@@ -326,6 +326,9 @@ var navTemplate = template.Must(template.New("NODE").Parse(`
 </ul>
 <ul class="dirs depth{{.Index.Depth}}">
   {{range .Dirs}}
+	  {{if le .Index.Depth 3}}
+			<div class=expando>{{.Index.Name}}</div>
+		{{end}}
     {{template "NODE" .}}
   {{end}}
 </ul>`))
