@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -125,7 +126,7 @@ type TaskScheduler struct {
 	workdir        string
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, tasksCfgProject, tasksCfgInstance string, ts oauth2.TokenSource) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
@@ -154,7 +155,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCom
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
 
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS, tasksCfgProject, tasksCfgInstance, ts)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
