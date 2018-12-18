@@ -24,7 +24,7 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	testutils.MediumTest(t)
 	testutils.ManualTest(t)
 	instance := fmt.Sprintf("test-%s", uuid.New())
-	d, err := NewDB(context.Background(), "skia-firestore", instance, nil, nil)
+	d, err := NewDB(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil, nil)
 	assert.NoError(t, err)
 	cleanup := func() {
 		c := d.(*firestoreDB).client
