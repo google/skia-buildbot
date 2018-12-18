@@ -330,6 +330,12 @@ var navTemplate = template.Must(template.New("NODE").Parse(`
   {{end}}
 </ul>`))
 
+/*
+	  {{if le .Index.Depth 3}}
+			<div class=expando>{{.Index.Name}}</div>
+		{{end}}
+*/
+
 // buildSiteMapconverts a slice of navEntry's into an HTML formatted
 // site map.
 func buildSiteMap(n *node) string {
