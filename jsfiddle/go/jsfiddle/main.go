@@ -26,7 +26,7 @@ var (
 	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-const MAX_FIDDLE_SIZE = 10 * 1024 * 1024 // 10KB ought to be enough for anyone.
+const MAX_FIDDLE_SIZE = 10 * 1024 // 10KB ought to be enough for anyone.
 
 var pathkitPage []byte
 var canvaskitPage []byte
@@ -135,7 +135,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid type", http.StatusBadRequest)
 		return
 	}
-	if len(req.Code) > MAX_FIDDLE_SIZE {
+	if len([]byte(req.Code)) > MAX_FIDDLE_SIZE {
 		http.Error(w, fmt.Sprintf("Fiddle Too Big, max size is %d bytes", MAX_FIDDLE_SIZE), http.StatusBadRequest)
 		return
 	}
