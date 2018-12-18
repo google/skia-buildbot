@@ -13,27 +13,32 @@
     <link href="/res/css/docs.css" rel="stylesheet" />
   </head>
   <body>
-    <div id=page>
-      <div id=drawer drawer vertical layout>
-        <img src="/res/img/logo.png" width=204 height=91>
-
-        <gcse:searchbox-only></gcse:searchbox-only>
-
-        {{.Nav}}
-      </div>
-
-      <div id=body main>
+    <header>
+      <div id=lhs>
         <button id=menu title="Menu">
-           <svg viewBox="0 0 24 24" height="24px" width="24px">
+          <svg viewBox="0 0 24 24" height="24px" width="24px">
             <g>
-             <path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"></path>
+            <path d="M3 18h18v-2h-18v2zm0-5h18v-2h-18v2zm0-7v2h18v-2h-18z"></path>
             </g>
           </svg>
         </button>
-        <div id=content>
-          {{.Body}}
-        </div>
+        <img src="/res/img/logo.png">
       </div>
-    </div>
+      <div id=rhs>
+        <a href="https://groups.google.com/forum/#!forum/skia-discuss">Community</a>
+        <a href="https:bugs.skia.org">Issues</a>
+        <a href="/user/api">Reference</a>
+        <a href="https://fiddle.skia.org">Playground</a>
+        <gcse:searchbox-only></gcse:searchbox-only>
+      </div>
+    </header>
+    <aside id=drawer>
+      {{.Nav}}
+    </aside>
+    <main>
+      {{.Body}}
+    </main>
+    <footer>
+    </footer>
   </body>
 </html>

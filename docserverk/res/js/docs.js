@@ -43,8 +43,8 @@ sk.DomReady.then(function() {
         } else {
           window.history.pushState(null, null, url);
           highlightNav();
-          $$$('html #content').innerHTML = content;
-          $$$('html #page').scrollIntoView();
+          $$$('main').innerHTML = content;
+          window.scrollTo(0,0);
           prettyPrint();
         }
       });
