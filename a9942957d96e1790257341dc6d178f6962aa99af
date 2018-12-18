@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91e6f15b_6e9ed7cc",
+        "filename": "jsfiddle/go/jsfiddle/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-18T18:42:54Z",
+      "side": 1,
+      "message": "Make this 100K, as we do have some long fiddles.",
+      "revId": "a9942957d96e1790257341dc6d178f6962aa99af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
