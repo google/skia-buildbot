@@ -68,6 +68,9 @@ var (
 	// Task Scheduler database.
 	tsDb db.BackupDBCloser
 
+	// Task Scheduler blacklist.
+	bl *blacklist.Blacklist
+
 	// Git repo objects.
 	repos repograph.Map
 
@@ -87,19 +90,23 @@ var (
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	pubsubTopicSet    = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
-	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
-	scoreDecay24Hr    = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools     = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
-	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
-	tryJobBucket      = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
-	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	gsBucket          = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
-	workdir           = flag.String("workdir", "workdir", "Working directory to use.")
-	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
+	// instance name. Once all schedulers are using Firestore for their
+	// task DB, firestoreInstance will have the same value. We should
+	// combine into a single instanceName flag.
+	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	repoUrls       = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
+	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingPools  = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
+	swarmingServer = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	timePeriod     = flag.String("timeWindow", "4d", "Time period to use.")
+	tryJobBucket   = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
+	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
+	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
 	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
@@ -165,11 +172,7 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 	_, t, c := ts.RecentSpecsAndCommits()
-	rulesMap := ts.GetBlacklist().Rules
-	rules := make([]*blacklist.Rule, 0, len(rulesMap))
-	for _, r := range rulesMap {
-		rules = append(rules, r)
-	}
+	rules := ts.GetBlacklist().GetRules()
 	enc, err := json.Marshal(&struct {
 		Commits   []string
 		Rules     []*blacklist.Rule
@@ -218,14 +221,14 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method == http.MethodDelete {
 		var msg struct {
-			Name string `json:"name"`
+			Id string `json:"id"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 			return
 		}
 		defer util.Close(r.Body)
-		if err := ts.GetBlacklist().RemoveRule(msg.Name); err != nil {
+		if err := ts.GetBlacklist().RemoveRule(msg.Id); err != nil {
 			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete blacklist rule: %s", err))
 			return
 		}
@@ -675,6 +678,12 @@ func main() {
 		util.Close(tsDb)
 	})
 
+	// Blacklist DB.
+	bl, err = blacklist.New(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Git repos.
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
@@ -736,7 +745,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit)
 	if err != nil {
 		sklog.Fatal(err)
 	}
