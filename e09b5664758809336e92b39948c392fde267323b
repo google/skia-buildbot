@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "96b2a100_72269169",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 0,
+      "message": "Although this test won\u0027t work as written, we should have some test for the BT storage.",
+      "revId": "e09b5664758809336e92b39948c392fde267323b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

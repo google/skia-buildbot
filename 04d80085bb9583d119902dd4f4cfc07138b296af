@@ -1,0 +1,297 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f609d03_6ace99c2",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "incorrect merge?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 97
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f623b59_11fc1475",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 76,
+        "startChar": 47,
+        "endLine": 76,
+        "endChar": 58
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84bbd0d0_290a3d36",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 82,
+        "startChar": 61,
+        "endLine": 82,
+        "endChar": 72
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5ed2ec3_a202e7f7",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: Is there any reason not to GOB-encode the entire TaskCfg into a single cell? If we\u0027re worried about size limits, I think we\u0027re going to see problems in TaskScheduler due to patching tasks.json and processing all the tasks long before we reach the 100MB limit on a single cell.",
+      "range": {
+        "startLine": 483,
+        "startChar": 31,
+        "endLine": 483,
+        "endChar": 51
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8918e27e_da0435e0",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: Seems like we should cache the error, but I don\u0027t think that\u0027s handled here.",
+      "range": {
+        "startLine": 508,
+        "startChar": 5,
+        "endLine": 508,
+        "endChar": 46
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "091c6064_884fc2fe",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: Maybe include the entire row key to make it easier to fix this quickly.",
+      "range": {
+        "startLine": 511,
+        "startChar": 66,
+        "endLine": 511,
+        "endChar": 68
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3f2b8fb_99ee19de",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "missing \"#\" -- we should make sure this is unit-tested.",
+      "range": {
+        "startLine": 542,
+        "startChar": 28,
+        "endLine": 542,
+        "endChar": 29
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "caba45bd_8e99ec3c",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: I think this can be replaced with specs_testutils.SetupBigTable (dependency already exists).",
+      "range": {
+        "startLine": 37,
+        "startChar": 5,
+        "endLine": 37,
+        "endChar": 18
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7803f69_b123e103",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: Do we need to clean up after?",
+      "range": {
+        "startLine": 114,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 17
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acf8a547_b216ef81",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "If we\u0027re using constants here, doesn\u0027t that mean that parallel test runs will interfere with each other?",
+      "range": {
+        "startLine": 220,
+        "startChar": 35,
+        "endLine": 220,
+        "endChar": 58
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1eb3ff7_ce767fe5",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: maybe mention these are specs.BT_TABLE and specs.BT_COLUMN_FAMILY, inlined to avoid dependency cycle.",
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc80767d_19e27fb2",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: Maybe we should just use the full repo? (i.e. not use REPO_PROJECT_MAPPING at all)",
+      "range": {
+        "startLine": 139,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 74
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8efc7d9_d8386a47",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-18T19:08:59Z",
+      "side": 1,
+      "message": "nit: we might consider including a version here in case we want to change the RowKey format in the future.",
+      "range": {
+        "startLine": 141,
+        "startChar": 30,
+        "endLine": 141,
+        "endChar": 31
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
