@@ -520,7 +520,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	id := fmt.Sprintf("busywork_%s", hostname)
-	d, err := firestore.NewDB(context.Background(), "skia-firestore", id, ts, nil)
+	d, err := firestore.NewDB(context.Background(), firestore.FIRESTORE_PROJECT, id, ts, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

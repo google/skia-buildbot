@@ -2,46 +2,75 @@ package blacklist
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 )
 
+func setup(t *testing.T) (*Blacklist, func()) {
+	testutils.MediumTest(t)
+	testutils.ManualTest(t)
+	instance := fmt.Sprintf("test-%s", uuid.New())
+	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	assert.NoError(t, err)
+	cleanup := func() {
+		assert.NoError(t, firestore.RecursiveDelete(b.client, b.client.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, b.Close())
+	}
+	return b, cleanup
+}
+
 func TestAddRemove(t *testing.T) {
-	testutils.SmallTest(t)
-	// Setup.
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-	assert.NoError(t, err)
-	f := path.Join(tmp, "blacklist.json")
-	b1, err := FromFile(f)
-	assert.NoError(t, err)
+	b1, cleanup1 := setup(t)
+	defer cleanup1()
 
 	// Test.
-	assert.Equal(t, len(DEFAULT_RULES), len(b1.Rules))
 	r1 := &Rule{
 		AddedBy:          "test@google.com",
 		TaskSpecPatterns: []string{".*"},
 		Name:             "My Rule",
+		Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 	}
 	assert.NoError(t, b1.addRule(r1))
-	b2, err := FromFile(f)
+	b2, err := New(context.Background(), firestore.FIRESTORE_PROJECT, b1.client.ParentDoc.ID, nil)
 	assert.NoError(t, err)
-	deepequal.AssertDeepEqual(t, b1, b2)
+	assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+		assert.NoError(t, b2.Update())
+		if len(b1.rules) == len(b2.rules) {
+			deepequal.AssertDeepEqual(t, b1.rules, b2.rules)
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+		return testutils.TryAgainErr
+	}))
 
-	assert.NoError(t, b1.RemoveRule(r1.Name))
-	b2, err = FromFile(f)
-	assert.NoError(t, err)
-	deepequal.AssertDeepEqual(t, b1, b2)
+	assert.NoError(t, b1.RemoveRule(r1.Id))
+	assert.NoError(t, b2.Update())
+	deepequal.AssertDeepEqual(t, b1.rules, b2.rules)
+}
+
+func TestRuleCopy(t *testing.T) {
+	testutils.SmallTest(t)
+	r := &Rule{
+		Id:               "abc",
+		AddedBy:          "me@google.com",
+		TaskSpecPatterns: []string{"a", "b"},
+		Commits:          []string{"abc123", "def456"},
+		Description:      "this is a rule",
+		Name:             "example",
+		Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
+	}
+	deepequal.AssertCopy(t, r, r.Copy())
 }
 
 func TestRules(t *testing.T) {
@@ -255,6 +284,7 @@ func TestValidation(t *testing.T) {
 				Name:             "My rule",
 				TaskSpecPatterns: []string{".*"},
 				Commits:          []string{},
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: fmt.Errorf("Rules must have an AddedBy user."),
 			msg:    "No AddedBy",
@@ -265,6 +295,7 @@ func TestValidation(t *testing.T) {
 				Name:             "",
 				TaskSpecPatterns: []string{".*"},
 				Commits:          []string{},
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: fmt.Errorf("Rules must have a name."),
 			msg:    "No Name",
@@ -275,6 +306,7 @@ func TestValidation(t *testing.T) {
 				Name:             "01234567890123456789012345678901234567890123456789",
 				TaskSpecPatterns: []string{".*"},
 				Commits:          []string{},
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: nil,
 			msg:    "Long Name",
@@ -285,6 +317,7 @@ func TestValidation(t *testing.T) {
 				Name:             "012345678901234567890123456789012345678901234567890",
 				TaskSpecPatterns: []string{".*"},
 				Commits:          []string{},
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: fmt.Errorf("Rule names must be shorter than 50 characters. Use the Description field for detailed information."),
 			msg:    "Too Long Name",
@@ -295,6 +328,7 @@ func TestValidation(t *testing.T) {
 				Name:             "My rule",
 				TaskSpecPatterns: []string{},
 				Commits:          []string{},
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: fmt.Errorf("Rules must include a taskSpec pattern and/or a commit/range."),
 			msg:    "No taskSpecs or commits",
@@ -305,6 +339,7 @@ func TestValidation(t *testing.T) {
 				Name:             "My rule",
 				TaskSpecPatterns: []string{".*"},
 				Commits:          []string{},
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: nil,
 			msg:    "One taskSpec pattern, no commits",
@@ -320,7 +355,8 @@ func TestValidation(t *testing.T) {
 					"Test.*",
 					"Some-TaskSpec",
 				},
-				Commits: []string{},
+				Commits:   []string{},
+				Timestamp: time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: nil,
 			msg:    "Five taskSpec patterns, no commits",
@@ -331,6 +367,7 @@ func TestValidation(t *testing.T) {
 				Name:             "My rule",
 				TaskSpecPatterns: []string{},
 				Commits:          commits[8:9],
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: nil,
 			msg:    "One commit",
@@ -343,6 +380,7 @@ func TestValidation(t *testing.T) {
 				Commits: []string{
 					commits[8][:38],
 				},
+				Timestamp: time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: fmt.Errorf("Unable to find commit %s in any repo.", commits[8][:38]),
 			msg:    "Invalid commit",
@@ -353,13 +391,23 @@ func TestValidation(t *testing.T) {
 				Name:             "My rule",
 				TaskSpecPatterns: []string{},
 				Commits:          commits[0:5],
+				Timestamp:        time.Now().UTC().Truncate(firestore.TS_RESOLUTION),
 			},
 			expect: nil,
 			msg:    "Five commits",
 		},
+		{
+			rule: Rule{
+				AddedBy:          "test@google.com",
+				Name:             "My rule",
+				TaskSpecPatterns: []string{},
+				Commits:          commits[0:5],
+			},
+			expect: errors.New("Rules must have a valid timestamp."),
+			msg:    "Five commits",
+		},
 	}
 	for _, test := range tests {
-		sklog.Infof(test.msg)
 		assert.Equal(t, test.expect, ValidateRule(&test.rule, repos), test.msg)
 	}
 }
@@ -377,9 +425,8 @@ func TestCommitRange(t *testing.T) {
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 	assert.NoError(t, repos.Update(ctx))
-	f := path.Join(tmp, "blacklist.json")
-	b, err := FromFile(f)
-	assert.NoError(t, err)
+	b, cleanup := setup(t)
+	defer cleanup()
 
 	// Test.
 
@@ -396,7 +443,7 @@ func TestCommitRange(t *testing.T) {
 		commits[5],
 		commits[1],
 		commits[0],
-	}, b.Rules["commit range"].Commits)
+	}, b.rules[rule.Id].Commits)
 
 	// Test a few commits.
 	tc := []struct {
