@@ -26,7 +26,7 @@ var (
 	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-const MAX_FIDDLE_SIZE = 10 * 1024 * 1024 // 10KB ought to be enough for anyone.
+const MAX_FIDDLE_SIZE = 100 * 1024 // 100KB ought to be enough for anyone.
 
 var pathkitPage []byte
 var canvaskitPage []byte
