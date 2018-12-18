@@ -16,6 +16,24 @@
       "revId": "a9942957d96e1790257341dc6d178f6962aa99af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d78b6c54_1b5bc6fd",
+        "filename": "jsfiddle/go/jsfiddle/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2018-12-18T18:47:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91e6f15b_6e9ed7cc",
+      "revId": "a9942957d96e1790257341dc6d178f6962aa99af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
