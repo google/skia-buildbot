@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -36,7 +37,12 @@ func singleRequest(c *http.Client, body []byte, domain string, sleep time.Durati
 		if failFast {
 			sklog.Fatalf("Send failed, with fail_fast set: %s", resp.Status)
 		}
-		sklog.Infof("Send failed: %s", resp.Status)
+		body := "(no body found)"
+		b, err := ioutil.ReadAll(resp.Body)
+		if err == nil {
+			body = string(b)
+		}
+		sklog.Infof("Send failed %q: %s", body, resp.Status)
 		time.Sleep(sleep)
 		return nil, false
 	}
