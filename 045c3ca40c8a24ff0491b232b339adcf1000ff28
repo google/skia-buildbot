@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fb12eed_4fc77196",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-18T17:49:22Z",
+      "side": 1,
+      "message": "Without this clicking with shift selects text instead of checking the checkbox.",
+      "revId": "045c3ca40c8a24ff0491b232b339adcf1000ff28",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
