@@ -210,7 +210,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
-	s, err := NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, "test-project", "test-instance", nil)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -1076,7 +1076,7 @@ func TestComputeBlamelist(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1, "test-project", "test-instance", nil)
 	assert.NoError(t, err)
 
 	ids := []string{}
@@ -2025,7 +2025,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
 
-	s, err := NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, "test-project", "test-instance", nil)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
