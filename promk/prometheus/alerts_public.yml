@@ -171,6 +171,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       abbr: 'CT poller health check failed.'
       description: 'CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check'
@@ -181,6 +182,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       abbr: 'CTFE pending task count too high.'
       description: 'There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
@@ -191,6 +193,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       abbr: 'CTFE pending task not running.'
       description: 'A task has been waiting to be executed for a while and it has still not started. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
@@ -221,6 +224,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 30 minutes.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
