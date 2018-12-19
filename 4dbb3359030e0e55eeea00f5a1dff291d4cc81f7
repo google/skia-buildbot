@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "721f2464_5b23f465",
+        "filename": "datahopper/sys/datahopperd.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T20:59:00Z",
+      "side": 1,
+      "message": "Does this flag exist? x7",
+      "range": {
+        "startLine": 9,
+        "startChar": 6,
+        "endLine": 9,
+        "endChar": 22
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "006192b9_c6c7f345",
         "filename": "go/bt/bt.go",
         "patchSetId": 1
@@ -18,6 +41,29 @@
         "startChar": 0,
         "endLine": 30,
         "endChar": 2
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0851fec_3ac307d1",
+        "filename": "task_driver/go/db/bigtable/bigtable_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T20:59:00Z",
+      "side": 1,
+      "message": "nit: maybe simplify BT testing with something like:\ninstance, cleanup :\u003d bt_testutil.Setup(tableConfig)\nwhich does bt.InitBigtable and sets bt.PROJECT_FOR_INSTANCE[instance], and where cleanup deletes everything from that instance (although maybe that\u0027s not needed for the emulator if we use a randomly-generated instance).",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 44
       },
       "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
