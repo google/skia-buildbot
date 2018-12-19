@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
@@ -30,6 +31,8 @@ const (
 	resultPrefix       = "dm-json-v1"
 	imagePrefix        = "dm-images-v1"
 	knownHashesURLPath = "_/hashes"
+	goldURLTmpl        = "https://%s-gold.skia.org"
+	bucketNameTmpl     = "skia-gold-%s"
 
 	resultStateFile   = "result-state.json"
 	jsonTempFileName  = "dm.json"
@@ -283,9 +286,10 @@ func newResultState(goldResult *jsonio.GoldResults, passFailStep bool, instanceI
 		GoldResults:     goldResult,
 		PerTestPassFail: passFailStep,
 		InstanceID:      instanceID,
-		GoldURL:         fmt.Sprintf("https://%s-gold.skia.org", instanceID),
-		Bucket:          fmt.Sprintf("skia-gold-%s", instanceID),
+		GoldURL:         fmt.Sprintf(goldURLTmpl, instanceID),
+		Bucket:          fmt.Sprintf(bucketNameTmpl, instanceID),
 		workDir:         workDir,
+		httpClient:      httpClient,
 	}
 
 	if err := ret.loadKnownHashes(); err != nil {
@@ -379,12 +383,14 @@ func (r *resultState) loadExpectations() error {
 	} else {
 		urlPath = strings.Replace(web.EXPECATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
 	}
-	url := fmt.Sprintf("%s/%s", r.GoldURL, urlPath)
+	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
 	resp, err := r.httpClient.Get(url)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Status: %d\n", resp.StatusCode)
+
 	jsonBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return skerr.Fmt("Error reading body of request to %s: %s", url, err)
@@ -393,7 +399,15 @@ func (r *resultState) loadExpectations() error {
 		return skerr.Fmt("Error closing response from request to %s: %s", url, err)
 	}
 
-	return json.Unmarshal(jsonBytes, &r.Expectations)
+	exp := &baseline.CommitableBaseLine{}
+
+	if err := json.Unmarshal(jsonBytes, exp); err != nil {
+		fmt.Printf("\nURL: %s\nJSON: \n\n%s\n\n", url, string(jsonBytes))
+		return skerr.Fmt("Error parsing JSON: %s", err)
+	}
+
+	r.Expectations = exp.Baseline
+	return nil
 }
 
 // getResultFilePath returns that path in GCS where the result file should be stored.
@@ -409,7 +423,7 @@ func (r *resultState) getResultFilePath() string {
 
 	// Assemble a path that looks like this:
 	// <path_prefix>/YYYY/MM/DD/HH/<git_hash>/<build_id>/<time_stamp>/<per_run_file_name>.json
-	// The first segements up to 'HH' are required so the Gold ingester can scan these prefixes for
+	// The first segments up to 'HH' are required so the Gold ingester can scan these prefixes for
 	// new files. The later segments are necessary to make the path unique within the runs of one
 	// hour and increase readability of the paths for troubleshooting.
 	// It is vital that the times segments of the path are based on UTC location.

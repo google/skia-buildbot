@@ -146,8 +146,10 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, err)
 
 	if !pass {
+		logErrf(cmd, "Test: %s FAIL\n", i.flagTestName)
 		os.Exit(1)
 	}
+	logInfof(cmd, "Test: %s PASS\n", i.flagTestName)
 	os.Exit(0)
 }
 

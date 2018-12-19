@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1027,6 +1028,14 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
 			return
 		}
+
+		tmpHashes := wh.Storages.Git.LastN(context.TODO(), 1)
+		if len(tmpHashes) == 0 {
+			msg := "No commit information available"
+			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
+			return
+		}
+		commitHash = tmpHashes[0]
 	} else {
 		// Since this was not called for an issue, we need to extract a Git hash.
 		var ok bool
