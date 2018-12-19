@@ -25,11 +25,11 @@ func getPromClient() *promClient {
 func TestInt64(t *testing.T) {
 	testutils.SmallTest(t)
 	c := getPromClient()
-	check := func(m Int64Metric, metric string, tags map[string]string, expect int64) {
-		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, metric, tags), 10, 64)
+	check := func(m Int64Metric, metric string, tags map[string]string, expect float64) {
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric, tags), 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
-		assert.Equal(t, m.Get(), expect)
+		assert.Equal(t, float64(m.Get()), expect)
 	}
 	labels := map[string]string{"some_key": "some-value"}
 	g := c.GetInt64Metric("a.b", labels)
@@ -113,11 +113,11 @@ func TestFloat64(t *testing.T) {
 func TestCounter(t *testing.T) {
 	testutils.SmallTest(t)
 	c := getPromClient()
-	check := func(m Counter, metric string, tags map[string]string, expect int64) {
-		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, metric, tags), 10, 64)
+	check := func(m Counter, metric string, tags map[string]string, expect float64) {
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, metric, tags), 64)
 		assert.NoError(t, err)
 		assert.Equal(t, expect, actual)
-		assert.Equal(t, m.Get(), expect)
+		assert.Equal(t, float64(m.Get()), expect)
 	}
 	labels := map[string]string{"some_key": "some-value"}
 	g := c.GetCounter("c", labels)
