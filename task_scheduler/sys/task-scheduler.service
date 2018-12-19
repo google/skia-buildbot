@@ -9,6 +9,8 @@ ExecStart=/usr/local/bin/task_scheduler \
     --host=task-scheduler.skia.org \
     --logtostderr \
     --pubsub_topic_set=prod \
+    --tasks_cfg_project=skia-public \
+    --tasks_cfg_instance=tasks-cfg-prod \
     --workdir=/mnt/pd0/task_scheduler_workdir \
     --resources_dir=/usr/local/share/task-scheduler/
 Restart=always

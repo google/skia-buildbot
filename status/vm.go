@@ -17,7 +17,7 @@ func StatusBase(name string) *gce.Instance {
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "kjlubick"
 	vm.Scopes = append(vm.Scopes,
-		bigtable.ReadonlyScope,
+		bigtable.Scope,
 		datastore.ScopeDatastore,
 	)
 

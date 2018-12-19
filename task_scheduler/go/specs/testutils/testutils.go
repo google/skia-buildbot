@@ -2,8 +2,12 @@ package testutils
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/bt"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 )
@@ -12,6 +16,8 @@ const (
 	BuildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
 	TestTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	PerfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+
+	BT_PROJECT = "test-project"
 )
 
 // The test repo has two commits. The first commit adds a tasks.cfg file
@@ -209,4 +215,23 @@ func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBui
 	c2 := gb.CommitMsgAt(ctx, "c2", now)
 
 	return ctx, gb, c1, c2
+}
+
+// SetupBigTable performs setup for the TaskCfgCache in BigTable. Returns the
+// project and instance names which should be used to instantiate TaskCfgCache
+// and a cleanup function which should be deferred.
+func SetupBigTable(t testutils.TestingT) (string, string, func()) {
+	// The table and column family names are specs.BT_TABLE and
+	// specs.BT_COLUMN_FAMILY, but are hard-coded here to avoid a dependency
+	// cycle.
+	cfg := bt.TableConfig{
+		"tasks-cfg": {
+			"CFGS",
+		},
+	}
+	instance := fmt.Sprintf("specs-testutils-%s", uuid.New())
+	assert.NoError(t, bt.InitBigtable(BT_PROJECT, instance, cfg))
+	return BT_PROJECT, instance, func() {
+		assert.NoError(t, bt.DeleteTables(BT_PROJECT, instance, cfg))
+	}
 }

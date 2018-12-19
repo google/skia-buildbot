@@ -2,12 +2,17 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
 	ISSUE_SHORT_LENGTH = 2
+
+	BT_ROW_KEY_VERSION = "0"
 )
 
 // Patch describes a patch which may be applied to a code checkout.
@@ -40,6 +45,30 @@ func (p Patch) Full() bool {
 	return p.Issue != "" && p.Patchset != "" && p.Server != ""
 }
 
+// patchIdentifier returns the identifier sequence for the patch: short issue
+// number, full issue number, patch set number.
+func (p Patch) patchIdentifier() []string {
+	issueShort := p.Issue
+	if len(issueShort) > ISSUE_SHORT_LENGTH {
+		issueShort = issueShort[len(p.Issue)-ISSUE_SHORT_LENGTH:]
+	}
+	return []string{issueShort, p.Issue, p.Patchset}
+}
+
+// GetPatchRef returns the ref for the tryjob patch, if the RepoState includes
+// a patch, and "" otherwise.
+func (p Patch) GetPatchRef() string {
+	if p.Full() {
+		return fmt.Sprintf("refs/changes/%s", strings.Join(p.patchIdentifier(), "/"))
+	}
+	return ""
+}
+
+// RowKey returns a BigTable-compatible row key for the Patch.
+func (p Patch) RowKey() string {
+	return strings.Join(p.patchIdentifier(), "#")
+}
+
 // RepoState encapsulates all of the parameters which define the state of a
 // repo.
 type RepoState struct {
@@ -65,19 +94,6 @@ func (s RepoState) Valid() bool {
 // IsTryJob returns true iff the RepoState includes a patch.
 func (s RepoState) IsTryJob() bool {
 	return s.Patch.Full()
-}
-
-// GetPatchRef returns the ref for the tryjob patch, if the RepoState includes
-// a patch, and "" otherwise.
-func (s RepoState) GetPatchRef() string {
-	if s.IsTryJob() {
-		issueShort := s.Issue
-		if len(issueShort) > ISSUE_SHORT_LENGTH {
-			issueShort = issueShort[len(s.Issue)-ISSUE_SHORT_LENGTH:]
-		}
-		return fmt.Sprintf("refs/changes/%s/%s/%s", issueShort, s.Issue, s.Patchset)
-	}
-	return ""
 }
 
 // GetCommit returns the repograph.Commit referenced by s, or an error if it
@@ -116,4 +132,14 @@ func (s RepoState) Parents(repos repograph.Map) ([]RepoState, error) {
 		})
 	}
 	return rv, nil
+}
+
+// RowKey returns a BigTable-compatible row key for the RepoState.
+func (s RepoState) RowKey() string {
+	repo, ok := common.REPO_PROJECT_MAPPING[s.Repo]
+	if !ok {
+		sklog.Errorf("Unknown repo: %s; can't shorten it to a row key.", s.Repo)
+		repo = s.Repo
+	}
+	return strings.Join([]string{BT_ROW_KEY_VERSION, s.Revision, repo, s.Patch.RowKey()}, "#")
 }

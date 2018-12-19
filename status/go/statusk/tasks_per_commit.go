@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 // tasksPerCommitCache is a struct used for caching the number of task specs
@@ -27,7 +28,7 @@ type tasksPerCommitCache struct {
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
-func newTasksPerCommitCache(ctx context.Context, workdir, recipesCfgFile string, repos repograph.Map, period time.Duration) (*tasksPerCommitCache, error) {
+func newTasksPerCommitCache(ctx context.Context, workdir, recipesCfgFile string, repos repograph.Map, period time.Duration, tasksCfgProject, tasksCfgInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
 	wd := path.Join(workdir, "tasksPerCommitCache")
 	if _, err := os.Stat(wd); err != nil {
 		if os.IsNotExist(err) {
@@ -43,7 +44,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir, recipesCfgFile string,
 		return nil, err
 	}
 	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, gitCache, 3)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, gitCache, 3, tasksCfgProject, tasksCfgInstance, ts)
 	if err != nil {
 		return nil, err
 	}

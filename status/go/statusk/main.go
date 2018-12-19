@@ -104,6 +104,8 @@ var (
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	chromeInfraAuthJWT          = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
+	tasksCfgProject             = flag.String("tasks_cfg_project", "", "GCE project to use for tasks cfg cache.")
+	tasksCfgInstance            = flag.String("tasks_cfg_instance", "", "BigTable instance to use for tasks cfg cache.")
 	taskSchedulerDbUrl          = flag.String("task_db_url", "https://task-scheduler.skia.org/db/", "Where the Skia task scheduler database is hosted.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
@@ -700,7 +702,7 @@ func main() {
 	}
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.ReadonlyScope, pubsub.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -778,7 +780,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour, *tasksCfgProject, *tasksCfgInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
