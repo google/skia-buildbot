@@ -262,6 +262,30 @@
     },
     {
       "key": {
+        "uuid": "ef3d7583_12b65b61",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T18:36:56Z",
+      "side": 1,
+      "message": "Let\u0027s leave as-is for now and I\u0027ll consider changing it if this ends up being less than optimal.",
+      "parentUuid": "f15d1cc5_aef345c1",
+      "range": {
+        "startLine": 483,
+        "startChar": 31,
+        "endLine": 483,
+        "endChar": 51
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8918e27e_da0435e0",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
