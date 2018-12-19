@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "ea0244ba_86d5004b",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T18:08:39Z",
+      "side": 1,
+      "message": "1. I think for now just add a TODO. This is intended to be just for convenience on the UI. If the UI doesn\u0027t work without it, we should fix the UI. (TBH, I never find the autofill useful -- I always copy-n-paste from somewhere else.)\n2. It seems like the recent* cache doesn\u0027t really fit here, and it seems like this is a good opportunity to move it to a different struct/package that uses TaskCfgCache, Window, and repograph.",
+      "parentUuid": "bc64d2a3_01bb78c1",
+      "range": {
+        "startLine": 770,
+        "startChar": 0,
+        "endLine": 772,
+        "endChar": 69
+      },
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f31bebeb_dba2036c",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 8
