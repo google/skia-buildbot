@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cac7fab3_62e399a6",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Weird. Fixed.",
+      "parentUuid": "2f609d03_6ace99c2",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 97
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f623b59_11fc1475",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "507d5cf2_0d49e64c",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Gee, where\u0027s this copy/pasted from?",
+      "parentUuid": "7f623b59_11fc1475",
+      "range": {
+        "startLine": 76,
+        "startChar": 47,
+        "endLine": 76,
+        "endChar": 58
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8c52f296_0412525b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84bbd0d0_290a3d36",
+      "range": {
+        "startLine": 82,
+        "startChar": 61,
+        "endLine": 82,
+        "endChar": 72
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e5ed2ec3_a202e7f7",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2018-12-18T19:08:59Z",
       "side": 1,
       "message": "nit: Is there any reason not to GOB-encode the entire TaskCfg into a single cell? If we\u0027re worried about size limits, I think we\u0027re going to see problems in TaskScheduler due to patching tasks.json and processing all the tasks long before we reach the 100MB limit on a single cell.",
+      "range": {
+        "startLine": 483,
+        "startChar": 31,
+        "endLine": 483,
+        "endChar": 51
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdd3969d_f46bb027",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "My reasoning was that we may have callers who just want to retrieve a single TaskSpec or JobSpec; this implementation makes it possible to do so without having to retrieve the whole thing.  Maybe that\u0027s not worth the cost of having to decode each entry individually?",
+      "parentUuid": "e5ed2ec3_a202e7f7",
       "range": {
         "startLine": 483,
         "startChar": 31,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "ea6c2e62_c68da34a",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 508,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8918e27e_da0435e0",
+      "range": {
+        "startLine": 508,
+        "startChar": 5,
+        "endLine": 508,
+        "endChar": 46
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "091c6064_884fc2fe",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8a562e5_6ba5998e",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "091c6064_884fc2fe",
+      "range": {
+        "startLine": 511,
+        "startChar": 66,
+        "endLine": 511,
+        "endChar": 68
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "46e78761_60713370",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Fixed, and added a test for the error case.",
+      "parentUuid": "d3f2b8fb_99ee19de",
+      "range": {
+        "startLine": 542,
+        "startChar": 28,
+        "endLine": 542,
+        "endChar": 29
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "caba45bd_8e99ec3c",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 5
@@ -183,6 +351,30 @@
       "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1990e26d_604da154",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "caba45bd_8e99ec3c",
+      "range": {
+        "startLine": 37,
+        "startChar": 5,
+        "endLine": 37,
+        "endChar": 18
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "42b37d78_1bed424b",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Our other tests don\u0027t bother to clean up after BigTable tests, but maybe that\u0027s a bug. The BigTable emulator does persist data between tests, so I think what\u0027s saving us is that the commit hashes are different every time. Changed to add a cleanup function.",
+      "parentUuid": "d7803f69_b123e103",
+      "range": {
+        "startLine": 114,
+        "startChar": 1,
+        "endLine": 114,
+        "endChar": 17
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "acf8a547_b216ef81",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 5
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "34bd8a0d_dd0729f8",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Yep. Per my previous comment, I think the fact that the commit hashes are different is saving us. Changed to use a random instance name.",
+      "parentUuid": "acf8a547_b216ef81",
+      "range": {
+        "startLine": 220,
+        "startChar": 35,
+        "endLine": 220,
+        "endChar": 58
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1eb3ff7_ce767fe5",
         "filename": "task_scheduler/go/specs/testutils/testutils.go",
         "patchSetId": 5
@@ -249,6 +489,24 @@
     },
     {
       "key": {
+        "uuid": "03542d62_8e4576bb",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f1eb3ff7_ce767fe5",
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cc80767d_19e27fb2",
         "filename": "task_scheduler/go/types/repo_state.go",
         "patchSetId": 5
@@ -260,6 +518,30 @@
       "writtenOn": "2018-12-18T19:08:59Z",
       "side": 1,
       "message": "nit: Maybe we should just use the full repo? (i.e. not use REPO_PROJECT_MAPPING at all)",
+      "range": {
+        "startLine": 139,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 74
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bfd6839_4912ab68",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "I was hoping to save a lot of characters this way.  In practice, we\u0027ll run into failures before this point if we try to schedule tasks for any project not in REPO_PROJECT_MAPPING, so this seems relatively safe.  Added a fallback to use the full repo if it\u0027s not in REPO_PROJECT_MAPPING.  I also considered trying to shorten the repo URL, something like ${host}/${repo}, ie. \"https://skia.googlesource.com/skia.git\" -\u003e \"skia/skia\" or \"http://chromium.googlesource.com/chromium/tools/depot_tools.git\" -\u003e \"chromium/tools/depot_tools\".  But that seemed like more work than necessary, given that we already have human-generated short names for all of the repos we schedule.",
+      "parentUuid": "cc80767d_19e27fb2",
       "range": {
         "startLine": 139,
         "startChar": 2,
@@ -292,6 +574,30 @@
       "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e63a832c_3a63dff9",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:24:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e8efc7d9_d8386a47",
+      "range": {
+        "startLine": 141,
+        "startChar": 30,
+        "endLine": 141,
+        "endChar": 31
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
