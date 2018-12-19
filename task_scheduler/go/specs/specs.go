@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -443,8 +444,8 @@ type TaskCfgCache struct {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, project, instance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
-	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, bigtableInstance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
+	client, err := bigtable.NewClient(ctx, bt.PROJECT_FOR_INSTANCE[bigtableInstance], bigtableInstance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}

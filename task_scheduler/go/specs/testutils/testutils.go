@@ -218,9 +218,9 @@ func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBui
 }
 
 // SetupBigTable performs setup for the TaskCfgCache in BigTable. Returns the
-// project and instance names which should be used to instantiate TaskCfgCache
-// and a cleanup function which should be deferred.
-func SetupBigTable(t testutils.TestingT) (string, string, func()) {
+// BigTable instance name which should be used to instantiate TaskCfgCache and a
+// cleanup function which should be deferred.
+func SetupBigTable(t testutils.TestingT) (string, func()) {
 	// The table and column family names are specs.BT_TABLE and
 	// specs.BT_COLUMN_FAMILY, but are hard-coded here to avoid a dependency
 	// cycle.
@@ -230,8 +230,9 @@ func SetupBigTable(t testutils.TestingT) (string, string, func()) {
 		},
 	}
 	instance := fmt.Sprintf("specs-testutils-%s", uuid.New())
+	bt.PROJECT_FOR_INSTANCE[instance] = BT_PROJECT
 	assert.NoError(t, bt.InitBigtable(BT_PROJECT, instance, cfg))
-	return BT_PROJECT, instance, func() {
+	return instance, func() {
 		assert.NoError(t, bt.DeleteTables(BT_PROJECT, instance, cfg))
 	}
 }

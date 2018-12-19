@@ -98,9 +98,9 @@ func TestTaskSpecs(t *testing.T) {
 	}
 	assert.NoError(t, repos.Update(ctx))
 
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -162,9 +162,9 @@ func TestAddedTaskSpecs(t *testing.T) {
 	}
 	assert.NoError(t, repos.Update(ctx))
 
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -275,9 +275,9 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 	assert.NoError(t, repos.Update(ctx))
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -327,9 +327,9 @@ func TestTaskCfgCacheError(t *testing.T) {
 		gb.RepoUrl(): repo,
 	}
 	assert.NoError(t, repos.Update(ctx))
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -378,7 +378,7 @@ func TestTaskCfgCacheError(t *testing.T) {
 	assert.Equal(t, 1, botUpdateCount)
 
 	// Create a new cache, assert that it doesn't run bot_update.
-	cache2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache2"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache2"), DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 	_, err = cache2.GetTaskSpecsForRepoStates(ctx, repoStates)
 	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
@@ -615,9 +615,9 @@ func TestTempGitRepoParallel(t *testing.T) {
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	rs := types.RepoState{
@@ -654,9 +654,9 @@ func TestTempGitRepoErr(t *testing.T) {
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	// bot_update will fail to apply the issue if we don't fake it in Git.
@@ -736,13 +736,13 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 	})
 	ctx = exec.NewContext(ctx, mock.Run)
 
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
+	instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, instance, nil)
 	assert.NoError(t, err)
 
 	check := func(rs ...types.RepoState) {
-		c2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+		c2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, instance, nil)
 		assert.NoError(t, err)
 		expectBotUpdateCount := botUpdateCount
 		for _, r := range rs {

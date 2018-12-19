@@ -213,8 +213,8 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btInstance, nil)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -1082,9 +1082,9 @@ func TestComputeBlamelist(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	btInstance, btCleanup := specs_testutils.SetupBigTable(t)
 	defer btCleanup()
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1, btProject, btInstance, nil)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1, btInstance, nil)
 	assert.NoError(t, err)
 
 	ids := []string{}
@@ -2034,8 +2034,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
 
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btInstance, nil)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}

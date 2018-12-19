@@ -10,6 +10,26 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	// Apps are encouraged to use one of these three BigTable instances.
+	INSTANCE_PROD     = "prod"
+	INSTANCE_INTERNAL = "internal"
+	INSTANCE_STAGING  = "staging"
+
+	PROJECT_PUBLIC = "skia-public"
+	PROJECT_CORP   = "skia-corp"
+)
+
+var (
+	// PROJECT_FOR_INSTANCE maps a BigTable instance name to the name of the
+	// project which contains it.
+	PROJECT_FOR_INSTANCE = map[string]string{
+		INSTANCE_PROD:     PROJECT_PUBLIC,
+		INSTANCE_INTERNAL: PROJECT_CORP,
+		INSTANCE_STAGING:  PROJECT_PUBLIC,
+	}
+)
+
 // TableConfig maps a table name to a list of column families, describing which
 // tables and column InitBigtable should create.
 type TableConfig map[string][]string

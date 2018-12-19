@@ -38,12 +38,13 @@ const (
 
 var (
 	// Flags.
-	host         = flag.String("host", "localhost", "HTTP service host")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
-	project      = flag.String("project_id", "", "GCE Project ID")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the \"dist\" subdirectory of the current directory will be used.")
+	bigtableInstance = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	host             = flag.String("host", "localhost", "HTTP service host")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port             = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	project          = flag.String("project_id", "", "GCE Project ID")
+	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	resourcesDir     = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the \"dist\" subdirectory of the current directory will be used.")
 
 	// Database used for storing and retrieving Task Drivers.
 	d db.DB
@@ -328,14 +329,11 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	// We read TaskDrivers from *project, but the BigTable instance is
-	// actually in skia-public.
-	btProject := "skia-public"
-	d, err = bigtable_db.NewBigTableDB(ctx, btProject, bigtable_db.BT_INSTANCE, ts)
+	d, err = bigtable_db.NewBigTableDB(ctx, *bigtableInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	lm, err = logs.NewLogsManager(ctx, btProject, logs.BT_INSTANCE, ts)
+	lm, err = logs.NewLogsManager(ctx, *bigtableInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
 	"go.skia.org/infra/task_scheduler/go/db/local_db"
@@ -20,9 +21,6 @@ import (
 )
 
 const (
-	// We use a single BigTable instance for Task Drivers per project.
-	BT_INSTANCE = "task-driver"
-
 	// We use a single BigTable table for storing Task Driver runs.
 	BT_TABLE = "task-driver-runs"
 
@@ -54,8 +52,8 @@ type btDB struct {
 }
 
 // NewBigTableDB returns a db.DB instance which uses BigTable.
-func NewBigTableDB(ctx context.Context, project, instance string, ts oauth2.TokenSource) (db.DB, error) {
-	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
+func NewBigTableDB(ctx context.Context, instance string, ts oauth2.TokenSource) (db.DB, error) {
+	client, err := bigtable.NewClient(ctx, bt.PROJECT_FOR_INSTANCE[instance], instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}

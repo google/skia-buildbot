@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
@@ -22,9 +23,6 @@ import (
 )
 
 const (
-	// We use a single BigTable instance for all Task Driver logs.
-	BT_INSTANCE = "task-driver"
-
 	// We use a single BigTable table for storing logs.
 	BT_TABLE = "task-driver-logs"
 
@@ -106,8 +104,8 @@ type LogsManager struct {
 }
 
 // NewLogsManager returns a LogsManager instance.
-func NewLogsManager(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*LogsManager, error) {
-	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
+func NewLogsManager(ctx context.Context, instance string, ts oauth2.TokenSource) (*LogsManager, error) {
+	client, err := bigtable.NewClient(ctx, bt.PROJECT_FOR_INSTANCE[instance], instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}
