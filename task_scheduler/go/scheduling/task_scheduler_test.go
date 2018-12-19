@@ -3647,9 +3647,9 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 
 	// At 'now', c1 is 60 seconds old, c2 is 55 seconds old, and c3 (below) is 50 seconds old.
 	now := c1time.Add(time.Minute)
-	c1age := "60"
-	c2age := "55"
-	c3age := "50"
+	c1age := "60.0"
+	c2age := "55.0"
+	c3age := "50.0"
 
 	check := func(buildAge, testAge, perfAge string) {
 		tags := map[string]string{
