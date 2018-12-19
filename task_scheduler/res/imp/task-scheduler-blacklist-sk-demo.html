@@ -18,6 +18,7 @@
         ],
         "description": "Infra-PerCommit is broken at this revision.",
         "name": "Infra-PerCommit@355d0d3",
+        "id": "1",
       },
       {
         "added_by": "TaskScheduler",
@@ -29,6 +30,7 @@
         "commits": [],
         "description": "Bots which the Task Scheduler should not schedule because they run on a timer.",
         "name": "Timed Bots",
+        "id": "2",
       },
       {
         "added_by": "TaskScheduler",
@@ -38,6 +40,7 @@
         "commits": [],
         "description": "Trybots are scheduled through Gerrit or the Commit Queue.",
         "name": "Trybots",
+        "id": "3",
       },
     ];
 
@@ -68,7 +71,7 @@
     var gen_response = function() {
       var data = {"rules":{}};
       for (var i = 0; i < blacklist.length; ++i) {
-        data["rules"][blacklist[i]["name"]] = blacklist[i];
+        data["rules"][blacklist[i]["id"]] = blacklist[i];
       }
       return JSON.stringify(data);
     };
@@ -98,13 +101,13 @@
     sk.delete = function(url, body) {
       return new Promise(function (resolve, reject) {
         var data = JSON.parse(body);
-        if (!data["name"]) {
-          reject("No rule name specified.");
+        if (!data["id"]) {
+          reject("No rule ID specified.");
           return;
         }
         var idx = -1;
         for (var i = 0; i < blacklist.length; i++) {
-          if (blacklist[i]["name"] == data["name"]) {
+          if (blacklist[i]["id"] == data["id"]) {
             idx = i;
             break;
           }

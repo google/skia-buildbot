@@ -53,16 +53,12 @@ func fixTimestamp(t time.Time) time.Time {
 
 // firestoreDB is a db.DB which uses Cloud Firestore for storage.
 type firestoreDB struct {
-	client    *firestore.Client
-	parentDoc string
+	client *firestore.Client
 
 	db.ModifiedData
 }
 
-// NewDB returns a db.DB which uses Cloud Firestore for storage. The parentDoc
-// parameter is optional and indicates the path of a parent document to which
-// all collections within the DB will belong. If it is not supplied, then the
-// collections will be at the top level.
+// NewDB returns a db.DB which uses Cloud Firestore for storage.
 func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {

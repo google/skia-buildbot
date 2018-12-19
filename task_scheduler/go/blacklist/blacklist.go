@@ -2,33 +2,93 @@ package blacklist
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
 	"regexp"
 	"sync"
+	"time"
 
+	fs "cloud.google.com/go/firestore"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
 )
 
 const (
+	// Collection name for blacklist entries.
+	COLLECTION_BLACKLISTS = "blacklist_rules"
+
+	// We'll perform this many attempts for a given request.
+	DEFAULT_ATTEMPTS = 3
+
+	// Timeouts for various requests.
+	TIMEOUT_GET = 60 * time.Second
+	TIMEOUT_PUT = 10 * time.Second
+
 	MAX_NAME_CHARS = 50
 )
 
 var (
-	DEFAULT_RULES = []*Rule{}
-
 	ERR_NO_SUCH_RULE = fmt.Errorf("No such rule.")
 )
 
 // Blacklist is a struct which contains rules specifying tasks which should
 // not be scheduled.
 type Blacklist struct {
-	backingFile string
-	Rules       map[string]*Rule `json:"rules"`
-	mtx         sync.RWMutex
+	client *firestore.Client
+	coll   *fs.CollectionRef
+	mtx    sync.RWMutex
+	rules  map[string]*Rule
+}
+
+// New returns a Blacklist instance.
+func New(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*Blacklist, error) {
+	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
+	if err != nil {
+		return nil, err
+	}
+	b := &Blacklist{
+		client: client,
+		coll:   client.Collection(COLLECTION_BLACKLISTS),
+	}
+	if err := b.Update(); err != nil {
+		util.LogErr(b.Close())
+		return nil, err
+	}
+	return b, nil
+}
+
+// Close closes the database.
+func (b *Blacklist) Close() error {
+	if b != nil {
+		return b.client.Close()
+	}
+	return nil
+}
+
+// Update updates the local view of the Blacklist to match the remote DB.
+func (b *Blacklist) Update() error {
+	if b == nil {
+		return nil
+	}
+	rules := map[string]*Rule{}
+	q := b.coll.Query
+	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
+		var r Rule
+		if err := doc.DataTo(&r); err != nil {
+			return err
+		}
+		rules[r.Name] = &r
+		return nil
+	}); err != nil {
+		return err
+	}
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	b.rules = rules
+	return nil
 }
 
 // Match determines whether the given taskSpec/commit pair matches one of the
@@ -41,9 +101,12 @@ func (b *Blacklist) Match(taskSpec, commit string) bool {
 // Rules in the Blacklist. Returns the name of the matched Rule or the empty
 // string if no Rules match.
 func (b *Blacklist) MatchRule(taskSpec, commit string) string {
+	if b == nil {
+		return ""
+	}
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
-	for _, rule := range b.Rules {
+	for _, rule := range b.rules {
 		if rule.Match(taskSpec, commit) {
 			return rule.Name
 		}
@@ -51,34 +114,11 @@ func (b *Blacklist) MatchRule(taskSpec, commit string) string {
 	return ""
 }
 
-// ensureDefaults adds the necessary default blacklist rules if necessary.
-func (b *Blacklist) ensureDefaults() error {
-	for _, rule := range DEFAULT_RULES {
-		if err := b.removeRule(rule.Name); err != nil {
-			if err.Error() != ERR_NO_SUCH_RULE.Error() {
-				return err
-			}
-		}
-		if err := b.addRule(rule); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// writeOut writes the Blacklist to its backing file. Assumes that the caller
-// holds a write lock.
-func (b *Blacklist) writeOut() error {
-	f, err := os.Create(b.backingFile)
-	if err != nil {
-		return err
-	}
-	defer util.Close(f)
-	return json.NewEncoder(f).Encode(b)
-}
-
 // Add adds a new Rule to the Blacklist.
 func (b *Blacklist) AddRule(r *Rule, repos repograph.Map) error {
+	if b == nil {
+		return errors.New("Blacklist is nil; cannot add rules.")
+	}
 	if err := ValidateRule(r, repos); err != nil {
 		return err
 	}
@@ -86,17 +126,14 @@ func (b *Blacklist) AddRule(r *Rule, repos repograph.Map) error {
 }
 
 // addRule adds a new Rule to the Blacklist.
-func (b *Blacklist) addRule(r *Rule) error {
-	b.mtx.Lock()
-	defer b.mtx.Unlock()
-	if _, ok := b.Rules[r.Name]; ok {
-		return fmt.Errorf("Blacklist already contains a rule named %q", r.Name)
-	}
-	b.Rules[r.Name] = r
-	if err := b.writeOut(); err != nil {
-		delete(b.Rules, r.Name)
+func (b *Blacklist) addRule(r *Rule) (rvErr error) {
+	ref := b.coll.Doc(r.Name)
+	if _, err := firestore.Create(ref, r, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
 		return err
 	}
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	b.rules[r.Name] = r
 	return nil
 }
 
@@ -152,30 +189,33 @@ func NewCommitRangeRule(ctx context.Context, name, user, description string, tas
 	return rule, nil
 }
 
-// removeRule removes the Rule from the Blacklist.
-func (b *Blacklist) removeRule(name string) error {
-	b.mtx.Lock()
-	defer b.mtx.Unlock()
-	r, ok := b.Rules[name]
-	if !ok {
-		return ERR_NO_SUCH_RULE
+// RemoveRule removes the Rule from the Blacklist.
+func (b *Blacklist) RemoveRule(id string) error {
+	if b == nil {
+		return errors.New("Blacklist is nil; cannot remove rules.")
 	}
-	delete(b.Rules, name)
-	if err := b.writeOut(); err != nil {
-		b.Rules[name] = r
+	ref := b.coll.Doc(id)
+	if _, err := firestore.Delete(ref, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
 		return err
 	}
+	b.mtx.Lock()
+	defer b.mtx.Unlock()
+	delete(b.rules, id)
 	return nil
 }
 
-// RemoveRule removes the Rule from the Blacklist.
-func (b *Blacklist) RemoveRule(name string) error {
-	for _, r := range DEFAULT_RULES {
-		if r.Name == name {
-			return fmt.Errorf("Cannot remove built-in rule %q", name)
-		}
+// GetRules returns a slice containing all of the Rules in the Blacklist.
+func (b *Blacklist) GetRules() []*Rule {
+	if b == nil {
+		return []*Rule{}
 	}
-	return b.removeRule(name)
+	b.mtx.RLock()
+	defer b.mtx.RUnlock()
+	rv := make([]*Rule, 0, len(b.rules))
+	for _, r := range b.rules {
+		rv = append(rv, r.Copy())
+	}
+	return rv
 }
 
 // Rule is a struct which indicates a specific task or set of tasks which
@@ -199,16 +239,16 @@ type Rule struct {
 // ValidateRule returns an error if the given Rule is not valid.
 func ValidateRule(r *Rule, repos repograph.Map) error {
 	if r.Name == "" {
-		return fmt.Errorf("Rules must have a name.")
+		return errors.New("Rules must have a name.")
 	}
 	if len(r.Name) > MAX_NAME_CHARS {
 		return fmt.Errorf("Rule names must be shorter than %d characters. Use the Description field for detailed information.", MAX_NAME_CHARS)
 	}
 	if r.AddedBy == "" {
-		return fmt.Errorf("Rules must have an AddedBy user.")
+		return errors.New("Rules must have an AddedBy user.")
 	}
 	if len(r.TaskSpecPatterns) == 0 && len(r.Commits) == 0 {
-		return fmt.Errorf("Rules must include a taskSpec pattern and/or a commit/range.")
+		return errors.New("Rules must include a taskSpec pattern and/or a commit/range.")
 	}
 	for _, c := range r.Commits {
 		if _, _, _, err := repos.FindCommit(c); err != nil {
@@ -259,32 +299,13 @@ func (r *Rule) Match(taskSpec, commit string) bool {
 	return r.matchTaskSpec(taskSpec) && r.matchCommit(commit)
 }
 
-// FromFile returns a Blacklist instance based on the given file. If the file
-// does not exist, the Blacklist will be empty and will attempt to use the file
-// for writing.
-func FromFile(file string) (*Blacklist, error) {
-	b := &Blacklist{
-		backingFile: file,
-		mtx:         sync.RWMutex{},
+// Copy returns a deep copy of the Rule.
+func (r *Rule) Copy() *Rule {
+	return &Rule{
+		AddedBy:          r.AddedBy,
+		TaskSpecPatterns: util.CopyStringSlice(r.TaskSpecPatterns),
+		Commits:          util.CopyStringSlice(r.Commits),
+		Description:      r.Description,
+		Name:             r.Name,
 	}
-	f, err := os.Open(file)
-	if err != nil {
-		if os.IsNotExist(err) {
-			b.Rules = map[string]*Rule{}
-			if err := b.writeOut(); err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	} else {
-		defer util.Close(f)
-		if err := json.NewDecoder(f).Decode(b); err != nil {
-			return nil, err
-		}
-	}
-	if err := b.ensureDefaults(); err != nil {
-		return nil, err
-	}
-	return b, nil
 }
