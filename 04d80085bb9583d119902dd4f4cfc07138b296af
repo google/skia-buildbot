@@ -214,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "e31910c6_38088900",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T16:20:43Z",
+      "side": 1,
+      "message": "So something like two column families (tasks and jobs) with column names being the task/job spec name?",
+      "parentUuid": "2de97db7_2a6a8a15",
+      "range": {
+        "startLine": 483,
+        "startChar": 31,
+        "endLine": 483,
+        "endChar": 51
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8918e27e_da0435e0",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 5
@@ -590,6 +614,30 @@
       "side": 1,
       "message": "Ack. I\u0027m guessing you prefer the short repo because the full repo is just annoying to see in the BT UI?",
       "parentUuid": "9bfd6839_4912ab68",
+      "range": {
+        "startLine": 139,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 74
+      },
+      "revId": "04d80085bb9583d119902dd4f4cfc07138b296af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e90f42e_d79e7384",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T16:20:43Z",
+      "side": 1,
+      "message": "BigTable docs recommend keeping the row keys as short as possible since they\u0027re included in every request.  It\u0027s not critical, but IMO if we have a way shorten the repo URL, it makes sense to use it.  Also yes, it\u0027s harder to read the output of cbt when row keys get line-broken.",
+      "parentUuid": "4c759cb0_bc035dad",
       "range": {
         "startLine": 139,
         "startChar": 2,

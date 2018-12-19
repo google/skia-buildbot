@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "822ab7e5_443bdce3",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T16:20:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9dbb5af7_0b75a021",
+      "range": {
+        "startLine": 524,
+        "startChar": 17,
+        "endLine": 524,
+        "endChar": 27
+      },
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26daa111_ed13334b",
         "filename": "task_scheduler/go/specs/specs_test.go",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2018-12-19T15:21:07Z",
       "side": 1,
       "message": "Hmm, I just realized that these will be empty at startup. Probably not a big deal, except sometimes the UI doesn\u0027t allow entries that aren\u0027t in the prefilled list.",
+      "range": {
+        "startLine": 770,
+        "startChar": 0,
+        "endLine": 772,
+        "endChar": 69
+      },
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc64d2a3_01bb78c1",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T16:20:43Z",
+      "side": 1,
+      "message": "We already pass in a repograph.Map, and task scheduler maintains a window.Window.  We could pass that in, change Cleanup() to use the Window instead, and pre-load all TaskCfgs in the Window at startup?",
+      "parentUuid": "26daa111_ed13334b",
       "range": {
         "startLine": 770,
         "startChar": 0,
@@ -62,6 +110,24 @@
       "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1b3b063_8ec17247",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T16:20:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f31bebeb_dba2036c",
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
