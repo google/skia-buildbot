@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8a6dd287_1a80ccff",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfebcbdb_83a4caa0",
+      "range": {
+        "startLine": 56,
+        "startChar": 11,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d8268dd5_13a70f1d",
         "filename": "task_scheduler/go/blacklist/blacklist.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92554a8c_e998cc5f",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d8268dd5_13a70f1d",
+      "range": {
+        "startLine": 73,
+        "startChar": 6,
+        "endLine": 73,
+        "endChar": 54
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e478db1e_d874fc09",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:48:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "349d64d7_fa73a9a9",
+      "range": {
+        "startLine": 85,
+        "startChar": 1,
+        "endLine": 85,
+        "endChar": 15
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "18034a48_52e5e681",
         "filename": "task_scheduler/go/blacklist/blacklist.go",
         "patchSetId": 4
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "12a61444_c423e9c9",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:48:47Z",
+      "side": 1,
+      "message": "Sure, done.",
+      "parentUuid": "18034a48_52e5e681",
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e99c06ba_49660c6e",
         "filename": "task_scheduler/go/blacklist/blacklist_test.go",
         "patchSetId": 4
@@ -99,6 +189,30 @@
       "writtenOn": "2018-12-18T19:50:09Z",
       "side": 1,
       "message": "Do you know why EventuallyConsistent isn\u0027t needed here?",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 49
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cee9150_604f405e",
+        "filename": "task_scheduler/go/blacklist/blacklist_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T14:48:47Z",
+      "side": 1,
+      "message": "No. I ran the test a bunch of times and it didn\u0027t fail.  Changed to use it anyway.",
+      "parentUuid": "e99c06ba_49660c6e",
       "range": {
         "startLine": 58,
         "startChar": 0,
