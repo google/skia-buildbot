@@ -51,6 +51,7 @@ def RunSteps(api):
   go_src = go_dir.join('src')
   api.file.ensure_directory('makedirs go/src', go_src)
   infra_dir = go_src.join(INFRA_GO)
+  go_cache = api.path['start_dir'].join('cache', 'go_cache')
   go_root = api.path['start_dir'].join('go', 'go')
   go_bin = go_root.join('bin')
 
@@ -77,6 +78,7 @@ def RunSteps(api):
   # Fetch Go dependencies.
   env = {
       'CHROME_HEADLESS': '1',
+      'GOCACHE': go_cache,
       'GOROOT': go_root,
       'GOPATH': go_dir,
       'GIT_USER_AGENT': 'git/1.9.1',  # I don't think this version matters.

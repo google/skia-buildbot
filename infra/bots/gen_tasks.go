@@ -219,6 +219,12 @@ func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
 // all platforms.
 func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUILD_TASK_DRIVERS_NAME, &specs.TaskSpec{
+		Caches: []*specs.Cache{
+			&specs.Cache{
+				Name: "go_cache",
+				Path: "cache/go_cache",
+			},
+		},
 		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("go_deps")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
@@ -312,6 +318,10 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
+	task.Caches = append(task.Caches, &specs.Cache{
+		Name: "go_cache",
+		Path: "cache/go_cache",
+	})
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") {
@@ -389,6 +399,12 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	}
 
 	t := &specs.TaskSpec{
+		Caches: []*specs.Cache{
+			&specs.Cache{
+				Name: "go_cache",
+				Path: "cache/go_cache",
+			},
+		},
 		CipdPackages: cipd,
 		Command: []string{
 			"./infra_tests",
