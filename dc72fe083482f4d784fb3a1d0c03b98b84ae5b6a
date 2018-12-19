@@ -222,6 +222,30 @@
       "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e40d2a8f_84b7389e",
+        "filename": "task_scheduler/go/blacklist/blacklist_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T15:01:27Z",
+      "side": 1,
+      "message": "Huh. I wonder if deletes are somehow strongly consistent. That would be weird.",
+      "parentUuid": "4cee9150_604f405e",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 49
+      },
+      "revId": "dc72fe083482f4d784fb3a1d0c03b98b84ae5b6a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

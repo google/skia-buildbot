@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07ec474d_e9603418",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T15:01:27Z",
+      "side": 1,
+      "message": "FWIW, there are some restrictions on Firestore doc IDs -- search \"Constraints on document IDs\" here: https://firebase.google.com/docs/firestore/quotas\n\nI assume that we\u0027ll get a reasonable error message from Firestore if someone tries to use an invalid name.",
+      "revId": "9e0bcabb7736b82f44b3fe0c38e52f37617ba7ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
