@@ -3654,9 +3654,9 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 
 	// At 'now', c1 is 60 seconds old, c2 is 55 seconds old, and c3 (below) is 50 seconds old.
 	now := c1time.Add(time.Minute)
-	c1age := "60"
-	c2age := "55"
-	c3age := "50"
+	c1age := "60.0"
+	c2age := "55.0"
+	c3age := "50.0"
 
 	check := func(buildAge, testAge, perfAge string) {
 		tags := map[string]string{
@@ -3714,7 +3714,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, s.MainLoop(ctx))
 	// Expect Build to be up-to-date.
 	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
-	check("0", c1age, c2age)
+	check("0.0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.
 	content, err := repo.Repo().GetFile(ctx, "infra/bots/tasks.json", c1)
@@ -3725,5 +3725,5 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	// Run MainLoop to update to c3. Perf job should be reset to zero. Build job age is now at c3.
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.updateOverdueJobSpecMetrics(ctx, now))
-	check(c3age, c1age, "0")
+	check(c3age, c1age, "0.0")
 }

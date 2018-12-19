@@ -212,10 +212,10 @@ func TestBotTemperatureMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, newMetrics, 32, "21 bot metrics + 10 temp metrics + 1 win OS = 32 expected metrics")
 
-	expected := map[string]int64{
-		"thermal_zone0": 28,
-		"thermal_zone1": 30,
-		"thermal_zone2": 36,
+	expected := map[string]float64{
+		"thermal_zone0": 28.0,
+		"thermal_zone1": 30.0,
+		"thermal_zone2": 36.0,
 	}
 	for z, v := range expected {
 		tags := map[string]string{
@@ -224,19 +224,19 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			"swarming":  MOCK_SERVER,
 			"temp_zone": z,
 		}
-		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
 		assert.NoError(t, err)
-		assert.Equalf(t, v, int64(actual), "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+		assert.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
 	}
 
-	expected = map[string]int64{
-		"battery_direct":   25,
-		"merble":           2879,
-		"gerble":           40,
-		"battery":          26,
-		"thermal_zone0":    43,
-		"tsens_tz_sensor1": 37,
-		"tsens_tz_sensor2": 41,
+	expected = map[string]float64{
+		"battery_direct":   25.0,
+		"merble":           2879.0,
+		"gerble":           40.0,
+		"battery":          26.0,
+		"thermal_zone0":    43.0,
+		"tsens_tz_sensor1": 37.0,
+		"tsens_tz_sensor2": 41.0,
 	}
 	for z, v := range expected {
 		tags := map[string]string{
@@ -245,9 +245,9 @@ func TestBotTemperatureMetrics(t *testing.T) {
 			"swarming":  MOCK_SERVER,
 			"temp_zone": z,
 		}
-		actual, err := strconv.ParseInt(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 10, 64)
+		actual, err := strconv.ParseFloat(metrics_util.GetRecordedMetric(t, MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, tags), 64)
 		assert.NoError(t, err)
-		assert.Equalf(t, v, int64(actual), "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
+		assert.Equalf(t, v, actual, "Wrong temperature seen for metric %s - %s", MEASUREMENT_SWARM_BOTS_DEVICE_TEMP, z)
 	}
 
 }
@@ -293,9 +293,9 @@ func TestRebootRequiredMetrics(t *testing.T) {
 	assert.NoError(t, err)
 
 	expected := map[string]string{
-		"my-bot-empty-state":        "0",
-		"my-bot-no-reboot-required": "0",
-		"my-bot-reboot-required":    "1",
+		"my-bot-empty-state":        "0.0",
+		"my-bot-no-reboot-required": "0.0",
+		"my-bot-reboot-required":    "1.0",
 	}
 	for bot, v := range expected {
 		tags := map[string]string{
@@ -346,7 +346,7 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 			Quarantined: false,
 		},
 	}
-	windowsSkoloOSVersionCountHelper(t, now, bots0, "0")
+	windowsSkoloOSVersionCountHelper(t, now, bots0, "0.0")
 
 	genBot := func(id, winVer string) *swarming_api.SwarmingRpcsBotInfo {
 		return &swarming_api.SwarmingRpcsBotInfo{
@@ -366,7 +366,7 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 		genBot("my-bot3", "Windows-10-17134.345"),
 		genBot("my-bot4", "Windows-10-17134.345"),
 	}
-	windowsSkoloOSVersionCountHelper(t, now, bots1, "1")
+	windowsSkoloOSVersionCountHelper(t, now, bots1, "1.0")
 
 	// Two different versions.
 	bots2 := []*swarming_api.SwarmingRpcsBotInfo{
@@ -375,5 +375,5 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 		genBot("my-bot3", "Windows-10-17134.345"),
 		genBot("my-bot4", "Windows-10-17134.228"),
 	}
-	windowsSkoloOSVersionCountHelper(t, now, bots2, "2")
+	windowsSkoloOSVersionCountHelper(t, now, bots2, "2.0")
 }
