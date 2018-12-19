@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -32,6 +33,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
@@ -210,7 +212,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
-	s, err := NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -2025,7 +2027,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
 
-	s, err := NewTaskScheduler(ctx, d, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
@@ -2291,6 +2293,11 @@ func TestBlacklist(t *testing.T) {
 	// actually integrated into the scheduler.
 	ctx, gb, _, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
+	testutils.ManualTest(t)
+	instance := fmt.Sprintf("task-scheduler-test-%s", uuid.New())
+	bl, err := blacklist.New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	assert.NoError(t, err)
+	s.bl = bl
 
 	c1 := getRS1(t, ctx, gb).Revision
 

@@ -4,44 +4,71 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 )
 
+func setup(t *testing.T) (*Blacklist, func()) {
+	testutils.MediumTest(t)
+	testutils.ManualTest(t)
+	instance := fmt.Sprintf("test-%s", uuid.New())
+	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	assert.NoError(t, err)
+	cleanup := func() {
+		assert.NoError(t, firestore.RecursiveDelete(b.client, b.client.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, b.Close())
+	}
+	return b, cleanup
+}
+
 func TestAddRemove(t *testing.T) {
-	testutils.SmallTest(t)
-	// Setup.
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-	assert.NoError(t, err)
-	f := path.Join(tmp, "blacklist.json")
-	b1, err := FromFile(f)
-	assert.NoError(t, err)
+	b1, cleanup1 := setup(t)
+	defer cleanup1()
 
 	// Test.
-	assert.Equal(t, len(DEFAULT_RULES), len(b1.Rules))
 	r1 := &Rule{
 		AddedBy:          "test@google.com",
 		TaskSpecPatterns: []string{".*"},
 		Name:             "My Rule",
 	}
 	assert.NoError(t, b1.addRule(r1))
-	b2, err := FromFile(f)
+	b2, err := New(context.Background(), firestore.FIRESTORE_PROJECT, b1.client.ParentDoc.ID, nil)
 	assert.NoError(t, err)
-	deepequal.AssertDeepEqual(t, b1, b2)
+	assertEqual := func() {
+		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {
+			assert.NoError(t, b2.Update())
+			if len(b1.rules) == len(b2.rules) {
+				deepequal.AssertDeepEqual(t, b1.rules, b2.rules)
+				return nil
+			}
+			time.Sleep(100 * time.Millisecond)
+			return testutils.TryAgainErr
+		}))
+	}
+	assertEqual()
 
 	assert.NoError(t, b1.RemoveRule(r1.Name))
-	b2, err = FromFile(f)
-	assert.NoError(t, err)
-	deepequal.AssertDeepEqual(t, b1, b2)
+	assertEqual()
+}
+
+func TestRuleCopy(t *testing.T) {
+	testutils.SmallTest(t)
+	r := &Rule{
+		AddedBy:          "me@google.com",
+		TaskSpecPatterns: []string{"a", "b"},
+		Commits:          []string{"abc123", "def456"},
+		Description:      "this is a rule",
+		Name:             "example",
+	}
+	deepequal.AssertCopy(t, r, r.Copy())
 }
 
 func TestRules(t *testing.T) {
@@ -359,7 +386,6 @@ func TestValidation(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		sklog.Infof(test.msg)
 		assert.Equal(t, test.expect, ValidateRule(&test.rule, repos), test.msg)
 	}
 }
@@ -377,9 +403,8 @@ func TestCommitRange(t *testing.T) {
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 	assert.NoError(t, repos.Update(ctx))
-	f := path.Join(tmp, "blacklist.json")
-	b, err := FromFile(f)
-	assert.NoError(t, err)
+	b, cleanup := setup(t)
+	defer cleanup()
 
 	// Test.
 
@@ -396,7 +421,7 @@ func TestCommitRange(t *testing.T) {
 		commits[5],
 		commits[1],
 		commits[0],
-	}, b.Rules["commit range"].Commits)
+	}, b.rules[rule.Name].Commits)
 
 	// Test a few commits.
 	tc := []struct {

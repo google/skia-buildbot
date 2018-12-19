@@ -125,12 +125,7 @@ type TaskScheduler struct {
 	workdir        string
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
-	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create blacklist from file: %s", err)
-	}
-
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -1350,6 +1345,10 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	}
 
 	if err := s.updateUnfinishedJobs(); err != nil {
+		return err
+	}
+
+	if err := s.bl.Update(); err != nil {
 		return err
 	}
 
