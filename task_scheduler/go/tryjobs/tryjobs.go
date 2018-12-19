@@ -307,7 +307,7 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*types.Job) error {
 }
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
-	sklog.Warningf("Canceling Buildbucket build %d. Reason: %s", id, msg)
+	sklog.Errorf("Canceling Buildbucket build %d. Reason: %s", id, msg)
 	message := struct {
 		Message string `json:"message"`
 	}{

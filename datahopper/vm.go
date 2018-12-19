@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/server"
 )
@@ -11,6 +12,7 @@ func DatahopperBase(name string) *gce.Instance {
 	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_SSD
 	vm.Metadata["owner_primary"] = "borenet"
 	vm.Metadata["owner_secondary"] = "jcgregorio"
+	vm.Scopes = append(vm.Scopes, bigtable.Scope)
 	return vm
 }
 
