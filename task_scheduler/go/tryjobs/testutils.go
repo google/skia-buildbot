@@ -109,7 +109,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS, "test-project", "test-instance", nil)
 	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"), nil)
 	assert.NoError(t, err)
