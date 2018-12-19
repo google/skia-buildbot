@@ -4,6 +4,7 @@ import (
 	"path"
 	"runtime"
 
+	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
@@ -20,6 +21,7 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 	vm.Scopes = append(vm.Scopes,
 		auth.SCOPE_GERRIT,
 		datastore.ScopeDatastore,
+		bigtable.Scope,
 	)
 
 	_, filename, _, _ := runtime.Caller(0)
