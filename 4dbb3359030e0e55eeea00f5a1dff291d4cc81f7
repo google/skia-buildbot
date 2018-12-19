@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "006192b9_c6c7f345",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-12-19T20:50:19Z",
+      "side": 1,
+      "message": "This is just my opinion: I am increasingly opposed to have config data like this in code, IMO this belongs into configuration files like the ones we version for our K8s instances. \nAt best this trades a short term benefit for a long term structural problem, at worst it makes our code unusable outside of our projects.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 2
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
