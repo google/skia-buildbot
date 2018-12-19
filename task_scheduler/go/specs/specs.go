@@ -3,12 +3,10 @@ package specs
 import (
 	"bytes"
 	"context"
-	"crypto/sha1"
 	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -16,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -23,6 +22,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -64,9 +65,33 @@ const (
 	VARIABLE_REVISION             = "REVISION"
 	VARIABLE_TASK_ID              = "TASK_ID"
 	VARIABLE_TASK_NAME            = "TASK_NAME"
+
+	// BigTable configuration.
+
+	// BigTable used for storing TaskCfgs.
+	BT_INSTANCE_PROD     = "tasks-cfg-prod"
+	BT_INSTANCE_INTERNAL = "tasks-cfg-internal"
+	BT_INSTANCE_STAGING  = "tasks-cfg-staging"
+
+	// We use a single BigTable table for storing gob-encoded TaskSpecs and
+	// JobSpecs.
+	BT_TABLE = "tasks-cfg"
+
+	// We use a single BigTable column family.
+	BT_COLUMN_FAMILY = "CFGS"
+
+	// We use a single BigTable column which stores gob-encoded TaskSpecs
+	// and JobSpecs.
+	BT_COLUMN = "CFG"
+
+	INSERT_TIMEOUT = 30 * time.Second
+	QUERY_TIMEOUT  = 5 * time.Second
 )
 
 var (
+	// Fully-qualified BigTable column name.
+	BT_COLUMN_FULL = fmt.Sprintf("%s:%s", BT_COLUMN_FAMILY, BT_COLUMN)
+
 	PLACEHOLDER_BUILDBUCKET_BUILD_ID = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_BUILDBUCKET_BUILD_ID)
 	PLACEHOLDER_CODEREVIEW_SERVER    = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_CODEREVIEW_SERVER)
 	PLACEHOLDER_ISSUE                = fmt.Sprintf(VARIABLE_SYNTAX, VARIABLE_ISSUE)
@@ -393,15 +418,12 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 	return rv, nil
 }
 
-// TasksCfgFileHash represents the SHA-1 checksum of the contents of
-// TASKS_CFG_FILE.
-type TasksCfgFileHash [sha1.Size]byte
-
 // TaskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
 	// protected by mtx
 	cache         map[types.RepoState]*cacheEntry
+	client        *bigtable.Client
 	depotToolsDir string
 	file          string
 	mtx           sync.RWMutex
@@ -415,77 +437,35 @@ type TaskCfgCache struct {
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
 	repos           repograph.Map
+	table           *bigtable.Table
 	queue           chan func(int)
 	workdir         string
 }
 
-// gobCacheValue contains fields that can be deduplicated across cacheEntry
-// instances.
-type gobCacheValue struct {
-	Cfg  *TasksCfg
-	Err  string
-	Hash TasksCfgFileHash
-}
-
-// gobTaskCfgCache is a struct used for (de)serializing TaskCfgCache instance.
-type gobTaskCfgCache struct {
-	AddedTasksCache map[types.RepoState]util.StringSet
-	Values          []gobCacheValue
-	RecentCommits   map[string]time.Time
-	RecentJobSpecs  map[string]time.Time
-	RecentTaskSpecs map[string]time.Time
-	// Map value is an index into Values. (We can't just use pointers pointing to
-	// the same object because GOB-encoding flattens/dereferences all pointers,
-	// resulting in multiple copies in the encoded file.)
-	RepoStates map[types.RepoState]int
-}
-
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int) (*TaskCfgCache, error) {
-	file := path.Join(workdir, "taskCfgCache.gob")
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, project, instance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
+	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
+	}
+	table := client.Open(BT_TABLE)
 	queue := make(chan func(int))
 	c := &TaskCfgCache{
+		client:        client,
 		depotToolsDir: depotToolsDir,
-		file:          file,
 		queue:         queue,
 		repos:         repos,
+		table:         table,
 		workdir:       workdir,
 	}
-	f, err := os.Open(file)
-	if err == nil {
-		var gobCache gobTaskCfgCache
-		if err := gob.NewDecoder(f).Decode(&gobCache); err != nil {
-			util.Close(f)
-			return nil, err
-		}
-		util.Close(f)
-		c.addedTasksCache = gobCache.AddedTasksCache
-		c.cache = make(map[types.RepoState]*cacheEntry, len(gobCache.RepoStates))
-		c.recentCommits = gobCache.RecentCommits
-		c.recentJobSpecs = gobCache.RecentJobSpecs
-		c.recentTaskSpecs = gobCache.RecentTaskSpecs
-		for rs, idx := range gobCache.RepoStates {
-			if idx < 0 || idx >= len(gobCache.Values) {
-				return nil, fmt.Errorf("Corrupt cache file %q: RepoStates index %d out of range.", file, idx)
-			}
-			gobCacheValue := gobCache.Values[idx]
-			c.cache[rs] = &cacheEntry{
-				c:    c,
-				cfg:  gobCacheValue.Cfg,
-				err:  gobCacheValue.Err,
-				hash: gobCacheValue.Hash,
-				rs:   rs,
-			}
-		}
-	} else if !os.IsNotExist(err) {
-		return nil, fmt.Errorf("Failed to read cache file: %s", err)
-	} else {
-		c.cache = map[types.RepoState]*cacheEntry{}
-		c.addedTasksCache = map[types.RepoState]util.StringSet{}
-		c.recentCommits = map[string]time.Time{}
-		c.recentJobSpecs = map[string]time.Time{}
-		c.recentTaskSpecs = map[string]time.Time{}
-	}
+	// TODO(borenet): Pre-fetch entries for commits in range. This would be
+	// simpler if we passed in a Window or a list of commits or RepoStates.
+	// Maybe the recent* caches belong in a separate cache entirely?
+	c.cache = map[types.RepoState]*cacheEntry{}
+	c.addedTasksCache = map[types.RepoState]util.StringSet{}
+	c.recentCommits = map[string]time.Time{}
+	c.recentJobSpecs = map[string]time.Time{}
+	c.recentTaskSpecs = map[string]time.Time{}
 	for i := 0; i < numWorkers; i++ {
 		go func(i int) {
 			for f := range queue {
@@ -496,44 +476,183 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, wo
 	return c, nil
 }
 
+type storedError struct {
+	err string
+}
+
+func (e *storedError) Error() string {
+	return e.err
+}
+
+func isStoredError(err error) bool {
+	_, ok := err.(*storedError)
+	return ok
+}
+
+func GetTasksCfgFromBigTable(table *bigtable.Table, rs types.RepoState) (*TasksCfg, error) {
+	// Retrieve all rows for the TasksCfg from BigTable.
+	tasks := map[string]*TaskSpec{}
+	jobs := map[string]*JobSpec{}
+	var processErr error
+	var storedErr error
+	ctx, cancel := context.WithTimeout(context.Background(), QUERY_TIMEOUT)
+	defer cancel()
+	prefix := rs.RowKey()
+	if err := table.ReadRows(ctx, bigtable.PrefixRange(prefix), func(row bigtable.Row) bool {
+		for _, ri := range row[BT_COLUMN_FAMILY] {
+			if ri.Column == BT_COLUMN_FULL {
+				suffix := strings.Split(strings.TrimPrefix(row.Key(), prefix+"#"), "#")
+				if len(suffix) != 2 {
+					processErr = fmt.Errorf("Invalid row key; expected two parts after %q; but have: %v", prefix, suffix)
+					return false
+				}
+				typ := suffix[0]
+				name := suffix[1]
+				if typ == "t" {
+					var task TaskSpec
+					processErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&task)
+					if processErr != nil {
+						return false
+					}
+					tasks[suffix[1]] = &task
+				} else if typ == "j" {
+					var job JobSpec
+					processErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&job)
+					if processErr != nil {
+						return false
+					}
+					jobs[name] = &job
+				} else if typ == "e" {
+					storedErr = &storedError{string(ri.Value)}
+					return false
+				} else {
+					processErr = fmt.Errorf("Invalid row key %q; unknown entry type %q", row.Key(), suffix[0])
+					return false
+				}
+				// We only store one message per row.
+				return true
+			}
+		}
+		return true
+	}, bigtable.RowFilter(bigtable.LatestNFilter(1))); err != nil {
+		return nil, fmt.Errorf("Failed to retrieve data from BigTable: %s", err)
+	}
+	if processErr != nil {
+		return nil, fmt.Errorf("Failed to process row: %s", processErr)
+	}
+	if storedErr != nil {
+		return nil, storedErr
+	}
+	if len(tasks) == 0 {
+		return nil, nil
+	}
+	if len(jobs) == 0 {
+		return nil, nil
+	}
+	return &TasksCfg{
+		Tasks: tasks,
+		Jobs:  jobs,
+	}, nil
+}
+
+func WriteTasksCfgToBigTable(table *bigtable.Table, rs types.RepoState, cfg *TasksCfg, err error) error {
+	var rks []string
+	var mts []*bigtable.Mutation
+	prefix := rs.RowKey() + "#"
+	if err != nil {
+		rks = append(rks, prefix+"e#")
+		mt := bigtable.NewMutation()
+		mt.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.ServerTime, []byte(err.Error()))
+		mts = append(mts, mt)
+	} else {
+		rks = make([]string, 0, len(cfg.Tasks)+len(cfg.Jobs))
+		mts = make([]*bigtable.Mutation, 0, len(cfg.Tasks)+len(cfg.Jobs))
+		for name, task := range cfg.Tasks {
+			rks = append(rks, prefix+"t#"+name)
+			buf := bytes.Buffer{}
+			if err := gob.NewEncoder(&buf).Encode(task); err != nil {
+				return err
+			}
+			mt := bigtable.NewMutation()
+			mt.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.ServerTime, buf.Bytes())
+			mts = append(mts, mt)
+		}
+		for name, job := range cfg.Jobs {
+			rks = append(rks, prefix+"j#"+name)
+			buf := bytes.Buffer{}
+			if err := gob.NewEncoder(&buf).Encode(job); err != nil {
+				return err
+			}
+			mt := bigtable.NewMutation()
+			mt.Set(BT_COLUMN_FAMILY, BT_COLUMN, bigtable.ServerTime, buf.Bytes())
+			mts = append(mts, mt)
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), INSERT_TIMEOUT)
+	defer cancel()
+	errs, err := table.ApplyBulk(ctx, rks, mts)
+	if err != nil {
+		return err
+	}
+	for _, err := range errs {
+		if err != nil {
+			// TODO(borenet): Should we retry? Delete the inserted entries?
+			return err
+		}
+	}
+	return nil
+}
+
 // Close frees up resources used by the TaskCfgCache.
 func (c *TaskCfgCache) Close() error {
 	close(c.queue)
-	return nil
+	return c.client.Close()
 }
 
 type cacheEntry struct {
 	c *TaskCfgCache
 	// Only one of cfg or err may be non-empty.
-	cfg  *TasksCfg
-	err  string
-	hash TasksCfgFileHash
-	mtx  sync.Mutex
-	rs   types.RepoState
+	cfg *TasksCfg
+	err string
+	mtx sync.Mutex
+	rs  types.RepoState
 }
 
 // Get returns the TasksCfg for this cache entry. If it does not already exist
-// in the cache, it is read from the repo and the bool return value is true,
-// indicating that the caller should write out the cache.
-func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, bool, error) {
+// in the cache, we attempt to read it from BigTable. If it does not exist in
+// BigTable, it is read from the repo and written to BigTable.
+func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 	if e.cfg != nil {
-		return e.cfg, false, nil
+		return e.cfg, nil
 	}
 	if e.err != "" {
-		return nil, false, errors.New(e.err)
+		return nil, errors.New(e.err)
+	}
+
+	r, ok := e.c.repos[e.rs.Repo]
+	if !ok {
+		return nil, fmt.Errorf("Unknown repo %q", e.rs.Repo)
+	}
+
+	// Try to read the TasksCfg from BigTable.
+	cfg, err := GetTasksCfgFromBigTable(e.c.table, e.rs)
+	if err != nil {
+		if isStoredError(err) {
+			e.err = err.Error()
+		}
+		return nil, err
+	}
+	if cfg != nil {
+		e.cfg = cfg
+		return cfg, e.c.updateSecondaryCaches(r, e.rs, cfg)
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
 	// window. Read it.
 	// Point the upstream to a local source of truth to eliminate network
 	// latency.
-	r, ok := e.c.repos[e.rs.Repo]
-	if !ok {
-		return nil, false, fmt.Errorf("Unknown repo %q", e.rs.Repo)
-	}
-	var cfg *TasksCfg
 	if err := e.c.TempGitRepo(ctx, e.rs, e.rs.IsTryJob(), func(checkout *git.TempCheckout) error {
 		contents, err := ioutil.ReadFile(path.Join(checkout.Dir(), TASKS_CFG_FILE))
 		if err != nil {
@@ -548,40 +667,47 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, bool, error) {
 				return fmt.Errorf("Failed to read tasks cfg: could not read file: %s", err)
 			}
 		}
-		e.hash = TasksCfgFileHash(sha1.Sum(contents))
 		cfg, err = ParseTasksCfg(string(contents))
 		return err
 	}); err != nil {
 		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") {
 			e.err = err.Error()
+			if err2 := WriteTasksCfgToBigTable(e.c.table, e.rs, nil, err); err2 != nil {
+				return nil, fmt.Errorf("Failed to obtain TasksCfg due to merge error and failed to cache the error with: %s", err2)
+			}
 		}
-		return nil, false, err
+		return nil, err
+	}
+	if err := e.c.updateSecondaryCaches(r, e.rs, cfg); err != nil {
+		return nil, err
 	}
 	e.cfg = cfg
+	return cfg, WriteTasksCfgToBigTable(e.c.table, e.rs, cfg, nil)
+}
 
+func (c *TaskCfgCache) updateSecondaryCaches(r *repograph.Graph, rs types.RepoState, cfg *TasksCfg) error {
 	// Write the commit and task specs into the recent lists.
-	// TODO(borenet): The below should probably go elsewhere.
-	e.c.recentMtx.Lock()
-	defer e.c.recentMtx.Unlock()
-	d := r.Get(e.rs.Revision)
+	c.recentMtx.Lock()
+	defer c.recentMtx.Unlock()
+	d := r.Get(rs.Revision)
 	if d == nil {
-		return nil, false, fmt.Errorf("Unknown revision %s in %s", e.rs.Revision, e.rs.Repo)
+		return fmt.Errorf("Unknown revision %s in %s", rs.Revision, rs.Repo)
 	}
 	ts := d.Timestamp
-	if ts.After(e.c.recentCommits[e.rs.Revision]) {
-		e.c.recentCommits[e.rs.Revision] = ts
+	if ts.After(c.recentCommits[rs.Revision]) {
+		c.recentCommits[rs.Revision] = ts
 	}
 	for name := range cfg.Tasks {
-		if ts.After(e.c.recentTaskSpecs[name]) {
-			e.c.recentTaskSpecs[name] = ts
+		if ts.After(c.recentTaskSpecs[name]) {
+			c.recentTaskSpecs[name] = ts
 		}
 	}
 	for name := range cfg.Jobs {
-		if ts.After(e.c.recentJobSpecs[name]) {
-			e.c.recentJobSpecs[name] = ts
+		if ts.After(c.recentJobSpecs[name]) {
+			c.recentJobSpecs[name] = ts
 		}
 	}
-	return cfg, true, nil
+	return nil
 }
 
 func (c *TaskCfgCache) getEntry(rs types.RepoState) *cacheEntry {
@@ -603,13 +729,9 @@ func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs types.RepoState) (*T
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	entry := c.getEntry(rs)
-	rv, mustWrite, err := entry.Get(ctx)
+	rv, err := entry.Get(ctx)
 	if err != nil {
 		return nil, err
-	} else if mustWrite {
-		c.recentMtx.Lock()
-		defer c.recentMtx.Unlock()
-		return rv, c.write()
 	}
 	return rv, err
 }
@@ -628,12 +750,11 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []types
 	var wg sync.WaitGroup
 	rv := make(map[types.RepoState]map[string]*TaskSpec, len(rs))
 	errs := []error{}
-	mustWrite := false
 	for s, entry := range entries {
 		wg.Add(1)
 		go func(s types.RepoState, entry *cacheEntry) {
 			defer wg.Done()
-			cfg, w, err := entry.Get(ctx)
+			cfg, err := entry.Get(ctx)
 			if err != nil {
 				m.Lock()
 				defer m.Unlock()
@@ -648,19 +769,9 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []types
 			m.Lock()
 			defer m.Unlock()
 			rv[s] = subMap
-			if w {
-				mustWrite = true
-			}
 		}(s, entry)
 	}
 	wg.Wait()
-	if mustWrite {
-		c.recentMtx.Lock()
-		defer c.recentMtx.Unlock()
-		if err := c.write(); err != nil {
-			return nil, err
-		}
-	}
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("Errors loading task cfgs: %v", errs)
 	}
@@ -819,59 +930,7 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 			delete(c.recentJobSpecs, k)
 		}
 	}
-	return c.write()
-}
-
-// write writes the TaskCfgCache to a file. Assumes the caller holds both c.mtx
-// and c.recentMtx.
-func (c *TaskCfgCache) write() error {
-	dir := path.Dir(c.file)
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return err
-	}
-	return util.WithWriteFile(c.file, func(w io.Writer) error {
-		gobCache := gobTaskCfgCache{
-			AddedTasksCache: c.addedTasksCache,
-			Values:          make([]gobCacheValue, 0, len(c.cache)),
-			RecentCommits:   c.recentCommits,
-			RecentJobSpecs:  c.recentJobSpecs,
-			RecentTaskSpecs: c.recentTaskSpecs,
-			RepoStates:      make(map[types.RepoState]int, len(c.cache)),
-		}
-		// When deduplicating gobCacheValue, we need to key by both hash and err. In
-		// the case that a patch doesn't apply, hash will always be all-zero, but
-		// err could vary.
-		type valueKey struct {
-			hash TasksCfgFileHash
-			err  string
-		}
-		valueIdxMap := make(map[valueKey]int, len(c.cache))
-		for _, e := range c.cache {
-			if e.cfg == nil && e.err == "" {
-				// Haven't called Get yet or Get failed; nothing to cache.
-				continue
-			}
-			key := valueKey{
-				hash: e.hash,
-				err:  e.err,
-			}
-			idx, ok := valueIdxMap[key]
-			if !ok {
-				idx = len(gobCache.Values)
-				valueIdxMap[key] = idx
-				gobCache.Values = append(gobCache.Values, gobCacheValue{
-					Cfg:  e.cfg,
-					Err:  e.err,
-					Hash: e.hash,
-				})
-			}
-			gobCache.RepoStates[e.rs] = idx
-		}
-		if err := gob.NewEncoder(w).Encode(&gobCache); err != nil {
-			return fmt.Errorf("Failed to encode TaskCfgCache: %s", err)
-		}
-		return nil
-	})
+	return nil
 }
 
 func stringMapKeys(m map[string]time.Time) []string {

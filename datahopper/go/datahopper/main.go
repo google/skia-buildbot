@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"time"
 
+	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
@@ -43,9 +44,11 @@ var (
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 
-	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
-	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	perfBucket       = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix       = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	pubsubTopicSet   = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	tasksCfgProject  = flag.String("tasks_cfg_project", "", "GCE project to use for tasks cfg cache.")
+	tasksCfgInstance = flag.String("tasks_cfg_instance", "", "BigTable instance to use for tasks cfg cache.")
 )
 
 var (
@@ -159,7 +162,7 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	newTs, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE)
+	newTs, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE, bigtable.Scope)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -193,7 +196,7 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
 	}
-	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile); err != nil {
+	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile, *tasksCfgProject, *tasksCfgInstance, newTs); err != nil {
 		sklog.Fatal(err)
 	}
 
