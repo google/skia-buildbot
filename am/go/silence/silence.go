@@ -137,6 +137,8 @@ func (s *Store) Put(silence *Silence) (*Silence, error) {
 		return nil
 	})
 	if err != nil {
+		fmt.Println("HERE IS THE ERROR!!")
+		fmt.Println(silence)
 		return nil, fmt.Errorf("Failed to write Silence: %s", err)
 	}
 
