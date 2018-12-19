@@ -16,6 +16,24 @@
       "revId": "9e0bcabb7736b82f44b3fe0c38e52f37617ba7ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "35c8da2b_c3bb1828",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-19T15:04:56Z",
+      "side": 1,
+      "message": "Let\u0027s hope so. I\u0027d like to avoid adding checks for those here.",
+      "parentUuid": "07ec474d_e9603418",
+      "revId": "9e0bcabb7736b82f44b3fe0c38e52f37617ba7ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
