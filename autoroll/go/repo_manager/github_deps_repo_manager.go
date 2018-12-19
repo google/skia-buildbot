@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -88,7 +87,12 @@ func (rm *githubDEPSRepoManager) Update(ctx context.Context) error {
 				return fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
 			}
 			// Run gclient hooks to bring in any required binaries.
-			if _, err := exec.RunCwd(ctx, rm.parentDir, filepath.Join(rm.depotTools, "gclient"), "runhooks"); err != nil {
+			if _, err := exec.RunCommand(ctx, &exec.Command{
+				Dir:  rm.parentDir,
+				Env:  rm.depotToolsEnv,
+				Name: rm.gclient,
+				Args: []string{"runhooks"},
+			}); err != nil {
 				return fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
 			}
 		} else {
