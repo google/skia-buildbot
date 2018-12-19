@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9dbb5af7_0b75a021",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 524,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T15:21:07Z",
+      "side": 1,
+      "message": "nit: could just do \u0026storedError{string(ri.Value)} here and return as-is below.",
+      "range": {
+        "startLine": 524,
+        "startChar": 17,
+        "endLine": 524,
+        "endChar": 27
+      },
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26daa111_ed13334b",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T15:21:07Z",
+      "side": 1,
+      "message": "Hmm, I just realized that these will be empty at startup. Probably not a big deal, except sometimes the UI doesn\u0027t allow entries that aren\u0027t in the prefilled list.",
+      "range": {
+        "startLine": 770,
+        "startChar": 0,
+        "endLine": 772,
+        "endChar": 69
+      },
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f31bebeb_dba2036c",
+        "filename": "task_scheduler/go/specs/testutils/testutils.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-19T15:21:07Z",
+      "side": 1,
+      "message": "nit: doc return values",
+      "revId": "da82bcf4e21dc0a9f76f63591b9d6612b7ba789c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
