@@ -1,9 +1,12 @@
 package silence
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -12,6 +15,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -22,15 +26,19 @@ const (
 
 // Silence is a filter that matches Incidents and is used to silence them.
 type Silence struct {
-	Key            string              `json:"key" datastore:"-"`
-	Active         bool                `json:"active" datastore:"active"`
-	User           string              `json:"user" datastore:"user"`
-	ParamSet       paramtools.ParamSet `json:"param_set" datastore:"-"`
-	ParamSetSerial string              `json:"-" datastore:"param_set_serial"`
-	Created        int64               `json:"created" datastore:"created"`
-	Updated        int64               `json:"updated" datastore:"updated"`
-	Duration       string              `json:"duration" datastore:"duration"`
-	Notes          []note.Note         `json:"notes" datastore:"notes,flatten"`
+	Key      string              `json:"key" datastore:"-"`
+	Active   bool                `json:"active" datastore:"active"`
+	User     string              `json:"user" datastore:"user"`
+	ParamSet paramtools.ParamSet `json:"param_set" datastore:"-"`
+
+	// ParamSetCompressed is now used. ParamSetSerial is left only for backwards compatibility.
+	ParamSetCompressed []byte `json:"-" datastore:"param_set_compressed"`
+	ParamSetSerial     string `json:"-" datastore:"param_set_serial,noindex"`
+
+	Created  int64       `json:"created" datastore:"created"`
+	Updated  int64       `json:"updated" datastore:"updated"`
+	Duration string      `json:"duration" datastore:"duration"`
+	Notes    []note.Note `json:"notes" datastore:"notes,flatten"`
 }
 
 // New creates a new Silence.
@@ -54,7 +62,25 @@ func (silence *Silence) Load(ps []datastore.Property) error {
 	if err := datastore.LoadStruct(silence, ps); err != nil {
 		return err
 	}
-	if err := json.Unmarshal([]byte(silence.ParamSetSerial), &silence.ParamSet); err != nil {
+	var uncompressedParamSet []byte
+	if silence.ParamSetSerial != "" {
+		uncompressedParamSet = []byte(silence.ParamSetSerial)
+	} else if len(silence.ParamSetCompressed) > 0 {
+		//Uncompress before convering it back into a paramset.
+		gr, err := gzip.NewReader(bytes.NewBuffer([]byte(silence.ParamSetCompressed)))
+		if err != nil {
+			return err
+		}
+		defer gr.Close()
+		fmt.Println("IT IS A NEWER COMPRESSED PARAMSET!")
+		uncompressedParamSet, err = ioutil.ReadAll(gr)
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("Silence with key %s does not have both param_set_compressed and param_set_serial.", silence.Key)
+	}
+	if err := json.Unmarshal(uncompressedParamSet, &silence.ParamSet); err != nil {
 		return err
 	}
 	return nil
@@ -66,7 +92,27 @@ func (silence *Silence) Save() ([]datastore.Property, error) {
 	if err != nil {
 		return nil, err
 	}
+	//// Compress the paramset before setting it to ParamSetCompression.
+	//var gzBuffer bytes.Buffer
+	//gz, err := gzip.NewWriterLevel(&gzBuffer, gzip.BestCompression)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//defer gz.Close()
+	//if _, err := gz.Write(b); err != nil {
+	//	return nil, err
+	//}
+	//if err := gz.Flush(); err != nil {
+	//	return nil, err
+	//}
+
+	//silence.ParamSetCompressed = gzBuffer.Bytes()
+	//fmt.Println("BEFORE")
+	//fmt.Println(len(string(b)))
+	//fmt.Println(len(silence.ParamSetCompressed))
+
 	silence.ParamSetSerial = string(b)
+
 	return datastore.SaveStruct(silence)
 }
 
