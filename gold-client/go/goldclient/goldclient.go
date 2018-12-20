@@ -20,20 +20,35 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/jsonio"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/web"
 )
 
 const (
-	resultPrefix       = "dm-json-v1"
-	imagePrefix        = "dm-images-v1"
-	knownHashesURLPath = "_/hashes"
+	// resultPrefix is the path prefix in the GCS bucket that holds JSON result files
+	resultPrefix = "dm-json-v1"
 
-	resultStateFile   = "result-state.json"
-	jsonTempFileName  = "dm.json"
-	fetchTempFileName = "hashes.txt"
+	// imagePrefix is the path prefix in the GCS bucket that holds images.
+	imagePrefix = "dm-images-v1"
+
+	// knownHashesURLPath is path on the Gold instance to retrieve the known image hashes that do
+	// not need to be uploaded anymore.
+	knownHashesURLPath = "json/hashes"
+
+	// goldURLTmp constructs the URL of the Gold instance from the instance id
+	goldURLTmpl = "https://%s-gold.skia.org"
+
+	// bucketNameTmpl constructs the name of the ingestion bucket from the instance id
+	bucketNameTmpl = "skia-gold-%s"
+
+	// resultStateFile is the name of the file that holds the state in the work directory between calls
+	resultStateFile = "result-state.json"
+
+	// jsonTempFileName is the temporary file that is created to upload results via gsutil.
+	jsonTempFileName = "gsutil_dm.json"
 )
 
 // md5Regexp is used to check whether strings are MD5 hashes.
@@ -64,23 +79,34 @@ type cloudClient struct {
 	httpClient *http.Client
 }
 
+// GoldClientConfig is a config structure to configure GoldClient instances
+type GoldClientConfig struct {
+	// WorkDir is a temporary directory that caches data for one run with multiple calls to GoldClient
+	WorkDir string
+
+	// InstanceID is the id of the backend Gold instance
+	InstanceID string
+
+	// PassFailStep indicates whether each call to Test(...) should return a pass/fail value.
+	PassFailStep bool
+
+	// OverrideGoldURL is optional and allows to override the GoldURL for testing.
+	OverrideGoldURL string
+}
+
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
 // Arguments:
-//    - workDir : is a temporary work directory that needs to be available during the entire
-//                testrun (over multiple calls to 'Test')
-//    - instanceID: is the id of the Gold instance.
-//    - passFailStep: indicates whether each individual call to Test needs to return pass fail.
 //    - goldResults: A populated instance of jsonio.GoldResults that contains configuration
 //                   shared by all tests.
 //
 // If a new instance is created for each call to Test, the arguments of the first call are
 // preserved. They are cached in a JSON file in the work directory.
-func NewCloudClient(workDir, instanceID string, passFailStep bool, goldResult *jsonio.GoldResults) (GoldClient, error) {
+func NewCloudClient(config *GoldClientConfig, goldResult *jsonio.GoldResults) (GoldClient, error) {
 	// Make sure the workdir was given and exists.
-	if workDir == "" {
+	if config.WorkDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to NewCloudClient")
 	}
-	workDir, err := filepath.Abs(workDir)
+	workDir, err := filepath.Abs(config.WorkDir)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +128,7 @@ func NewCloudClient(workDir, instanceID string, passFailStep bool, goldResult *j
 		httpClient: httputils.DefaultClientConfig().Client(),
 	}
 
-	if err := ret.initResultState(instanceID, passFailStep, goldResult); err != nil {
+	if err := ret.initResultState(config, goldResult); err != nil {
 		return nil, skerr.Fmt("Error initializing result in cloud GoldClient: %s", err)
 	}
 
@@ -165,7 +191,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 
 // initResultState assembles the information that needs to be uploaded based on previous calls
 // to the function and new arguments.
-func (c *cloudClient) initResultState(instanceID string, passFailStep bool, goldResult *jsonio.GoldResults) error {
+func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *jsonio.GoldResults) error {
 	// Load the state from the workdir.
 	var err error
 	c.resultState, err = loadStateFromJson(c.getResultStateFile())
@@ -180,7 +206,7 @@ func (c *cloudClient) initResultState(instanceID string, passFailStep bool, gold
 
 	// Create a new instance of result state. Setting freshState to true indicates that this needs
 	// to be stored to disk once a test has been added successfully.
-	c.resultState, err = newResultState(goldResult, passFailStep, instanceID, c.workDir, c.httpClient)
+	c.resultState, err = newResultState(goldResult, config, c.workDir, c.httpClient)
 	if err != nil {
 		return err
 	}
@@ -274,18 +300,24 @@ type resultState struct {
 }
 
 // newResultState creates a new instance resultState and downloads the relevant files from Gold.
-func newResultState(goldResult *jsonio.GoldResults, passFailStep bool, instanceID, workDir string, httpClient *http.Client) (*resultState, error) {
+func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, workDir string, httpClient *http.Client) (*resultState, error) {
 
 	// TODO(stephana): Move deriving the URLs and the bucket to a central place in the backend
 	// or get rid of the bucket entirely and expose an upload URL (requires authentication)
 
+	goldURL := config.OverrideGoldURL
+	if goldURL == "" {
+		goldURL = fmt.Sprintf(goldURLTmpl, config.InstanceID)
+	}
+
 	ret := &resultState{
 		GoldResults:     goldResult,
-		PerTestPassFail: passFailStep,
-		InstanceID:      instanceID,
-		GoldURL:         fmt.Sprintf("https://%s-gold.skia.org", instanceID),
-		Bucket:          fmt.Sprintf("skia-gold-%s", instanceID),
+		PerTestPassFail: config.PassFailStep,
+		InstanceID:      config.InstanceID,
+		GoldURL:         goldURL,
+		Bucket:          fmt.Sprintf(bucketNameTmpl, config.InstanceID),
 		workDir:         workDir,
+		httpClient:      httpClient,
 	}
 
 	if err := ret.loadKnownHashes(); err != nil {
@@ -375,16 +407,17 @@ func (r *resultState) loadExpectations() error {
 	var urlPath string
 	if r.GoldResults.Issue > 0 {
 		issueID := strconv.FormatInt(r.GoldResults.Issue, 10)
-		urlPath = strings.Replace(web.EXPECATIONS_ISSUE_ROUTE, "{issue_id}", issueID, 1)
+		urlPath = strings.Replace(shared.EXPECATIONS_ISSUE_ROUTE, "{issue_id}", issueID, 1)
 	} else {
-		urlPath = strings.Replace(web.EXPECATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
+		urlPath = strings.Replace(shared.EXPECATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
 	}
-	url := fmt.Sprintf("%s/%s", r.GoldURL, urlPath)
+	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
 	resp, err := r.httpClient.Get(url)
 	if err != nil {
 		return err
 	}
+
 	jsonBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return skerr.Fmt("Error reading body of request to %s: %s", url, err)
@@ -393,7 +426,14 @@ func (r *resultState) loadExpectations() error {
 		return skerr.Fmt("Error closing response from request to %s: %s", url, err)
 	}
 
-	return json.Unmarshal(jsonBytes, &r.Expectations)
+	exp := &baseline.CommitableBaseLine{}
+
+	if err := json.Unmarshal(jsonBytes, exp); err != nil {
+		return skerr.Fmt("Error parsing JSON: %s", err)
+	}
+
+	r.Expectations = exp.Baseline
+	return nil
 }
 
 // getResultFilePath returns that path in GCS where the result file should be stored.
@@ -409,7 +449,7 @@ func (r *resultState) getResultFilePath() string {
 
 	// Assemble a path that looks like this:
 	// <path_prefix>/YYYY/MM/DD/HH/<git_hash>/<build_id>/<time_stamp>/<per_run_file_name>.json
-	// The first segements up to 'HH' are required so the Gold ingester can scan these prefixes for
+	// The first segments up to 'HH' are required so the Gold ingester can scan these prefixes for
 	// new files. The later segments are necessary to make the path unique within the runs of one
 	// hour and increase readability of the paths for troubleshooting.
 	// It is vital that the times segments of the path are based on UTC location.

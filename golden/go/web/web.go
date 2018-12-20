@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -32,15 +33,6 @@ import (
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
-)
-
-// Define common routes used by multiple servers
-const (
-	// BASELINE_ROUTE serves the expectations of the master branch
-	EXPECATIONS_ROUTE = "/json/expecations/commit/{commit_hash}"
-
-	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
-	EXPECATIONS_ISSUE_ROUTE = "/json/expecations/issue/{issue_id}"
 )
 
 const (
@@ -1027,6 +1019,15 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
 			return
 		}
+
+		// Retrieve the commit at HEAD
+		tmpHashes := wh.Storages.Git.LastN(context.TODO(), 1)
+		if len(tmpHashes) == 0 {
+			msg := "No commit information available"
+			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
+			return
+		}
+		commitHash = tmpHashes[0]
 	} else {
 		// Since this was not called for an issue, we need to extract a Git hash.
 		var ok bool
