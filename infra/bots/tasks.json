@@ -162,6 +162,12 @@
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Housekeeper-PerCommit-BuildTaskDrivers": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/git/${platform}",
@@ -282,6 +288,12 @@
       "isolate": "empty.isolate"
     },
     "Infra-Experimental-Small": {
+      "caches": [
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
+        }
+      ],
       "cipd_packages": [
         {
           "name": "infra/git/${platform}",
@@ -362,6 +374,10 @@
         {
           "name": "vpython",
           "path": "cache/vpython"
+        },
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
         }
       ],
       "cipd_packages": [
@@ -502,6 +518,10 @@
         {
           "name": "vpython",
           "path": "cache/vpython"
+        },
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
         }
       ],
       "cipd_packages": [
@@ -632,6 +652,10 @@
         {
           "name": "vpython",
           "path": "cache/vpython"
+        },
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
         }
       ],
       "cipd_packages": [
@@ -768,6 +792,10 @@
         {
           "name": "vpython",
           "path": "cache/vpython"
+        },
+        {
+          "name": "go_cache",
+          "path": "cache/go_cache"
         }
       ],
       "cipd_packages": [
