@@ -80,8 +80,13 @@ function table(o) {
 
 function actionButtons(ele) {
   if (ele._state.active) {
+    let assignToOwnerButton = '';
+    if (ele._state.params.owner) {
+      assignToOwnerButton = html`<button @click=${ele._assignToOwner}>Assign to Owner</button>`;
+    }
     return html`<section class=assign>
       <button @click=${ele._take}>Take</button>
+      ${assignToOwnerButton}
       <button @click=${ele._assign}>Assign</button>
     </section>`;
   } else {
@@ -187,6 +192,13 @@ window.customElements.define('incident-sk', class extends HTMLElement {
       key: this._state.key,
     };
     this.dispatchEvent(new CustomEvent('take', { detail: detail, bubbles: true }));
+  }
+
+  _assignToOwner(e) {
+    let detail = {
+      key: this._state.key,
+    };
+    this.dispatchEvent(new CustomEvent('assign-to-owner', { detail: detail, bubbles: true }));
   }
 
   _assign(e) {
