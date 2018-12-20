@@ -120,6 +120,13 @@ var (
 		},
 	}
 
+	CACHES_GO = []*specs.Cache{
+		&specs.Cache{
+			Name: "go_cache",
+			Path: "cache/go_cache",
+		},
+	}
+
 	LOGDOG_ANNOTATION_URL = fmt.Sprintf("logdog://logs.chromium.org/%s/%s/+/annotations", PROJECT, specs.PLACEHOLDER_TASK_ID)
 )
 
@@ -219,6 +226,7 @@ func isolateCIPDAsset(b *specs.TasksCfgBuilder, name string) string {
 // all platforms.
 func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
 	b.MustAddTask(BUILD_TASK_DRIVERS_NAME, &specs.TaskSpec{
+		Caches:       CACHES_GO,
 		CipdPackages: append(CIPD_PKGS_GIT, b.MustGetCipdPackageFromAsset("go"), b.MustGetCipdPackageFromAsset("go_deps")),
 		Command: []string{
 			"/bin/bash", "buildbot/infra/bots/build_task_drivers.sh", specs.PLACEHOLDER_ISOLATED_OUTDIR,
@@ -312,6 +320,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task := kitchenTask(name, "swarm_infra", "infrabots.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(machineType), nil, OUTPUT_NONE)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
+	task.Caches = append(task.Caches, CACHES_GO...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
 	if strings.Contains(name, "Large") {
@@ -389,6 +398,7 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	}
 
 	t := &specs.TaskSpec{
+		Caches:       CACHES_GO,
 		CipdPackages: cipd,
 		Command: []string{
 			"./infra_tests",

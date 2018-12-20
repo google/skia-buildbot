@@ -2,6 +2,7 @@
 
 set -x -e
 
+export GOCACHE="$(pwd)/cache/go_cache"
 export GOPATH="$(pwd)/go_deps"
 export GOROOT="$(pwd)/go/go"
 
