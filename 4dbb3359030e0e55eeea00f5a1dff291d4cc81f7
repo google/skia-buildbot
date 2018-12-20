@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "96cf46b3_2fe3cf76",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-20T17:14:15Z",
+      "side": 1,
+      "message": "I\u0027d add to that:\n\n3. Can use shared constants. As an example, if we do end up moving all of our apps into one of three bigtable instances, and if those are specified via flags or external config files, we\u0027re going to have \"prod\" or \"staging\" or whatever, hand-typed in a LOT of locations.  Given how easy it is to make a typo, I find it very convenient to point at a constant and know at compile time that I\u0027ve gotten it right.\n\nThat said, I do like what the config files have done for the autorollers, I just wish they were \"testable\" outside of just pushing the new version.",
+      "parentUuid": "6b19a61c_2a62904c",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 2
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c0851fec_3ac307d1",
         "filename": "task_driver/go/db/bigtable/bigtable_test.go",
         "patchSetId": 1
