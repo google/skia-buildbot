@@ -163,7 +163,7 @@ const template = (ele) => html`
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
-      ${incidentList(ele, ele._incidents.filter(i => i.active && ((ele._user === ele._trooper && (i.params.__silence_state !== 'silenced')) || (i.params.assigned_to === ele._user))))}
+      ${incidentList(ele, ele._incidents.filter(i => i.active && ((ele._user === ele._trooper && (i.params.__silence_state !== 'silenced')) || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user))))}
     </section>
     <section class=incidents>
       ${incidentList(ele, ele._incidents)}
@@ -241,6 +241,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this.addEventListener('del-note', e => this._delNote(e));
     this.addEventListener('take', e => this._take(e));
     this.addEventListener('assign', e => this._assign(e));
+    this.addEventListener('assign-to-owner', e => this._assignToOwner(e));
 
     this._render();
     this._busy = $$('#busy', this);
@@ -436,13 +437,23 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   _assign(e) {
-    $$('#chooser', this).open(this._emails).then(email => {
+    const owner = this._selected && this._selected.params.owner;
+    $$('#chooser', this).open(this._emails, owner).then(email => {
       let detail = {
         key: e.detail.key,
         email: email,
       }
       this._doImpl('/_/assign', detail);
     });
+  }
+
+  _assignToOwner(e) {
+    const owner = this._selected && this._selected.params.owner;
+    let detail = {
+      key: e.detail.key,
+      email: owner,
+    }
+    this._doImpl('/_/assign', detail);
   }
 
   _take(e) {
@@ -576,6 +587,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       && (
         (isTrooper && !incident.params.assigned_to)
         || (incident.params.assigned_to == this._user)
+        || (incident.params.owner == this._user)
       )
     ) {
       return true
