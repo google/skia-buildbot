@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5d6e2633_0877f26a",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1025,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-20T21:06:13Z",
+      "side": 1,
+      "message": "nit: use r.Context()",
+      "range": {
+        "startLine": 1025,
+        "startChar": 37,
+        "endLine": 1025,
+        "endChar": 51
+      },
+      "revId": "279ac9b9b147195296858e0d7301d011af2e5c85",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
