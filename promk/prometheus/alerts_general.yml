@@ -84,6 +84,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: borenet@google.com
     annotations:
       description: 'The error rate for autoroll on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
@@ -94,6 +95,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: borenet@google.com
     annotations:
       description: 'Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
@@ -121,6 +123,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: borenet@google.com
     annotations:
       description: 'Autoroll on {{ $labels.instance }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
