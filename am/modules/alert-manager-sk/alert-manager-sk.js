@@ -129,8 +129,8 @@ function assignedTo(incident, ele) {
 function incidentList(ele, incidents) {
   return incidents.map(i => html`
     <h2 class=${classOfH2(ele, i)} @click=${e => ele._select(i)}>
-    <span>
-      <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._suppress} id=${i.key}></checkbox-sk>
+    <span class=noselect>
+      <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._clickHandler} id=${i.key}></checkbox-sk>
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
@@ -216,6 +216,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._checked = new Set();    // Checked incidents, i.e. you clicked the checkbox.
     this._current_silence = null; // A silence under construction.
     this._ignored = [ '__silence_state', 'description', 'id', 'swarming', 'assigned_to']; // Params to ignore when constructing silences.
+    this._shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
+    this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
     this._user = 'barney@example.org';
     this._trooper = '';
     fetch('https://skia-tree-status.appspot.com/current-trooper?format=json', {mode: 'cors'}).then(jsonOrThrow).then(json => {
@@ -290,7 +292,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._render();
   }
 
-  _suppress(e) {
+  _clickHandler(e) {
+    this._shift_pressed_during_click = e.shiftKey;
     e.stopPropagation();
   }
 
@@ -308,8 +311,10 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   // Update the paramset for a silence as Incidents are checked and unchecked.
+  // TODO(jcgregorio) Remove this once checkbox-sk is fixed.
   _check_selected_impl(key, isChecked) {
     if (isChecked) {
+      this._last_checked_incident = key
       this._checked.add(key);
       this._incidents.forEach(i => {
         if (i.key == key) {
@@ -317,6 +322,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
         }
       });
     } else {
+      this._last_checked_incident = null;
       this._checked.delete(key);
       this._current_silence.param_set = {};
       this._incidents.forEach(i => {
@@ -339,12 +345,45 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       }).then(jsonOrThrow).then((json) => {
         this._selected = null;
         this._current_silence = json;
-        // TODO(jcgregorio) Fix this once checkbox-sk is fixed.
         this._check_selected_impl(checkbox.id, checkbox._input.checked);
       }).catch(errorMessage);
     } else {
-      // TODO(jcgregorio) Fix this once checkbox-sk is fixed.
-      this._check_selected_impl(checkbox.id, checkbox._input.checked);
+
+      if (this._shift_pressed_during_click && this._last_checked_incident) {
+        let foundStart = false;
+        let foundEnd = false;
+        let incidents_to_check = [];
+        this._incidents.some(i => {
+          if (i.key == this._last_checked_incident || i.key == checkbox.id) {
+            if (!foundStart) {
+              // This is the 1st time we have entered this block. This means we
+              // found the first incident.
+              foundStart = true;
+            } else {
+              // This is the 2nd time we have entered this block. This means we
+              // found the last incident.
+              foundEnd = true;
+            }
+          }
+          if (foundStart) {
+            incidents_to_check.push(i.key);
+          }
+          return foundEnd;
+        });
+
+        if (foundStart && foundEnd) {
+          incidents_to_check.forEach(key => {
+            this._check_selected_impl(key, true);
+          });
+        } else {
+          // Could not find start and/or end incident. Only check the last
+          // clicked.
+          this._check_selected_impl(checkbox.id, checkbox._input.checked);
+        }
+
+      } else {
+        this._check_selected_impl(checkbox.id, checkbox._input.checked);
+      }
     }
   }
 
