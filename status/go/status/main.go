@@ -763,7 +763,7 @@ func main() {
 		sklog.Fatalf("Failed to create repos dir: %s", err)
 	}
 	if *repoUrls == nil {
-		*repoUrls = common.PUBLIC_REPOS
+		sklog.Fatal("At least one --repo is required.")
 	}
 	repos, err = repograph.NewMap(ctx, *repoUrls, reposDir)
 	if err != nil {
