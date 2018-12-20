@@ -59,6 +59,9 @@ func (in *Incident) Load(ps []datastore.Property) error {
 	if err := json.Unmarshal([]byte(in.ParamsSerial), &in.Params); err != nil {
 		return err
 	}
+	if len(in.Notes) > 0 {
+		in.Params["owner"] = "barney@example.org"
+	}
 	return nil
 }
 
