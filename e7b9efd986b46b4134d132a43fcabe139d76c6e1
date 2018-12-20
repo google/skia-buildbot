@@ -16,6 +16,24 @@
       "revId": "e7b9efd986b46b4134d132a43fcabe139d76c6e1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba1c5cb8_06e3ceb5",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 660,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-20T17:00:41Z",
+      "side": 1,
+      "message": "Refactored, PTAL.",
+      "parentUuid": "fb4f2e02_f7f729e7",
+      "revId": "e7b9efd986b46b4134d132a43fcabe139d76c6e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
