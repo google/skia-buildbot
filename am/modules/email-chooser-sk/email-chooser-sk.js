@@ -16,6 +16,14 @@ import 'elements-sk/dialog-sk'
 import 'elements-sk/styles/buttons'
 import 'elements-sk/styles/select'
 
+function displayEmail(email, owner) {
+  if (owner === email) {
+    return html`<option value=${email}>${email} (alert owner)</option>`;
+  } else {
+    return html`<option value=${email}>${email}</option>`;
+  }
+}
+
 const template = (ele) => html`<dialog-sk>
   <h2>Assign</h2>
   <select size=10 @input=${ele._input}>
@@ -27,14 +35,6 @@ const template = (ele) => html`<dialog-sk>
     <button @click=${ele._confirm}>OK</button>
   </div>
 </dialog-sk>`;
-
-function displayEmail(email, owner) {
-  if (owner === email) {
-    return html`<option value=${email}>${email} (alert owner)</option>`;
-  } else {
-    return html`<option value=${email}>${email}</option>`;
-  }
-}
 
 window.customElements.define('email-chooser-sk', class extends HTMLElement {
   constructor() {
