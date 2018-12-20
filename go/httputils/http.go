@@ -667,6 +667,25 @@ func HealthzAndHTTPS(h http.Handler) http.Handler {
 	return http.HandlerFunc(s)
 }
 
+// Healthz handles healthchecks at /healthz.
+//
+// Example:
+//    if !*local {
+//      h := httputils.Healthz(h)
+//    }
+//    http.Handle("/", h)
+//
+func Healthz(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		h.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(s)
+}
+
 // ReadyHandleFunc can be used to set up a ready-handler used to check
 // whether a service is ready. Simply returns 'ready'.
 func ReadyHandleFunc(w http.ResponseWriter, r *http.Request) {
