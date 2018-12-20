@@ -22,6 +22,7 @@ type imgTestEnv struct {
 	flagWorkDir      string
 	flagPassFailStep bool
 	flagFailureFile  string
+	flagURL          string
 
 	// Flags used by imgtest:add
 	flagTestName string
@@ -105,6 +106,7 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVarP(&i.flagPatchsetID, "patchset", "", "", "Gerrit patchset number if this is a trybot run. ")
 	cmd.Flags().StringVarP(&i.flagJobID, "jobid", "", "", "Job ID if this is a tryjob run. Current the BuildBucket id.")
 	cmd.Flags().StringVarP(&i.flagFailureFile, "failure-file", "", "", "Path to the file where to write failure information")
+	cmd.Flags().StringVarP(&i.flagURL, "url", "", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
 
 	if !optional {
 		_ = cmd.MarkFlagRequired("instance")
@@ -131,6 +133,7 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	jobID := validation.Int64Value("jobid", i.flagJobID, 0)
 	ifErrLogExit(cmd, validation.Errors())
 
+	// Define the meta data of the result that is shared by all tests.
 	gr := &jsonio.GoldResults{
 		GitHash:       i.flagCommit,
 		Key:           keyMap,
@@ -139,15 +142,23 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		BuildBucketID: jobID,
 	}
 
-	goldClient, err := goldclient.NewCloudClient(i.flagWorkDir, i.flagInstanceID, i.flagPassFailStep, gr)
+	config := &goldclient.GoldClientConfig{
+		InstanceID:      i.flagInstanceID,
+		WorkDir:         i.flagWorkDir,
+		PassFailStep:    i.flagPassFailStep,
+		OverrideGoldURL: i.flagURL,
+	}
+	goldClient, err := goldclient.NewCloudClient(config, gr)
 	ifErrLogExit(cmd, err)
 
 	pass, err := goldClient.Test(i.flagTestName, i.flagPNGFile)
 	ifErrLogExit(cmd, err)
 
 	if !pass {
+		logErrf(cmd, "Test: %s FAIL\n", i.flagTestName)
 		os.Exit(1)
 	}
+	logInfof(cmd, "Test: %s PASS\n", i.flagTestName)
 	os.Exit(0)
 }
 

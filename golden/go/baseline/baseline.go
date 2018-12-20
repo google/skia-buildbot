@@ -34,8 +34,13 @@ type CommitableBaseLine struct {
 // in tile.
 func GetBaselineForMaster(exps types.Expectations, tile *tiling.Tile) *CommitableBaseLine {
 	commits := tile.Commits
-	var startCommit *tiling.Commit = nil
-	var endCommit *tiling.Commit = nil
+	if len(tile.Commits) == 0 {
+		return nil
+	}
+
+	// Set the start and end commit in case there are no traces
+	var startCommit *tiling.Commit = tile.Commits[0]
+	var endCommit *tiling.Commit = tile.Commits[len(tile.Commits)-1]
 
 	masterBaseline := types.TestExp{}
 	for _, trace := range tile.Traces {
