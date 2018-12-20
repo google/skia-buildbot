@@ -6,8 +6,8 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/datahopper \
     --logtostderr \
-    --tasks_cfg_project=skia-public \
-    --tasks_cfg_instance=tasks-cfg-prod \
+    --bigtable_project=skia-public \
+    --bigtable_instance=tasks-cfg-prod \
     --workdir=/mnt/pd0/datahopper_workdir \
 Restart=always
 User=default

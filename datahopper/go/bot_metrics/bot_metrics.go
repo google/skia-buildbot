@@ -400,7 +400,7 @@ func writeTs(workdir string, ts time.Time) error {
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
-func Start(ctx context.Context, taskDb db.TaskReader, workdir, recipesCfgFile, tasksCfgProject, tasksCfgInstance string, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, taskDb db.TaskReader, workdir, recipesCfgFile, btProject, btInstance string, ts oauth2.TokenSource) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
@@ -418,7 +418,7 @@ func Start(ctx context.Context, taskDb db.TaskReader, workdir, recipesCfgFile, t
 		return fmt.Errorf("Failed to sync depot_tools: %s", err)
 	}
 
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), 1, tasksCfgProject, tasksCfgInstance, ts)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), 1, btProject, btInstance, ts)
 	if err != nil {
 		return fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}

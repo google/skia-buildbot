@@ -190,7 +190,6 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 
-	specs_testutils.SetupBigTable(t)
 	ctx, gb, _, _ := specs_testutils.SetupTestRepo(t)
 
 	tmp, err := ioutil.TempDir("", "")

@@ -443,8 +443,8 @@ type TaskCfgCache struct {
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, project, instance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
-	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, btProject, btInstance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
+	client, err := bigtable.NewClient(ctx, btProject, btInstance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}
