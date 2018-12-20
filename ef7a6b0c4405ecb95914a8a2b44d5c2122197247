@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec381c69_b4d8b050",
+        "filename": "am/modules/email-chooser-sk/email-chooser-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-20T17:11:25Z",
+      "side": 1,
+      "message": "Move this to before \u0027const template \u0027, i.e. define the functions before they are used.",
+      "revId": "ef7a6b0c4405ecb95914a8a2b44d5c2122197247",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
