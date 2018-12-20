@@ -6,7 +6,7 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/status \
-    --bigtable_project=skia-corp \
+    --bigtable_project=google.com:skia-corp \
     --bigtable_instance=internal \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
