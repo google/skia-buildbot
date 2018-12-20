@@ -164,7 +164,7 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	newTs, err := auth.NewDefaultTokenSource(*local, pubsub.AUTH_SCOPE, bigtable.Scope)
+	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope)
 	if err != nil {
 		sklog.Fatal(err)
 	}
