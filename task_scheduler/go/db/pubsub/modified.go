@@ -134,7 +134,7 @@ func (c *modifiedClient) startTrackingModifiedData() (string, error) {
 		}
 		if err := c.errors[id]; err != nil {
 			sklog.Warningf("modifiedClient is in error state; ignoring all messages.")
-			return err
+			return nil
 		}
 		// If the sender has changed, refuse the new messages and store
 		// an error. The error will be returned on the next call to
@@ -144,9 +144,9 @@ func (c *modifiedClient) startTrackingModifiedData() (string, error) {
 		if c.senderId[id] == "" {
 			c.senderId[id] = senderId
 		} else if senderId != c.senderId[id] {
-			err := fmt.Errorf("Message has unknown sender %s (expected %s); not ack'ing.", senderId, c.senderId)
+			err := fmt.Errorf("Message has unknown sender %s (expected %s); not ack'ing.", senderId, c.senderId[id])
 			c.errors[id] = err
-			return err
+			return nil
 		}
 		prev, ok := c.modified[id][dataId]
 		if !ok || prev.ts.Before(dbModified) {
