@@ -59,6 +59,7 @@ const (
 var (
 	// "Constants"
 	VALID_DB_EMAILS = []string{
+		"datahopper@skia-buildbots.google.com.iam.gserviceaccount.com",
 		"skia-status@skia-public.iam.gserviceaccount.com",
 		"skia-status-internal@skia-public.iam.gserviceaccount.com",
 	}
