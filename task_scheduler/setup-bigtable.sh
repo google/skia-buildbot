@@ -16,7 +16,7 @@ BIGTABLE_INSTANCE="staging"
 cbt --project=${PROJECT} --instance=${BIGTABLE_INSTANCE} createtable ${BIGTABLE_TABLE}
 cbt --project=${PROJECT} --instance=${BIGTABLE_INSTANCE} createfamily ${BIGTABLE_TABLE} ${BIGTABLE_COLUMN_FAMILY}
 
-PROJECT="skia-corp"
+PROJECT="google.com:skia-corp"
 BIGTABLE_INSTANCE="internal"
 cbt --project=${PROJECT} --instance=${BIGTABLE_INSTANCE} createtable ${BIGTABLE_TABLE}
 cbt --project=${PROJECT} --instance=${BIGTABLE_INSTANCE} createfamily ${BIGTABLE_TABLE} ${BIGTABLE_COLUMN_FAMILY}
