@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -109,6 +108,9 @@ type TaskScheduler struct {
 	newTasks    map[types.RepoState]util.StringSet
 	newTasksMtx sync.RWMutex
 
+	pendingInsert    map[string]bool
+	pendingInsertMtx sync.RWMutex
+
 	periodicTriggers *periodic_triggers.Triggerer
 	pools            []string
 	pubsubTopic      string
@@ -174,6 +176,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		jCache:           jCache,
 		newTasks:         map[types.RepoState]util.StringSet{},
 		newTasksMtx:      sync.RWMutex{},
+		pendingInsert:    map[string]bool{},
 		periodicTriggers: pt,
 		pools:            pools,
 		pubsubTopic:      pubsubTopic,
@@ -1052,12 +1055,18 @@ func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
+			s.pendingInsertMtx.Lock()
+			s.pendingInsert[t.Id] = true
+			s.pendingInsertMtx.Unlock()
 			var resp *swarming_api.SwarmingRpcsTaskRequestMetadata
 			if err := timeout.Run(func() error {
 				var err error
 				resp, err = s.swarming.TriggerTask(req)
 				return err
 			}, time.Minute); err != nil {
+				s.pendingInsertMtx.Lock()
+				delete(s.pendingInsert, t.Id)
+				s.pendingInsertMtx.Unlock()
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
@@ -1123,6 +1132,17 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 		if err := s.AddTasks(ctx, insert); err != nil {
 			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
 		} else {
+			// Remove the tasks from the pending map.
+			s.pendingInsertMtx.Lock()
+			for _, byRepo := range insert {
+				for _, byName := range byRepo {
+					for _, t := range byName {
+						delete(s.pendingInsert, t.Id)
+					}
+				}
+			}
+			s.pendingInsertMtx.Unlock()
+
 			// Organize the triggered task by TaskKey.
 			remove := make(map[types.TaskKey]*types.Task, numTriggered)
 			for _, byRepo := range insert {
@@ -1940,12 +1960,16 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			sklog.Errorf("Swarming Pub/Sub: Failed to retrieve task %q by ID: %s", msg.SwarmingTaskId, msg.UserData)
 			return true
 		} else if t == nil {
-			ts, _, err := local_db.ParseId(msg.UserData)
-			if err != nil {
-				sklog.Errorf("Failed to parse userdata as task ID: %s", err)
-				return true
-			} else if time.Now().Sub(ts) < 2*time.Minute {
-				sklog.Infof("Failed to update task %q from pub/sub: no such task ID: %q. Less than two minutes old; try again later.", msg.SwarmingTaskId, msg.UserData)
+			isPending := false
+			func() {
+				s.pendingInsertMtx.RLock()
+				defer s.pendingInsertMtx.RUnlock()
+				if s.pendingInsert[msg.UserData] {
+					isPending = true
+				}
+			}()
+			if isPending {
+				sklog.Debugf("Received pub/sub message for task which hasn't yet been inserted into the db: %s (%s); not ack'ing message; will try again later.", msg.SwarmingTaskId, msg.UserData)
 				return false
 			} else {
 				sklog.Errorf("Failed to update task %q from pub/sub: no such task ID: %q", msg.SwarmingTaskId, msg.UserData)
