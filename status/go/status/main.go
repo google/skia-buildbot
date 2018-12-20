@@ -88,6 +88,10 @@ var (
 
 // flags
 var (
+	// TODO(borenet): Combine btInstance, firestoreInstance, and
+	// pubsubTopicSet.
+	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	host                        = flag.String("host", "localhost", "HTTP service host")
@@ -96,8 +100,6 @@ var (
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
-	tasksCfgProject             = flag.String("tasks_cfg_project", "", "GCE project to use for tasks cfg cache.")
-	tasksCfgInstance            = flag.String("tasks_cfg_instance", "", "BigTable instance to use for tasks cfg cache.")
 	taskSchedulerDbUrl          = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
@@ -775,7 +777,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *repoUrls, 14*24*time.Hour, *tasksCfgProject, *tasksCfgInstance, ts)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *repoUrls, 14*24*time.Hour, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
@@ -849,12 +851,11 @@ func main() {
 	})
 
 	// Create the TaskDriver DB.
-	btProject := "skia-public"
-	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, btProject, bigtable_db.BT_INSTANCE, ts)
+	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	taskDriverLogs, err = logs.NewLogsManager(ctx, btProject, logs.BT_INSTANCE, ts)
+	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -37,6 +37,10 @@ import (
 
 // flags
 var (
+	// TODO(borenet): Combine btInstance, firestoreInstance, and
+	// pubsubTopicSet.
+	btInstance         = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject          = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -44,11 +48,9 @@ var (
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 
-	perfBucket       = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix       = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
-	pubsubTopicSet   = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
-	tasksCfgProject  = flag.String("tasks_cfg_project", "", "GCE project to use for tasks cfg cache.")
-	tasksCfgInstance = flag.String("tasks_cfg_instance", "", "BigTable instance to use for tasks cfg cache.")
+	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 )
 
 var (
@@ -196,7 +198,7 @@ func main() {
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
 	}
-	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile, *tasksCfgProject, *tasksCfgInstance, newTs); err != nil {
+	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile, *btProject, *btInstance, newTs); err != nil {
 		sklog.Fatal(err)
 	}
 

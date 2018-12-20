@@ -84,6 +84,8 @@ var (
 	triggerTemplate   *template.Template = nil
 
 	// Flags.
+	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	host              = flag.String("host", "localhost", "HTTP service host")
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	dbPort            = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
@@ -94,22 +96,21 @@ var (
 	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
 	// instance name. Once all schedulers are using Firestore for their
 	// task DB, firestoreInstance will have the same value. We should
-	// combine into a single instanceName flag.
-	pubsubTopicSet   = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
-	repoUrls         = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile   = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	resourcesDir     = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
-	scoreDecay24Hr   = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools    = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
-	swarmingServer   = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	tasksCfgProject  = flag.String("tasks_cfg_project", "", "GCE project to use for tasks cfg cache.")
-	tasksCfgInstance = flag.String("tasks_cfg_instance", "", "BigTable instance to use for tasks cfg cache.")
-	timePeriod       = flag.String("timeWindow", "4d", "Time period to use.")
-	tryJobBucket     = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
-	commitWindow     = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	gsBucket         = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
-	workdir          = flag.String("workdir", "workdir", "Working directory to use.")
-	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	// combine into a single instanceName flag. Additionally, the BigTable
+	// instance flag has the same set of values.
+	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	repoUrls       = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
+	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingPools  = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
+	swarmingServer = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	timePeriod     = flag.String("timeWindow", "4d", "Time period to use.")
+	tryJobBucket   = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
+	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
+	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
 	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
@@ -748,7 +749,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *tasksCfgProject, *tasksCfgInstance, tokenSource)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}

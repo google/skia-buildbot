@@ -6,6 +6,8 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/status \
+    --bigtable_project=skia-corp \
+    --bigtable_instance=internal \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
     --use_metadata=true \
@@ -17,9 +19,7 @@ ExecStart=/usr/local/bin/status \
     --repo=https://skia.googlesource.com/internal_test.git \
     --swarming_url=https://chrome-swarming.appspot.com \
     --task_scheduler_url=https://skia-task-scheduler-internal-8000-proxy.skia.org \
-    --task_db_url=http://skia-task-scheduler-internal:8008/db/ \
-    --tasks_cfg_project=skia-corp \
-    --tasks_cfg_instance=tasks-cfg-internal
+    --task_db_url=http://skia-task-scheduler-internal:8008/db/
 Restart=always
 User=default
 Group=default

@@ -20,9 +20,6 @@ import (
 )
 
 const (
-	// We use a single BigTable instance for Task Drivers per project.
-	BT_INSTANCE = "task-driver"
-
 	// We use a single BigTable table for storing Task Driver runs.
 	BT_TABLE = "task-driver-runs"
 

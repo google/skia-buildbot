@@ -29,7 +29,7 @@ type tasksPerCommitCache struct {
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
-func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []string, period time.Duration, tasksCfgProject, tasksCfgInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
+func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []string, period time.Duration, btProject, btInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
 	wd := path.Join(workdir, "tasksPerCommitCache")
 	if _, err := os.Stat(wd); err != nil {
 		if os.IsNotExist(err) {
@@ -52,7 +52,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []stri
 		return nil, err
 	}
 	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools.Dir(), gitCache, 3, tasksCfgProject, tasksCfgInstance, ts)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools.Dir(), gitCache, 3, btProject, btInstance, ts)
 	if err != nil {
 		return nil, err
 	}

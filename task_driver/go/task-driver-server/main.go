@@ -38,6 +38,8 @@ const (
 
 var (
 	// Flags.
+	btInstance   = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject    = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	host         = flag.String("host", "localhost", "HTTP service host")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
@@ -328,14 +330,11 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	// We read TaskDrivers from *project, but the BigTable instance is
-	// actually in skia-public.
-	btProject := "skia-public"
-	d, err = bigtable_db.NewBigTableDB(ctx, btProject, bigtable_db.BT_INSTANCE, ts)
+	d, err = bigtable_db.NewBigTableDB(ctx, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	lm, err = logs.NewLogsManager(ctx, btProject, logs.BT_INSTANCE, ts)
+	lm, err = logs.NewLogsManager(ctx, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
