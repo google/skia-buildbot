@@ -20,7 +20,7 @@ const template = (ele) => html`<dialog-sk>
   <h2>Assign</h2>
   <select size=10 @input=${ele._input}>
     <option value='' selected>(un-assign)</option>
-    ${ele._emails.map(email => html`<option value=${email}>${email}</option>`)}
+    ${ele._emails.map(email => displayEmail(email, ele._owner))}
   </select>
   <div class=buttons>
     <button @click=${ele._dismiss}>Cancel</button>
@@ -28,12 +28,21 @@ const template = (ele) => html`<dialog-sk>
   </div>
 </dialog-sk>`;
 
+function displayEmail(email, owner) {
+  if (owner === email) {
+    return html`<option value=${email}>${email} (alert owner)</option>`;
+  } else {
+    return html`<option value=${email}>${email}</option>`;
+  }
+}
+
 window.customElements.define('email-chooser-sk', class extends HTMLElement {
   constructor() {
     super();
     this._resolve = null;
     this._reject = null;
     this._emails = [];
+    this._owner = '';
     this._selected = '';
   }
 
@@ -46,11 +55,13 @@ window.customElements.define('email-chooser-sk', class extends HTMLElement {
    * Display the dialog.
    *
    * @param emails {Array} List of emails to choose from.
+   * @param owner {String} The owner of this incident if available. Optional.
    * @returns {Promise} Returns a Promise that resolves on OK, and rejects on Cancel.
    *
    */
-  open(emails) {
+  open(emails, owner) {
     this._emails = emails;
+    this._owner = owner;
     this._render();
     this._dialog.shown = true;
     $$('select', this).focus();
