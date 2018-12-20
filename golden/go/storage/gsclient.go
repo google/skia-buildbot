@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	gstorage "cloud.google.com/go/storage"
+	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -68,6 +69,7 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 		return nil
 	}
 
+	sklog.Infof("baseline: %s", spew.Sdump(baseLine))
 	outPath := g.getBaselinePath(baseLine.EndCommit.Hash, baseLine.Issue)
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
@@ -96,7 +98,10 @@ func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseli
 	if err != nil {
 		// If the item doesn't exist we return an empty baseline
 		if err == gstorage.ErrObjectNotExist {
-			return &baseline.CommitableBaseLine{Baseline: types.TestExp{}}, nil
+			return &baseline.CommitableBaseLine{
+				Baseline: types.TestExp{},
+				Issue:    issueID,
+			}, nil
 		}
 		return nil, sklog.FmtErrorf("Error fetching attributes of baseline file: %s", err)
 	}
