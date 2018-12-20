@@ -16,6 +16,24 @@
       "revId": "ced85a48c5b55548c5ae188e39d1cfaf6ffc72a2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d8194d6_dd64062b",
+        "filename": "task_driver/go/logs/logs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-20T13:24:29Z",
+      "side": 0,
+      "message": "I wasn\u0027t going to bother.",
+      "parentUuid": "10167e69_ebbb81a7",
+      "revId": "ced85a48c5b55548c5ae188e39d1cfaf6ffc72a2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

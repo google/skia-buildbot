@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "783bc32f_67b38063",
+        "filename": "datahopper/sys/datahopperd.service",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-20T13:24:29Z",
+      "side": 1,
+      "message": "I was in a hurry yesterday and failed to remove it completely, but now I\u0027ve added it back, per Stephan\u0027s comment.",
+      "parentUuid": "721f2464_5b23f465",
+      "range": {
+        "startLine": 9,
+        "startChar": 6,
+        "endLine": 9,
+        "endChar": 22
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "006192b9_c6c7f345",
         "filename": "go/bt/bt.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2018-12-19T20:50:19Z",
       "side": 1,
       "message": "This is just my opinion: I am increasingly opposed to have config data like this in code, IMO this belongs into configuration files like the ones we version for our K8s instances. \nAt best this trades a short term benefit for a long term structural problem, at worst it makes our code unusable outside of our projects.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 2
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16c6720e_b0a34c1f",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-20T13:24:29Z",
+      "side": 1,
+      "message": "I understand your point about usability in other projects, but can you explain more what you\u0027re referring to with \"long term structural problem\"?  For now I\u0027ll remove this and add back the --bigtable_project flag, which I failed to remove completely in my haste to get out the door yesterday.\n\nFWIW, this was an attempt to reduce the number of inputs, since (for our team anyway) the instance name implies the project ID.  This is a broader problem I\u0027ve been frustrated with for a while now: most apps have one giant struct which does most of the work, including delegation to member structs, and their constructors have parameters which are the union of the parameters needed by all of the member struct constructors.  Over time, this set grows and grows, and IMO has gotten out of hand in some cases, eg. the signature for NewTaskScheduler() spans four lines in my text editor and is completely unreadable.\n\nWe worked around this a little with the autorollers by creating a system of nested configs which mirrors the nested structs: one big config object contains the configs needed by the nested structs.  That helped quite a bit, but the constructors are still big because we have to pass things like API clients as parameters and not as part of the configs.",
+      "parentUuid": "006192b9_c6c7f345",
       "range": {
         "startLine": 24,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f535cf49_456ca3b0",
+        "filename": "task_driver/go/db/bigtable/bigtable_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-20T13:24:29Z",
+      "side": 1,
+      "message": "Done, although it\u0027s less useful without bt.PROJECT_FOR_INSTANCE.  Included the deletion anyway, which is maybe useful for those of us who just keep the emulator running locally all the time.",
+      "parentUuid": "c0851fec_3ac307d1",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 44
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
