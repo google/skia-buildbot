@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68107bf0_3e006015",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2018-12-20T12:06:09Z",
+      "side": 1,
+      "message": "Nit: Can we define this once somewhere?",
+      "range": {
+        "startLine": 223,
+        "startChar": 3,
+        "endLine": 226,
+        "endChar": 5
+      },
+      "revId": "2d61cc494423ce06b55abadd89920a2c2048dcc5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
