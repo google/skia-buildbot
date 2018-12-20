@@ -22,9 +22,6 @@ import (
 )
 
 const (
-	// We use a single BigTable instance for all Task Driver logs.
-	BT_INSTANCE = "task-driver"
-
 	// We use a single BigTable table for storing logs.
 	BT_TABLE = "task-driver-logs"
 

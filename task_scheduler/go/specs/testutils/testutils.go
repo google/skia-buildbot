@@ -2,12 +2,10 @@ package testutils
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/bt"
+	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
 )
@@ -218,20 +216,15 @@ func SetupTestRepo(t testutils.TestingT) (context.Context, *git_testutils.GitBui
 }
 
 // SetupBigTable performs setup for the TaskCfgCache in BigTable. Returns the
-// project and instance names which should be used to instantiate TaskCfgCache
-// and a cleanup function which should be deferred.
+// BigTable instance name which should be used to instantiate TaskCfgCache and a
+// cleanup function which should be deferred.
 func SetupBigTable(t testutils.TestingT) (string, string, func()) {
 	// The table and column family names are specs.BT_TABLE and
 	// specs.BT_COLUMN_FAMILY, but are hard-coded here to avoid a dependency
 	// cycle.
-	cfg := bt.TableConfig{
+	return bt_testutil.SetupBigTable(t, bt.TableConfig{
 		"tasks-cfg": {
 			"CFGS",
 		},
-	}
-	instance := fmt.Sprintf("specs-testutils-%s", uuid.New())
-	assert.NoError(t, bt.InitBigtable(BT_PROJECT, instance, cfg))
-	return BT_PROJECT, instance, func() {
-		assert.NoError(t, bt.DeleteTables(BT_PROJECT, instance, cfg))
-	}
+	})
 }
