@@ -6,6 +6,8 @@ After=mnt-pd0.mount network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/status \
+    --bigtable_project=skia-public \
+    --bigtable_instance=staging \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
     --use_metadata=true \
@@ -17,9 +19,7 @@ ExecStart=/usr/local/bin/status \
     --repo=https://skia.googlesource.com/skiabot-test.git \
     --swarming_url=https://chromium-swarm-dev.appspot.com \
     --task_scheduler_url=https://task-scheduler-staging.skia.org \
-    --task_db_url=http://skia-task-scheduler-staging:8008/db/ \
-    --tasks_cfg_project=skia-public \
-    --tasks_cfg_instance=tasks-cfg-staging
+    --task_db_url=http://skia-task-scheduler-staging:8008/db/
 Restart=always
 User=default
 Group=default
