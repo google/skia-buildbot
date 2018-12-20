@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d693376_5d0560da",
+        "filename": "datahopper/sys/datahopperd.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-20T17:44:59Z",
+      "side": 1,
+      "message": "Should this be \"production\"?",
+      "range": {
+        "startLine": 10,
+        "startChar": 24,
+        "endLine": 10,
+        "endChar": 38
+      },
+      "revId": "c0c5566ed50a7e99f6a90632a550f239686d9012",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
