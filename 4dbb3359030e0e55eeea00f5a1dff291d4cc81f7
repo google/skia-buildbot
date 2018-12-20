@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "e020dd5c_ad8f1a18",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2018-12-20T13:45:33Z",
+      "side": 1,
+      "message": "The exact project/instance/table is configuration information IMO and should be separate from the code. By \u0027structural problem\u0027 I mean that lots of these tend to accumulate over time and \nhave made our software less flexible when we move to a different system. \n\nThis might have saved me some time providing config information, but I have spent significantly more time figuring out where configuration came from because it was hardcoded into the app. \n\nMy comment should not stop you from landing this.",
+      "parentUuid": "16c6720e_b0a34c1f",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 2
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c0851fec_3ac307d1",
         "filename": "task_driver/go/db/bigtable/bigtable_test.go",
         "patchSetId": 1
