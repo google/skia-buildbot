@@ -129,7 +129,7 @@ function assignedTo(incident, ele) {
 function incidentList(ele, incidents) {
   return incidents.map(i => html`
     <h2 class=${classOfH2(ele, i)} @click=${e => ele._select(i)}>
-    <span class="noselect">
+    <span class=noselect>
       <checkbox-sk ?checked=${ele._checked.has(i.key)} @change=${ele._check_selected} @click=${ele._clickHandler} id=${i.key}></checkbox-sk>
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
@@ -353,9 +353,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
         let foundStart = false;
         let foundEnd = false;
         let incidents_to_check = [];
-        let that = this;
-        this._incidents.some(function(i) {
-          if (i.key == that._last_checked_incident || i.key == checkbox.id) {
+        this._incidents.some(i => {
+          if (i.key == this._last_checked_incident || i.key == checkbox.id) {
             if (!foundStart) {
               // This is the 1st time we have entered this block. This means we
               // found the first incident.

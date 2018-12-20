@@ -26,7 +26,7 @@ type Silence struct {
 	Active         bool                `json:"active" datastore:"active"`
 	User           string              `json:"user" datastore:"user"`
 	ParamSet       paramtools.ParamSet `json:"param_set" datastore:"-"`
-	ParamSetSerial string              `json:"-" datastore:"param_set_serial"`
+	ParamSetSerial string              `json:"-" datastore:"param_set_serial,noindex"`
 	Created        int64               `json:"created" datastore:"created"`
 	Updated        int64               `json:"updated" datastore:"updated"`
 	Duration       string              `json:"duration" datastore:"duration"`
