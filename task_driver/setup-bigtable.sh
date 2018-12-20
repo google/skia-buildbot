@@ -34,7 +34,7 @@ BIGTABLE_COLUMN_FAMILY="LOGS"
 cbt --project=${PROJECT} --instance=${BIGTABLE_INSTANCE} createtable ${BIGTABLE_TABLE}
 cbt --project=${PROJECT} --instance=${BIGTABLE_INSTANCE} createfamily ${BIGTABLE_TABLE} ${BIGTABLE_COLUMN_FAMILY}
 
-PROJECT="skia-corp"
+PROJECT="google.com:skia-corp"
 BIGTABLE_INSTANCE="internal"
 
 BIGTABLE_TABLE="task-driver-runs"
