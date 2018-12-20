@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -25,6 +26,8 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/oauth2"
+	gstorage "google.golang.org/api/storage/v1"
 )
 
 const (
@@ -48,7 +51,10 @@ const (
 	resultStateFile = "result-state.json"
 
 	// jsonTempFileName is the temporary file that is created to upload results via gsutil.
-	jsonTempFileName = "gsutil_dm.json"
+	jsonTempFile = "gsutil_dm.json"
+
+	// oauthTokenFile is the file in the work directory where the oauth token is cached.
+	oauthTokenFile = "oauth_token.json"
 )
 
 // md5Regexp is used to check whether strings are MD5 hashes.
@@ -75,7 +81,9 @@ type cloudClient struct {
 	freshState bool
 
 	// ready caches the result of the isReady call so we avoid duplicate work.
-	ready      bool
+	ready bool
+
+	oauthToken *oauth2.Token
 	httpClient *http.Client
 }
 
@@ -106,22 +114,14 @@ func NewCloudClient(config *GoldClientConfig, goldResult *jsonio.GoldResults) (G
 	if config.WorkDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to NewCloudClient")
 	}
-	workDir, err := filepath.Abs(config.WorkDir)
+
+	workDir, err := fileutil.EnsureDirExists(config.WorkDir)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO(stephana): When we add authentication via a service account this needs to be
 	// be triggered by an argument to this function or a config flag of some sort.
-
-	// Make sure 'gsutil' is on the PATH.
-	if !gsutilAvailable() {
-		return nil, skerr.Fmt("Unable to find 'gsutil' on the PATH")
-	}
-
-	if !fileutil.FileExists(workDir) {
-		return nil, fmt.Errorf("Workdir path %q does not exist", workDir)
-	}
 
 	ret := &cloudClient{
 		workDir:    workDir,
@@ -141,7 +141,7 @@ func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
 
 	// If there was no error and this is new instance then save the resultState for the next call.
 	if err == nil && c.freshState {
-		if err := c.resultState.save(c.getResultStateFile()); err != nil {
+		if err := saveJSONFile(c.getResultStateFile(), c.resultState); err != nil {
 			return false, err
 		}
 	}
@@ -178,7 +178,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 
 	// If we do per test pass/fail then upload the result and compare it to the baseline.
 	if c.resultState.PerTestPassFail {
-		localFileName := filepath.Join(c.workDir, jsonTempFileName)
+		localFileName := filepath.Join(c.workDir, jsonTempFile)
 		if err := gsUtilUploadJson(c.resultState.GoldResults, localFileName, c.resultState.getResultFilePath()); err != nil {
 			return false, err
 		}
@@ -199,20 +199,61 @@ func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *json
 		return err
 	}
 
+	if err := c.loadOAuthToken(); err != nil {
+		return skerr.Fmt("Error loading auth information: %s", err)
+	}
+
 	// If we are ready that means we have loaded the resultState from the temporary directory.
 	if err := c.isReady(); err == nil {
 		return nil
 	}
 
-	// Create a new instance of result state. Setting freshState to true indicates that this needs
+	// If we have enough information we create an instance of the result state.
+	// Setting freshState to true indicates that this needs
 	// to be stored to disk once a test has been added successfully.
-	c.resultState, err = newResultState(goldResult, config, c.workDir, c.httpClient)
+	if config != nil && config.InstanceID != "" {
+		c.resultState, err = newResultState(goldResult, config, c.workDir, c.httpClient)
+		if err != nil {
+			return err
+		}
+
+		c.freshState = true
+	}
+	return nil
+}
+
+func (c *cloudClient) SetServiceAccount(serviceAccountFile string) error {
+	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", serviceAccountFile, gstorage.DevstorageFullControlScope)
+	if err != nil {
+		return skerr.Fmt("Error creating token source for GCP: %s", err)
+	}
+
+	c.oauthToken, err = tokenSrc.Token()
+	if err != nil {
+		skerr.Fmt("Error retrieving token: %s", err)
+	}
+
+	return c.saveOAuthToken()
+}
+
+// loadOauthToken loads the oauth token that has been saved earlier.
+func (c *cloudClient) loadOAuthToken() error {
+	inFile := filepath.Join(c.workDir, oauthTokenFile)
+	ret := &oauth2.Token{}
+	found, err := loadJSONFile(inFile, &ret)
 	if err != nil {
 		return err
 	}
 
-	c.freshState = true
+	if found {
+		c.oauthToken = ret
+	}
 	return nil
+}
+
+func (c *cloudClient) saveOAuthToken() error {
+	outFile := filepath.Join(c.workDir, oauthTokenFile)
+	return saveJSONFile(outFile, c.oauthToken)
 }
 
 // isReady returns true if the instance is ready to accept test results (all necessary info has been
@@ -225,6 +266,11 @@ func (c *cloudClient) isReady() error {
 	// if resultState hasn't been set yet, then we are simply not ready.
 	if c.resultState == nil {
 		return skerr.Fmt("No result state object available")
+	}
+
+	// Check whether we have some means of uploading results
+	if c.oauthToken == nil && !gsutilAvailable() {
+		return skerr.Fmt("Unable to find 'gsutil' on the PATH and no authentication information provided")
 	}
 
 	// Check if the GoldResults instance is complete once results are added.
@@ -335,34 +381,15 @@ func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, wo
 // loadStateFromJson loads a serialization of a resultState instance that was previously written
 // via the save method.
 func loadStateFromJson(fileName string) (*resultState, error) {
-	// If the state is not on disk, we return nil, indicating that a new resultState has to be created
-	if !fileutil.FileExists(fileName) {
+	ret := &resultState{}
+	exists, err := loadJSONFile(fileName, ret)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
 		return nil, nil
 	}
-
-	jsonBytes, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := &resultState{}
-	if err := json.Unmarshal(jsonBytes, ret); err != nil {
-		return nil, err
-	}
 	return ret, nil
-}
-
-// save serializes this instance to JSON and writes it to the given file.
-func (r *resultState) save(fileName string) error {
-	jsonBytes, err := json.Marshal(r)
-	if err != nil {
-		return skerr.Fmt("Error serializing resultState to JSON: %s", err)
-	}
-
-	if err := ioutil.WriteFile(fileName, jsonBytes, 0644); err != nil {
-		return skerr.Fmt("Error writing resultState to %s: %s", fileName, err)
-	}
-	return nil
 }
 
 // loadKnownHashes loads the list of known hashes from the Gold instance.
@@ -475,4 +502,36 @@ func (r *resultState) getResultFilePath() string {
 // getGCSImagePath returns the path in GCS where the image with the given hash should be stored.
 func (r *resultState) getGCSImagePath(imgHash string) string {
 	return fmt.Sprintf("%s/%s/%s.png", r.Bucket, imagePrefix, imgHash)
+}
+
+// loadJSONFile loads and parses the JSON in 'fileName'. If the file doesn't exist it returns
+// (false, nil). If the first return value is true, 'data' contains the parse JSON data.
+func loadJSONFile(fileName string, data interface{}) (bool, error) {
+	// If the state is not on disk, we return nil, indicating that a new resultState has to be created
+	if !fileutil.FileExists(fileName) {
+		return false, nil
+	}
+
+	jsonBytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return false, err
+	}
+
+	if err := json.Unmarshal(jsonBytes, data); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// saveJSONFile stores the given 'data' in a file with the given name
+func saveJSONFile(fileName string, data interface{}) error {
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		return skerr.Fmt("Error serializing to JSON: %s", err)
+	}
+
+	if err := ioutil.WriteFile(fileName, jsonBytes, 0644); err != nil {
+		return skerr.Fmt("Error writing JSON data to %s: %s", fileName, err)
+	}
+	return nil
 }
