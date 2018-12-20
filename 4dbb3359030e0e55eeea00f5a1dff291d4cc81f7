@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "6b19a61c_2a62904c",
+        "filename": "go/bt/bt.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-20T16:20:47Z",
+      "side": 1,
+      "message": "As a counter-point I went in the exact opposite direction with Perf:\n\n  https://github.com/google/skia-buildbot/blob/master/perf/go/config/config.go#L40\n\nTo me this has two big advantages:\n\n 1. I can use Go code navigation tools to get to where this is defined. As opposed to it being in a separate file.\n 2. It restricts the operation of Perf to a set of known configurations. For example, you can not change TileSize for an instance of Perf after it starts ingesting data. But I could accidentally make a mistake if TileSize was passed in as a flag, and the same concern arises if I have one config file per instance.\n\nI could see moving the data out into a separate file in the case of Perf, but only if the file contained all configs and I just selected a config by name as a flag to Perf.",
+      "parentUuid": "e020dd5c_ad8f1a18",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 2
+      },
+      "revId": "4dbb3359030e0e55eeea00f5a1dff291d4cc81f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c0851fec_3ac307d1",
         "filename": "task_driver/go/db/bigtable/bigtable_test.go",
         "patchSetId": 1
