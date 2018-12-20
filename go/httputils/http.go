@@ -629,6 +629,32 @@ func GetBaseURL(urlStr string) (string, error) {
 	return rv.String(), nil
 }
 
+// HTTPS forces traffic to go over HTTPS.  See:
+// https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
+//
+// h - The http.Handler to wrap.
+//
+// Example:
+//    if !*local {
+//      h := httputils.HTTPS(h)
+//    }
+//    http.Handle("/", h)
+//
+func HTTPS(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if "http" == r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) {
+			u := *r.URL
+			u.Host = r.Host
+			u.Scheme = "https"
+			http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
+			return
+		} else {
+			h.ServeHTTP(w, r)
+		}
+	}
+	return http.HandlerFunc(s)
+}
+
 // HealthzAndHTTPS forces traffic to go over HTTPS and also handles
 // healthchecks at /healthz.  See:
 // https://github.com/kubernetes/ingress-gce#redirecting-http-to-https
@@ -642,25 +668,26 @@ func GetBaseURL(urlStr string) (string, error) {
 //    http.Handle("/", h)
 //
 func HealthzAndHTTPS(h http.Handler) http.Handler {
+	return Healthz(HTTPS(h))
+}
+
+// Healthz handles healthchecks at /healthz and GFE healthchecks at /.
+//
+// Example:
+//    if !*local {
+//      h := httputils.Healthz(h)
+//    }
+//    http.Handle("/", h)
+//
+func Healthz(h http.Handler) http.Handler {
 	s := func(w http.ResponseWriter, r *http.Request) {
-		if "http" == r.Header.Get(SCHEME_AT_LOAD_BALANCER_HEADER) {
-			u := *r.URL
-			u.Host = r.Host
-			u.Scheme = "https"
-			http.Redirect(w, r, u.String(), http.StatusMovedPermanently)
+		if r.URL.Path == "/" && r.Header.Get("User-Agent") == "GoogleHC/1.0" {
+			w.WriteHeader(http.StatusOK)
+			return
+		} else if r.URL.Path == "/healthz" {
+			w.WriteHeader(http.StatusOK)
+			return
 		} else {
-			// We are running in Kubernetes as a Service so the requesting IP address
-			// isn't available, the only indicators that this is a healthcheck is the
-			// User-Agent, the request path, and that SCHEME_AT_LOAD_BALANCER_HEADER
-			// isn't set.
-			if r.URL.Path == "/" && r.Header.Get("User-Agent") == "GoogleHC/1.0" {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			if r.URL.Path == "/healthz" {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
 			h.ServeHTTP(w, r)
 		}
 	}

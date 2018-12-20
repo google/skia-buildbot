@@ -353,9 +353,11 @@ func main() {
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/run", runHandler)
 
+	h := httputils.LoggingGzipRequestResponse(r)
+	h = httputils.Healthz(r)
 	sklog.Infoln("Ready to serve.")
 	srv := &http.Server{
-		Handler:      httputils.LoggingGzipRequestResponse(r),
+		Handler:      h,
 		Addr:         *port,
 		WriteTimeout: 120 * time.Second,
 		ReadTimeout:  120 * time.Second,
