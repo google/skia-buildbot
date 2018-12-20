@@ -31,11 +31,16 @@ type CommitableBaseLine struct {
 
 // GetBaselineForMaster calculates the master baseline for the given configuration of
 // expectations and the given tile. The commit of the baseline is last commit
-// in tile.
+// in tile. If the
 func GetBaselineForMaster(exps types.Expectations, tile *tiling.Tile) *CommitableBaseLine {
 	commits := tile.Commits
-	var startCommit *tiling.Commit = nil
-	var endCommit *tiling.Commit = nil
+	if len(tile.Commits) == 0 {
+		return nil
+	}
+
+	// Set the start and end commit in case there are no traces
+	var startCommit *tiling.Commit = tile.Commits[0]
+	var endCommit *tiling.Commit = tile.Commits[len(tile.Commits)-1]
 
 	masterBaseline := types.TestExp{}
 	for _, trace := range tile.Traces {
