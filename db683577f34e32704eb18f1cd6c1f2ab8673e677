@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "450d42cb_878afc34",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-20T14:32:23Z",
+      "side": 1,
+      "message": "No quotes.",
+      "range": {
+        "startLine": 132,
+        "startChar": 16,
+        "endLine": 132,
+        "endChar": 26
+      },
+      "revId": "db683577f34e32704eb18f1cd6c1f2ab8673e677",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43a41b12_97d62eaa",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-20T14:32:23Z",
+      "side": 1,
+      "message": "Use an arrow function here and you won\u0027t need \"that \u003d this\" as the arrow preserves \u0027this\u0027.",
+      "revId": "db683577f34e32704eb18f1cd6c1f2ab8673e677",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
