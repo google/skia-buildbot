@@ -437,7 +437,10 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   _assign(e) {
-    $$('#chooser', this).open(this._emails).then(email => {
+    // rmistry
+    console.log('xxxxxxxxxxxx');
+    console.log(e);
+    $$('#chooser', this).open(this._emails, e._state.params.owner).then(email => {
       let detail = {
         key: e.detail.key,
         email: email,
