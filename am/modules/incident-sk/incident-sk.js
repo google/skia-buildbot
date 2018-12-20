@@ -79,6 +79,8 @@ function table(o) {
 }
 
 function actionButtons(ele) {
+  console.log('aaaaaaaaaaa');
+  console.log(ele._state.params.owner);
   if (ele._state.active) {
     return html`<section class=assign>
       <button @click=${ele._take}>Take</button>
