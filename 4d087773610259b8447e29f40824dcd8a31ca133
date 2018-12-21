@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7147dbd_558c6b7d",
+        "filename": "gold-client/cmd/goldctl/cmd_auth.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "nit: FWIW, other CLI tools in our repo call this \"workdir\" with no dash.",
+      "range": {
+        "startLine": 33,
+        "startChar": 43,
+        "endLine": 33,
+        "endChar": 51
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d4f1615_56d01c92",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "Would it be too cumbersome to specify the service account on the command line every time?",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 36
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9755d9c_e125c2ca",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "nit: seems like the docs and/or the method name should indicate that the token is saved to disk.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 47
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c810f01_3c9769c8",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "Is this change related to auth? I\u0027m having trouble figuring it out.",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d9d0f86_d015c59e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 552,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "nit: comment no longer applies",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f6400be_ac500eb9",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "uber-nit: as a general util function, it might be better to use streaming in case the file is large. util.WithReadFile might be useful.\n\nSimilar comment for saveJSONFile.",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "227a44e3_dffedb17",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "nit: when writing a new function, probably better to add a context param to the function rather than using TODO; instead, put the TODO in the caller.",
+      "range": {
+        "startLine": 74,
+        "startChar": 38,
+        "endLine": 74,
+        "endChar": 52
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "231b2f8c_6f47016a",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "nit: \"from a remote file\"",
+      "range": {
+        "startLine": 83,
+        "startChar": 28,
+        "endLine": 83,
+        "endChar": 43
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "185f14d3_687d79dc",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2018-12-21T18:25:39Z",
+      "side": 1,
+      "message": "unintentionally changed?",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
