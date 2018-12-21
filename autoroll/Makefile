@@ -86,7 +86,7 @@ push-be-kube: release-be-kube kube-conf-gen pushk deployment-dirs $(CONFIG_FILE)
 
 push-be-kube-internal: release-be-kube kube-conf-gen pushk deployment-dirs setup-internal-config-repo $(SKIA_CORP_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_INTERNAL)
 	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_INTERNAL), $(KUBE_CONF_GEN_INTERNAL);)
-	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-be
+	pushk --dry-run --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-be
 
 push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR) $(ROLLER_CONFIGS_KUBE_EXTERNAL)
 	$(foreach CONFIG_FILE, $(ROLLER_CONFIGS_KUBE_EXTERNAL), $(KUBE_CONF_GEN_EXTERNAL);)
