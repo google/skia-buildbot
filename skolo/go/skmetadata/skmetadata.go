@@ -259,6 +259,7 @@ func SetupServer(r *mux.Router, pm ProjectMetadata, im InstanceMetadata, tokenMa
 			httputils.ReportError(w, r, err, "Failed to obtain key.")
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		// Copied from
 		// https://github.com/golang/oauth2/blob/f6093e37b6cb4092101a298aba5d794eb570757f/google/google.go#L185
