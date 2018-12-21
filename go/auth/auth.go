@@ -397,3 +397,15 @@ func NewLUCIContextTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	})
 	return authenticator.TokenSource()
 }
+
+// SimpleTokenSrc implements the oauth2.TokenSource interface and wraps around a token
+// that has been retrieved by other means
+func SimpleTokenSrc(token *oauth2.Token) oauth2.TokenSource {
+	return &simpleTokenSrc{token: token}
+}
+
+type simpleTokenSrc struct {
+	token *oauth2.Token
+}
+
+func (s *simpleTokenSrc) Token() (*oauth2.Token, error) { return s.token, nil }
