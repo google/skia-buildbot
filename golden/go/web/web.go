@@ -26,21 +26,13 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
-)
-
-// Define common routes used by multiple servers
-const (
-	// BASELINE_ROUTE serves the expectations of the master branch
-	EXPECATIONS_ROUTE = "/json/expecations/commit/{commit_hash}"
-
-	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
-	EXPECATIONS_ISSUE_ROUTE = "/json/expecations/issue/{issue_id}"
 )
 
 const (
@@ -871,7 +863,7 @@ func (wh *WebHandlers) JsonTriageLogHandler(w http.ResponseWriter, r *http.Reque
 	q := r.URL.Query()
 	offset, size, err := httputils.PaginationParams(q, 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
-		validate := search.Validation{}
+		validate := shared.Validation{}
 		issue := validate.Int64Value("issue", q.Get("issue"), 0)
 		if err := validate.Errors(); err != nil {
 			httputils.ReportError(w, r, err, "Unable to retrieve triage log.")
@@ -1027,6 +1019,15 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
 			return
 		}
+
+		// Retrieve the commit at HEAD
+		tmpHashes := wh.Storages.Git.LastN(r.Context(), 1)
+		if len(tmpHashes) == 0 {
+			msg := "No commit information available"
+			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
+			return
+		}
+		commitHash = tmpHashes[0]
 	} else {
 		// Since this was not called for an issue, we need to extract a Git hash.
 		var ok bool

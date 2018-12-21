@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tryjobs"
@@ -424,44 +425,56 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(web.MakeResourceHandler(*resourcesDir))
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 
+	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
+
 	// /_/hashes is used by the bots to find hashes it does not need to upload.
 	router.HandleFunc("/_/hashes", handlers.TextAllHashesHandler).Methods("GET")
 	router.HandleFunc("/json/version", skiaversion.JsonHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
-	// json handlers only used by the new UI.
-	router.HandleFunc("/json/byblame", handlers.JsonByBlameHandler).Methods("GET")
-	router.HandleFunc("/json/list", handlers.JsonListTestsHandler).Methods("GET")
-	router.HandleFunc("/json/paramset", handlers.JsonParamsHandler).Methods("GET")
-	router.HandleFunc("/json/commits", handlers.JsonCommitsHandler).Methods("GET")
-	router.HandleFunc("/json/diff", handlers.JsonDiffHandler).Methods("GET")
-	router.HandleFunc("/json/details", handlers.JsonDetailsHandler).Methods("GET")
-	router.HandleFunc("/json/triage", handlers.JsonTriageHandler).Methods("POST")
-	router.HandleFunc("/json/clusterdiff", handlers.JsonClusterDiffHandler).Methods("GET")
-	router.HandleFunc("/json/cmp", handlers.JsonCompareTestHandler).Methods("POST")
-	router.HandleFunc("/json/triagelog", handlers.JsonTriageLogHandler).Methods("GET")
-	router.HandleFunc("/json/triagelog/undo", handlers.JsonTriageUndoHandler).Methods("POST")
-	router.HandleFunc("/json/failure", handlers.JsonListFailureHandler).Methods("GET")
-	router.HandleFunc("/json/failure/clear", handlers.JsonClearFailureHandler).Methods("POST")
-	router.HandleFunc("/json/cleardigests", handlers.JsonClearDigests).Methods("POST")
-	router.HandleFunc("/json/search", handlers.JsonSearchHandler).Methods("GET")
-	router.HandleFunc("/json/export", handlers.JsonExportHandler).Methods("GET")
-	router.HandleFunc("/json/tryjob", handlers.JsonTryjobListHandler).Methods("GET")
-	router.HandleFunc("/json/tryjob/{id}", handlers.JsonTryjobSummaryHandler).Methods("GET")
+	// Set up a subrouter for the '/json' routes which make up the Gold API.
+	// This makes routing faster, but also returns a failure when an /json route is
+	// requested that doesn't exit.
+	jsonRouter := router.PathPrefix("/json").Subrouter()
+	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
+
+	jsonRouter.HandleFunc(trim("/json/hashes"), handlers.TextAllHashesHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.JsonByBlameHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/list"), handlers.JsonListTestsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.JsonParamsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/commits"), handlers.JsonCommitsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/diff"), handlers.JsonDiffHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/details"), handlers.JsonDetailsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/triage"), handlers.JsonTriageHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.JsonClusterDiffHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/cmp"), handlers.JsonCompareTestHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.JsonTriageLogHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.JsonTriageUndoHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/failure"), handlers.JsonListFailureHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/failure/clear"), handlers.JsonClearFailureHandler).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/cleardigests"), handlers.JsonClearDigests).Methods("POST")
+	jsonRouter.HandleFunc(trim("/json/search"), handlers.JsonSearchHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/export"), handlers.JsonExportHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/tryjob"), handlers.JsonTryjobListHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.JsonTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
-	router.HandleFunc(web.EXPECATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
-	router.HandleFunc(web.EXPECATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
-	router.HandleFunc("/json/refresh/{id}", handlers.JsonRefreshIssue).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.EXPECATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.EXPECATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.JsonRefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
 	if openSite {
-		router.HandleFunc("/json/ignores", handlers.JsonIgnoresHandler).Methods("GET")
-		router.HandleFunc("/json/ignores/add/", handlers.JsonIgnoresAddHandler).Methods("POST")
-		router.HandleFunc("/json/ignores/del/{id}", handlers.JsonIgnoresDeleteHandler).Methods("POST")
-		router.HandleFunc("/json/ignores/save/{id}", handlers.JsonIgnoresUpdateHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores"), handlers.JsonIgnoresHandler).Methods("GET")
+		jsonRouter.HandleFunc(trim("/json/ignores/add/"), handlers.JsonIgnoresAddHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores/del/{id}"), handlers.JsonIgnoresDeleteHandler).Methods("POST")
+		jsonRouter.HandleFunc(trim("/json/ignores/save/{id}"), handlers.JsonIgnoresUpdateHandler).Methods("POST")
 	}
+
+	// Make sure we return a 404 for anything that starts with /json and could not be found.
+	jsonRouter.HandleFunc("/{ignore:.*}", http.NotFound)
+	router.HandleFunc("/json", http.NotFound)
 
 	// For everything else serve the same markup.
 	indexFile := *resourcesDir + "/index.html"

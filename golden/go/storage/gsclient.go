@@ -96,7 +96,10 @@ func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseli
 	if err != nil {
 		// If the item doesn't exist we return an empty baseline
 		if err == gstorage.ErrObjectNotExist {
-			return &baseline.CommitableBaseLine{Baseline: types.TestExp{}}, nil
+			return &baseline.CommitableBaseLine{
+				Baseline: types.TestExp{},
+				Issue:    issueID,
+			}, nil
 		}
 		return nil, sklog.FmtErrorf("Error fetching attributes of baseline file: %s", err)
 	}

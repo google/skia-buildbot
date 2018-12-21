@@ -139,8 +139,8 @@ func TestBaselineRobustness(t *testing.T) {
 	}()
 
 	// Read the master baseline that has not been written
-	emptyBaseline := &baseline.CommitableBaseLine{Baseline: types.TestExp{}}
-	foundBaseline, err := gsClient.ReadBaseline("", 0)
+	emptyBaseline := &baseline.CommitableBaseLine{Baseline: types.TestExp{}, Issue: 5344}
+	foundBaseline, err := gsClient.ReadBaseline("", 5344)
 	assert.NoError(t, err)
 	assert.Equal(t, emptyBaseline, foundBaseline)
 

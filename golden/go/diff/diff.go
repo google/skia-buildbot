@@ -138,7 +138,7 @@ type DiffStore interface {
 	// ImageHandler returns a http.Handler for the given path prefix. The caller
 	// can then serve images of the format:
 	//        <urlPrefix>/images/<digests>.png
-	//        <irlPrefix>/diffs/<digest1>-<digests2>.png
+	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
 	// WarmDigest will fetch the given digests. If sync is true the call will

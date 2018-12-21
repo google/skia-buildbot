@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"github.com/davecgh/go-spew/spew"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/baseline"
@@ -44,18 +46,23 @@ func (b *Baseliner) CanWriteBaseline() bool {
 // PushMasterBaselines writes the baselines for the master branch to GCS.
 func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 	if !b.CanWriteBaseline() {
-		return sklog.FmtErrorf("Trying to write baseline while GCS path is not configured.")
+		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
 
 	_, baseLine, err := b.getMasterBaseline(tile)
 	if err != nil {
-		return sklog.FmtErrorf("Error retrieving master baseline: %s", err)
+		return skerr.Fmt("Error retrieving master baseline: %s", err)
+	}
+
+	if baseLine == nil {
+		sklog.Infof("No baseline available.")
+		return nil
 	}
 
 	// Write the baseline to GCS.
 	outputPath, err := b.gStorageClient.WriteBaseLine(baseLine)
 	if err != nil {
-		return sklog.FmtErrorf("Error writing baseline to GCS: %s", err)
+		return skerr.Fmt("Error writing baseline to GCS: %s", err)
 	}
 	sklog.Infof("Baseline for master written to %s.", outputPath)
 	return nil
@@ -64,18 +71,18 @@ func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
 func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *tally.Tallies) error {
 	if !b.CanWriteBaseline() {
-		return sklog.FmtErrorf("Trying to write baseline while GCS path is not configured.")
+		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
 
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
-		return sklog.FmtErrorf("Unable to get issue expecations: %s", err)
+		return skerr.Fmt("Unable to get issue expecations: %s", err)
 	}
 
 	tryjobs, tryjobResults, err := b.tryjobStore.GetTryjobs(issueID, nil, true, true)
 	if err != nil {
-		return sklog.FmtErrorf("Unable to get TryjobResults")
+		return skerr.Fmt("Unable to get TryjobResults")
 	}
 	talliesByTest := tallies.ByTest()
 	baseLine := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, tile.Commits, talliesByTest)
@@ -83,7 +90,7 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies 
 	// Write the baseline to GCS.
 	outputPath, err := b.gStorageClient.WriteBaseLine(baseLine)
 	if err != nil {
-		return sklog.FmtErrorf("Error writing baseline to GCS: %s", err)
+		return skerr.Fmt("Error writing baseline to GCS: %s", err)
 	}
 	sklog.Infof("Baseline for issue %d written to %s.", issueID, outputPath)
 	return nil
@@ -100,6 +107,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 	egroup.Go(func() error {
 		var err error
 		masterBaseline, err = b.gStorageClient.ReadBaseline(commitHash, 0)
+		sklog.Infof("Master: %s    %s", commitHash, spew.Sdump(masterBaseline))
 		return err
 	})
 
@@ -107,6 +115,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 		egroup.Go(func() error {
 			var err error
 			issueBaseline, err = b.gStorageClient.ReadBaseline(commitHash, issueID)
+			sklog.Infof("issue %s   %d: %s", commitHash, issueID, spew.Sdump(issueBaseline))
 			return err
 		})
 	}
@@ -125,7 +134,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 func (b *Baseliner) getMasterBaseline(tile *tiling.Tile) (types.Expectations, *baseline.CommitableBaseLine, error) {
 	exps, err := b.expectationsStore.Get()
 	if err != nil {
-		return nil, nil, sklog.FmtErrorf("Unable to retrieve expectations: %s", err)
+		return nil, nil, skerr.Fmt("Unable to retrieve expectations: %s", err)
 	}
 
 	return exps, baseline.GetBaselineForMaster(exps, tile), nil

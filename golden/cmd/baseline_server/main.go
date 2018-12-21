@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
 	gstorage "google.golang.org/api/storage/v1"
@@ -60,8 +61,8 @@ func main() {
 	router := mux.NewRouter()
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
-	router.HandleFunc(web.EXPECATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
-	router.HandleFunc(web.EXPECATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(shared.EXPECATIONS_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
+	router.HandleFunc(shared.EXPECATIONS_ISSUE_ROUTE, handlers.JsonBaselineHandler).Methods("GET")
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
