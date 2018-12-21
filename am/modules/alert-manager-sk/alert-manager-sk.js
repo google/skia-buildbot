@@ -163,7 +163,7 @@ const template = (ele) => html`
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
-      ${incidentList(ele, ele._incidents.filter(i => i.active && ((ele._user === ele._trooper && (i.params.__silence_state !== 'silenced')) || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user))))}
+      ${incidentList(ele, ele._incidents.filter(i => i.active && ((ele._user === ele._trooper && (i.params.__silence_state !== 'silenced')) || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && i.params.assigned_to === ''))))}
     </section>
     <section class=incidents>
       ${incidentList(ele, ele._incidents)}
@@ -587,7 +587,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       && (
         (isTrooper && !incident.params.assigned_to)
         || (incident.params.assigned_to == this._user)
-        || (incident.params.owner == this._user)
+        || (incident.params.owner == this._user
+            && incident.params.assigned_to === '')
       )
     ) {
       return true
