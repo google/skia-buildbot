@@ -851,11 +851,12 @@ func main() {
 	})
 
 	// Create the TaskDriver DB.
-	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, *btInstance, ts)
+	taskDriverBtInstance := "staging" // Task Drivers aren't in prod yet.
+	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, taskDriverBtInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, *btInstance, ts)
+	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, taskDriverBtInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
