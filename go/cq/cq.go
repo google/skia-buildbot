@@ -33,7 +33,7 @@ const (
 
 	// Thresholds after which errors are logged.
 	CQ_TRYBOT_DURATION_SECS_THRESHOLD = 2700
-	CQ_TRYBOTS_COUNT_THRESHOLD        = 35
+	CQ_TRYBOTS_COUNT_THRESHOLD        = 50
 )
 
 var (

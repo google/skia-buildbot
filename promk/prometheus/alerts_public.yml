@@ -89,6 +89,7 @@ groups:
       abbr: 'Too many CLs in CQ.'
       description: 'There are 10 CLs or more in a Skia CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
 
+  # Update CQ_TRYBOT_DURATION_SECS_THRESHOLD in go/cq/cq.go if the number below is changed.
   - alert: CQWatcherTrybotDuration
     expr: max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]) > 2700
     labels:
@@ -98,6 +99,7 @@ groups:
       abbr: 'CQ trybot running for too long.'
       description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQTrybotDurationError%22'
 
+  # Update CQ_TRYBOTS_COUNT_THRESHOLD in go/cq/cq.go if the number below is changed.
   - alert: CQWatcherTrybotsCount
     expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 50
     labels:
