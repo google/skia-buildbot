@@ -410,14 +410,12 @@ func (c *taskCache) Update() error {
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if db.IsUnknownId(err) {
+	if err != nil {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
 			return err
 		}
 		return nil
-	} else if err != nil {
-		return err
 	}
 	c.expireAndUpdate(newTasks)
 	return nil
@@ -656,14 +654,12 @@ func (c *jobCache) Update() error {
 	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if db.IsUnknownId(err) {
+	if err != nil {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
 			return err
 		}
 		return nil
-	} else if err != nil {
-		return err
 	}
 	c.expireAndUpdate(newJobs)
 	return nil
