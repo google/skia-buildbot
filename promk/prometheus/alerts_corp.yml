@@ -8,6 +8,7 @@ groups:
     labels:
       category: infra
       severity: warning
+      owner: borenet@google.com
     annotations:
       description: 'The last DEPS roll into internal_test repo failed. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#autoroll_failed'
 
@@ -16,6 +17,7 @@ groups:
     labels:
       category: infra
       severity: warning
+      owner: borenet@google.com
     annotations:
       description: 'The last-landed roll into internal_test was over 24h ago. https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#no_rolls_24h'
 
@@ -26,6 +28,7 @@ groups:
     labels:
       category: infra
       severity: warning
+      owner: rmistry@google.com
     annotations:
       abbr: 'Too many waiting android compile tasks'
       description: 'There are 5 or more waiting android compile tasks. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#queue_too_long'
@@ -36,6 +39,7 @@ groups:
     labels:
       category: infra
       severity: warning
+      owner: rmistry@google.com
     annotations:
       abbr: 'Mirror sync in android compile server failed'
       description: 'Mirror sync in android compile server failed. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#mirror_sync_failed'
@@ -46,6 +50,7 @@ groups:
     labels:
       category: infra
       severity: warning
+      owner: rmistry@google.com
     annotations:
       abbr: 'Android tree might be broken'
       description: 'Android tree might be broken. Both withpatch and nopatch runs failed on android compile server. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#android_tree_broken'
@@ -56,6 +61,7 @@ groups:
     labels:
       category: infra
       severity: critical
+      owner: rmistry@google.com
     annotations:
       abbr: 'Infra failure in android compile bot'
       description: 'Infra failure in android compile bot. https://skia.googlesource.com/buildbot/%2B/master/android_compile/PROD.md#infra_failure'
