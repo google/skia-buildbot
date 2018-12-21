@@ -51,8 +51,10 @@ func mapTasks(tasks []*types.Task) map[string][]*Task {
 // just "return c.Reset(...)".  Assumes the caller holds a lock.
 func (c *taskCache) Reset(w *window.Window) (map[string][]*Task, bool, error) {
 	sklog.Infof("Resetting DB connection.")
-	c.db.StopTrackingModifiedTasks(c.queryId)
-	c.queryId = ""
+	if c.queryId != "" {
+		c.db.StopTrackingModifiedTasks(c.queryId)
+		c.queryId = ""
+	}
 	queryId, err := c.db.StartTrackingModifiedTasks()
 	if err != nil {
 		return nil, false, err
