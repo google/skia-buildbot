@@ -52,6 +52,11 @@ func singleRequest(c *http.Client, body []byte, domain string, sleep time.Durati
 		time.Sleep(sleep)
 		return nil, false
 	}
+	// Occasionally runs will exceed 20s which looks like a security violation,
+	// so this forces them to be re-run.
+	if runResults.RunTimeError != "" {
+		return nil, false
+	}
 	return &runResults, true
 }
 

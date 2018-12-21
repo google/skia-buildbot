@@ -22,7 +22,7 @@ import (
 
 const (
 	// VERSION of the application. Update for major and minor changes to functionality.
-	VERSION = "1.1"
+	VERSION = "1.2"
 )
 
 // flags
