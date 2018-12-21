@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f358599_4608ec62",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-21T13:25:58Z",
+      "side": 1,
+      "message": "Should we have an owner for these alerts? if yes then who should it be?",
+      "range": {
+        "startLine": 106,
+        "startChar": 2,
+        "endLine": 106,
+        "endChar": 12
+      },
+      "revId": "58e7ffcb5ffdacf3701aff7c9bc909bd6c3d57be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21ed1d22_dd2bb49c",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 4
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-21T13:25:58Z",
+      "side": 1,
+      "message": "Is borenet@ the owner of both these alerts?",
+      "range": {
+        "startLine": 212,
+        "startChar": 2,
+        "endLine": 212,
+        "endChar": 8
+      },
+      "revId": "58e7ffcb5ffdacf3701aff7c9bc909bd6c3d57be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccfffa4c_3c13ee42",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2018-12-21T13:25:58Z",
+      "side": 1,
+      "message": "Who is the owner of task scheduler alerts?",
+      "range": {
+        "startLine": 281,
+        "startChar": 2,
+        "endLine": 281,
+        "endChar": 16
+      },
+      "revId": "58e7ffcb5ffdacf3701aff7c9bc909bd6c3d57be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
