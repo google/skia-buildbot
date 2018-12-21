@@ -26,6 +26,7 @@ import { Login } from 'infra-sk/modules/login'
 import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { stateReflector} from 'common-sk/modules/stateReflector'
 
 import * as paramset from '../paramset'
 import { abbr, displaySilence, expiresIn } from '../am'
@@ -81,7 +82,7 @@ function viewStats(ele) {
 }
 
 function rightHandSide(ele) {
-  switch (ele._state) {
+  switch (ele._rhs_state) {
     case START:
       return ``
     case INCIDENT:
@@ -155,7 +156,7 @@ function numMatchSilence(ele, s) {
 const template = (ele) => html`
 <header>${trooper(ele)}<login-sk></login-sk></header>
 <section class=nav>
-  <tabs-sk @tab-selected-sk=${ele._tabSwitch}>
+  <tabs-sk @tab-selected-sk=${ele._tabSwitch} selected=${ele._state.tab}>
     <button>Mine</button>
     <button>Alerts</button>
     <button>Silences</button>
@@ -211,7 +212,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._stats = []; // Last requested stats.
     this._stats_range = '1w';
     this._incident_stats = []; // The incidents for a given stat.
-    this._state = START; // One of START, INCIDENT, or EDIT_SILENCE.
+    this._rhs_state = START; // One of START, INCIDENT, or EDIT_SILENCE.
     this._selected = null; // The selected incident, i.e. you clicked on the name.
     this._checked = new Set();    // Checked incidents, i.e. you clicked the checkbox.
     this._current_silence = null; // A silence under construction.
@@ -220,6 +221,9 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
     this._user = 'barney@example.org';
     this._trooper = '';
+    this._state = {
+      tab: 0, // The selected tab.
+    };
     fetch('https://skia-tree-status.appspot.com/current-trooper?format=json', {mode: 'cors'}).then(jsonOrThrow).then(json => {
       this._trooper = json.username;
       this._render();
@@ -242,6 +246,14 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this.addEventListener('take', e => this._take(e));
     this.addEventListener('assign', e => this._assign(e));
     this.addEventListener('assign-to-owner', e => this._assignToOwner(e));
+
+    this._stateHasChanged = stateReflector(
+      () => this._state,
+      (state) => {
+        this._state = state;
+        this._render();
+      }
+    );
 
     this._render();
     this._busy = $$('#busy', this);
@@ -285,11 +297,14 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   _tabSwitch(e) {
+    this._state.tab = e.detail.index;
+    this._stateHasChanged();
+
     // If tab is stats then load stats.
     if (e.detail.index === 3) {
       this._getStats();
     }
-    this._state = START;
+    this._rhs_state = START;
     this._render();
   }
 
@@ -301,14 +316,14 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   _silenceClick(silence) {
     this._current_silence = JSON.parse(JSON.stringify(silence));
     this._selected = silence;
-    this._state = EDIT_SILENCE;
+    this._rhs_state = EDIT_SILENCE;
     this._render();
   }
 
   _statsClick(incident) {
     this._selected = incident;
     this._incidentStats();
-    this._state = VIEW_STATS;
+    this._rhs_state = VIEW_STATS;
   }
 
   // Update the paramset for a silence as Incidents are checked and unchecked.
@@ -333,7 +348,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       });
     }
 
-    this._state = EDIT_SILENCE;
+    this._rhs_state = EDIT_SILENCE;
     this._render();
   }
 
@@ -389,7 +404,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   _select(incident) {
-    this._state = INCIDENT;
+    this._rhs_state = INCIDENT;
     this._checked = new Set();
     this._selected = incident;
     this._current_silence = null;
@@ -512,7 +527,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       this._silences.push(json);
     }
     if (clear) {
-      this._state = START;
+      this._rhs_state = START;
     }
   }
 
