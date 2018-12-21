@@ -11,14 +11,14 @@
   "dependencies": {
     "@webcomponents/custom-elements": "~1.2.1",
     "common-sk": "~3.1.0",
-    "infra-sk": "~0.8.0",
-    "elements-sk": "~2.6.0",
+    "infra-sk": "~0.8.1",
+    "elements-sk": "~2.7.0",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {
     "chai": "~4.2.0",
     "copy-webpack-plugin": "~4.6.0",
-    "karma": "~3.1.3",
+    "karma": "~3.1.4",
     "karma-chai": "~0.1.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-firefox-launcher": "~1.1.0",
@@ -27,9 +27,9 @@
     "karma-webpack": "~3.0.5",
     "mocha": "~5.2.0",
     "pulito": "~4.1.1",
-    "sinon": "~7.2.0",
-    "webpack": "~4.27.1",
+    "sinon": "~7.2.2",
+    "webpack": "~4.28.1",
     "webpack-cli": "~3.1.2",
-    "webpack-dev-server": "~3.1.10"
+    "webpack-dev-server": "~3.1.11"
   }
 }
