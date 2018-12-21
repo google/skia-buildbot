@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/periodic_triggers"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
@@ -111,7 +110,6 @@ type TaskScheduler struct {
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
-	periodicTriggers *periodic_triggers.Triggerer
 	pools            []string
 	pubsubTopic      string
 	queue            []*taskCandidate // protected by queueMtx.
@@ -161,11 +159,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
 
-	pt, err := periodic_triggers.NewTriggerer(workdir)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create periodic triggers: %s", err)
-	}
-
 	s := &TaskScheduler{
 		bl:               bl,
 		busyBots:         newBusyBots(),
@@ -177,7 +170,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		newTasks:         map[types.RepoState]util.StringSet{},
 		newTasksMtx:      sync.RWMutex{},
 		pendingInsert:    map[string]bool{},
-		periodicTriggers: pt,
 		pools:            pools,
 		pubsubTopic:      pubsubTopic,
 		queue:            []*taskCandidate{},
@@ -192,7 +184,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		window:           w,
 		workdir:          workdir,
 	}
-	s.registerPeriodicTriggers()
 	return s, nil
 }
 
@@ -315,6 +306,44 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidat
 // names and commit hashes.
 func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
 	return s.taskCfgCache.RecentSpecsAndCommits()
+}
+
+// TriggerPeriodicJobs triggers all periodic jobs with the given trigger name.
+func (s *TaskScheduler) TriggerPeriodicJobs(ctx context.Context, triggerName string) error {
+	// TODO(borenet): How do we do liveness metrics?
+	jobs := []*types.Job{}
+	for repoUrl, repo := range s.repos {
+		master := repo.Get("master")
+		if master == nil {
+			return fmt.Errorf("Failed to retrieve branch 'master' for %s", repoUrl)
+		}
+		rs := types.RepoState{
+			Repo:     repoUrl,
+			Revision: master.Hash,
+		}
+		cfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
+		}
+		for name, js := range cfg.Jobs {
+			if js.Trigger == triggerName {
+				job, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+				if err != nil {
+					return fmt.Errorf("Failed to create job: %s", err)
+				}
+				jobs = append(jobs, job)
+			}
+		}
+	}
+	sklog.Info("Would have triggered:")
+	for _, job := range jobs {
+		sklog.Infof("  %s", job.Name)
+	}
+	/*if err := s.db.PutJobs(jobs); err != nil {
+		return fmt.Errorf("Failed to add periodic jobs: %s", err)
+	}*/
+	sklog.Infof("Created %d periodic jobs.", len(jobs))
+	return nil
 }
 
 // TriggerJob adds the given Job to the database and returns its ID.
@@ -1286,11 +1315,6 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 	}
 
 	if err := s.db.PutJobs(newJobs); err != nil {
-		return err
-	}
-
-	// Also trigger any available periodic jobs.
-	if err := s.triggerPeriodicJobs(ctx); err != nil {
 		return err
 	}
 
