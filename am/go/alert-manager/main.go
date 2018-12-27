@@ -232,9 +232,11 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		srv.loadTemplates()
 	}
+	sklog.Infof("Nonce: %q", secure.CSPNonce(r.Context()))
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		// base64 encode the csrf to avoid golang templating escaping.
-		"csrf": base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"csrf":  base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -593,7 +595,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 		ConnectSrc: []string{"https://skia.org", "https://skia-tree-status.appspot.com", csp.SourceSelf},
 		ImgSrc:     []string{csp.SourceSelf},
 		StyleSrc:   []string{csp.SourceSelf, csp.SourceUnsafeInline},
-		ScriptSrc:  []string{csp.SourceSelf},
+		ScriptSrc:  []string{"$NONCE", csp.SourceUnsafeInline, csp.SourceSelf},
 	}
 
 	if *local {
