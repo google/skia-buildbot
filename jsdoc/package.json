@@ -1,8 +1,8 @@
 {
   "dependencies": {
-    "common-sk": "^2.0.1",
-    "elements-sk": "~2.5.0",
+    "common-sk": "^3.1.0",
+    "elements-sk": "~2.7.0",
     "jsdoc": "^3.5.5",
-    "webpack-cli": "^2.1.4"
+    "webpack-cli": "^3.1.2"
   }
 }
