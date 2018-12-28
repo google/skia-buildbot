@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b2c3028_dc47fe41",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2018-12-28T16:29:27Z",
+      "side": 1,
+      "message": "This is a clone of unrolled/secure, but only until my PR lands:\n\n   https://github.com/unrolled/secure/pull/46",
+      "revId": "0ae7af1512423167bd3589f5943bd31e6db5e45d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
