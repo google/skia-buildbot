@@ -25,7 +25,7 @@ const (
 
 {{.ChildRepoCompareUrl}}
 
-git log {{.From}}..{{.To}} --no-merges --oneline
+git {{.GitLogCmd}}
 {{.LogStr}}
 
 The AutoRoll server is located here: {{.ServerURL}}
@@ -246,8 +246,9 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Build the commit message.
 	user, repo := GetUserAndRepo(rm.childRepoURL)
-	githubCompareUrl := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from[:12], to[:12])
-	logStr, err := rm.childRepo.Git(ctx, "log", fmt.Sprintf("%s..%s", from, to), "--no-merges", "--oneline")
+	childRepoCompareURL := fmt.Sprintf("https://github.com/%s/%s/compare/%s...%s", user, repo, from[:12], to[:12])
+	logCmd := []string{"log", fmt.Sprintf("%s..%s", from, to), "--no-merges", "--oneline"}
+	logStr, err := rm.childRepo.Git(ctx, logCmd...)
 	if err != nil {
 		return 0, err
 	}
@@ -255,32 +256,10 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
 	// explicitly adding the child repo to the PR number.
 	logStr = pullRequestInLogRE.ReplaceAllString(logStr, fmt.Sprintf(" (%s/%s$1)", user, repo))
-
-	data := struct {
-		ChildPath           string
-		ChildRepoCompareUrl string
-		From                string
-		To                  string
-		NumCommits          int
-		LogURL              string
-		LogStr              string
-		ServerURL           string
-		SheriffEmails       string
-	}{
-		ChildPath:           rm.childPath,
-		ChildRepoCompareUrl: githubCompareUrl,
-		From:                from[:12],
-		To:                  to[:12],
-		NumCommits:          len(strings.Split(logStr, "\n")),
-		LogStr:              logStr,
-		ServerURL:           rm.serverURL,
-		SheriffEmails:       strings.Join(emails, ","),
+	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, logCmd, emails)
+	if err != nil {
+		return 0, fmt.Errorf("Could not build github commit message: %s", err)
 	}
-	var buf bytes.Buffer
-	if err := githubCommitMsgTmpl.Execute(&buf, data); err != nil {
-		return 0, err
-	}
-	commitMsg := buf.String()
 
 	versions, err := rm.childRepo.RevList(ctx, "--no-merges", fmt.Sprintf("%s..%s", from, to))
 	if err != nil {
@@ -353,6 +332,37 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 	}
 
 	return int64(pr.GetNumber()), nil
+}
+
+// GetGithubCommitMsg is a utility that returns a commit message that can be used in github rolls.
+func GetGithubCommitMsg(logStr, childRepoCompareURL, childPath, from, to, serverURL string, logCmd, emails []string) (string, error) {
+	data := struct {
+		ChildPath           string
+		ChildRepoCompareUrl string
+		From                string
+		GitLogCmd           string
+		To                  string
+		NumCommits          int
+		LogURL              string
+		LogStr              string
+		ServerURL           string
+		SheriffEmails       string
+	}{
+		ChildPath:           childPath,
+		ChildRepoCompareUrl: childRepoCompareURL,
+		From:                from[:12],
+		GitLogCmd:           strings.Join(logCmd, " "),
+		To:                  to[:12],
+		NumCommits:          len(strings.Split(logStr, "\n")),
+		LogStr:              logStr,
+		ServerURL:           serverURL,
+		SheriffEmails:       strings.Join(emails, ","),
+	}
+	var buf bytes.Buffer
+	if err := githubCommitMsgTmpl.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func GetUserAndRepo(githubRepo string) (string, string) {
