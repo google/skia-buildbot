@@ -16,10 +16,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/99designs/goodies/http/secure_headers/csp"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
-	"github.com/unrolled/secure"
+	"github.com/skia-dev/secure"
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
 	"go.skia.org/infra/am/go/silence"
@@ -232,9 +231,11 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		srv.loadTemplates()
 	}
+	sklog.Infof("Nonce: %q", secure.CSPNonce(r.Context()))
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		// base64 encode the csrf to avoid golang templating escaping.
-		"csrf": base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"csrf":  base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -586,20 +587,45 @@ func (srv *Server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type CSPLog struct {
+	Type string      `json:"type"`
+	Body interface{} `json:"body"`
+}
+
+func cspReportWrapper(h http.Handler) http.Handler {
+	s := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/cspreport" && r.Method == "POST" {
+			var body interface{}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				sklog.Errorf("Failed to decode csp report: %s", err)
+				return
+			}
+			c := CSPLog{
+				Type: "csp",
+				Body: body,
+			}
+			b, err := json.Marshal(c)
+			if err != nil {
+				sklog.Errorf("Failed to marshal csp log entry: %s", err)
+				return
+			}
+			fmt.Println(string(b))
+			return
+		} else {
+			h.ServeHTTP(w, r)
+		}
+	}
+	return http.HandlerFunc(s)
+}
+
 func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 	// Configure Content Security Policy (CSP).
-	cspOpts := csp.Opts{
-		DefaultSrc: []string{csp.SourceNone},
-		ConnectSrc: []string{"https://skia.org", "https://skia-tree-status.appspot.com", csp.SourceSelf},
-		ImgSrc:     []string{csp.SourceSelf},
-		StyleSrc:   []string{csp.SourceSelf, csp.SourceUnsafeInline},
-		ScriptSrc:  []string{csp.SourceSelf},
-	}
-
+	addScriptSrc := ""
 	if *local {
 		// webpack uses eval() in development mode, so allow unsafe-eval when local.
-		cspOpts.ScriptSrc = append(cspOpts.ScriptSrc, "'unsafe-eval'")
+		addScriptSrc = "'unsafe-eval'"
 	}
+	cspString := fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self' 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' %s https: http: ; report-uri /cspreport ;", addScriptSrc)
 
 	// Apply CSP and other security minded headers.
 	secureMiddleware := secure.New(secure.Options{
@@ -609,7 +635,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 		STSSeconds:            60 * 60 * 24 * 365,
 		STSIncludeSubdomains:  true,
-		ContentSecurityPolicy: cspOpts.Header(),
+		ContentSecurityPolicy: cspString,
 		IsDevelopment:         *local,
 	})
 
@@ -670,6 +696,7 @@ func main() {
 		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 		h = httputils.HealthzAndHTTPS(h)
 	}
+	h = cspReportWrapper(h)
 	http.Handle("/", h)
 	sklog.Infoln("Ready to serve.")
 	sklog.Fatal(http.ListenAndServe(*port, nil))
