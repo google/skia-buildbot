@@ -1,5 +1,6 @@
 const commonBuilder = require('pulito');
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin');
 
 module.exports = (env, argv) => {
   let config = commonBuilder(env, argv, __dirname);
@@ -16,6 +17,11 @@ module.exports = (env, argv) => {
         to: 'icon-active.png'
       }
     ])
+  );
+  config.plugins.push(
+    new HtmlWebpackInjectAttributesPlugin({
+      nonce: "{%.nonce%}",
+    }),
   );
   return config;
 }

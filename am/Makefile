@@ -11,7 +11,7 @@ release: build package-lock.json
 	./build_alert_to_pubsub_release
 
 debug:
-	npx webpack --mode=production
+	npx webpack --mode=development
 
 legacy_release: build package-lock.json
 	./build_legacy_alert_to_pubsub_release "`git log -n1 --format=%s`"

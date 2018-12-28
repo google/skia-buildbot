@@ -11,13 +11,15 @@
   "dependencies": {
     "@webcomponents/custom-elements": "~1.2.1",
     "common-sk": "~3.1.0",
-    "infra-sk": "~0.8.1",
     "elements-sk": "~2.7.0",
+    "html-webpack-inject-attributes-plugin": "^1.0.1",
+    "infra-sk": "~0.8.1",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {
     "chai": "~4.2.0",
     "copy-webpack-plugin": "~4.6.0",
+    "html-webpack-plugin": "^3.2.0",
     "karma": "~3.1.4",
     "karma-chai": "~0.1.0",
     "karma-chrome-launcher": "~2.2.0",
