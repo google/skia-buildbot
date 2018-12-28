@@ -16,10 +16,9 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/99designs/goodies/http/secure_headers/csp"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
-	"github.com/unrolled/secure"
+	"github.com/skia-dev/secure"
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
 	"go.skia.org/infra/am/go/silence"
@@ -232,9 +231,11 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		srv.loadTemplates()
 	}
+	sklog.Infof("Nonce: %q", secure.CSPNonce(r.Context()))
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		// base64 encode the csrf to avoid golang templating escaping.
-		"csrf": base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"csrf":  base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
+		"nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -588,17 +589,12 @@ func (srv *Server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 	// Configure Content Security Policy (CSP).
-	cspOpts := csp.Opts{
-		DefaultSrc: []string{csp.SourceNone},
-		ConnectSrc: []string{"https://skia.org", "https://skia-tree-status.appspot.com", csp.SourceSelf},
-		ImgSrc:     []string{csp.SourceSelf},
-		StyleSrc:   []string{csp.SourceSelf, csp.SourceUnsafeInline},
-		ScriptSrc:  []string{csp.SourceSelf},
-	}
+
+	cspString := "base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self' 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' https: http: ; report-uri /cspreport ;"
 
 	if *local {
 		// webpack uses eval() in development mode, so allow unsafe-eval when local.
-		cspOpts.ScriptSrc = append(cspOpts.ScriptSrc, "'unsafe-eval'")
+		cspString = "base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self' 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' 'unsafe-eval' https: http: ; report-uri /cspreport ;"
 	}
 
 	// Apply CSP and other security minded headers.
@@ -609,7 +605,7 @@ func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
 		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
 		STSSeconds:            60 * 60 * 24 * 365,
 		STSIncludeSubdomains:  true,
-		ContentSecurityPolicy: cspOpts.Header(),
+		ContentSecurityPolicy: cspString,
 		IsDevelopment:         *local,
 	})
 
