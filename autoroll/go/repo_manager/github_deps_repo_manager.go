@@ -225,9 +225,20 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Build the commit message.
-	commitMsg, err := rm.buildCommitMsg(ctx, from, to, cqExtraTrybots, nil)
+	logStr, err := exec.RunCwd(ctx, rm.childDir, "git", "log", fmt.Sprintf("%s..%s", from, to), "--date=short", "--no-merges", "--format=%ad %ae %s")
 	if err != nil {
 		return 0, err
+	}
+	logStr = strings.TrimSpace(logStr)
+	remoteUrl, err := exec.RunCwd(ctx, rm.childDir, "git", "remote", "get-url", "origin")
+	if err != nil {
+		return 0, err
+	}
+	remoteUrl = strings.TrimSpace(remoteUrl)
+	childRepoCompareURL := fmt.Sprintf("%s/+log/%s..%s", remoteUrl, from[:12], to[:12])
+	commitMsg, err := GetGithubCommitMsg(logStr, childRepoCompareURL, rm.childPath, from, to, rm.serverURL, emails)
+	if err != nil {
+		return 0, fmt.Errorf("Could not build github commit message: %s", err)
 	}
 
 	// Commit.
