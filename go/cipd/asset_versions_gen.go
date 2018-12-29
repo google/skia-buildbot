@@ -5,7 +5,7 @@ package cipd
 var PKG_VERSIONS_FROM_ASSETS = map[string]string{
 	"gcloud_linux": "13",
 	"go":           "6",
-	"go_deps":      "107",
+	"go_deps":      "108",
 	"node":         "0",
 	"protoc":       "0",
 }
