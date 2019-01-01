@@ -588,6 +588,12 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ForceAuthMiddleware(oauthCallbackPath string) func(http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return ForceAuth(h, oauthCallbackPath)
+	}
+}
+
 // ForceAuth is middleware that enforces authentication
 // before the wrapped handler is called. oauthCallbackPath is the
 // URL path that the user is redirected to at the end of the auth flow.
