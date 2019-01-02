@@ -20,6 +20,10 @@ push: release
 	pushk --cluster=skia-public alert-manager alert-to-pubsub
 	pushk --cluster=skia-corp alert-to-pubsub
 
+
+push_am: release
+	pushk --cluster=skia-public alert-manager
+
 serve: package-lock.json
 	npx webpack-dev-server --mode=development --watch-poll
 
