@@ -14,7 +14,7 @@
   "rollerName": "angle-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://build.chromium.org/deprecated/chromium/sheriff_angle.json"
+    "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
   ],
   "sheriffBackup": [
     "ynovikov@chromium.org"
