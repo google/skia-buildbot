@@ -17,9 +17,19 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
 	"go.skia.org/infra/go/sklog"
+
+	"go.skia.org/infra/go/metrics2"
 )
 
-var cipdRoot = path.Join(os.TempDir(), "cipd")
+var (
+	cipdRoot = path.Join(os.TempDir(), "cipd")
+
+	// Vars for Flutter's license script pre-upload step.
+	// Metric for keeping track of license script failures.
+	flutterLicenseScriptFailureMetric = metrics2.GetInt64Metric("flutter_license_script_failure", nil)
+	// Above metric is updated with this value at the end of FlutterLicenseScripts pre-upload step.
+	licenseScriptFailure int64
+)
 
 // PreUploadStep is a function to be run after the roll is performed but before
 // a CL is uploaded. The http.Client should be authenticated for use by
@@ -80,11 +90,18 @@ func TrainInfra(ctx context.Context, client *http.Client, parentRepoDir string) 
 	return nil
 }
 
+func updateFlutterLicenseFailureMetric() {
+	flutterLicenseScriptFailureMetric.Update(licenseScriptFailure)
+}
+
 // Run the flutter license scripts as described in
 // https://bugs.chromium.org/p/skia/issues/detail?id=7730#c6 and in
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir string) error {
 	sklog.Info("Running flutter license scripts.")
+	licenseScriptFailure = 1
+	defer updateFlutterLicenseFailureMetric()
+
 	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
 	// Step1: Run pub get.
@@ -148,6 +165,7 @@ func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir st
 	}
 
 	sklog.Info("Done running flutter license scripts.")
+	licenseScriptFailure = 0
 	return nil
 }
 
