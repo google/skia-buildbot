@@ -4,7 +4,6 @@
  *
  *   The main application element for am.skia.org.
  *
- * @attr csrf - The csrf string to attach to POST requests, based64 encoded.
  */
 import 'elements-sk/checkbox-sk'
 import 'elements-sk/error-toast-sk'
@@ -30,6 +29,7 @@ import { stateReflector} from 'common-sk/modules/stateReflector'
 
 import * as paramset from '../paramset'
 import { abbr, displaySilence, expiresIn } from '../am'
+import * as Cookies from 'js-cookie/src/js.cookie.js'
 
 // Legal states.
 const START = 'start';
@@ -531,15 +531,14 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     }
   }
 
-
   // Common work done for all fetch requests.
   _doImpl(url, detail, action=json => this._incidentAction(json)) {
     this._busy.active = true;
+    console.log(document.cookie);
     fetch(url, {
       body: JSON.stringify(detail),
       headers: {
         'content-type': 'application/json',
-        'X-CSRF-Token': atob(this.getAttribute('csrf')),
       },
       credentials: 'include',
       method: 'POST',

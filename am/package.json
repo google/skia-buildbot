@@ -14,6 +14,7 @@
     "elements-sk": "~2.7.0",
     "html-webpack-inject-attributes-plugin": "^1.0.1",
     "infra-sk": "~0.8.1",
+    "js-cookie": "^2.2.0",
     "lit-html": "~0.14.0"
   },
   "devDependencies": {
