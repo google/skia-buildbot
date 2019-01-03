@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8754a345_bc0030e9",
+        "filename": "scripts/gcr_image_cleanup/gcr_image_cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-03T19:49:47Z",
+      "side": 1,
+      "message": "Needs a --dry_run flag.",
+      "revId": "91fafbec814cbaff889570af483867d53068d31c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96ec79ba_e83b4aa3",
+        "filename": "scripts/gcr_image_cleanup/gcr_image_cleanup.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-03T19:49:47Z",
+      "side": 1,
+      "message": "i, err :\u003d ...\nif err !\u003d nil {\n  log.Fatal(err)\n}",
+      "revId": "91fafbec814cbaff889570af483867d53068d31c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
