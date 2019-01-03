@@ -29,7 +29,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
-	"gopkg.in/unrolled/secure.v1"
+	secure "gopkg.in/unrolled/secure.v1"
 )
 
 // flags
