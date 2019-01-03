@@ -69,7 +69,6 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	androidConfig := &AndroidRepoManagerConfig{
 		CommonRepoManagerConfig: c.CommonRepoManagerConfig,
 	}
-	androidConfig.ParentBranch = "master"
 	androidRM, err := NewAndroidRepoManager(ctx, androidConfig, workdir, g, serverURL, "<unused>", authClient, cr, local)
 	if err != nil {
 		return nil, err
@@ -82,11 +81,14 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	}
 
 	fsrm := &fuchsiaSDKRepoManager{
-		gcsClient:        gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
-		gsBucket:         FUCHSIA_SDK_GS_BUCKET,
-		storageClient:    storageClient,
-		versionFileLinux: FUCHSIA_SDK_ANDROID_VERSION_FILE,
-		versionFileMac:   "", // Ignored by this RepoManager.
+		gcsClient:         gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
+		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
+		gsLatestPathLinux: "sdk/linux-amd64/LATEST_ARCHIVE",
+		gsLatestPathMac:   "sdk/mac-amd64/LATEST_ARCHIVE",
+		gsListPath:        "sdk",
+		storageClient:     storageClient,
+		versionFileLinux:  FUCHSIA_SDK_ANDROID_VERSION_FILE,
+		versionFileMac:    "", // Ignored by this RepoManager.
 	}
 	parentRepo, err := git.NewCheckout(ctx, c.ParentRepo, workdir)
 	if err != nil {
@@ -144,7 +146,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 
 	// Instead of simply rolling the version hash into a file, download and
 	// unzip the SDK, and commit its contents.
-	sdkGsPath := FUCHSIA_SDK_GS_PATH + "/linux-amd64/" + nextRollRev
+	sdkGsPath := rm.gsListPath + "/linux-amd64/" + nextRollRev
 	sklog.Infof("Downloading SDK from %s...", sdkGsPath)
 	newContents := map[string][]byte{}
 	r, err := rm.gcsClient.FileReader(ctx, sdkGsPath)
@@ -167,14 +169,15 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 	sklog.Infof("Running %s...", genSdkBp)
 	env := []string{fmt.Sprintf("ANDROID_BUILD_TOP=%s", rm.arm.workdir)}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.genSdkBpRepo.Dir(),
-		Name: "python",
-		Args: []string{genSdkBp},
-		Env:  env,
+		Dir:        rm.genSdkBpRepo.Dir(),
+		Name:       "python",
+		Args:       []string{genSdkBp},
+		Env:        env,
+		InheritEnv: true,
 	}); err != nil {
 		return "", "", 0, nil, err
 	}
-	src := path.Join(rm.arm.workdir, "external", "fuchsia_sdk", ANDROID_BP)
+	src := path.Join(rm.arm.workdir, rm.childPath, ANDROID_BP)
 	b, err := ioutil.ReadFile(src)
 	if err != nil {
 		return "", "", 0, nil, err

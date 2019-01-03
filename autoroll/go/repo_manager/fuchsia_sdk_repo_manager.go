@@ -78,15 +78,18 @@ type FuchsiaSDKRepoManagerConfig struct {
 // version number is obtained from Google Cloud Storage.
 type fuchsiaSDKRepoManager struct {
 	*noCheckoutRepoManager
-	gcsClient        gcs.GCSClient
-	gsBucket         string
-	lastRollRevLinux *fuchsiaSDKVersion // Protected by infoMtx.
-	nextRollRevLinux *fuchsiaSDKVersion // Protected by infoMtx.
-	nextRollRevMac   string             // Protected by infoMtx.
-	storageClient    *storage.Client
-	versionFileLinux string
-	versionFileMac   string
-	versions         []*fuchsiaSDKVersion // Protected by infoMtx.
+	gcsClient         gcs.GCSClient
+	gsBucket          string
+	gsLatestPathLinux string
+	gsLatestPathMac   string
+	gsListPath        string
+	lastRollRevLinux  *fuchsiaSDKVersion // Protected by infoMtx.
+	nextRollRevLinux  *fuchsiaSDKVersion // Protected by infoMtx.
+	nextRollRevMac    string             // Protected by infoMtx.
+	storageClient     *storage.Client
+	versionFileLinux  string
+	versionFileMac    string
+	versions          []*fuchsiaSDKVersion // Protected by infoMtx.
 }
 
 // Return a fuchsiaSDKRepoManager instance.
@@ -100,11 +103,14 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 	}
 
 	rv := &fuchsiaSDKRepoManager{
-		gcsClient:        gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
-		gsBucket:         FUCHSIA_SDK_GS_BUCKET,
-		storageClient:    storageClient,
-		versionFileLinux: FUCHSIA_SDK_VERSION_FILE_PATH_LINUX,
-		versionFileMac:   FUCHSIA_SDK_VERSION_FILE_PATH_MAC,
+		gcsClient:         gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
+		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
+		gsLatestPathLinux: FUCHSIA_SDK_GS_LATEST_PATH_LINUX,
+		gsLatestPathMac:   FUCHSIA_SDK_GS_LATEST_PATH_MAC,
+		gsListPath:        FUCHSIA_SDK_GS_PATH,
+		storageClient:     storageClient,
+		versionFileLinux:  FUCHSIA_SDK_VERSION_FILE_PATH_LINUX,
+		versionFileMac:    FUCHSIA_SDK_VERSION_FILE_PATH_MAC,
 	}
 
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.buildCommitMessage, rv.updateHelper, local)
@@ -142,7 +148,7 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// Get the available object hashes. Note that not all of these are SDKs,
 	// so they don't necessarily represent versions we could feasibly roll.
 	availableVersions := []*fuchsiaSDKVersion{}
-	if err := rm.gcsClient.AllFilesInDirectory(ctx, FUCHSIA_SDK_GS_PATH, func(item *storage.ObjectAttrs) {
+	if err := rm.gcsClient.AllFilesInDirectory(ctx, rm.gsListPath, func(item *storage.ObjectAttrs) {
 		vSplit := strings.Split(item.Name, "/")
 		availableVersions = append(availableVersions, &fuchsiaSDKVersion{
 			Timestamp: item.Updated,
@@ -157,13 +163,13 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	sort.Sort(fuchsiaSDKVersionSlice(availableVersions))
 
 	// Get next SDK version.
-	nextRollRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, FUCHSIA_SDK_GS_LATEST_PATH_LINUX)
+	nextRollRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathLinux)
 	if err != nil {
 		return "", "", 0, nil, err
 	}
 	nextRollRevLinuxStr := strings.TrimSpace(string(nextRollRevLinuxBytes))
 
-	nextRollRevMacBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, FUCHSIA_SDK_GS_LATEST_PATH_MAC)
+	nextRollRevMacBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathMac)
 	if err != nil {
 		return "", "", 0, nil, err
 	}

@@ -93,7 +93,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 	})
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
+	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), gerritCR(t, g), false)
 	assert.NoError(t, err)
@@ -108,9 +108,9 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 	return ctx, rm, urlmock, mockParent, parent, cleanup
 }
 
-func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, revLinux, revMac string) {
-	urlmock.MockOnce(fuchsiaSDKLatestArchiveUrlLinux, mockhttpclient.MockGetDialogue([]byte(revLinux)))
-	urlmock.MockOnce(fuchsiaSDKLatestArchiveUrlMac, mockhttpclient.MockGetDialogue([]byte(revMac)))
+func mockGetLatestSDK(urlmock *mockhttpclient.URLMock, pathLinux, pathMac, revLinux, revMac string) {
+	urlmock.MockOnce("https://storage.googleapis.com/"+FUCHSIA_SDK_GS_BUCKET+"/"+pathLinux, mockhttpclient.MockGetDialogue([]byte(revLinux)))
+	urlmock.MockOnce("https://storage.googleapis.com/"+FUCHSIA_SDK_GS_BUCKET+"/"+pathMac, mockhttpclient.MockGetDialogue([]byte(revMac)))
 }
 
 func TestFuchsiaSDKRepoManager(t *testing.T) {
@@ -143,7 +143,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
 	})
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext, "mac-next")
+	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
 	assert.NoError(t, rm.Update(ctx))
 	assert.Equal(t, fuchsiaSDKRevBase, rm.LastRollRev())
 	assert.Equal(t, fuchsiaSDKRevNext, rm.NextRollRev())
