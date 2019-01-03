@@ -1,0 +1,22 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25c13754_df33e436",
+        "filename": "scripts/gcs_usage/usage_in_project.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-03T14:16:26Z",
+      "side": 1,
+      "message": "\u003e Unused import sys.\n\u003e To disable, add: # pylint: disable\u003dunused-import\n\nPlease Fix",
+      "parentUuid": "5053a6af_4507fc14",
+      "revId": "02b899be199475157c7d2e85b8a5d45259e6fa87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
