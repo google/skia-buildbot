@@ -2,21 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"time"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/secure"
 	"go.skia.org/infra/am/go/incident"
@@ -26,7 +22,7 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -41,20 +37,14 @@ var (
 	assignGroup        = flag.String("assign_group", "google/skia-root@google.com", "The chrome infra auth group to use for users incidents can be assigned to.")
 	authGroup          = flag.String("auth_group", "google/skia-staff@google.com", "The chrome infra auth group to use for restricting access.")
 	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	namespace          = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
-	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	internalPort       = flag.String("internal_port", ":9000", "HTTP internal service address (e.g., ':9000') for unauthenticated in-cluster requests.")
 	project            = flag.String("project", "skia-public", "The Google Cloud project name.")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 const (
 	// EXPIRE_DURATION is the time to wait before expiring an incident.
 	EXPIRE_DURATION = 2 * time.Minute
-
-	APP_NAME = "alert-manager"
 )
 
 // Server is the state of the server.
@@ -62,30 +52,15 @@ type Server struct {
 	incidentStore *incident.Store
 	silenceStore  *silence.Store
 	templates     *template.Template
-	salt          []byte        // Salt for csrf cookies.
 	allow         allowed.Allow // Who is allowed to use the site.
 	assign        allowed.Allow // A list of people that incidents can be assigned to.
 }
 
-func New() (*Server, error) {
-	if *resourcesDir == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
-	}
-
-	// Setup the salt.
-	salt := []byte("32-byte-long-auth-key")
-	if !*local {
-		var err error
-		salt, err = ioutil.ReadFile("/var/skia/salt.txt")
-		if err != nil {
-			return nil, err
-		}
-	}
-
+// See baseapp.Constructor.
+func New() (baseapp.App, error) {
 	var allow allowed.Allow
 	var assign allowed.Allow
-	if !*local {
+	if !*baseapp.Local {
 		ts, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
 		if err != nil {
 			return nil, err
@@ -104,10 +79,10 @@ func New() (*Server, error) {
 		assign = allowed.NewAllowedFromList([]string{"betty@example.org", "fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
 
-	login.InitWithAllow(*port, *local, nil, nil, allow)
+	login.InitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(*local, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +90,7 @@ func New() (*Server, error) {
 	if *namespace == "" {
 		return nil, fmt.Errorf("The --namespace flag is required. See infra/DATASTORE.md for format details.\n")
 	}
-	if !*local && !util.In(*namespace, []string{ds.ALERT_MANAGER_NS}) {
+	if !*baseapp.Local && !util.In(*namespace, []string{ds.ALERT_MANAGER_NS}) {
 		return nil, fmt.Errorf("When running in prod the datastore namespace must be a known value.")
 	}
 	if err := ds.InitWithOpt(*project, *namespace, option.WithTokenSource(ts)); err != nil {
@@ -135,7 +110,7 @@ func New() (*Server, error) {
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
 	subName := fmt.Sprintf("%s-%s", alerts.TOPIC, "prod")
-	if *local {
+	if *baseapp.Local {
 		// When running locally create a new topic for every host.
 		subName = fmt.Sprintf("%s-%s", alerts.TOPIC, hostname)
 	}
@@ -154,7 +129,6 @@ func New() (*Server, error) {
 	}
 
 	srv := &Server{
-		salt:          salt,
 		incidentStore: incident.NewStore(ds.DS, []string{"kubernetes_pod_name", "instance", "pod_template_hash"}),
 		silenceStore:  silence.NewStore(ds.DS),
 		allow:         allow,
@@ -217,23 +191,23 @@ func New() (*Server, error) {
 		}
 	}()
 
+	srv.startInternalServer()
+
 	return srv, nil
 }
 
 func (srv *Server) loadTemplates() {
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(*resourcesDir, "index.html"),
+		filepath.Join(*baseapp.ResourcesDir, "index.html"),
 	))
 }
 
 func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	if *local {
+	if *baseapp.Local {
 		srv.loadTemplates()
 	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-		// base64 encode the csrf to avoid golang templating escaping.
-		"csrf": base64.StdEncoding.EncodeToString([]byte(csrf.Token(r))),
 		// Look in webpack.config.js for where the nonce templates are injected.
 		"nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
@@ -249,7 +223,7 @@ type AddNoteRequest struct {
 // user returns the currently logged in user, or a placeholder if running locally.
 func (srv *Server) user(r *http.Request) string {
 	user := "barney@example.org"
-	if !*local {
+	if !*baseapp.Local {
 		user = login.LoggedInAs(r)
 	}
 	return user
@@ -587,98 +561,17 @@ func (srv *Server) newSilenceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// cspReportWrapper wraps a handler and intercepts csp failure reports and
-// turns them into structured log entries.
-//
-// Note this should be outside the csrf wrapper since execution may fail
-// before the csrf is in place.
-func cspReportWrapper(h http.Handler) http.Handler {
-	s := func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/cspreport" && r.Method == "POST" {
-			var body interface{}
-			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-				sklog.Errorf("Failed to decode csp report: %s", err)
-				return
-			}
-			c := struct {
-				Type string      `json:"type"`
-				Body interface{} `json:"body"`
-			}{
-				Type: "csp",
-				Body: body,
-			}
-			b, err := json.Marshal(c)
-			if err != nil {
-				sklog.Errorf("Failed to marshal csp log entry: %s", err)
-				return
-			}
-			fmt.Println(string(b))
-			return
-		} else {
-			h.ServeHTTP(w, r)
-		}
-	}
-	return http.HandlerFunc(s)
-}
-
-func (srv *Server) applySecurityWrappers(h http.Handler) http.Handler {
-	// Configure Content Security Policy (CSP).
-	addScriptSrc := ""
-	if *local {
-		// webpack uses eval() in development mode, so allow unsafe-eval when local.
-		addScriptSrc = "'unsafe-eval'"
-	}
-	// This non-local CSP string passes the tests at https://csp-evaluator.withgoogle.com/.
-	//
-	// See also: https://csp.withgoogle.com/docs/strict-csp.html
-	cspString := fmt.Sprintf("base-uri 'none';  img-src 'self' ; object-src 'none' ; style-src 'self' 'unsafe-inline' ; script-src 'strict-dynamic' $NONCE 'unsafe-inline' %s https: http: ; report-uri /cspreport ;", addScriptSrc)
-
-	// Apply CSP and other security minded headers.
-	secureMiddleware := secure.New(secure.Options{
-		AllowedHosts:          []string{"am.skia.org"},
-		HostsProxyHeaders:     []string{"X-Forwarded-Host"},
-		SSLRedirect:           true,
-		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
-		STSSeconds:            60 * 60 * 24 * 365,
-		STSIncludeSubdomains:  true,
-		ContentSecurityPolicy: cspString,
-		IsDevelopment:         *local,
-	})
-
-	h = secureMiddleware.Handler(h)
-	h = csrf.Protect(srv.salt, csrf.Secure(!*local), csrf.Path("/"))(h)
-	return h
-}
-
-func main() {
-	common.InitWithMust(
-		APP_NAME,
-		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
-	)
-
-	srv, err := New()
-	if err != nil {
-		sklog.Fatalf("Failed to create Server: %s", err)
-	}
-
-	// Internal endpoints that are only accessible from within the cluster.
-	unprotected := mux.NewRouter()
-	unprotected.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
-	unprotected.HandleFunc("/_/silences", srv.silencesHandler).Methods("GET")
-	go func() {
-		sklog.Fatal(http.ListenAndServe(*internalPort, unprotected))
-	}()
-
-	r := mux.NewRouter()
+// See baseapp.App.
+func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", srv.mainHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
+
 	// GETs
 	r.HandleFunc("/_/emails", srv.emailsHandler).Methods("GET")
 	r.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
 	r.HandleFunc("/_/new_silence", srv.newSilenceHandler).Methods("GET")
 	r.HandleFunc("/_/recent_incidents", srv.recentIncidentsHandler).Methods("GET")
 	r.HandleFunc("/_/silences", srv.silencesHandler).Methods("GET")
-	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 
 	// POSTs
 	r.HandleFunc("/_/add_note", srv.addNoteHandler).Methods("POST")
@@ -692,18 +585,27 @@ func main() {
 	r.HandleFunc("/_/take", srv.takeHandler).Methods("POST")
 	r.HandleFunc("/_/stats", srv.statsHandler).Methods("POST")
 	r.HandleFunc("/_/incidents_in_range", srv.incidentsInRangeHandler).Methods("POST")
+}
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-
-	h := srv.applySecurityWrappers(r)
-	if !*local {
-		h = httputils.LoggingGzipRequestResponse(h)
-		h = login.RestrictViewer(h)
-		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
-		h = httputils.HealthzAndHTTPS(h)
+// See baseapp.App.
+func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
+	ret := []mux.MiddlewareFunc{}
+	if !*baseapp.Local {
+		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
 	}
-	h = cspReportWrapper(h)
-	http.Handle("/", h)
-	sklog.Infoln("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	return ret
+}
+
+func (srv *Server) startInternalServer() {
+	// Internal endpoints that are only accessible from within the cluster.
+	unprotected := mux.NewRouter()
+	unprotected.HandleFunc("/_/incidents", srv.incidentHandler).Methods("GET")
+	unprotected.HandleFunc("/_/silences", srv.silencesHandler).Methods("GET")
+	go func() {
+		sklog.Fatal(http.ListenAndServe(*internalPort, unprotected))
+	}()
+}
+
+func main() {
+	baseapp.Serve(New, []string{"am.skia.org"})
 }
