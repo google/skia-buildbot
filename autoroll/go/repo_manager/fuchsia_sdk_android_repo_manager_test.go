@@ -115,11 +115,11 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, string, RepoManager,
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
-	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
+	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, "sdk", map[string]string{
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 	})
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevBase, "mac-base")
+	mockGetLatestSDK(urlmock, "sdk/linux-amd64/LATEST_ARCHIVE", "sdk/mac-amd64/LATEST_ARCHIVE", fuchsiaSDKRevBase, "mac-base")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevBase, wd)
 
 	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, wd, g, "fake.server.com", "", urlmock.Client(), androidGerrit(t, g), false)
@@ -145,7 +145,7 @@ func mockDownloadSDK(t *testing.T, urlmock *mockhttpclient.URLMock, rev, wd stri
 	assert.NoError(t, err)
 	contents, err := ioutil.ReadFile(archive)
 	assert.NoError(t, err)
-	url := fmt.Sprintf(fuchsiaSDKArchiveUrlTmpl, "linux-amd64", rev)
+	url := fmt.Sprintf("https://storage.googleapis.com/fuchsia/sdk/linux-amd64/%s", rev)
 	urlmock.MockOnce(url, mockhttpclient.MockGetDialogue(contents))
 }
 
@@ -174,12 +174,12 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
-	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
+	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, "sdk", map[string]string{
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevNext: fuchsiaSDKTimeNext,
 	})
-	mockGetLatestSDK(urlmock, fuchsiaSDKRevNext, "mac-next")
+	mockGetLatestSDK(urlmock, "sdk/linux-amd64/LATEST_ARCHIVE", "sdk/mac-amd64/LATEST_ARCHIVE", fuchsiaSDKRevNext, "mac-next")
 	mockDownloadSDK(t, urlmock, fuchsiaSDKRevNext, wd)
 
 	assert.NoError(t, rm.Update(ctx))
