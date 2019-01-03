@@ -36,7 +36,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	buckets := strings.Split(strings.TrimSpace(output.String()), "\n")
+	buckets := strings.Split(output.String(), "\n")
 	fmt.Printf("Found %d buckets\n", len(buckets))
 	fmt.Println("Tabulating total space, this may take tens of seconds for big buckets")
 
@@ -48,6 +48,9 @@ func main() {
 	// Do them one at a time to show incremental progress, as large
 	// buckets can take >10s to tabulate.
 	for _, b := range buckets {
+		if len(b) <= 1 {
+			continue
+		}
 		output := bytes.Buffer{}
 		// GCS buckets must be uniquely named, so no need to specify a project.
 		err := exec.Run(context.Background(), &exec.Command{
