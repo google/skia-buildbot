@@ -17,6 +17,8 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
 	"go.skia.org/infra/go/sklog"
+
+	"go.skia.org/infra/go/metrics2"
 )
 
 var cipdRoot = path.Join(os.TempDir(), "cipd")
@@ -85,6 +87,11 @@ func TrainInfra(ctx context.Context, client *http.Client, parentRepoDir string) 
 // https://github.com/flutter/engine/blob/master/tools/licenses/README.md
 func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir string) error {
 	sklog.Info("Running flutter license scripts.")
+	licenseScriptFailure := int64(1)
+	defer func() {
+		metrics2.GetInt64Metric("flutter_license_script_failure", nil).Update(licenseScriptFailure)
+	}()
+
 	binariesPath := filepath.Join(parentRepoDir, "..", "third_party", "dart", "tools", "sdks", "dart-sdk", "bin")
 
 	// Step1: Run pub get.
@@ -148,6 +155,7 @@ func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir st
 	}
 
 	sklog.Info("Done running flutter license scripts.")
+	licenseScriptFailure = 0
 	return nil
 }
 
