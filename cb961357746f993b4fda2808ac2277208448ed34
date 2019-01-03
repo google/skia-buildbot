@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5bcead03_468a08e7",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-03T15:23:08Z",
+      "side": 1,
+      "message": "Is there a reason you don\u0027t want gzip encoding?",
+      "range": {
+        "startLine": 111,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 2
+      },
+      "revId": "cb961357746f993b4fda2808ac2277208448ed34",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
