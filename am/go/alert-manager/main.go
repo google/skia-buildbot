@@ -14,7 +14,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/secure"
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/note"
 	"go.skia.org/infra/am/go/silence"
@@ -30,6 +29,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
+	"gopkg.in/unrolled/secure.v1"
 )
 
 // flags
