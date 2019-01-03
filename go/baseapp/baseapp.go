@@ -97,11 +97,13 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 
 // Serve builds and runs the App in a secure manner in out kubernetes cluster.
 //
-// constructor - Builds an App instance. Note that we don't pass in an App instance directly, because
-//    we want the constructor called after the common.Init*() functions are called, i.e. after flags
-//    are parsed.
-// allowedHosts - The list of domains that are allowed to make requests to this app. Make sure to include
-//    the domain name of the app itself. For example; []string{"am.skia.org"}.
+// The constructor builds an App instance. Note that we don't pass in an App
+// instance directly, because we want the constructor called after the
+// common.Init*() functions are called, i.e. after flags are parsed.
+//
+// The allowedHosts are the list of domains that are allowed to make requests
+// to this app. Make sure to include the domain name of the app itself. For
+// example; []string{"am.skia.org"}.
 //
 // See https://csp.withgoogle.com/docs/strict-csp.html for more information on
 // Strict CSP in general.
@@ -119,11 +121,11 @@ func securityMiddleware(allowedHosts []string) mux.MiddlewareFunc {
 //
 // And then include that nonce when expanding any pages:
 //
-// 	  if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
-// 		  "nonce": secure.CSPNonce(r.Context()),
-//   	}); err != nil {
-//	  	sklog.Errorf("Failed to expand template: %s", err)
-//  	}
+//    if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
+//      "nonce": secure.CSPNonce(r.Context()),
+//    }); err != nil {
+//     sklog.Errorf("Failed to expand template: %s", err)
+//   }
 //
 // Since our audience is small and only uses modern browsers we shouldn't need
 // any further XSS protection. For example, even if a user is logged into
