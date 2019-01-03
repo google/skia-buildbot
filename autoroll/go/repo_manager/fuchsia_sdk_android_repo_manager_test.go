@@ -203,6 +203,7 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	to := fuchsiaSDKShortVersion(rm.NextRollRev())
 	commitMsg := fmt.Sprintf(FUCHSIA_SDK_COMMIT_MSG_TMPL, from, to, "fake.server.com")
 	commitMsg += "\nTBR=reviewer@chromium.org"
+	commitMsg += "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
 	subject := strings.Split(commitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*fuchsiaSDKAndroidRepoManager).noCheckoutRepoManager.gerritConfig.Project, subject, rm.(*fuchsiaSDKAndroidRepoManager).parentBranch, parentMaster))
 	ci := gerrit.ChangeInfo{

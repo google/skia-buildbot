@@ -202,3 +202,13 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 	sklog.Infof("Next roll modifies %d files.", len(nextRollContents))
 	return lastRollRev, nextRollRev, commitsNotRolled, nextRollContents, nil
 }
+
+// See documentation for noCheckoutRepoManagerBuildCommitMessageFunc.
+func (rm *fuchsiaSDKAndroidRepoManager) buildCommitMessage(from, to, serverURL, cqExtraTrybots string, emails []string) (string, error) {
+	msg, err := rm.fuchsiaSDKRepoManager.buildCommitMessage(from, to, serverURL, cqExtraTrybots, emails)
+	if err != nil {
+		return "", err
+	}
+	msg += "\nExempt-From-Owner-Approval: The autoroll bot does not require owner approval."
+	return msg, nil
+}
