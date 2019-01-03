@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6951f68a_ed4c4e98",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-03T15:27:19Z",
+      "side": 1,
+      "message": "Nit: why not this?\n\ndefer func() {\n  metrics2.GetInt64Metric(\"flutter_license_script_failure\", nil).Update(licenseScriptFailure)\n}()\n\nYou don\u0027t need the separate function if it\u0027s not used elsewhere, and the global variables aren\u0027t needed either.",
+      "range": {
+        "startLine": 103,
+        "startChar": 1,
+        "endLine": 103,
+        "endChar": 42
+      },
+      "revId": "122fc3c59e8cf931ccdd81f0b4051f8e8869e122",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
