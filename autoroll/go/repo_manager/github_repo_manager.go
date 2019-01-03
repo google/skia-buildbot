@@ -320,17 +320,6 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, err
 	}
 
-	// Mention the sheriffs on the pull request so that they are automatically
-	// subscribed to it.
-	mentions := []string{}
-	for _, e := range emails {
-		m := fmt.Sprintf("@%s", strings.Split(e, "@")[0])
-		mentions = append(mentions, m)
-	}
-	if err := rm.githubClient.AddComment(pr.GetNumber(), fmt.Sprintf("%s : New roll has been created by %s", strings.Join(mentions, " "), rm.serverURL)); err != nil {
-		return 0, err
-	}
-
 	return int64(pr.GetNumber()), nil
 }
 
