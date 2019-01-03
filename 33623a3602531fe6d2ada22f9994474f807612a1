@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "6d2d4610_0a3eef99",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-03T14:51:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec59e29a_440d60d5",
+      "revId": "33623a3602531fe6d2ada22f9994474f807612a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec754ca4_18fdce99",
         "filename": "go/baseapp/baseapp.go",
         "patchSetId": 11
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "5351a68c_348d8a1c",
+        "filename": "go/baseapp/baseapp.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-03T14:51:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec754ca4_18fdce99",
+      "revId": "33623a3602531fe6d2ada22f9994474f807612a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15486987_2e822247",
         "filename": "go/baseapp/baseapp.go",
         "patchSetId": 11
@@ -47,6 +83,24 @@
       "writtenOn": "2019-01-03T13:55:29Z",
       "side": 1,
       "message": "Does it make sense to also add optional support for login via \n\"login.InitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)\" and adding handler for loginstatus via optional parameters? If the new login related parameters are nil then the baseApp will not add login support.\n\nSimilarly for resource handler:\n\"r.PathPrefix(\"/static/\").Handler(http.StripPrefix(\"/static/\", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))\"\nCould move the resourcesDir flag here and only add handler if it is specified.",
+      "revId": "33623a3602531fe6d2ada22f9994474f807612a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02f15e35_e2b3bb3e",
+        "filename": "go/baseapp/baseapp.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-03T14:51:53Z",
+      "side": 1,
+      "message": "Moved resourcesDir handler, but I think there\u0027s too much variation to move login over.",
+      "parentUuid": "15486987_2e822247",
       "revId": "33623a3602531fe6d2ada22f9994474f807612a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
