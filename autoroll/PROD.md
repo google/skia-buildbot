@@ -48,6 +48,13 @@ you should remove the /mnt/pd0/autoroll_workdir/state_machine_transitioning
 file. This error may also prevent the roller from starting up, which is by
 design.
 
+If this happened on the Skia->Flutter roller then also take a look at the
+flutter_license_script_failure section below.
+
+
+flutter_license_script_failure
+------------------------------
+
 The Skia->Flutter roller may throw errors from Flutter's license script:
 "Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1: /data/engine/src/third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /data/engine/src/out/licenses"
 This alert means that the licence script is failing possibly due to a recent
