@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "10553da9_41086847",
+        "filename": "gold-client/cmd/goldctl/cmd_auth.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f7147dbd_558c6b7d",
+      "range": {
+        "startLine": 33,
+        "startChar": 43,
+        "endLine": 33,
+        "endChar": 51
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d4f1615_56d01c92",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 6
@@ -36,6 +60,54 @@
       "writtenOn": "2018-12-21T18:25:39Z",
       "side": 1,
       "message": "Would it be too cumbersome to specify the service account on the command line every time?",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 36
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df393697_cc195aac",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3902b85_eb18ac30",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 1
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a526dab_a17c81d3",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "No, I don\u0027t know exactly yet how it will get the service account in production. \nThis mode will certainly change. I don\u0027t think the service account should be passed as a file at \nall, because it means you have to have it on disk and that\u0027s undesirable IMO\nMost likely the next iteration will pull it out of the environment.\nThis is used for testing, but the general machinery will apply.",
+      "parentUuid": "1d4f1615_56d01c92",
       "range": {
         "startLine": 55,
         "startChar": 0,
@@ -71,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "036416a7_4d77bd43",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9755d9c_e125c2ca",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 47
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c810f01_3c9769c8",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 6
@@ -85,6 +181,24 @@
       "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86c8e0ad_46a4e859",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 243,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done\nThis covers the case where I instantiate the GoldClient just with a work directory and then add the auth information. \nFixed docs to make this clearer.",
+      "parentUuid": "4c810f01_3c9769c8",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +219,24 @@
     },
     {
       "key": {
+        "uuid": "b7a73ec2_dee31d27",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 552,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d9d0f86_d015c59e",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f6400be_ac500eb9",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 6
@@ -119,6 +251,24 @@
       "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3571196_8a044b53",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f6400be_ac500eb9",
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -142,6 +292,30 @@
       "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57afb438_871d53c2",
+        "filename": "gold-client/go/goldclient/gsutil_util.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-03T10:47:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "227a44e3_dffedb17",
+      "range": {
+        "startLine": 74,
+        "startChar": 38,
+        "endLine": 74,
+        "endChar": 52
+      },
+      "revId": "4d087773610259b8447e29f40824dcd8a31ca133",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
