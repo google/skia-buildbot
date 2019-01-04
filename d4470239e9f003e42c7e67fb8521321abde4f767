@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9b225085_cc4c30ee",
+        "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-04T16:09:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "add3f67b_16441ba4",
+      "range": {
+        "startLine": 24,
+        "startChar": 58,
+        "endLine": 24,
+        "endChar": 64
+      },
+      "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20bd2e2e_7ab4f03f",
         "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "43f778c9_724ea4e2",
+        "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-04T16:09:20Z",
+      "side": 1,
+      "message": "Upped it to 16.  I don\u0027t know if that\u0027s reasonable, too many or what not.  Let me know.",
+      "parentUuid": "20bd2e2e_7ab4f03f",
+      "range": {
+        "startLine": 26,
+        "startChar": 44,
+        "endLine": 26,
+        "endChar": 45
+      },
+      "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58190c3e_573d2764",
         "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
         "patchSetId": 2
@@ -59,6 +107,24 @@
       "writtenOn": "2019-01-04T16:03:01Z",
       "side": 1,
       "message": "Will this ever happen? I guess it does not hurt to log and continue.",
+      "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a957e2e9_278b2211",
+        "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-04T16:09:20Z",
+      "side": 1,
+      "message": "It shouldn\u0027t.",
+      "parentUuid": "58190c3e_573d2764",
       "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
