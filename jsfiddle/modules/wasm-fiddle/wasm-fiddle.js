@@ -61,18 +61,18 @@ const _lineNumber = (n) => html`
 export class WasmFiddle extends HTMLElement {
 
   /**
-  * @param {Function} WasmInit: Init function to load the WASM
+  * @param {Promise} wasmPromise: promise that will resolve with the WASM library.
   * @param {Object} template: The base template for this element.
   * @param {String} libraryName: What users call the library e.g. 'CanvasKit'
   * @param {String} fiddleType: The backend name for the fiddle e.g. 'canvasKit'
   */
-  constructor(WasmInit, template, libraryName, fiddleType) {
+  constructor(wasmPromise, template, libraryName, fiddleType) {
     super();
 
     // allows demo pages to supply content w/o making a network request
     this._content = this.getAttribute('content') || '';
     this.Wasm = null;
-    this.WasmInit = WasmInit;
+    this.wasmPromise = wasmPromise;
     this._editor = null; // set in render to be the textarea
     this.template = template;
     this.libraryName = libraryName; // e.g. 'CanvasKit' , 'PathKit'
@@ -89,9 +89,7 @@ export class WasmFiddle extends HTMLElement {
 
   connectedCallback() {
     this._render();
-    this.WasmInit({
-      locateFile: (file) => '/res/'+file,
-    }).then((LoadedWasm) => {
+    this.wasmPromise.then((LoadedWasm) => {
       this.Wasm = LoadedWasm;
       if (this.content) {
         this.run(); // auto-run the code if the code was loaded.

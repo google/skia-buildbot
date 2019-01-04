@@ -34,12 +34,16 @@ const template = (ele) => html`
   <error-toast-sk></error-toast-sk>
 </footer>`;
 
+const wasmPromise = PathKitInit({
+  locateFile: (file) => '/res/'+file,
+}).ready();
+
 /**
- * @module jsfiddle/modules/canvaskit-fiddle
- * @description <h2><code>canvaskit-fiddle</code></h2>
+ * @module jsfiddle/modules/pathkit-fiddle
+ * @description <h2><code>pathkit-fiddle</code></h2>
  *
  * <p>
- *   The top level element for displaying canvaskit fiddles.
+ *   The top level element for displaying pathkit fiddles.
  *   The main elements are a code editor box (textarea), a canvas
  *   on which to render the result and a few buttons.
  * </p>
@@ -48,7 +52,7 @@ const template = (ele) => html`
 window.customElements.define('pathkit-fiddle', class extends WasmFiddle {
 
   constructor() {
-    super(PathKitInit, template, 'PathKit', 'pathkit');
+    super(wasmPromise, template, 'PathKit', 'pathkit');
   }
 
 });

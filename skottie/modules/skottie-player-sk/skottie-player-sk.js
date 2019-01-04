@@ -96,6 +96,10 @@ const runningTemplate = (ele) => html`
   ${settingsTemplate(ele)}
 </div>`;
 
+const canvasReady = CanvasKitInit({
+  locateFile: (file) => '/static/'+file,
+}).ready();
+
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
   constructor() {
     super();
@@ -152,23 +156,12 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     this._config.width = config.width;
     this._config.height = config.height;
 
-    if (this._engine.kit) {
-      return new Promise((resolve, reject) => {
-              this._initializeSkottie(config.lottie);
-              resolve();
-             });
-    }
-
     this._render();
-    return new Promise((resolve, reject) => {
-                 CanvasKitInit({
-                   locateFile: (file) => '/static/'+file,
-                 }).then((ck) => {
-                   this._engine.kit = ck;
-                   this._initializeSkottie(config.lottie);
-                   resolve();
-                 });
-               });
+    return canvasReady.then((ck) => {
+              this._engine.kit = ck;
+              this._initializeSkottie(config.lottie);
+              this._render();
+          });
   }
 
   duration() {
