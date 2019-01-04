@@ -46,6 +46,30 @@
       "revId": "d42ca508de34acd00777a95a092b7272f4bd2975",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ee1c027_223903f8",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-04T18:20:57Z",
+      "side": 1,
+      "message": "Ok, depending on how noisy the command is, this might make things hard to read.",
+      "parentUuid": "e3ce4088_b544ce71",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 20
+      },
+      "revId": "d42ca508de34acd00777a95a092b7272f4bd2975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
