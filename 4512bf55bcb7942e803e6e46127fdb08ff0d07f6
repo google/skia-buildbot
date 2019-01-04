@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "258ff753_022d3394",
+        "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-04T20:01:52Z",
+      "side": 1,
+      "message": "Also move this outside the class so it is done once and as soon as possible.",
+      "range": {
+        "startLine": 94,
+        "startChar": 7,
+        "endLine": 94,
+        "endChar": 12
+      },
+      "revId": "4512bf55bcb7942e803e6e46127fdb08ff0d07f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96525897_3c511eb0",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-04T20:01:52Z",
+      "side": 1,
+      "message": "This can all be removed following the comment below.",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 160,
+        "endChar": 5
+      },
+      "revId": "4512bf55bcb7942e803e6e46127fdb08ff0d07f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebf7b141_92fbb9c3",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-04T20:01:52Z",
+      "side": 1,
+      "message": "Don\u0027t create another Promise, use the one returned from ready() and only do it once, ie:\n\nlet canvasReady \u003d CanvasKitInit({\n                   locateFile: (file) \u003d\u003e \u0027/static/\u0027+file,\n                 }).ready();\n\nThen use canvasReady here:\n\n   canvasReady.then((ck) \u003d\u003e {\n     this._engine.kit \u003d ck;\n     this._initializeSkottie(config.lottie);\n     this._render();\n   });",
+      "revId": "4512bf55bcb7942e803e6e46127fdb08ff0d07f6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
