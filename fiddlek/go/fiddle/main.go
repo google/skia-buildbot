@@ -10,7 +10,6 @@ import (
 	"html/template"
 	ttemplate "html/template"
 	"net/http"
-	_ "net/http/pprof"
 	"path/filepath"
 	"regexp"
 	"strconv"
