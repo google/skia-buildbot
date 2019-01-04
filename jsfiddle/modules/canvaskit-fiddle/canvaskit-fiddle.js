@@ -30,6 +30,10 @@ const template = (ele) => html`
   <error-toast-sk></error-toast-sk>
 </footer>`;
 
+const wasmPromise = CanvasKitInit({
+  locateFile: (file) => '/res/'+file,
+}).ready()
+
 /**
  * @module jsfiddle/modules/canvaskit-fiddle
  * @description <h2><code>canvaskit-fiddle</code></h2>
@@ -44,7 +48,7 @@ const template = (ele) => html`
 window.customElements.define('canvaskit-fiddle', class extends WasmFiddle {
 
   constructor() {
-    super(CanvasKitInit, template, 'CanvasKit', 'canvaskit');
+    super(wasmPromise, template, 'CanvasKit', 'canvaskit');
   }
 
 });
