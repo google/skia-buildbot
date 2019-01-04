@@ -22,6 +22,30 @@
       "revId": "eb60dcf30ae23bd674ff81a0abfaf9fe1460c6a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0c6ab4b_df53c1bb",
+        "filename": "autoroll/config/flutter-engine-flutter.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-04T14:42:57Z",
+      "side": 1,
+      "message": "I have no idea. olakar@ setup the new endpoints and they sound better than \"deprecated\".",
+      "parentUuid": "065bddad_37d28951",
+      "range": {
+        "startLine": 13,
+        "startChar": 33,
+        "endLine": 13,
+        "endChar": 39
+      },
+      "revId": "eb60dcf30ae23bd674ff81a0abfaf9fe1460c6a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
