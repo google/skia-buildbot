@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"path/filepath"
@@ -69,7 +68,6 @@ func toGrMipMapped(b bool) string {
 
 type Runner struct {
 	sourceDir string
-	client    *http.Client
 	local     bool
 	clientset *kubernetes.Clientset
 	rand      *rand.Rand
@@ -82,7 +80,6 @@ type Runner struct {
 func New(local bool, sourceDir string) (*Runner, error) {
 	ret := &Runner{
 		sourceDir:  sourceDir,
-		client:     httputils.NewTimeoutClient(),
 		local:      local,
 		rand:       rand.New(rand.NewSource(time.Now().UnixNano())),
 		fiddlerIPs: []string{},
@@ -207,8 +204,17 @@ func (r *Runner) ValidateOptions(opts *types.Options) error {
 }
 
 func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
+	client := httputils.NewTimeoutClient()
 	var output bytes.Buffer
-	resp, err := r.client.Post(url, "application/json", body)
+
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		sklog.Errorf("Failed to create POST request: %s", err)
+		return nil, failedToSendErr
+	}
+	// Pods come and go, so don't keep the connection alive.
+	req.Close = true
+	resp, err := client.Do(req)
 	if err != nil {
 		sklog.Errorf("Failed to POST to %q: %s", url, err)
 		return nil, failedToSendErr
@@ -307,6 +313,32 @@ func (r *Runner) randPodIPs() []string {
 	return ret
 }
 
+func singlePodVersion(client *http.Client, address string) (string, bool) {
+	rootURL := fmt.Sprintf("http://%s:8000", address)
+	req, err := http.NewRequest("GET", rootURL, nil)
+	if err != nil {
+		sklog.Infof("Failed to create request for fiddler status: %s", err)
+		return "", false
+	}
+	// Pods come and go, so don't keep the connection alive.
+	req.Close = true
+	resp, err := client.Do(req)
+	if err != nil {
+		sklog.Infof("Failed to request fiddler status: %s", err)
+		return "", false
+	}
+	defer util.Close(resp.Body)
+	var fiddlerResp types.FiddlerMainResponse
+	if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
+		sklog.Warningf("Failed to read status body: %s", err)
+		return "", false
+	}
+	if fiddlerResp.State == types.IDLE {
+		return fiddlerResp.Version, true
+	}
+	return "", false
+}
+
 func (r *Runner) metricsSingleStep() {
 	idleCount := 0
 	// What versions of skia are all the fiddlers running.
@@ -314,28 +346,8 @@ func (r *Runner) metricsSingleStep() {
 	ips := r.podIPs()
 	fastClient := httputils.NewFastTimeoutClient()
 	for _, address := range ips {
-		rootURL := fmt.Sprintf("http://%s:8000", address)
-		resp, err := fastClient.Get(rootURL)
-		if err != nil {
-			sklog.Infof("Failed to request fiddler status: %s", err)
-			continue
-		}
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			sklog.Warningf("Failed to read status body: %s", err)
-			continue
-		}
-		util.Close(resp.Body)
-		if resp.Header.Get("Content-Type") == "application/json" {
-			var fiddlerResp types.FiddlerMainResponse
-			if err := json.Unmarshal(b, &fiddlerResp); err != nil {
-				sklog.Warningf("Failed to read status: %s", err)
-				continue
-			}
-			if fiddlerResp.State == types.IDLE {
-				idleCount += 1
-			}
-			versions[fiddlerResp.Version] += 1
+		if ver, ok := singlePodVersion(fastClient, address); ok {
+			versions[ver] += 1
 		}
 	}
 	// Report the version that appears the most. Usually there will only be one
@@ -357,7 +369,7 @@ func (r *Runner) metricsSingleStep() {
 func (r *Runner) Metrics() {
 	metricsLiveness := metrics2.NewLiveness("metrics")
 	r.metricsSingleStep()
-	for _ = range time.Tick(10 * time.Second) {
+	for _ = range time.Tick(30 * time.Second) {
 		r.metricsSingleStep()
 		metricsLiveness.Reset()
 	}
