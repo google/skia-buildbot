@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	cloudbuild "google.golang.org/api/cloudbuild/v1"
 	"google.golang.org/api/option"
 )
@@ -135,13 +134,13 @@ func main() {
 			}
 
 			// Record build failures so we can alert on them.
-			if util.In(msg.Attributes["status"], []string{"FAILURE", "SUCCESS"}) {
-				failure := 0
-				if msg.Attributes["status"] == "FAILURE" {
-					failure = 1
-				}
-				metrics2.GetInt64Metric("ci_build_failure", map[string]string{"trigger": repoName}).Update(int64(failure))
+			counter := metrics2.GetCounter("ci_build_failure", map[string]string{"trigger": repoName})
+			if msg.Attributes["status"] == "FAILURE" {
+				counter.Inc(1)
+			} else if msg.Attributes["status"] == "SUCCESS" {
+				counter.Reset()
 			}
+
 			if msg.Attributes["status"] != "SUCCESS" {
 				return
 			}
