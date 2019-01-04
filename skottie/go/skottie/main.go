@@ -115,6 +115,7 @@ func (srv *Server) embedHandler(w http.ResponseWriter, r *http.Request) {
 
 func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	hash := mux.Vars(r)["hash"]
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
 	reader, err := srv.bucket.Object(path).NewReader(r.Context())
