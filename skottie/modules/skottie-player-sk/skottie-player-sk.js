@@ -7,6 +7,7 @@
  * </p>
  *
  */
+import { $$ } from 'common-sk/modules/dom'
 import 'elements-sk/icon/pause-icon-sk'
 import 'elements-sk/icon/play-arrow-icon-sk'
 import 'elements-sk/icon/settings-icon-sk'
@@ -96,9 +97,20 @@ const runningTemplate = (ele) => html`
   ${settingsTemplate(ele)}
 </div>`;
 
+let _ck = null;
+
+CanvasKitInit({
+  locateFile: (file) => '/static/'+file,
+}).then(CK => {
+  _ck = CK;
+  CK.calledRun = false;
+});
+
+
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
   constructor() {
     super();
+
 
     this._config = {
       width:    this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
@@ -152,23 +164,25 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     this._config.width = config.width;
     this._config.height = config.height;
 
-    if (this._engine.kit) {
-      return new Promise((resolve, reject) => {
-              this._initializeSkottie(config.lottie);
-              resolve();
-             });
+    let after = () => {
+      this._initializeSkottie(config.lottie);
+      this._render();
     }
 
-    this._render();
-    return new Promise((resolve, reject) => {
-                 CanvasKitInit({
-                   locateFile: (file) => '/static/'+file,
-                 }).then((ck) => {
-                   this._engine.kit = ck;
-                   this._initializeSkottie(config.lottie);
-                   resolve();
-                 });
-               });
+    // Wait until the engine is initialized.
+    if (this._engine.kit === null) {
+      let id = null;
+      let f = () => {
+        if (_ck !== null) {
+          clearInterval(id);
+          this._engine.kit = _ck;
+          after();
+        }
+      };
+      id = setInterval(f, 10);
+    } else {
+      after();
+    }
   }
 
   duration() {
@@ -217,20 +231,20 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       this._render();
 
       this._engine.surface && this._engine.surface.delete();
-      this._engine.surface = this._engine.kit.MakeCanvasSurface('skottie');
+      let canvasEle = $$('#skottie', this);
+      this._engine.surface = this._engine.kit.MakeCanvasSurface(canvasEle);
       if (!this._engine.surface) {
         throw new Error('Could not make SkSurface.');
       }
       // We don't need to call .delete() on the canvas because
       // the parent surface will do that for us.
-      this._engine.canvas = this._engine.surface.getCanvas();
-
       this._engine.context = this._engine.kit.currentContext();
+      this._engine.canvas = this._engine.surface.getCanvas();
     }
 
     this._engine.animation && this._engine.animation.delete();
 
-    this._engine.animation = this._engine.kit.MakeManagedAnimation(JSON.stringify(lottieJSON));
+    this._engine.animation = this._engine.kit.MakeAnimation(JSON.stringify(lottieJSON));
     if (!this._engine.surface) {
       throw new Error('Could not parse Lottie JSON.');
     }
@@ -238,11 +252,13 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     this._state.duration = this._engine.animation.duration() * 1000;
     this.seek(0);
 
+    /*
     this._props.color.list   = this._engine.animation.getColorProps();
     this._props.opacity.list = this._engine.animation.getOpacityProps();
     this._props.segments     = [ { 'name': 'Full timeline', 't0': 0, 't1': 1 } ]
                                    .concat(this._engine.animation.getMarkers());
     this._currentSegment     = this._props.segments[0];
+    */
 
     this._render(); // re-render for animation-dependent elements (properties, etc).
 
@@ -275,14 +291,14 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       window.requestAnimationFrame(this._drawFrame.bind(this));
     }
 
-    this._engine.animation.seek(this._state.seekPoint);
     this._engine.kit.setCurrentContext(this._engine.context);
+    this._engine.animation.seek(this._state.seekPoint);
     this._engine.animation.render(this._engine.canvas, {
                                   fLeft: 0,
                                   fTop:  0,
                                   fRight:  this._config.width  * window.devicePixelRatio,
                                   fBottom: this._config.height * window.devicePixelRatio });
-    this._engine.surface.flush();
+    this._engine.canvas.flush();
   }
 
   _render() {
