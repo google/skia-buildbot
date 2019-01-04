@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "add3f67b_16441ba4",
+        "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-04T16:03:01Z",
+      "side": 1,
+      "message": "images -\u003e files ?",
+      "range": {
+        "startLine": 24,
+        "startChar": 58,
+        "endLine": 24,
+        "endChar": 64
+      },
+      "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20bd2e2e_7ab4f03f",
+        "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-04T16:03:01Z",
+      "side": 1,
+      "message": "What would a reasonable default be here? I would think it is way more than 4.",
+      "range": {
+        "startLine": 26,
+        "startChar": 44,
+        "endLine": 26,
+        "endChar": 45
+      },
+      "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58190c3e_573d2764",
+        "filename": "scripts/gcs_cleanup/gcs_cleanup.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-04T16:03:01Z",
+      "side": 1,
+      "message": "Will this ever happen? I guess it does not hurt to log and continue.",
+      "revId": "d4470239e9f003e42c7e67fb8521321abde4f767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
