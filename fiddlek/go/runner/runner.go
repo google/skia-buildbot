@@ -347,6 +347,7 @@ func (r *Runner) metricsSingleStep() {
 	fastClient := httputils.NewFastTimeoutClient()
 	for _, address := range ips {
 		if ver, ok := singlePodVersion(fastClient, address); ok {
+			idleCount += 1
 			versions[ver] += 1
 		}
 	}
