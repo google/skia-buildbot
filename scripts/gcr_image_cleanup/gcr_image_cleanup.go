@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	oldestDate, err := time.Parse(YMD_FORMAT, *olderThan)
+	oldestDate, err := time.ParseInLocation(YMD_FORMAT, *olderThan, time.UTC)
 	if err != nil {
 		fmt.Println("Date must be in YYYY-MM-DD format")
 		os.Exit(1)
