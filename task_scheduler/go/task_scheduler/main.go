@@ -63,6 +63,10 @@ var (
 		"skia-status@skia-public.iam.gserviceaccount.com",
 		"skia-status-internal@skia-public.iam.gserviceaccount.com",
 	}
+	PERIODIC_TRIGGER_EMAILS = []string{
+		"task-scheduler@skia-public.iam.gserviceaccount.com",
+		"task-scheduler-internal@skia-corp.google.com.iam.gserviceaccount.com",
+	}
 
 	// Task Scheduler instance.
 	ts *scheduling.TaskScheduler
@@ -545,7 +549,18 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
 		return
 	}
+}
 
+func periodicTriggerHandler(w http.ResponseWriter, r *http.Request) {
+	triggerName, ok := mux.Vars(r)["name"]
+	if !ok {
+		httputils.ReportError(w, r, nil, "Trigger name is required.")
+		return
+	}
+	if err := ts.TriggerPeriodicJobs(context.Background(), triggerName); err != nil {
+		httputils.ReportError(w, r, err, "Failed to trigger periodic jobs.")
+		return
+	}
 }
 
 func runServer(serverURL string, taskDb db.RemoteDB) {
@@ -580,6 +595,10 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 	if err := remote_db.RegisterServer(taskDb, dbRouter); err != nil {
 		sklog.Fatal(err)
 	}
+
+	periodicRouter := r.PathPrefix("/periodic").Subrouter()
+	periodicRouter.Use(login.Restrict(allowed.NewAllowedFromList(PERIODIC_TRIGGER_EMAILS)))
+	periodicRouter.HandleFunc("/trigger/{name}", periodicTriggerHandler)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
