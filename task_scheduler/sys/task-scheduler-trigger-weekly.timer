@@ -1,9 +1,0 @@
-[Unit]
-Description=Run task-scheduler-trigger-weekly.service weekly.
-
-[Timer]
-OnCalendar=Sun *-*-* 05:00:00
-Persistent=false
-
-[Install]
-WantedBy=timers.target
