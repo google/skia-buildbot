@@ -1,5 +1,3 @@
-include kube.mk
-
 .PHONY: build test pushk release_configmap_reload release_auth_push release_continuous_deploy
 
 build:
@@ -32,3 +30,4 @@ push: release_auth_proxy release_continuous_deploy release_configmap_reload
 pushk_authproxy: release_auth_proxy
 	pushk --cluster=skia-public auth-proxy
 
+include kube.mk
