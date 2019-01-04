@@ -22,6 +22,30 @@
       "revId": "d42ca508de34acd00777a95a092b7272f4bd2975",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3ce4088_b544ce71",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-04T18:17:53Z",
+      "side": 1,
+      "message": "Did this way because the license scripts take a long time to complete so it would be useful to see what was going on in the middle of a run (vs waiting XX minutes for it to complete).",
+      "parentUuid": "d85af765_7c4f16a2",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 20
+      },
+      "revId": "d42ca508de34acd00777a95a092b7272f4bd2975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
