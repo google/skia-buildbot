@@ -10,7 +10,7 @@
   "rollerName": "flutter-engine-flutter-autoroll",
   "serviceAccount": "flutter-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "https://build.chromium.org/deprecated/chromium/sheriff_flutter_engine.js"
+    "https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"
   ],
   "github": {
     "repoOwner": "flutter",
