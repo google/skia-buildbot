@@ -91,7 +91,7 @@ export class WasmFiddle extends HTMLElement {
     this._render();
     this.WasmInit({
       locateFile: (file) => '/res/'+file,
-    }).then((LoadedWasm) => {
+    }).ready().then((LoadedWasm) => {
       this.Wasm = LoadedWasm;
       if (this.content) {
         this.run(); // auto-run the code if the code was loaded.

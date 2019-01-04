@@ -163,7 +163,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     return new Promise((resolve, reject) => {
                  CanvasKitInit({
                    locateFile: (file) => '/static/'+file,
-                 }).then((ck) => {
+                 }).ready().then((ck) => {
                    this._engine.kit = ck;
                    this._initializeSkottie(config.lottie);
                    resolve();
