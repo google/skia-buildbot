@@ -7,6 +7,7 @@
  * </p>
  *
  */
+import { $$ } from 'common-sk/modules/dom'
 import 'elements-sk/icon/pause-icon-sk'
 import 'elements-sk/icon/play-arrow-icon-sk'
 import 'elements-sk/icon/settings-icon-sk'
@@ -158,10 +159,10 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._render();
     return canvasReady.then((ck) => {
-              this._engine.kit = ck;
-              this._initializeSkottie(config.lottie);
-              this._render();
-          });
+      this._engine.kit = ck;
+      this._initializeSkottie(config.lottie);
+      this._render();
+    });
   }
 
   duration() {
@@ -210,15 +211,15 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       this._render();
 
       this._engine.surface && this._engine.surface.delete();
-      this._engine.surface = this._engine.kit.MakeCanvasSurface('skottie');
+      let canvasEle = $$('#skottie', this);
+      this._engine.surface = this._engine.kit.MakeCanvasSurface(canvasEle);
       if (!this._engine.surface) {
         throw new Error('Could not make SkSurface.');
       }
       // We don't need to call .delete() on the canvas because
       // the parent surface will do that for us.
-      this._engine.canvas = this._engine.surface.getCanvas();
-
       this._engine.context = this._engine.kit.currentContext();
+      this._engine.canvas = this._engine.surface.getCanvas();
     }
 
     this._engine.animation && this._engine.animation.delete();
@@ -268,14 +269,14 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
       window.requestAnimationFrame(this._drawFrame.bind(this));
     }
 
-    this._engine.animation.seek(this._state.seekPoint);
     this._engine.kit.setCurrentContext(this._engine.context);
+    this._engine.animation.seek(this._state.seekPoint);
     this._engine.animation.render(this._engine.canvas, {
                                   fLeft: 0,
                                   fTop:  0,
                                   fRight:  this._config.width  * window.devicePixelRatio,
                                   fBottom: this._config.height * window.devicePixelRatio });
-    this._engine.surface.flush();
+    this._engine.canvas.flush();
   }
 
   _render() {
