@@ -241,7 +241,7 @@ func main() {
 	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
 	r.HandleFunc("/_/upload", srv.uploadHandler)
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(httputils.MakeResourceHandler(*resourcesDir)))))
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
