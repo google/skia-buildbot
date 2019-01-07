@@ -26,7 +26,6 @@ import (
 	"go.skia.org/infra/go/isolate"
 	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/periodic_triggers"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -195,7 +194,6 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	assert.NoError(t, os.Mkdir(path.Join(tmp, periodic_triggers.TRIGGER_DIRNAME), os.ModePerm))
 	d := memory.NewInMemoryDB(nil)
 	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
@@ -213,7 +211,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, firestore.FIRESTORE_PROJECT, "", nil)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.RemoveAll(t, tmp)
@@ -1976,7 +1974,6 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	gb := git_testutils.GitInit(t, ctx)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	assert.NoError(t, os.Mkdir(path.Join(workdir, periodic_triggers.TRIGGER_DIRNAME), os.ModePerm))
 
 	assert.NoError(t, ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
 	infraBotsSubDir := path.Join("infra", "bots")
@@ -2034,7 +2031,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	assert.NoError(t, err)
 
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, firestore.FIRESTORE_PROJECT, "", nil)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
@@ -2673,60 +2670,6 @@ func TestTaskTimeouts(t *testing.T) {
 	assert.Equal(t, int64(40*60), swarmingTask.Request.Properties.ExecutionTimeoutSecs)
 	assert.Equal(t, int64(3*60), swarmingTask.Request.Properties.IoTimeoutSecs)
 	assert.Equal(t, int64(2*60*60), swarmingTask.Request.ExpirationSecs)
-}
-
-func TestPeriodicJobs(t *testing.T) {
-	ctx, gb, _, _, s, _, cleanup := setup(t)
-	defer cleanup()
-
-	// Rewrite tasks.json with a periodic job.
-	name := "Periodic-Task"
-	cfg := &specs.TasksCfg{
-		Jobs: map[string]*specs.JobSpec{
-			"Periodic-Job": {
-				Priority:  1.0,
-				TaskSpecs: []string{name},
-				Trigger:   "nightly",
-			},
-		},
-		Tasks: map[string]*specs.TaskSpec{
-			name: {
-				CipdPackages: []*specs.CipdPackage{},
-				Dependencies: []string{},
-				Dimensions: []string{
-					"pool:Skia",
-					"os:Mac",
-					"gpu:my-gpu",
-				},
-				ExecutionTimeout: 40 * time.Minute,
-				Expiration:       2 * time.Hour,
-				IoTimeout:        3 * time.Minute,
-				Isolate:          "compile_skia.isolate",
-				Priority:         1.0,
-			},
-		},
-	}
-	gb.Add(ctx, specs.TASKS_CFG_FILE, testutils.MarshalJSON(t, &cfg))
-	gb.Commit(ctx)
-
-	// Cycle, ensure that the periodic task is not added.
-	assert.NoError(t, s.MainLoop(ctx))
-	assert.NoError(t, s.jCache.Update())
-	unfinished, err := s.jCache.UnfinishedJobs()
-	assert.NoError(t, err)
-	assert.Equal(t, 5, len(unfinished)) // Existing per-commit jobs.
-
-	// Write the trigger file. Cycle, ensure that the trigger file was
-	// removed and the periodic task was added.
-	triggerFile := path.Join(s.workdir, periodic_triggers.TRIGGER_DIRNAME, "nightly")
-	assert.NoError(t, ioutil.WriteFile(triggerFile, []byte{}, os.ModePerm))
-	assert.NoError(t, s.MainLoop(ctx))
-	_, err = os.Stat(triggerFile)
-	assert.True(t, os.IsNotExist(err))
-	assert.NoError(t, s.jCache.Update())
-	unfinished, err = s.jCache.UnfinishedJobs()
-	assert.NoError(t, err)
-	assert.Equal(t, 6, len(unfinished))
 }
 
 func TestUpdateUnfinishedTasks(t *testing.T) {
