@@ -64,3 +64,24 @@ on the roller to see what failed:
 * Check to see if DEPS has the latest Skia rev. If not update it and run "/data/depot_tools/gclient sync"
 * cd /data/engine/src/flutter/tools/licenses/
 * /data/engine/src/third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /data/engine/src/out/licenses
+
+Take a look at the cloud logs of the roller [here](https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fautoroll-be-skia-flutter-autoroll%22).
+Failures due to license script errors look like this:
+"Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1:"...
+
+If the license script error looks unrelated to Skia ([example](https://github.com/flutter/flutter/issues/25679)),
+then file a bug to the Flutter team via [Github issues](https://github.com/flutter/flutter/issues/new/choose)
+with log snippets. Informing liyuqian@ about the issue might expediate the fix.
+
+If the error looks related to Skia, then take a look at the recent unrolled
+changes to see if you can identify which change caused the license script to
+fail. Sometimes adding a new directory in third_party without a LICENSE file
+can cause the script to fail ([example](https://bugs.chromium.org/p/skia/issues/detail?id=8027)).
+
+If you need to run the license scripts manually on a clean local checkout,
+then follow these steps:
+* 
+*
+*
+How to checkout flutter is documented [here](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment).
+License script documentation is [here](https://github.com/flutter/engine/blob/master/tools/licenses/README.md).
