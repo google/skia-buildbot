@@ -1,0 +1,336 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0e1a364_7e821d54",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "Could you also link to the skia-public-config CL here?",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0f74136_ba6d6850",
+        "filename": "task_scheduler/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "Remove before submit.",
+      "range": {
+        "startLine": 70,
+        "startChar": 7,
+        "endLine": 70,
+        "endChar": 22
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db08c51f_758826fb",
+        "filename": "task_scheduler/go/periodic-trigger/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: Is there a reason not to use alpine? E.g. https://skia.googlesource.com/buildbot/+/e682286f3fb59c694b67e674e5830e1d8ddd8fc2/notifier/notifier/Dockerfile",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77ee84f9_d78e40be",
+        "filename": "task_scheduler/go/periodic-trigger/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: Might be useful to apps other than task_scheduler, so consider moving to top-level dir.",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bb48213_55640e77",
+        "filename": "task_scheduler/go/periodic-trigger/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "You might want to disable retries here, since that will be done at a higher level. Also note there is a 5min request timeout by default -- maybe mention that in the docs for MaybeTrigger.",
+      "range": {
+        "startLine": 29,
+        "startChar": 21,
+        "endLine": 29,
+        "endChar": 42
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a96757ba_5f2e6223",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "An alternative to storing info about the triggers in a DB would be to make TriggerPeriodicJobs natively idempotent. This would involve searching the Job DB (or cache) to see if a recent-enough Job already exists for each JobSpec (possibly ignoring forced jobs). For monitoring, we already have overdue_job_specs_s, which would catch failed triggers, although we would need to make some changes for it to work for weekly jobs.",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "697f72e2_8b39bb9f",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "One option is to just store a single doc for each trigger with the last-triggered timestamp. In MaybeTrigger, only do something if the stored timestamp is \u003e 15min ago (or whatever deduplication interval we think is needed).",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 71
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4131b530_c9f66d61",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "I don\u0027t understand what this means.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 14
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12e6c41e_659861d2",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: doc map key",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb14a99a_e59ccd11",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: doc",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3cda326_eae956b2",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "IMO either use Context or have a Close method, not both.",
+      "range": {
+        "startLine": 102,
+        "startChar": 1,
+        "endLine": 102,
+        "endChar": 73
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d6b2f162_b86678c6",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "The only way to really prevent inconsistencies is to add the periodicEntry in the same transaction as whatever fn does.\n\nThere are more complicated ways involving waiting and timeouts, but IIUC, we don\u0027t really need to worry about it since k8s cron should retry on error (assuming restartPolicy: OnFailure), which should only happen after the first request has finished.",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 136,
+        "endChar": 70
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f448634e_1e7a2f2e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: maybe use a more descriptive name to avoid confusion with the DB.",
+      "range": {
+        "startLine": 131,
+        "startChar": 446,
+        "endLine": 131,
+        "endChar": 467
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acfec230_43b66f63",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "Fix before submit.",
+      "range": {
+        "startLine": 348,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 5
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2b70b39_34a6d270",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: Seems like we can make this more general by using one service account across all apps for k8s cron jobs.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 2
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3039dad_55c9558d",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 1,
+      "message": "nit: r.Context()",
+      "range": {
+        "startLine": 560,
+        "startChar": 34,
+        "endLine": 560,
+        "endChar": 54
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

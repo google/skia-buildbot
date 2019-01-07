@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f385d370_b04f535c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 2678,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-07T23:28:57Z",
+      "side": 0,
+      "message": "Maybe we could keep this as a manual firestore test?",
+      "revId": "15f1d413231a567dfe4e101d7800bc303fae560d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
