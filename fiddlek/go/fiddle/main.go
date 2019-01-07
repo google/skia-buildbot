@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
 
@@ -324,6 +325,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		return
 	}
+
+	defer timer.NewWithSummary("latency", metrics2.GetFloat64SummaryMetric("latency", map[string]string{"path": r.URL.Path})).Stop()
+
 	sklog.Infof("RemoteAddr: %s %s", r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
 	req := &types.FiddleContext{}
 	dec := json.NewDecoder(r.Body)
