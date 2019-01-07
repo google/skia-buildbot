@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70211286_a49dde30",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-07T03:13:04Z",
+      "side": 1,
+      "message": "Did this change matter? If so, it should likely be more widely documented, although I suspect it was a red herring.",
+      "revId": "d46341c2cb244833b4fee9925cf0f3d7cef626ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69bd8e19_fa762073",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-07T03:13:04Z",
+      "side": 1,
+      "message": "Same question as above, I think the surface flushing should be correct unless we have reason to suspect otherwise.",
+      "revId": "d46341c2cb244833b4fee9925cf0f3d7cef626ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
