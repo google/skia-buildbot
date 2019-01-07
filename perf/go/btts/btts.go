@@ -50,7 +50,7 @@ const (
 	// MAX_MUTATIONS is the max number of mutations we can send in a single ApplyBulk call. Can be up to 100,000 according to BigTable docs.
 	MAX_MUTATIONS = 100000
 
-	TIMEOUT       = 1 * time.Minute
+	TIMEOUT       = 4 * time.Minute
 	WRITE_TIMEOUT = 10 * time.Minute
 )
 

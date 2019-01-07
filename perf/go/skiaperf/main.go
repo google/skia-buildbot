@@ -228,15 +228,18 @@ func Init() {
 
 	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope}
 
+	sklog.Info("About to create token source.")
 	ts, err := auth.NewDefaultTokenSource(*local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
 
+	sklog.Info("About to init datastore.")
 	if err := ds.InitWithOpt(*projectName, *namespace, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
 	}
 
+	sklog.Info("About to init GCS.")
 	storageClient, err = storage.NewClient(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatalf("Failed to authenicate to cloud storage: %s", err)
@@ -247,6 +250,7 @@ func Init() {
 		sklog.Fatalf("The --algo flag value is invalid: %s", err)
 	}
 
+	sklog.Info("About to parse templates.")
 	loadTemplates()
 
 	var ok bool
@@ -255,11 +259,13 @@ func Init() {
 	}
 	*gitRepoUrl = btConfig.GitUrl
 
+	sklog.Info("About to clone repo.")
 	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
+	sklog.Info("About to build dataframebuilder.")
 	var dfBuilder dataframe.DataFrameBuilder
 	traceStore, err = btts.NewBigTableTraceStoreFromConfig(ctx, btConfig, ts, false)
 	if err != nil {
@@ -267,15 +273,18 @@ func Init() {
 	}
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 
+	sklog.Info("About to build dataframe refresher.")
 	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, *dataFrameSize)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
 
+	sklog.Info("About to build cidl.")
 	cidl = cid.New(ctx, git, *gitRepoUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
+	sklog.Info("About to build alertStore.")
 	alertStore = alerts.NewStore()
 
 	if !*noemail {
