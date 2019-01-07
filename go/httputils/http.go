@@ -430,7 +430,7 @@ func LoggingRequestResponse(h http.Handler) http.Handler {
 				sklog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
 			}
 		}()
-		defer timer.New(fmt.Sprintf("Request: %s Latency:", r.URL.Path)).Stop()
+		defer timer.NewWithMetric("latency", metrics2.GetFloat64Metric("latency", map[string]string{"path": r.URL.Path})).Stop()
 		h.ServeHTTP(w, r)
 	}
 
