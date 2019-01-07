@@ -113,7 +113,12 @@ func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir st
 	licensesGoldenDir := filepath.Join(parentRepoDir, "ci", "licenses_golden")
 	licenseCmd := []string{dartBinary, "lib/main.dart", "--src", "../../..", "--out", licensesOutDir, "--golden", licensesGoldenDir}
 	sklog.Infof("Running %s", licenseCmd)
-	if _, err := exec.RunCwd(ctx, licenseToolsDir, licenseCmd...); err != nil {
+	if err := exec.Run(ctx, &exec.Command{
+		Dir:            licenseToolsDir,
+		Name:           licenseCmd[0],
+		Args:           licenseCmd[1:],
+		CombinedOutput: os.Stdout,
+	}); err != nil {
 		return fmt.Errorf("Error when running dart license script: %s", err)
 	}
 
@@ -146,9 +151,10 @@ func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir st
 		}
 		if err := exec.Run(ctx, &exec.Command{
 			Dir:    licenseToolsDir,
-			Name:   dartBinary,
-			Args:   []string{"lib/main.dart", "--release", "--src", "../../..", "--out", licensesOutDir},
+			Name:   updateLicenseCmd[0],
+			Args:   updateLicenseCmd[1:],
 			Stdout: outFile,
+			Stderr: os.Stderr,
 		}); err != nil {
 			return fmt.Errorf("Error when running dart license script: %s", err)
 		}
