@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Skottie Player (Skia + Lottie)</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/jsoneditor.css">
+  <script type="text/javascript" charset="utf-8">
+    // This bit of script loads the custom elements v1 polyfill, but only if required.
+    // See https://webpack.js.org/guides/shimming/#loading-polyfills
+    if (!window.customElements) {
+      var newScript = document.createElement('script');
+      newScript.async = false;
+      newScript.src = '/static/custom-elements.min.js';
+      document.head.appendChild(newScript);
+    }
+  </script>
+  <script src="" type="text/javascript" charset="utf-8"></script>
+
+</head>
+<body>
+  <skottie-inline-sk width=64 height=64 src='https://www.lottiefiles.com/download/3757'></skottie-inline-sk>
+  <skottie-inline-sk width=64 height=64 src='https://www.lottiefiles.com/download/3760'></skottie-inline-sk>
+  <skottie-inline-sk width=128 height=128 src='https://www.lottiefiles.com/download/3757'></skottie-inline-sk>
+</body>
+</html>

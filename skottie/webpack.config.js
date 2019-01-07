@@ -19,8 +19,5 @@ module.exports = (env, argv) => {
   config.node = {
     fs: 'empty'
   };
-  config.resolve = config.resolve || {};
-  config.resolve.alias = config.resolve.alias || {};
-  config.resolve.alias['infra-sk'] = resolve(__dirname, '../infra-sk/');
   return config;
 }
