@@ -24,10 +24,23 @@ import (
 //       // Do something with duration here.
 //     }()
 //
+
+type updateable interface {
+	Update(float64)
+}
+
+type summaryWrapper struct {
+	m metrics2.Float64SummaryMetric
+}
+
+func (s summaryWrapper) Update(v float64) {
+	s.m.Observe(v)
+}
+
 type Timer struct {
 	Begin  time.Time
 	Name   string
-	Metric metrics2.Float64Metric
+	Metric updateable
 }
 
 func New(name string) *Timer {
@@ -42,6 +55,14 @@ func NewWithMetric(name string, m metrics2.Float64Metric) *Timer {
 		Begin:  time.Now(),
 		Name:   name,
 		Metric: m,
+	}
+}
+
+func NewWithSummary(name string, m metrics2.Float64SummaryMetric) *Timer {
+	return &Timer{
+		Begin:  time.Now(),
+		Name:   name,
+		Metric: summaryWrapper{m: m},
 	}
 }
 
