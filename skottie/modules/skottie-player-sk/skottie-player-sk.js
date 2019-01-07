@@ -97,8 +97,12 @@ const runningTemplate = (ele) => html`
   ${settingsTemplate(ele)}
 </div>`;
 
+const scriptOrigin = new URL(document.currentScript.src).origin;
+
 const canvasReady = CanvasKitInit({
-  locateFile: (file) => '/static/'+file,
+  locateFile: (file) => {
+    return `${scriptOrigin}/static/${file}`;
+  },
 }).ready();
 
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
