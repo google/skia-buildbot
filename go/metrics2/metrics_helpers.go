@@ -9,3 +9,8 @@ func GetInt64Metric(measurement string, tags ...map[string]string) Int64Metric {
 func GetFloat64Metric(measurement string, tags ...map[string]string) Float64Metric {
 	return defaultClient.GetFloat64Metric(measurement, tags...)
 }
+
+// GetFloat64SummaryMetric returns a Float64SummaryMetric instance using the default client.
+func GetFloat64SummaryMetric(measurement string, tags ...map[string]string) Float64SummaryMetric {
+	return defaultClient.GetFloat64SummaryMetric(measurement, tags...)
+}
