@@ -16,6 +16,24 @@
       "revId": "ec85fbe9452864b9ef73a0f913f961d3383de422",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02b869e4_769cd1d2",
+        "filename": "skottie/pages/inline.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-07T16:28:38Z",
+      "side": 1,
+      "message": "Removed lots of stuff.",
+      "parentUuid": "3bc7e2bf_bb610a80",
+      "revId": "ec85fbe9452864b9ef73a0f913f961d3383de422",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
