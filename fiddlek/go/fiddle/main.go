@@ -360,30 +360,31 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 		return resp, fmt.Errorf("Invalid Options: %s", err), "Invalid options."
 	}
 	sklog.Infof("Request: %#v", *req)
+	fiddleHash, err := req.Options.ComputeHash(req.Code)
+	if err != nil {
+		sklog.Infof("Failed to compute hash: %s", err)
+	}
 
 	// The fast path returns quickly if the fiddle already exists.
 	if req.Fast {
 		sklog.Infof("Trying the fast path.")
-		if fiddleHash, err := req.Options.ComputeHash(req.Code); err == nil {
-			if _, _, err := fiddleStore.GetCode(fiddleHash); err == nil {
-				resp.FiddleHash = fiddleHash
-				if req.Options.TextOnly {
-					if b, _, _, err := fiddleStore.GetMedia(fiddleHash, store.TXT); err != nil {
-						sklog.Infof("Failed to get text: %s", err)
-					} else {
-						resp.Text = string(b)
-						return resp, nil, ""
-					}
+		if _, _, err := fiddleStore.GetCode(fiddleHash); err == nil {
+			resp.FiddleHash = fiddleHash
+			if req.Options.TextOnly {
+				if b, _, _, err := fiddleStore.GetMedia(fiddleHash, store.TXT); err != nil {
+					sklog.Infof("Failed to get text: %s", err)
 				} else {
+					resp.Text = string(b)
 					return resp, nil, ""
 				}
 			} else {
-				sklog.Infof("Failed to match hash: %s", err)
+				return resp, nil, ""
 			}
 		} else {
-			sklog.Infof("Failed to compute hash: %s", err)
+			sklog.Infof("Failed to match hash: %s", err)
 		}
 	}
+	req.Hash = fiddleHash
 
 	res, err := run.Run(*local, req)
 	if err != nil {
@@ -437,7 +438,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 	if res.Compile.Errors != "" || res.Execute.Errors != "" {
 		res = nil
 	}
-	fiddleHash := ""
+	fiddleHash = ""
 	// Store the fiddle, but only if we are not in Fast mode and errors occurred.
 	if !(res == nil && req.Fast) {
 		fiddleHash, err = fiddleStore.Put(req.Code, req.Options, res)
