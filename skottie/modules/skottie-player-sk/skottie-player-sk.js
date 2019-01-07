@@ -97,8 +97,15 @@ const runningTemplate = (ele) => html`
   ${settingsTemplate(ele)}
 </div>`;
 
+// This element might be loaded from a different site, and that means we need
+// to be careful about how we construct the URL back to the canvas.wasm file.
+// Start by recording the script origin.
+const scriptOrigin = new URL(document.currentScript.src).origin;
+
 const canvasReady = CanvasKitInit({
-  locateFile: (file) => '/static/'+file,
+  locateFile: (file) => {
+    return `${scriptOrigin}/static/${file}`;
+  },
 }).ready();
 
 window.customElements.define('skottie-player-sk', class extends HTMLElement {
