@@ -255,7 +255,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	reqToSend := *req
 	reqToSend.Code = r.prepCodeToCompile(req.Code, &req.Options)
 	runTotal.Inc(1)
-	sklog.Infof("Sending: %q", reqToSend.Code)
+	sklog.Infof("%q Sending: %q", req.Hash, reqToSend.Code)
 
 	b, err := json.Marshal(reqToSend)
 	if err != nil {
@@ -273,11 +273,11 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 			ips := r.randPodIPs()
 			for _, p := range ips {
 				rootURL := fmt.Sprintf("http://%s:8000", p)
-				sklog.Infof("Trying: %q", rootURL)
+				sklog.Infof("%q Trying: %q", req.Hash, rootURL)
 				// Run the fiddle in the open pod.
 				ret, err := r.singleRun(rootURL+"/run", bytes.NewReader(b))
 				if err == alreadyRunningFiddleErr || err == failedToSendErr {
-					sklog.Warningf("Couldn't run on pod: %s", err)
+					sklog.Warningf("%q Couldn't run on pod: %s", req.Hash, err)
 					continue
 				} else {
 					return ret, err
@@ -287,7 +287,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 			time.Sleep((1 << uint64(tries)) * time.Second)
 		}
 		runExhaustion.Inc(1)
-		return nil, fmt.Errorf("Failed to find an available server to run the fiddle.")
+		return nil, fmt.Errorf("%q Failed to find an available server to run the fiddle.", req.Hash)
 	}
 }
 
