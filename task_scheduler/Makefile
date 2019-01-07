@@ -36,6 +36,10 @@ debug: clean_webtools debug_core_js debug_elements_html
 task_scheduler_debug: debug skiaversion
 	go install -v ./go/task_scheduler
 
+.PHONY: periodic-trigger
+periodic-trigger: skiaversion
+	GOOS=linux go install -a ./go/periodic-trigger
+
 .PHONY: push
 push: all
 	./build_release "`git log -n1 --format=%s`"
@@ -61,12 +65,9 @@ push_backup: all
 	pushcli task-scheduler-db-backup skia-task-scheduler
 
 .PHONY: push_trigger
-push_trigger: all
-	./build_trigger_nightly_release "`git log -n1 --format=%s`"
-	./build_trigger_weekly_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli task-scheduler-trigger-nightly skia-task-scheduler
-	pushcli task-scheduler-trigger-weekly skia-task-scheduler
+push_trigger: periodic-trigger
+	./build_periodic_trigger_release
+	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public periodic-trigger
 
 .PHONY: vm_create_prod
 vm_create_prod:
