@@ -94,6 +94,30 @@
       "revId": "d42ca508de34acd00777a95a092b7272f4bd2975",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c0a029b_172f9059",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-07T16:23:58Z",
+      "side": 1,
+      "message": "Changed it to CombinedOutput here to get more useful output.\nRemoved the MultiWriter below because it was way too much noise. The Stderr is what is useful there.",
+      "parentUuid": "c97a2e9d_280e8eda",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 20
+      },
+      "revId": "d42ca508de34acd00777a95a092b7272f4bd2975",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
