@@ -311,7 +311,7 @@ func oneStep(ctx context.Context, checkout string, res *types.Result, frame floa
 		InheritEnv:  true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
-		Timeout:     20 * time.Second,
+		Timeout:     30 * time.Second,
 	}
 	if err := exec.Run(ctx, runCmd); err != nil {
 		sklog.Errorf("Failed to run: %s", err)
