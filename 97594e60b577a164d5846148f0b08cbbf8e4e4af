@@ -22,6 +22,30 @@
       "revId": "97594e60b577a164d5846148f0b08cbbf8e4e4af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea16eb00_110c609e",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-01-08T15:24:53Z",
+      "side": 1,
+      "message": "The quotes don\u0027t fix the $lit$ problem, it was dropping the html` from the beginning of the line.",
+      "parentUuid": "ef4ae142_d8dfd3bc",
+      "range": {
+        "startLine": 54,
+        "startChar": 44,
+        "endLine": 54,
+        "endChar": 45
+      },
+      "revId": "97594e60b577a164d5846148f0b08cbbf8e4e4af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
