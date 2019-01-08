@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "acf20d6e_6ccf5383",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 935,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-08T16:09:19Z",
+      "side": 1,
+      "message": "nit: testEq already swaps the order, so no need for both of these",
+      "range": {
+        "startLine": 934,
+        "startChar": 0,
+        "endLine": 935,
+        "endChar": 24
+      },
+      "revId": "ffca6aaec9bfaac138d0abcde890e9b056e28a0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4c7720f_e57a8f5a",
+        "filename": "go/util/util_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 950,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-08T16:09:19Z",
+      "side": 1,
+      "message": "Maybe also test not-last difference:\ntestGt([]string{\"a\", \"d\", \"c\"}, []string{\"a\", \"b\", \"c\"})",
+      "revId": "ffca6aaec9bfaac138d0abcde890e9b056e28a0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc142f29_9c22befb",
+        "filename": "task_driver/go/db/db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-08T16:09:19Z",
+      "side": 1,
+      "message": "Would it be simpler to just add an index attribute to StepData?",
+      "range": {
+        "startLine": 245,
+        "startChar": 0,
+        "endLine": 246,
+        "endChar": 37
+      },
+      "revId": "ffca6aaec9bfaac138d0abcde890e9b056e28a0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
