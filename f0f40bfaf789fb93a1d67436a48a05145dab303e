@@ -59,6 +59,24 @@
     },
     {
       "key": {
+        "uuid": "45d8f6c6_1c674bfe",
+        "filename": "task_scheduler/go/periodic-trigger/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-08T13:01:42Z",
+      "side": 1,
+      "message": "I tried that initially, but I was getting \"not found\" for the below executable, even though it was present with the correct permissions.  Switching to basedebian fixed it, so I didn\u0027t bother going back and investigating.",
+      "parentUuid": "db08c51f_758826fb",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "77ee84f9_d78e40be",
         "filename": "task_scheduler/go/periodic-trigger/main.go",
         "patchSetId": 5
