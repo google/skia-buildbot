@@ -104,16 +104,12 @@ skottie-sk {
     margin-left: 0.6em;
   }
 
-  .embed {
-    display: inline-block;
+  #embed {
+    padding: 1em;
+    border: solid var(--light-gray) 1px;
+    margin: 1em;
+    background: var(--dark-white);
   }
-
-  .embed input {
-    padding: 0.2em;
-    border: solid var(--light-blue) 1px;
-    margin: 0.6em;
-  }
-
 }
 
 #json_editor button {
