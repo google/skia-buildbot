@@ -9,6 +9,7 @@
  */
 import '../skottie-config-sk'
 import '../skottie-player-sk'
+import 'elements-sk/collapse-sk'
 import 'elements-sk/error-toast-sk'
 import { $$ } from 'common-sk/modules/dom'
 import { SKIA_VERSION } from '../../build/version.js'
@@ -50,12 +51,11 @@ const livePreview = (ele) => {
 }
 
 const iframeDirections = (ele) => {
-  if (ele._hash === '') {
-    return ''
-  }
-  return html`
-    <input size=120 value='<iframe width=${ele._state.width} height=${ele._state.height} src="${window.location.origin}/e/${ele._hash}" scrolling=no></iframe>'>
-  `;
+  return `<iframe width="${ele._state.width}" height="${ele._state.height}" src="${window.location.origin}/e/${ele._hash}" scrolling=no>`;
+}
+
+const inlineDirections = (ele) => {
+  return `<skottie-inline-sk width="${ele._state.width}" height="${ele._state.height}" src="${window.location.origin}/_/j/${ele._hash}"></skottie-inline-sk>`;
 }
 
 const displayLoaded = (ele) => html`
@@ -69,9 +69,15 @@ const displayLoaded = (ele) => html`
   </a>
   ${ele._hasEdits? '(without edits)': ''}
 </div>
-<div class=embed>
-  ${iframeDirections(ele)}
-</div>
+<button @click=${ele._toggleEmbed}>Embed</button>
+<collapse-sk id=embed closed>
+  <p>
+    <label>Embed using an iframe: <input size=120 value="${iframeDirections(ele)}" scrolling=no></label>
+  </p>
+  <p>
+    <label>Embed on skia.org: <input size=140 value="${inlineDirections(ele)}" scrolling=no></label>
+  </p>
+</collapse-sk>
 <section class=figures>
   <figure>
     ${skottiePlayer(ele)}
@@ -389,6 +395,11 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       // when the user modifies the JSON.
       this._editorLoaded = true;
     }
+  }
+
+  _toggleEmbed() {
+    let collapse = $$('#embed', this);
+    collapse.closed = !collapse.closed;
   }
 
   handleEvent(e) {
