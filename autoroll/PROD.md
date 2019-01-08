@@ -55,12 +55,52 @@ flutter_license_script_failure section below.
 flutter_license_script_failure
 ------------------------------
 
-The Skia->Flutter roller may throw errors from Flutter's license script:
-"Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1: /data/engine/src/third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /data/engine/src/out/licenses"
-This alert means that the licence script is failing possibly due to a recent
-Skia change. Ask brianosman@ to run the script manually, or follow these steps
-on the roller to see what failed:
-* cd /data/engine/src/flutter/
-* Check to see if DEPS has the latest Skia rev. If not update it and run "/data/depot_tools/gclient sync"
-* cd /data/engine/src/flutter/tools/licenses/
-* /data/engine/src/third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out /data/engine/src/out/licenses
+The Skia->Flutter roller has failed due to errors from Flutter's license script.
+Take a look at the cloud logs of the roller [here](https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fautoroll-be-skia-flutter-autoroll%22).
+Failures due to license script errors typically look like this:
+"Failed to transition from "idle" to "active": Error when running pre-upload step: Error when running dart license script: Command exited with exit status 1:"...
+
+If the license script error looks unrelated to Skia ([example](https://github.com/flutter/flutter/issues/25679)),
+then file a bug to the Flutter team via [Github issues](https://github.com/flutter/flutter/issues/new/choose)
+with log snippets. Informing liyuqian@ about the issue might expedite the fix.
+
+If the error looks related to Skia, then take a look at the recent unrolled
+changes to see if you can identify which change caused the license script to
+fail. Sometimes adding a new directory in third_party without a LICENSE file
+can cause the script to fail ([example](https://bugs.chromium.org/p/skia/issues/detail?id=8027)).
+
+If you need to run the license scripts manually on a clean local checkout,
+then follow these steps-
+* Checkout the necessary repos:
+  * git clone https://github.com/flutter/engine
+  * cd engine
+  * echo """
+solutions = [
+  {
+    'managed': False,
+    'name': 'src/flutter',
+    'url': 'git@github.com:flutter/engine.git',
+    'custom_deps': {},
+    'deps_file': 'DEPS',
+    'safesync_url': '',
+  },
+]
+""" > .gclient
+  * gclient sync
+* cd src/flutter
+* Change the Skia rev in the DEPS here if necessary.
+* Run the license scripts:
+  * cd tools/licenses
+  * ../../../third_party/dart/tools/sdks/dart-sdk/bin/pub get
+  * Run dart license script to create new licenses.
+    * rm -rf ../../../out/licenses
+    * ../../../third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --src ../../.. --out ../../../out/licenses --golden ../../ci/licenses_golden
+  * Copy from out dir to goldens dir. This is required for updating the release file in sky_engine/LICENSE.
+    * cp ../../../out/licenses/licenses_skia ../../ci/licenses_golden/licenses_skia
+  * Update ../../sky/packages/sky_engine/LICENSE using the dart license script.
+    * ../../../third_party/dart/tools/sdks/dart-sdk/bin/dart lib/main.dart --release --src ../../.. --out ../../../out/licenses
+
+Useful documentation links:
+* How to checkout flutter is documented [here](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment).
+* License script documentation is [here](https://github.com/flutter/engine/blob/master/tools/licenses/README.md).
+* The code for the pre-upload license step used by the autoroller is [here](https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/pre_upload_steps.go).
