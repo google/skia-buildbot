@@ -3,8 +3,12 @@ package db
 import (
 	"encoding/gob"
 	"fmt"
+	"sort"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
+	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -58,6 +62,88 @@ func newStep(id string) *Step {
 type StepData struct {
 	Type td.DataType `json:"type"`
 	Data interface{} `json:"data"`
+}
+
+type StepDataSlice []*StepData
+
+func (s StepDataSlice) Len() int { return len(s) }
+
+func (s StepDataSlice) Less(i, j int) bool {
+	if s[i].Type != s[j].Type {
+		return s[i].Type < s[j].Type
+	}
+	switch s[i].Type {
+	case td.DATA_TYPE_LOG:
+		var logDataI td.LogData
+		if err := mapstructure.Decode(s[i].Data, &logDataI); err != nil {
+			sklog.Errorf("Failed to decode LogData: %s", err)
+			return false
+		}
+		var logDataJ td.LogData
+		if err := mapstructure.Decode(s[j].Data, &logDataJ); err != nil {
+			sklog.Errorf("Failed to decode LogData: %s", err)
+			return false
+		}
+		if logDataI.Name != logDataJ.Name {
+			return logDataI.Name < logDataJ.Name
+		}
+		if logDataI.Severity != logDataJ.Severity {
+			return logDataI.Severity < logDataJ.Severity
+		}
+		return logDataI.Id < logDataJ.Id
+	case td.DATA_TYPE_COMMAND:
+		var execDataI td.ExecData
+		if err := mapstructure.Decode(s[i].Data, &execDataI); err != nil {
+			sklog.Errorf("Failed to decode ExecData: %s", err)
+			return false
+		}
+		var execDataJ td.ExecData
+		if err := mapstructure.Decode(s[j].Data, &execDataJ); err != nil {
+			sklog.Errorf("Failed to decode ExecData: %s", err)
+			return false
+		}
+		if cmp := util.SSliceCmp(execDataI.Cmd, execDataJ.Cmd); cmp == -1 {
+			return true
+		} else if cmp == 1 {
+			return false
+		}
+		return util.SSliceCmp(execDataI.Env, execDataJ.Env) == -1
+	case td.DATA_TYPE_HTTP_REQUEST:
+		var reqDataI td.HttpRequestData
+		if err := mapstructure.Decode(s[i].Data, &reqDataI); err != nil {
+			sklog.Errorf("Failed to decode HttpRequestData: %s", err)
+			return false
+		}
+		var reqDataJ td.HttpRequestData
+		if err := mapstructure.Decode(s[j].Data, &reqDataJ); err != nil {
+			sklog.Errorf("Failed to decode HttpRequestData: %s", err)
+			return false
+		}
+		if reqDataI.Method != reqDataJ.Method {
+			return reqDataI.Method < reqDataJ.Method
+		}
+		return reqDataI.URL.String() < reqDataJ.URL.String()
+	case td.DATA_TYPE_HTTP_RESPONSE:
+		var respDataI td.HttpResponseData
+		if err := mapstructure.Decode(s[i].Data, &respDataI); err != nil {
+			sklog.Errorf("Failed to decode HttpResponseData: %s", err)
+			return false
+		}
+		var respDataJ td.HttpResponseData
+		if err := mapstructure.Decode(s[j].Data, &respDataJ); err != nil {
+			sklog.Errorf("Failed to decode HttpResponseData: %s", err)
+			return false
+		}
+		return respDataI.StatusCode < respDataJ.StatusCode
+	default:
+		sklog.Errorf("Invalid step DataType %q!", s[i])
+		return false
+	}
+	return false
+}
+
+func (s StepDataSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 // Copy returns a deep copy of the Step.
@@ -146,10 +232,19 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 			step.Result = td.STEP_RESULT_SUCCESS
 		}
 	case td.MSG_TYPE_STEP_DATA:
-		step.Data = append(step.Data, &StepData{
+		sd := &StepData{
 			Type: m.DataType,
 			Data: m.Data,
-		})
+		}
+		// Avoid duplicating data we've already seen.
+		for _, existing := range step.Data {
+			if deepequal.DeepEqual(sd, existing) {
+				return nil
+			}
+		}
+		step.Data = append(step.Data, sd)
+		// Sort the data. This is just to make tests pass.
+		sort.Sort(StepDataSlice(step.Data))
 	case td.MSG_TYPE_STEP_FAILED:
 		// TODO(borenet): If we have both a failure and an exception for
 		// the same step, we'll have a race condition depending on what
