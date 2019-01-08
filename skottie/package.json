@@ -7,18 +7,18 @@
   "dependencies": {
     "@webcomponents/custom-elements": "^1.2.1",
     "common-sk": "~3.1.0",
-    "elements-sk": "~2.6.0",
+    "elements-sk": "~2.7.0",
     "infra-sk": "^0.8.1",
     "jsoneditor": "~5.24.3",
     "lit-html": "~0.14.0",
-    "lottie-web": "^5.4.2"
+    "lottie-web": "^5.4.3"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^4.6.0",
-    "fetch-mock": "~7.2.5",
+    "fetch-mock": "~7.3.0",
     "pulito": "^4.1.1",
-    "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2"
+    "webpack": "^4.28.1",
+    "webpack-cli": "^3.2.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
