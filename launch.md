@@ -78,7 +78,7 @@ Create a Dockerfile for your app in the root of the project folder
 
 When choosing a base image, consider our light wrappers, found in `kube/*`.
 For example, `kube/basealpine/Dockerfile` which can be used by having
-`FROM gcr.io/skia-public/basealpine:3.7` as the first line in a Dockerfile.
+`FROM gcr.io/skia-public/basealpine:3.8` as the first line in a Dockerfile.
 
 We have a helper script for 'installing' an app into a Docker container,
 `bash/docker_build.sh`. A call to this script is customarily put in a bash
@@ -94,7 +94,7 @@ root is absolutely needed.
 
 Putting all the above together, a bare-bones Dockerfile would look something like:
 
-    FROM gcr.io/skia-public/basealpine:3.7
+    FROM gcr.io/skia-public/basealpine:3.8
 
     COPY . /
 

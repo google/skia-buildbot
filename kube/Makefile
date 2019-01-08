@@ -18,6 +18,10 @@ release_continuous_deploy:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/continuous-deploy ./go/pushk
 	./build_continuous_deploy_release
 
+release_basealpine:
+	docker pull alpine:3.8
+	./build_basealpine_release
+
 push_reposync:
 	go install ./go/repo-sync
 	./build_reposync_release
