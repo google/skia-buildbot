@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95eab4ae_85f8fbcb",
+        "filename": "go/counters/counters.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-09T17:43:04Z",
+      "side": 1,
+      "message": "Are you adding the only use of this struct? Maybe just use the functions in https://golang.org/pkg/sync/atomic and delete this code.",
+      "revId": "a0072e48ed81ca4b710e8d8721a31f32bf7dfef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfd720ee_e6d6d5ab",
+        "filename": "go/counters/counters.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-09T17:43:04Z",
+      "side": 1,
+      "message": "nit: Returning the old value is a bit unexpected. E.g. https://golang.org/pkg/sync/atomic/#AddInt32 returns the new value.\n\nOTOH, https://en.cppreference.com/w/cpp/atomic/atomic/fetch_add returns the old value. Maybe that\u0027s the \"fetch\" part of the name coming before the \"add\"?\n\nIt looks like Java has both flavors with descriptive names:\nhttps://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html#addAndGet-int-\nhttps://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html#getAndAdd-int-",
+      "range": {
+        "startLine": 30,
+        "startChar": 52,
+        "endLine": 30,
+        "endChar": 61
+      },
+      "revId": "a0072e48ed81ca4b710e8d8721a31f32bf7dfef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
