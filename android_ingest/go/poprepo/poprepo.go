@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -32,8 +33,8 @@ type PopRepoI interface {
 	// Add a new buildid to the repo.
 	Add(ctx context.Context, buildid, ts int64, branch string) error
 
-	// LookupBuildID looks up a buildid from the git hash.
-	LookupBuildID(ctx context.Context, hash string) (int64, error)
+	// LookupBuildID looks up a buildid and branch from the git hash.
+	LookupBuildID(ctx context.Context, hash string) (int64, string, error)
 }
 
 // PopRepo implements PopRepoI.
@@ -88,13 +89,23 @@ func (p *PopRepo) GetLast(ctx context.Context) (int64, int64, string, error) {
 	return buildid, ts, hash, nil
 }
 
-func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, error) {
+// See PopRepoI.
+func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, string, error) {
 	commit, err := p.checkout.Details(ctx, hash)
 	if err != nil {
-		return -1, fmt.Errorf("Failed looking up buildid: %s", err)
+		return -1, "", fmt.Errorf("Failed looking up buildid: %s", err)
 	}
-	parts := strings.Split(commit.Subject, "/")
-	return strconv.ParseInt(parts[len(parts)-1], 10, 64)
+	u, err := url.Parse(commit.Subject)
+	if err != nil {
+		return -1, "", fmt.Errorf("Commit subject was not a valid URL: %s", err)
+	}
+	branch := u.Query().Get("branch")
+	if branch == "" {
+		branch = "git_master"
+	}
+
+	id, err := strconv.ParseInt(filepath.Base(u.Path), 10, 64)
+	return id, branch, err
 }
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
