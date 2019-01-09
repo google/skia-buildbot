@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a95b3eaa_62bcfe46",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c0e1a364_7e821d54",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f0f74136_ba6d6850",
         "filename": "task_scheduler/Makefile",
         "patchSetId": 5
@@ -39,6 +57,30 @@
       "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86547674_8203ed7c",
+        "filename": "task_scheduler/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f0f74136_ba6d6850",
+      "range": {
+        "startLine": 70,
+        "startChar": 7,
+        "endLine": 70,
+        "endChar": 22
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "1692d132_e0c4f1da",
+        "filename": "task_scheduler/go/periodic-trigger/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "77ee84f9_d78e40be",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bb48213_55640e77",
         "filename": "task_scheduler/go/periodic-trigger/main.go",
         "patchSetId": 5
@@ -117,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "7ac3f70c_b0abfacb",
+        "filename": "task_scheduler/go/periodic-trigger/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "No longer relevant; switched to use pubsub.",
+      "parentUuid": "6bb48213_55640e77",
+      "range": {
+        "startLine": 29,
+        "startChar": 21,
+        "endLine": 29,
+        "endChar": 42
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a96757ba_5f2e6223",
         "filename": "task_scheduler/go/periodic/periodic.go",
         "patchSetId": 5
@@ -134,6 +218,24 @@
     },
     {
       "key": {
+        "uuid": "66788d87_ff2a8ec0",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a96757ba_5f2e6223",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "697f72e2_8b39bb9f",
         "filename": "task_scheduler/go/periodic/periodic.go",
         "patchSetId": 5
@@ -145,6 +247,30 @@
       "writtenOn": "2019-01-07T23:28:57Z",
       "side": 1,
       "message": "One option is to just store a single doc for each trigger with the last-triggered timestamp. In MaybeTrigger, only do something if the stored timestamp is \u003e 15min ago (or whatever deduplication interval we think is needed).",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 71
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43455f19_b75826e2",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "No longer relevant; took your suggestion to make TaskScheduler.MaybeTriggerPeriodicJobs idempotent.",
+      "parentUuid": "697f72e2_8b39bb9f",
       "range": {
         "startLine": 31,
         "startChar": 0,
@@ -180,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "5cb1971e_24e7209e",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4131b530_c9f66d61",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 14
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12e6c41e_659861d2",
         "filename": "task_scheduler/go/periodic/periodic.go",
         "patchSetId": 5
@@ -194,6 +344,24 @@
       "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f4fc9a8_301ed8cf",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "12e6c41e_659861d2",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -214,6 +382,24 @@
     },
     {
       "key": {
+        "uuid": "8ea7cae0_ebf96b39",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fb14a99a_e59ccd11",
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c3cda326_eae956b2",
         "filename": "task_scheduler/go/periodic/periodic.go",
         "patchSetId": 5
@@ -225,6 +411,30 @@
       "writtenOn": "2019-01-07T23:28:57Z",
       "side": 1,
       "message": "IMO either use Context or have a Close method, not both.",
+      "range": {
+        "startLine": 102,
+        "startChar": 1,
+        "endLine": 102,
+        "endChar": 73
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1acca63b_ed39da49",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c3cda326_eae956b2",
       "range": {
         "startLine": 102,
         "startChar": 1,
@@ -260,6 +470,30 @@
     },
     {
       "key": {
+        "uuid": "ea156d90_897965cc",
+        "filename": "task_scheduler/go/periodic/periodic.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "No longer relevant, since MaybeTriggerPeriodicJobs is idempotent.",
+      "parentUuid": "d6b2f162_b86678c6",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 136,
+        "endChar": 70
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f448634e_1e7a2f2e",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 5
@@ -280,6 +514,30 @@
       "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d35d5f7f_a77fa725",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "f448634e_1e7a2f2e",
+      "range": {
+        "startLine": 131,
+        "startChar": 446,
+        "endLine": 131,
+        "endChar": 467
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -306,6 +564,30 @@
     },
     {
       "key": {
+        "uuid": "79f5f0f4_0a45cca9",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acfec230_43b66f63",
+      "range": {
+        "startLine": 348,
+        "startChar": 0,
+        "endLine": 354,
+        "endChar": 5
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a2b70b39_34a6d270",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 5
@@ -329,6 +611,30 @@
     },
     {
       "key": {
+        "uuid": "876caf50_dc93e533",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "No longer relevant; switched to pubsub.",
+      "parentUuid": "a2b70b39_34a6d270",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 2
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3039dad_55c9558d",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 5
@@ -349,6 +655,30 @@
       "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90409948_2e590dd7",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T16:31:43Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f3039dad_55c9558d",
+      "range": {
+        "startLine": 560,
+        "startChar": 34,
+        "endLine": 560,
+        "endChar": 54
+      },
+      "revId": "f0f40bfaf789fb93a1d67436a48a05145dab303e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
