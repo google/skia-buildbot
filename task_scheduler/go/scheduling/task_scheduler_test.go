@@ -26,7 +26,6 @@ import (
 	"go.skia.org/infra/go/isolate"
 	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/periodic_triggers"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -195,7 +194,6 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	assert.NoError(t, os.Mkdir(path.Join(tmp, periodic_triggers.TRIGGER_DIRNAME), os.ModePerm))
 	d := memory.NewInMemoryDB(nil)
 	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
@@ -1976,7 +1974,6 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	gb := git_testutils.GitInit(t, ctx)
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	assert.NoError(t, os.Mkdir(path.Join(workdir, periodic_triggers.TRIGGER_DIRNAME), os.ModePerm))
 
 	assert.NoError(t, ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
 	infraBotsSubDir := path.Join("infra", "bots")
@@ -2680,17 +2677,25 @@ func TestPeriodicJobs(t *testing.T) {
 	defer cleanup()
 
 	// Rewrite tasks.json with a periodic job.
-	name := "Periodic-Task"
+	nightlyName := "Nightly-Job"
+	weeklyName := "Weekly-Job"
+	names := []string{nightlyName, weeklyName}
+	taskName := "Periodic-Task"
 	cfg := &specs.TasksCfg{
 		Jobs: map[string]*specs.JobSpec{
-			"Periodic-Job": {
+			nightlyName: {
 				Priority:  1.0,
-				TaskSpecs: []string{name},
-				Trigger:   "nightly",
+				TaskSpecs: []string{taskName},
+				Trigger:   specs.TRIGGER_NIGHTLY,
+			},
+			weeklyName: {
+				Priority:  1.0,
+				TaskSpecs: []string{taskName},
+				Trigger:   specs.TRIGGER_WEEKLY,
 			},
 		},
 		Tasks: map[string]*specs.TaskSpec{
-			name: {
+			taskName: {
 				CipdPackages: []*specs.CipdPackage{},
 				Dependencies: []string{},
 				Dimensions: []string{
@@ -2708,25 +2713,54 @@ func TestPeriodicJobs(t *testing.T) {
 	}
 	gb.Add(ctx, specs.TASKS_CFG_FILE, testutils.MarshalJSON(t, &cfg))
 	gb.Commit(ctx)
-
-	// Cycle, ensure that the periodic task is not added.
 	assert.NoError(t, s.MainLoop(ctx))
-	assert.NoError(t, s.jCache.Update())
-	unfinished, err := s.jCache.UnfinishedJobs()
-	assert.NoError(t, err)
-	assert.Equal(t, 5, len(unfinished)) // Existing per-commit jobs.
 
-	// Write the trigger file. Cycle, ensure that the trigger file was
-	// removed and the periodic task was added.
-	triggerFile := path.Join(s.workdir, periodic_triggers.TRIGGER_DIRNAME, "nightly")
-	assert.NoError(t, ioutil.WriteFile(triggerFile, []byte{}, os.ModePerm))
-	assert.NoError(t, s.MainLoop(ctx))
-	_, err = os.Stat(triggerFile)
-	assert.True(t, os.IsNotExist(err))
+	// Trigger the periodic jobs. Make sure that we inserted the new Job.
+	assert.NoError(t, s.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
 	assert.NoError(t, s.jCache.Update())
-	unfinished, err = s.jCache.UnfinishedJobs()
+	start := time.Now().Add(-10 * time.Minute)
+	end := time.Now().Add(10 * time.Minute)
+	jobs, err := s.jCache.GetMatchingJobsFromDateRange(names, start, end)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, len(unfinished))
+	assert.Equal(t, 1, len(jobs[nightlyName]))
+	assert.Equal(t, nightlyName, jobs[nightlyName][0].Name)
+	assert.Equal(t, 0, len(jobs[weeklyName]))
+
+	// Ensure that we don't trigger another.
+	assert.NoError(t, s.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
+	assert.NoError(t, s.jCache.Update())
+	jobs, err = s.jCache.GetMatchingJobsFromDateRange(names, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs[nightlyName]))
+	assert.Equal(t, 0, len(jobs[weeklyName]))
+
+	// Hack the old Job's created time to simulate it scrolling out of the
+	// window.
+	oldJob := jobs[nightlyName][0]
+	oldJob.Created = start.Add(-23 * time.Hour)
+	assert.NoError(t, s.db.PutJob(oldJob))
+	assert.NoError(t, s.jCache.Update())
+	jobs, err = s.jCache.GetMatchingJobsFromDateRange(names, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs[nightlyName]))
+	assert.Equal(t, 0, len(jobs[weeklyName]))
+	assert.NoError(t, s.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_NIGHTLY))
+	assert.NoError(t, s.jCache.Update())
+	jobs, err = s.jCache.GetMatchingJobsFromDateRange(names, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs[nightlyName]))
+	assert.Equal(t, nightlyName, jobs[nightlyName][0].Name)
+	assert.Equal(t, 0, len(jobs[weeklyName]))
+
+	// Make sure we don't confuse different triggers.
+	assert.NoError(t, s.MaybeTriggerPeriodicJobs(ctx, specs.TRIGGER_WEEKLY))
+	assert.NoError(t, s.jCache.Update())
+	jobs, err = s.jCache.GetMatchingJobsFromDateRange(names, start, end)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs[nightlyName]))
+	assert.Equal(t, nightlyName, jobs[nightlyName][0].Name)
+	assert.Equal(t, 1, len(jobs[weeklyName]))
+	assert.Equal(t, weeklyName, jobs[weeklyName][0].Name)
 }
 
 func TestUpdateUnfinishedTasks(t *testing.T) {

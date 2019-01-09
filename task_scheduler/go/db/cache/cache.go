@@ -447,6 +447,10 @@ type JobCache interface {
 	// the given RepoState. Does not search the underlying DB.
 	GetJobsByRepoState(string, types.RepoState) ([]*types.Job, error)
 
+	// GetMatchingJobsFromDateRange retrieves all jobs which were created
+	// in the given date range and match one of the given job names.
+	GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error)
+
 	// ScheduledJobsForCommit indicates whether or not we triggered any jobs
 	// for the given repo/commit.
 	ScheduledJobsForCommit(string, string) (bool, error)
@@ -510,6 +514,23 @@ func (c *jobCache) GetJobsByRepoState(name string, rs types.RepoState) ([]*types
 		rv = append(rv, j)
 	}
 	sort.Sort(types.JobSlice(rv))
+	return rv, nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) GetMatchingJobsFromDateRange(names []string, from time.Time, to time.Time) (map[string][]*types.Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	m := make(map[string]bool, len(names))
+	for _, name := range names {
+		m[name] = true
+	}
+	rv := make(map[string][]*types.Job, len(names))
+	for _, job := range c.jobs {
+		if !from.After(job.Created) && job.Created.Before(to) && m[job.Name] {
+			rv[job.Name] = append(rv[job.Name], job)
+		}
+	}
 	return rv, nil
 }
 

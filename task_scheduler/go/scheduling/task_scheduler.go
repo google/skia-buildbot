@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/periodic_triggers"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
@@ -111,7 +110,6 @@ type TaskScheduler struct {
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
-	periodicTriggers *periodic_triggers.Triggerer
 	pools            []string
 	pubsubTopic      string
 	queue            []*taskCandidate // protected by queueMtx.
@@ -160,12 +158,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
-
-	pt, err := periodic_triggers.NewTriggerer(workdir)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create periodic triggers: %s", err)
-	}
-
 	s := &TaskScheduler{
 		bl:               bl,
 		busyBots:         newBusyBots(),
@@ -177,7 +169,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		newTasks:         map[types.RepoState]util.StringSet{},
 		newTasksMtx:      sync.RWMutex{},
 		pendingInsert:    map[string]bool{},
-		periodicTriggers: pt,
 		pools:            pools,
 		pubsubTopic:      pubsubTopic,
 		queue:            []*taskCandidate{},
@@ -192,7 +183,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		window:           w,
 		workdir:          workdir,
 	}
-	s.registerPeriodicTriggers()
 	return s, nil
 }
 
@@ -315,6 +305,92 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidat
 // names and commit hashes.
 func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
 	return s.taskCfgCache.RecentSpecsAndCommits()
+}
+
+// MaybeTriggerPeriodicJobs triggers all periodic jobs with the given trigger
+// name, if those jobs haven't already been triggered.
+func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName string) error {
+	// We'll search the jobs we've already triggered to ensure that we don't
+	// trigger the same jobs multiple times in a day/week/whatever. Search a
+	// window that is not quite the size of the trigger interval, to allow
+	// for lag time.
+	end := time.Now()
+	var start time.Time
+	if triggerName == specs.TRIGGER_NIGHTLY {
+		start = end.Add(-23 * time.Hour)
+	} else if triggerName == specs.TRIGGER_WEEKLY {
+		// Note that if the cache window is less than a week, this start
+		// time isn't going to work as expected. However, we only really
+		// expect to need to debounce periodic triggers for a short
+		// window, so anything longer than a few minutes would probably
+		// be enough, and the ~4 days we normally keep in the cache
+		// should be more than sufficient.
+		start = end.Add(-6 * 24 * time.Hour)
+	} else {
+		sklog.Warningf("Ignoring unknown periodic trigger %q", triggerName)
+		return nil
+	}
+
+	// Find the job specs matching the trigger and create Job instances.
+	jobs := []*types.Job{}
+	for repoUrl, repo := range s.repos {
+		master := repo.Get("master")
+		if master == nil {
+			return fmt.Errorf("Failed to retrieve branch 'master' for %s", repoUrl)
+		}
+		rs := types.RepoState{
+			Repo:     repoUrl,
+			Revision: master.Hash,
+		}
+		cfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
+		}
+		for name, js := range cfg.Jobs {
+			if js.Trigger == triggerName {
+				job, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+				if err != nil {
+					return fmt.Errorf("Failed to create job: %s", err)
+				}
+				jobs = append(jobs, job)
+			}
+		}
+	}
+	if len(jobs) == 0 {
+		return nil
+	}
+
+	// Filter out any jobs which we've already triggered. Generally, we'd
+	// expect to have triggered all of the jobs or none of them, but there
+	// might be circumstances which caused us to trigger a partial set.
+	names := make([]string, 0, len(jobs))
+	for _, job := range jobs {
+		names = append(names, job.Name)
+	}
+	existing, err := s.jCache.GetMatchingJobsFromDateRange(names, start, end)
+	if err != nil {
+		return err
+	}
+	jobsToInsert := make([]*types.Job, 0, len(jobs))
+	for _, job := range jobs {
+		existingJobs := existing[job.Name]
+		if len(existingJobs) == 0 {
+			jobsToInsert = append(jobsToInsert, job)
+		} else {
+			prev := existingJobs[0] // Pick an arbitrary pre-existing job for logging.
+			sklog.Warningf("Already triggered %d jobs for %s (eg. id %s at %s); not triggering again.", len(existingJobs), job.Name, prev.Id, prev.Created)
+		}
+	}
+	if len(jobsToInsert) == 0 {
+		return nil
+	}
+
+	// Insert the new jobs into the DB.
+	if err := s.db.PutJobs(jobsToInsert); err != nil {
+		return fmt.Errorf("Failed to add periodic jobs: %s", err)
+	}
+	sklog.Infof("Created %d periodic jobs for trigger %q", len(jobs), triggerName)
+	return nil
 }
 
 // TriggerJob adds the given Job to the database and returns its ID.
@@ -1286,11 +1362,6 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 	}
 
 	if err := s.db.PutJobs(newJobs); err != nil {
-		return err
-	}
-
-	// Also trigger any available periodic jobs.
-	if err := s.triggerPeriodicJobs(ctx); err != nil {
 		return err
 	}
 

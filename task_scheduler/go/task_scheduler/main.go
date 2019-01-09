@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -545,7 +546,6 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
 		return
 	}
-
 }
 
 func runServer(serverURL string, taskDb db.RemoteDB) {
@@ -761,6 +761,17 @@ func main() {
 			b.Tick()
 		}
 	})
+
+	// Set up periodic triggers.
+	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
+		if err := ts.MaybeTriggerPeriodicJobs(ctx, name); err != nil {
+			sklog.Errorf("Failed to trigger periodic jobs; will retry later: %s", err)
+			return false // We will retry later.
+		}
+		return true
+	}); err != nil {
+		sklog.Fatal(err)
+	}
 
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)

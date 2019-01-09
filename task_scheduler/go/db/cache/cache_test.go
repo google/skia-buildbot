@@ -740,6 +740,19 @@ func assertJobsCached(t *testing.T, c JobCache, jobs []*types.Job) {
 			}
 		}
 		assert.True(t, found)
+
+		found = false
+		jobsByName, err := c.GetMatchingJobsFromDateRange([]string{job.Name}, job.Created, job.Created.Add(time.Nanosecond))
+		assert.NoError(t, err)
+		for _, jobsForName := range jobsByName {
+			for _, otherJob := range jobsForName {
+				if job.Id == otherJob.Id {
+					deepequal.AssertDeepEqual(t, job, otherJob)
+					found = true
+				}
+			}
+		}
+		assert.True(t, found)
 	}
 }
 
@@ -769,6 +782,18 @@ func assertJobsNotCached(t *testing.T, c JobCache, jobs []*types.Job) {
 				t.Fatalf("Found unexpected job %v in GetJobsByRepoState", job)
 			}
 		}
+
+		found := false
+		jobsByName, err := c.GetMatchingJobsFromDateRange([]string{job.Name}, time.Time{}, time.Now().Add(10*24*time.Hour))
+		assert.NoError(t, err)
+		for _, jobsForName := range jobsByName {
+			for _, otherJob := range jobsForName {
+				if job.Id == otherJob.Id {
+					found = true
+				}
+			}
+		}
+		assert.False(t, found)
 	}
 }
 
@@ -980,4 +1005,38 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 
 	_, err = grt("a.git", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 	assert.EqualError(t, err, "Unknown commit a.git@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+}
+
+func TestJobCacheGetMatchingJobsFromDateRange(t *testing.T) {
+	testutils.SmallTest(t)
+
+	d := memory.NewInMemoryJobDB(nil)
+
+	// Pre-load a job into the DB.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	j1 := types.MakeTestJob(startTime)
+	j2 := types.MakeTestJob(startTime)
+	j2.Name = "job2"
+	assert.NoError(t, d.PutJobs([]*types.Job{j1, j2}))
+
+	// Create the cache. Ensure that the existing job is present.
+	w, err := window.New(time.Hour, 0, nil)
+	assert.NoError(t, err)
+	c, err := NewJobCache(d, w, db.DummyGetRevisionTimestamp(j1.Created.Add(-1*time.Minute)))
+	assert.NoError(t, err)
+
+	test := func(names []string, start, end time.Time, expect ...*types.Job) {
+		expectByName := make(map[string][]*types.Job, len(expect))
+		for _, job := range expect {
+			expectByName[job.Name] = append(expectByName[job.Name], job)
+		}
+		jobs, err := c.GetMatchingJobsFromDateRange(names, start, end)
+		assert.NoError(t, err)
+		deepequal.AssertDeepEqual(t, expectByName, jobs)
+	}
+	test([]string{j1.Name, j2.Name}, time.Time{}, time.Now().Add(24*time.Hour), j1, j2)
+	test([]string{j1.Name, j2.Name}, j1.Created, j1.Created.Add(time.Nanosecond), j1, j2)
+	test([]string{j1.Name, j2.Name}, time.Time{}, j1.Created)
+	test([]string{j1.Name, j2.Name}, j1.Created.Add(time.Nanosecond), time.Now().Add(24*time.Hour))
+	test([]string{j1.Name}, j1.Created, j1.Created.Add(time.Nanosecond), j1)
 }
