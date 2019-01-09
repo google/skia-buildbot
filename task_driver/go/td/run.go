@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/counters"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -231,6 +232,7 @@ func EndRun(ctx context.Context) {
 type run struct {
 	receiver Receiver
 	taskId   string
+	msgIndex counters.AtomicCounter
 }
 
 // newRun returns a context.Context representing a Task Driver run, including
@@ -252,6 +254,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 // Send the given message to the receiver. Does not return an error, even if
 // sending fails.
 func (r *run) send(msg *Message) {
+	msg.Index = r.msgIndex.Inc()
 	msg.TaskId = r.taskId
 	msg.Timestamp = time.Now().UTC()
 	if err := msg.Validate(); err != nil {

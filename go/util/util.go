@@ -1164,3 +1164,28 @@ func RoundUpToPowerOf2(i int32) int32 {
 	i++
 	return i
 }
+
+// SSliceCmp compares two string slices by comparing each element in order.
+// Returns -1 if the first slice is "less" than the second, 0 if they are equal,
+// and 1 if the first slice is "greater" than the second.
+func SSliceCmp(a, b []string) int {
+	for i, elemA := range a {
+		if len(b) <= i {
+			// If slice B is shorter than slice A, then A is not
+			// less than B.
+			return 1
+		}
+		elemB := b[i]
+		if elemA < elemB {
+			return -1
+		} else if elemA > elemB {
+			return 1
+		}
+	}
+	// The two slices are equal, up to len(a). If the lengths are the same,
+	// then the slices are equal. Otherwise, a < b.
+	if len(a) == len(b) {
+		return 0
+	}
+	return -1
+}

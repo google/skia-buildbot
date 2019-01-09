@@ -30,6 +30,10 @@ type DataType string
 
 // Message is a struct used to send step metadata to Receivers.
 type Message struct {
+	// Index is a monotonically increasing index of the message within the
+	// Task.
+	Index int `json:"index"`
+
 	// StepId indicates the ID for the step. This is required for every
 	// Message except MSG_TYPE_RUN_STARTED.
 	StepId string `json:"stepId,omitempty"`
