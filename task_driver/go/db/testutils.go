@@ -5,13 +5,25 @@ package db
 */
 
 import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
 	"math/rand"
+	"path"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
+)
+
+const (
+	TEST_DATA_FILENAME     = "task-driver-messages.json"
+	TEST_DATA_STORAGE_DIR  = "task-driver-testdata"
+	TEST_DATA_STORAGE_PATH = TEST_DATA_STORAGE_DIR + "/" + TEST_DATA_FILENAME
 )
 
 // Test basic DB functionality.
@@ -78,19 +90,19 @@ func TestDB(t testutils.TestingT, d DB) {
 
 // Verify that messages can arrive in any order with the same result.
 func TestMessageOrdering(t testutils.TestingT, d DB) {
+	wd, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, wd)
+	testDataFile := path.Join(wd, TEST_DATA_FILENAME)
+	err = gcs.DownloadTestDataFile(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, testDataFile)
+	assert.NoError(t, err)
+	var msgs []*td.Message
+	assert.NoError(t, util.WithReadFile(testDataFile, func(r io.Reader) error {
+		return json.NewDecoder(r).Decode(&msgs)
+	}))
 	id := "fake-id-MessageOrdering"
-
-	// TODO(borenet): Obtain a non-trivial set of real-world messages.
-	msgs := []*td.Message{
-		&td.Message{
-			TaskId:    id,
-			StepId:    td.STEP_ID_ROOT,
-			Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
-			Type:      td.MSG_TYPE_STEP_STARTED,
-			Step: &td.StepProperties{
-				Id: td.STEP_ID_ROOT,
-			},
-		},
+	for _, msg := range msgs {
+		msg.TaskId = id
 	}
 
 	// Play back the messages in the order they were sent. The returned
