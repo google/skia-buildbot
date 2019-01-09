@@ -14,7 +14,6 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -29,6 +28,9 @@ const (
 	// We use a single BigTable column which stores gob-encoded td.Messages.
 	BT_COLUMN = "MSG"
 
+	// Format used for BigTable row keys.
+	ROW_KEY_FORMAT = "%s#%010d"
+
 	INSERT_TIMEOUT = 30 * time.Second
 	QUERY_TIMEOUT  = 5 * time.Second
 )
@@ -41,35 +43,36 @@ var (
 // rowKey returns a BigTable row key for the given message, based on the given
 // Task Driver ID.
 func rowKey(id string, msg *td.Message) string {
-	return id + "#" + msg.Timestamp.Format(local_db.TIMESTAMP_FORMAT)
+	return fmt.Sprintf(ROW_KEY_FORMAT, id, msg.Index)
 }
 
-// btDB is an implementation of db.DB which uses BigTable.
-type btDB struct {
+// BTDB is an implementation of db.DB which uses BigTable.
+type BTDB struct {
 	client *bigtable.Client
 	table  *bigtable.Table
 }
 
 // NewBigTableDB returns a db.DB instance which uses BigTable.
-func NewBigTableDB(ctx context.Context, project, instance string, ts oauth2.TokenSource) (db.DB, error) {
+func NewBigTableDB(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*BTDB, error) {
 	client, err := bigtable.NewClient(ctx, project, instance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}
 	table := client.Open(BT_TABLE)
-	return &btDB{
+	return &BTDB{
 		client: client,
 		table:  table,
 	}, nil
 }
 
 // See documentation for db.DB interface.
-func (d *btDB) Close() error {
+func (d *BTDB) Close() error {
 	return d.client.Close()
 }
 
-// See documentation for db.DB interface.
-func (d *btDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
+// GetMessagesForTaskDriver returns all td.Messages sent for the Task Driver
+// with the given ID.
+func (d *BTDB) GetMessagesForTaskDriver(id string) ([]*td.Message, error) {
 	// Retrieve all messages for the Task Driver from BigTable.
 	msgs := []*td.Message{}
 	var decodeErr error
@@ -95,6 +98,15 @@ func (d *btDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 	if decodeErr != nil {
 		return nil, fmt.Errorf("Failed to gob-decode message: %s", decodeErr)
 	}
+	return msgs, nil
+}
+
+// See documentation for db.DB interface.
+func (d *BTDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
+	msgs, err := d.GetMessagesForTaskDriver(id)
+	if err != nil {
+		return nil, err
+	}
 
 	// If we have no messages, the TaskDriverRun does not exist in our DB.
 	// Per the doc on the db.DB interface, we should return nil with no
@@ -116,7 +128,7 @@ func (d *btDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 }
 
 // See documentation for db.DB interface.
-func (d *btDB) UpdateTaskDriver(id string, msg *td.Message) error {
+func (d *BTDB) UpdateTaskDriver(id string, msg *td.Message) error {
 	// Encode the Message.
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(msg); err != nil {
@@ -130,3 +142,5 @@ func (d *btDB) UpdateTaskDriver(id string, msg *td.Message) error {
 	defer cancel()
 	return d.table.Apply(ctx, rk, mt)
 }
+
+var _ db.DB = &BTDB{}

@@ -2,6 +2,7 @@ package td
 
 import (
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -21,9 +22,10 @@ func TestMessageValidation(t *testing.T) {
 	checkNotValid := func(fn func() *Message, errMsg string) {
 		assert.EqualError(t, fn().Validate(), errMsg)
 	}
-
+	msgIndex := int32(0)
 	msgRunStarted := func() *Message {
 		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			TaskId:    "fake-task-id",
 			Timestamp: now,
 			Type:      MSG_TYPE_RUN_STARTED,
@@ -37,6 +39,7 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepStarted := func() *Message {
 		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			StepId:    STEP_ID_ROOT,
 			TaskId:    "fake-task-id",
 			Timestamp: now,
@@ -50,6 +53,7 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepFinished := func() *Message {
 		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
@@ -58,6 +62,7 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepData := func() *Message {
 		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
@@ -71,6 +76,7 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepFailed := func() *Message {
 		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
@@ -80,6 +86,7 @@ func TestMessageValidation(t *testing.T) {
 	}
 	msgStepException := func() *Message {
 		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			StepId:    "fake-step-id",
 			TaskId:    "fake-task-id",
 			Timestamp: now,
@@ -193,4 +200,9 @@ func TestMessageValidation(t *testing.T) {
 		m.Type = "invalid"
 		return m
 	}, "Invalid message Type \"invalid\"")
+	checkNotValid(func() *Message {
+		m := msgStepStarted()
+		m.Index = 0
+		return m
+	}, "A non-zero index is required.")
 }

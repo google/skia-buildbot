@@ -3,8 +3,10 @@ package db
 import (
 	"encoding/gob"
 	"fmt"
+	"sort"
 	"time"
 
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
 )
@@ -56,8 +58,21 @@ func newStep(id string) *Step {
 
 // StepData represents data attached to a step.
 type StepData struct {
-	Type td.DataType `json:"type"`
-	Data interface{} `json:"data"`
+	Type     td.DataType `json:"type"`
+	Data     interface{} `json:"data"`
+	MsgIndex int         `json:"msgIndex"`
+}
+
+type StepDataSlice []*StepData
+
+func (s StepDataSlice) Len() int { return len(s) }
+
+func (s StepDataSlice) Less(i, j int) bool {
+	return s[i].MsgIndex < s[j].MsgIndex
+}
+
+func (s StepDataSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
 }
 
 // Copy returns a deep copy of the Step.
@@ -146,10 +161,20 @@ func (t *TaskDriverRun) UpdateFromMessage(m *td.Message) error {
 			step.Result = td.STEP_RESULT_SUCCESS
 		}
 	case td.MSG_TYPE_STEP_DATA:
-		step.Data = append(step.Data, &StepData{
-			Type: m.DataType,
-			Data: m.Data,
-		})
+		sd := &StepData{
+			Type:     m.DataType,
+			Data:     m.Data,
+			MsgIndex: m.Index,
+		}
+		// Avoid duplicating data we've already seen.
+		for _, existing := range step.Data {
+			if deepequal.DeepEqual(sd, existing) {
+				return nil
+			}
+		}
+		step.Data = append(step.Data, sd)
+		// Sort the data. This is just to make tests pass.
+		sort.Sort(StepDataSlice(step.Data))
 	case td.MSG_TYPE_STEP_FAILED:
 		// TODO(borenet): If we have both a failure and an exception for
 		// the same step, we'll have a race condition depending on what
