@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/google/uuid"
@@ -231,6 +232,7 @@ func EndRun(ctx context.Context) {
 type run struct {
 	receiver Receiver
 	taskId   string
+	msgIndex int32
 }
 
 // newRun returns a context.Context representing a Task Driver run, including
@@ -252,6 +254,7 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 // Send the given message to the receiver. Does not return an error, even if
 // sending fails.
 func (r *run) send(msg *Message) {
+	msg.Index = int(atomic.AddInt32(&r.msgIndex, 1))
 	msg.TaskId = r.taskId
 	msg.Timestamp = time.Now().UTC()
 	if err := msg.Validate(); err != nil {
