@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -46,6 +47,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -62,6 +64,10 @@ var (
 		"datahopper@skia-buildbots.google.com.iam.gserviceaccount.com",
 		"skia-status@skia-public.iam.gserviceaccount.com",
 		"skia-status-internal@skia-public.iam.gserviceaccount.com",
+	}
+	PERIODIC_TRIGGER_EMAILS = []string{
+		"task-scheduler@skia-public.iam.gserviceaccount.com",
+		"task-scheduler-internal@skia-corp.google.com.iam.gserviceaccount.com",
 	}
 
 	// Task Scheduler instance.
@@ -545,10 +551,9 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write response: %s", err))
 		return
 	}
-
 }
 
-func runServer(serverURL string, taskDb db.RemoteDB) {
+func runServer(ctx context.Context, serverURL string, taskDb db.RemoteDB, tokenSource oauth2.TokenSource) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
@@ -750,7 +755,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -762,6 +767,17 @@ func main() {
 		}
 	})
 
+	// Set up periodic triggers.
+	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
+		if err := ts.MaybeTriggerPeriodicJobs(ctx, name); err != nil {
+			sklog.Errorf("Failed to trigger periodic jobs; will retry later: %s", err)
+			return false // We will retry later.
+		}
+		return true
+	}); err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Start up the web server.
 	login.SimpleInitMust(*port, *local)
 
@@ -771,7 +787,7 @@ func main() {
 		webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
 	}
 
-	go runServer(serverURL, tsDb)
+	go runServer(ctx, serverURL, tsDb, tokenSource)
 	go runDbServer(tsDb)
 
 	// Run indefinitely, responding to HTTP requests.

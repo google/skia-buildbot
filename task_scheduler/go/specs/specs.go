@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -44,12 +45,12 @@ const (
 	// others.
 	TRIGGER_MASTER_ONLY = "master"
 	// Trigger this job every night.
-	TRIGGER_NIGHTLY = "nightly"
+	TRIGGER_NIGHTLY = periodic.TRIGGER_NIGHTLY
 	// Don't trigger this job automatically. It will only be run when
 	// explicitly triggered via a try job or a force trigger.
 	TRIGGER_ON_DEMAND = "on demand"
 	// Trigger this job weekly.
-	TRIGGER_WEEKLY = "weekly"
+	TRIGGER_WEEKLY = periodic.TRIGGER_WEEKLY
 
 	VARIABLE_SYNTAX = "<(%s)"
 
