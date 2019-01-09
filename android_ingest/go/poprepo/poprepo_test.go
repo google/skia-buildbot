@@ -66,11 +66,17 @@ func TestAdd(t *testing.T) {
 	assert.Error(t, err)
 
 	// Add a couple more commits.
-	err = p.Add(ctx, 3516196, 1479855768, "master")
+	err = p.Add(ctx, 3516196, 1479855768, "branch1")
 	assert.NoError(t, err)
+
+	buildid, ts, hash, err = p.GetLast(ctx)
 
 	err = p.Add(ctx, 3516727, 1479863307, "master")
 	assert.NoError(t, err)
+
+	foundBuildID, err = p.LookupBuildID(ctx, hash)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(3516196), foundBuildID)
 
 	// Try to add something wrong.
 	err = p.Add(ctx, 3516727-1, 1479863307-1, "master")
@@ -96,5 +102,5 @@ func TestAdd(t *testing.T) {
 	// I.e. the commit subject is the redirector URL.
 	//
 	assert.Len(t, loglines, 4) // 3 commits with newlines gives for strings.
-	assert.Contains(t, loglines[1], "https://android-ingest.skia.org/r/3516196?branch=master")
+	assert.Contains(t, loglines[1], "https://android-ingest.skia.org/r/3516196?branch=branch1")
 }

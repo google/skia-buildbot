@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -93,8 +94,12 @@ func (p *PopRepo) LookupBuildID(ctx context.Context, hash string) (int64, error)
 	if err != nil {
 		return -1, fmt.Errorf("Failed looking up buildid: %s", err)
 	}
-	parts := strings.Split(commit.Subject, "/")
-	return strconv.ParseInt(parts[len(parts)-1], 10, 64)
+	u, err := url.Parse(commit.Subject)
+	if err != nil {
+		return -1, fmt.Errorf("Commit subject was not a valid URL: %s", err)
+	}
+
+	return strconv.ParseInt(filepath.Base(u.Path), 10, 64)
 }
 
 // Add a new buildid and its assocatied Unix timestamp to the repo.
