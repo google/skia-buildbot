@@ -254,22 +254,17 @@ func rangeRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := context.Background()
-	beginID, err := process.Repo.LookupBuildID(ctx, begin)
+	beginID, redirBranch, err := process.Repo.LookupBuildID(ctx, begin)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
 		return
 	}
-	endID, err := process.Repo.LookupBuildID(ctx, end)
+	endID, _, err := process.Repo.LookupBuildID(ctx, end)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed looking up Build ID.")
 		return
 	}
 
-	redirBranch := r.FormValue("branch")
-	// If this is an old link, before we recorded branches, then we want to link to the "master" branch.
-	if redirBranch == "" {
-		redirBranch = "master"
-	}
 	http.Redirect(w, r, fmt.Sprintf("https://android-build.googleplex.com/builds/%d/branches/%s/cls?end=%d", beginID, redirBranch, endID), http.StatusFound)
 }
 
