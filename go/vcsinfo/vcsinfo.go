@@ -23,10 +23,14 @@ type ShortCommit struct {
 // LongCommit gives more detailed information about a commit.
 type LongCommit struct {
 	*ShortCommit
-	Parents   []string        `json:"parent"`
-	Body      string          `json:"body"`
-	Timestamp time.Time       `json:"timestamp"`
-	Branches  map[string]bool `json:"-"`
+	Parents   []string       `json:"parent"`
+	Body      string         `json:"body"`
+	Timestamp time.Time      `json:"timestamp"`
+	Branches  map[string]int `json:"-"`
+}
+
+func NewLongCommit() *LongCommit {
+	return &LongCommit{ShortCommit: &ShortCommit{}}
 }
 
 // LongCommitSlice represents a slice of LongCommit objects used for sorting

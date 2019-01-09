@@ -144,7 +144,7 @@ func (g *GitInfo) details(ctx context.Context, hash string, includeBranchInfo bo
 	if len(lines) != 5 {
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
-	branches := map[string]bool{}
+	branches := map[string]int{}
 	if includeBranchInfo {
 		branches, err = g.getBranchesForCommit(ctx, hash)
 		if err != nil {

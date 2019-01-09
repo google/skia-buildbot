@@ -29,13 +29,14 @@ func NewTempRepoFrom(zipfile string) *TempRepo {
 	return &TempRepo{Dir: tmpdir}
 }
 
-// NewTempRepo assumes the repo is called testrepo.zip and is in a directory
-// called testdata under the directory of the unit test that is calling it.
-//
-// The directory that was created is stored in TempRepo Path.
+// NewTempRepo assumes the repo is called testrepo.zip, is in a directory
+// called testdata under the directory of the unit test that is calling it
+// and contains a single directory 'testrepo'.
 func NewTempRepo() *TempRepo {
 	_, filename, _, _ := runtime.Caller(1)
-	return NewTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
+	ret := NewTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
+	ret.Dir = filepath.Join(ret.Dir, "testrepo")
+	return ret
 }
 
 // Cleanup cleans up the temporary repo.
