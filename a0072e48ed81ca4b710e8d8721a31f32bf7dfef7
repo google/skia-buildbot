@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "dd60dc2e_f679758a",
+        "filename": "go/counters/counters.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T18:55:32Z",
+      "side": 1,
+      "message": "Done. It\u0027s a little uglier, but it works.",
+      "parentUuid": "95eab4ae_85f8fbcb",
+      "revId": "a0072e48ed81ca4b710e8d8721a31f32bf7dfef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bfd720ee_e6d6d5ab",
         "filename": "go/counters/counters.go",
         "patchSetId": 5
@@ -39,6 +57,30 @@
       "revId": "a0072e48ed81ca4b710e8d8721a31f32bf7dfef7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dd56473_fadcdf09",
+        "filename": "go/counters/counters.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T18:55:32Z",
+      "side": 1,
+      "message": "Yeah, I\u0027ve see both in various places.  I chose to return the old value for convenience, because I wanted to start the index at zero and didn\u0027t want to have to subtract one every time.  But actually, I think starting the index at 1 might be nicer, so that I can distinguish the first message from a missing index field.",
+      "parentUuid": "bfd720ee_e6d6d5ab",
+      "range": {
+        "startLine": 30,
+        "startChar": 52,
+        "endLine": 30,
+        "endChar": 61
+      },
+      "revId": "a0072e48ed81ca4b710e8d8721a31f32bf7dfef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
