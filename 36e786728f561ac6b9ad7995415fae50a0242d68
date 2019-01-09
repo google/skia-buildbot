@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bcb9ad6d_31270e09",
+        "filename": "go/periodic/periodic.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T19:53:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad9fb73c_9549b698",
+      "range": {
+        "startLine": 110,
+        "startChar": 16,
+        "endLine": 110,
+        "endChar": 35
+      },
+      "revId": "36e786728f561ac6b9ad7995415fae50a0242d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21d707bd_2857a6b1",
         "filename": "go/periodic/periodic.go",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "36e786728f561ac6b9ad7995415fae50a0242d68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f548cc9_e5610307",
+        "filename": "go/periodic/periodic.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T19:53:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21d707bd_2857a6b1",
+      "range": {
+        "startLine": 141,
+        "startChar": 11,
+        "endLine": 141,
+        "endChar": 23
+      },
+      "revId": "36e786728f561ac6b9ad7995415fae50a0242d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "134fa505_7369b637",
+        "filename": "periodic-trigger/Makefile",
+        "patchSetId": 9
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T19:53:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b285d30b_c074fad4",
+      "range": {
+        "startLine": 10,
+        "startChar": 1,
+        "endLine": 10,
+        "endChar": 33
+      },
+      "revId": "36e786728f561ac6b9ad7995415fae50a0242d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bebe507e_4e7b6060",
         "filename": "task_scheduler/create-task-scheduler-internal-sa.sh",
         "patchSetId": 9
@@ -85,6 +157,24 @@
       "revId": "36e786728f561ac6b9ad7995415fae50a0242d68",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "167d208d_c08c5e86",
+        "filename": "task_scheduler/create-task-scheduler-internal-sa.sh",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-09T19:53:13Z",
+      "side": 1,
+      "message": "Yes, unless we add a new service account for the periodic-trigger jobs.  In that case, I think I\u0027d still like to include them, since I\u0027ve already run them to create the new service accounts and would like to avoid \"orphan\"ing them.",
+      "parentUuid": "bebe507e_4e7b6060",
+      "revId": "36e786728f561ac6b9ad7995415fae50a0242d68",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
