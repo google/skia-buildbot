@@ -10,7 +10,8 @@ import (
 )
 
 func setup(t *testing.T) (db.DB, func()) {
-	testutils.SmallTest(t)
+	// Medium because we use the disk, and the test downloads from GCS.
+	testutils.MediumTest(t)
 	wd, cleanup := testutils.TempDir(t)
 	d, err := NewInMemoryDB(path.Join(wd, "db.gob"))
 	assert.NoError(t, err)

@@ -921,3 +921,31 @@ func TestTrunc(t *testing.T) {
 	assert.Equal(t, "foobar", Trunc("foobar", 6))
 	assert.Equal(t, "foobar", Trunc("foobar", 7))
 }
+
+func TestSSliceCmp(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// "Equal" slices.
+	testEq := func(a, b []string) {
+		assert.Equal(t, 0, SSliceCmp(a, b))
+		assert.Equal(t, 0, SSliceCmp(b, a))
+	}
+	testEq(nil, nil)
+	testEq(nil, []string{})
+	testEq([]string{}, []string{})
+	testEq([]string{"item"}, []string{"item"})
+	testEq([]string{"a", "b", "c"}, []string{"a", "b", "c"})
+
+	// a > b
+	testGt := func(a, b []string) {
+		assert.Equal(t, 1, SSliceCmp(a, b))
+		assert.Equal(t, -1, SSliceCmp(b, a))
+	}
+	testGt([]string{"a"}, nil)
+	testGt([]string{"a"}, []string{})
+	testGt([]string{"b"}, []string{"a"})
+	testGt([]string{"a", "b", "d"}, []string{"a", "b", "c"})
+	testGt([]string{"a", "b", "c", "d"}, []string{"a", "b", "c"})
+	testGt([]string{"a", "b", "d"}, []string{"a", "b", "c", "d"})
+	testGt([]string{"a", "c", "b"}, []string{"a", "b", "c"})
+}

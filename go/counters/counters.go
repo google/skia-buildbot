@@ -27,18 +27,22 @@ type AtomicCounter struct {
 	lock sync.RWMutex
 }
 
-// Inc increments the AtomicCounter.
-func (c *AtomicCounter) Inc() {
+// Inc increments the AtomicCounter and returns the old value.
+func (c *AtomicCounter) Inc() int {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	old := c.val
 	c.val += 1
+	return old
 }
 
-// Dec decrements the AtomicCounter.
-func (c *AtomicCounter) Dec() {
+// Dec decrements the AtomicCounter and returns the old value.
+func (c *AtomicCounter) Dec() int {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	old := c.val
 	c.val -= 1
+	return old
 }
 
 // Get returns the current value of the AtomicCounter.
