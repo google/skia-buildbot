@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9f06e497_49149d1c",
+        "filename": "go/counters/counters.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-09T19:10:13Z",
+      "side": 1,
+      "message": "You\u0027re right, it is ugly. I suppose we could just do \"type AtomicCounter int32\" and add methods that use the atomic functions.",
+      "parentUuid": "dd60dc2e_f679758a",
+      "revId": "a0072e48ed81ca4b710e8d8721a31f32bf7dfef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bfd720ee_e6d6d5ab",
         "filename": "go/counters/counters.go",
         "patchSetId": 5
