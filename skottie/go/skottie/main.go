@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"mime"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -57,6 +58,11 @@ func New() (*Server, error) {
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../../dist")
+	}
+
+	// Need to set the mime-type for wasm files so streaming compile works.
+	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
+		sklog.Fatal(err)
 	}
 
 	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeFullControl)
