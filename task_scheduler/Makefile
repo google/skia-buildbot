@@ -60,14 +60,6 @@ push_backup: all
 	go install -v ../push/go/pushcli
 	pushcli task-scheduler-db-backup skia-task-scheduler
 
-.PHONY: push_trigger
-push_trigger: all
-	./build_trigger_nightly_release "`git log -n1 --format=%s`"
-	./build_trigger_weekly_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli task-scheduler-trigger-nightly skia-task-scheduler
-	pushcli task-scheduler-trigger-weekly skia-task-scheduler
-
 .PHONY: vm_create_prod
 vm_create_prod:
 	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=prod
