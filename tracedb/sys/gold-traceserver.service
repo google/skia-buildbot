@@ -7,6 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/gold_traceserver \
     --db_file=/mnt/pd0/gold/traceserver/goldtraces.db \
+    --http_port=:9190 \
     --port=:9090 \
     --prom_port=:20004 \
     --logtostderr
