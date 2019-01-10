@@ -443,7 +443,7 @@ func (c *CachingExpectationStore) Get() (exp types.Expectations, err error) {
 			return nil, err
 		}
 
-		if err = c.cache.AddChange(tempExp.TestExp(), ""); err != nil {
+		if err = c.cache.AddChange(tempExp.TestExp().DeepCopy(), ""); err != nil {
 			return nil, err
 		}
 	}

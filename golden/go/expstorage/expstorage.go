@@ -134,7 +134,7 @@ func (m *MemExpectationsStore) removeChange(changedDigests types.TestExp) error 
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	testExp := m.expectations.TestExp()
+	testExp := m.expectations.TestExp().DeepCopy()
 	for testName, digests := range changedDigests {
 		for digest := range digests {
 			delete(testExp[testName], digest)
