@@ -96,8 +96,14 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	// Create the change.
 	ci, err := gerrit.CreateAndEditChange(rm.g, rm.gerritConfig.Project, rm.parentBranch, commitMsg, rm.baseCommit, func(g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
 		for file, contents := range rm.nextRollChanges {
-			if err := g.EditFile(ci, file, contents); err != nil {
-				return fmt.Errorf("Failed to edit %s file: %s", file, err)
+			if contents == "" {
+				if err := g.DeleteFile(ci, file); err != nil {
+					return fmt.Errorf("Failed to delete %s file: %s", file, err)
+				}
+			} else {
+				if err := g.EditFile(ci, file, contents); err != nil {
+					return fmt.Errorf("Failed to edit %s file: %s", file, err)
+				}
 			}
 		}
 		return nil
@@ -112,9 +118,10 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 	}
 
 	// Set the CQ bit as appropriate.
-	if err = rm.g.SetReview(ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
+	labels := rm.gerritConfig.GetLabels(dryRun)
+	if err = rm.g.SetReview(ci, "", labels, emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?
-		return 0, fmt.Errorf("Failed to set review: %s", err)
+		return 0, fmt.Errorf("Failed to set review labels: %v: %s", labels, err)
 	}
 
 	return ci.Issue, nil
