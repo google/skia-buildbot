@@ -7,6 +7,7 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/pdfium_gold_traceserver \
     --db_file=/mnt/pd0/pdfium_gold/traceserver/pdfium_gold_traces.db \
+    --http_port=:9191 \
     --port=:9091 \
     --prom_port=:20003 \
     --logtostderr
