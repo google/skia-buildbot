@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ff976ffc_d3d45489",
+        "filename": "skottie/modules/skottie-drive-sk/skottie-drive-sk.js",
+        "patchSetId": 11
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-10T19:45:37Z",
+      "side": 1,
+      "message": "ubernit:no apostrophe",
+      "range": {
+        "startLine": 22,
+        "startChar": 55,
+        "endLine": 22,
+        "endChar": 56
+      },
+      "revId": "edf707fa5b923863f6011ce376d27126ebe0ced5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58128230_a8e0cfd1",
+        "filename": "skottie/modules/skottie-drive-sk/skottie-drive-sk.js",
+        "patchSetId": 11
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-10T19:45:37Z",
+      "side": 1,
+      "message": "Are you happy with this approach?  For swarming, I use the onload event which fires a custom event. \nhttps://chromium.googlesource.com/infra/luci/luci-py/+/master/appengine/swarming/ui2/pages/public_tasklist_index.html#14\n\nIf you like this approach, I will consider switching over Swarming to follow this model.",
+      "range": {
+        "startLine": 37,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "edf707fa5b923863f6011ce376d27126ebe0ced5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "117a287f_aac53b70",
+        "filename": "skottie/modules/skottie-drive-sk/skottie-drive-sk.js",
+        "patchSetId": 11
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-10T19:45:37Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 57,
+        "startChar": 6,
+        "endLine": 57,
+        "endChar": 40
+      },
+      "revId": "edf707fa5b923863f6011ce376d27126ebe0ced5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0785159_3074c8b0",
+        "filename": "skottie/modules/skottie-drive-sk/skottie-drive-sk.js",
+        "patchSetId": 11
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-10T19:45:37Z",
+      "side": 1,
+      "message": "Break this out as its own template, the nested ` take me multiple reads to follow.",
+      "range": {
+        "startLine": 70,
+        "startChar": 32,
+        "endLine": 73,
+        "endChar": 12
+      },
+      "revId": "edf707fa5b923863f6011ce376d27126ebe0ced5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a0589f0_1e43f904",
+        "filename": "skottie/modules/skottie-drive-sk/skottie-drive-sk.js",
+        "patchSetId": 11
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-01-10T19:45:37Z",
+      "side": 1,
+      "message": "I assume this is a sample file?",
+      "range": {
+        "startLine": 133,
+        "startChar": 15,
+        "endLine": 133,
+        "endChar": 50
+      },
+      "revId": "edf707fa5b923863f6011ce376d27126ebe0ced5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
