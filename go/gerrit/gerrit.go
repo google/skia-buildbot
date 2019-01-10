@@ -556,23 +556,24 @@ func (g *Gerrit) get(suburl string, rv interface{}, notFoundError error) error {
 		}
 		return fmt.Errorf("Issue not found: %s", getURL)
 	}
-	if resp.StatusCode >= 400 {
-		return fmt.Errorf("Error retrieving %s: %d %s", getURL, resp.StatusCode, resp.Status)
-	}
 	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("Could not read response body: %s", err)
 	}
+	body := string(bodyBytes)
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("Error retrieving %s: %d %s; response:\n%s", getURL, resp.StatusCode, resp.Status, body)
+	}
 
 	// Strip off the XSS protection chars.
-	parts := strings.SplitN(string(body), "\n", 2)
+	parts := strings.SplitN(body, "\n", 2)
 
 	if len(parts) != 2 {
-		return fmt.Errorf("Reponse invalid format.")
+		return fmt.Errorf("Reponse invalid format; response:\n%s", body)
 	}
 	if err := json.Unmarshal([]byte(parts[1]), &rv); err != nil {
-		return fmt.Errorf("Failed to decode JSON: %s", err)
+		return fmt.Errorf("Failed to decode JSON: %s; response:\n%s", err, body)
 	}
 	return nil
 }
@@ -591,8 +592,14 @@ func (g *Gerrit) post(suburl string, b []byte) error {
 	if err != nil {
 		return err
 	}
+	defer util.Close(resp.Body)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Could not read response body: %s", err)
+	}
+	body := string(bodyBytes)
 	if resp.StatusCode < 200 || resp.StatusCode > 204 {
-		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
+		return fmt.Errorf("Got status %s (%d); response:\n%s", resp.Status, resp.StatusCode, body)
 	}
 	return nil
 }

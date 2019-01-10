@@ -11,14 +11,11 @@ BOWER_DIR=third_party/bower_components
 
 include ../go/skiaversion/skiaversion.mk
 
-all: autoroll-fe autoroll-be autoroll-google3
+all: autoroll-fe autoroll-be-kube autoroll-google3
 
 autoroll-fe: core_js elements_html skiaversion
 	ln -sf ../../res res/imp/res
 	GOOS=linux go install -a ./go/autoroll-fe
-
-autoroll-be: skiaversion
-	go install -v ./go/autoroll-be
 
 autoroll-be-kube: skiaversion
 	GOOS=linux go install -a ./go/autoroll-be-kube
