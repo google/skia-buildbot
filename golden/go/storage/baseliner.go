@@ -45,6 +45,8 @@ func (b *Baseliner) CanWriteBaseline() bool {
 
 // PushMasterBaselines writes the baselines for the master branch to GCS.
 func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
+	b.updateBaselineCache(tile)
+
 	if !b.CanWriteBaseline() {
 		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
@@ -103,10 +105,16 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 	var masterBaseline *baseline.CommitableBaseLine
 	var issueBaseline *baseline.CommitableBaseLine
 
+	var masterExp types.TestExp
 	var egroup errgroup.Group
 	egroup.Go(func() error {
 		var err error
-		masterBaseline, err = b.gStorageClient.ReadBaseline(commitHash, 0)
+		masterExp = b.getBaselineFromCache("")
+		if masterExp != nil {
+			return nil
+		}
+
+		masterBaseline, err = b.gStorageClient.ReadBaseline(b.currentHEAD(), 0)
 		sklog.Infof("Master: %s    %s", commitHash, spew.Sdump(masterBaseline))
 		return err
 	})
@@ -138,4 +146,15 @@ func (b *Baseliner) getMasterBaseline(tile *tiling.Tile) (types.Expectations, *b
 	}
 
 	return exps, baseline.GetBaselineForMaster(exps, tile), nil
+}
+
+func (b *Baseliner) updateBaselineCache(tile *tiling.Tile) {
+}
+
+func (b *Baseliner) currentHEAD() string {
+	return ""
+}
+
+func (b *Baseliner) getBaselineFromCache(commitHash string) types.TestExp {
+	return nil
 }

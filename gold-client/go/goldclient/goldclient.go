@@ -130,11 +130,13 @@ func NewCloudClient(config *GoldClientConfig, goldResult *jsonio.GoldResults) (G
 	if config.WorkDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to NewCloudClient")
 	}
+	fmt.Printf("x 10\n")
 
 	workDir, err := fileutil.EnsureDirExists(config.WorkDir)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("x 11\n")
 
 	// TODO(stephana): When we add authentication via a service account this needs to be
 	// be triggered by an argument to this function or a config flag of some sort.
@@ -225,23 +227,30 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *jsonio.GoldResults) error {
 	// Load the state from the workdir.
 	var err error
+	fmt.Printf("x 13\n")
 	c.resultState, err = loadStateFromJson(c.getResultStateFile())
 	if err != nil {
 		return err
 	}
 
+	fmt.Printf("x 14\n")
 	if err := c.loadOAuthToken(); err != nil {
 		return skerr.Fmt("Error loading auth information: %s", err)
 	}
 
+	fmt.Printf("x 15\n")
 	// If we are ready that means we have loaded the resultState from the temporary directory.
 	if err := c.isReady(); err == nil {
 		return nil
 	}
 
+	fmt.Printf("x 16 %v  %v\n", config == nil, config.InstanceID)
+
 	// If we have enough information we create an instance of the result state. Sometimes we
 	// might create an instance with minimal information to, e.g. add auth information.
 	if config != nil && config.InstanceID != "" {
+		fmt.Printf("x 17\n")
+
 		c.resultState, err = newResultState(goldResult, config, c.workDir, c.httpClient)
 		if err != nil {
 			return err
@@ -396,10 +405,14 @@ func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, wo
 	// TODO(stephana): Move deriving the URLs and the bucket to a central place in the backend
 	// or get rid of the bucket entirely and expose an upload URL (requires authentication)
 
+	fmt.Printf("x 18\n")
+
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
 		goldURL = fmt.Sprintf(goldURLTmpl, config.InstanceID)
 	}
+
+	fmt.Printf("x 19\n")
 
 	ret := &resultState{
 		GoldResults:     goldResult,
@@ -411,15 +424,19 @@ func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, wo
 		httpClient:      httpClient,
 	}
 
+	fmt.Printf("x 20\n")
+
 	if err := ret.loadKnownHashes(); err != nil {
 		return nil, err
 	}
+	fmt.Printf("x 22\n")
 
 	// TODO(stephana): Fetch the baseline (may be empty but should not fail).
 	if err := ret.loadExpectations(); err != nil {
 		return nil, err
 	}
 
+	fmt.Printf("x 23\n")
 	return ret, nil
 }
 
@@ -484,11 +501,12 @@ func (r *resultState) loadExpectations() error {
 		urlPath = strings.Replace(shared.EXPECATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
-
+	fmt.Printf("URL: %s\n", url)
 	resp, err := r.httpClient.Get(url)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("x 50\n")
 
 	jsonBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
