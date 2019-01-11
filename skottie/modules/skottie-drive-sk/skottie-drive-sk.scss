@@ -33,4 +33,12 @@ skottie-drive-sk {
   header span a {
     color: var(--white);
   }
+
+  figcaption {
+  }
+
+  figcaption p.errors {
+    font-weight: bold;
+    color: var(--red);
+  }
 }
