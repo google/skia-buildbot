@@ -220,6 +220,9 @@ func main() {
 		return
 	}
 
+	// Clean up the chromium builds from Google storage after the run completes.
+	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
+
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
 		"CHROMIUM_BUILD":     chromiumBuild,
