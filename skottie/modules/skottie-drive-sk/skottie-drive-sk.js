@@ -65,7 +65,7 @@ const caption = (id) => {
 const players = (ele) => ele._ids.map((id, i) => html`
 <figure>
   <skottie-player-sk id="x${i}"></skottie-player-sk>
-  <figcaption>${until(caption(id), `Loading...`)}</figcaption>
+  <figcaption><p>${until(caption(id), `Loading...`)}</p><p class=errors id="errors${i}"></p></figcaption>
 </figure>`);
 
 const template = (ele) => html`
@@ -151,6 +151,7 @@ window.customElements.define('skottie-drive-sk', class extends HTMLElement {
         fileId: id,
       }).then((response) => {
         if (response.headers['Content-Type'] !== 'application/json') {
+          $$(`#errors${i}`, this).textContent = `Error: Not a JSON file.`;
           errorMessage("Can only process JSON files.", 0);
           return;
         }
@@ -160,7 +161,10 @@ window.customElements.define('skottie-drive-sk', class extends HTMLElement {
           height : lottie.h || 128,
           lottie : lottie,
         }
-        $$(`#x${i}`, this).initialize(init);
+        $$(`#x${i}`, this).initialize(init).catch((msg) => {
+          $$(`#errors${i}`, this).textContent = `Error: Not a valid Lottie file.`;
+          errorMessage(msg, 0);
+        });
       }).catch((response) => {
         errorMessage(response.result.error.message, 0);
       });
