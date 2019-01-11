@@ -111,6 +111,14 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (srv *Server) verificationHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	_, err := w.Write([]byte("google-site-verification: google99d1f93c6755806b.html"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to write.")
+	}
+}
+
 func (srv *Server) tosHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *local {
@@ -265,6 +273,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/drive", srv.driveHandler)
 	r.HandleFunc("/tos", srv.tosHandler)
+	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
 	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.mainHandler)
 	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.embedHandler)
 
