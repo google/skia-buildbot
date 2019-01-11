@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 
 	"cloud.google.com/go/storage"
@@ -30,6 +31,7 @@ const (
 	FUCHSIA_UTIL                     = "fuchsia_util.py"
 	GEN_SDK_BP                       = "gen_sdk_bp.py"
 	GEN_SDK_BP_DIR                   = "scripts"
+	SDK_DEST_PATH                    = "prebuilts/fuchsia_sdk"
 )
 
 type FuchsiaSDKAndroidRepoManagerConfig struct {
@@ -138,6 +140,10 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 	if _, err := rm.genSdkBpRepo.Git(ctx, "checkout", fmt.Sprintf("origin/%s", rm.parentBranch)); err != nil {
 		return "", "", 0, nil, err
 	}
+	genSdkBpRepoHash, err := rm.genSdkBpRepo.RevParse(ctx, "HEAD")
+	if err != nil {
+		return "", "", 0, nil, err
+	}
 	sklog.Info("Reading old file contents...")
 	oldContents, err := fileutil.ReadAllFilesRecursive(rm.parentRepo.Dir(), []string{".git"})
 	if err != nil {
@@ -146,6 +152,13 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 
 	// Instead of simply rolling the version hash into a file, download and
 	// unzip the SDK, and commit its contents.
+	sdkDestPath := path.Join(rm.arm.workdir, SDK_DEST_PATH)
+	if err := os.RemoveAll(sdkDestPath); err != nil {
+		sklog.Warningf("Failed to remove SDK dest path %s: %s", sdkDestPath, err)
+	}
+	if err := os.MkdirAll(sdkDestPath, os.ModePerm); err != nil {
+		return "", "", 0, nil, err
+	}
 	sdkGsPath := rm.gsListPath + "/linux-amd64/" + nextRollRev
 	sklog.Infof("Downloading SDK from %s...", sdkGsPath)
 	newContents := map[string][]byte{}
@@ -159,14 +172,23 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 			return err
 		}
 		newContents[filename] = b
-		return nil
+		filePath := path.Join(sdkDestPath, filename)
+		dir := path.Dir(filePath)
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(filePath, b, os.ModePerm)
 	}); err != nil {
 		return "", "", 0, nil, fmt.Errorf("Failed to read archive: %s", err)
 	}
 
 	// Run the gen_sdk_bp.py script.
 	genSdkBp := path.Join(rm.genSdkBpRepo.Dir(), GEN_SDK_BP_DIR, GEN_SDK_BP)
-	sklog.Infof("Running %s...", genSdkBp)
+	sklog.Infof("Running %s at %s", genSdkBp, genSdkBpRepoHash)
 	env := []string{fmt.Sprintf("ANDROID_BUILD_TOP=%s", rm.arm.workdir)}
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:        rm.genSdkBpRepo.Dir(),
@@ -174,6 +196,8 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 		Args:       []string{genSdkBp},
 		Env:        env,
 		InheritEnv: true,
+		LogStdout:  true,
+		LogStderr:  true,
 	}); err != nil {
 		return "", "", 0, nil, err
 	}
