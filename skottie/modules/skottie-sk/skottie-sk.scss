@@ -110,6 +110,15 @@ skottie-sk {
     margin: 1em;
     background: var(--dark-white);
   }
+
+  footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  footer div {
+    padding: 1em;
+  }
 }
 
 #json_editor button {

@@ -113,6 +113,14 @@ const pick = (ele) => {
   }
 };
 
+const redir = (ele) => {
+  if (window.location.hostname != 'skottie-internal.skia.org') {
+    return html`<div>Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.</div>`;
+  } else {
+    return html``;
+  }
+};
+
 const template = (ele) => html`
 <header>
   <h2>Skottie</h2><span><a href='https://skia.googlesource.com/skia/+/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
@@ -122,6 +130,7 @@ const template = (ele) => html`
 </main>
 <footer>
   <error-toast-sk></error-toast-sk>
+  ${redir(ele)}
 </footer>
 `;
 
