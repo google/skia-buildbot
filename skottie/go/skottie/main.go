@@ -96,6 +96,7 @@ func (srv *Server) loadTemplates() {
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "index.html"),
 		filepath.Join(*resourcesDir, "drive.html"),
+		filepath.Join(*resourcesDir, "tos.html"),
 		filepath.Join(*resourcesDir, "embed.html"),
 	))
 }
@@ -106,6 +107,16 @@ func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
 		srv.loadTemplates()
 	}
 	if err := srv.templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func (srv *Server) tosHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		srv.loadTemplates()
+	}
+	if err := srv.templates.ExecuteTemplate(w, "tos.html", nil); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -253,6 +264,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/drive", srv.driveHandler)
+	r.HandleFunc("/tos", srv.tosHandler)
 	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.mainHandler)
 	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.embedHandler)
 
