@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -124,8 +125,10 @@ func (i *imgTestEnv) runImgTestPassFailCmd(cmd *cobra.Command, args []string) { 
 
 // runImgTestCommand processes and uploads test results to Gold.
 func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
+	fmt.Printf("x 1\n")
 	keyMap, err := readKeysFile(i.flagKeysFile)
 	ifErrLogExit(cmd, err)
+	fmt.Printf("x 2\n")
 
 	validation := shared.Validation{}
 	issueID := validation.Int64Value("issue", i.flagIssueID, 0)
@@ -148,11 +151,15 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		PassFailStep:    i.flagPassFailStep,
 		OverrideGoldURL: i.flagURL,
 	}
+
+	fmt.Printf("x 3\n")
 	goldClient, err := goldclient.NewCloudClient(config, gr)
 	ifErrLogExit(cmd, err)
+	fmt.Printf("x 4\n")
 
 	pass, err := goldClient.Test(i.flagTestName, i.flagPNGFile)
 	ifErrLogExit(cmd, err)
+	fmt.Printf("x 5\n")
 
 	if !pass {
 		logErrf(cmd, "Test: %s FAIL\n", i.flagTestName)
