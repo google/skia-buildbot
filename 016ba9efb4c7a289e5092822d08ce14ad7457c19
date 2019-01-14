@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3770dc42_64233392",
+        "filename": "go/metrics2/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-14T17:50:53Z",
+      "side": 1,
+      "message": "It\u0027s not documented, but ISTM we expect metrics to be goroutine-safe. This needs a mutex to match that expectation.",
+      "revId": "016ba9efb4c7a289e5092822d08ce14ad7457c19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e826121_9b7f7750",
+        "filename": "go/metrics2/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-14T17:50:53Z",
+      "side": 1,
+      "message": "Note restrictions on doc ids here: https://firebase.google.com/docs/firestore/quotas#collections_documents_and_fields\nAFAIK, we don\u0027t currently have any restrictions on tag values. Metric names and tag keys are restricted by prometheus according to invalidChar regexp here: https://skia.googlesource.com/buildbot/+/fe93b540de56ca7fa47262b5b1463ad680676cb5/go/metrics2/prom.go#17\n\nIf tag values can\u0027t be in the doc id, we might consider storing tags as document fields (so it\u0027s easy to query for them).",
+      "revId": "016ba9efb4c7a289e5092822d08ce14ad7457c19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07261ef7_4f46eac0",
+        "filename": "go/metrics2/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-14T17:50:53Z",
+      "side": 1,
+      "message": "Seems like the tags need to be sorted for a canonical id.\n\nSee also https://skia.googlesource.com/buildbot/+/94f7600484f4ca785a799b70361b615533ad3506/go/metrics2/testutils/testutils.go#43",
+      "range": {
+        "startLine": 187,
+        "startChar": 1,
+        "endLine": 187,
+        "endChar": 8
+      },
+      "revId": "016ba9efb4c7a289e5092822d08ce14ad7457c19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de189374_ef9040c5",
+        "filename": "go/metrics2/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-14T17:50:53Z",
+      "side": 1,
+      "message": "Yes, although I wonder if we could just omit the Set. Seems like where this function is used, obj doesn\u0027t have a meaningful value yet, so I don\u0027t see a reason to save it.",
+      "range": {
+        "startLine": 216,
+        "startChar": 19,
+        "endLine": 216,
+        "endChar": 61
+      },
+      "revId": "016ba9efb4c7a289e5092822d08ce14ad7457c19",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
