@@ -20,11 +20,11 @@ type timer struct {
 	m     Float64SummaryMetric
 }
 
-// NewTimer creates and returns a new started timer.
+// NewTimerHelper creates and returns a new started timer.
 //
 // makeUnique - True if the measurement name needs to made unique, which means
 //              to append 'name' to 'timer'.
-func newTimer(c Client, name string, makeUnique bool, tagsList ...map[string]string) Timer {
+func NewTimerHelper(c Client, name string, makeUnique bool, tagsList ...map[string]string) Timer {
 	// Make a copy of the tags and add the name.
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name

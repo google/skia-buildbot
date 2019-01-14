@@ -15,7 +15,7 @@ type muxClient struct {
 // Clients.
 func newMuxClient(clients []Client) (Client, error) {
 	if len(clients) == 0 {
-		return nil, fmt.Errorf("At least one client must be passed to NewMuxClient.")
+		return nil, fmt.Errorf("At least one client must be passed to newMuxClient.")
 	}
 	return &muxClient{
 		clients: clients,

@@ -344,7 +344,7 @@ func (c *promClient) NewLiveness(name string, tagsList ...map[string]string) Liv
 }
 
 func (c *promClient) NewTimer(name string, tagsList ...map[string]string) Timer {
-	return newTimer(c, name, true, tagsList...)
+	return NewTimerHelper(c, name, true, tagsList...)
 }
 
 // Validate that the concrete structs faithfully implement their respective interfaces.
