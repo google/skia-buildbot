@@ -148,6 +148,7 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		PassFailStep:    i.flagPassFailStep,
 		OverrideGoldURL: i.flagURL,
 	}
+
 	goldClient, err := goldclient.NewCloudClient(config, gr)
 	ifErrLogExit(cmd, err)
 
