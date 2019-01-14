@@ -15,9 +15,9 @@ func TestGetTrybotsForCL(t *testing.T) {
 	testutils.MediumTest(t)
 
 	client := NewClient(httputils.NewTimeoutClient())
-	tries, err := client.GetTrybotsForCL(2347, 7, "gerrit", "https://skia-review.googlesource.com")
+	tries, err := client.GetTrybotsForCL(183562, 1, "gerrit", "https://skia-review.googlesource.com")
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tries))
+	assert.Equal(t, 4, len(tries))
 }
 
 func TestSerialize(t *testing.T) {
