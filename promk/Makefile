@@ -24,7 +24,6 @@ testgo:
 	cp ./tmp/prometheus-2.2.1.linux-amd64/promtool ./tmp/promtool
 
 push_config: validate skia-public
-	kubectl create configmap grafana-conf --from-file=./grafana -o yaml --dry-run | kubectl replace -f -
 	-rm -rf ./tmpconf
 	mkdir ./tmpconf
 	cp prometheus/prometheus-public.yml ./tmpconf/prometheus.yml
