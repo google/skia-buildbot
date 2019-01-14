@@ -1,15 +1,16 @@
 package storage
 
 import (
-	"github.com/davecgh/go-spew/spew"
+	"sync"
+
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
-	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -26,6 +27,10 @@ type Baseliner struct {
 	expectationsStore    expstorage.ExpectationsStore
 	issueExpStoreFactory expstorage.IssueExpStoreFactory
 	tryjobStore          tryjobstore.TryjobStore
+
+	lastWrittenBaselines map[string]string
+	baselineCache        map[string]*baseline.CommitableBaseLine
+	mutex                sync.RWMutex
 }
 
 // NewBaseliner creates a new instance of Baseliner.
@@ -35,6 +40,7 @@ func NewBaseliner(gStorageClient *GStorageClient, expectationsStore expstorage.E
 		expectationsStore:    expectationsStore,
 		issueExpStoreFactory: issueExpStoreFactory,
 		tryjobStore:          tryjobStore,
+		lastWrittenBaselines: map[string]string{},
 	}
 }
 
@@ -49,22 +55,45 @@ func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
 
-	_, baseLine, err := b.getMasterBaseline(tile)
+	perCommitBaselines, err := b.calcMasterBaselines(tile)
 	if err != nil {
-		return skerr.Fmt("Error retrieving master baseline: %s", err)
+		return skerr.Fmt("Error getting master baseline: %s", err)
 	}
 
-	if baseLine == nil {
-		sklog.Infof("No baseline available.")
-		return nil
+	b.mutex.Lock()
+	lastWritten := b.lastWrittenBaselines
+	b.mutex.Unlock()
+
+	// Write the ones to disk that have not been written
+	writeBaselines := make(util.StringSet, len(perCommitBaselines))
+	for commit, bLine := range perCommitBaselines {
+		md5Sum, ok := lastWritten[commit]
+		if ok && md5Sum == bLine.MD5 {
+			continue
+		}
+		writeBaselines[commit] = true
 	}
 
-	// Write the baseline to GCS.
-	outputPath, err := b.gStorageClient.WriteBaseLine(baseLine)
-	if err != nil {
-		return skerr.Fmt("Error writing baseline to GCS: %s", err)
+	written := make(map[string]string, len(writeBaselines))
+	for commit, bLine := range perCommitBaselines {
+		if _, ok := writeBaselines[commit]; !ok {
+			written[commit] = bLine.MD5
+			continue
+		}
+
+		// Write the baseline to GCS.
+		_, err := b.gStorageClient.WriteBaseLine(bLine)
+		if err != nil {
+			return skerr.Fmt("Error writing baseline to GCS: %s", err)
+		}
+		written[commit] = bLine.MD5
 	}
-	sklog.Infof("Baseline for master written to %s.", outputPath)
+
+	// Swap out the baseline cache and the list of last written files.
+	b.mutex.Lock()
+	b.baselineCache = perCommitBaselines
+	b.lastWrittenBaselines = written
+	b.mutex.Unlock()
 	return nil
 }
 
@@ -100,22 +129,27 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies 
 // loading the master baseline and the issue baseline from GCS and combining
 // them. If either of them doesn't exist an empty baseline is assumed.
 func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID int64) (*baseline.CommitableBaseLine, error) {
+	isIssue := issueID > 0
+
+	if isIssue {
+		commitHash = ""
+	}
+
 	var masterBaseline *baseline.CommitableBaseLine
 	var issueBaseline *baseline.CommitableBaseLine
-
 	var egroup errgroup.Group
+
+	// Retrieve the baseline on master.
 	egroup.Go(func() error {
 		var err error
-		masterBaseline, err = b.gStorageClient.ReadBaseline(commitHash, 0)
-		sklog.Infof("Master: %s    %s", commitHash, spew.Sdump(masterBaseline))
+		masterBaseline, err = b.getMasterExpectations(commitHash)
 		return err
 	})
 
-	if issueID > 0 {
+	if isIssue {
 		egroup.Go(func() error {
 			var err error
-			issueBaseline, err = b.gStorageClient.ReadBaseline(commitHash, issueID)
-			sklog.Infof("issue %s   %d: %s", commitHash, issueID, spew.Sdump(issueBaseline))
+			issueBaseline, err = b.getIssueExpectations(issueID)
 			return err
 		})
 	}
@@ -124,18 +158,42 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 		return nil, err
 	}
 
-	if issueBaseline != nil {
+	if isIssue {
 		masterBaseline.Baseline.Update(issueBaseline.Baseline)
 	}
 	return masterBaseline, nil
 }
 
-// getMasterBaseline retrieves the master baseline based on the given tile.
-func (b *Baseliner) getMasterBaseline(tile *tiling.Tile) (types.Expectations, *baseline.CommitableBaseLine, error) {
+// calcMasterBaselines retrieves the master baseline based on the given tile.
+func (b *Baseliner) calcMasterBaselines(tile *tiling.Tile) (map[string]*baseline.CommitableBaseLine, error) {
 	exps, err := b.expectationsStore.Get()
 	if err != nil {
-		return nil, nil, skerr.Fmt("Unable to retrieve expectations: %s", err)
+		return nil, skerr.Fmt("Unable to retrieve expectations: %s", err)
 	}
 
-	return exps, baseline.GetBaselineForMaster(exps, tile), nil
+	return baseline.GetBaselinesPerCommit(exps, tile), nil
+}
+
+func (b *Baseliner) updateBaselineCache(tile *tiling.Tile) {
+}
+
+func (b *Baseliner) currentHEAD() string {
+	return ""
+}
+
+func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {
+	// 	if masterExp != nil {
+	// 		return nil
+	// 	}
+
+	// 	masterBaseline, err = b.gStorageClient.ReadBaseline(b.currentHEAD(), 0)
+	// 	sklog.Infof("Master: %s    %s", commitHash, spew.Sdump(masterBaseline))
+	// 	return err
+	// })
+
+	return nil, nil
+}
+
+func (b *Baseliner) getIssueExpectations(issueID int64) (*baseline.CommitableBaseLine, error) {
+	return nil, nil
 }
