@@ -14,3 +14,4 @@ echo ""
 read -r -p "When you are done editing press enter to upload the updated grafana.ini file..." key
 kubectl create secret generic ${SECRET_NAME} --from-file=grafana.ini --dry-run -o yaml | kubectl apply -f -
 cd -
+echo "Now restart the grafana-0 pod so it picks up the config change."

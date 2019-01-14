@@ -23,7 +23,6 @@ scrape_configs:
   - job_name: 'auth-proxy'
     static_configs:
       - targets: ['prometheus:10000']
-      - targets: ['grafana:10000']
       - targets: ['collectd-exporter:10000']
 
   - job_name: 'kubernetes-apiservers'
