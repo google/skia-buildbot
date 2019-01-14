@@ -85,9 +85,9 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	fsrm := &fuchsiaSDKRepoManager{
 		gcsClient:         gcs.NewGCSClient(storageClient, FUCHSIA_SDK_GS_BUCKET),
 		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
-		gsLatestPathLinux: "sdk/linux-amd64/LATEST_ARCHIVE",
-		gsLatestPathMac:   "sdk/mac-amd64/LATEST_ARCHIVE",
-		gsListPath:        "sdk",
+		gsLatestPathLinux: FUCHSIA_SDK_GS_LATEST_PATH_LINUX,
+		gsLatestPathMac:   FUCHSIA_SDK_GS_LATEST_PATH_MAC,
+		gsListPath:        FUCHSIA_SDK_GS_PATH,
 		storageClient:     storageClient,
 		versionFileLinux:  FUCHSIA_SDK_ANDROID_VERSION_FILE,
 		versionFileMac:    "", // Ignored by this RepoManager.
