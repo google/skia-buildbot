@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3941e804_6605fa0a",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-14T20:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dbd29ac8_76f17019",
+      "range": {
+        "startLine": 122,
+        "startChar": 28,
+        "endLine": 122,
+        "endChar": 63
+      },
+      "revId": "421f4c2cbcb3d1232f04a0a4e6afcc241d159a78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ffb03b5a_b2ec38fb",
         "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager_test.go",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "421f4c2cbcb3d1232f04a0a4e6afcc241d159a78",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71174c6b_f8ec4cd8",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_android_repo_manager_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-14T20:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ffb03b5a_b2ec38fb",
+      "revId": "421f4c2cbcb3d1232f04a0a4e6afcc241d159a78",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
