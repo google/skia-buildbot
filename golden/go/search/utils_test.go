@@ -157,7 +157,7 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 		DiffStore: mocks.NewMockDiffStore(),
 		EventBus:  eventBus,
 	}
-	storages.InitBaseliner()
+	assert.NoError(t, storages.InitBaseliner())
 
 	ixr, err := indexer.New(storages, 10*time.Minute)
 	assert.NoError(t, err)
