@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -191,12 +192,16 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 		return false, err
 	}
 
+	var egroup errgroup.Group
 	// Check against known hashes and upload if needed.
 	if !c.resultState.KnownHashes[imgHash] {
-		gcsImagePath := c.resultState.getGCSImagePath(imgHash)
-		if err := uploader.uploadBytesOrFile(imgBytes, imgFileName, prefixGCS(gcsImagePath)); err != nil {
-			return false, skerr.Fmt("Error uploading image: %s", err)
-		}
+		egroup.Go(func() error {
+			gcsImagePath := c.resultState.getGCSImagePath(imgHash)
+			if err := uploader.uploadBytesOrFile(imgBytes, imgFileName, prefixGCS(gcsImagePath)); err != nil {
+				return skerr.Fmt("Error uploading image %s to %s. Got: %s", imgFileName, gcsImagePath, err)
+			}
+			return nil
+		})
 	}
 
 	// Add the result of this test.
@@ -208,16 +213,23 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	}
 
 	// If we do per test pass/fail then upload the result and compare it to the baseline.
+	ret := true
 	if c.resultState.PerTestPassFail {
-		localFileName := filepath.Join(c.workDir, jsonTempFile)
-		if err := uploader.uploadJson(c.resultState.GoldResults, localFileName, c.resultState.getResultFilePath()); err != nil {
-			return false, err
-		}
-		return c.resultState.Expectations[name][imgHash] == types.POSITIVE, nil
+		egroup.Go(func() error {
+			localFileName := filepath.Join(c.workDir, jsonTempFile)
+			resultFilePath := c.resultState.getResultFilePath()
+			if err := uploader.uploadJson(c.resultState.GoldResults, localFileName, resultFilePath); err != nil {
+				return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
+			}
+			return nil
+		})
+		ret = c.resultState.Expectations[name][imgHash] == types.POSITIVE
 	}
 
-	// If we don't do per-test pass/fail then return true.
-	return true, nil
+	if err := egroup.Wait(); err != nil {
+		return false, err
+	}
+	return ret, nil
 }
 
 // initResultState assembles the information that needs to be uploaded based on previous calls
@@ -395,7 +407,6 @@ func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, wo
 
 	// TODO(stephana): Move deriving the URLs and the bucket to a central place in the backend
 	// or get rid of the bucket entirely and expose an upload URL (requires authentication)
-
 	goldURL := config.OverrideGoldURL
 	if goldURL == "" {
 		goldURL = fmt.Sprintf(goldURLTmpl, config.InstanceID)
@@ -419,7 +430,6 @@ func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, wo
 	if err := ret.loadExpectations(); err != nil {
 		return nil, err
 	}
-
 	return ret, nil
 }
 
@@ -484,7 +494,6 @@ func (r *resultState) loadExpectations() error {
 		urlPath = strings.Replace(shared.EXPECATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
-
 	resp, err := r.httpClient.Get(url)
 	if err != nil {
 		return err
