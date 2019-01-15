@@ -330,13 +330,13 @@ func TestMD5Hash(t *testing.T) {
 		"k4": "v4",
 	}
 
-	h_1, err := MD5Params(m_1)
+	h_1, err := MD5Sum(m_1)
 	assert.NoError(t, err)
 
-	h_2, err := MD5Params(m_2)
+	h_2, err := MD5Sum(m_2)
 	assert.NoError(t, err)
 
-	h_3, err := MD5Params(m_3)
+	h_3, err := MD5Sum(m_3)
 	assert.NoError(t, err)
 	assert.Equal(t, 32, len(h_1))
 	assert.Equal(t, 32, len(h_2))
@@ -346,14 +346,14 @@ func TestMD5Hash(t *testing.T) {
 	assert.Equal(t, h_2, h_3)
 
 	// Ensure that we get the same hash every time.
-	h_4, err := MD5Params(m_4)
+	h_4, err := MD5Sum(m_4)
 	assert.NoError(t, err)
 	for i := 0; i < 100; i++ {
-		h, err := MD5Params(m_4)
+		h, err := MD5Sum(m_4)
 		assert.NoError(t, err)
 		assert.Equal(t, h_4, h)
 	}
-	h, err := MD5Params(map[string]string{
+	h, err := MD5Sum(map[string]string{
 		"k4": "v4",
 		"k2": "v2",
 		"k3": "v1",
