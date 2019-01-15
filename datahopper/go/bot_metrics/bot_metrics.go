@@ -19,8 +19,6 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -29,7 +27,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -195,10 +192,6 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
 func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
-	if err := repos.Update(ctx); err != nil {
-		return err
-	}
-
 	totalCommits := 0
 	for _, r := range repos {
 		totalCommits += r.Len()
@@ -371,7 +364,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	if err := writeTs(workdir, now); err != nil {
 		return fmt.Errorf("Failed to write timestamp file: %s", err)
 	}
-	return tcc.Cleanup(-COMMIT_TASK_WINDOW)
+	return nil
 }
 
 // readTs returns the last successful run timestamp which was cached in a file.
@@ -400,27 +393,11 @@ func writeTs(workdir string, ts time.Time) error {
 }
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
-func Start(ctx context.Context, taskDb db.TaskReader, workdir, recipesCfgFile, btProject, btInstance string, ts oauth2.TokenSource) error {
+// The caller is responsible for updating the passed-in repos and TaskCfgCache.
+func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *specs.TaskCfgCache, workdir string) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
-	}
-	repos, err := repograph.NewMap(ctx, common.PUBLIC_REPOS, workdir)
-	if err != nil {
-		return fmt.Errorf("Failed to sync repograph: %s", err)
-	}
-	if err := repos.Update(ctx); err != nil {
-		return err
-	}
-
-	depotTools, err := depot_tools.Sync(ctx, workdir, recipesCfgFile)
-	if err != nil {
-		return fmt.Errorf("Failed to sync depot_tools: %s", err)
-	}
-
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), 1, btProject, btInstance, ts)
-	if err != nil {
-		return fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
 
 	// Set up event metrics.
