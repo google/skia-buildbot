@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"io/ioutil"
 	"path"
 	"testing"
@@ -457,7 +458,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	c3time := repo.Get(c3).Timestamp
 
-	// Update to c3. Perf job should be reset to zero. Build job age is now at c3.
+	// Update to c3. Build job age is now at c3. Perf job should be missing.
 	j6 := &types.Job{
 		Name: specs_testutils.BuildTask,
 		RepoState: types.RepoState{
@@ -468,5 +469,5 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	}
 	assert.NoError(t, d.PutJob(j6))
 	assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
-	check(c3age, c1age, "0.0")
+	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", specs_testutils.PerfTask, gb.RepoUrl()))
 }
