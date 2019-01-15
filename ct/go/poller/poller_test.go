@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/datastore"
 	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/ct/go/ct_autoscaler"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -555,6 +556,7 @@ func TestPollAndExecOnce(t *testing.T) {
 	mockExec := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	task := pendingRecreateWebpageArchivesTask()
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -564,10 +566,12 @@ func TestPollAndExecOnce(t *testing.T) {
 		return patchId, nil
 	}
 
-	wg := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
+	wg := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	expect.Equal(t, 0, getPatchCalls)
 	// Expect one command: capture_archives_on_workers ...
 	commands := mockExec.Commands()
@@ -583,6 +587,7 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	mockExec := exec.CommandCollector{}
 	ctx := exec.NewContext(context.Background(), mockExec.Run)
 	task1 := pendingRecreateWebpageArchivesTask()
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task1.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -593,17 +598,19 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	}
 
 	// Poll frontend and execute the first task.
-	wg1 := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
+	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg1.Wait() // Wait for task to return to make asserting commands deterministic.
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
 	mockServer.SetCurrentTask(&task2.DatastoreTask)
 	// Poll frontend and execute the second task.
-	wg2 := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
+	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg2.Wait() // Wait for task to return to make asserting commands deterministic.
 
 	// Expect two pending task requests.
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect two commands: capture_archives_on_workers ...; run_chromium_perf_on_workers ...
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 2)
@@ -621,6 +628,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 	commandCollector.SetDelegateRun(mockRun.Run)
 	ctx := exec.NewContext(context.Background(), commandCollector.Run)
 	task := pendingRecreateWebpageArchivesTask()
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(&task.RecreateWebpageArchivesDatastoreTask)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -631,10 +639,12 @@ func TestPollAndExecOnceError(t *testing.T) {
 		return patchId, nil
 	}
 
-	wg := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
+	wg := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 1, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 1, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	// Expect one command: capture_archives_on_workers ...
 	commands := commandCollector.Commands()
 	assert.Len(t, commands, 1)
@@ -655,6 +665,7 @@ func TestPollAndExecOnceError(t *testing.T) {
 
 func TestPollAndExecOnceNoTasks(t *testing.T) {
 	testutils.SmallTest(t)
+	mockCTAutoscaler := &ct_autoscaler.MockCTAutoscaler{}
 	mockServer := frontend.MockServer{}
 	mockServer.SetCurrentTask(nil)
 	defer frontend.CloseTestServer(frontend.InitTestServer(&mockServer))
@@ -667,14 +678,16 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	}
 
 	// Poll frontend, no tasks.
-	wg1 := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
-	wg2 := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
-	wg3 := pollAndExecOnce(ctx, mockGetPatchFromStorageFunc)
+	wg1 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
+	wg2 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
+	wg3 := pollAndExecOnce(ctx, mockCTAutoscaler, mockGetPatchFromStorageFunc)
 	// Expect three polls.
 	wg1.Wait()
 	wg2.Wait()
 	wg3.Wait()
 	expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
+	expect.Equal(t, 0, mockCTAutoscaler.RegisterGCETaskTimesCalled)
+	expect.Equal(t, 0, mockCTAutoscaler.UnregisterGCETaskTimesCalled)
 	expect.Equal(t, 0, getPatchCalls)
 	// Expect no commands.
 	expect.Empty(t, mockExec.Commands())
