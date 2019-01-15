@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0ee41035_5e7efa1b",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-15T19:17:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e66d28f7_05515b16",
+      "range": {
+        "startLine": 330,
+        "startChar": 55,
+        "endLine": 330,
+        "endChar": 57
+      },
+      "revId": "0e048ce93fd7e677fb2c82bea92b7313f018f4b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "176b80c5_13353225",
         "filename": "datahopper/go/datahopper/jobs.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "0e048ce93fd7e677fb2c82bea92b7313f018f4b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3deb1d64_247f8085",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 494,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-15T19:17:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "176b80c5_13353225",
+      "range": {
+        "startLine": 494,
+        "startChar": 66,
+        "endLine": 494,
+        "endChar": 90
+      },
+      "revId": "0e048ce93fd7e677fb2c82bea92b7313f018f4b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6bc2ce2b_9938d180",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-15T19:17:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0c335c9f_a941329a",
+      "range": {
+        "startLine": 500,
+        "startChar": 10,
+        "endLine": 500,
+        "endChar": 33
+      },
+      "revId": "0e048ce93fd7e677fb2c82bea92b7313f018f4b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10955ac1_a2286478",
         "filename": "datahopper/go/datahopper/jobs.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "0e048ce93fd7e677fb2c82bea92b7313f018f4b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce6834d6_256ec350",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 522,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-15T19:17:09Z",
+      "side": 1,
+      "message": "Yeah, I wondered why we weren\u0027t doing the delete above.  The benefit of setting zero is that any active alert should auto-dismiss sooner than if we just delete the metric.",
+      "parentUuid": "10955ac1_a2286478",
+      "range": {
+        "startLine": 521,
+        "startChar": 4,
+        "endLine": 522,
+        "endChar": 20
+      },
+      "revId": "0e048ce93fd7e677fb2c82bea92b7313f018f4b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
