@@ -53,10 +53,6 @@ const (
 	// Measurement name for task candidate counts by dimension set.
 	MEASUREMENT_TASK_CANDIDATE_COUNT = "task_candidate_count"
 
-	// Measurement name for overdue job specs. Records the age of the oldest commit for which the
-	// job has not completed (nor for any later commit), for each job spec and for each repo.
-	MEASUREMENT_OVERDUE_JOB_SPECS = "overdue_job_specs_s"
-
 	NUM_TOP_CANDIDATES = 50
 )
 
@@ -79,17 +75,6 @@ var (
 
 	ERR_BLAMELIST_DONE = errors.New("ERR_BLAMELIST_DONE")
 )
-
-// overdueJobSpecMetricKey is a map key for TaskScheduler.overdueMetrics. The tags added to the
-// metric are reflected here so that we delete/recreate the metric when the tags change.
-type overdueJobSpecMetricKey struct {
-	// Repo URL.
-	Repo string
-	// Job name.
-	Job string
-	// Job trigger.
-	Trigger string
-}
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
@@ -120,10 +105,8 @@ type TaskScheduler struct {
 	tCache           cache.TaskCache
 	timeDecayAmt24Hr float64
 	tryjobs          *tryjobs.TryJobIntegrator
-	// Metric for age of commit with no completed job, in ns.
-	overdueMetrics map[overdueJobSpecMetricKey]metrics2.Int64Metric
-	window         *window.Window
-	workdir        string
+	window           *window.Window
+	workdir          string
 }
 
 func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, btProject, btInstance string, ts oauth2.TokenSource) (*TaskScheduler, error) {
@@ -179,7 +162,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		tryjobs:          tryjobs,
-		overdueMetrics:   map[overdueJobSpecMetricKey]metrics2.Int64Metric{},
 		window:           w,
 		workdir:          workdir,
 	}
@@ -193,22 +175,12 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 		s.tryjobs.Start(ctx)
 	}
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
-	lvOverdueMetrics := metrics2.NewLiveness("last_successful_overdue_metrics_update")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
 		beforeMainLoop()
 		if err := s.MainLoop(ctx); err != nil {
 			sklog.Errorf("Failed to run the task scheduler: %s", err)
 		} else {
 			lvScheduling.Reset()
-			// Do this after MainLoop so that the repos and Jobs have been updated.
-			go func() {
-				if err := s.updateOverdueJobSpecMetrics(ctx, time.Now()); err != nil {
-					sklog.Errorf("Failed to update metrics for overdue job specs: %s", err)
-				} else {
-					lvOverdueMetrics.Reset()
-				}
-			}()
-
 		}
 	})
 	lvUpdate := metrics2.NewLiveness("last_successful_tasks_update")
@@ -2101,111 +2073,4 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 		}
 	}
 	return true
-}
-
-// updateOverdueJobSpecMetrics updates metrics for MEASUREMENT_OVERDUE_JOB_SPECS.
-func (s *TaskScheduler) updateOverdueJobSpecMetrics(ctx context.Context, now time.Time) error {
-	defer metrics2.FuncTimer().Stop()
-
-	// Process each repo individually.
-	for repoUrl, repo := range s.repos {
-		// Include only the jobs at current master. We don't report on JobSpecs that have been removed.
-		head := repo.Get("master")
-		if head == nil {
-			return sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
-		}
-		headTaskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, types.RepoState{
-			Repo:     repoUrl,
-			Revision: head.Hash,
-		})
-		if err != nil {
-			return sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, head.Hash, err)
-		}
-		// Set of JobSpec names left to process.
-		todo := util.StringSet{}
-		// Maps JobSpec name to time of oldest untested commit; initialized to 'now' and updated each
-		// time we see an untested commit.
-		times := map[string]time.Time{}
-		for name := range headTaskCfg.Jobs {
-			todo[name] = true
-			times[name] = now
-		}
-
-		// Iterate backwards to find the most-recently tested commit. We're not going to worry about
-		// merges -- if a job was run on both branches, we'll use the first commit we come across.
-		if err := head.Recurse(func(c *repograph.Commit) (bool, error) {
-			// Stop if this commit is outside the scheduling window.
-			if in, err := s.window.TestCommitHash(repoUrl, c.Hash); err != nil {
-				return false, sklog.FmtErrorf("TestCommitHash: %s", err)
-			} else if !in {
-				return false, nil
-			}
-			rs := types.RepoState{
-				Repo:     repoUrl,
-				Revision: c.Hash,
-			}
-			// Look in the cache for each remaining JobSpec at this commit.
-			for name := range todo {
-				jobs, err := s.jCache.GetJobsByRepoState(name, rs)
-				if err != nil {
-					return false, sklog.FmtErrorf("GetJobsByRepoState: %s", err)
-				}
-				for _, j := range jobs {
-					if j.Done() {
-						delete(todo, name)
-						break
-					}
-				}
-			}
-			if len(todo) == 0 {
-				return false, nil
-			}
-			// Check that the remaining JobSpecs are still valid at this commit.
-			taskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
-			if err != nil {
-				return false, sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
-			}
-			for name := range todo {
-				if _, ok := taskCfg.Jobs[name]; !ok {
-					delete(todo, name)
-				} else {
-					// Set times, since this job still exists and we haven't seen a completed job.
-					times[name] = c.Timestamp
-				}
-			}
-			return len(todo) > 0, nil
-		}); err != nil {
-			return err
-		}
-		// Delete metrics for jobs that have been removed or whose tags have changed.
-		for key, m := range s.overdueMetrics {
-			if key.Repo != repoUrl {
-				continue
-			}
-			if jobCfg, ok := headTaskCfg.Jobs[key.Job]; !ok || jobCfg.Trigger != key.Trigger {
-				// Set to 0 before deleting so that alerts ignore it.
-				m.Update(0)
-				delete(s.overdueMetrics, key)
-			}
-		}
-		// Update metrics or add metrics for any new jobs (or other tag changes).
-		for name, ts := range times {
-			key := overdueJobSpecMetricKey{
-				Repo:    repoUrl,
-				Job:     name,
-				Trigger: headTaskCfg.Jobs[name].Trigger,
-			}
-			m, ok := s.overdueMetrics[key]
-			if !ok {
-				m = metrics2.GetInt64Metric(MEASUREMENT_OVERDUE_JOB_SPECS, map[string]string{
-					"repo":        key.Repo,
-					"job_name":    key.Job,
-					"job_trigger": key.Trigger,
-				})
-				s.overdueMetrics[key] = m
-			}
-			m.Update(int64(now.Sub(ts).Seconds()))
-		}
-	}
-	return nil
 }

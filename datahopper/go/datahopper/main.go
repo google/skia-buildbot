@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
@@ -27,11 +28,13 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/taskname"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/perfclient"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/db/remote_db"
+	"go.skia.org/infra/task_scheduler/go/specs"
 	"google.golang.org/api/option"
 )
 
@@ -124,6 +127,36 @@ func main() {
 	if err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
+	go util.RepeatCtx(time.Minute, ctx, func() {
+		lvRepos := metrics2.NewLiveness("datahopper_repo_update")
+		if err := repos.Update(ctx); err != nil {
+			sklog.Errorf("Failed to update repos: %s", err)
+		} else {
+			lvRepos.Reset()
+		}
+	})
+
+	// TaskCfgCache.
+	if *recipesCfgFile == "" {
+		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
+	}
+	depotTools, err := depot_tools.Sync(ctx, w, *recipesCfgFile)
+	if err != nil {
+		sklog.Fatalf("Failed to sync depot_tools: %s", err)
+	}
+	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(w, "taskCfgCache"), 1, *btProject, *btInstance, newTs)
+	if err != nil {
+		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
+	}
+	go util.RepeatCtx(30*time.Minute, ctx, func() {
+		if err := tcc.Cleanup(OVERDUE_JOB_METRICS_PERIOD); err != nil {
+			sklog.Errorf("Failed to cleanup TaskCfgCache: %s", err)
+		}
+	})
 
 	// Data generation goroutines.
 
@@ -164,10 +197,6 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 	var d db.RemoteDB
 	if *firestoreInstance != "" {
 		label := "datahopper"
@@ -190,15 +219,12 @@ func main() {
 	}
 
 	// Jobs metrics.
-	if err := StartJobMetrics(ctx, d); err != nil {
+	if err := StartJobMetrics(ctx, d, repos, tcc); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if *recipesCfgFile == "" {
-		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
-	}
-	if err := bot_metrics.Start(ctx, d, *workdir, *recipesCfgFile, *btProject, *btInstance, newTs); err != nil {
+	if err := bot_metrics.Start(ctx, d, repos, tcc, *workdir); err != nil {
 		sklog.Fatal(err)
 	}
 

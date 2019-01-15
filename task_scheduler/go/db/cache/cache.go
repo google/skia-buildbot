@@ -464,7 +464,7 @@ type JobCache interface {
 }
 
 type jobCache struct {
-	db                   db.JobDB
+	db                   db.JobReader
 	getRevisionTimestamp db.GetRevisionTimestamp
 	mtx                  sync.RWMutex
 	queryId              string
@@ -688,7 +688,7 @@ func (c *jobCache) Update() error {
 
 // NewJobCache returns a local cache which provides more convenient views of
 // job data than the database can provide.
-func NewJobCache(d db.JobDB, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp) (JobCache, error) {
+func NewJobCache(d db.JobReader, timeWindow *window.Window, getRevisionTimestamp db.GetRevisionTimestamp) (JobCache, error) {
 	tc := &jobCache{
 		db:                   d,
 		getRevisionTimestamp: getRevisionTimestamp,
