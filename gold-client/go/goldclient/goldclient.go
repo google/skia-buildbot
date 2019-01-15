@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -192,16 +191,12 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 		return false, err
 	}
 
-	var egroup errgroup.Group
 	// Check against known hashes and upload if needed.
 	if !c.resultState.KnownHashes[imgHash] {
-		egroup.Go(func() error {
-			gcsImagePath := c.resultState.getGCSImagePath(imgHash)
-			if err := uploader.uploadBytesOrFile(imgBytes, imgFileName, prefixGCS(gcsImagePath)); err != nil {
-				return skerr.Fmt("Error uploading image %s to %s. Got: %s", imgFileName, gcsImagePath, err)
-			}
-			return nil
-		})
+		gcsImagePath := c.resultState.getGCSImagePath(imgHash)
+		if err := uploader.uploadBytesOrFile(imgBytes, imgFileName, prefixGCS(gcsImagePath)); err != nil {
+			return false, skerr.Fmt("Error uploading image: %s", err)
+		}
 	}
 
 	// Add the result of this test.
@@ -213,23 +208,16 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	}
 
 	// If we do per test pass/fail then upload the result and compare it to the baseline.
-	ret := true
 	if c.resultState.PerTestPassFail {
-		egroup.Go(func() error {
-			localFileName := filepath.Join(c.workDir, jsonTempFile)
-			resultFilePath := c.resultState.getResultFilePath()
-			if err := uploader.uploadJson(c.resultState.GoldResults, localFileName, resultFilePath); err != nil {
-				return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
-			}
-			return nil
-		})
-		ret = c.resultState.Expectations[name][imgHash] == types.POSITIVE
+		localFileName := filepath.Join(c.workDir, jsonTempFile)
+		if err := uploader.uploadJson(c.resultState.GoldResults, localFileName, c.resultState.getResultFilePath()); err != nil {
+			return false, err
+		}
+		return c.resultState.Expectations[name][imgHash] == types.POSITIVE, nil
 	}
 
-	if err := egroup.Wait(); err != nil {
-		return false, err
-	}
-	return ret, nil
+	// If we don't do per-test pass/fail then return true.
+	return true, nil
 }
 
 // initResultState assembles the information that needs to be uploaded based on previous calls
