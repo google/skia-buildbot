@@ -22,6 +22,30 @@
       "revId": "b0b065393d623008a7c65b1247d26e7880bdb411",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bec4e18_ff269069",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-15T19:26:16Z",
+      "side": 1,
+      "message": "Done, but also set to 0 in the failure-to-remove case, and left it in the cache where applicable so that we\u0027ll try to remove it again next time (or see a long string of error messages which should indicate to us that something needs fixing).",
+      "parentUuid": "9b695c08_61467344",
+      "range": {
+        "startLine": 462,
+        "startChar": 5,
+        "endLine": 462,
+        "endChar": 58
+      },
+      "revId": "b0b065393d623008a7c65b1247d26e7880bdb411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
