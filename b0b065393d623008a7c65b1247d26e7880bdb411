@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b695c08_61467344",
+        "filename": "datahopper/go/datahopper/jobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-15T19:21:55Z",
+      "side": 1,
+      "message": "nit: oops, sorry, forgot to mention: probably better to just log and continue",
+      "range": {
+        "startLine": 462,
+        "startChar": 5,
+        "endLine": 462,
+        "endChar": 58
+      },
+      "revId": "b0b065393d623008a7c65b1247d26e7880bdb411",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
