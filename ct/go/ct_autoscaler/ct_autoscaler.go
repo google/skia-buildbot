@@ -17,7 +17,7 @@ import (
 
 const (
 	MIN_CT_INSTANCE_NUM = 1
-	MAX_CT_INSTANCE_NUM = 200
+	MAX_CT_INSTANCE_NUM = 500
 )
 
 // Interface useful for mocking.
@@ -69,11 +69,9 @@ func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
 	if err := a.StopAllInstances(); err != nil {
 		return nil, err
 	}
-	// Uncomment when https://bugs.chromium.org/p/skia/issues/detail?id=7900#c7
-	// is resolved.
-	//if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
-	//	return nil, err
-	//}
+	if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
+		return nil, err
+	}
 
 	return &CTAutoscaler{a: a, s: s, upGauge: upGauge}, nil
 }
@@ -127,12 +125,9 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 			return err
 		}
 
-		// Delete all CT GCE instances from swarming.
-		// Uncomment when https://bugs.chromium.org/p/skia/issues/detail?id=7900#c7
-		// is resolved.
-		//if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
-		//	return err
-		//}
+		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
+			return err
+		}
 	}
 	return nil
 }
