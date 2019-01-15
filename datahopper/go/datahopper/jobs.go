@@ -33,6 +33,10 @@ var (
 	// Measurement name for overdue job specs. Records the age of the oldest commit for which the
 	// job has not completed (nor for any later commit), for each job spec and for each repo.
 	MEASUREMENT_OVERDUE_JOB_SPECS = "overdue_job_specs_s"
+
+	// Measurement indicating the age of the most-recently created job, by
+	// name, in seconds.
+	MEASUREMENT_LATEST_JOB_AGE = "latest_job_age_s"
 )
 
 const (
@@ -326,6 +330,9 @@ type overdueJobMetrics struct {
 	// Metric for age of commit with no completed job, in ns.
 	overdueMetrics map[overdueJobSpecMetricKey]metrics2.Int64Metric
 
+	// Metric for age of last-created job by name, in ns
+	prevLatestJobAge map[overdueJobSpecMetricKey]metrics2.Int64Metric
+
 	jCache       cache.JobCache
 	repos        repograph.Map
 	taskCfgCache *specs.TaskCfgCache
@@ -474,6 +481,49 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			}
 			metric.Update(int64(now.Sub(ts).Seconds()))
 		}
+
+		// Record the age of the most-recently created job for each
+		// JobSpec.
+		names := []string{}
+		for name, jobSpec := range headTaskCfg.Jobs {
+			// We're only interested in periodic jobs for this metric.
+			if util.In(jobSpec.Trigger, specs.PERIODIC_TRIGGERS) {
+				names = append(names, name)
+			}
+		}
+		jobsByName, err := m.jCache.GetMatchingJobsFromDateRange(names, m.window.EarliestStart(), now)
+		if err != nil {
+			return err
+		}
+		latestJobAge := make(map[overdueJobSpecMetricKey]metrics2.Int64Metric, len(names))
+		for name, jobs := range jobsByName {
+			key := overdueJobSpecMetricKey{
+				Repo:    repoUrl,
+				Job:     name,
+				Trigger: headTaskCfg.Jobs[name].Trigger,
+			}
+			latest := time.Time{}
+			for _, job := range jobs {
+				if job.Created.After(latest) {
+					latest = job.Created
+				}
+			}
+			metric := metrics2.GetInt64Metric(MEASUREMENT_LATEST_JOB_AGE, map[string]string{
+				"repo":        key.Repo,
+				"job_name":    key.Job,
+				"job_trigger": key.Trigger,
+			})
+			metric.Update(int64(now.Sub(latest).Seconds()))
+			latestJobAge[key] = metric
+		}
+		for key, metric := range m.prevLatestJobAge {
+			if _, ok := latestJobAge[key]; !ok {
+				// Set to 0 before deleting so that alerts ignore it.
+				metric.Update(0)
+				metric.Delete()
+			}
+		}
+		m.prevLatestJobAge = latestJobAge
 	}
 	return nil
 }
