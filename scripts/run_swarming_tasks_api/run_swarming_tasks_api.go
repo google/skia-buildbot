@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"sync"
 	"time"
@@ -71,8 +70,7 @@ func main() {
 	}
 
 	// Authenticated HTTP client.
-	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
-	ts, err := auth.NewLegacyTokenSource(true, oauthCacheFile, "", swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)
 	}

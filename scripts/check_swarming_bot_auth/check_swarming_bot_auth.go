@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -43,10 +42,9 @@ func main() {
 	}
 
 	// Authenticated HTTP client.
-	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
-	ts, err := auth.NewLegacyTokenSource(true, oauthCacheFile, "client_secret_skia-buildbots.json", swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
 	if err != nil {
-		sklog.Fatalf("Could not authenticate. Did you get the swarming client_secret and put it in %s? : %s", *workdir, err)
+		sklog.Fatal(err)
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
