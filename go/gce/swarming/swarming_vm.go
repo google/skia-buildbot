@@ -44,7 +44,7 @@ const (
 
 	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2018-04-06-000"
 	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2018-04-09-000"
-	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2016-dc-v20180710"
+	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
 )
 
 var (
