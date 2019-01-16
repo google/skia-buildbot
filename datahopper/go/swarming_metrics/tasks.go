@@ -230,7 +230,7 @@ func addMetric(s *events.EventStream, metric string, period time.Duration, fn fu
 					tags[dim.Key] = dim.Value
 				}
 			}
-			key, err := util.MD5Params(tags)
+			key, err := util.MD5Sum(tags)
 			if err != nil {
 				return nil, nil, err
 			}
