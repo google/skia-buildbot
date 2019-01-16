@@ -364,22 +364,6 @@ ALERT DbMetricsLiveness
   }
 
 
-ALERT NightlyTrigger
-  IF liveness_periodic_trigger_s{trigger="nightly"}/60/60 > 25
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "The nightly trigger has not run in over 25 hours on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_nightly"
-  }
-
-ALERT WeeklyTrigger
-  IF liveness_periodic_trigger_s{trigger="weekly"}/60/60/24 > 8
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "The weekly trigger has not run in over 8 days on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#trigger_weekly"
-  }
-
 ALERT TaskSchedulerTooManyCandidates
   IF task_candidate_count > 1500
   LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
@@ -417,14 +401,36 @@ ALERT OverdueJobSpecLong
     description = "{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
   }
 
-# Note: We don't have an alert for job_trigger="weekly" because Task Scheduler's
-# scheduling window is only four days.
 ALERT OverdueJobSpecNightly
   IF overdue_job_specs_s{job_trigger="nightly"}/60/60 > 28
   LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
   ANNOTATIONS {
     abbr = "{{ $labels.job_name }}",
     description = "{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+  }
+
+ALERT OverdueJobSpecWeekly
+  IF overdue_job_specs_s{job_trigger="weekly"}/60/60 > 7*24+4
+  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.job_name }}",
+    description = "{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec"
+  }
+
+ALERT LatestJobAgeNightly
+  IF latest_job_age_s{job_trigger="nightly"}/60/60 > 25
+  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.job_name }}",
+    description = "{{ $labels.job_name }} has not been triggered in the last 25 hours (nightly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age"
+  }
+
+ALERT LatestJobAgeWeekly
+  IF latest_job_age_s{job_trigger="weekly"}/60/60 > 7*24+1
+  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.job_name }}",
+    description = "{{ $labels.job_name }} has not been triggered in the last week + 1 hour (weekly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age"
   }
 
 
