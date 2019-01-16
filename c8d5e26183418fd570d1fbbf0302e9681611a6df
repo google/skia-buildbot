@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c7f6dc6_9d7a4ca2",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-16T23:37:23Z",
+      "side": 0,
+      "message": "This label doesn\u0027t exist on this metric.",
+      "range": {
+        "startLine": 297,
+        "startChar": 17,
+        "endLine": 297,
+        "endChar": 33
+      },
+      "revId": "c8d5e26183418fd570d1fbbf0302e9681611a6df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
