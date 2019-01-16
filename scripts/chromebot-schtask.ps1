@@ -65,6 +65,9 @@ Function banner($title) {
 try
 {
 
+# See https://stackoverflow.com/questions/48603203/powershell-invoke-webrequest-throws-webcmdletresponseexception
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+
 # Create temp directory.
 $tmp = "$userDir\tmp"
 if (!(Test-Path ($tmp))) {
