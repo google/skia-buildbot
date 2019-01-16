@@ -177,3 +177,14 @@ task scheduler alerts are firing, resolve those first. Otherwise:
       search UI](https://task-scheduler.skia.org/jobs/search) can be used to
       bulk-cancel jobs.
 
+
+latest_job_age
+--------------
+
+Jobs have not been triggered recently enough for the indicated job spec. This
+normally indicates that the periodic triggers have stopped working for some
+reason. Double check that the "periodic-trigger" cron jobs have run at the
+expected time in Kubernetes. If they have not, look into why. If they have,
+check the Task Scheduler logs to verify that the scheduler received the pubsub
+message and if so determine why it did not create the job.
+
