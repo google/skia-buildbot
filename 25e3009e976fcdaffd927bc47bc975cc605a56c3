@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "133de9bb_f41d6c77",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-16T16:06:26Z",
+      "side": 1,
+      "message": "\u003e \"ony\" is a possible misspelling of \"only\".\n\nPlease Fix",
+      "parentUuid": "15ac1115_6ee3506c",
+      "range": {
+        "startLine": 136,
+        "startChar": 39,
+        "endLine": 136,
+        "endChar": 42
+      },
+      "revId": "25e3009e976fcdaffd927bc47bc975cc605a56c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
