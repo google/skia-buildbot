@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -585,7 +586,13 @@ func (c *jobCache) expireJobs() {
 		for rev := range revMap {
 			ts, err := c.getRevisionTimestamp(repo, rev)
 			if err != nil {
-				sklog.Error(err)
+				// TODO(borenet): Only warn for skcms, since we
+				// exclude it in datahopper due to DB load times.
+				if repo == common.REPO_SKCMS {
+					sklog.Warning(err)
+				} else {
+					sklog.Error(err)
+				}
 				continue
 			}
 			if !c.timeWindow.TestTime(repo, ts) {

@@ -120,7 +120,8 @@ func main() {
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	repos, err := repograph.NewMap(ctx, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA}, reposDir)
+	// TODO(borenet): We should include all (public and private) repos.
+	repos, err := repograph.NewMap(ctx, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA, common.REPO_LOTTIE_CI}, reposDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -197,6 +198,8 @@ func main() {
 	}()
 
 	// Tasks metrics.
+	// TODO(borenet): We should include metrics from all three (prod,
+	// internal, staging) instances.
 	var d db.RemoteDB
 	if *firestoreInstance != "" {
 		label := "datahopper"
