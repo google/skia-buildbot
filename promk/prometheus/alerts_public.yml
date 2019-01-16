@@ -14,8 +14,8 @@ groups:
       category: infra
       severity: warning
     annotations:
-      abbr: 'Container Builder Failed'
-      description: 'The build with trigger name {{ $labels.trigger}} has failed when rebuilding twice in a row.'
+      abbr: '{{ $labels.trigger }}'
+      description: 'The build with trigger name {{ $labels.trigger }} has failed when rebuilding twice in a row.'
 
   # Continuous Deploy
   - alert: ContinuousDeployLiveness
@@ -25,10 +25,9 @@ groups:
       category: infra
       severity: critical
     annotations:
-      abbr: '{{ $labels.instance }}'
-      description: '{{ $labels.instance }} has failed to recieve a pubsub event in the last 48 hours.
+      description: 'Continuous deploy has failed to recieve a pubsub event in the last 48 hours.
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcontinuous-deploy&minLogLevel=400
         '
 
   - alert: ContinuousDeployFailures
@@ -38,14 +37,13 @@ groups:
       category: infra
       severity: critical
     annotations:
-      abbr: '{{ $labels.instance }}'
-      description: '{{ $labels.instance }} has failed to successfully push two or more times in a row.
+      description: 'Continuous deploy has failed to successfully push two or more times in a row.
 
-          https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"
+          https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcontinuous-deploy&minLogLevel=400
         '
 
   # Fiddle
-  - alert: FiddlerPodsTooLow
+  - alert: InsufficientFiddlerPods
     expr: avg_over_time(pods_idle[2m]) < 5
     for: 15m
     labels:
@@ -53,7 +51,6 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      abbr: 'Insufficient fiddler pods.'
       description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/master/fiddlek/PROD.md#fiddler_pods'
 
   - alert: NamedFiddlesFailing
@@ -64,10 +61,9 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      abbr: 'named fiddles failing'
       description: 'Some named fiddles are failing. Visit https://named-fiddles.skia.org to see which ones.'
 
-  - alert: FiddleFailingToFindIdlePods
+  - alert: FiddlerPodCommunicationErrors
     expr: rate(run_exhaustion[20m]) * 20 * 60 > 1
     for: 5m
     labels:
@@ -75,42 +71,39 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      abbr: 'Fiddler pod communication errors.'
       description: 'Fiddle is having trouble communicating with fiddler pods.'
 
   # CQ Watcher
-  - alert: CQWatcherCLsCount
+  - alert: TooManyCLsInCQ
     expr: cq_watcher_in_flight_waiting_in_cq{app="cq-watcher"} >= 10
     for: 5m
     labels:
       category: infra
       severity: warning
     annotations:
-      abbr: 'Too many CLs in CQ.'
       description: 'There are 10 CLs or more in a Skia CL. https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_cls'
 
   # Update CQ_TRYBOT_DURATION_SECS_THRESHOLD in go/cq/cq.go if the number below is changed.
-  - alert: CQWatcherTrybotDuration
+  - alert: CQTrybotRunningTooLong
     expr: max_over_time(cq_watcher_in_flight_trybot_duration{app="cq-watcher"}[20m]) > 2700
     labels:
       category: infra
       severity: warning
     annotations:
-      abbr: 'CQ trybot running for too long.'
-      description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQTrybotDurationError%22'
+      abbr: '{{ $labels.trybot }}'
+      description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcq-watcher&filters=text:CQTrybotDurationError'
 
   # Update CQ_TRYBOTS_COUNT_THRESHOLD in go/cq/cq.go if the number below is changed.
-  - alert: CQWatcherTrybotsCount
+  - alert: TooManyCQTrybotsForCL
     expr: max_over_time(cq_watcher_in_flight_trybot_num{app="cq-watcher"}[20m]) > 50
     labels:
       category: infra
       severity: warning
     annotations:
-      abbr: 'Too many CQ trybots triggered by CL.'
-      description: 'There are more than 50 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://pantheon.corp.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D%22projects%2Fskia-public%2Flogs%2Fcq-watcher%22%20AND%20textPayload:%20%22CQCLsCountError%22'
+      description: 'There are more than 50 CQ trybots triggered by at least one CL. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#too_many_trybots_triggered Direct link to logs: https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcq-watcher&filters=text:CQCLsCountError'
 
   # Fuzzer
-  - alert: FuzzerUploadQueue
+  - alert: FuzzerUploadQueueFull
     expr: fuzzer_queue_size_upload > 90
     for: 2m
     labels:
@@ -118,17 +111,16 @@ groups:
       severity: critical
       owner: kjlubick@google.com
     annotations:
-      abbr: 'Full Upload Queue'
-      description: 'Fuzzer upload queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload'
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'Fuzzer upload queue has been very full on {{ $labels.kubernetes_pod_name }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_upload'
 
-  - alert: FuzzerStaleVersion
+  - alert: FuzzerVersionStale
     expr: fuzzer_version_age{type="current"}/60/60/24 > 10
     labels:
       category: infra
       severity: warning
       owner: kjlubick@google.com
     annotations:
-      abbr: 'Fuzzer version stale'
       description: 'The Fuzzer hasnt rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version'
 
   - alert: FuzzerSlowRoll
@@ -138,10 +130,9 @@ groups:
       severity: critical
       owner: kjlubick@google.com
     annotations:
-      abbr: 'Fuzzer roll taking a while'
       description: 'The fuzzer hasnt finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll'
 
-  - alert: FuzzerAnalysisQueue
+  - alert: FuzzerAnalysisQueueFull
     expr: fuzzer_queue_size_analysis > 900000
     for: 2m
     labels:
@@ -149,8 +140,8 @@ groups:
       severity: critical
       owner: kjlubick@google.com
     annotations:
-      abbr: 'Full Analysis Queue'
-      description: 'Fuzzer analysis queue has been very full on {{ $labels.host }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_analysis'
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'Fuzzer analysis queue has been very full on {{ $labels.kubernetes_pod_name }}. https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#full_analysis'
 
 # datatore backups
   - alert: BackupNotDone
@@ -170,12 +161,11 @@ groups:
       severity: critical
       owner: jcgregorio@google.com
     annotations:
-      abbr: alert-to-pubsub
       description: 'alert-to-pubsub has failed to send a healthz PubSub event in 90s. https://skia.googlesource.com/buildbot/%2B/master/am/PROD.md#alert_to_pubsub'
 
 # CT
 # TODO(rmistry): Add error rate alert once logmetrics is ported to skia-public.
-  - alert: CTPollerHealthCheck
+  - alert: CTPollerHealthCheckFailed
     expr: healthy{app="ct-master"} != 1
     for: 5m
     labels:
@@ -183,7 +173,6 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      abbr: 'CT poller health check failed.'
       description: 'CT poller health check is failing. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ct_poller_health_check'
 
   - alert: CTFEPendingTaskCount
@@ -194,10 +183,9 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      abbr: 'CTFE pending task count too high.'
       description: 'There are a lot of CTFE pending tasks. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
 
-  - alert: CTFEPendingTaskStatus
+  - alert: CTFEPendingTaskNotRunning
     expr: oldest_pending_task_status{app="ctfe"} >= 2
     for: 5m
     labels:
@@ -205,7 +193,6 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
-      abbr: 'CTFE pending task not running.'
       description: 'A task has been waiting to be executed for a while and it has still not started. https://skia.googlesource.com/buildbot/%2B/master/ct/PROD.md#ctfe_pending_tasks'
 
   - alert: AutoRollLatency
@@ -225,7 +212,8 @@ groups:
       severity: critical
       owner: borenet@google.com
     annotations:
-      description: 'The error rate for autoroll on {{ $labels.instance }} is too high.
+      abbr: '{{ $labels.app }}'
+      description: 'The error rate for autoroll on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
       https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
 
@@ -242,7 +230,7 @@ groups:
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
       https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#flutter_license_script_failure'
 
-# skia-flutter-autoroll takes a long time to transition because it's pre-upload
+# skia-flutter-autoroll takes a long time to transition because its pre-upload
 # scripts run flutter's license script which can take around 40 minutes.
   - alert: AutoRollLastTransition
     expr: liveness_last_successful_autoroll_tick_s{roller="skia-flutter-autoroll"} > 50*60
@@ -251,6 +239,7 @@ groups:
       severity: critical
       owner: rmistry@google.com
     annotations:
+      abbr: 'skia-flutter-autoroll'
       description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 50 minutes.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2Fskia-public%2Flogs%2F{{ $labels.app }}
       '
@@ -294,5 +283,4 @@ groups:
       category: infra
       severity: critical
     annotations:
-      abbr: '{{ $labels.probename }}'
       description: 'The prober has failed to probe in the last 5 minutes.'
