@@ -64,8 +64,10 @@ type Storage struct {
 // InitBaseliner should go away.
 
 // InitBaseliner initializes the Baseliner instance from values already set on the storage instance.
-func (s *Storage) InitBaseliner() {
-	s.Baseliner = NewBaseliner(s.GStorageClient, s.ExpectationsStore, s.IssueExpStoreFactory, s.TryjobStore)
+func (s *Storage) InitBaseliner() error {
+	var err error
+	s.Baseliner, err = NewBaseliner(s.GStorageClient, s.ExpectationsStore, s.IssueExpStoreFactory, s.TryjobStore, s.Git)
+	return err
 }
 
 // LoadWhiteList loads the given JSON5 file that defines that query to

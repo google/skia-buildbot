@@ -149,7 +149,7 @@ func TestJobRange(t *testing.T) {
 type DynamicAggregateFnTester struct {
 	t *testing.T
 	f events.DynamicAggregateFn
-	// expected is map[util.MD5Params(tags)]value
+	// expected is map[util.MD5Sum(tags)]value
 	expected map[string]float64
 }
 
@@ -164,7 +164,7 @@ func newDynamicAggregateFnTester(t *testing.T, f events.DynamicAggregateFn) *Dyn
 // AddAssert causes a later call to Run to check that the DynamicAggregateFn returns the given value
 // for the given tags.
 func (dt *DynamicAggregateFnTester) AddAssert(tags map[string]string, value float64) {
-	hash, err := util.MD5Params(tags)
+	hash, err := util.MD5Sum(tags)
 	assert.NoError(dt.t, err)
 	_, exists := dt.expected[hash]
 	assert.False(dt.t, exists, "Your test broke MD5. %v", tags)
@@ -180,7 +180,7 @@ func (dt *DynamicAggregateFnTester) Run(evs []*events.Event) {
 	assert.Len(dt.t, actualVals, len(dt.expected))
 	for i, tags := range actualTags {
 		actualVal := actualVals[i]
-		hash, err := util.MD5Params(tags)
+		hash, err := util.MD5Sum(tags)
 		assert.NoError(dt.t, err)
 		expectedVal, ok := dt.expected[hash]
 		assert.True(dt.t, ok, "Unexpected tags %v", tags)
