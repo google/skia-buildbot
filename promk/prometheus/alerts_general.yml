@@ -3,9 +3,23 @@ groups:
 - name: general
   rules:
 
-  # General
+  # General -- each of these alerts has two forms:
+  # - Scraped by annotation: these have a kubernetes_pod_name label
+  # - Scraped by config: these have instance and job labels.
   - alert: InstanceDown
-    expr: up == 0
+    expr: up{kubernetes_pod_name!=""} == 0
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'Pod {{ $labels.kubernetes_pod_name }} for app {{ $labels.app }} has been down
+        for more than 5 minutes. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+
+  - alert: InstanceDown
+    expr: up{kubernetes_pod_name=""} == 0
     for: 5m
     labels:
       category: infra
@@ -21,7 +35,19 @@ groups:
           '
 
   - alert: CrashLoop
-    expr: max_over_time(liveness_uptime_s[6m]) < 60 * 3
+    expr: max_over_time(liveness_uptime_s{kubernetes_pod_name!=""}[6m]) < 60 * 3
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'Pod {{ $labels.kubernetes_pod_name }} for app {{ $labels.app }} is crashing on
+        startup. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+
+  - alert: CrashLoop
+    expr: max_over_time(liveness_uptime_s{kubernetes_pod_name=""}[6m]) < 60 * 3
     for: 5m
     labels:
       category: infra
@@ -37,7 +63,19 @@ groups:
         '
 
   - alert: TooManyGoRoutines
-    expr: go_goroutines{job!="kubernetes-nodes"} > 3000
+    expr: go_goroutines{kubernetes_pod_name!=""} > 3000
+    for: 2m
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'Too many Go routines in {{ $labels.kubernetes_pod_name }} for app
+        {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+
+  - alert: TooManyGoRoutines
+    expr: go_goroutines{job!="kubernetes-nodes",kubernetes_pod_name=""} > 3000
     for: 2m
     labels:
       category: infra
@@ -53,13 +91,30 @@ groups:
         '
 
   - alert: TooManyOpenFDs
-    expr: process_open_fds > 2000
+    expr: process_open_fds{kubernetes_pod_name!=""} > 2000
     labels:
       category: infra
       severity: warning
     annotations:
-      abbr: '{{ $labels.host }}'
-      description: 'Too many open file handles on {{ $labels.host }}.'
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'Too many open file handles on {{ $labels.kubernetes_pod_name }} for app
+        {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
+        https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
+
+  - alert: TooManyOpenFDs
+    expr: process_open_fds{kubernetes_pod_name=""} > 2000
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      abbr: '{{ $labels.job }}'
+      description: 'Too many open file handles for {{ $labels.job }} running on {{ $labels.instance
+        }}. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
+        '
 
   - alert: PersistentVolumeLowSpace
     expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
@@ -86,6 +141,7 @@ groups:
       severity: critical
       owner: borenet@google.com
     annotations:
+      abbr: '{{ $labels.app }}'
       description: 'The error rate for autoroll on {{ $labels.app }} is too high.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
       https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
@@ -97,7 +153,8 @@ groups:
       severity: critical
       owner: borenet@google.com
     annotations:
-      description: 'Autoroll on {{ $labels.instance }} has failed to transition for more than 10 minutes.
+      abbr: '{{ $labels.roller }}'
+      description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 10 minutes.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
       '
 
@@ -107,6 +164,7 @@ groups:
       category: infra
       severity: warning
     annotations:
+      abbr: '{{ $labels.host }}'
       description: 'QPS to {{ $labels.host }} is high. Verify that this is expected.'
 
   - alert: HighExternalQPSGoogleAPIs
@@ -125,6 +183,7 @@ groups:
       severity: critical
       owner: borenet@google.com
     annotations:
-      description: 'Autoroll on {{ $labels.instance }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
+      abbr: '{{ $labels.roller }}'
+      description: 'Autoroll on {{ $labels.app }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
       '
