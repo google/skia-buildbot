@@ -70,7 +70,7 @@ func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
 		return nil, err
 	}
 	if err := s.DeleteBots(a.GetNamesOfManagedInstances()); err != nil {
-		return nil, err
+		sklog.Errorf("Could not delete all bots: %s", err)
 	}
 
 	return &CTAutoscaler{a: a, s: s, upGauge: upGauge}, nil
@@ -126,7 +126,7 @@ func (c *CTAutoscaler) UnregisterGCETask(taskId string) error {
 		}
 
 		if err := c.s.DeleteBots(c.a.GetNamesOfManagedInstances()); err != nil {
-			return err
+			sklog.Errorf("Could not delete all bots: %s", err)
 		}
 	}
 	return nil
