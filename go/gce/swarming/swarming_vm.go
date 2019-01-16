@@ -56,11 +56,13 @@ var (
 	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	ct             = flag.Bool("skia-ct", false, "If true, this is a bot in the SkiaCT pool.")
+	dataDiskSize   = flag.Int("data-disk-size", 300, "Requested data disk size, in GB.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
 	gpu            = flag.Bool("gpu", false, "Whether or not to add an NVIDIA Tesla k80 GPU on the instance(s)")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
+	dev            = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
 	machineType    = flag.String("machine-type", gce.MACHINE_TYPE_STANDARD_16, "GCE machine type; see https://cloud.google.com/compute/docs/machine-types.")
 	opsys          = flag.String("os", OS_DEBIAN_9, fmt.Sprintf("OS identifier; one of %s", strings.Join(VALID_OS, ", ")))
 	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
@@ -78,7 +80,7 @@ func Swarming20180406(name, serviceAccount, sourceImage string) *gce.Instance {
 		},
 		DataDisks: []*gce.Disk{{
 			Name:      fmt.Sprintf("%s-data", name),
-			SizeGb:    300,
+			SizeGb:    int64(*dataDiskSize),
 			Type:      gce.DISK_TYPE_PERSISTENT_STANDARD,
 			MountPath: gce.DISK_MOUNT_PATH_DEFAULT,
 		}},
@@ -110,13 +112,17 @@ func AddLinuxConfigs(vm *gce.Instance) *gce.Instance {
 
 // Linux GCE instances.
 func LinuxSwarmingBot(num int) *gce.Instance {
-	// For chromium-swarm-dev, change the name to "skia-d-gce-%03d".
 	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL))
 }
 
 // Internal Linux GCE instances.
 func InternalLinuxSwarmingBot(num int) *gce.Instance {
 	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING, DEBIAN_SOURCE_IMAGE_INTERNAL))
+}
+
+// Dev Linux GCE instances.
+func DevLinuxSwarmingBot(num int) *gce.Instance {
+	return AddLinuxConfigs(Swarming20180406(fmt.Sprintf("skia-d-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, DEBIAN_SOURCE_IMAGE_EXTERNAL))
 }
 
 // Skia CT bots.
@@ -152,6 +158,12 @@ func WinSwarmingBot(num int, setupScriptPath, startupScriptPath, chromebotScript
 // Internal Windows GCE instances.
 func InternalWinSwarmingBot(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
 	vm := Swarming20180406(fmt.Sprintf("skia-i-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROME_SWARMING, WIN_SOURCE_IMAGE)
+	return AddWinConfigs(vm, setupScriptPath, startupScriptPath, chromebotScript)
+}
+
+// Dev Windows GCE instances.
+func DevWinSwarmingBot(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := Swarming20180406(fmt.Sprintf("skia-d-gce-%03d", num), gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, WIN_SOURCE_IMAGE)
 	return AddWinConfigs(vm, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
@@ -228,6 +240,9 @@ func main() {
 	if *skylake && *gpu {
 		sklog.Fatal("--skylake and --gpu are mutually exclusive.")
 	}
+	if *dev && *internal {
+		sklog.Fatal("--dev and --internal are mutually exclusive.")
+	}
 
 	instanceNums, err := util.ParseIntSet(*instances)
 	if err != nil {
@@ -283,12 +298,16 @@ func main() {
 		} else if windows {
 			if *internal {
 				vm = InternalWinSwarmingBot(num, setupScript, startupScript, chromebotScript)
+			} else if *dev {
+				vm = DevWinSwarmingBot(num, setupScript, startupScript, chromebotScript)
 			} else {
 				vm = WinSwarmingBot(num, setupScript, startupScript, chromebotScript)
 			}
 		} else {
 			if *internal {
 				vm = InternalLinuxSwarmingBot(num)
+			} else if *dev {
+				vm = DevLinuxSwarmingBot(num)
 			} else {
 				vm = LinuxSwarmingBot(num)
 			}
