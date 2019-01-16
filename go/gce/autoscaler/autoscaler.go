@@ -36,12 +36,12 @@ func NewAutoscaler(projectId, zone, workdir string, minInstanceNum, maxInstanceN
 	}
 
 	// Create the GCloud object.
-	ts, err := auth.NewDefaultLegacyTokenSource(false, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+	ts, err := auth.NewDefaultTokenSource(false, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
 	if err != nil {
 		return nil, err
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	g, err := gce.NewGCloudWithClient(projectId, zone, wdAbs, httpClient)
+	g, err := gce.NewGCloudWithClient(projectId, zone, wdAbs, httpClient, true /* skipSSHCHecks */)
 	if err != nil {
 		return nil, err
 	}

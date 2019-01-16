@@ -129,19 +129,23 @@ func NewGCloud(project, zone, workdir string) (*GCloud, error) {
 		return nil, err
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
-	return NewGCloudWithClient(project, zone, workdir, httpClient)
+	return NewGCloudWithClient(project, zone, workdir, httpClient, false /* skipSSHCHecks */)
 }
 
 // NewGCloudWithClient returns a GCloud instance with the specified http client.
-func NewGCloudWithClient(project, zone, workdir string, httpClient *http.Client) (*GCloud, error) {
+// skipSSHChecks should be set to true only if the gcloud instance is not going to be
+// used to SSH or SCP into GCE.
+func NewGCloudWithClient(project, zone, workdir string, httpClient *http.Client, skipSSHChecks bool) (*GCloud, error) {
 	s, err := compute.New(httpClient)
 	if err != nil {
 		return nil, err
 	}
 
-	// Verify that we're set up for SSH.
-	if _, err := sshArgs(); err != nil {
-		return nil, err
+	if !skipSSHChecks {
+		// Verify that we're set up for SSH.
+		if _, err := sshArgs(); err != nil {
+			return nil, err
+		}
 	}
 
 	return &GCloud{
