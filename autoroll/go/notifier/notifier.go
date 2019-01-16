@@ -32,6 +32,8 @@ const (
 
 	subjectLastNFailed = "The last {{.N}} {{.ChildName}} into {{.ParentName}} rolls have failed"
 	bodyLastNFailed    = "The roll is failing consistently. Time to investigate. The most recent roll attempt is here: {{.IssueURL}}"
+
+	footer = "\n\nThe AutoRoll server is located here: {{.ServerURL}}"
 )
 
 var (
@@ -55,6 +57,8 @@ var (
 
 	subjectTmplLastNFailed = template.Must(template.New("subjectLastNFailed").Parse(subjectLastNFailed))
 	bodyTmplLastNFailed    = template.Must(template.New("bodyLastNFailed").Parse(bodyLastNFailed))
+
+	footerTmpl = template.Must(template.New("footer").Parse(footer))
 )
 
 // tmplVars is a struct which contains information used to fill
@@ -67,6 +71,7 @@ type tmplVars struct {
 	Message        string
 	N              int
 	ParentName     string
+	ServerURL      string
 	Strategy       string
 	ThrottledUntil string
 	User           string
@@ -79,15 +84,17 @@ type AutoRollNotifier struct {
 	emailer    *email.GMail
 	n          *notifier.Router
 	parentName string
+	serverURL  string
 }
 
 // Return an AutoRollNotifier instance.
-func New(ctx context.Context, childName, parentName string, emailer *email.GMail, configs []*notifier.Config) (*AutoRollNotifier, error) {
+func New(ctx context.Context, childName, parentName, serverURL string, emailer *email.GMail, configs []*notifier.Config) (*AutoRollNotifier, error) {
 	n := &AutoRollNotifier{
 		childName:  childName,
 		emailer:    emailer,
 		n:          notifier.NewRouter(emailer),
 		parentName: parentName,
+		serverURL:  serverURL,
 	}
 	if err := n.ReloadConfigs(ctx, configs); err != nil {
 		return nil, err
@@ -114,6 +121,7 @@ func (a *AutoRollNotifier) Router() *notifier.Router {
 func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl, bodyTmpl *template.Template, severity notifier.Severity) {
 	vars.ChildName = a.childName
 	vars.ParentName = a.parentName
+	vars.ServerURL = a.serverURL
 	var subjectBytes bytes.Buffer
 	if err := subjectTmpl.Execute(&subjectBytes, vars); err != nil {
 		sklog.Errorf("Failed to send notification; failed to execute subject template: %s", err)
@@ -122,6 +130,10 @@ func (a *AutoRollNotifier) send(ctx context.Context, vars *tmplVars, subjectTmpl
 	var bodyBytes bytes.Buffer
 	if err := bodyTmpl.Execute(&bodyBytes, vars); err != nil {
 		sklog.Errorf("Failed to send notification; failed to execute body template: %s", err)
+		return
+	}
+	if err := footerTmpl.Execute(&bodyBytes, vars); err != nil {
+		sklog.Errorf("Failed to send notification; failed to execute footer template: %s", err)
 		return
 	}
 	if err := a.n.Send(ctx, &notifier.Message{
