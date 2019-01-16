@@ -43,6 +43,9 @@ Function banner($title) {
 try
 {
 
+# See https://stackoverflow.com/questions/48603203/powershell-invoke-webrequest-throws-webcmdletresponseexception
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+
 # Create helpers.
 $webclient = New-Object System.Net.WebClient
 $shell = new-object -com shell.application

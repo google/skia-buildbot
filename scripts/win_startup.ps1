@@ -79,6 +79,9 @@ Function addToRegistryPath($dir) {
 try
 {
 
+# See https://stackoverflow.com/questions/48603203/powershell-invoke-webrequest-throws-webcmdletresponseexception
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+
 banner "Add to registry PATH"
 addToRegistryPath "$userDir\depot_tools\python276_bin\Scripts"
 addToRegistryPath "$userDir\depot_tools\python276_bin"
