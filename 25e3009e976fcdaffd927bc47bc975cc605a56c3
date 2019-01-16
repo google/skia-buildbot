@@ -23,6 +23,30 @@
       "revId": "25e3009e976fcdaffd927bc47bc975cc605a56c3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cdcd4ac_d9b9ca0b",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-16T16:07:25Z",
+      "side": 1,
+      "message": "(or not, I just clicked the button...)",
+      "parentUuid": "133de9bb_f41d6c77",
+      "range": {
+        "startLine": 136,
+        "startChar": 39,
+        "endLine": 136,
+        "endChar": 42
+      },
+      "revId": "25e3009e976fcdaffd927bc47bc975cc605a56c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
