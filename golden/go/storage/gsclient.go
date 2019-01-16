@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
-	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 )
 
@@ -94,12 +93,9 @@ func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseli
 
 	_, err := target.Attrs(ctx)
 	if err != nil {
-		// If the item doesn't exist we return an empty baseline
+		// If the item doesn't exist we return nil
 		if err == gstorage.ErrObjectNotExist {
-			return &baseline.CommitableBaseLine{
-				Baseline: types.TestExp{},
-				Issue:    issueID,
-			}, nil
+			return nil, nil
 		}
 		return nil, sklog.FmtErrorf("Error fetching attributes of baseline file: %s", err)
 	}
