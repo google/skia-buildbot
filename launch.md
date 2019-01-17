@@ -32,6 +32,7 @@ Call `common.InitWithMust([opt], [opt])` in your main function.
 Use `go.skia.org/infra/go/login` paired with `infra-sk/modules/login.js`
 (Legacy Polymer apps use `res/imp/login.html`) and/or
 `go.skia.org/infra/go/webhook` for authentication.
+When using OAuth, see the secrets section below for including client secrets.
 
 Wrap your `http.Handler` (many services use [mux.NewRouter()](https://github.com/gorilla/mux) with
 `go.skia.org/infra/go/httputils.LoggingGzipRequestResponse` to provide monitoring and
@@ -164,6 +165,24 @@ spec:
     - name: my-app-sa
       secret:
         secretName: my-app
+```
+- If you use OAuth, it should be configured to use the &ast;.skia.org cookie (the default).
+  Additionally, you will need to mount the secrets to use with your login.Init&ast; code:
+
+```yaml
+spec:
+  ...
+  containers:
+    - name: my-container
+      ...
+      volumeMounts:
+        - name: skia-org-legacy-login-secrets
+          mountPath: /etc/skia.org/
+      ...
+  volumes:
+    - name: skia-org-legacy-login-secrets
+      secret:
+        secretName: skia-org-legacy-login-secrets
 ```
 
 - Update [skia-ingress.yaml](https://skia.googlesource.com/skia-public-config/+/master/skia-ingress.yaml)

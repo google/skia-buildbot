@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -33,6 +32,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/issues"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/fuzzer/go/version_watcher"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -91,13 +91,10 @@ var (
 	// Scanning params
 	// At the moment, the front end does not actually build Skia.  It checks out Skia to get
 	// commit information only.  However, it is still not a good idea to share SkiaRoot dirs.
-	skiaRoot            = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.  Cannot be safely shared with backend.")
-	clangPath           = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
-	clangPlusPlusPath   = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
-	depotToolsPath      = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
-	executableCachePath = flag.String("executable_cache_path", filepath.Join(os.TempDir(), "executable_cache"), "The path in which built fuzz executables can be cached.  Can be safely shared with backend.")
-	bucket              = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
-	downloadProcesses   = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.  Cannot be safely shared with backend.")
+	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
+	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
+	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
 
 	// Other params
 	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
@@ -105,7 +102,7 @@ var (
 	backendNames       = common.NewMultiStringFlag("backend_names", nil, "The names of all backend gce instances, e.g. skia-fuzzer-be-1")
 )
 
-var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path", "executable_cache_path"}
+var requiredFlags = []string{"skia_root", "bolt_db_path"}
 
 func Init() {
 	reloadTemplates()
@@ -140,7 +137,7 @@ func main() {
 		common.InitWithMust(
 			"fuzzer-fe",
 			common.PrometheusOpt(promPort),
-			common.CloudLoggingOpt(),
+			common.MetricsLoggingOpt(),
 		)
 	}
 
@@ -201,14 +198,8 @@ func writeFlagsToConfig() error {
 	if err != nil {
 		return err
 	}
-	config.Common.ExecutableCachePath, err = fileutil.EnsureDirExists(*executableCachePath)
-	if err != nil {
-		return err
-	}
 	config.FrontEnd.BoltDBPath = *boltDBPath
 	config.Common.VersionCheckPeriod = *versionCheckPeriod
-	config.Common.ClangPath = *clangPath
-	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
 
 	config.GCS.Bucket = *bucket
@@ -219,15 +210,9 @@ func writeFlagsToConfig() error {
 }
 
 func setupOAuth(ctx context.Context) error {
-	useRedirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		useRedirectURL = *redirectURL
-	}
-	if err := login.Init(useRedirectURL, *authWhiteList, ""); err != nil {
-		return fmt.Errorf("Problem setting up server OAuth: %s", err)
-	}
+	login.InitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 
-	ts, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
@@ -272,6 +257,7 @@ func runServer() {
 
 	rootHandler := login.ForceAuth(httputils.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
+	rootHandler = httputils.HealthzAndHTTPS(rootHandler)
 	http.Handle("/", rootHandler)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))

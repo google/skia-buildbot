@@ -13,13 +13,12 @@ default: all
 
 all: clean_webtools core_js elements_html skiaversion frontend backend
 
-fe_release: all
-	./build_fe_release "`git log -n1 --format=%s`"
+deprecated_fe_release: all
+	./deprecated_build_fe_release "`git log -n1 --format=%s`"
 
-deprecated_be_release: all
-	CONFIG=1 ./deprecated_build_be_release "`git log -n1 --format=%s`"
-	CONFIG=2 ./deprecated_build_be_release "`git log -n1 --format=%s`"
-	CONFIG=3 ./deprecated_build_be_release "`git log -n1 --format=%s`"
+
+fe_release: frontend
+	./docker_build_fe_release
 
 be_release: backend
 	./docker_build_be_release
@@ -34,7 +33,7 @@ testgo:
 	go test ./go/...
 
 frontend:
-	go install -v ./go/fuzzer-fe
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/fuzzer-fe
 
 backend:
 	go install -v ./go/fuzzer-be
