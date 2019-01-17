@@ -346,15 +346,6 @@ ALERT TaskSchedulerIncrementalBackupReset
     description = "Task Scheduler modified job tracking for incremental backups has been reset since last full backup on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_reset"
   }
 
-ALERT TaskSchedulerDBFreePages
-  IF avg_over_time(bolt_db{metric="FreePageCount",database="task_scheduler_db",instance!="skia-task-scheduler-internal:20000"}[30m]) > 1000
-  FOR 1h
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "There are a large number of free pages in the Task Scheduler DB on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_too_many_free_pages"
-  }
-
 ALERT DbMetricsLiveness
   IF liveness_DbMetric_s/60 > 30
   LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
