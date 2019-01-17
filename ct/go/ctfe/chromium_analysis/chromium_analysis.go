@@ -257,6 +257,14 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	if err != nil {
 		return nil, fmt.Errorf("%s is not int: %s", task.TaskPriority, err)
 	}
+	if taskPriority == 0 {
+		// This should only happen for repeating tasks that were created before
+		// support for task priorities was added to CT.
+		// Triggering tasks with 0 priority fails in swarming with
+		// "priority 0 can only be used for terminate request"
+		// Override it to the medium priority.
+		taskPriority = ctutil.TASKS_PRIORITY_MEDIUM
+	}
 	t.TaskPriority = taskPriority
 	return t, nil
 }
