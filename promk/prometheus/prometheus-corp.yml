@@ -17,6 +17,9 @@ alerting:
         - alert-to-pubsub:8000
 
 scrape_configs:
+  # Note: If you add any new scrape_configs for processes that have a liveness_uptime_s metric,
+  # please move the CrashLoop metric in alerts_public.yml back to alerts_general.yml.
+
   - job_name: 'kubernetes-apiservers'
 
     kubernetes_sd_configs:

@@ -7,6 +7,24 @@ groups:
 - name: general
   rules:
 
+  # This alert belongs in alerts_general.yml, except that skia-corp doesn't have any scrape_configs
+  # for processes with this metric.
+  - alert: CrashLoop
+    expr: max_over_time(liveness_uptime_s{kubernetes_pod_name=""}[6m]) < 60 * 3
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.instance }}'
+      description: '{{ $labels.instance }} of job {{ $labels.job }} is crashing on
+        startup. Logs:
+
+          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
+
+          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
+        '
+
   # Container Builder
   - alert: ContainerBuilderFailure
     expr: ci_build_failure >= 2
@@ -121,7 +139,8 @@ groups:
       severity: warning
       owner: kjlubick@google.com
     annotations:
-      description: 'The Fuzzer hasnt rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version'
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'The Fuzzer on {{ $labels.kubernetes_pod_name }} hasnt rolled its version forward in 10 days.  Roll it forward on fuzzer.skia.org https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#stale_version'
 
   - alert: FuzzerSlowRoll
     expr: fuzzer_version_age{type="pending"}/60/60 > 2
@@ -130,7 +149,8 @@ groups:
       severity: critical
       owner: kjlubick@google.com
     annotations:
-      description: 'The fuzzer hasnt finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll'
+      abbr: '{{ $labels.kubernetes_pod_name }}'
+      description: 'The fuzzer on {{ $labels.kubernetes_pod_name }} hasnt finished rolling its version forward in 2 hours.  Something might be wrong.  https://skia.googlesource.com/buildbot/%2B/master/fuzzer/PROD.md#broken_roll'
 
   - alert: FuzzerAnalysisQueueFull
     expr: fuzzer_queue_size_analysis > 900000
