@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7db5727_c589b492",
+        "filename": "scripts/make_dummy_staging_tasks/make_dummy_staging_tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-17T18:54:32Z",
+      "side": 1,
+      "message": "Missing bracket.",
+      "range": {
+        "startLine": 245,
+        "startChar": 57,
+        "endLine": 245,
+        "endChar": 58
+      },
+      "revId": "98ca7b801563c5ef9baa289163f80e41c848fd1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
