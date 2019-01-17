@@ -5,11 +5,12 @@ validate: ./tmp/promtool absent
 	promk-absent --input=prometheus/alerts_corp.yml --output=prometheus/absent_alerts_corp.yml
 	promk-absent --input=prometheus/alerts_general.yml --output=prometheus/absent_alerts_general.yml
 	promk-absent --input=prometheus/alerts_public.yml --output=prometheus/absent_alerts_public.yml
-	# If the only error is "FAILED: error checking bearer token file..." then you should be good.
 	-./tmp/promtool check config ./prometheus/prometheus-public.yml
 	-./tmp/promtool check config ./prometheus/prometheus-corp.yml
 	./tmp/promtool check rules ./prometheus/alerts_*.yml
 	./tmp/promtool check rules ./prometheus/absent_*.yml
+	# Please check output above for FAILED. If the only error is "FAILED: error checking bearer
+	# token file..." then you should be good.
 
 .PHONY: absent
 absent:
