@@ -22,10 +22,9 @@ import (
 
 const (
 	BOT_GROUP_TMPL   = "bot-group:%s"
-	BOT_NAME_TMPL    = "skia-d-gce-%s"
+	BOT_ID_TMPL      = "  bot_id: \"skia-d-gce-%s\"\n"
 	BOT_SECTION_TMPL = `bot_group {
-  bot_id: "%s"
-
+%s
   owners: "skiabot@google.com"
 
   auth {
@@ -224,11 +223,48 @@ func main() {
 		for _, dimSet := range strings.Split(setKey, ",") {
 			dimensions += fmt.Sprintf("  dimensions: \"%s\"\n", fmt.Sprintf(BOT_GROUP_TMPL, dimSet))
 		}
-		rangeStr := fmt.Sprintf("{%03d..%03d}", numBots, numBots+len(bots)-1)
-		if len(bots) == 1 {
-			rangeStr = fmt.Sprintf("%03d", numBots)
+		rangeStart := numBots
+		rangeEnd := rangeStart + len(bots) - 1
+		rangeStrs := []string{}
+		if rangeStart == rangeEnd {
+			rangeStrs = append(rangeStrs, fmt.Sprintf("%03d", rangeStart))
+		} else if rangeStart < 10 {
+			if rangeEnd < 10 {
+				rangeStrs = append(rangeStrs, fmt.Sprintf("00{%d..%d}", rangeStart, rangeEnd))
+			} else {
+				rangeStrs = append(rangeStrs, fmt.Sprintf("00{%d..9}", rangeStart))
+				if rangeEnd == 10 {
+					rangeStrs = append(rangeStrs, "010")
+				} else if rangeEnd < 100 {
+					rangeStrs = append(rangeStrs, fmt.Sprintf("0{10..%d}", rangeEnd))
+				} else {
+					rangeStrs = append(rangeStrs, "0{10..99}")
+					if rangeEnd == 100 {
+						rangeStrs = append(rangeStrs, "100")
+					} else {
+						rangeStrs = append(rangeStrs, fmt.Sprintf("{100..%d}", rangeEnd))
+					}
+				}
+			}
+		} else if rangeStart < 100 {
+			if rangeEnd < 100 {
+				rangeStrs = append(rangeStrs, fmt.Sprintf("0{%d..%d}", rangeStart, rangeEnd))
+			} else {
+				rangeStrs = append(rangeStrs, fmt.Sprintf("0{%d..99}", rangeStart))
+				if rangeEnd == 100 {
+					rangeStrs = append(rangeStrs, "100")
+				} else {
+					rangeStrs = append(rangeStrs, fmt.Sprintf("{100..%d}", rangeEnd))
+				}
+			}
+		} else {
+			rangeStrs = append(rangeStrs, fmt.Sprintf("{%d..%d}", rangeStart, rangeEnd))
 		}
-		botSection := fmt.Sprintf(BOT_SECTION_TMPL, fmt.Sprintf(BOT_NAME_TMPL, rangeStr), dimensions)
+		botIds := ""
+		for _, rangeStr := range rangeStrs {
+			botIds += fmt.Sprintf(BOT_ID_TMPL, rangeStr)
+		}
+		botSection := fmt.Sprintf(BOT_SECTION_TMPL, botIds, dimensions)
 		botCfgData += botSection
 		numBots += len(bots)
 	}
