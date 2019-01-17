@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2ab1b59d_4858b4a1",
+        "filename": "scripts/make_dummy_staging_tasks/make_dummy_staging_tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-17T19:23:17Z",
+      "side": 1,
+      "message": "rangeStart-1, I think",
+      "range": {
+        "startLine": 239,
+        "startChar": 180,
+        "endLine": 239,
+        "endChar": 190
+      },
+      "revId": "70588f8b415ce24641be95dd7b8e0363ab4a109e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
