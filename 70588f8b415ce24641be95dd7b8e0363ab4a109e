@@ -22,6 +22,30 @@
       "revId": "70588f8b415ce24641be95dd7b8e0363ab4a109e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bdf32b0_6355936c",
+        "filename": "scripts/make_dummy_staging_tasks/make_dummy_staging_tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-17T19:26:30Z",
+      "side": 1,
+      "message": "Whoops, done.",
+      "parentUuid": "2ab1b59d_4858b4a1",
+      "range": {
+        "startLine": 239,
+        "startChar": 180,
+        "endLine": 239,
+        "endChar": 190
+      },
+      "revId": "70588f8b415ce24641be95dd7b8e0363ab4a109e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
