@@ -52,7 +52,7 @@ ccache -s
 
 IFS=',' read -ra mmma_targets_arr <<< "$mmma_targets"
 for i in "${mmma_targets_arr[@]}"; do
-  mmma_cmd="time mmma -j50 $i"
+  mmma_cmd="time mmma -j25 $i"
   log_step "Running $mmma_cmd"
   eval $mmma_cmd
 done
