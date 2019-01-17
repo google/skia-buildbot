@@ -508,7 +508,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			}
 			latest := time.Time{}
 			for _, job := range jobs {
-				if job.Created.After(latest) {
+				if !job.IsTryJob() && !job.IsForce && job.Created.After(latest) {
 					latest = job.Created
 				}
 			}

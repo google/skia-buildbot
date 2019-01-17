@@ -345,12 +345,18 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 	}
 	jobsToInsert := make([]*types.Job, 0, len(jobs))
 	for _, job := range jobs {
-		existingJobs := existing[job.Name]
-		if len(existingJobs) == 0 {
+		var prev *types.Job = nil
+		for _, existingJob := range existing[job.Name] {
+			if !existingJob.IsTryJob() && !existingJob.IsForce {
+				// Pick an arbitrary pre-existing job for logging.
+				prev = existingJob
+				break
+			}
+		}
+		if prev == nil {
 			jobsToInsert = append(jobsToInsert, job)
 		} else {
-			prev := existingJobs[0] // Pick an arbitrary pre-existing job for logging.
-			sklog.Warningf("Already triggered %d jobs for %s (eg. id %s at %s); not triggering again.", len(existingJobs), job.Name, prev.Id, prev.Created)
+			sklog.Warningf("Already triggered a job for %s (eg. id %s at %s); not triggering again.", job.Name, prev.Id, prev.Created)
 		}
 	}
 	if len(jobsToInsert) == 0 {
