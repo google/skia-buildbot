@@ -216,7 +216,8 @@ func main() {
 		setKeys = append(setKeys, key)
 	}
 	sort.Strings(setKeys)
-	numBots := 0
+	botIdStart := 100 // To avoid issues with zero-padding.
+	rangeStart := botIdStart
 	botCfgData := ""
 	for _, setKey := range setKeys {
 		bots := canHandle[setKey]
@@ -224,16 +225,16 @@ func main() {
 		for _, dimSet := range strings.Split(setKey, ",") {
 			dimensions += fmt.Sprintf("  dimensions: \"%s\"\n", fmt.Sprintf(BOT_GROUP_TMPL, dimSet))
 		}
-		rangeStr := fmt.Sprintf("{%03d..%03d}", numBots, numBots+len(bots)-1)
+		rangeStr := fmt.Sprintf("{%03d..%03d}", rangeStart, rangeStart+len(bots)-1)
 		if len(bots) == 1 {
-			rangeStr = fmt.Sprintf("%03d", numBots)
+			rangeStr = fmt.Sprintf("%03d", rangeStart)
 		}
 		botSection := fmt.Sprintf(BOT_SECTION_TMPL, fmt.Sprintf(BOT_NAME_TMPL, rangeStr), dimensions)
 		botCfgData += botSection
-		numBots += len(bots)
+		rangeStart += len(bots)
 	}
 	if err := ioutil.WriteFile(*botsCfg, []byte(botCfgData), os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	sklog.Infof("Create bots with:\n$ go run ./go/gce/swarming/swarming_vm.go --logtostderr --dev --create --machine-type=f1-micro --data-disk-size=10 --instances=0-%d", numBots)
+	sklog.Infof("Create bots with:\n$ go run ./go/gce/swarming/swarming_vm.go --logtostderr --dev --create --machine-type=f1-micro --data-disk-size=10 --instances=%d-%d", botIdStart, rangeStart-1)
 }
