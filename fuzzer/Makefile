@@ -13,10 +13,6 @@ default: all
 
 all: clean_webtools core_js elements_html skiaversion frontend backend
 
-deprecated_fe_release: all
-	./deprecated_build_fe_release "`git log -n1 --format=%s`"
-
-
 fe_release: frontend
 	./docker_build_fe_release
 
