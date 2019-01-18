@@ -884,7 +884,7 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 					// Just take the first value for each dimension.
 					dims[k] = v[0]
 				}
-				k, err := util.MD5Params(dims)
+				k, err := util.MD5Sum(dims)
 				if err != nil {
 					sklog.Errorf("Failed to create metrics key: %s", err)
 					continue
