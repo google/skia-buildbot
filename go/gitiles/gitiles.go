@@ -119,7 +119,8 @@ type Commit struct {
 }
 
 type Log struct {
-	Log []*Commit `json:"log"`
+	Log  []*Commit `json:"log"`
+	Next string    `json:"next"`
 }
 
 func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
@@ -179,29 +180,36 @@ func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
 // Log returns Gitiles' equivalent to "git log" for the given start and end
 // commits.
 func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
-	resp, err := r.get(fmt.Sprintf(LOG_URL, r.URL, from, to))
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read response: %s", err)
-	}
-	// Remove the first line.
-	b = b[4:]
-	var l Log
-	if err := json.Unmarshal(b, &l); err != nil {
-		return nil, fmt.Errorf("Failed to decode response: %s", err)
-	}
-	// Convert to vcsinfo.LongCommit.
-	rv := make([]*vcsinfo.LongCommit, 0, len(l.Log))
-	for _, c := range l.Log {
-		vc, err := commitToLongCommit(c)
+	rv := []*vcsinfo.LongCommit{}
+	for {
+		resp, err := r.get(fmt.Sprintf(LOG_URL, r.URL, from, to))
 		if err != nil {
 			return nil, err
 		}
-		rv = append(rv, vc)
+		defer util.Close(resp.Body)
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read response: %s", err)
+		}
+		// Remove the first line.
+		b = b[4:]
+		var l Log
+		if err := json.Unmarshal(b, &l); err != nil {
+			return nil, fmt.Errorf("Failed to decode response: %s", err)
+		}
+		// Convert to vcsinfo.LongCommit.
+		for _, c := range l.Log {
+			vc, err := commitToLongCommit(c)
+			if err != nil {
+				return nil, err
+			}
+			rv = append(rv, vc)
+		}
+		if l.Next == "" {
+			break
+		} else {
+			to = l.Next
+		}
 	}
 	return rv, nil
 }

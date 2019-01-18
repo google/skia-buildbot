@@ -3,6 +3,7 @@ package gitiles
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -72,8 +72,7 @@ func TestLog(t *testing.T) {
 	repo := git.GitDir(gb.Dir())
 	commits := []string{c8, c7, c6, c5, c4, c3, c2, c1, c0}
 	details := make(map[string]*vcsinfo.LongCommit, len(commits))
-	for idx, c := range commits {
-		sklog.Infof("c%d: %s", len(commits)-idx-1, c)
+	for _, c := range commits {
 		d, err := repo.Details(ctx, c)
 		assert.NoError(t, err)
 		details[c] = d
@@ -177,4 +176,94 @@ func TestLog(t *testing.T) {
 	checkLinear(c5, c7, []string{c7})
 	checkBasic(c2, c7, []string{c7, c6, c5, c4, c3})
 	checkLinear(c2, c7, []string{})
+}
+
+func TestLogPagination(t *testing.T) {
+	testutils.MediumTest(t)
+
+	// Gitiles API paginates logs over 100 commits long.
+	repoUrl := "https://fake/repo"
+	urlMock := mockhttpclient.NewURLMock()
+	repo := NewRepo(repoUrl, "", urlMock.Client())
+	next := 0
+	hash := func() string {
+		next++
+		return fmt.Sprintf("%040d", next)
+	}
+	ts := time.Now().Truncate(time.Second).UTC()
+	var last *vcsinfo.LongCommit
+	commit := func() *vcsinfo.LongCommit {
+		ts = ts.Add(time.Second)
+		rv := &vcsinfo.LongCommit{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    hash(),
+				Author:  "don't care (don't care)",
+				Subject: "don't care",
+			},
+			Timestamp: ts,
+		}
+		if last != nil {
+			rv.Parents = []string{last.Hash}
+		}
+		last = rv
+		return rv
+	}
+	mock := func(from, to *vcsinfo.LongCommit, commits []*vcsinfo.LongCommit, next string) {
+		// Create the mock results.
+		results := &Log{
+			Log:  make([]*Commit, 0, len(commits)),
+			Next: next,
+		}
+		for i := len(commits) - 1; i >= 0; i-- {
+			c := commits[i]
+			results.Log = append(results.Log, &Commit{
+				Commit:  c.Hash,
+				Parents: c.Parents,
+				Author: &Author{
+					Name:  "don't care",
+					Email: "don't care",
+					Time:  c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+				},
+				Committer: &Author{
+					Name:  "don't care",
+					Email: "don't care",
+					Time:  c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+				},
+				Message: "don't care",
+			})
+		}
+		js := testutils.MarshalJSON(t, results)
+		js = ")]}'\n" + js
+		urlMock.MockOnce(fmt.Sprintf(LOG_URL, repoUrl, from.Hash, to.Hash), mockhttpclient.MockGetDialogue([]byte(js)))
+	}
+	check := func(from, to *vcsinfo.LongCommit, expect []*vcsinfo.LongCommit) {
+		log, err := repo.Log(from.Hash, to.Hash)
+		assert.NoError(t, err)
+		sort.Sort(sort.Reverse(vcsinfo.LongCommitSlice(log)))
+		deepequal.AssertDeepEqual(t, expect, log)
+	}
+
+	// Create some fake commits.
+	commits := []*vcsinfo.LongCommit{}
+	for i := 0; i < 10; i++ {
+		commits = append(commits, commit())
+	}
+
+	// Most basic test case; no pagination.
+	mock(commits[0], commits[5], commits[0:5], "")
+	check(commits[0], commits[5], commits[0:5])
+
+	// Two pages.
+	split := 5
+	mock(commits[0], commits[len(commits)-1], commits[split:], commits[split].Hash)
+	mock(commits[0], commits[split], commits[0:split], "")
+	check(commits[0], commits[len(commits)-1], commits)
+
+	// Three pages.
+	split1 := 7
+	split2 := 3
+	mock(commits[0], commits[len(commits)-1], commits[split1:], commits[split1].Hash)
+	mock(commits[0], commits[split1], commits[split2:split1], commits[split2].Hash)
+	mock(commits[0], commits[split2], commits[0:split2], "")
+	check(commits[0], commits[len(commits)-1], commits)
 }
