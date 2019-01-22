@@ -113,6 +113,9 @@ type Client interface {
 
 	// NewTimer creates and returns a new started timer.
 	NewTimer(name string, tagsList ...map[string]string) Timer
+
+	// Int64MetricExists returns true if the given Int64Metric already exists.
+	Int64MetricExists(measurement string, tags ...map[string]string) bool
 }
 
 var (

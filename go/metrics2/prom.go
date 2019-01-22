@@ -347,6 +347,16 @@ func (c *promClient) NewTimer(name string, tagsList ...map[string]string) Timer 
 	return newTimer(c, name, true, tagsList...)
 }
 
+func (c *promClient) Int64MetricExists(name string, tags ...map[string]string) bool {
+	_, _, _, gaugeKey, _ := c.commonGet(name, tags...)
+
+	c.int64Mutex.Lock()
+	defer c.int64Mutex.Unlock()
+
+	_, ok := c.int64Gauges[gaugeKey]
+	return ok
+}
+
 // Validate that the concrete structs faithfully implement their respective interfaces.
 var _ Int64Metric = (*promInt64)(nil)
 var _ Float64Metric = (*promFloat64)(nil)

@@ -92,6 +92,15 @@ func (m *muxClient) NewTimer(name string, tagList ...map[string]string) Timer {
 	return ret
 }
 
+func (m *muxClient) Int64MetricExists(name string, tagList ...map[string]string) bool {
+	for _, c := range m.clients {
+		if c.Int64MetricExists(name, tagList...) {
+			return true
+		}
+	}
+	return false
+}
+
 // muxTimer implements the Timer interface.
 type muxTimer struct {
 	timers []Timer
