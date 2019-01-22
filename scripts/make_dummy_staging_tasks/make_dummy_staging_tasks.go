@@ -120,9 +120,11 @@ func main() {
 				sklog.Errorf("No average duration for %s!", name)
 				avgDuration = 10
 			}
-			taskSpec.Command = []string{"infra/bots/dummy.sh", fmt.Sprintf("%d", avgDuration)}
+			taskSpec.Command = []string{"/bin/bash", "dummy.sh", fmt.Sprintf("%d", avgDuration)}
 			if len(taskSpec.Outputs) > 0 {
 				taskSpec.Command = append(taskSpec.Command, taskSpec.Outputs...)
+			} else {
+				taskSpec.Command = append(taskSpec.Command, "${ISOLATED_OUTDIR}")
 			}
 
 			sort.Strings(taskSpec.Dimensions)
