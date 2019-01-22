@@ -234,6 +234,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
+    this._requestDesktopNotificationPermission()
+
     this.addEventListener('save-silence', e => this._saveSilence(e.detail.silence));
     this.addEventListener('archive-silence', e => this._archiveSilence(e.detail.silence));
     this.addEventListener('reactivate-silence', e => this._reactivateSilence(e.detail.silence));
@@ -608,12 +610,28 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     return false
   }
 
+  // rmistry: Where does this go???
+  _requestDesktopNotificationPermission() {
+   if(Notification && Notification.permission === 'default') {
+     Notification.requestPermission(function (permission) {
+        if(!('permission' in Notification)) {
+          Notification.permission = permission;
+        }
+     });
+   }
+  }
+
+  // rmistry
   _render() {
     this._rationalize();
     render(template(this), this, {eventContext: this});
     // Update the icon.
     let isTrooper = this._user === this._trooper;
     let numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isTrooper) ? 1 : 0, 0);
+    // rmistry: this is where you can check incidents?
+    // but this does not poll I think - it does poll...
+    console.log("_render");
+    console.log(numActive);
     document.title = `${numActive} - AlertManager`;
     if (!this._favicon) {
       return
