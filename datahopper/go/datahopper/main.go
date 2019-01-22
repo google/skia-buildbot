@@ -128,8 +128,8 @@ func main() {
 	if err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
+	lvRepos := metrics2.NewLiveness("datahopper_repo_update")
 	go util.RepeatCtx(time.Minute, ctx, func() {
-		lvRepos := metrics2.NewLiveness("datahopper_repo_update")
 		if err := repos.Update(ctx); err != nil {
 			sklog.Errorf("Failed to update repos: %s", err)
 		} else {

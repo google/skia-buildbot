@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -35,7 +36,9 @@ func newLiveness(c Client, name string, makeUnique bool, tagsList ...map[string]
 		measurement = fmt.Sprintf("%s_%s_s", MEASUREMENT_LIVENESS, name)
 		tags["type"] = MEASUREMENT_LIVENESS
 	}
-
+	if c.Int64MetricExists(measurement, tags) {
+		sklog.Errorf("Liveness metric %s (%v) already exists! This may cause a goroutine leak.", measurement, tags)
+	}
 	ctx, cancelFn := context.WithCancel(context.Background())
 	l := &liveness{
 		cancelFn:             cancelFn,
