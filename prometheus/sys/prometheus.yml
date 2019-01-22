@@ -37,10 +37,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-diffserver-stage:20000']
 
-  - job_name: 'fuzzer-fe'
-    static_configs:
-      - targets: ['skia-fuzzer-fe:20000']
-
   - job_name: 'skiacorrectness-pdfium'
     static_configs:
       - targets: ['skia-gold-pdfium:20001']
@@ -132,7 +128,6 @@ scrape_configs:
       - targets: ['skia-datahopper2:11000']
       - targets: ['skia-diffserver-prod:11000']
       - targets: ['skia-diffserver-stage:11000']
-      - targets: ['skia-fuzzer-fe:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
       - targets: ['skia-monitoring:11000']
