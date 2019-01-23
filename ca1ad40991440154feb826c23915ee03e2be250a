@@ -1,0 +1,51 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a49a5a1d_2ce0c6ad",
+        "filename": "scripts/make_dummy_staging_tasks/make_dummy_staging_tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-23T16:10:32Z",
+      "side": 1,
+      "message": "nit",
+      "parentUuid": "b4c7775b_a7cb84f5",
+      "range": {
+        "startLine": 167,
+        "startChar": 11,
+        "endLine": 167,
+        "endChar": 25
+      },
+      "revId": "ca1ad40991440154feb826c23915ee03e2be250a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e671fd7e_d3182bf1",
+        "filename": "scripts/make_dummy_staging_tasks/make_dummy_staging_tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-23T16:10:32Z",
+      "side": 1,
+      "message": "nit: could just use sort.Slice(bots, func(i, j int) bool { return bots[i].BotId \u003c bots[j].BotId })",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 189,
+        "endChar": 24
+      },
+      "revId": "ca1ad40991440154feb826c23915ee03e2be250a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
