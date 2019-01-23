@@ -7,9 +7,11 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/baseline"
+	store_tu "go.skia.org/infra/golden/go/storage/testutils"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -19,6 +21,15 @@ const (
 
 	// TEST_BASELINE_GS_PATH is the root path of all baseline file in GCS.
 	TEST_BASELINE_GS_PATH = "skia-infra-testdata/hash_files/testing-baselines"
+
+	// Directory with testdata.
+	TEST_DATA_DIR = "./testdata"
+
+	// Local file location of the test data.
+	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample-4bytes.tile"
+
+	// Folder in the testdata bucket. See go/testutils for details.
+	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
 )
 
 var (
@@ -110,11 +121,13 @@ func TestWritingBaselines(t *testing.T) {
 	foundBaseline, err = gsClient.ReadBaseline("", issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, issueBaseline, foundBaseline)
+	baseLiner, err := NewBaseliner(gsClient, nil, nil, nil, nil)
+	assert.NoError(t, err)
 
 	// Fetch the combined baselines
 	storages := &Storage{
 		GStorageClient: gsClient,
-		Baseliner:      NewBaseliner(gsClient, nil, nil, nil),
+		Baseliner:      baseLiner,
 	}
 	combined := &baseline.CommitableBaseLine{}
 	*combined = *masterBaseline
@@ -153,14 +166,32 @@ func TestBaselineRobustness(t *testing.T) {
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
+	baseLiner, err := NewBaseliner(gsClient, nil, nil, nil, nil)
+	assert.NoError(t, err)
+
 	// Fetch the combined baselines when there are no baselines for the issue
 	storages := &Storage{
 		GStorageClient: gsClient,
-		Baseliner:      NewBaseliner(gsClient, nil, nil, nil),
+		Baseliner:      baseLiner,
 	}
 	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0)
 	assert.NoError(t, err)
 	assert.Equal(t, masterBaseline, foundBaseline)
+}
+
+func TestCondenseTile(t *testing.T) {
+	tile := store_tu.GetTileFromGCS(t, gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	defer testutils.RemoveAll(t, TEST_DATA_DIR)
+
+	// randomly remove a quarter of the commits form the tile
+	commitLen := tile.LastCommitIndex() + 1
+	removeN := commitLen / 4
+	rmIndices := utils.StringSet{}
+
+	// Get a condensed tile
+
+	// Verify that the correct correct commits were removed
+
 }
 
 func initGSClient(t *testing.T) (*GStorageClient, *GSClientOptions) {
