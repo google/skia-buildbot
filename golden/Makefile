@@ -41,11 +41,21 @@ k8s-release-skiacorrectness: build-static-skiacorrectness frontend
 k8s-release-diff-server: build-static-diffserver
 	./k8s_release_diff_server
 
+.PHONY: k8s-release-baseline-server
+k8s-release-baseline-server: build-static-baseline-server
+	./k8s_release_baseline_server
+
 .PHONY: build-static-skiacorrectness
 build-static-skiacorrectness: skiaversion
 	mkdir -p ./build
 	rm -f ./build/skiacorrectness_k8s
 	$(KGO) -o build/skiacorrectness_k8s -a ./cmd/skiacorrectness/main.go
+
+.PHONY: build-static-baseline-server
+build-static-baseline-server: skiaversion
+	mkdir -p ./build
+	rm -f ./build/baseline_server_k8s
+	$(KGO) -o build/baseline_server_k8s -a ./cmd/baseline_server/main.go
 
 .PHONY: build-static-diffserver
 build-static-diffserver: skiaversion

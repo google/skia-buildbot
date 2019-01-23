@@ -260,7 +260,7 @@ func (m *EventMetrics) updateDynamicMetric(ev []*Event, mx *dynamicMetric) (map[
 		m := metrics2.GetFloat64Metric(mx.measurement, tags)
 		m.Update(values[i])
 		// TODO(borenet): Should we include the measurement name?
-		id, err := util.MD5Params(tags)
+		id, err := util.MD5Sum(tags)
 		if err != nil {
 			return nil, err
 		}
