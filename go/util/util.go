@@ -643,10 +643,9 @@ func IsNil(i interface{}) bool {
 	}
 }
 
-// MD5Params returns the MD5 hash of the provided map[string]string.
-// This could easily be extended to support hashing any datatype supported
-// by bencode.
-func MD5Params(val map[string]string) (string, error) {
+// MD5Sum returns the MD5 hash of the given value. It supports anything that
+// can be encoded via bencode (https://en.wikipedia.org/wiki/Bencode).
+func MD5Sum(val interface{}) (string, error) {
 	md5Writer := md5.New()
 	enc := bencode.NewEncoder(md5Writer)
 	if err := enc.Encode(val); err != nil {
