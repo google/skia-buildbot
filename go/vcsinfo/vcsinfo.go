@@ -55,6 +55,12 @@ type VCS interface {
 	// LastNIndex returns the last N commits.
 	LastNIndex(N int) []*IndexCommit
 
+	// LastN returns the last N commit hashes.
+	LastN(ctx context.Context, N int) []string
+
+	// Timestamp returns the timestamp for the given hash.
+	Timestamp(hash string) time.Time
+
 	// Range returns all commits from the half open interval ['begin', 'end'), i.e.
 	// includes 'begin' and excludes 'end'.
 	Range(begin, end time.Time) []*IndexCommit
