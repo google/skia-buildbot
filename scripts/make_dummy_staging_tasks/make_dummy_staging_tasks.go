@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -56,7 +57,8 @@ func main() {
 
 	nowTs := time.Unix(int64(*now), 0)
 
-	dimSets := map[string]string{}
+	dimWhitelist := map[string]bool{}
+	var cfgB *specs.TasksCfg
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -96,7 +98,7 @@ func main() {
 			sklog.Fatal(err)
 		}
 
-		cfgB := &specs.TasksCfg{
+		cfgB = &specs.TasksCfg{
 			Jobs:  make(map[string]*specs.JobSpec, len(cfgA.Jobs)),
 			Tasks: make(map[string]*specs.TaskSpec, len(cfgA.Tasks)),
 		}
@@ -105,7 +107,6 @@ func main() {
 			cfgB.Jobs[name] = jobSpec
 		}
 
-		dimSetNum := 0
 		taskNames := make([]string, 0, len(cfgA.Tasks))
 		for name, _ := range cfgA.Tasks {
 			taskNames = append(taskNames, name)
@@ -120,19 +121,20 @@ func main() {
 				sklog.Errorf("No average duration for %s!", name)
 				avgDuration = 10
 			}
-			taskSpec.Command = []string{"infra/bots/dummy.sh", fmt.Sprintf("%d", avgDuration)}
+			taskSpec.Command = []string{"/bin/bash", "dummy.sh", fmt.Sprintf("%d", avgDuration)}
 			if len(taskSpec.Outputs) > 0 {
 				taskSpec.Command = append(taskSpec.Command, taskSpec.Outputs...)
+			} else {
+				taskSpec.Command = append(taskSpec.Command, "${ISOLATED_OUTDIR}")
 			}
 
-			sort.Strings(taskSpec.Dimensions)
-			dimSetKey := strings.Join(taskSpec.Dimensions, "\n")
-			botGroup := fmt.Sprintf("%03d", dimSetNum)
-			if _, ok := dimSets[dimSetKey]; !ok {
-				dimSetNum++
-				dimSets[dimSetKey] = botGroup
+			for _, dim := range taskSpec.Dimensions {
+				split := strings.SplitN(dim, ":", 2)
+				if len(split) != 2 {
+					sklog.Fatalf("Invalid dimension: %s", dim)
+				}
+				dimWhitelist[split[0]] = true
 			}
-			taskSpec.Dimensions = append(dimensions, fmt.Sprintf(BOT_GROUP_TMPL, botGroup))
 
 			taskSpec.EnvPrefixes = nil
 			taskSpec.ExtraTags = nil
@@ -140,9 +142,6 @@ func main() {
 			taskSpec.ServiceAccount = ""
 
 			cfgB.Tasks[name] = taskSpec
-		}
-		if err := specs.WriteTasksCfg(cfgB, *to); err != nil {
-			sklog.Fatal(err)
 		}
 	}()
 
@@ -163,75 +162,116 @@ func main() {
 	sklog.Infof("Found %d bots", len(bots))
 	wg.Wait()
 
-	// Determine which dimension set numbers can be handled by each bot.
-	// canHandle maps groups of dimension sets, as requested by tasks found
-	// above, to lists of bots which satisfy those dimension sets.
-	canHandle := map[string][]string{}
+	// botGroups maps dimension sets to bot group IDs. The dimension set is
+	// just a concatenation of bot dimensions.
+	botGroups := map[string]string{}
+
+	// botGroupIds simply lists the bot group IDs.
+	botGroupIds := []string{}
+
+	// numBots maps bot group IDs to the number of bots in each group.
+	numBots := map[string]int{}
+
+	// dimsByGroup maps a bot group ID (derived from dimensions) to a
+	// 2-level map of the dimensions themselves: map[key]map[value]true.
+	// This makes it easy to check whether a bot group can run a given task.
+	dimsByGroup := map[string]map[string]map[string]bool{}
+
+	sort.Slice(bots, func(i, j int) bool { return bots[i].BotId < bots[j].BotId })
 	for _, bot := range bots {
 		// botDims maps dimension keys to dimension values, using a
 		// sub-map so that we can check for the existence of specific
 		// values.
 		botDims := map[string]map[string]bool{}
+
+		subKeys := []string{}
 		for _, dim := range bot.Dimensions {
-			vals := map[string]bool{}
-			for _, val := range dim.Value {
-				vals[val] = true
+			if dimWhitelist[dim.Key] {
+				vals := make([]string, 0, len(dim.Value))
+				valsMap := make(map[string]bool, len(dim.Value))
+				for _, val := range dim.Value {
+					vals = append(vals, val)
+					valsMap[val] = true
+				}
+				sort.Strings(vals)
+				subKeys = append(subKeys, fmt.Sprintf("%s:%s", dim.Key, strings.Join(vals, ",")))
+				botDims[dim.Key] = valsMap
 			}
-			botDims[dim.Key] = vals
 		}
-		sets := []string{}
-		for dimString, setNum := range dimSets {
-			match := true
-			for _, dim := range strings.Split(dimString, "\n") {
+		sort.Strings(subKeys)
+		dimSetKey := strings.Join(subKeys, ";")
+		groupId, ok := botGroups[dimSetKey]
+		if !ok {
+			groupId = fmt.Sprintf("%03d", len(botGroups))
+			botGroups[dimSetKey] = groupId
+			botGroupIds = append(botGroupIds, groupId)
+			b, err := json.MarshalIndent(botDims, "", "  ")
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			sklog.Infof("Group %s:\n%s", groupId, b)
+		}
+		numBots[groupId]++
+		dimsByGroup[groupId] = botDims
+	}
+	sklog.Infof("Found %d sets of bots with shared dimensions.", len(botGroups))
+
+	// Now, match the task specs up to bot groups.
+	used := map[string]bool{}
+	for name, t := range cfgB.Tasks {
+		groups := []string{}
+		for _, groupId := range botGroupIds {
+			botDims := dimsByGroup[groupId]
+			canHandle := true
+			for _, dim := range t.Dimensions {
 				split := strings.SplitN(dim, ":", 2)
 				if len(split) != 2 {
 					sklog.Fatalf("Invalid dimension: %s", dim)
 				}
-				key := split[0]
-				val := split[1]
-				vals, ok := botDims[key]
-				if !ok {
-					match = false
-					break
-				}
-				if !vals[val] {
-					match = false
+				if vals, ok := botDims[split[0]]; !ok || !vals[split[1]] {
+					canHandle = false
 					break
 				}
 			}
-			if match {
-				sets = append(sets, setNum)
+			if canHandle {
+				groups = append(groups, groupId)
 			}
 		}
-		if len(sets) > 0 {
-			sort.Strings(sets)
-			setKey := strings.Join(sets, ",")
-			canHandle[setKey] = append(canHandle[setKey], bot.BotId)
+		// We don't know how to specify that a dimension could be one of
+		// two different values, so we can't specify the "bot-group"
+		// dimension to mean one of a set of groups. Just pick the first.
+		if len(groups) == 0 {
+			sklog.Errorf("No bots can run %s", name)
+		} else {
+			t.Dimensions = append(dimensions, fmt.Sprintf(BOT_GROUP_TMPL, groups[0]))
+			used[groups[0]] = true
+			if len(groups) > 1 {
+				sklog.Infof("Have %d groups but chose %s; %v", len(groups), groups[0], groups)
+			}
 		}
+	}
+	if err := specs.WriteTasksCfg(cfgB, *to); err != nil {
+		sklog.Fatal(err)
 	}
 
 	// Create sets of new bots with the dimension sets from above.
-	setKeys := []string{}
-	for key, _ := range canHandle {
-		setKeys = append(setKeys, key)
-	}
-	sort.Strings(setKeys)
 	botIdStart := 100 // To avoid issues with zero-padding.
 	rangeStart := botIdStart
 	botCfgData := ""
-	for _, setKey := range setKeys {
-		bots := canHandle[setKey]
-		dimensions := ""
-		for _, dimSet := range strings.Split(setKey, ",") {
-			dimensions += fmt.Sprintf("  dimensions: \"%s\"\n", fmt.Sprintf(BOT_GROUP_TMPL, dimSet))
+	for _, groupId := range botGroupIds {
+		if !used[groupId] {
+			sklog.Infof("Unused group: %s", groupId)
+			continue
 		}
-		rangeStr := fmt.Sprintf("{%03d..%03d}", rangeStart, rangeStart+len(bots)-1)
+		dimensions := fmt.Sprintf("  dimensions: \"%s\"\n", fmt.Sprintf(BOT_GROUP_TMPL, groupId))
+		n := numBots[groupId]
+		rangeStr := fmt.Sprintf("{%03d..%03d}", rangeStart, rangeStart+n-1)
 		if len(bots) == 1 {
 			rangeStr = fmt.Sprintf("%03d", rangeStart)
 		}
 		botSection := fmt.Sprintf(BOT_SECTION_TMPL, fmt.Sprintf(BOT_NAME_TMPL, rangeStr), dimensions)
 		botCfgData += botSection
-		rangeStart += len(bots)
+		rangeStart += n
 	}
 	if err := ioutil.WriteFile(*botsCfg, []byte(botCfgData), os.ModePerm); err != nil {
 		sklog.Fatal(err)
