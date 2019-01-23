@@ -1019,19 +1019,10 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 			httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
 			return
 		}
-
-		// Retrieve the commit at HEAD
-		tmpHashes := wh.Storages.Git.LastN(r.Context(), 1)
-		if len(tmpHashes) == 0 {
-			msg := "No commit information available"
-			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
-			return
-		}
-		commitHash = tmpHashes[0]
 	} else {
 		// Since this was not called for an issue, we need to extract a Git hash.
 		var ok bool
-		if commitHash, ok = mux.Vars(r)["git_hash"]; !ok {
+		if commitHash, ok = mux.Vars(r)["commit_hash"]; !ok {
 			msg := "No commit hash provided to fetch expectations"
 			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
 			return
