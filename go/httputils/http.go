@@ -428,6 +428,7 @@ func LoggingRequestResponse(h http.Handler) http.Handler {
 				buf := make([]byte, size)
 				buf = buf[:runtime.Stack(buf, false)]
 				sklog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
+				http.Error(w, "Error Handing request", http.StatusInternalServerError)
 			}
 		}()
 		defer timer.New(fmt.Sprintf("Request: %s Latency:", r.URL.Path)).Stop()
