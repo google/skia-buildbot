@@ -218,6 +218,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._ignored = [ '__silence_state', 'description', 'id', 'swarming', 'assigned_to']; // Params to ignore when constructing silences.
     this._shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
     this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
+    this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
     this._user = 'barney@example.org';
     this._trooper = '';
     this._state = {
@@ -234,6 +235,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
+    this._requestDesktopNotificationPermission()
+
     this.addEventListener('save-silence', e => this._saveSilence(e.detail.silence));
     this.addEventListener('archive-silence', e => this._archiveSilence(e.detail.silence));
     this.addEventListener('reactivate-silence', e => this._reactivateSilence(e.detail.silence));
@@ -472,6 +475,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
 
   _take(e) {
     this._doImpl('/_/take', e.detail);
+    // Do not do desktop notification on takes, it is redundant.
+    this._incidents_notified[e.detail.key] = true;
   }
 
   _getStats() {
@@ -608,12 +613,57 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     return false
   }
 
+  _requestDesktopNotificationPermission() {
+   if(Notification && Notification.permission === 'default') {
+     Notification.requestPermission(function (permission) {
+        if(!('permission' in Notification)) {
+          Notification.permission = permission;
+        }
+     });
+   }
+  }
+
+  _sendDesktopNotification(unNotifiedIncidents) {
+    if (unNotifiedIncidents.length == 0) {
+      // Do nothing.
+      return;
+    }
+    let text = '';
+    if (unNotifiedIncidents.length == 1) {
+      text = unNotifiedIncidents[0].params.alertname + "\n\n" + unNotifiedIncidents[0].params.description;
+    } else {
+      text = `There are ${unNotifiedIncidents.length} alerts assigned to you`;
+    }
+    let notification = new Notification('am.skia.org notification', {
+      icon: '/static/icon-active.png',
+      body: text,
+      // 'tag' handles multi-tab scenarios. When multiple tabs are open then
+      // only one notification is sent for the same alert.
+      tag: 'alertManagerNotification' + text,
+    });
+    // onclick move focus to the am.skia.org tab and close the notification.
+    notification.onclick = function() {
+      parent.focus();
+      window.focus(); // Supports older browsers.
+      this.close();
+    };
+    setTimeout(notification.close.bind(notification), 10000);
+  }
+
   _render() {
     this._rationalize();
     render(template(this), this, {eventContext: this});
     // Update the icon.
     let isTrooper = this._user === this._trooper;
     let numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isTrooper) ? 1 : 0, 0);
+
+    if (Notification.permission === "granted") {
+      const unNotifiedIncidents = this._incidents.filter(i =>
+        !this._incidents_notified[i.key] && this._needsTriaging(i, isTrooper));
+      this._sendDesktopNotification(unNotifiedIncidents);
+      unNotifiedIncidents.forEach(i => this._incidents_notified[i.key] = true);
+    }
+
     document.title = `${numActive} - AlertManager`;
     if (!this._favicon) {
       return
