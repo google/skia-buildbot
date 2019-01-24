@@ -22,6 +22,30 @@
       "revId": "29b76928f7f22c68decbb8cd740b3eb9ef153c4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05a9e5fc_13979ed3",
+        "filename": "gold-client/cmd/goldctl/cmd_auth.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-24T20:30:25Z",
+      "side": 1,
+      "message": "Done\nGood catch, thanks.",
+      "parentUuid": "e36ae8a5_785072ca",
+      "range": {
+        "startLine": 56,
+        "startChar": 99,
+        "endLine": 56,
+        "endChar": 107
+      },
+      "revId": "29b76928f7f22c68decbb8cd740b3eb9ef153c4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
