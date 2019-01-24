@@ -160,8 +160,8 @@ func (d *firestoreDB) PutJob(job *types.Job) error {
 
 // See documentation for types.JobDB interface.
 func (d *firestoreDB) PutJobs(jobs []*types.Job) error {
-	if len(jobs) > MAX_TRANSACTION_DOCS/2 {
-		sklog.Warningf("Inserting %d jobs; Firestore maximum per transaction is %d", len(jobs), MAX_TRANSACTION_DOCS)
+	if len(jobs) > MAX_TRANSACTION_DOCS {
+		return fmt.Errorf("Tried to insert %d jobs but Firestore maximum per transaction is %d.", len(jobs), MAX_TRANSACTION_DOCS)
 	}
 	for _, job := range jobs {
 		if job.Id == "" {
@@ -179,4 +179,11 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) error {
 		d.TrackModifiedJob(job)
 	}
 	return nil
+}
+
+// See documentation for types.JobDB interface.
+func (d *firestoreDB) PutJobsInChunks(jobs []*types.Job) error {
+	return util.ChunkIter(len(jobs), MAX_TRANSACTION_DOCS, func(i, j int) error {
+		return d.PutJobs(jobs[i:j])
+	})
 }
