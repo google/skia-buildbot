@@ -164,13 +164,6 @@ func TestRemoteDBJobDBConcurrentUpdate(t *testing.T) {
 	db.TestJobDBConcurrentUpdate(t, d)
 }
 
-func TestRemoteDBUpdateJobsWithRetries(t *testing.T) {
-	testutils.LargeTest(t)
-	d := makeDB(t)
-	defer testutils.AssertCloses(t, d)
-	db.TestUpdateJobsWithRetries(t, d)
-}
-
 func TestRemoteDBCommentDB(t *testing.T) {
 	testutils.LargeTest(t)
 	d := makeDB(t)

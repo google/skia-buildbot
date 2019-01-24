@@ -3045,7 +3045,7 @@ func TestAddTasksSingleTaskSpecUpdate(t *testing.T) {
 }
 
 // AddTasks should call addTasksSingleTaskSpec for each group of tasks.
-func TestAddTasks(t *testing.T) {
+func TestaddTasks(t *testing.T) {
 	ctx, gb, hashes, d, s, cleanup := setupAddTasksTest(t)
 	defer cleanup()
 
@@ -3097,7 +3097,7 @@ func TestAddTasks(t *testing.T) {
 		},
 	}
 
-	assert.NoError(t, s.AddTasks(ctx, tasks))
+	assert.NoError(t, s.addTasks(ctx, tasks))
 
 	assertBlamelist(t, hashes, toil2, []int{5})
 	assertBlamelist(t, hashes, toil3, []int{3, 4})
@@ -3155,7 +3155,7 @@ func TestAddTasksFailure(t *testing.T) {
 
 	// Try multiple times to reduce chance of test passing flakily.
 	for i := 0; i < 3; i++ {
-		err := s.AddTasks(ctx, tasks)
+		err := s.addTasks(ctx, tasks)
 		assert.Error(t, err)
 		modTasks, err := d.GetModifiedTasks(trackId)
 		assert.NoError(t, err)
@@ -3169,7 +3169,7 @@ func TestAddTasksFailure(t *testing.T) {
 
 	duty2.Status = types.TASK_STATUS_FAILURE
 	tasks[gb.RepoUrl()]["duty"] = []*types.Task{duty2, duty3}
-	assert.NoError(t, s.AddTasks(ctx, tasks))
+	assert.NoError(t, s.addTasks(ctx, tasks))
 
 	assertBlamelist(t, hashes, toil2, []int{3, 4, 5})
 
@@ -3243,7 +3243,7 @@ func TestAddTasksRetries(t *testing.T) {
 		onPutTasks: causeConcurrentUpdate,
 	}
 
-	assert.NoError(t, s.AddTasks(ctx, tasks))
+	assert.NoError(t, s.addTasks(ctx, tasks))
 
 	retryCountMtx.Lock()
 	defer retryCountMtx.Unlock()
