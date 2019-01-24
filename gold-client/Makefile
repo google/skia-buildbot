@@ -21,4 +21,4 @@ release-goldctl-gcs: build-static-goldctl
 build-static-goldctl:
 	mkdir -p ./build
 	rm -f ./build/goldctl
-	$(KGO) -o build/goldctl -a ./cmd/goldctl/main.go
+	$(KGO) -o build/goldctl -a ./cmd/goldctl/...
