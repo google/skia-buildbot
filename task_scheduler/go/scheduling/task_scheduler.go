@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -54,6 +55,13 @@ const (
 	MEASUREMENT_TASK_CANDIDATE_COUNT = "task_candidate_count"
 
 	NUM_TOP_CANDIDATES = 50
+
+	// To avoid errors resulting from DB transaction size limits, we
+	// restrict the number of tasks triggered per TaskSpec (we insert tasks
+	// into the DB in chunks by TaskSpec) to half of the DB transaction size
+	// limit (since we may need to update an existing whose blamelist was
+	// split by the new task).
+	SCHEDULING_LIMIT_PER_TASK_SPEC = firestore.MAX_TRANSACTION_DOCS / 2
 )
 
 var (
@@ -364,7 +372,7 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 	}
 
 	// Insert the new jobs into the DB.
-	if err := s.db.PutJobs(jobsToInsert); err != nil {
+	if err := s.db.PutJobsInChunks(jobsToInsert); err != nil {
 		return fmt.Errorf("Failed to add periodic jobs: %s", err)
 	}
 	sklog.Infof("Created %d periodic jobs for trigger %q", len(jobs), triggerName)
@@ -973,7 +981,13 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	// match so that less-specialized tasks don't "steal" more-specialized
 	// bots which they don't actually need.
 	rv := make([]*taskCandidate, 0, len(bots))
+	countByTaskSpec := make(map[string]int, len(bots))
 	for _, c := range tasks {
+		// Don't exceed SCHEDULING_LIMIT_PER_TASK_SPEC.
+		if countByTaskSpec[c.Name] == SCHEDULING_LIMIT_PER_TASK_SPEC {
+			sklog.Warningf("Too many tasks to schedule for %s; not scheduling more than %d", c.Name, SCHEDULING_LIMIT_PER_TASK_SPEC)
+			continue
+		}
 		// TODO(borenet): Make this threshold configurable.
 		if c.Score <= 0.0 {
 			sklog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
@@ -1009,6 +1023,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 
 			// Add the task to the scheduling list.
 			rv = append(rv, c)
+			countByTaskSpec[c.Name]++
 
 			// If we've exhausted the bot list, stop here.
 			if len(botsByDim) == 0 {
@@ -1291,13 +1306,6 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 	// Find all new Jobs for all new commits.
 	newJobs := []*types.Job{}
 	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
-		scheduled, err := s.jCache.ScheduledJobsForCommit(repoUrl, c.Hash)
-		if err != nil {
-			return false, err
-		}
-		if scheduled {
-			return false, nil
-		}
 		rs := types.RepoState{
 			Repo:     repoUrl,
 			Revision: c.Hash,
@@ -1321,11 +1329,27 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 				}
 			}
 			if shouldRun {
-				j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+				prevJobs, err := s.jCache.GetJobsByRepoState(name, rs)
 				if err != nil {
 					return false, err
 				}
-				newJobs = append(newJobs, j)
+				alreadyScheduled := false
+				for _, prev := range prevJobs {
+					// We don't need to check whether it's a
+					// try job because a try job wouldn't
+					// match the RepoState passed into
+					// GetJobsByRepoState.
+					if !prev.IsForce {
+						alreadyScheduled = true
+					}
+				}
+				if !alreadyScheduled {
+					j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
+					if err != nil {
+						return false, err
+					}
+					newJobs = append(newJobs, j)
+				}
 			}
 		}
 		if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
@@ -1339,8 +1363,8 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 		return err
 	}
 
-	if err := s.db.PutJobs(newJobs); err != nil {
-		return err
+	if err := s.db.PutJobsInChunks(newJobs); err != nil {
+		return fmt.Errorf("Failed to insert new jobs into the DB: %s", err)
 	}
 
 	return s.jCache.Update()
@@ -1407,46 +1431,46 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	// pushes tasks into the DB between executions of MainLoop, we need to
 	// update the cache here so that we see those changes.
 	if err := s.tCache.Update(); err != nil {
-		return err
+		return fmt.Errorf("Failed to update task cache: %s", err)
 	}
 
 	if err := s.jCache.Update(); err != nil {
-		return err
+		return fmt.Errorf("Failed to update job cache: %s", err)
 	}
 
 	if err := s.updateUnfinishedJobs(); err != nil {
-		return err
+		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
 	}
 
 	if err := s.bl.Update(); err != nil {
-		return err
+		return fmt.Errorf("Failed to update blacklist: %s", err)
 	}
 
 	wg2.Wait()
 	if e2 != nil {
-		return e2
+		return fmt.Errorf("Failed to update repos: %s", e2)
 	}
 
 	// Add Jobs for new commits.
 	if err := s.gatherNewJobs(ctx); err != nil {
-		return err
+		return fmt.Errorf("Failed to gather new jobs: %s", err)
 	}
 
 	// Regenerate the queue.
 	sklog.Infof("Task Scheduler regenerating the queue...")
 	queue, err := s.regenerateTaskQueue(ctx, now)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to regenerate task queue: %s", err)
 	}
 
 	wg1.Wait()
 	if e1 != nil {
-		return e1
+		return fmt.Errorf("Failed to retrieve free Swarming bots: %s", e1)
 	}
 
 	sklog.Infof("Task Scheduler scheduling tasks...")
 	if err := s.scheduleTasks(ctx, bots, queue); err != nil {
-		return err
+		return fmt.Errorf("Failed to schedule tasks: %s", err)
 	}
 
 	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
@@ -1726,14 +1750,14 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 		for _, t := range modifiedTasks {
 			tasks = append(tasks, t)
 		}
-		if err := s.db.PutTasks(tasks); err != nil {
+		if err := s.db.PutTasksInChunks(tasks); err != nil {
 			return err
 		} else if err := s.tCache.Update(); err != nil {
 			return err
 		}
 	}
 	if len(modifiedJobs) > 0 {
-		if err := s.db.PutJobs(modifiedJobs); err != nil {
+		if err := s.db.PutJobsInChunks(modifiedJobs); err != nil {
 			return err
 		} else if err := s.jCache.Update(); err != nil {
 			return err
