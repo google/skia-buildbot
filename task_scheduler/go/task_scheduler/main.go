@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"flag"
@@ -446,47 +445,6 @@ func jsonGetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// jsonTaskHandler parses a Task as JSON from the request and calls
-// TaskScheduler.ValidateAnd(Add|Update)Task, returning the updated Task as
-// JSON.
-func jsonTaskHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := webhook.AuthenticateRequest(r)
-	if err != nil {
-		if data == nil {
-			httputils.ReportError(w, r, err, "Failed to read request")
-			return
-		}
-		if !login.IsAdmin(r) {
-			httputils.ReportError(w, r, err, "Failed authentication")
-			return
-		}
-	}
-
-	var task types.Task
-	if err := json.NewDecoder(bytes.NewReader(data)).Decode(&task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		if err := ts.ValidateAndAddTask(context.Background(), &task); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add task: %s", err))
-			return
-		}
-	} else {
-		if err := ts.ValidateAndUpdateTask(&task); err != nil {
-			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to update task: %s", err))
-			return
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(task); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
-		return
-	}
-}
-
 // jsonJobSearchHandler allows for searching Jobs based on various parameters.
 func jsonJobSearchHandler(w http.ResponseWriter, r *http.Request) {
 	var params db.JobSearchParams
@@ -560,7 +518,6 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
 	r.HandleFunc("/json/job/{id}/cancel", login.RestrictEditorFn(jsonCancelJobHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
-	r.HandleFunc("/json/task", jsonTaskHandler).Methods(http.MethodPost, http.MethodPut)
 	r.HandleFunc("/json/task/{id}", jsonGetTaskHandler)
 	r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
 	r.HandleFunc("/json/tasks/search", jsonTaskSearchHandler)

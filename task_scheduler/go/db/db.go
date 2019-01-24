@@ -22,7 +22,7 @@ const (
 	// Expiration for GetModifiedTasks users.
 	MODIFIED_DATA_TIMEOUT = 30 * time.Minute
 
-	// Retries attempted by Update*WithRetries.
+	// Retries attempted by UpdateTasksWithRetries.
 	NUM_RETRIES = 5
 )
 
@@ -286,69 +286,6 @@ func NewModifiedData(t ModifiedTasks, j ModifiedJobs, c ModifiedComments) Modifi
 		ModifiedTasks:    t,
 		ModifiedJobs:     j,
 		ModifiedComments: c,
-	}
-}
-
-// UpdateJobsWithRetries wraps a call to db.PutJobs with retries. It calls
-// db.PutJobs(f()) repeatedly until one of the following happen:
-//  - f or db.PutJobs returns an error, which is then returned from
-//    UpdateJobsWithRetries;
-//  - PutJobs succeeds, in which case UpdateJobsWithRetries returns the updated
-//    Jobs returned by f;
-//  - retries are exhausted, in which case UpdateJobsWithRetries returns
-//    ErrConcurrentUpdate.
-//
-// Within f, jobs should be refreshed from the DB, e.g. with
-// db.GetModifiedJobs or db.GetJobById.
-// TODO(borenet): We probably don't need this; consider removing.
-func UpdateJobsWithRetries(db JobDB, f func() ([]*types.Job, error)) ([]*types.Job, error) {
-	var lastErr error
-	for i := 0; i < NUM_RETRIES; i++ {
-		t, err := f()
-		if err != nil {
-			return nil, err
-		}
-		lastErr = db.PutJobs(t)
-		if lastErr == nil {
-			return t, nil
-		} else if !IsConcurrentUpdate(lastErr) {
-			return nil, lastErr
-		}
-	}
-	sklog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
-	return nil, lastErr
-}
-
-// UpdateJobWithRetries reads, updates, and writes a single Job in the DB. It:
-//  1. reads the job with the given id,
-//  2. calls f on that job, and
-//  3. calls db.PutJob() on the updated job
-//  4. repeats from step 1 as long as PutJobs returns ErrConcurrentUpdate and
-//     retries have not been exhausted.
-// Returns the updated job if it was successfully updated in the DB.
-// Immediately returns ErrNotFound if db.GetJobById(id) returns nil.
-// Immediately returns any error returned from f or from PutJobs (except
-// ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
-// TODO(borenet): We probably don't need this; consider removing.
-func UpdateJobWithRetries(db JobDB, id string, f func(*types.Job) error) (*types.Job, error) {
-	jobs, err := UpdateJobsWithRetries(db, func() ([]*types.Job, error) {
-		t, err := db.GetJobById(id)
-		if err != nil {
-			return nil, err
-		}
-		if t == nil {
-			return nil, ErrNotFound
-		}
-		err = f(t)
-		if err != nil {
-			return nil, err
-		}
-		return []*types.Job{t}, nil
-	})
-	if err != nil {
-		return nil, err
-	} else {
-		return jobs[0], nil
 	}
 }
 

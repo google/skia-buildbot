@@ -58,8 +58,3 @@ func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {
 	testutils.SmallTest(t)
 	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB(nil))
 }
-
-func TestInMemoryJobDBUpdateJobsWithRetries(t *testing.T) {
-	testutils.SmallTest(t)
-	db.TestUpdateJobsWithRetries(t, NewInMemoryJobDB(nil))
-}

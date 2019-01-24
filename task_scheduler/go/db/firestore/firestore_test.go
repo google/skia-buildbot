@@ -76,12 +76,6 @@ func TestFirestoreDBJobDBConcurrentUpdate(t *testing.T) {
 	db.TestJobDBConcurrentUpdate(t, d)
 }
 
-func TestFirestoreDBJobDBUpdateJobsWithRetries(t *testing.T) {
-	d, cleanup := setup(t)
-	defer cleanup()
-	db.TestUpdateJobsWithRetries(t, d)
-}
-
 func TestFirestoreDBCommentDB(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
