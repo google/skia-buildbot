@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05b80699_66525fe7",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-24T15:15:47Z",
+      "side": 1,
+      "message": "An alternative would be to have Put*InChunks return either a slice of the successfully-inserted tasks/jobs or the index of the last-successfully-inserted task/job so that the caller can handle partial insertions like this.",
+      "range": {
+        "startLine": 458,
+        "startChar": 2,
+        "endLine": 464,
+        "endChar": 3
+      },
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
