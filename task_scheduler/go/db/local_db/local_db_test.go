@@ -667,14 +667,6 @@ func TestLocalDBJobDBConcurrentUpdate(t *testing.T) {
 	db.TestJobDBConcurrentUpdate(t, d)
 }
 
-func TestLocalDBJobDBUpdateJobsWithRetries(t *testing.T) {
-	testutils.MediumTest(t)
-	d, tmpdir := makeDB(t, "TestLocalDBJobDBUpdateJobsWithRetries")
-	defer util.RemoveAll(tmpdir)
-	defer testutils.AssertCloses(t, d)
-	db.TestUpdateJobsWithRetries(t, d)
-}
-
 func TestLocalDBCommentDB(t *testing.T) {
 	testutils.MediumTest(t)
 	d, tmpdir := makeDB(t, "TestLocalDBCommentDB")

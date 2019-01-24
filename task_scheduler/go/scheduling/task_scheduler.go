@@ -1183,7 +1183,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 
 	if len(insert) > 0 {
 		// Insert the newly-triggered tasks into the DB.
-		if err := s.AddTasks(ctx, insert); err != nil {
+		if err := s.addTasks(ctx, insert); err != nil {
 			errs = append(errs, fmt.Errorf("Triggered tasks but failed to insert into DB: %s", err))
 		} else {
 			// Remove the tasks from the pending map.
@@ -1837,13 +1837,13 @@ func (s *TaskScheduler) addTasksSingleTaskSpec(ctx context.Context, tasks []*typ
 	return s.db.PutTasks(putTasks)
 }
 
-// AddTasks inserts the given tasks into the TaskDB, updating blamelists. The
+// addTasks inserts the given tasks into the TaskDB, updating blamelists. The
 // provided Tasks should have all fields initialized except for Commits, which
 // will be overwritten, and optionally Id, which will be assigned if necessary.
-// AddTasks updates existing Tasks' blamelists, if needed. The provided map
+// addTasks updates existing Tasks' blamelists, if needed. The provided map
 // groups Tasks by repo and TaskSpec name. May return error on partial success.
 // May modify Commits and Id of argument tasks on error.
-func (s *TaskScheduler) AddTasks(ctx context.Context, taskMap map[string]map[string][]*types.Task) error {
+func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[string][]*types.Task) error {
 	type queueItem struct {
 		Repo string
 		Name string
@@ -1907,94 +1907,9 @@ func (s *TaskScheduler) AddTasks(ctx context.Context, taskMap map[string]map[str
 	}
 
 	if len(queue) > 0 {
-		return fmt.Errorf("AddTasks: %d consecutive ErrConcurrentUpdate", db.NUM_RETRIES)
+		return fmt.Errorf("addTasks: %d consecutive ErrConcurrentUpdate", db.NUM_RETRIES)
 	}
 	return nil
-}
-
-// ValidateAndAddTask inserts the given task into the TaskDB, updating
-// blamelists. Checks that the task has a valid repo, revision, name, etc. The
-// task should have all fields initialized except for Commits and Id, which must
-// be empty. Updates existing Tasks' blamelists, if needed. May modify Commits
-// and Id on error.
-func (s *TaskScheduler) ValidateAndAddTask(ctx context.Context, task *types.Task) error {
-	if task.Id != "" {
-		return fmt.Errorf("Can not specify Id when adding task. Got: %q", task.Id)
-	}
-	if err := task.Validate(); err != nil {
-		return err
-	}
-	if !task.Fake() {
-		return fmt.Errorf("Only fake tasks supported currently.")
-	}
-
-	// Check RepoState and TaskSpec.
-	taskCfg, err := s.taskCfgCache.ReadTasksCfg(ctx, task.RepoState)
-	if err != nil {
-		return err
-	}
-	_, taskSpecExists := taskCfg.Tasks[task.Name]
-	if taskSpecExists {
-		return fmt.Errorf("Can not add a fake task for a real task spec.")
-	}
-
-	if util.TimeIsZero(task.Created) {
-		task.Created = time.Now().UTC()
-	}
-	if len(task.Commits) > 0 {
-		sklog.Warningf("Ignoring Commits in ValidateAndAddTask. %v", task)
-	}
-	task.Commits = nil
-
-	return s.AddTasks(ctx, map[string]map[string][]*types.Task{
-		task.Repo: {
-			task.Name: {task},
-		},
-	})
-}
-
-// ValidateAndUpdateTask modifies the given task in the TaskDB. Ensures the
-// task's blamelist, repo, revision, etc. do not change. The task should have
-// all fields initialized.
-func (s *TaskScheduler) ValidateAndUpdateTask(task *types.Task) error {
-	return validateAndUpdateTask(s.db, task)
-}
-
-// validateAndUpdateTask implements ValidateAndUpdateTask. Function instead of
-// method for easier testing.
-func validateAndUpdateTask(d db.TaskDB, task *types.Task) error {
-	if task.Id == "" {
-		return fmt.Errorf("Must specify Id when updating task.")
-	}
-	if err := task.Validate(); err != nil {
-		return err
-	}
-	if !task.Fake() {
-		return fmt.Errorf("Only fake tasks supported currently.")
-	}
-
-	old, err := d.GetTaskById(task.Id)
-	if err != nil {
-		return err
-	} else if old == nil {
-		return fmt.Errorf("No such task %q.", task.Id)
-	}
-	if !old.Fake() {
-		return fmt.Errorf("Can not overwrite real task with fake task.")
-	}
-	if !old.DbModified.Equal(task.DbModified) {
-		return db.ErrConcurrentUpdate
-	}
-	if !old.Created.Equal(task.Created) {
-		return fmt.Errorf("Illegal update: Created time changed.")
-	}
-	if old.TaskKey != task.TaskKey {
-		return fmt.Errorf("Illegal update: TaskKey changed.")
-	}
-	if !util.SSliceEqual(old.Commits, util.CopyStringSlice(task.Commits)) {
-		return fmt.Errorf("Illegal update: Commits changed.")
-	}
-	return d.PutTask(task)
 }
 
 // HandleSwarmingPubSub loads the given Swarming task ID from Swarming and
