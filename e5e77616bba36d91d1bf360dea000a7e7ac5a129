@@ -2,6 +2,103 @@
   "comments": [
     {
       "key": {
+        "uuid": "34c5b234_b665e50f",
+        "filename": "task_scheduler/go/db/local_db/local_db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T16:27:31Z",
+      "side": 1,
+      "message": "To make sure we\u0027ve made the correct changes, it might be useful to make PutTasks log a message if len(tasks) \u003e firestore.MAX_TRANSACTION_DOCS. (Would need to rename the original method putTasksInternal or something.) Same for PutJobs.",
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "418df0c1_5219d979",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 988,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T16:27:31Z",
+      "side": 1,
+      "message": "nit: seems like this comment belongs on SCHEDULING_LIMIT_PER_TASK_SPEC, since that\u0027s where we divide by 2.",
+      "range": {
+        "startLine": 984,
+        "startChar": 5,
+        "endLine": 988,
+        "endChar": 60
+      },
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a520263b_e42feb20",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T16:27:31Z",
+      "side": 1,
+      "message": "nit: maybe change this to \u003d\u003d so we only get one log message if there are tons of tasks.",
+      "range": {
+        "startLine": 989,
+        "startChar": 29,
+        "endLine": 989,
+        "endChar": 31
+      },
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c026deb2_94f962a5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1306,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T16:27:31Z",
+      "side": 1,
+      "message": "We should watch this timer after deploying to make sure it\u0027s OK.",
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ee189b3_58207569",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1340,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T16:27:31Z",
+      "side": 1,
+      "message": "nit: maybe comment \"GetJobsByRepoState won\u0027t return tryjobs without a tryjob RepoState\"",
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "05b80699_66525fe7",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 1
@@ -13,6 +110,30 @@
       "writtenOn": "2019-01-24T15:15:47Z",
       "side": 1,
       "message": "An alternative would be to have Put*InChunks return either a slice of the successfully-inserted tasks/jobs or the index of the last-successfully-inserted task/job so that the caller can handle partial insertions like this.",
+      "range": {
+        "startLine": 458,
+        "startChar": 2,
+        "endLine": 464,
+        "endChar": 3
+      },
+      "revId": "e5e77616bba36d91d1bf360dea000a7e7ac5a129",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acd1f878_78683c2b",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T16:27:31Z",
+      "side": 1,
+      "message": "IMO the best solution would be for util.ChunkIter to return a new error type util.ChunkIterError with fields for the original error and the chunk where the error occurred. If I were writing it, then in the case that there\u0027s only one chunk or the first chunk fails, I would have ChunkIterError.Error return the original error message; otherwise give details of the partial failure. (The other alternative is to return the original error when there is no partial success, but that means the caller always has to type-check the error before casting, which I don\u0027t like as much.)\n\nBut what you\u0027ve written looks fine to me. Just a little abstraction violation, but I think we\u0027re already past the point of leaky abstractions dealing with the firestore transaction doc limit.",
+      "parentUuid": "05b80699_66525fe7",
       "range": {
         "startLine": 458,
         "startChar": 2,
