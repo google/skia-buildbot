@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -64,6 +65,9 @@ func (d *inMemoryTaskDB) PutTask(task *types.Task) error {
 
 // See docs for TaskDB interface.
 func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
+	if len(tasks) > firestore.MAX_TRANSACTION_DOCS {
+		sklog.Errorf("Inserting %d tasks, which is more than the Firestore maximum of %d; consider switching to PutTasksInChunks.", len(tasks), firestore.MAX_TRANSACTION_DOCS)
+	}
 	d.tasksMtx.Lock()
 	defer d.tasksMtx.Unlock()
 
@@ -97,6 +101,13 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 		d.TrackModifiedTask(task)
 	}
 	return nil
+}
+
+// See docs for TaskDB interface.
+func (d *inMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
+	return util.ChunkIter(len(tasks), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
+		return d.PutTasks(tasks[i:j])
+	})
 }
 
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
@@ -159,6 +170,9 @@ func (d *inMemoryJobDB) PutJob(job *types.Job) error {
 
 // See docs for JobDB interface.
 func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
+	if len(jobs) > firestore.MAX_TRANSACTION_DOCS {
+		sklog.Errorf("Inserting %d jobs, which is more than the Firestore maximum of %d; consider switching to PutJobsInChunks.", len(jobs), firestore.MAX_TRANSACTION_DOCS)
+	}
 	d.jobsMtx.Lock()
 	defer d.jobsMtx.Unlock()
 
@@ -191,6 +205,13 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 		d.TrackModifiedJob(job)
 	}
 	return nil
+}
+
+// See docs for JobDB interface.
+func (d *inMemoryJobDB) PutJobsInChunks(jobs []*types.Job) error {
+	return util.ChunkIter(len(jobs), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
+		return d.PutJobs(jobs[i:j])
+	})
 }
 
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB

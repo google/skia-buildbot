@@ -52,11 +52,17 @@ func (b *clientWithBackdoor) PutTask(task *types.Task) error {
 func (b *clientWithBackdoor) PutTasks(tasks []*types.Task) error {
 	return b.backdoor.PutTasks(tasks)
 }
+func (b *clientWithBackdoor) PutTasksInChunks(tasks []*types.Task) error {
+	return b.PutTasks(tasks)
+}
 func (b *clientWithBackdoor) PutJob(job *types.Job) error {
 	return b.backdoor.PutJob(job)
 }
 func (b *clientWithBackdoor) PutJobs(jobs []*types.Job) error {
 	return b.backdoor.PutJobs(jobs)
+}
+func (b *clientWithBackdoor) PutJobsInChunks(jobs []*types.Job) error {
+	return b.PutJobs(jobs)
 }
 
 type reqCountingTransport struct {

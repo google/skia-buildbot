@@ -3314,7 +3314,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
 	swarmingClient.MockTriggerTaskFailure(makeTags(commits[4]))
 	err := s.MainLoop(ctx)
-	assert.EqualError(t, err, "Got failures: \nFailed to trigger task: Mocked trigger failure!\n")
+	assert.EqualError(t, err, "Failed to schedule tasks: Got failures: \nFailed to trigger task: Mocked trigger failure!\n")
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 6, len(s.queue))
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)

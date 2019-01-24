@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
@@ -180,7 +181,7 @@ func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 			insert = append(insert, j)
 		}
 	}
-	if err := t.db.PutJobs(insert); err != nil {
+	if err := t.db.PutJobsInChunks(insert); err != nil {
 		errs = append(errs, err)
 	}
 
@@ -303,7 +304,7 @@ func (t *TryJobIntegrator) localCancelJobs(jobs []*types.Job) error {
 		j.Status = types.JOB_STATUS_CANCELED
 		j.Finished = time.Now()
 	}
-	return t.db.PutJobs(jobs)
+	return t.db.PutJobsInChunks(jobs)
 }
 
 func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
@@ -452,8 +453,15 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 	}
 
 	// Insert Jobs into the database.
+	insertedJobs := make([]*types.Job, 0, len(jobs))
 	if len(jobs) > 0 {
-		if err := t.db.PutJobs(jobs); err != nil {
+		if err := util.ChunkIter(len(jobs), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
+			if err := t.db.PutJobs(jobs[i:j]); err != nil {
+				return err
+			}
+			insertedJobs = append(insertedJobs, jobs[i:j]...)
+			return nil
+		}); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -466,7 +474,7 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 	// include the Job ID with the notification, so we have to insert the
 	// Job into the DB first.
 	cancelJobs := []*types.Job{}
-	for _, j := range jobs {
+	for _, j := range insertedJobs {
 		if err := t.jobStarted(j); err != nil {
 			errs = append(errs, err)
 			cancelJobs = append(cancelJobs, j)
