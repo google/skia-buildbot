@@ -21,11 +21,13 @@ import (
 
 // Well known keys for Incident.Params.
 const (
-	ALERT_NAME  = "alertname"
-	CATEGORY    = "category"
-	SEVERITY    = "severity"
-	ID          = "id"
-	ASSIGNED_TO = "assigned_to"
+	ALERT_NAME       = "alertname"
+	CATEGORY         = "category"
+	SEVERITY         = "severity"
+	ID               = "id"
+	ASSIGNED_TO      = "assigned_to"
+	OWNER            = "owner"
+	ABBR_OWNER_REGEX = "abbr_owner_regex"
 )
 
 const (
@@ -135,6 +137,8 @@ func (s *Store) idForAlert(m map[string]string) (string, error) {
 // inFromAlert creates an Incident from an alert.
 func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 	m[ID] = id
+	// rmistry - check for owner regex here and assign an owner if it does not already exist!
+
 	now := time.Now().Unix()
 	return &Incident{
 		Active:   true,
