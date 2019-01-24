@@ -128,8 +128,17 @@ type TaskDB interface {
 
 	// PutTasks inserts or updates the Tasks in the database. Each Task's Id field
 	// must be empty or set with AssignId. Each Task's DbModified field will be
-	// set.
+	// set. All modifications are performed in a single transaction; the
+	// caller must determine what to do when there are too many Tasks to be
+	// inserted at once for a given TaskDB implementation. Use only when
+	// consistency is important; otherwise, callers should use
+	// PutTasksInChunks.
 	PutTasks([]*types.Task) error
+
+	// PutTasksInChunks is like PutTasks but inserts Tasks in multiple
+	// transactions. Not appropriate for updates in which consistency is
+	// important.
+	PutTasksInChunks([]*types.Task) error
 }
 
 // UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
@@ -261,8 +270,17 @@ type JobDB interface {
 
 	// PutJobs inserts or updates the Jobs in the database. Each Jobs' Id
 	// field must be empty if it is a new Job. Each Jobs' DbModified field
-	// will be set.
+	// will be set. All modifications are performed in a single transaction;
+	// the caller must determine what to do when there are too many Jobs to
+	// be inserted at once for a given JobDB implementation. Use only when
+	// consistency is important; otherwise, callers should use
+	// PutJobsInChunks.
 	PutJobs([]*types.Job) error
+
+	// PutJobsInChunks is like PutJobs but inserts Jobs in multiple
+	// transactions. Not appropriate for updates in which consistency is
+	// important.
+	PutJobsInChunks([]*types.Job) error
 }
 
 // ModifiedData combines ModifiedTasks, ModifiedJobs, and ModifiedComments.

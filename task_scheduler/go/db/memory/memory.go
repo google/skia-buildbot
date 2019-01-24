@@ -99,6 +99,11 @@ func (d *inMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 	return nil
 }
 
+// See docs for TaskDB interface.
+func (d *inMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
+	return d.PutTasks(tasks)
+}
+
 // NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
 func NewInMemoryTaskDB(modTasks db.ModifiedTasks) db.TaskDB {
@@ -191,6 +196,11 @@ func (d *inMemoryJobDB) PutJobs(jobs []*types.Job) error {
 		d.TrackModifiedJob(job)
 	}
 	return nil
+}
+
+// See docs for JobDB interface.
+func (d *inMemoryJobDB) PutJobsInChunks(jobs []*types.Job) error {
+	return d.PutJobs(jobs)
 }
 
 // NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB

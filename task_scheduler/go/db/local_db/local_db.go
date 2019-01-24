@@ -682,6 +682,11 @@ func (d *localDB) PutTasks(tasks []*types.Task) error {
 	return nil
 }
 
+// See documentation for TaskDB interface.
+func (d *localDB) PutTasksInChunks(tasks []*types.Task) error {
+	return d.PutTasks(tasks)
+}
+
 // Sets job.Id based on job.Created. tx must be an update transaction.
 func (d *localDB) assignJobId(tx *bolt.Tx, job *types.Job) error {
 	if job.Id != "" {
@@ -861,6 +866,11 @@ func (d *localDB) PutJobs(jobs []*types.Job) error {
 		d.TrackModifiedJobsGOB(now, gobs)
 	}
 	return nil
+}
+
+// See documentation for JobDB interface.
+func (d *localDB) PutJobsInChunks(jobs []*types.Job) error {
+	return d.PutJobs(jobs)
 }
 
 // writeCommentsMap is passed to db.NewCommentBoxWithPersistence to persist

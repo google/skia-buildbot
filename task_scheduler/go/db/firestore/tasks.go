@@ -170,8 +170,8 @@ func (d *firestoreDB) PutTask(task *types.Task) error {
 
 // See documentation for types.TaskDB interface.
 func (d *firestoreDB) PutTasks(tasks []*types.Task) error {
-	if len(tasks) > MAX_TRANSACTION_DOCS/2 {
-		sklog.Warningf("Inserting %d tasks; Firestore maximum per transaction is %d", len(tasks), MAX_TRANSACTION_DOCS)
+	if len(tasks) > MAX_TRANSACTION_DOCS {
+		return fmt.Errorf("Tried to insert %d tasks but Firestore maximum per transaction is %d.", len(tasks), MAX_TRANSACTION_DOCS)
 	}
 	for _, task := range tasks {
 		if task.Id == "" {
@@ -191,4 +191,11 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) error {
 		d.TrackModifiedTask(task)
 	}
 	return nil
+}
+
+// See documentation for types.TaskDB interface.
+func (d *firestoreDB) PutTasksInChunks(tasks []*types.Task) error {
+	return util.ChunkIter(len(tasks), MAX_TRANSACTION_DOCS, func(i, j int) error {
+		return d.PutTasks(tasks[i:j])
+	})
 }
