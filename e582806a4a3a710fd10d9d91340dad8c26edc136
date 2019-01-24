@@ -1,0 +1,475 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07b4b152_5c483660",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "Note that the panic could have occurred after the response header has been sent and/or after the response has been partially written. I couldn\u0027t really tell from the documentation whether it\u0027s OK to call this function in that case, but I think it\u0027s OK based on this code: https://golang.org/src/net/http/server.go#L1101",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fc4fd587_b83ba25c",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: doesn\u0027t seem like a good idea to use .. in your default value.\n\nAlso, I\u0027m wondering if it would be easier to have a single \"workdir\" flag with both gitRepoDir and serviceAccountFile set to paths under the workdir.",
+      "range": {
+        "startLine": 35,
+        "startChar": 51,
+        "endLine": 35,
+        "endChar": 64
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "447554db_aa6fb2da",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: this is in main, so context.Background() seems more appropriate.",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 22
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d119fbf6_c2b17ac1",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: should be deferred at the beginning of the function",
+      "range": {
+        "startLine": 431,
+        "startChar": 2,
+        "endLine": 431,
+        "endChar": 11
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "474e7f2c_3fc3811f",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: since this is main, context.Background() is ok",
+      "range": {
+        "startLine": 453,
+        "startChar": 24,
+        "endLine": 453,
+        "endChar": 38
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "787ed479_4c618a2f",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 37,
+        "startChar": 64,
+        "endLine": 37,
+        "endChar": 67
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5884c5a3_2ae7e327",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 50,
+        "startChar": 3,
+        "endLine": 50,
+        "endChar": 23
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d8c7045_c8e7362d",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "Was this meant to be gTrace.Values[idx]? If not, this code doesn\u0027t make any sense to me -- digest will always be types.MISSING_DIGEST.\n\nIt might be a good idea to add more tests for this function.",
+      "range": {
+        "startLine": 74,
+        "startChar": 9,
+        "endLine": 74,
+        "endChar": 15
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51dbe200_22b4ef0d",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "typo",
+      "parentUuid": "dd6e5b6e_74f9dbc0",
+      "range": {
+        "startLine": 121,
+        "startChar": 23,
+        "endLine": 121,
+        "endChar": 28
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2784c1a4_a7cc4a43",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: seems like CommitDelta should be non-zero.",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10286b82_94460f71",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: missing new fields here: CommitDelta, Total, Filled",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "693d75ac_913c6377",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: Would be nice to see tests for the changes to this file.",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f11d5fa5_071ad203",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "Is this done?",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 31,
+        "endChar": 62
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d7c56937_b8fb536e",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: doc keys and values for lastWrittenBaselines, baselineCache, issueBaselineCache",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5c87a63_dc10be83",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "It seems we want this to be len(perCommitBaselines).\n\nWith that change, I don\u0027t see anything that uses writeBaselines, so the above loop can be removed.",
+      "range": {
+        "startLine": 99,
+        "startChar": 40,
+        "endLine": 99,
+        "endChar": 54
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "619c455d_b5904918",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "Need to lock wMutex when modifying written",
+      "range": {
+        "startLine": 106,
+        "startChar": 3,
+        "endLine": 106,
+        "endChar": 10
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52a3d99f_6b716150",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: could use defer",
+      "range": {
+        "startLine": 119,
+        "startChar": 4,
+        "endLine": 119,
+        "endChar": 19
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f568bd9_acdf48c4",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "typo repeated word",
+      "range": {
+        "startLine": 149,
+        "startChar": 25,
+        "endLine": 149,
+        "endChar": 31
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35a33730_087bfb66",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: Would be nice to see a unit test for IsSparseTile.",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f72a9b33_88607769",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "Is this correct? It seems strange, because this function sets lastTrimmedTile to the resulting tile. Seems like a chicken-and-egg problem.",
+      "range": {
+        "startLine": 169,
+        "startChar": 33,
+        "endLine": 169,
+        "endChar": 50
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf226edd_b246a0f3",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 311,
+        "startChar": 85,
+        "endLine": 312,
+        "endChar": 13
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f92d1b2_9a83ce2a",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-24T20:20:01Z",
+      "side": 1,
+      "message": "nit: Would be nice to see a unit test of this function.",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
