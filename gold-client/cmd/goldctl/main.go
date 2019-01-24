@@ -29,7 +29,7 @@ It can be used directly or in a scripted environment. `,
 
 	// Execute the root command.
 	if err := rootCmd.Execute(); err != nil {
-		logErrAndExit(rootCmd, err)
+		os.Exit(1)
 	}
 }
 
