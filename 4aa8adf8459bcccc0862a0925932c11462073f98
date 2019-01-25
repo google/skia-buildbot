@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "169b2c8c_e8d24ba2",
+        "filename": "am/go/incident/incident.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-25T20:08:37Z",
+      "side": 1,
+      "message": "Maybe we should log and continue so that a bad abbr_owner_regex doesn\u0027t cause the alert to disappear.",
+      "range": {
+        "startLine": 184,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 4
+      },
+      "revId": "4aa8adf8459bcccc0862a0925932c11462073f98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94195a79_e12cf954",
+        "filename": "am/go/incident/incident_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-25T20:08:37Z",
+      "side": 1,
+      "message": "Good point, we don\u0027t want to alert Batman if just any joker comes around, it has to be *The* Joker.",
+      "range": {
+        "startLine": 179,
+        "startChar": 55,
+        "endLine": 179,
+        "endChar": 60
+      },
+      "revId": "4aa8adf8459bcccc0862a0925932c11462073f98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
