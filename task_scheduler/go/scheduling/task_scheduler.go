@@ -1904,7 +1904,9 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 			go func(item queueItem, tasks []*types.Task) {
 				defer wg.Done()
 				if err := s.addTasksSingleTaskSpec(ctx, tasks); err != nil {
-					errs <- err
+					if !db.IsConcurrentUpdate(err) {
+						errs <- fmt.Errorf("Error adding tasks for %s (in repo %s): %s", item.Name, item.Repo, err)
+					}
 				} else {
 					done <- item
 				}
@@ -1920,10 +1922,8 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 		}
 		rvErrs := []error{}
 		for err := range errs {
-			if !db.IsConcurrentUpdate(err) {
-				sklog.Error(err)
-				rvErrs = append(rvErrs, err)
-			}
+			sklog.Error(err)
+			rvErrs = append(rvErrs, err)
 		}
 		if len(rvErrs) != 0 {
 			return rvErrs[0]
@@ -1931,7 +1931,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 	}
 
 	if len(queue) > 0 {
-		return fmt.Errorf("addTasks: %d consecutive ErrConcurrentUpdate", db.NUM_RETRIES)
+		return fmt.Errorf("addTasks: %d consecutive ErrConcurrentUpdate; %d of %d TaskSpecs failed. %#v", db.NUM_RETRIES, len(queue), len(taskMap), queue)
 	}
 	return nil
 }
