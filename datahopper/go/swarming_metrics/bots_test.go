@@ -293,9 +293,9 @@ func TestRebootRequiredMetrics(t *testing.T) {
 	assert.NoError(t, err)
 
 	expected := map[string]string{
-		"my-bot-empty-state":        "0.0",
-		"my-bot-no-reboot-required": "0.0",
-		"my-bot-reboot-required":    "1.0",
+		"my-bot-empty-state":        "0",
+		"my-bot-no-reboot-required": "0",
+		"my-bot-reboot-required":    "1",
 	}
 	for bot, v := range expected {
 		tags := map[string]string{
@@ -346,7 +346,7 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 			Quarantined: false,
 		},
 	}
-	windowsSkoloOSVersionCountHelper(t, now, bots0, "0.0")
+	windowsSkoloOSVersionCountHelper(t, now, bots0, "0")
 
 	genBot := func(id, winVer string) *swarming_api.SwarmingRpcsBotInfo {
 		return &swarming_api.SwarmingRpcsBotInfo{
@@ -366,7 +366,7 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 		genBot("my-bot3", "Windows-10-17134.345"),
 		genBot("my-bot4", "Windows-10-17134.345"),
 	}
-	windowsSkoloOSVersionCountHelper(t, now, bots1, "1.0")
+	windowsSkoloOSVersionCountHelper(t, now, bots1, "1")
 
 	// Two different versions.
 	bots2 := []*swarming_api.SwarmingRpcsBotInfo{
@@ -375,5 +375,5 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 		genBot("my-bot3", "Windows-10-17134.345"),
 		genBot("my-bot4", "Windows-10-17134.228"),
 	}
-	windowsSkoloOSVersionCountHelper(t, now, bots2, "2.0")
+	windowsSkoloOSVersionCountHelper(t, now, bots2, "2")
 }
