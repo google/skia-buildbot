@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9f32c9c_23c5361a",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-25T18:10:48Z",
+      "side": 1,
+      "message": "I don\u0027t think this will work. The docs for RunTransaction state that it could call fn multiple times before returning an error. onerror won\u0027t be called between calls to fn in that case.\n\nhttps://godoc.org/cloud.google.com/go/firestore#Client.RunTransaction",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 3
+      },
+      "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "276022b5_d2dcb9cb",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-25T18:10:48Z",
+      "side": 1,
+      "message": "nit: add %v of job to error",
+      "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74198718_f56962c1",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-25T18:10:48Z",
+      "side": 1,
+      "message": "It seems like this is not really necessary between retries, since it\u0027s just going to be overwritten in the loop above.",
+      "range": {
+        "startLine": 171,
+        "startChar": 2,
+        "endLine": 174,
+        "endChar": 3
+      },
+      "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
