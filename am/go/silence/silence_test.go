@@ -80,9 +80,10 @@ func TestStore(t *testing.T) {
 	assert.Len(t, archived, 1)
 	assert.Equal(t, "fred@example.org", archived[0].User)
 
-	reactivated, err := st.Reactivate(archived[0].Key, "wilma@example.org")
+	reactivated, err := st.Reactivate(archived[0].Key, "3h", "wilma@example.org")
 	assert.NoError(t, err)
 	assert.True(t, reactivated.Active)
+	assert.Equal(t, "3h", reactivated.Duration)
 	assert.Len(t, reactivated.Notes, 1)
 	assert.Equal(t, "wilma@example.org", reactivated.Notes[0].Author)
 }
