@@ -82,30 +82,7 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, 
 
 // putJobs sets the contents of the given jobs in Firestore, as part of the
 // given transaction. It is used by PutJob and PutJobs.
-func (d *firestoreDB) putJobs(jobs []*types.Job, tx *fs.Transaction) (rvErr error) {
-	// Set the modification time of the jobs.
-	now := fixTimestamp(time.Now())
-	isNew := make([]bool, len(jobs))
-	prevModified := make([]time.Time, len(jobs))
-	for idx, job := range jobs {
-		if util.TimeIsZero(job.Created) {
-			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
-		}
-		isNew[idx] = util.TimeIsZero(job.DbModified)
-		prevModified[idx] = job.DbModified
-		if !now.After(job.DbModified) {
-			return fmt.Errorf("Job modification time is in the future: %s (current time is %s)", job.DbModified, now)
-		}
-		job.DbModified = now
-	}
-	defer func() {
-		if rvErr != nil {
-			for idx, job := range jobs {
-				job.DbModified = prevModified[idx]
-			}
-		}
-	}()
-
+func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []time.Time, tx *fs.Transaction) (rvErr error) {
 	// Find the previous versions of the jobs. Ensure that they weren't
 	// updated concurrently.
 	refs := make([]*fs.DocumentRef, 0, len(jobs))
@@ -120,7 +97,7 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, tx *fs.Transaction) (rvErr erro
 		if !doc.Exists() {
 			// This is expected for new jobs.
 			if !isNew[idx] {
-				sklog.Errorf("Job is not new but wasn't found in the DB.")
+				sklog.Errorf("Job is not new but wasn't found in the DB: %+v", jobs[idx])
 				// If the job is supposed to exist but does not, then
 				// we have a problem.
 				return db.ErrConcurrentUpdate
@@ -128,6 +105,11 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, tx *fs.Transaction) (rvErr erro
 		} else if isNew[idx] {
 			// If the job is not supposed to exist but does, then
 			// we have a problem.
+			var old types.Job
+			if err := doc.DataTo(&old); err != nil {
+				return fmt.Errorf("Job has no DbModified timestamp but already exists in the DB. Failed to decode previous job with: %s", err)
+			}
+			sklog.Errorf("Job has no DbModified timestamp but already exists in the DB! \"New\" job:\n%+v\nExisting job:\n%+v", jobs[idx], old)
 			return db.ErrConcurrentUpdate
 		}
 		// If the job already exists, check the DbModified timestamp
@@ -159,19 +141,49 @@ func (d *firestoreDB) PutJob(job *types.Job) error {
 }
 
 // See documentation for types.JobDB interface.
-func (d *firestoreDB) PutJobs(jobs []*types.Job) error {
+func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	if len(jobs) > MAX_TRANSACTION_DOCS {
 		return fmt.Errorf("Tried to insert %d jobs but Firestore maximum per transaction is %d.", len(jobs), MAX_TRANSACTION_DOCS)
 	}
+
+	// Record the previous ID and DbModified timestamp. We'll reset these
+	// if we fail to insert the jobs into the DB.
+	now := fixTimestamp(time.Now())
+	isNew := make([]bool, len(jobs))
+	prevId := make([]string, len(jobs))
+	prevModified := make([]time.Time, len(jobs))
+	for idx, job := range jobs {
+		if util.TimeIsZero(job.Created) {
+			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
+		}
+		if !now.After(job.DbModified) {
+			return fmt.Errorf("Job modification time is in the future: %s (current time is %s)", job.DbModified, now)
+		}
+		isNew[idx] = util.TimeIsZero(job.DbModified)
+		prevId[idx] = job.Id
+		prevModified[idx] = job.DbModified
+	}
+	defer func() {
+		if rvErr != nil {
+			for idx, job := range jobs {
+				job.Id = prevId[idx]
+				job.DbModified = prevModified[idx]
+			}
+		}
+	}()
+
+	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, job := range jobs {
 		if job.Id == "" {
 			job.Id = d.jobs().NewDoc().ID
 		}
+		job.DbModified = now
 		fixJobTimestamps(job)
 	}
 
+	// Insert the jobs into the DB.
 	if err := firestore.RunTransaction(d.client, DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
-		return d.putJobs(jobs, tx)
+		return d.putJobs(jobs, isNew, prevModified, tx)
 	}); err != nil {
 		return err
 	}

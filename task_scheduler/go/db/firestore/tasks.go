@@ -91,30 +91,7 @@ func (d *firestoreDB) AssignId(task *types.Task) error {
 
 // putTasks sets the contents of the given tasks in Firestore, as part of the
 // given transaction. It is used by PutTask and PutTasks.
-func (d *firestoreDB) putTasks(tasks []*types.Task, tx *fs.Transaction) (rvErr error) {
-	// Set the modification time of the tasks.
-	now := fixTimestamp(time.Now())
-	isNew := make([]bool, len(tasks))
-	prevModified := make([]time.Time, len(tasks))
-	for idx, task := range tasks {
-		if util.TimeIsZero(task.Created) {
-			return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
-		}
-		isNew[idx] = util.TimeIsZero(task.DbModified)
-		prevModified[idx] = task.DbModified
-		if !now.After(task.DbModified) {
-			return fmt.Errorf("Task modification time is in the future: %s (current time is %s)", task.DbModified, now)
-		}
-		task.DbModified = now
-	}
-	defer func() {
-		if rvErr != nil {
-			for idx, task := range tasks {
-				task.DbModified = prevModified[idx]
-			}
-		}
-	}()
-
+func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified []time.Time, tx *fs.Transaction) error {
 	// Find the previous versions of the tasks. Ensure that they weren't
 	// updated concurrently.
 	refs := make([]*fs.DocumentRef, 0, len(tasks))
@@ -129,7 +106,7 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, tx *fs.Transaction) (rvErr e
 		if !doc.Exists() {
 			// This is expected for new tasks.
 			if !isNew[idx] {
-				sklog.Errorf("Task is not new but wasn't found in the DB.")
+				sklog.Errorf("Task is not new but wasn't found in the DB: %+v", tasks[idx])
 				// If the task is supposed to exist but does not, then
 				// we have a problem.
 				return db.ErrConcurrentUpdate
@@ -137,7 +114,11 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, tx *fs.Transaction) (rvErr e
 		} else if isNew[idx] {
 			// If the task is not supposed to exist but does, then
 			// we have a problem.
-			sklog.Errorf("Task has no DbModified timestamp but already exists in the DB!")
+			var old types.Task
+			if err := doc.DataTo(&old); err != nil {
+				return fmt.Errorf("Task has no DbModified timestamp but already exists in the DB. Failed to decode previous task with: %s", err)
+			}
+			sklog.Errorf("Task has no DbModified timestamp but already exists in the DB! \"New\" task:\n%+v\nExisting task:\n%+v", tasks[idx], old)
 			return db.ErrConcurrentUpdate
 		}
 		// If the task already exists, check the DbModified timestamp
@@ -169,21 +150,51 @@ func (d *firestoreDB) PutTask(task *types.Task) error {
 }
 
 // See documentation for types.TaskDB interface.
-func (d *firestoreDB) PutTasks(tasks []*types.Task) error {
+func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 	if len(tasks) > MAX_TRANSACTION_DOCS {
 		return fmt.Errorf("Tried to insert %d tasks but Firestore maximum per transaction is %d.", len(tasks), MAX_TRANSACTION_DOCS)
 	}
+
+	// Record the previous ID and DbModified timestamp. We'll reset these
+	// if we fail to insert the tasks into the DB.
+	now := fixTimestamp(time.Now())
+	isNew := make([]bool, len(tasks))
+	prevId := make([]string, len(tasks))
+	prevModified := make([]time.Time, len(tasks))
+	for idx, task := range tasks {
+		if util.TimeIsZero(task.Created) {
+			return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
+		}
+		if !now.After(task.DbModified) {
+			return fmt.Errorf("Task modification time is in the future: %s (current time is %s)", task.DbModified, now)
+		}
+		isNew[idx] = util.TimeIsZero(task.DbModified)
+		prevId[idx] = task.Id
+		prevModified[idx] = task.DbModified
+	}
+	defer func() {
+		if rvErr != nil {
+			for idx, task := range tasks {
+				task.Id = prevId[idx]
+				task.DbModified = prevModified[idx]
+			}
+		}
+	}()
+
+	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, task := range tasks {
 		if task.Id == "" {
 			if err := d.AssignId(task); err != nil {
 				return err
 			}
 		}
+		task.DbModified = now
 		fixTaskTimestamps(task)
 	}
 
+	// Insert the tasks into the DB.
 	if err := firestore.RunTransaction(d.client, DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
-		return d.putTasks(tasks, tx)
+		return d.putTasks(tasks, isNew, prevModified, tx)
 	}); err != nil {
 		return err
 	}
