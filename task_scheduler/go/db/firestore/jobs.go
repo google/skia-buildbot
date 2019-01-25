@@ -82,30 +82,7 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, 
 
 // putJobs sets the contents of the given jobs in Firestore, as part of the
 // given transaction. It is used by PutJob and PutJobs.
-func (d *firestoreDB) putJobs(jobs []*types.Job, tx *fs.Transaction) (rvErr error) {
-	// Set the modification time of the jobs.
-	now := fixTimestamp(time.Now())
-	isNew := make([]bool, len(jobs))
-	prevModified := make([]time.Time, len(jobs))
-	for idx, job := range jobs {
-		if util.TimeIsZero(job.Created) {
-			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
-		}
-		isNew[idx] = util.TimeIsZero(job.DbModified)
-		prevModified[idx] = job.DbModified
-		if !now.After(job.DbModified) {
-			return fmt.Errorf("Job modification time is in the future: %s (current time is %s)", job.DbModified, now)
-		}
-		job.DbModified = now
-	}
-	defer func() {
-		if rvErr != nil {
-			for idx, job := range jobs {
-				job.DbModified = prevModified[idx]
-			}
-		}
-	}()
-
+func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []time.Time, tx *fs.Transaction) (rvErr error) {
 	// Find the previous versions of the jobs. Ensure that they weren't
 	// updated concurrently.
 	refs := make([]*fs.DocumentRef, 0, len(jobs))
@@ -170,8 +147,31 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) error {
 		fixJobTimestamps(job)
 	}
 
+	// Set the modification time of the jobs.
+	now := fixTimestamp(time.Now())
+	isNew := make([]bool, len(jobs))
+	prevModified := make([]time.Time, len(jobs))
+	for idx, job := range jobs {
+		if util.TimeIsZero(job.Created) {
+			return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
+		}
+		isNew[idx] = util.TimeIsZero(job.DbModified)
+		prevModified[idx] = job.DbModified
+		if !now.After(job.DbModified) {
+			return fmt.Errorf("Job modification time is in the future: %s (current time is %s)", job.DbModified, now)
+		}
+	}
+
+	// Insert the jobs into the DB.
 	if err := firestore.RunTransaction(d.client, DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
-		return d.putJobs(jobs, tx)
+		for _, job := range jobs {
+			job.DbModified = now
+		}
+		return d.putJobs(jobs, isNew, prevModified, tx)
+	}, func(error) {
+		for idx, job := range jobs {
+			job.DbModified = prevModified[idx]
+		}
 	}); err != nil {
 		return err
 	}

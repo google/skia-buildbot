@@ -269,9 +269,13 @@ func IterDocsInParallel(queries []firestore.Query, attempts int, timeout time.Du
 
 // RunTransaction runs the given function in a transaction. Uses the given
 // maximum number of attempts and the given per-attempt timeout.
-func RunTransaction(client *Client, attempts int, timeout time.Duration, fn func(context.Context, *firestore.Transaction) error) error {
+func RunTransaction(client *Client, attempts int, timeout time.Duration, fn func(context.Context, *firestore.Transaction) error, onerror func(error)) error {
 	return withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
-		return client.RunTransaction(ctx, fn)
+		if err := client.RunTransaction(ctx, fn); err != nil {
+			onerror(err)
+			return err
+		}
+		return nil
 	})
 }
 
@@ -397,6 +401,6 @@ func RecursiveDelete(client *Client, ref *firestore.DocumentRef, attempts int, t
 				}
 			}
 			return nil
-		})
+		}, func(error) {})
 	})
 }
