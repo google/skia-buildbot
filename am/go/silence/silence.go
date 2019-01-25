@@ -176,12 +176,13 @@ func (s *Store) Archive(encodedKey string) (*Silence, error) {
 	})
 }
 
-func (s *Store) Reactivate(encodedKey, user string) (*Silence, error) {
+func (s *Store) Reactivate(encodedKey, duration, user string) (*Silence, error) {
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		now := time.Now().Unix()
 		silence.Active = true
 		silence.Created = now
 		silence.Updated = now
+		silence.Duration = duration
 		silence.Notes = append(silence.Notes, note.Note{
 			Text:   fmt.Sprintf("Reactivated by %q.", user),
 			Author: user,
