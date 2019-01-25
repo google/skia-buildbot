@@ -160,6 +160,7 @@ func New() (baseapp.App, error) {
 						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
 					}
 				} else {
+					m[incident.ABBR_OWNER_REGEX] = "barney@example.org:CQ trybot running,build.*-a9,build.*-m5"
 					if _, err := srv.incidentStore.AlertArrival(m); err != nil {
 						sklog.Errorf("Error processing alert: %s", err)
 					}

@@ -5,7 +5,9 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -21,11 +23,14 @@ import (
 
 // Well known keys for Incident.Params.
 const (
-	ALERT_NAME  = "alertname"
-	CATEGORY    = "category"
-	SEVERITY    = "severity"
-	ID          = "id"
-	ASSIGNED_TO = "assigned_to"
+	ALERT_NAME       = "alertname"
+	CATEGORY         = "category"
+	SEVERITY         = "severity"
+	ID               = "id"
+	ASSIGNED_TO      = "assigned_to"
+	ABBR             = "abbr"
+	OWNER            = "owner"
+	ABBR_OWNER_REGEX = "abbr_owner_regex"
 )
 
 const (
@@ -103,7 +108,7 @@ type Store struct {
 func NewStore(ds *datastore.Client, ignoredAttr []string) *Store {
 	ignored := []string{}
 	ignored = append(ignored, ignoredAttr...)
-	ignored = append(ignored, alerts.STATE, ID, ASSIGNED_TO)
+	ignored = append(ignored, alerts.STATE, ID, ASSIGNED_TO, OWNER, ABBR_OWNER_REGEX)
 	return &Store{
 		ignoredAttr: ignored,
 		ds:          ds,
@@ -132,9 +137,53 @@ func (s *Store) idForAlert(m map[string]string) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
+// getRegexesToOwners expects abbr_owner_regex to be in the form of:
+// owner1:abbr_regex1,abbr_regex2;owner2:abbr_regex3,abbr_regex4
+func getRegexesToOwners(abbr_owner_regex string) map[string]string {
+	owners_to_regexes := strings.Split(abbr_owner_regex, ";")
+	// Map to populate and return.
+	regexes_to_owner := map[string]string{}
+	for _, owner_to_regexes := range owners_to_regexes {
+		tokens := strings.Split(owner_to_regexes, ":")
+		owner := tokens[0]
+		regexes := strings.Split(tokens[1], ",")
+		for _, regex := range regexes {
+			regexes_to_owner[regex] = owner
+		}
+	}
+	return regexes_to_owner
+}
+
+// getOwnerIfMatch returns the owner if there is a match else an empty string is returned.
+func getOwnerIfMatch(abbrOwnerRegex, abbr string) (string, error) {
+	regexesToOwner := getRegexesToOwners(abbrOwnerRegex)
+	for regex, owner := range regexesToOwner {
+		m, err := regexp.MatchString(regex, abbr)
+		if err != nil {
+			return "", fmt.Errorf("Error when compiling %s: %s", regex, err)
+		}
+		if m {
+			return owner, nil
+		}
+	}
+	return "", nil
+}
+
 // inFromAlert creates an Incident from an alert.
-func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
+func (s *Store) inFromAlert(m map[string]string, id string) (*Incident, error) {
 	m[ID] = id
+	if abbr, abbr_exists := m[ABBR]; abbr_exists {
+		if abbr_owner_regex, abbr_owner_regex_exists := m[ABBR_OWNER_REGEX]; abbr_owner_regex_exists {
+			owner, err := getOwnerIfMatch(abbr_owner_regex, abbr)
+			if err != nil {
+				return nil, fmt.Errorf("Could not match %s with %s: %s", abbr_owner_regex, abbr, err)
+			}
+			if owner != "" {
+				m[OWNER] = owner
+			}
+		}
+	}
+
 	now := time.Now().Unix()
 	return &Incident{
 		Active:   true,
@@ -143,7 +192,7 @@ func (s *Store) inFromAlert(m map[string]string, id string) *Incident {
 		LastSeen: now,
 		Params:   m,
 		Notes:    []note.Note{},
-	}
+	}, nil
 }
 
 // AlertArrival turns alerts into Incidents, or archives Incidents if
@@ -195,7 +244,10 @@ func (s *Store) AlertArrival(m map[string]string) (*Incident, error) {
 				return nil, nil
 			}
 			sklog.Infof("New: %s", id)
-			in := s.inFromAlert(m, id)
+			in, err := s.inFromAlert(m, id)
+			if err != nil {
+				return nil, fmt.Errorf("Could not create incident from alert: %s", err)
+			}
 			active = append(active, in)
 		} else {
 			key = keys[0]
