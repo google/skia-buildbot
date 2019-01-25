@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9bae6f8d_165d52f2",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-25T19:30:52Z",
+      "side": 1,
+      "message": "Ah, that explains why we saw the first error in addition to five (the maximum number of attempts) ErrConcurrentUpdate.  Removed onerror.",
+      "parentUuid": "a9f32c9c_23c5361a",
+      "range": {
+        "startLine": 274,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 3
+      },
+      "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "276022b5_d2dcb9cb",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81cde3bf_07493dbc",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-25T19:30:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "276022b5_d2dcb9cb",
+      "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -62,6 +104,30 @@
       "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0616a671_4ab9a128",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-25T19:30:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74198718_f56962c1",
+      "range": {
+        "startLine": 171,
+        "startChar": 2,
+        "endLine": 174,
+        "endChar": 3
+      },
+      "revId": "9ae78dd63192e91554a29215b7555875a6dd95b7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
