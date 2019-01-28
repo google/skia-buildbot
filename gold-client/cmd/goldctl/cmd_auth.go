@@ -3,11 +3,8 @@ package main
 import (
 	"fmt"
 
-	gstorage "cloud.google.com/go/storage"
 	"github.com/spf13/cobra"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/gold-client/go/goldclient"
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -68,14 +65,28 @@ func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
 	goldClient, err := goldclient.NewCloudClient(config, nil)
 	ifErrLogExit(cmd, err)
 
-	var tokenSrc oauth2.TokenSource
+	var authOpt *goldclient.AuthOpt
 	if a.flagUseLUCIContext {
-		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl)
+		authOpt = goldclient.LUCIAuthOpt()
 	} else {
-		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("#bogus", a.flagServiceAccount, gstorage.ScopeFullControl)
+		authOpt = goldclient.ServiceAccountAuthOpt(a.flagServiceAccount)
 	}
-	ifErrLogExit(cmd, err)
-
-	err = goldClient.ServiceAccount(tokenSrc)
+	err = goldClient.SetAuthOpt(authOpt)
 	ifErrLogExit(cmd, err)
 }
+
+// 	var tokenSrc oauth2.TokenSource
+
+// 	if a.flagUseLUCIContext {
+// 		goldClient.SetAuthOpt(goldclient.LUCIAuthOpt())
+// 	}
+
+// 		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl)
+// 	} else {
+// 		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("#bogus", a.flagServiceAccount, gstorage.ScopeFullControl)
+// 	}
+// 	ifErrLogExit(cmd, err)
+
+// 	err = goldClient.ServiceAccount(tokenSrc)
+// 	ifErrLogExit(cmd, err)
+// }
