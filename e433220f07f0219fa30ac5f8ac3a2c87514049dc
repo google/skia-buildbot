@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3edea2b3_cb688f7a",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-28T18:13:26Z",
+      "side": 1,
+      "message": "nit: maybe include \"authentication\" in the error message",
+      "range": {
+        "startLine": 340,
+        "startChar": 41,
+        "endLine": 340,
+        "endChar": 42
+      },
+      "revId": "e433220f07f0219fa30ac5f8ac3a2c87514049dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "083bc49e_920aaf48",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-28T18:13:26Z",
+      "side": 1,
+      "message": "nit: maybe include \"authentication\" in the error message",
+      "revId": "e433220f07f0219fa30ac5f8ac3a2c87514049dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
