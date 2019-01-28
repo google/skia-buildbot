@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb029970_f31eacfe",
+        "filename": "autoroll/go/autoroll-be-kube/autoroll-be.yaml.template",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-28T21:24:44Z",
+      "side": 1,
+      "message": "This is already created? do you have a bin/create-notifier-chat-config.sh ?",
+      "revId": "93be7dcf319c3f011f60da3a1dd41d89aad3718b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "682b16a2_8d620824",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-28T21:24:44Z",
+      "side": 1,
+      "message": "Why does this have to be a reader (vs the contents of the file so that we can fail early if something is wrong).\nI think SendUsingConfig is useful if the config could change, but it will not change in the case of autorollers without a new push, so seems unnecessary. Could create a new SendUsingConfigReader and have that call a refactored SendUsingConfig ?",
+      "revId": "93be7dcf319c3f011f60da3a1dd41d89aad3718b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
