@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "447fc9c6_15c0b719",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-28T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3edea2b3_cb688f7a",
+      "range": {
+        "startLine": 340,
+        "startChar": 41,
+        "endLine": 340,
+        "endChar": 42
+      },
+      "revId": "e433220f07f0219fa30ac5f8ac3a2c87514049dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "083bc49e_920aaf48",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 6
@@ -39,6 +63,24 @@
       "revId": "e433220f07f0219fa30ac5f8ac3a2c87514049dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fba7e93_a35f3289",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-28T19:13:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "083bc49e_920aaf48",
+      "revId": "e433220f07f0219fa30ac5f8ac3a2c87514049dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
