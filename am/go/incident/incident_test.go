@@ -127,3 +127,62 @@ func TestIdForAlert(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, id1, id2)
 }
+
+func TestGetRegexesToOwners(t *testing.T) {
+	testutils.SmallTest(t)
+
+	ownersRegexesStr := "owner1:abbr_regex1,abbr_regex2;owner2:abbr_regex3"
+	m1, err := getRegexesToOwners(ownersRegexesStr)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(m1))
+	assert.Equal(t, "owner1", m1["abbr_regex1"])
+	assert.Equal(t, "owner1", m1["abbr_regex2"])
+	assert.Equal(t, "owner2", m1["abbr_regex3"])
+
+	// Test badly formed regex with missing owner1.
+	m2, err := getRegexesToOwners("abbr_regex1,abbr2_regex;owner2:abbr_regex3")
+	assert.Error(t, err)
+	assert.Nil(t, m2)
+}
+
+func TestGetOwnerIfMatch(t *testing.T) {
+	testutils.SmallTest(t)
+
+	// Test matches.
+	ownersRegexesStr := "superman@krypton.com:Bizarro.*,^Kryptonite.*Asteroid.*$;batman@gotham.com:Joker.*"
+
+	ownerTest1, err := getOwnerIfMatch(ownersRegexesStr, "something Bizarro something")
+	assert.NoError(t, err)
+	assert.Equal(t, "superman@krypton.com", ownerTest1)
+
+	ownerTest2, err := getOwnerIfMatch(ownersRegexesStr, "Kryptonite really big Asteroid thing")
+	assert.NoError(t, err)
+	assert.Equal(t, "superman@krypton.com", ownerTest2)
+
+	ownerTest3, err := getOwnerIfMatch(ownersRegexesStr, "Joker is here!!!")
+	assert.NoError(t, err)
+	assert.Equal(t, "batman@gotham.com", ownerTest3)
+
+	ownerTest4, err := getOwnerIfMatch(ownersRegexesStr, "Joker")
+	assert.NoError(t, err)
+	assert.Equal(t, "batman@gotham.com", ownerTest4)
+
+	// Test misses.
+	ownerMiss1, err := getOwnerIfMatch(ownersRegexesStr, "bizarro")
+	assert.NoError(t, err)
+	assert.Equal(t, "", ownerMiss1)
+
+	ownerMiss2, err := getOwnerIfMatch(ownersRegexesStr, "wrong start Kryptonite really big Asteroid thing")
+	assert.NoError(t, err)
+	assert.Equal(t, "", ownerMiss2)
+
+	ownerMiss3, err := getOwnerIfMatch(ownersRegexesStr, "joker")
+	assert.NoError(t, err)
+	assert.Equal(t, "", ownerMiss3)
+
+	// Test badly formed regex.
+	badRegex := "superman@krypton:.***"
+	ownerBadTest, err := getOwnerIfMatch(badRegex, "Anything")
+	assert.Error(t, err)
+	assert.Equal(t, "", ownerBadTest)
+}
