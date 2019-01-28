@@ -542,7 +542,7 @@ func (srv *Server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	auditlog.Log(r, "reactivate-silence", req)
-	silence, err := srv.silenceStore.Reactivate(req.Key, srv.user(r))
+	silence, err := srv.silenceStore.Reactivate(req.Key, req.Duration, srv.user(r))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to archive silence.")
 		return
