@@ -66,7 +66,7 @@ func (c *Config) Validate() error {
 }
 
 // Create a Notifier from the Config.
-func (c *Config) Create(ctx context.Context, emailer *email.GMail) (Notifier, Filter, string, error) {
+func (c *Config) Create(ctx context.Context, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) (Notifier, Filter, string, error) {
 	if err := c.Validate(); err != nil {
 		return nil, FILTER_SILENT, "", err
 	}
@@ -78,7 +78,7 @@ func (c *Config) Create(ctx context.Context, emailer *email.GMail) (Notifier, Fi
 	if c.Email != nil {
 		n, err = EmailNotifier(c.Email.Emails, emailer, "")
 	} else if c.Chat != nil {
-		n, err = ChatNotifier(c.Chat.RoomID)
+		n, err = ChatNotifier(c.Chat.RoomID, chatBotConfigReader)
 	} else if c.PubSub != nil {
 		n, err = PubSubNotifier(ctx, c.PubSub.Topic)
 	} else {
@@ -171,18 +171,20 @@ func (c *ChatNotifierConfig) Validate() error {
 
 // chatNotifier is a Notifier implementation which sends chat messages.
 type chatNotifier struct {
-	roomId string
+	configReader chatbot.ConfigReader
+	roomId       string
 }
 
 // See documentation for Notifier interface.
 func (n *chatNotifier) Send(_ context.Context, thread string, msg *Message) error {
-	return chatbot.Send(msg.Body, n.roomId, thread)
+	return chatbot.SendUsingConfig(msg.Body, n.roomId, thread, n.configReader)
 }
 
 // ChatNotifier returns a Notifier which sends email to interested parties.
-func ChatNotifier(roomId string) (Notifier, error) {
+func ChatNotifier(roomId string, configReader chatbot.ConfigReader) (Notifier, error) {
 	return &chatNotifier{
-		roomId: roomId,
+		configReader: configReader,
+		roomId:       roomId,
 	}, nil
 }
 

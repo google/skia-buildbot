@@ -28,7 +28,7 @@ func (n *testNotifier) Send(_ context.Context, subject string, msg *Message) err
 func TestRouter(t *testing.T) {
 	testutils.SmallTest(t)
 
-	m := NewRouter(nil)
+	m := NewRouter(nil, nil)
 	ctx := context.Background()
 
 	n1 := &testNotifier{}

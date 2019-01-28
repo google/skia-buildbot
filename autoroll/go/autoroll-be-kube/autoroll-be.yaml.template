@@ -34,6 +34,7 @@ spec:
             - "--prom_port=:20000"
             - "--recipes_cfg=/usr/local/share/autoroll/recipes.cfg"
             - "--workdir=/data"
+            - "--chat_webhooks_file=/etc/notifier-chat-config/chat_config.txt"
           ports:
             - containerPort: 8000
             - containerPort: 20000
@@ -44,6 +45,8 @@ spec:
               mountPath: /var/secrets/google
             - name: autoroll-email-creds
               mountPath: /var/secrets/autoroll-email-creds
+            - name: notifier-chat-config
+              mountPath: /etc/notifier-chat-config/
             {{- range $index, $secret := .kubernetes.secrets}}
             - name: {{$secret.name}}
               mountPath: {{$secret.mountPath}}
@@ -71,6 +74,9 @@ spec:
         - name: autoroll-email-creds
           secret:
             secretName: autoroll-email-creds
+        - name: notifier-chat-config
+          secret:
+            secretName: notifier-chat-config
         {{- range $index, $secret := .kubernetes.secrets}}
         - name: {{$secret.name}}
           secret:

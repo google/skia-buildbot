@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/comment"
 	"go.skia.org/infra/go/email"
@@ -75,7 +76,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller returns an AutoRoller instance.
-func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
 		return nil, err
@@ -172,7 +173,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 	sklog.Info("Creating notifier")
 	configCopies := replaceSheriffPlaceholder(ctx, c.Notifiers, emails)
-	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, emailer, configCopies)
+	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
 		return nil, err
 	}

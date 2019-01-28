@@ -44,14 +44,15 @@ const (
 
 // flags
 var (
-	configFile     = flag.String("config_file", "", "Configuration file to use.")
-	emailCreds     = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port           = flag.String("port", ":8000", "HTTP service port.")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
-	hang           = flag.Bool("hang", false, "If true, just hang and do nothing.")
+	chatWebHooksFile = flag.String("chat_webhooks_file", "", "Chat webhook config.")
+	configFile       = flag.String("config_file", "", "Configuration file to use.")
+	emailCreds       = flag.String("email_creds", "", "Directory containing credentials for sending emails.")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port             = flag.String("port", ":8000", "HTTP service port.")
+	promPort         = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile   = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	workdir          = flag.String("workdir", ".", "Directory to use for scratch work.")
+	hang             = flag.Bool("hang", false, "If true, just hang and do nothing.")
 )
 
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
@@ -123,6 +124,7 @@ func main() {
 	}
 
 	var emailer *email.GMail
+	var chatBotConfigReader chatbot.ConfigReader
 	if !*local {
 		// Emailing init.
 		emailClientId, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
@@ -147,6 +149,14 @@ func main() {
 		emailer, err = email.NewGMail(strings.TrimSpace(string(emailClientId)), strings.TrimSpace(string(emailClientSecret)), tokenFile)
 		if err != nil {
 			sklog.Fatal(err)
+		}
+		chatBotConfigReader = func() string {
+			if b, err := ioutil.ReadFile(*chatWebHooksFile); err != nil {
+				sklog.Errorf("Failed to read chat config %q: %s", *chatWebHooksFile, err)
+				return ""
+			} else {
+				return string(b)
+			}
 		}
 	}
 
@@ -230,7 +240,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName, *local)
+	arb, err := roller.NewAutoRoller(ctx, cfg, emailer, chatBotConfigReader, g, githubClient, *workdir, *recipesCfgFile, serverURL, gitcookiesPath, gcsClient, client, rollerName, *local)
 	if err != nil {
 		sklog.Fatal(err)
 	}
