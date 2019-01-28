@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/email"
 	"golang.org/x/sync/errgroup"
 )
@@ -42,8 +43,9 @@ type filteredThreadedNotifier struct {
 // Router is a struct used for sending notification through zero or more
 // Notifiers.
 type Router struct {
-	emailer   *email.GMail
-	notifiers []*filteredThreadedNotifier
+	configReader chatbot.ConfigReader
+	emailer      *email.GMail
+	notifiers    []*filteredThreadedNotifier
 }
 
 // Send a notification.
@@ -69,7 +71,7 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 }
 
 // Return a Router instance.
-func NewRouter(emailer *email.GMail) *Router {
+func NewRouter(emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) *Router {
 	return &Router{
 		emailer:   emailer,
 		notifiers: []*filteredThreadedNotifier{},
@@ -92,7 +94,7 @@ func (r *Router) AddFromConfig(ctx context.Context, c *Config) error {
 	if err := c.Validate(); err != nil {
 		return err
 	}
-	n, f, s, err := c.Create(ctx, r.emailer)
+	n, f, s, err := c.Create(ctx, r.emailer, r.configReader)
 	if err != nil {
 		return err
 	}

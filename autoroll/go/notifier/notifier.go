@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"time"
 
+	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/sklog"
@@ -80,19 +81,20 @@ type tmplVars struct {
 // AutoRollNotifier is a struct used for sending notifications from an
 // AutoRoller. It is a convenience wrapper around notifier.Router.
 type AutoRollNotifier struct {
-	childName  string
-	emailer    *email.GMail
-	n          *notifier.Router
-	parentName string
-	serverURL  string
+	childName    string
+	configReader chatbot.ConfigReader
+	emailer      *email.GMail
+	n            *notifier.Router
+	parentName   string
+	serverURL    string
 }
 
 // Return an AutoRollNotifier instance.
-func New(ctx context.Context, childName, parentName, serverURL string, emailer *email.GMail, configs []*notifier.Config) (*AutoRollNotifier, error) {
+func New(ctx context.Context, childName, parentName, serverURL string, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, configs []*notifier.Config) (*AutoRollNotifier, error) {
 	n := &AutoRollNotifier{
 		childName:  childName,
 		emailer:    emailer,
-		n:          notifier.NewRouter(emailer),
+		n:          notifier.NewRouter(emailer, chatBotConfigReader),
 		parentName: parentName,
 		serverURL:  serverURL,
 	}
@@ -104,7 +106,7 @@ func New(ctx context.Context, childName, parentName, serverURL string, emailer *
 
 func (a *AutoRollNotifier) ReloadConfigs(ctx context.Context, configs []*notifier.Config) error {
 	// Create a new router and add the specified configs to it.
-	n := notifier.NewRouter(a.emailer)
+	n := notifier.NewRouter(a.emailer, a.configReader)
 	if err := n.AddFromConfigs(ctx, configs); err != nil {
 		return err
 	}
