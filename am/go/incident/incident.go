@@ -108,7 +108,7 @@ type Store struct {
 func NewStore(ds *datastore.Client, ignoredAttr []string) *Store {
 	ignored := []string{}
 	ignored = append(ignored, ignoredAttr...)
-	ignored = append(ignored, alerts.STATE, ID, ASSIGNED_TO, OWNER, ABBR_OWNER_REGEX)
+	ignored = append(ignored, alerts.STATE, ID, ASSIGNED_TO)
 	return &Store{
 		ignoredAttr: ignored,
 		ds:          ds,

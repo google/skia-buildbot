@@ -163,7 +163,7 @@ const template = (ele) => html`
   </tabs-sk>
   <tabs-panel-sk>
     <section class=mine>
-      ${incidentList(ele, ele._incidents.filter(i => i.active && ((ele._user === ele._trooper && (i.params.__silence_state !== 'silenced')) || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))))}
+      ${incidentList(ele, ele._incidents.filter(i => i.active && i.params.__silence_state !== 'silenced' && (ele._user === ele._trooper || (i.params.assigned_to === ele._user) || (i.params.owner === ele._user && !i.params.assigned_to))))}
     </section>
     <section class=incidents>
       ${incidentList(ele, ele._incidents)}
@@ -642,9 +642,11 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       tag: 'alertManagerNotification' + text,
     });
     // onclick move focus to the am.skia.org tab and close the notification.
+    var that = this;
     notification.onclick = function() {
       parent.focus();
       window.focus(); // Supports older browsers.
+      that._select(unNotifiedIncidents[0]); // Display the 1st incident.
       this.close();
     };
     setTimeout(notification.close.bind(notification), 10000);
