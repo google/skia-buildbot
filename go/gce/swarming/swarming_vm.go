@@ -18,6 +18,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -32,6 +33,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/gce/swarming/instance_types"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -45,27 +47,43 @@ const (
 	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2018-04-06-000"
 	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2018-04-09-000"
 	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
+	INSTANCE_TYPE_CT             = "ct"
+	INSTANCE_TYPE_LINUX_SMALL    = "linux-small"
+	INSTANCE_TYPE_LINUX_MEDIUM   = "linux-medium"
+	INSTANCE_TYPE_LINUX_LARGE    = "linux-large"
+	INSTANCE_TYPE_LINUX_GPU      = "linux-gpu"
+	INSTANCE_TYPE_LINUX_SKYLAKE  = "linux-skylake"
+	INSTANCE_TYPE_WIN_MEDIUM     = "win-medium"
+	INSTANCE_TYPE_WIN_LARGE      = "win-large"
 )
 
 var (
-	VALID_OS = []string{OS_DEBIAN_9, OS_WIN_2016}
+	VALID_INSTANCE_TYPES = []string{
+		INSTANCE_TYPE_CT,
+		INSTANCE_TYPE_LINUX_SMALL,
+		INSTANCE_TYPE_LINUX_MEDIUM,
+		INSTANCE_TYPE_LINUX_LARGE,
+		INSTANCE_TYPE_LINUX_GPU,
+		INSTANCE_TYPE_LINUX_SKYLAKE,
+		INSTANCE_TYPE_WIN_MEDIUM,
+		INSTANCE_TYPE_WIN_LARGE,
+	}
+	WIN_INSTANCE_TYPES = []string{
+		INSTANCE_TYPE_WIN_MEDIUM,
+		INSTANCE_TYPE_WIN_LARGE,
+	}
 )
 
 var (
 	// Flags.
 	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
-	ct             = flag.Bool("skia-ct", false, "If true, this is a bot in the SkiaCT pool.")
-	dataDiskSize   = flag.Int("data-disk-size", 300, "Requested data disk size, in GB.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
-	gpu            = flag.Bool("gpu", false, "Whether or not to add an NVIDIA Tesla k80 GPU on the instance(s)")
+	dumpJson       = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
+	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
-	dev            = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
-	machineType    = flag.String("machine-type", gce.MACHINE_TYPE_STANDARD_16, "GCE machine type; see https://cloud.google.com/compute/docs/machine-types.")
-	opsys          = flag.String("os", OS_DEBIAN_9, fmt.Sprintf("OS identifier; one of %s", strings.Join(VALID_OS, ", ")))
-	skylake        = flag.Bool("skylake", false, "Whether or not the instance(s) should use Intel Skylake CPUs.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
 )
 
@@ -228,22 +246,9 @@ func main() {
 	if *create == *delete {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
 	}
-
-	if !util.In(*opsys, VALID_OS) {
-		sklog.Fatalf("Unknown --os %q", *opsys)
+	if !util.In(*instanceType, VALID_INSTANCE_TYPES) {
+		sklog.Fatalf("--type must be one of %v", VALID_INSTANCE_TYPES)
 	}
-	windows := strings.HasPrefix(*opsys, "Win")
-
-	if *ct && windows {
-		sklog.Fatalf("--skia-ct does not support %q.", *opsys)
-	}
-	if *skylake && *gpu {
-		sklog.Fatal("--skylake and --gpu are mutually exclusive.")
-	}
-	if *dev && *internal {
-		sklog.Fatal("--dev and --internal are mutually exclusive.")
-	}
-
 	instanceNums, err := util.ParseIntSet(*instances)
 	if err != nil {
 		sklog.Fatal(err)
@@ -251,11 +256,6 @@ func main() {
 	if len(instanceNums) == 0 {
 		sklog.Fatal("Please specify at least one instance number via --instances.")
 	}
-	verb := "Creating"
-	if *delete {
-		verb = "Deleting"
-	}
-	sklog.Infof("%s instances: %v", verb, instanceNums)
 
 	// Get the absolute workdir.
 	wdAbs, err := filepath.Abs(*workdir)
@@ -263,68 +263,106 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Create the GCloud object.
-	zone := gce.ZONE_DEFAULT
-	if *gpu {
-		zone = gce.ZONE_GPU
-	} else if *skylake {
-		zone = gce.ZONE_SKYLAKE
+	// Read the various scripts.
+	_, filename, _, _ := runtime.Caller(0)
+	checkoutRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
+	ctx := context.Background()
+	var setupScript, startupScript, chromebotScript string
+	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
+		setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
+	} else {
+		setupScript, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
 	}
-	project := gce.PROJECT_ID_SWARMING
-	if *internal {
-		project = gce.PROJECT_ID_SERVER
-	}
-	g, err := gce.NewGCloud(project, zone, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	// Read the various Windows scripts.
-	ctx := context.Background()
-	var setupScript, startupScript, chromebotScript string
-	if windows {
-		setupScript, startupScript, chromebotScript, err = getWindowsScripts(ctx, wdAbs)
-		if err != nil {
-			sklog.Fatal(err)
+	zone := gce.ZONE_DEFAULT
+	project := gce.PROJECT_ID_SWARMING
+	var getInstance func(int) *gce.Instance
+	switch *instanceType {
+	case INSTANCE_TYPE_CT:
+		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_SMALL:
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_MEDIUM:
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_LARGE:
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_GPU:
+		zone = gce.ZONE_GPU
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_SKYLAKE:
+		zone = gce.ZONE_SKYLAKE
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript) }
+	case INSTANCE_TYPE_WIN_MEDIUM:
+		getInstance = func(num int) *gce.Instance {
+			return instance_types.WinMedium(num, setupScript, startupScript, chromebotScript)
+		}
+	case INSTANCE_TYPE_WIN_LARGE:
+		getInstance = func(num int) *gce.Instance {
+			return instance_types.WinLarge(num, setupScript, startupScript, chromebotScript)
+		}
+	}
+	if getInstance == nil {
+		sklog.Fatalf("Could not find matching instance type for --type %s", *instanceType)
+	}
+	if *internal {
+		project = gce.PROJECT_ID_SERVER
+		getInstanceInner := getInstance
+		getInstance = func(num int) *gce.Instance {
+			return instance_types.Internal(getInstanceInner(num))
 		}
 	}
 
-	// Perform the requested operation.
-	group := util.NewNamedErrGroup()
-	for _, num := range instanceNums {
-		var vm *gce.Instance
-		if *ct {
-			vm = SkiaCTBot(num)
-		} else if windows {
-			if *internal {
-				vm = InternalWinSwarmingBot(num, setupScript, startupScript, chromebotScript)
-			} else if *dev {
-				vm = DevWinSwarmingBot(num, setupScript, startupScript, chromebotScript)
-			} else {
-				vm = WinSwarmingBot(num, setupScript, startupScript, chromebotScript)
-			}
-		} else {
-			if *internal {
-				vm = InternalLinuxSwarmingBot(num)
-			} else if *dev {
-				vm = DevLinuxSwarmingBot(num)
-			} else {
-				vm = LinuxSwarmingBot(num)
-			}
-		}
-		if *gpu {
-			AddGpuConfigs(vm)
-		} else if *skylake {
-			AddSkylakeConfigs(vm)
-		}
+	// Create the GCloud object.
+	g, err := gce.NewLocalGCloud(project, zone)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	if err := g.CheckSsh(); err != nil {
+		sklog.Fatal(err)
+	}
 
+	// Create the Instance objects.
+	vms := make([]*gce.Instance, 0, len(instanceNums))
+	for _, num := range instanceNums {
+		vms = append(vms, getInstance(num))
+	}
+
+	// If requested, dump JSON for the given instances and exit.
+	if *dumpJson {
+		verb := "create"
+		if *delete {
+			verb = "delete"
+		}
+		data := map[string][]*gce.Instance{
+			verb: vms,
+		}
+		b, err := json.MarshalIndent(data, "", "  ")
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		sklog.Infof("\n%s", string(b))
+		return
+	}
+
+	// Perform the requested operation.
+	verb := "Creating"
+	if *delete {
+		verb = "Deleting"
+	}
+	sklog.Infof("%s instances: %v", verb, instanceNums)
+	group := util.NewNamedErrGroup()
+	for _, vm := range vms {
+		vm := vm // https://golang.org/doc/faq#closures_and_goroutines
 		group.Go(vm.Name, func() error {
 			if *create {
 				if err := g.CreateAndSetup(ctx, vm, *ignoreExists); err != nil {
 					return err
 				}
 
-				if windows {
+				if strings.Contains(vm.Os, "Win") {
 					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 5*time.Minute); err != nil {
 						return err
 					}
