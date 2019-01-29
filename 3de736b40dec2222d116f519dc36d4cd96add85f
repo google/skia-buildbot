@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab254941_f41d226a",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 11
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-29T15:13:18Z",
+      "side": 1,
+      "message": "Is the 5 optional? I\u0027ve never seen that.",
+      "range": {
+        "startLine": 159,
+        "startChar": 108,
+        "endLine": 159,
+        "endChar": 109
+      },
+      "revId": "3de736b40dec2222d116f519dc36d4cd96add85f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
