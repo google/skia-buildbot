@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	PROTO_FILE_PATH = "third_party/cq_client/cq.proto"
-	PROTO_REPO      = "https://chromium.googlesource.com/chromium/tools/depot_tools"
+	PROTO_FILE_PATH = "cq/api/config/v2/cq.proto"
+	PROTO_REPO      = "https://chromium.googlesource.com/infra/luci/luci-go/"
 )
 
 // findCheckoutRoot attempts to find the root of the checkout, assuming that
