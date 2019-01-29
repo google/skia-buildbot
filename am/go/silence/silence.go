@@ -17,7 +17,7 @@ import (
 const (
 	SILENCE_PARENT_KEY = "-silence-"
 
-	NUM_RECENTLY_ARCHIVED = 20
+	NUM_RECENTLY_ARCHIVED = 100
 )
 
 // Silence is a filter that matches Incidents and is used to silence them.
