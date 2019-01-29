@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "d702c56c_251c8f1e",
+        "filename": "autoroll/go/autoroll-be-kube/autoroll-be.yaml.template",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-29T13:24:45Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "eecab002_65b2cee2",
+      "revId": "93be7dcf319c3f011f60da3a1dd41d89aad3718b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "682b16a2_8d620824",
         "filename": "autoroll/go/autoroll-be-kube/main.go",
         "patchSetId": 2
@@ -69,6 +87,24 @@
       "revId": "93be7dcf319c3f011f60da3a1dd41d89aad3718b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a4d827b_aed5102e",
+        "filename": "autoroll/go/autoroll-be-kube/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-29T13:24:45Z",
+      "side": 1,
+      "message": "SGTM for separate CL.",
+      "parentUuid": "7ab9ee33_2f78c76b",
+      "revId": "93be7dcf319c3f011f60da3a1dd41d89aad3718b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
