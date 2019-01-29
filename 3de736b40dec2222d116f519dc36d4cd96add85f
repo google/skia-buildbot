@@ -22,6 +22,30 @@
       "revId": "3de736b40dec2222d116f519dc36d4cd96add85f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c6cbb1f_51c145da",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 11
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-29T15:53:14Z",
+      "side": 1,
+      "message": "Blah, I meant to use $. Done.\nIt is unnecessary but wanted to use it as an example of what these regexes could look like.",
+      "parentUuid": "ab254941_f41d226a",
+      "range": {
+        "startLine": 159,
+        "startChar": 108,
+        "endLine": 159,
+        "endChar": 109
+      },
+      "revId": "3de736b40dec2222d116f519dc36d4cd96add85f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
