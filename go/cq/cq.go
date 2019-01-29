@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CQ_CFG_FILE_PATH = "infra/branch-config/cq.cfg"
+	CQ_CFG_FILE = "commit-queue.cfg"
+	CQ_CFG_REF  = "infra/config"
 
 	// Constants for in-flight metrics.
 	INFLIGHT_METRIC_NAME     = "in_flight"
@@ -37,6 +38,10 @@ const (
 )
 
 var (
+	// Slice of refRegexes that could be used to denote the master branch.
+	// See https://chromium-review.googlesource.com/c/infra/luci/luci-go/+/1409746/5/cq/api/config/v2/cq.proto#95
+	REGEXES_FOR_MASTER = []string{"refs/heads/master", "refs/heads/.+"}
+
 	// Slice of all known presubmit bot names.
 	PRESUBMIT_BOTS = []string{"skia_presubmit-Trybot"}
 
@@ -65,18 +70,18 @@ type Client struct {
 
 // GetSkiaCQTryBots is a Skia implementation of GetCQTryBots.
 func GetSkiaCQTryBots() ([]string, error) {
-	return getCQTryBots(common.REPO_SKIA)
+	return getCQTryBots(common.REPO_SKIA, REGEXES_FOR_MASTER)
 }
 
 // GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBots.
 func GetSkiaInfraCQTryBots() ([]string, error) {
-	return getCQTryBots(common.REPO_SKIA)
+	return getCQTryBots(common.REPO_SKIA, REGEXES_FOR_MASTER)
 }
 
 // getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
-func getCQTryBots(repo string) ([]string, error) {
+func getCQTryBots(repo string, refRegexes []string) ([]string, error) {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(repo, "", nil).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
+	if err := gitiles.NewRepo(repo, "", nil).ReadFileAtRef(CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
 		return nil, err
 	}
 	var cqCfg Config
@@ -84,21 +89,35 @@ func getCQTryBots(repo string) ([]string, error) {
 		return nil, err
 	}
 	tryJobs := []string{}
-	for _, bucket := range cqCfg.Verifiers.GetTryJob().GetBuckets() {
-		for _, builder := range bucket.GetBuilders() {
-			if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
-				// Exclude experimental builders, unless running for all CLs.
-				continue
+
+ConfigGroupLoop:
+	for _, configGroup := range cqCfg.GetConfigGroups() {
+		for _, g := range configGroup.GetGerrit() {
+			for _, p := range g.GetProjects() {
+				for _, r := range p.GetRefRegexp() {
+					if util.In(r, refRegexes) {
+						// Found the regRegex we were looking for.
+						for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
+							if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
+								// Exclude experimental builders, unless running for all CLs.
+								continue
+							}
+							if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {
+								// Exclude presubmit bots because they could fail or be delayed
+								// due to factors such as owners approval and other project
+								// specific checks.
+								continue
+							}
+							tryJobs = append(tryJobs, builder.GetName())
+						}
+						// Break out of all the loops.
+						break ConfigGroupLoop
+					}
+				}
 			}
-			if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {
-				// Exclude presubmit bots because they could fail or be delayed
-				// due to factors such as owners approval and other project
-				// specific checks.
-				continue
-			}
-			tryJobs = append(tryJobs, builder.GetName())
 		}
 	}
+
 	sklog.Infof("The list of CQ trybots is: %s", tryJobs)
 	return tryJobs, nil
 }
