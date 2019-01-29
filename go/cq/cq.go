@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CQ_CFG_FILE_PATH = "infra/branch-config/cq.cfg"
+	CQ_CFG_FILE = "commit-queue.cfg"
+	CQ_CFG_REF  = "infra/config"
 
 	// Constants for in-flight metrics.
 	INFLIGHT_METRIC_NAME     = "in_flight"
@@ -76,7 +77,7 @@ func GetSkiaInfraCQTryBots() ([]string, error) {
 // getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
 func getCQTryBots(repo string) ([]string, error) {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(repo, "", nil).ReadFile(CQ_CFG_FILE_PATH, &buf); err != nil {
+	if err := gitiles.NewRepo(repo, "", nil).ReadFileAtRef(CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
 		return nil, err
 	}
 	var cqCfg Config
