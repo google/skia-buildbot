@@ -1,0 +1,43 @@
+{
+  "childName": "SwiftShader",
+  "contacts": [
+    "capn@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "swiftshader-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "swiftshader-team+autoroll@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/swiftshader",
+    "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "cqExtraTrybots": [
+    "luci.chromium.try:android_optional_gpu_tests_rel",
+    "luci.chromium.try:linux_optional_gpu_tests_rel",
+    "luci.chromium.try:mac_optional_gpu_tests_rel",
+    "luci.chromium.try:win_optional_gpu_tests_rel"
+  ],
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
