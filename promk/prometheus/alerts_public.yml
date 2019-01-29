@@ -107,6 +107,7 @@ groups:
     labels:
       category: infra
       severity: warning
+      abbr_owner_regex: rmistry@google.com:Build-.*-Android_Framework
     annotations:
       abbr: '{{ $labels.trybot }}'
       description: '{{ $labels.trybot }} ran longer than 45 mins. Playbook: https://skia.googlesource.com/buildbot/%2B/master/cq_watcher/PROD.md#trybot_duration_beyond_threshold Direct link to logs: https://console.cloud.google.com/logs/viewer?project=skia-public&resource=container%2Fcluster_name%2Fskia-public%2Fnamespace_id%2Fdefault&logName=projects%2Fskia-public%2Flogs%2Fcq-watcher&filters=text:CQTrybotDurationError'

@@ -156,7 +156,7 @@ ALERT SwarmingBotMetricsLiveness
 
 ALERT BotMissing
   IF swarming_bots_last_seen{bot!~"(ct-gce-.*)|(build4.+device.+)"}/1000/1000/1000/60 > 15
-  LABELS { category = "infra", severity = "critical"}
+  LABELS { category = "infra", severity = "critical", abbr_owner_regex = "rmistry@google.com:^build[0-9]+-m5$" }
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} is missing. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
@@ -171,7 +171,7 @@ ALERT CtGceBotMissing
 
 ALERT BotUnemployed
   IF swarming_bots_last_task{pool=~"Skia.*"}/1000/1000/1000/60/60 >= 72
-  LABELS { category = "infra", severity = "critical"}
+  LABELS { category = "infra", severity = "critical", abbr_owner_regex = "rmistry@google.com:^build[0-9]+-m5$" }
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} hasn't run a job in 72 hours. Maybe its dimensions need changing? https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
@@ -179,7 +179,7 @@ ALERT BotUnemployed
 
 ALERT BotQuarantined
   IF avg_over_time(swarming_bots_quarantined{device_state!~"(too_hot)|(low_battery)"}[10m]) >= 1
-  LABELS { category = "infra", severity = "critical"}
+  LABELS { category = "infra", severity = "critical", abbr_owner_regex = "rmistry@google.com:^build[0-9]+-m5$" }
   ANNOTATIONS {
     abbr = "{{ $labels.bot }}",
     description = "Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance"
