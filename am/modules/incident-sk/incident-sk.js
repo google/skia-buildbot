@@ -98,6 +98,7 @@ function matchingSilences(ele) {
   if (ele.hasAttribute('minimized')) {
     return ``;
   }
+  console.log('herehereherheereh');
   let ret = ele._silences.filter(silence => paramset.match(silence.param_set, ele._state.params)).map( silence =>
     html`<silence-sk .state=${silence} collapsable collapsed></silence-sk>`
   );
