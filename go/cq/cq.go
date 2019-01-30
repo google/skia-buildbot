@@ -4,6 +4,7 @@ package cq
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"sync"
 	"time"
@@ -112,7 +113,10 @@ ConfigGroupLoop:
 								// specific checks.
 								continue
 							}
-							tryJobs = append(tryJobs, builder.GetName())
+							// Strip out the bucket and use only the builder name.
+							// Eg: chromium/try/mac_chromium_compile_dbg_ng -> mac_chromium_compile_dbg_ng
+							builderName := filepath.Base(builder.GetName())
+							tryJobs = append(tryJobs, builderName)
 						}
 						// Break out of all the loops.
 						break ConfigGroupLoop
