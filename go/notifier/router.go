@@ -73,8 +73,9 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 // Return a Router instance.
 func NewRouter(emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader) *Router {
 	return &Router{
-		emailer:   emailer,
-		notifiers: []*filteredThreadedNotifier{},
+		configReader: chatBotConfigReader,
+		emailer:      emailer,
+		notifiers:    []*filteredThreadedNotifier{},
 	}
 }
 
