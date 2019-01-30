@@ -131,14 +131,14 @@ groups:
       https://skia.googlesource.com/buildbot/%2B/master/autoroll/PROD.md#error_rate'
 
   - alert: AutoRollLastTransition
-    expr: liveness_last_successful_autoroll_tick_s{roller!="skia-flutter-autoroll"} > 10*60
+    expr: liveness_last_successful_autoroll_tick_s{roller!="skia-flutter-autoroll"} > 20*60
     labels:
       category: infra
       severity: critical
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.roller }}'
-      description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 10 minutes.
+      description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 20 minutes.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
       '
 
