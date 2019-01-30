@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/user"
 	"path"
@@ -21,6 +20,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
 	compute "google.golang.org/api/compute/v0.beta"
 )
 
@@ -43,6 +43,7 @@ const (
 
 	IMAGE_STATUS_READY = "READY"
 
+	MACHINE_TYPE_F1_MICRO    = "f1-micro"
 	MACHINE_TYPE_HIGHCPU_64  = "n1-highcpu-64"
 	MACHINE_TYPE_HIGHMEM_16  = "n1-highmem-16"
 	MACHINE_TYPE_HIGHMEM_2   = "n1-highmem-2"
@@ -109,6 +110,7 @@ const (
 )
 
 var (
+	AUTH_SCOPES = []string{compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope}
 	VALID_OS    = []string{OS_LINUX, OS_WINDOWS}
 	VALID_ZONES = []string{ZONE_CENTRAL1_B, ZONE_CENTRAL1_C, ZONE_EAST1_D}
 )
@@ -117,41 +119,29 @@ var (
 type GCloud struct {
 	project string
 	service *compute.Service
-	workdir string
 	zone    string
 }
 
-// NewGCloud returns a GCloud instance with a default http client. The
-// default client expects a local gcloud_token.data and client_secret.json.
-func NewGCloud(project, zone, workdir string) (*GCloud, error) {
-	tokenSource, err := auth.NewDefaultTokenSource(true, compute.CloudPlatformScope, compute.ComputeScope, compute.DevstorageFullControlScope)
+// NewLocalGCloud returns a GCloud instance with a default http client for local
+// use.
+func NewLocalGCloud(project, zone string) (*GCloud, error) {
+	tokenSource, err := auth.NewDefaultTokenSource(true, AUTH_SCOPES...)
 	if err != nil {
 		return nil, err
 	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
-	return NewGCloudWithClient(project, zone, workdir, httpClient, false /* skipSSHCHecks */)
+	return NewGCloud(project, zone, tokenSource)
 }
 
-// NewGCloudWithClient returns a GCloud instance with the specified http client.
-// skipSSHChecks should be set to true only if the gcloud instance is not going to be
-// used to SSH or SCP into GCE.
-func NewGCloudWithClient(project, zone, workdir string, httpClient *http.Client, skipSSHChecks bool) (*GCloud, error) {
+// NewGCloud returns a GCloud instance with the specified http client.
+func NewGCloud(project, zone string, tokenSource oauth2.TokenSource) (*GCloud, error) {
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 	s, err := compute.New(httpClient)
 	if err != nil {
 		return nil, err
 	}
-
-	if !skipSSHChecks {
-		// Verify that we're set up for SSH.
-		if _, err := sshArgs(); err != nil {
-			return nil, err
-		}
-	}
-
 	return &GCloud{
 		project: project,
 		service: s,
-		workdir: workdir,
 		zone:    zone,
 	}, nil
 }
@@ -454,22 +444,20 @@ type Instance struct {
 	Scopes []string
 
 	// Path to a setup script for the instance, optional. Should be either
-	// absolute or relative to the parent GCloud instance's workdir. The
-	// setup script runs once after the instance is created. For Windows,
-	// this is assumed to be a PowerShell script and runs during sysprep.
-	// For Linux, the script needs to be executable via the shell (ie. use
-	// a shebang for Python scripts).
+	// absolute or relative to CWD. The setup script runs once after the
+	// instance is created. For Windows, this is assumed to be a PowerShell
+	// script and runs during sysprep. For Linux, the script needs to be
+	// executable via the shell (ie. use a shebang for Python scripts).
 	SetupScript string
 
 	// The service account to use for this instance. Required.
 	ServiceAccount string
 
 	// Path to a startup script for the instance, optional. Should be either
-	// absolute or relative to the parent GCloud instance's workdir. The
-	// startup script runs as root every time the instance starts up. For
-	// Windows, this is assumed to be a PowerShell script. For Linux, the
-	// script needs to be executable via the shell (ie. use a shebang for
-	// Python scripts).
+	// absolute or relative to CWD. The startup script runs as root every
+	// time the instance starts up. For Windows, this is assumed to be a
+	// PowerShell script. For Linux, the script needs to be executable via
+	// the shell (ie. use a shebang for Python scripts).
 	StartupScript string
 
 	// Tags for the instance.
@@ -721,30 +709,45 @@ func (g *GCloud) DeleteInstance(name string, ignoreNotExists bool) error {
 }
 
 // IsInstanceRunning returns whether the instance is in running state.
-func (g *GCloud) IsInstanceRunning(name string) bool {
-	return g.getInstanceStatus(name) == instanceStatusRunning
+func (g *GCloud) IsInstanceRunning(name string) (bool, error) {
+	status, err := g.getInstanceStatus(name)
+	if err != nil {
+		return false, err
+	}
+	return status == instanceStatusRunning, nil
 }
 
 // getInstanceStatus returns the current status of the instance.
-func (g *GCloud) getInstanceStatus(name string) string {
+func (g *GCloud) getInstanceStatus(name string) (string, error) {
 	i, err := g.service.Instances.Get(g.project, g.zone, name).Do()
 	if err != nil {
-		return instanceStatusError
+		return "", err
 	}
-	return i.Status
+	return i.Status, nil
 }
 
 // waitForInstance waits until the instance has the given status.
-func (g *GCloud) waitForInstance(name, status string, timeout time.Duration) error {
+func (g *GCloud) waitForInstance(name, wantStatus string, timeout time.Duration) error {
 	start := time.Now()
-	for st := g.getInstanceStatus(name); st != status; st = g.getInstanceStatus(name) {
-		if time.Now().Sub(start) > timeout {
-			return fmt.Errorf("Instance did not have status %q within timeout of %s", status, timeout)
+	for {
+		status, err := g.getInstanceStatus(name)
+		if err == nil && status == wantStatus {
+			return nil
+		} else if err != nil {
+			if wantStatus == instanceStatusError {
+				// Assume that the error means that the instance no
+				// longer exists.
+				return nil
+			} else {
+				return err
+			}
 		}
-		sklog.Infof("Waiting for instance %q (status %s)", name, st)
+		if time.Now().Sub(start) > timeout {
+			return fmt.Errorf("Instance did not have status %q within timeout of %s", wantStatus, timeout)
+		}
+		sklog.Infof("Waiting for instance %q (status %s)", name, status)
 		time.Sleep(5 * time.Second)
 	}
-	return nil
 }
 
 // GetIpAddress obtains the IP address for the Instance.
@@ -781,6 +784,12 @@ func sshArgs() ([]string, error) {
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 	}, nil
+}
+
+// CheckSsh returns an error if we are unable to use SSH.
+func (g *GCloud) CheckSsh() error {
+	_, err := sshArgs()
+	return err
 }
 
 // Ssh logs into the instance and runs the given command. Returns any output

@@ -18,7 +18,6 @@ var (
 	serviceAccount = flag.String("service_account", "", "Override the existing service account on all instances with this one, if set.")
 	project        = flag.String("project", gce.PROJECT_ID_SERVER, "GCE project.")
 	zone           = flag.String("zone", gce.ZONE_DEFAULT, "GCE zone.")
-	workdir        = flag.String("workdir", "", "Working directory to use.")
 )
 
 func main() {
@@ -32,7 +31,7 @@ func main() {
 		sklog.Fatal("--scope is required.")
 	}
 
-	gcloud, err := gce.NewGCloud(*project, *zone, *workdir)
+	gcloud, err := gce.NewLocalGCloud(*project, *zone)
 	if err != nil {
 		sklog.Fatal(err)
 	}
