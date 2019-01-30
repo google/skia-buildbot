@@ -158,6 +158,11 @@ func main() {
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.Internal(getInstanceInner(num))
 		}
+	} else if *dev {
+		getInstanceInner := getInstance
+		getInstance = func(num int) *gce.Instance {
+			return instance_types.Dev(getInstanceInner(num))
+		}
 	}
 
 	// Create the GCloud object.

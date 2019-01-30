@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	DEV_NAME_PREFIX      = "skia-d-"
 	INTERNAL_NAME_PREFIX = "skia-i-"
 
 	USER_CHROME_BOT = "chrome-bot"
@@ -121,6 +122,12 @@ func Internal(vm *gce.Instance) *gce.Instance {
 	if vm.BootDisk.SourceImage == DEBIAN_SOURCE_IMAGE_EXTERNAL {
 		vm.BootDisk.SourceImage = DEBIAN_SOURCE_IMAGE_INTERNAL
 	}
+	return vm
+}
+
+// Dev instances.
+func Dev(vm *gce.Instance) *gce.Instance {
+	vm.Name = externalNamePrefixRegexp.ReplaceAllString(vm.Name, DEV_NAME_PREFIX)
 	return vm
 }
 
