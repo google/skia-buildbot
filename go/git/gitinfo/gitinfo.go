@@ -426,7 +426,7 @@ func (g *GitInfo) GetFile(ctx context.Context, fileName, commit string) (string,
 	return output, nil
 }
 
-// InitalCommit returns the hash of the initial commit.
+// InitialCommit returns the hash of the initial commit.
 func (g *GitInfo) InitialCommit(ctx context.Context) (string, error) {
 	output, err := exec.RunCwd(ctx, g.dir, "git", "rev-list", "--max-parents=0", "HEAD")
 	if err != nil {
@@ -776,5 +776,5 @@ func (m *RepoMap) Repos() []string {
 	return rv
 }
 
-// Ensure that GitInfo implements vscinfo.VCS.
+// Ensure that GitInfo implements vcsinfo.VCS.
 var _ vcsinfo.VCS = &GitInfo{}
