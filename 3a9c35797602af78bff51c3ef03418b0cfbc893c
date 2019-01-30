@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5f5b1c4e_012c46b6",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "85222caa_8480d2f3",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b710255_5740f92a",
         "filename": "go/gce/autoscaler/autoscaler.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2019-01-30T05:11:58Z",
       "side": 1,
       "message": "Is it OK if this crashes if Update() has not been called?",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fdf36f5_43d55d5d",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 1,
+      "message": "Changed NewAutoscaler to call Update().",
+      "parentUuid": "7b710255_5740f92a",
       "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "d73c4a64_102634f8",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "783a539c_3f92a3ef",
+      "range": {
+        "startLine": 136,
+        "startChar": 37,
+        "endLine": 136,
+        "endChar": 60
+      },
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "485993ec_95ed492c",
         "filename": "go/gce/swarming/instance_types/instance_types.go",
         "patchSetId": 1
@@ -73,6 +133,24 @@
       "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e9bd14e_a5bee797",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 1,
+      "message": "Good catch, thanks.",
+      "parentUuid": "485993ec_95ed492c",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -99,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "9d7051d7_7e09707e",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 1,
+      "message": "Done, although I wouldn\u0027t expect anyone to run this on Windows.",
+      "parentUuid": "f66dd5b6_148f7803",
+      "range": {
+        "startLine": 33,
+        "startChar": 30,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3efedb6_a6d528bf",
         "filename": "go/gce/swarming/instance_types/instance_types.go",
         "patchSetId": 1
@@ -119,6 +221,30 @@
       "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d660599f_fd05f120",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 1,
+      "message": "Changed to externalNamePrefixRegexp.  And yeah, I thought we\u0027d already started to do that, but apparently not.",
+      "parentUuid": "f3efedb6_a6d528bf",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

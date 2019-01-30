@@ -16,6 +16,24 @@
       "revId": "11e05c13d05fdd191eaf92d1ffbbd27365694b0d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "644572b9_6d2e9354",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T14:25:19Z",
+      "side": 0,
+      "message": "I think it was only ever used for the f1-micro instances that I added.  IMO it should become part of the instance type.  Added the missing LinuxMicro instance type.",
+      "parentUuid": "4464bfc0_47c29ce2",
+      "revId": "11e05c13d05fdd191eaf92d1ffbbd27365694b0d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
