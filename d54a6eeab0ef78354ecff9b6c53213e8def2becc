@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f41ef84_71ebd0db",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "doc is out-of-date",
+      "range": {
+        "startLine": 13,
+        "startChar": 10,
+        "endLine": 13,
+        "endChar": 89
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adc7f186_832a4943",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "BotScaler? SwarmScaler? SwarmingBotScaler? bot_scaler.Scaler?",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 60
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c4805a4_d89f8f41",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "nit: seems like it would be better to always call gceScaler.GetNamesOfManagedInstances() rather than having two copies of the instance names.",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 19
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00a6c24f_19202b83",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "Somewhere in docs you should explain what name is used for, including explaining AUTOSCALER_DIMENSION.\n\nAlso mention instances must be the exact set that have AUTOSCALER_DIMENSION\u003dname. (Alternatively, if we want to support subsets, in updateInstanceStatuses, ignore other bots that ListBots might return.)",
+      "range": {
+        "startLine": 116,
+        "startChar": 52,
+        "endLine": 116,
+        "endChar": 63
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b19889f_4cd2daa9",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "Just checking that we want 2xxOnly here.",
+      "range": {
+        "startLine": 117,
+        "startChar": 63,
+        "endLine": 117,
+        "endChar": 76
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "98446641_e6cfd267",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "nit: maybe updateInstanceStatuses so we don\u0027t update gceScaler twice in a row.",
+      "range": {
+        "startLine": 138,
+        "startChar": 14,
+        "endLine": 138,
+        "endChar": 20
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3900cd31_8dd00d44",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "If this is the most convenient way to represent dimensions for the future users of this package, then that\u0027s fine, but I\u0027d like to point out that this is different from the (at least) three existing ways to represent bot dimensions: []*swarming.SwarmingRpcsStringListPair, map[string][]string, []string (see\nhttps://skia.googlesource.com/buildbot/+/fe93b540de56ca7fa47262b5b1463ad680676cb5/go/swarming/apiclient.go#482)",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 178,
+        "endChar": 3
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6825501_abf6d5f0",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "nit: a.mtx need not be locked to read a.instances",
+      "range": {
+        "startLine": 185,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 21
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d5b13f5_5d43bbbf",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "We\u0027ll have to see how often we get into an inconsistent state where we\u0027ve shut down swarming on a bot but not stopped the GCE instance. It\u0027s possible we should always call a.gceScaler.Stop(instances) and ignore the errors before calling a.gceScaler.Start, or something smarter.",
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b74a05d9_c7ed5489",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:23:42Z",
+      "side": 1,
+      "message": "nit: maybe mention result must be passed to MockSwarmingStatuses.",
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
