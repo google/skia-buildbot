@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8f1e552_ee4a2f65",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:25:46Z",
+      "side": 1,
+      "message": "Need to fix the disk names. I\u0027m pretty sure they will conflict with the external bots if you don\u0027t.",
+      "revId": "6b0421638203d3de24f1b8d45a0e83e35d9f8832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
