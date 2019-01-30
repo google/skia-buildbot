@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85222caa_8480d2f3",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T05:11:58Z",
+      "side": 1,
+      "message": "nit: document methods",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b710255_5740f92a",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T05:11:58Z",
+      "side": 1,
+      "message": "Is it OK if this crashes if Update() has not been called?",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "783a539c_3f92a3ef",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T05:11:58Z",
+      "side": 1,
+      "message": "nit: I think we now generally prefer passing in the TokenSource rather than the Client.",
+      "range": {
+        "startLine": 136,
+        "startChar": 37,
+        "endLine": 136,
+        "endChar": 60
+      },
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "485993ec_95ed492c",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T05:11:58Z",
+      "side": 1,
+      "message": "https://skia.googlesource.com/buildbot/+/acabb960e8d7f8487ee156e13c887df1022a5566/go/gce/swarming/swarming_vm.go#47 says ...-v20190108",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f66dd5b6_148f7803",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T05:11:58Z",
+      "side": 1,
+      "message": "nit: filepath",
+      "range": {
+        "startLine": 33,
+        "startChar": 30,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3efedb6_a6d528bf",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T05:11:58Z",
+      "side": 1,
+      "message": "nit: confusing name, since it matches the non-internal bot prefix\n\n(At some point we should rename our external bots to skia-e-gce-...)",
+      "range": {
+        "startLine": 38,
+        "startChar": 1,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
