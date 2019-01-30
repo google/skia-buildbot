@@ -117,6 +117,9 @@ func LinuxSkylake(num int, setupScriptPath string) *gce.Instance {
 // Internal instances.
 func Internal(vm *gce.Instance) *gce.Instance {
 	vm.Name = externalNamePrefixRegexp.ReplaceAllString(vm.Name, INTERNAL_NAME_PREFIX)
+	for _, d := range append(vm.DataDisks, vm.BootDisk) {
+		d.Name = externalNamePrefixRegexp.ReplaceAllString(d.Name, INTERNAL_NAME_PREFIX)
+	}
 	vm.ServiceAccount = gce.SERVICE_ACCOUNT_CHROME_SWARMING
 	if vm.BootDisk.SourceImage == DEBIAN_SOURCE_IMAGE_EXTERNAL {
 		vm.BootDisk.SourceImage = DEBIAN_SOURCE_IMAGE_INTERNAL

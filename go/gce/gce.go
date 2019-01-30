@@ -100,8 +100,8 @@ const (
 	instanceStatusRunning = "RUNNING"
 	instanceStatusStopped = "TERMINATED"
 
-	errNotFound      = "\\\"reason\\\":\\\"notFound\\\""
-	errAlreadyExists = "\\\"reason\\\":\\\"alreadyExists\\\""
+	errNotFound      = "Error 404"
+	errAlreadyExists = "Error 409"
 
 	maxWaitTime = 10 * time.Minute
 
