@@ -76,6 +76,7 @@ var (
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
+	dev            = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
 	dumpJson       = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
@@ -156,6 +157,11 @@ func main() {
 		getInstanceInner := getInstance
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.Internal(getInstanceInner(num))
+		}
+	} else if *dev {
+		getInstanceInner := getInstance
+		getInstance = func(num int) *gce.Instance {
+			return instance_types.Dev(getInstanceInner(num))
 		}
 	}
 
