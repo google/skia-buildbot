@@ -161,7 +161,7 @@ func main() {
 	// Find which chromium hash the workers should use.
 	chromiumHash, err := util.GetChromiumHash(ctx)
 	if err != nil {
-		sklog.Error("Could not find the latest chromium hash")
+		sklog.Errorf("Could not find the latest chromium hash: %s", err)
 		return
 	}
 
