@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66c492a3_f1beb31d",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T20:42:26Z",
+      "side": 1,
+      "message": "I\u0027m not sure if the errors produced by the compute lib have changed or if this is a result of removing \"Only2xx\".",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 31
+      },
+      "revId": "cdb42b0f160c52ee9009cb9f4c029bef5521e90a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

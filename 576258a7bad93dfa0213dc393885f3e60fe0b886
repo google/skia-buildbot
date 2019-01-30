@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de77b3b6_4bceca12",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T20:42:26Z",
+      "side": 0,
+      "message": "Doesn\u0027t seem to be referenced anywhere. Seems unwise to leave it here if it doesn\u0027t do anything, and I don\u0027t have time to implement it right now.",
+      "revId": "576258a7bad93dfa0213dc393885f3e60fe0b886",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
