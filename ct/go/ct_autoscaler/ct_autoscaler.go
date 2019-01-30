@@ -51,6 +51,7 @@ func NewCTAutoscaler(local bool) (*CTAutoscaler, error) {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Instantiate the GCE scaler.
+	// TODO(borenet): Can we use go/swarming/autoscaler.Autoscaler?
 	instances := autoscaler.GetInstanceRange(MIN_CT_INSTANCE_NUM, MAX_CT_INSTANCE_NUM, instance_types.CTInstance)
 	a, err := autoscaler.NewAutoscaler(gce.PROJECT_ID_CT_SWARMING, gce.ZONE_CT, ts, instances)
 	if err != nil {
