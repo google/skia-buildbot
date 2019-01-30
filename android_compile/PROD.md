@@ -49,5 +49,5 @@ Atleast one compile task failed due to an infra failure. Look for errors in the
 
 If the error appears to be an Android infrastructure issue (eg: sync problems because
 repository is down) and it does not resolve soon, then make the bot an experimental bot
-in [cq.cfg](https://skia.googlesource.com/skia/+/master/infra/branch-config/cq.cfg).
+in [commit-queue.cfg](https://skia.googlesource.com/skia/+/infra/config/commit-queue.cfg).
 Add it back to the regular CQ after the infrastructure problem eventually resolves.
