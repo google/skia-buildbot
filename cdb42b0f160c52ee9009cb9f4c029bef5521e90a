@@ -22,6 +22,30 @@
       "revId": "cdb42b0f160c52ee9009cb9f4c029bef5521e90a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02d18d75_8878562c",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T20:49:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "66c492a3_f1beb31d",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 104,
+        "endChar": 31
+      },
+      "revId": "cdb42b0f160c52ee9009cb9f4c029bef5521e90a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

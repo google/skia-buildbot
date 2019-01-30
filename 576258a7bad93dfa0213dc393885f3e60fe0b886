@@ -16,6 +16,24 @@
       "revId": "576258a7bad93dfa0213dc393885f3e60fe0b886",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b0fed71_bc2b7150",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-30T20:49:19Z",
+      "side": 0,
+      "message": "I\u0027ll add it back in a new CL.  I need to duplicate this block for dev bots: https://skia.googlesource.com/buildbot/+/master/go/gce/swarming/instance_types/instance_types.go#117",
+      "parentUuid": "de77b3b6_4bceca12",
+      "revId": "576258a7bad93dfa0213dc393885f3e60fe0b886",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
