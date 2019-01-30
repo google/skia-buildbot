@@ -205,7 +205,7 @@ func TestGNDownloadSkia(t *testing.T) {
 	assert.Error(t, err)
 	expectedCommands := []string{
 		"fetch skia",
-		"git show-ref",
+		"git log --format=format:%H%x20%ci --reverse --all",
 		"git rev-list --max-parents=0 HEAD",
 		"git reset --hard aabbccddeeff",
 		"gclient sync",
