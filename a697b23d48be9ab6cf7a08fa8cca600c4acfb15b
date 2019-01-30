@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb2a1166_9ade160a",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T21:44:58Z",
+      "side": 1,
+      "message": "I don\u0027t really know how googlesource sets the committer timestamp, but at least with a local git, it\u0027s possible to override the time using the GIT_COMMITTER_DATE environment variable. According to \u0027git help log\u0027, git will not return hashes in strictly chronological order if that would cause them to be out of logical order.\n\nThat\u0027s a long way of saying you should be aware that there\u0027s some chance that \"sort.Sort(gitHashSlice(gitHashes))\" does not order the commits the same way that \u0027git log\u0027 does.",
+      "range": {
+        "startLine": 578,
+        "startChar": 81,
+        "endLine": 578,
+        "endChar": 92
+      },
+      "revId": "a697b23d48be9ab6cf7a08fa8cca600c4acfb15b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
