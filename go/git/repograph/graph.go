@@ -182,6 +182,10 @@ func NewGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
 	return New(repo)
 }
 
+func NewGraphFromCommits(ctx context.Context, commits *vcsinfo.LongCommit, branches []*git.Branch) *Graph {
+	return nil
+}
+
 // Repo returns the underlying git.Repo object.
 func (r *Graph) Repo() *git.Repo {
 	return r.repo
