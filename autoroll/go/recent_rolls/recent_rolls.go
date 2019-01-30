@@ -74,8 +74,9 @@ func (r *RecentRolls) Add(ctx context.Context, roll *autoroll.AutoRollIssue) err
 	}
 
 	// Warn if we already have an active roll.
-	if r.currentRoll() != nil {
-		sklog.Warningf("There is already an active roll, but another is being added!")
+	currentRoll := r.currentRoll()
+	if currentRoll != nil {
+		sklog.Warningf("There is already an active roll (%d), but another is being added (%d)", currentRoll.Issue, roll.Issue)
 	}
 
 	// Warn if the new roll is already closed.

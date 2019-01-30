@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -62,6 +63,9 @@ func SendUsingConfig(body, room, thread string, configReader ConfigReader) error
 	// Note that we load the config every time through this func, since loading
 	// config is very fast, and we expect the message rate to be very low. This
 	// ensures we always have a fresh set of bots.
+	if configReader == nil {
+		return errors.New("No configReader provided; can't send messages.")
+	}
 	botWebhooks := configReader()
 	if botWebhooks == "" {
 		return fmt.Errorf("Got empty config.")

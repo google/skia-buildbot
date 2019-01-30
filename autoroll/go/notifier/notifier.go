@@ -92,11 +92,11 @@ type AutoRollNotifier struct {
 // Return an AutoRollNotifier instance.
 func New(ctx context.Context, childName, parentName, serverURL string, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, configs []*notifier.Config) (*AutoRollNotifier, error) {
 	n := &AutoRollNotifier{
-		childName:  childName,
-		emailer:    emailer,
-		n:          notifier.NewRouter(emailer, chatBotConfigReader),
-		parentName: parentName,
-		serverURL:  serverURL,
+		childName:    childName,
+		configReader: chatBotConfigReader,
+		emailer:      emailer,
+		parentName:   parentName,
+		serverURL:    serverURL,
 	}
 	if err := n.ReloadConfigs(ctx, configs); err != nil {
 		return nil, err
