@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "465668a5_153b0bf0",
+        "filename": "go/gce/autoscaler/autoscaler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-30T15:06:36Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "9fdf36f5_43d55d5d",
+      "revId": "3a9c35797602af78bff51c3ef03418b0cfbc893c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "783a539c_3f92a3ef",
         "filename": "go/gce/gce.go",
         "patchSetId": 1
