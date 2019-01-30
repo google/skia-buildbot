@@ -94,11 +94,11 @@ func (g *GitInfo) Update(ctx context.Context, pull, allBranches bool) error {
 	var hashes []string
 	var timestamps map[string]time.Time
 	var err error
+	refName := "HEAD"
 	if allBranches {
-		hashes, timestamps, err = readCommitsFromGitAllBranches(ctx, g.dir)
-	} else {
-		hashes, timestamps, err = readCommitsFromGit(ctx, g.dir, "HEAD")
+		refName = ""
 	}
+	hashes, timestamps, err = readCommitsFromGit(ctx, g.dir, refName)
 	sklog.Infof("Finished reading commits: %s", g.dir)
 	if err != nil {
 		return fmt.Errorf("Failed to read commits from: %s : %s", g.dir, err)
@@ -309,8 +309,8 @@ func (g *GitInfo) IndexOf(ctx context.Context, hash string) (int, error) {
 // ByIndex returns a LongCommit describing the commit
 // at position N, as ordered in the current branch.
 //
-// Does not make sense if readCommitsFromGitAllBranches has been
-// called.
+// Does not make sense if allBranches=true has been passed to the Update or any of the functions
+// that call Update internally.
 func (g *GitInfo) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -524,12 +524,6 @@ type gitHash struct {
 	timeStamp time.Time
 }
 
-type gitHashSlice []*gitHash
-
-func (p gitHashSlice) Len() int           { return len(p) }
-func (p gitHashSlice) Less(i, j int) bool { return p[i].timeStamp.Before(p[j].timeStamp) }
-func (p gitHashSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
 // GitBranch represents a Git branch.
 type GitBranch struct {
 	Name string `json:"name"`
@@ -576,8 +570,12 @@ func GetBranches(ctx context.Context, dir string) ([]*GitBranch, error) {
 }
 
 // readCommitsFromGit reads the commit history from a Git repository.
-func readCommitsFromGit(ctx context.Context, dir, branch string) ([]string, map[string]time.Time, error) {
-	output, err := exec.RunCwd(ctx, dir, "git", "log", "--format=format:%H%x20%ci", branch)
+func readCommitsFromGit(ctx context.Context, dir, refName string) ([]string, map[string]time.Time, error) {
+	if refName == "" {
+		refName = "--all"
+	}
+
+	output, err := exec.RunCwd(ctx, dir, "git", "log", "--format=format:%H%x20%ci", "--reverse", refName)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to execute git log: %s", err)
 	}
@@ -597,37 +595,8 @@ func readCommitsFromGit(ctx context.Context, dir, branch string) ([]string, map[
 			timestamps[hash] = t
 		}
 	}
-	sort.Sort(gitHashSlice(gitHashes))
-	hashes := make([]string, len(gitHashes), len(gitHashes))
-	for i, h := range gitHashes {
-		hashes[i] = h.hash
-	}
-	return hashes, timestamps, nil
-}
 
-func readCommitsFromGitAllBranches(ctx context.Context, dir string) ([]string, map[string]time.Time, error) {
-	branches, err := GetBranches(ctx, dir)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not read commits; unable to get branch list: %v", err)
-	}
-	timestamps := map[string]time.Time{}
-	for _, b := range branches {
-		_, ts, err := readCommitsFromGit(ctx, dir, b.Name)
-		if err != nil {
-			return nil, nil, err
-		}
-		for k, v := range ts {
-			timestamps[k] = v
-		}
-	}
-	gitHashes := make([]*gitHash, len(timestamps), len(timestamps))
-	i := 0
-	for h, t := range timestamps {
-		gitHashes[i] = &gitHash{hash: h, timeStamp: t}
-		i++
-	}
-	sort.Sort(gitHashSlice(gitHashes))
-	hashes := make([]string, len(timestamps), len(timestamps))
+	hashes := make([]string, len(gitHashes), len(gitHashes))
 	for i, h := range gitHashes {
 		hashes[i] = h.hash
 	}
