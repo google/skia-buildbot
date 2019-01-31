@@ -22,6 +22,30 @@
       "revId": "7f74239b2d4bba45586c1adcfb1200d684eda63a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c04e8a9_f2b640f5",
+        "filename": "am/go/silence/silence.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-31T16:13:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c596140a_ea2eada2",
+      "range": {
+        "startLine": 201,
+        "startChar": 0,
+        "endLine": 208,
+        "endChar": 2
+      },
+      "revId": "7f74239b2d4bba45586c1adcfb1200d684eda63a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
