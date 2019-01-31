@@ -171,3 +171,14 @@ groups:
       description: 'Autoroll on {{ $labels.app }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}
       '
+  # Dummy alert to check if alerts are working.
+  - alert: DummyAlertsAreWorking
+    expr: up{app="prometheus"} == 1
+    for: 1m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.project }}'
+      description: 'Hooray! Alerts are working for {{ $labels.project }}!'
+
