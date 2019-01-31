@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	gstorage "cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
@@ -55,8 +56,8 @@ const (
 	// jsonTempFileName is the temporary file that is created to upload results via gsutil.
 	jsonTempFile = "gsutil_dm.json"
 
-	// oauthTokenFile is the file in the work directory where the oauth token is cached.
-	oauthTokenFile = "oauth_token.json"
+	// authOpt is the file in the work directory where the auth options are cached.
+	authOptFile = "auth_opt.json"
 )
 
 // md5Regexp is used to check whether strings are MD5 hashes.
@@ -70,10 +71,36 @@ type GoldClient interface {
 	// in processing the test.
 	Test(name string, imgFileName string) (bool, error)
 
-	// ServiceAccount uses the given oauth.TokenSource to authenticate requests to GCS and the
-	// Gold backend. The token retrieved through the token source will be cached on disk.
-	ServiceAccount(tkSrc oauth2.TokenSource) error
+	// SetAuthOpt sets the authentication method for interacting with GCS and the Gold backend.
+	// Use any of the functions that return AuthOpt instance to generate this, e.g. LUCIAuthOpt.
+	SetAuthOpt(opt *AuthOpt) error
 }
+
+// TODO(stephana): Change AuthOpt so the internal fields are hidden, but we can still
+// serialize it JSON easily and clients are force to rely on using the *AuthOpt functions.
+
+// AuthOpt encapsulates the authentication option to be used by SetAuthOpt.
+type AuthOpt struct {
+	Luci           bool
+	ServiceAccount string
+}
+
+// validate returns a nil error if the AuthOpt object is valid.
+func (a *AuthOpt) validate() error {
+	if !a.Luci && a.ServiceAccount == "" {
+		return skerr.Fmt("No valid authentication method provided.")
+	}
+	return nil
+}
+
+// ServiceAccountAuthOpt returns an AuthOpt instance that configures a service account file
+// to use to generate a TokenSource for authentication with GCP.
+func ServiceAccountAuthOpt(svcAccountFile string) *AuthOpt {
+	return &AuthOpt{ServiceAccount: svcAccountFile}
+}
+
+// LUCIAuthOpt returns an AuthOpt instance to get auth information from the LUCI context.
+func LUCIAuthOpt() *AuthOpt { return &AuthOpt{Luci: true} }
 
 // cloudUploader implementations provide functions to upload to GCS.
 type cloudUploader interface {
@@ -100,7 +127,8 @@ type cloudClient struct {
 	// ready caches the result of the isReady call so we avoid duplicate work.
 	ready bool
 
-	oauthToken *oauth2.Token
+	// auth stores the authentication method to use.
+	auth       *AuthOpt
 	httpClient *http.Client
 }
 
@@ -143,7 +171,9 @@ func NewCloudClient(config *GoldClientConfig, goldResult *jsonio.GoldResults) (G
 	ret := &cloudClient{
 		workDir: workDir,
 	}
-	ret.setHttpClient()
+	if err := ret.setHttpClient(); err != nil {
+		return nil, skerr.Fmt("Error setting http client: %s", err)
+	}
 
 	if err := ret.initResultState(config, goldResult); err != nil {
 		return nil, skerr.Fmt("Error initializing result in cloud GoldClient: %s", err)
@@ -168,7 +198,7 @@ func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
 // getUploader returns a cloudUploader instance. It either uses oauth/http if available or
 // shells out to gsutil if no authentication is available.
 func (c *cloudClient) getUploader() (cloudUploader, error) {
-	if c.oauthToken != nil {
+	if c.auth != nil {
 		return newHttpUploader(context.TODO(), c.httpClient)
 	}
 	return gsutilUploader{}, nil
@@ -242,7 +272,7 @@ func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *json
 		return err
 	}
 
-	if err := c.loadOAuthToken(); err != nil {
+	if err := c.loadAuthOpt(); err != nil {
 		return skerr.Fmt("Error loading auth information: %s", err)
 	}
 
@@ -266,51 +296,68 @@ func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *json
 	return nil
 }
 
-// ServiceAccount loads a service account from the given file and uses it for requests to
-// GCP and the Gold backend.
-func (c *cloudClient) ServiceAccount(tokenSrc oauth2.TokenSource) error {
-	var err error
-	c.oauthToken, err = tokenSrc.Token()
-	if err != nil {
-		return skerr.Fmt("Error retrieving token: %s", err)
-	}
-
-	if err := c.saveOAuthToken(); err != nil {
+// SetAuthOpt implements the GoldClient interface.
+func (c *cloudClient) SetAuthOpt(authOpt *AuthOpt) error {
+	if err := authOpt.validate(); err != nil {
 		return err
 	}
-	c.setHttpClient()
-	return nil
+	c.auth = authOpt
+	if err := c.saveAuthOpt(); err != nil {
+		return err
+	}
+
+	// Instantiate a HTTP client to make sure the credentials were valid.
+	return c.setHttpClient()
 }
 
-// loadOauthToken loads the oauth token that has been saved earlier.
-func (c *cloudClient) loadOAuthToken() error {
-	inFile := filepath.Join(c.workDir, oauthTokenFile)
-	ret := &oauth2.Token{}
+// loadAuthOpt loads the auth options that have been configure earlier from disk.
+func (c *cloudClient) loadAuthOpt() error {
+	inFile := filepath.Join(c.workDir, authOptFile)
+	ret := &AuthOpt{}
 	found, err := loadJSONFile(inFile, &ret)
 	if err != nil {
 		return err
 	}
 
 	if found {
-		c.oauthToken = ret
+		c.auth = ret
 	}
-	c.setHttpClient()
+	return c.setHttpClient()
+}
+
+// setHttpClient sets authenticated httpClient, if authentication was configured via SetAuthConfig.
+// It also retrieves a token of the configured source to make sure it works.
+func (c *cloudClient) setHttpClient() error {
+	// If no auth option was set, we return an unauthenticated client.
+	if c.auth == nil {
+		c.httpClient = httputils.DefaultClientConfig().Client()
+		return nil
+	}
+
+	var tokenSrc oauth2.TokenSource
+	var err error
+	if c.auth.Luci {
+		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl)
+	} else {
+		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("#bogus", c.auth.ServiceAccount, gstorage.ScopeFullControl)
+	}
+	if err != nil {
+		return skerr.Fmt("Unable to instantiate auth token source: %s", err)
+	}
+
+	// Retrieve a token to make sure we can retrieve a token. We assume this is cached inside tokenSrc.
+	if _, err := tokenSrc.Token(); err != nil {
+		return skerr.Fmt("Error retrieving initial auth token: %s", err)
+	}
+	c.httpClient = httputils.DefaultClientConfig().WithTokenSource(tokenSrc).Client()
 	return nil
 }
 
-// setHttpClient sets httpClient with an oauth token if available, otherwise it is unauthenticated.
-func (c *cloudClient) setHttpClient() {
-	if c.oauthToken == nil {
-		c.httpClient = httputils.DefaultClientConfig().Client()
-	} else {
-		c.httpClient = httputils.DefaultClientConfig().WithTokenSource(auth.SimpleTokenSrc(c.oauthToken)).Client()
-	}
-}
-
-// savesOAuthToken assumes that oauthToken has been set. It saves it to the work directory.
-func (c *cloudClient) saveOAuthToken() error {
-	outFile := filepath.Join(c.workDir, oauthTokenFile)
-	return saveJSONFile(outFile, c.oauthToken)
+// saveAuthOpt assumes that auth has been set. It saves it to the work directory for retrieval
+// during later calls.
+func (c *cloudClient) saveAuthOpt() error {
+	outFile := filepath.Join(c.workDir, authOptFile)
+	return saveJSONFile(outFile, c.auth)
 }
 
 // isReady returns true if the instance is ready to accept test results (all necessary info has been
@@ -326,7 +373,7 @@ func (c *cloudClient) isReady() error {
 	}
 
 	// Check whether we have some means of uploading results
-	if c.oauthToken == nil && !gsutilAvailable() {
+	if c.auth == nil && !gsutilAvailable() {
 		return skerr.Fmt("Unable to find 'gsutil' on the PATH and no authentication information provided")
 	}
 

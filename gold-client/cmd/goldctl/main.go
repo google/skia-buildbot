@@ -9,6 +9,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Flag names used by various commands.
+const (
+	fstrWorkDir = "work-dir"
+)
+
 // Flags used throughout all commands.
 var flagVerbose bool
 
