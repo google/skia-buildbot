@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c596140a_ea2eada2",
+        "filename": "am/go/silence/silence.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-01-31T15:53:20Z",
+      "side": 1,
+      "message": "nit: s.ds.Delete(context.Background(), key)",
+      "range": {
+        "startLine": 201,
+        "startChar": 0,
+        "endLine": 208,
+        "endChar": 2
+      },
+      "revId": "7f74239b2d4bba45586c1adcfb1200d684eda63a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
