@@ -240,6 +240,7 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this.addEventListener('save-silence', e => this._saveSilence(e.detail.silence));
     this.addEventListener('archive-silence', e => this._archiveSilence(e.detail.silence));
     this.addEventListener('reactivate-silence', e => this._reactivateSilence(e.detail.silence));
+    this.addEventListener('delete-silence', e => this._deleteSilence(e.detail.silence));
     this.addEventListener('add-silence-note', e => this._addSilenceNote(e));
     this.addEventListener('del-silence-note', e => this._delSilenceNote(e));
     this.addEventListener('delete-silence-param', e => this._deleteSilenceParam(e.detail.silence));
@@ -445,6 +446,19 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     this._doImpl('/_/reactivate_silence', silence, json => this._silenceAction(json, false));
   }
 
+  _deleteSilence(silence) {
+    this._doImpl('/_/del_silence', silence, json => {
+      for (let i = 0; i < this._silences.length; i++) {
+        if (this._silences[i].key === json.key) {
+          this._silences.splice(i, 1) 
+          break;
+        }
+      }
+    });
+    this._rhs_state = START; 
+    this._render();
+  }
+
   _addSilenceNote(e) {
     this._doImpl('/_/add_silence_note', e.detail, json => this._silenceAction(json, false));
   }
@@ -551,7 +565,9 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       this._busy.active = false;
     }).catch(msg => {
       this._busy.active = false;
-      msg.resp.text().then(errorMessage);
+      if (msg.resp) {
+        msg.resp.text().then(errorMessage);
+      }
     });
   }
 

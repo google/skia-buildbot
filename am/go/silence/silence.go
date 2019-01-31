@@ -193,6 +193,46 @@ func (s *Store) Reactivate(encodedKey, duration, user string) (*Silence, error) 
 	})
 }
 
+// rmistry
+func (s *Store) Delete(encodedKey, user string) error {
+	key, err := datastore.DecodeKey(encodedKey)
+	if err != nil {
+		return err
+	}
+	if _, err := s.ds.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
+		if err := tx.Delete(key); err != nil {
+			return fmt.Errorf("Failed to delete Silence: %s", err)
+		}
+		return nil
+	}); err != nil {
+		fmt.Errorf("Failed to delete Silence: %s", err)
+	}
+
+	//return s._mutate(encodedKey, func(silence *Silence) error {
+	//	if index < 0 || index > len(silence.Notes)-1 {
+	//		return fmt.Errorf("Index for delete out of range.")
+	//	}
+	//	silence.Updated = time.Now().Unix()
+	//	silence.Notes = append(silence.Notes[:index], silence.Notes[index+1:]...)
+	//	return nil
+	//})
+
+	//return s._mutate(encodedKey, func(silence *Silence) error {
+	//	now := time.Now().Unix()
+	//	silence.Active = true
+	//	silence.Created = now
+	//	silence.Updated = now
+	//	silence.Notes = append(silence.Notes, note.Note{
+	//		Text:   fmt.Sprintf("Reactivated by %q.", user),
+	//		Author: user,
+	//		TS:     now,
+	//	})
+
+	//	return nil
+	//})
+	return nil
+}
+
 func (s *Store) AddNote(encodedKey string, note note.Note) (*Silence, error) {
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		silence.Updated = time.Now().Unix()
