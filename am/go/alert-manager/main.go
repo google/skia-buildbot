@@ -538,16 +538,33 @@ func (srv *Server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode silence creation request.")
+		httputils.ReportError(w, r, err, "Failed to decode silence reactivation request.")
 		return
 	}
 	auditlog.Log(r, "reactivate-silence", req)
 	silence, err := srv.silenceStore.Reactivate(req.Key, req.Duration, srv.user(r))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to archive silence.")
+		httputils.ReportError(w, r, err, "Failed to reactivate silence.")
 		return
 	}
 	if err := json.NewEncoder(w).Encode(silence); err != nil {
+		sklog.Errorf("Failed to send response: %s", err)
+	}
+}
+
+func (srv *Server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var sil silence.Silence
+	if err := json.NewDecoder(r.Body).Decode(&sil); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode silence deletion request.")
+		return
+	}
+	auditlog.Log(r, "delete-silence", sil)
+	if err := srv.silenceStore.Delete(sil.Key); err != nil {
+		httputils.ReportError(w, r, err, "Failed to delete silence.")
+		return
+	}
+	if err := json.NewEncoder(w).Encode(sil); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
 }
@@ -580,6 +597,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/assign", srv.assignHandler).Methods("POST")
 	r.HandleFunc("/_/del_note", srv.delNoteHandler).Methods("POST")
 	r.HandleFunc("/_/del_silence_note", srv.delSilenceNoteHandler).Methods("POST")
+	r.HandleFunc("/_/del_silence", srv.deleteSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/reactivate_silence", srv.reactivateSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/save_silence", srv.saveSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/take", srv.takeHandler).Methods("POST")

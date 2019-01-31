@@ -86,4 +86,14 @@ func TestStore(t *testing.T) {
 	assert.Equal(t, "3h", reactivated.Duration)
 	assert.Len(t, reactivated.Notes, 1)
 	assert.Equal(t, "wilma@example.org", reactivated.Notes[0].Author)
+
+	s, err = st.Archive(s.Key)
+	assert.NoError(t, err)
+	assert.False(t, s.Active)
+
+	err = st.Delete(s.Key)
+	assert.NoError(t, err)
+	archived, err = st.GetRecentlyArchived()
+	assert.NoError(t, err)
+	assert.Len(t, archived, 0)
 }

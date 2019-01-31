@@ -49,6 +49,15 @@
  *     }
  *   </pre>
  *
+ * @evt delete-silence Sent when the user deletes a silence.
+ *    The detail is the silence.
+ *
+ *   <pre>
+ *     detail {
+ *       silence: {...},
+ *     }
+ *   </pre>
+ *
  * @evt delete-silence-param Sent when the user deletes a param from a silence.
  *    The detail is a copy of the silence with the parameter deleted.
  *
@@ -107,7 +116,8 @@ function actionButtons(ele) {
     return html`<button @click=${ele._save}>Save</button>
                 <button @click=${ele._archive}>Archive</button>`;
   } else {
-    return html`<button @click=${ele._reactivate}>Reactivate</button>`;
+    return html`<button @click=${ele._reactivate}>Reactivate</button>
+                <delete-icon-sk title='Delete silence.' @click=${ele._delete}></delete-icon-sk>`;
   }
 }
 
@@ -202,6 +212,13 @@ window.customElements.define('silence-sk', class extends HTMLElement {
       silence: this._state,
     };
     this.dispatchEvent(new CustomEvent('reactivate-silence', { detail: detail, bubbles: true }));
+  }
+
+  _delete(e) {
+    let detail = {
+      silence: this._state,
+    };
+    this.dispatchEvent(new CustomEvent('delete-silence', { detail: detail, bubbles: true }));
   }
 
   _deleteRule(e, key) {

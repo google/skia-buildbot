@@ -193,6 +193,18 @@ func (s *Store) Reactivate(encodedKey, duration, user string) (*Silence, error) 
 	})
 }
 
+func (s *Store) Delete(encodedKey string) error {
+	key, err := datastore.DecodeKey(encodedKey)
+	if err != nil {
+		return err
+	}
+	if err := s.ds.Delete(context.Background(), key); err != nil {
+		return fmt.Errorf("Failed to delete Silence: %s", err)
+	}
+
+	return nil
+}
+
 func (s *Store) AddNote(encodedKey string, note note.Note) (*Silence, error) {
 	return s._mutate(encodedKey, func(silence *Silence) error {
 		silence.Updated = time.Now().Unix()
