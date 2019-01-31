@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ab7d8cc_b35048f8",
+        "filename": "am/go/alert-manager/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-31T20:58:43Z",
+      "side": 1,
+      "message": "nit: from that location ?",
+      "range": {
+        "startLine": 196,
+        "startChar": 191,
+        "endLine": 196,
+        "endChar": 195
+      },
+      "revId": "2279b8284de471fb4c92f4b4cf9557f8cec9169e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f28e192e_c4dae227",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-31T20:58:43Z",
+      "side": 1,
+      "message": "Why are these dummy alerts? they are alerting for when prom instances are up. We could call them PromLivelinessAlerts (or something) and have your special handling around them?",
+      "range": {
+        "startLine": 495,
+        "startChar": 5,
+        "endLine": 495,
+        "endChar": 34
+      },
+      "revId": "2279b8284de471fb4c92f4b4cf9557f8cec9169e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
