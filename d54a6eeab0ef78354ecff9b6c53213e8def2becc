@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "94017c0d_cbc2b8b2",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f41ef84_71ebd0db",
+      "range": {
+        "startLine": 13,
+        "startChar": 10,
+        "endLine": 13,
+        "endChar": 89
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "adc7f186_832a4943",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-01-30T21:23:42Z",
       "side": 1,
       "message": "BotScaler? SwarmScaler? SwarmingBotScaler? bot_scaler.Scaler?",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 60
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8852455e_fb6fceb3",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "¯\\_(ツ)_/¯  I\u0027m okay leaving it as-is for now (gce/autoscaler has the same problem).",
+      "parentUuid": "adc7f186_832a4943",
       "range": {
         "startLine": 86,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f9c3fd66_b636d114",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5c4805a4_d89f8f41",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 19
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00a6c24f_19202b83",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2019-01-30T21:23:42Z",
       "side": 1,
       "message": "Somewhere in docs you should explain what name is used for, including explaining AUTOSCALER_DIMENSION.\n\nAlso mention instances must be the exact set that have AUTOSCALER_DIMENSION\u003dname. (Alternatively, if we want to support subsets, in updateInstanceStatuses, ignore other bots that ListBots might return.)",
+      "range": {
+        "startLine": 116,
+        "startChar": 52,
+        "endLine": 116,
+        "endChar": 63
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e116cf52_594baee8",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Just brain-dumping here:\n\n- bots.cfg will need to specify which bots get the AUTOSCALER_DIMENSION. Therefore, we\u0027ll either need to mark out numeric ranges for specific sets of autoscaled bots, or we\u0027ll need to add another prefix, eg. \"skia-e-medium-123\".\n- For that matter, we probably don\u0027t need an AUTOSCALER_DIMENSION if we add a bot name prefix, although it does make for more efficient queries.\n- We can probably do away with the \"instances\" list altogether, by giving an instance template, name template, and numeric range.\n- Providing the instance type alias as part of the bot ID might allow us to avoid the instance template as well, if we map eg. \"medium\" -\u003e instance_types.LinuxMedium().  When we add dev and internal instances into the mix, this gets a little more complicated.",
+      "parentUuid": "00a6c24f_19202b83",
       "range": {
         "startLine": 116,
         "startChar": 52,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "848a308f_4b3adef4",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Removed, and we\u0027ll see what happens.",
+      "parentUuid": "1b19889f_4cd2daa9",
+      "range": {
+        "startLine": 117,
+        "startChar": 63,
+        "endLine": 117,
+        "endChar": 76
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "98446641_e6cfd267",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 2
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "06d631ad_eb3fbf70",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "98446641_e6cfd267",
+      "range": {
+        "startLine": 138,
+        "startChar": 14,
+        "endLine": 138,
+        "endChar": 20
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3900cd31_8dd00d44",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 2
@@ -151,6 +295,30 @@
       "writtenOn": "2019-01-30T21:23:42Z",
       "side": 1,
       "message": "If this is the most convenient way to represent dimensions for the future users of this package, then that\u0027s fine, but I\u0027d like to point out that this is different from the (at least) three existing ways to represent bot dimensions: []*swarming.SwarmingRpcsStringListPair, map[string][]string, []string (see\nhttps://skia.googlesource.com/buildbot/+/fe93b540de56ca7fa47262b5b1463ad680676cb5/go/swarming/apiclient.go#482)",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 178,
+        "endChar": 3
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "936f36fa_b3926c3c",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "So the bots normally have the map[string][]string representation, which is analogous to  []*swarming.SwarmingRpcsStringListPair but more convenient.  Tasks have []string, simply because that\u0027s how they\u0027re specified to Swarming.  The map[string]bool is convenient for determining whether a bot can run a task, since we can loop through the task\u0027s dimensions and check the map[string]bool for their presence.\n\nAll of that said, I\u0027m not sure what format we really need right now.  Presumably the Task Scheduler will write a blob of data somewhere indicating the number of task candidates for each dimension set.  We\u0027ll have one autoscaler per type of GCE instance, and each one will match the given candidates up against its own dimensions to determine how many candidates pertain to that scaler.  My best guess at this point is that the task candidate dimensions will be specified using []string and therefore the efficient way of matching them to bot dimensions will be map[string]bool.\n\nFTR, I really don\u0027t like this practice of obtaining the dimensions from the bots on the fly, but it\u0027s probably better than hard-coding them somewhere, or putting them in a config.",
+      "parentUuid": "3900cd31_8dd00d44",
       "range": {
         "startLine": 173,
         "startChar": 0,
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "46f80371_64ff16ad",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Moved a little lower.",
+      "parentUuid": "b6825501_abf6d5f0",
+      "range": {
+        "startLine": 185,
+        "startChar": 0,
+        "endLine": 186,
+        "endChar": 21
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d5b13f5_5d43bbbf",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 2
@@ -197,6 +389,24 @@
       "writtenOn": "2019-01-30T21:23:42Z",
       "side": 1,
       "message": "We\u0027ll have to see how often we get into an inconsistent state where we\u0027ve shut down swarming on a bot but not stopped the GCE instance. It\u0027s possible we should always call a.gceScaler.Stop(instances) and ignore the errors before calling a.gceScaler.Start, or something smarter.",
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b1446b78_e66ce4b5",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Yeah. There\u0027s going to be some learning and iterating.  Fortunately, we have a staging scheduler to experiment with.",
+      "parentUuid": "0d5b13f5_5d43bbbf",
       "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -217,6 +427,24 @@
       "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "864dff49_38c1268b",
+        "filename": "go/swarming/autoscaler/testutils.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T15:54:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b74a05d9_c7ed5489",
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
