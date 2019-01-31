@@ -97,7 +97,7 @@ Check against Gold or local baseline whether the results match the expectations`
 
 func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVarP(&i.flagInstanceID, "instance", "", "", "ID of the Gold instance.")
-	cmd.Flags().StringVarP(&i.flagWorkDir, "work-dir", "", "", "Temporary work directory")
+	cmd.Flags().StringVarP(&i.flagWorkDir, fstrWorkDir, "", "", "Temporary work directory")
 	cmd.Flags().BoolVarP(&i.flagPassFailStep, "passfail", "", false, "Whether the 'add' call returns a pass/fail for each test.")
 
 	cmd.Flags().StringVarP(&i.flagCommit, "commit", "", "", "Git commit hash")
@@ -110,7 +110,7 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 
 	if !optional {
 		_ = cmd.MarkFlagRequired("instance")
-		_ = cmd.MarkFlagRequired("work-dir")
+		_ = cmd.MarkFlagRequired(fstrWorkDir)
 		_ = cmd.MarkFlagRequired("passfail")
 		_ = cmd.MarkFlagRequired("commit")
 		_ = cmd.MarkFlagRequired("keys-file")
