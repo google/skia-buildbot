@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fb1ae658_c77815d5",
+        "filename": "go/buildskia/buildskia_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-31T15:23:02Z",
+      "side": 1,
+      "message": "Deferring that to Joe, since I don\u0027t know enough how this works.",
+      "parentUuid": "dfd8a5a6_b5877c2b",
+      "range": {
+        "startLine": 206,
+        "startChar": 1,
+        "endLine": 206,
+        "endChar": 17
+      },
+      "revId": "1732331b76c67ddc71ade86f65b33e8b9b915aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6d797191_33de2d3a",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 9
@@ -36,6 +60,30 @@
       "writtenOn": "2019-01-31T13:21:37Z",
       "side": 1,
       "message": "This should be \"master\"; there\u0027s no guarantee that HEAD points to the tip of master, or even that it points to any commit on master at all.  In general we should prefer not to assume anything about the checkout (including that it exists at all) and only query the index.",
+      "range": {
+        "startLine": 97,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 18
+      },
+      "revId": "1732331b76c67ddc71ade86f65b33e8b9b915aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e73d6da_604abaf4",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-31T15:23:02Z",
+      "side": 1,
+      "message": "I thought so too. But by calling Checkout() and then Update() you can switch to different branches. At this point I don\u0027t want to change that so I don\u0027t break code depending on it, but make the BigTable based version clearer in terms of what branch someone is on.",
+      "parentUuid": "6d797191_33de2d3a",
       "range": {
         "startLine": 97,
         "startChar": 12,

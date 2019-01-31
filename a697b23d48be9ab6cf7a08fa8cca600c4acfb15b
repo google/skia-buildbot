@@ -46,6 +46,30 @@
       "revId": "a697b23d48be9ab6cf7a08fa8cca600c4acfb15b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54f7e1b8_da280af6",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-01-31T15:23:02Z",
+      "side": 1,
+      "message": "That sums up some of my motivation. IMO it\u0027s also better to let Git be the source of truth here. There is also the edge case of some commits having the same timestamp (the first commits in the Chromium repo for example) and keeping track of order becomes difficult. I\u0027d rather leave that to git.",
+      "parentUuid": "2ae0de9d_37dab3ba",
+      "range": {
+        "startLine": 578,
+        "startChar": 81,
+        "endLine": 578,
+        "endChar": 92
+      },
+      "revId": "a697b23d48be9ab6cf7a08fa8cca600c4acfb15b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
