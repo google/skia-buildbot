@@ -4,17 +4,13 @@
 package bbstate
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	bb_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
-	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -82,6 +78,13 @@ type Config struct {
 
 	// BuilderRegexp is the regular expression that has to match for a builder to be included.
 	BuilderRegexp string
+
+	BuildBucketVersion int
+}
+
+type BuildBucketSvc interface {
+	Get(buildBucketID int64) (*tryjobstore.Tryjob, error)
+	Search(resultCh chan<- *tBuildInfo, timeWindow time.Duration) error
 }
 
 // BuildBucketState captures all tryjobs that are being run by BuildBucket.
@@ -91,11 +94,12 @@ type Config struct {
 // stored in a TryjobStore.
 type BuildBucketState struct {
 	// service client to access buildbucket.
-	service       *bb_api.Service
-	bucketName    string
-	tryjobStore   tryjobstore.TryjobStore
-	gerritAPI     *gerrit.Gerrit
-	builderRegExp *regexp.Regexp
+	service BuildBucketSvc
+
+	// service       *bb_api.Service
+	bucketName  string
+	tryjobStore tryjobstore.TryjobStore
+	gerritAPI   *gerrit.Gerrit
 
 	// currentBuilds keeps track of currently running builds that we are tracking.
 	// mapping: currentBuilds[build_bucket_id] => status
@@ -109,24 +113,28 @@ type BuildBucketState struct {
 // bbURL is the URL of the target BuildBucket instance and client is an
 // authenticated http client.
 func NewBuildBucketState(config *Config) (BuildIssueSync, error) {
-	service, err := bb_api.New(config.Client)
-	if err != nil {
-		return nil, err
-	}
-
 	// compile the regular expression to filter builders that should be ingested.
 	builderRegExp, err := regexp.Compile(config.BuilderRegexp)
 	if err != nil {
 		return nil, err
 	}
 
-	service.BasePath = config.BuildBucketURL
+	var service BuildBucketSvc
+	if config.BuildBucketVersion == 1 {
+		service, err = newBuildBucketV1(config.BuildBucketURL, builderRegExp)
+	} else {
+		service, err = newBuildBucketV2()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// service.BasePath = config.BuildBucketURL
 	ret := &BuildBucketState{
 		service:       service,
 		bucketName:    config.BuildBucketName,
 		tryjobStore:   config.TryjobStore,
 		gerritAPI:     config.GerritClient,
-		builderRegExp: builderRegExp,
 		currentBuilds: map[int64]tryjobstore.TryjobStatus{},
 	}
 	if err := ret.startPollers(config.PollInterval, config.TimeWindow); err != nil {
@@ -138,7 +146,7 @@ func NewBuildBucketState(config *Config) (BuildIssueSync, error) {
 // SyncIssueTryjob implements the BuildIssueSync interface.
 func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
 	// Fetch the build information from BuildBucket and convert it to a Tryjob.
-	tryjob, err := b.fetchBuild(buildBucketID)
+	tryjob, err := b.service.Get(buildBucketID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -173,6 +181,19 @@ func (b *BuildBucketState) SyncIssueTryjob(issueID, buildBucketID int64) (*tryjo
 	return issue, tryjob, nil
 }
 
+type tBuildStatus string
+
+const (
+	bbs_STATUS_SCHEDULED = tBuildStatus("status_scheduled")
+	bbs_STATUS_STARTED   = tBuildStatus("status_started")
+	bbs_STATUS_OTHER     = tBuildStatus("status_other")
+)
+
+type tBuildInfo struct {
+	Id     int64
+	Status tBuildStatus
+}
+
 // startPollers watches builds that are assumed running (according to the database)
 // until they reach a completed state.
 // It also starts a poller that continuously queries BuildBucket for newly
@@ -190,7 +211,8 @@ func (b *BuildBucketState) startPollers(pollInterval, timeWindow time.Duration) 
 	}
 
 	// Create the channel that will receive the list of running tryjobs.
-	buildsCh := make(chan *bb_api.ApiCommonBuildMessage)
+	// buildsCh := make(chan *bb_api.ApiCommonBuildMessage)
+	buildsCh := make(chan *tBuildInfo)
 	workPermissions := make(chan bool, maxConcurrentWrites)
 
 	// Process the new builds discovered by the poller.
@@ -199,15 +221,16 @@ func (b *BuildBucketState) startPollers(pollInterval, timeWindow time.Duration) 
 			// Get work permission.
 			workPermissions <- true
 
-			go func(build *bb_api.ApiCommonBuildMessage) {
+			go func(build *tBuildInfo) {
 				// Give up work permission at the end.
 				defer func() { <-workPermissions }()
 
 				// Only consider builds that have not completed.
 				switch build.Status {
-				case buildbucket.STATUS_SCHEDULED:
+				// case buildbucket.STATUS_SCHEDULED:
+				case bbs_STATUS_SCHEDULED:
 					fallthrough
-				case buildbucket.STATUS_STARTED:
+				case bbs_STATUS_STARTED:
 					b.watchBuild(build.Id)
 				}
 			}(build)
@@ -252,7 +275,7 @@ func (b *BuildBucketState) watchBuild(buildBucketID int64) {
 func (b *BuildBucketState) watchOneBuild(buildBucketID int64) {
 	for {
 		// fetch the build info
-		if tryjob, err := b.fetchBuild(buildBucketID); err != nil {
+		if tryjob, err := b.service.Get(buildBucketID); err != nil {
 			sklog.Errorf("Error fetching build from BuildBucket: %s", err)
 		} else {
 			// If the tryjob is ignored or not available we are done.
@@ -289,43 +312,43 @@ func (b *BuildBucketState) watchOneBuild(buildBucketID int64) {
 	}
 }
 
-// fetchBuild retrieves the build that corresponds to the given BuildBucket id
-// and extracts the information into an instance of Tryjob.
-// The first return value being nil, indicates that the build does not exist
-// of was ignored for some reason.
-func (b *BuildBucketState) fetchBuild(buildBucketID int64) (*tryjobstore.Tryjob, error) {
-	buildResp, err := b.service.Get(buildBucketID).Do()
-	if err != nil {
-		return nil, err
-	}
+// // fetchBuild retrieves the build that corresponds to the given BuildBucket id
+// // and extracts the information into an instance of Tryjob.
+// // The first return value being nil, indicates that the build does not exist
+// // of was ignored for some reason.
+// func (b *BuildBucketState) fetchBuild(buildBucketID int64) (*tryjobstore.Tryjob, error) {
+// 	buildResp, err := b.service.Get(buildBucketID).Do()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	if buildResp == nil {
-		return nil, fmt.Errorf("buildResp is nil. No result found.")
-	}
+// 	if buildResp == nil {
+// 		return nil, fmt.Errorf("buildResp is nil. No result found.")
+// 	}
 
-	if buildResp.Build == nil {
-		return nil, fmt.Errorf("Build information is nil. No result found.")
-	}
+// 	if buildResp.Build == nil {
+// 		return nil, fmt.Errorf("Build information is nil. No result found.")
+// 	}
 
-	if (buildResp.Error != nil) && (buildResp.Error.Message != "") {
-		return nil, fmt.Errorf("Unable to retrieve build %d. Got %s", buildBucketID, buildResp.Error.Message)
-	}
-	build := buildResp.Build
+// 	if (buildResp.Error != nil) && (buildResp.Error.Message != "") {
+// 		return nil, fmt.Errorf("Unable to retrieve build %d. Got %s", buildBucketID, buildResp.Error.Message)
+// 	}
+// 	build := buildResp.Build
 
-	// Parse the parameters encoded in the ParametersJson field.
-	params := &tryjobstore.Parameters{}
-	if err := json.Unmarshal([]byte(build.ParametersJson), params); err != nil {
-		return nil, fmt.Errorf("Error unmarshalling params: %s", err)
-	}
+// 	// Parse the parameters encoded in the ParametersJson field.
+// 	params := &tryjobstore.Parameters{}
+// 	if err := json.Unmarshal([]byte(build.ParametersJson), params); err != nil {
+// 		return nil, fmt.Errorf("Error unmarshalling params: %s", err)
+// 	}
 
-	// Check if this is a builder we can ignore.
-	if b.ignoreBuild(build, params) {
-		return nil, nil
-	}
+// 	// Check if this is a builder we can ignore.
+// 	if b.ignoreBuild(build, params) {
+// 		return nil, nil
+// 	}
 
-	// Extract the tryjob info.
-	return getTryjobInfo(build, params)
-}
+// 	// Extract the tryjob info.
+// 	return getTryjobInfo(build, params)
+// }
 
 // updateTryjobState adds the provided tryjob information to the TryjobStore.
 func (b *BuildBucketState) updateTryjobState(tryjob *tryjobstore.Tryjob) error {
@@ -465,119 +488,70 @@ func getParentCommit(commitInfo *gerrit.CommitInfo) string {
 	return commitInfo.Parents[0].Commit
 }
 
-// pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
-func (b *BuildBucketState) searchForNewBuilds(buildsCh chan<- *bb_api.ApiCommonBuildMessage, timeWindow time.Duration) error {
-	// Search over a specific time window.
-	searchCall := b.service.Search()
+// // pollBuildBucket queries the BuildBucket instance from (now - timeWindow) to now.
+// func (b *BuildBucketState) searchForNewBuilds(buildsCh chan<- *bb_api.ApiCommonBuildMessage, timeWindow time.Duration) error {
+// 	// Search over a specific time window.
+// 	searchCall := b.service.Search()
 
-	timeWindowStart := time.Now().Add(-timeWindow).UnixNano() / int64(time.Microsecond)
-	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStart)
+// 	timeWindowStart := time.Now().Add(-timeWindow).UnixNano() / int64(time.Microsecond)
+// 	searchCall.Bucket(b.bucketName).CreationTsLow(timeWindowStart)
 
-	if _, err := searchCall.Run(buildsCh, 0, nil); err != nil {
-		return fmt.Errorf("Error querying build bucket: %s", err)
-	}
-	return nil
-}
+// 	if _, err := searchCall.Run(buildsCh, 0, nil); err != nil {
+// 		return fmt.Errorf("Error querying build bucket: %s", err)
+// 	}
+// 	return nil
+// }
 
-// ignoreBuild is the central place to determine whether a build from
-// BuildBucket should be ignored. For example, BuildBucket can contain build jobs
-// that produce no test output.
-func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
-	// If BuildResultDetails are there, then parse them and see if
-	// resultDetails['properties']['skip_test'] exists and is true.
-	// This will only apply to some clients, but there should not be any false positives.
-	if build.ResultDetailsJson != "" {
-		resultDetails := map[string]interface{}{}
-		if err := json.Unmarshal([]byte(build.ResultDetailsJson), &resultDetails); err != nil {
-			sklog.Errorf("Error unmarshalling generic JSON: %s", err)
-		} else if props, ok := resultDetails["properties"].(map[string]interface{}); ok {
-			// If skip_test exists and is a bool with value true we need to ignore this build.
-			if val, ok := props["skip_test"].(bool); ok && val {
-				return true
-			}
-		}
-	}
+// // ignoreBuild is the central place to determine whether a build from
+// // BuildBucket should be ignored. For example, BuildBucket can contain build jobs
+// // that produce no test output.
+// func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) bool {
+// 	// If BuildResultDetails are there, then parse them and see if
+// 	// resultDetails['properties']['skip_test'] exists and is true.
+// 	// This will only apply to some clients, but there should not be any false positives.
+// 	if build.ResultDetailsJson != "" {
+// 		resultDetails := map[string]interface{}{}
+// 		if err := json.Unmarshal([]byte(build.ResultDetailsJson), &resultDetails); err != nil {
+// 			sklog.Errorf("Error unmarshalling generic JSON: %s", err)
+// 		} else if props, ok := resultDetails["properties"].(map[string]interface{}); ok {
+// 			// If skip_test exists and is a bool with value true we need to ignore this build.
+// 			if val, ok := props["skip_test"].(bool); ok && val {
+// 				return true
+// 			}
+// 		}
+// 	}
 
-	// Check whether the builder is ruled out by a regular expression.
-	return !b.builderRegExp.Match([]byte(params.BuilderName))
-}
+// 	// Check whether the builder is ruled out by a regular expression.
+// 	return !b.builderRegExp.Match([]byte(params.BuilderName))
+// }
 
 // startSearchPoller polls the BuildBucket immediately and starts a poller at the
 // given interval with the given time windows. All results are written to buildCh.
 // If the first poll fails, an error is returned.
-func (b *BuildBucketState) startSearchPoller(buildsCh chan<- *bb_api.ApiCommonBuildMessage, interval, timeWindow time.Duration) error {
-	if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
+// func (b *BuildBucketState) startSearchPoller(buildsCh chan<- *bb_api.ApiCommonBuildMessage, interval, timeWindow time.Duration) error {
+// 	if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
+// 		return err
+// 	}
+// 	go func() {
+// 		for range time.Tick(interval) {
+// 			if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
+// 				sklog.Errorf("Error polling BuildBucket: %s", err)
+// 			}
+// 		}
+// 	}()
+// 	return nil
+// }
+
+func (b *BuildBucketState) startSearchPoller(buildsCh chan<- *tBuildInfo, interval, timeWindow time.Duration) error {
+	if err := b.service.Search(buildsCh, timeWindow); err != nil {
 		return err
 	}
 	go func() {
 		for range time.Tick(interval) {
-			if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
+			if err := b.service.Search(buildsCh, timeWindow); err != nil {
 				sklog.Errorf("Error polling BuildBucket: %s", err)
 			}
 		}
 	}()
 	return nil
-}
-
-// extractPatchsetRegex is used to extract the patchset ID from BuildBucket builds.
-var extractPatchsetRegex = regexp.MustCompile(`^refs\/changes\/[0-9]*\/[0-9]*\/(?P<patchset>.+)$`)
-
-// getTryjobInfo extracts tryjob information from the BuildBucket record.
-// It translates the status of a BuildBucket build to the status defined for
-// Tryjob instances in tryjobstore, which is richer in that it also captures
-// whether a tryjob result has been ingested or not.
-func getTryjobInfo(build *bb_api.ApiCommonBuildMessage, params *tryjobstore.Parameters) (*tryjobstore.Tryjob, error) {
-	matchedGroups := extractPatchsetRegex.FindStringSubmatch(params.Properties.GerritPatchset)
-	if len(matchedGroups) != 2 {
-		return nil, fmt.Errorf("Unable to extract patchset info from '%s'", params.Properties.GerritPatchset)
-	}
-
-	patchsetID, err := strconv.ParseInt(matchedGroups[1], 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	issueID := int64(params.Properties.GerritIssue)
-
-	// Make sure the relevant ids are correct.
-	if (issueID <= 0) || (patchsetID <= 0) {
-		return nil, sklog.FmtErrorf("Invalid issue id (%d) or patchset id (%d).", issueID, patchsetID)
-	}
-
-	// Translate the two result fields into one for tryjobs.
-	var status tryjobstore.TryjobStatus = tryjobstore.TRYJOB_UNKNOWN
-	switch build.Status {
-	case buildbucket.STATUS_SCHEDULED:
-		status = tryjobstore.TRYJOB_SCHEDULED
-	case buildbucket.STATUS_STARTED:
-		status = tryjobstore.TRYJOB_RUNNING
-	case buildbucket.STATUS_COMPLETED:
-		switch build.Result {
-		case buildbucket.RESULT_CANCELED:
-			fallthrough
-		case buildbucket.RESULT_FAILURE:
-			status = tryjobstore.TRYJOB_FAILED
-		case buildbucket.RESULT_SUCCESS:
-			status = tryjobstore.TRYJOB_COMPLETE
-		}
-	}
-
-	if status == tryjobstore.TRYJOB_UNKNOWN {
-		return nil, fmt.Errorf("Unknown tryjob state. Got (status, result): (%s, %s)", build.Status, build.Result)
-	}
-
-	// UpdateTs is in micro seconds.
-	// Note: Multiplying by time.Microsecond results in the correct number of nanoseconds.
-	const microPerSec = int64(time.Second / time.Microsecond)
-	updated := time.Unix(build.UpdatedTs/microPerSec, (build.UpdatedTs%microPerSec)*int64(time.Microsecond))
-	ret := &tryjobstore.Tryjob{
-		IssueID:       issueID,
-		PatchsetID:    patchsetID,
-		Builder:       params.BuilderName,
-		BuildBucketID: build.Id,
-		Updated:       updated,
-		Status:        status,
-	}
-
-	return ret, nil
 }
