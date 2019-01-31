@@ -142,54 +142,54 @@ func New() (baseapp.App, error) {
 		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
 	}
 
-	// Process all incoming PubSub requests.
-	go func() {
-		for {
-			err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-				msg.Ack()
-				var m map[string]string
-				if err := json.Unmarshal(msg.Data, &m); err != nil {
-					sklog.Error(err)
-					return
-				}
-				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
-					sklog.Infof("healthz received: %q", m[alerts.LOCATION])
-					if l, ok := livenesses[m[alerts.LOCATION]]; ok {
-						l.Reset()
-					} else {
-						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
-					}
-				} else {
-					if _, err := srv.incidentStore.AlertArrival(m); err != nil {
-						sklog.Errorf("Error processing alert: %s", err)
-					}
-				}
-			})
-			if err != nil {
-				sklog.Errorf("Failed receiving pubsub message: %s", err)
-			}
-		}
-	}()
+	//// Process all incoming PubSub requests.
+	//go func() {
+	//	for {
+	//		err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+	//			msg.Ack()
+	//			var m map[string]string
+	//			if err := json.Unmarshal(msg.Data, &m); err != nil {
+	//				sklog.Error(err)
+	//				return
+	//			}
+	//			if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
+	//				sklog.Infof("healthz received: %q", m[alerts.LOCATION])
+	//				if l, ok := livenesses[m[alerts.LOCATION]]; ok {
+	//					l.Reset()
+	//				} else {
+	//					sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
+	//				}
+	//			} else {
+	//				if _, err := srv.incidentStore.AlertArrival(m); err != nil {
+	//					sklog.Errorf("Error processing alert: %s", err)
+	//				}
+	//			}
+	//		})
+	//		if err != nil {
+	//			sklog.Errorf("Failed receiving pubsub message: %s", err)
+	//		}
+	//	}
+	//}()
 
-	// This is really just a backstop in case we miss a resolved event for the incident.
-	go func() {
-		for _ = range time.Tick(1 * time.Minute) {
-			ins, err := srv.incidentStore.GetAll()
-			if err != nil {
-				sklog.Errorf("Failed to load incidents: %s", err)
-				continue
-			}
-			now := time.Now()
-			for _, in := range ins {
-				// If it was last updated too long ago then it should be archived.
-				if time.Unix(in.LastSeen, 0).Add(EXPIRE_DURATION).Before(now) {
-					if _, err := srv.incidentStore.Archive(in.Key); err != nil {
-						sklog.Errorf("Failed to archive incident: %s", err)
-					}
-				}
-			}
-		}
-	}()
+	//// This is really just a backstop in case we miss a resolved event for the incident.
+	//go func() {
+	//	for _ = range time.Tick(1 * time.Minute) {
+	//		ins, err := srv.incidentStore.GetAll()
+	//		if err != nil {
+	//			sklog.Errorf("Failed to load incidents: %s", err)
+	//			continue
+	//		}
+	//		now := time.Now()
+	//		for _, in := range ins {
+	//			// If it was last updated too long ago then it should be archived.
+	//			if time.Unix(in.LastSeen, 0).Add(EXPIRE_DURATION).Before(now) {
+	//				if _, err := srv.incidentStore.Archive(in.Key); err != nil {
+	//					sklog.Errorf("Failed to archive incident: %s", err)
+	//				}
+	//			}
+	//		}
+	//	}
+	//}()
 
 	srv.startInternalServer()
 
@@ -538,17 +538,31 @@ func (srv *Server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	var req silence.Silence
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to decode silence creation request.")
+		httputils.ReportError(w, r, err, "Failed to decode silence reactivation request.")
 		return
 	}
 	auditlog.Log(r, "reactivate-silence", req)
 	silence, err := srv.silenceStore.Reactivate(req.Key, req.Duration, srv.user(r))
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to archive silence.")
+		httputils.ReportError(w, r, err, "Failed to reactivate silence.")
 		return
 	}
 	if err := json.NewEncoder(w).Encode(silence); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
+	}
+}
+
+func (srv *Server) deleteSilenceHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var req silence.Silence
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to decode silence deletion request.")
+		return
+	}
+	auditlog.Log(r, "delete-silence", req)
+	if err := srv.silenceStore.Delete(req.Key, srv.user(r)); err != nil {
+		httputils.ReportError(w, r, err, "Failed to delete silence.")
+		return
 	}
 }
 
@@ -580,6 +594,7 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/_/assign", srv.assignHandler).Methods("POST")
 	r.HandleFunc("/_/del_note", srv.delNoteHandler).Methods("POST")
 	r.HandleFunc("/_/del_silence_note", srv.delSilenceNoteHandler).Methods("POST")
+	r.HandleFunc("/_/del_silence", srv.deleteSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/reactivate_silence", srv.reactivateSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/save_silence", srv.saveSilenceHandler).Methods("POST")
 	r.HandleFunc("/_/take", srv.takeHandler).Methods("POST")
