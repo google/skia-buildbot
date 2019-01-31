@@ -22,6 +22,30 @@
       "revId": "a697b23d48be9ab6cf7a08fa8cca600c4acfb15b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ae0de9d_37dab3ba",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T13:21:37Z",
+      "side": 1,
+      "message": "I think the CQ behaves as one would expect (aside from an often surprising difference between the author and commit timestamps due to code review lag) but we\u0027re still susceptible to this weirdness because people are allowed to \"git push\".  I do think this approach is better because it avoids that confusion, ie. a given commit will always show up after its parents, even if the timestamps would indicate otherwise.",
+      "parentUuid": "cb2a1166_9ade160a",
+      "range": {
+        "startLine": 578,
+        "startChar": 81,
+        "endLine": 578,
+        "endChar": 92
+      },
+      "revId": "a697b23d48be9ab6cf7a08fa8cca600c4acfb15b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

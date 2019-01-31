@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dfd8a5a6_b5877c2b",
+        "filename": "go/buildskia/buildskia_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T13:21:37Z",
+      "side": 1,
+      "message": "Looks like buildskia doesn\u0027t need to use gitinfo at all.  We should change it to use git.Checkout.",
+      "range": {
+        "startLine": 206,
+        "startChar": 1,
+        "endLine": 206,
+        "endChar": 17
+      },
+      "revId": "1732331b76c67ddc71ade86f65b33e8b9b915aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d797191_33de2d3a",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T13:21:37Z",
+      "side": 1,
+      "message": "This should be \"master\"; there\u0027s no guarantee that HEAD points to the tip of master, or even that it points to any commit on master at all.  In general we should prefer not to assume anything about the checkout (including that it exists at all) and only query the index.",
+      "range": {
+        "startLine": 97,
+        "startChar": 12,
+        "endLine": 97,
+        "endChar": 18
+      },
+      "revId": "1732331b76c67ddc71ade86f65b33e8b9b915aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28dac438_dc44d8f3",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-01-31T13:21:37Z",
+      "side": 1,
+      "message": "I think I\u0027d prefer that we pass \"--all\" in as the ref.  Passing in the empty string is confusing, because from the caller\u0027s perspective we\u0027d expect to run the command with no ref specified, which according to the man page for git log is equivalent to writing \"HEAD\": https://git-scm.com/docs/git-log#git-log-ltrevisionrangegt\n\nHowever, I don\u0027t think there are any users of gitinfo who care about anything other than the master branch.  I think maybe we should remove all multi-branch support and rename this package to be clear that its specific use case is to provide index-ordering for commits on only the master branch.",
+      "range": {
+        "startLine": 575,
+        "startChar": 2,
+        "endLine": 575,
+        "endChar": 19
+      },
+      "revId": "1732331b76c67ddc71ade86f65b33e8b9b915aaf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
