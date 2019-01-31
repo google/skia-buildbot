@@ -93,6 +93,30 @@
       "revId": "2279b8284de471fb4c92f4b4cf9557f8cec9169e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a5f5a71_e3f0979b",
+        "filename": "prometheus/sys/alert.rules",
+        "patchSetId": 1
+      },
+      "lineNbr": 495,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-01-31T21:56:42Z",
+      "side": 1,
+      "message": "\u003e Because no one wants an alert when an instance is up.\nI think of something very different when I see \"DummyAlert\": something not important and just for testing. In this case it will actually be used for something important.\n\n\u003e I would expect PromLivenessAlert to tell me that prom is *down*, not up\nSeems like it just needs an appropriate name: PromWorkingAlertForAlertManager (or something)",
+      "parentUuid": "9ca804e2_8cecf72c",
+      "range": {
+        "startLine": 495,
+        "startChar": 5,
+        "endLine": 495,
+        "endChar": 34
+      },
+      "revId": "2279b8284de471fb4c92f4b4cf9557f8cec9169e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
