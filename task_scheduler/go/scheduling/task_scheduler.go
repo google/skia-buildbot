@@ -1125,6 +1125,7 @@ func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<
 				return
 			}
 			s.pendingInsertMtx.Lock()
+			sklog.Debugf("pendingInsert add %s", t.Id)
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
 			var resp *swarming_api.SwarmingRpcsTaskRequestMetadata
@@ -1134,6 +1135,7 @@ func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<
 				return err
 			}, time.Minute); err != nil {
 				s.pendingInsertMtx.Lock()
+				sklog.Debugf("pendingInsert rm %s; failed DB insert", t.Id)
 				delete(s.pendingInsert, t.Id)
 				s.pendingInsertMtx.Unlock()
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
@@ -1206,6 +1208,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 			for _, byRepo := range insert {
 				for _, byName := range byRepo {
 					for _, t := range byName {
+						sklog.Debugf("pendingInsert rm %s", t.Id)
 						delete(s.pendingInsert, t.Id)
 					}
 				}
