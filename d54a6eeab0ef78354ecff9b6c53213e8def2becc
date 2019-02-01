@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "6523a514_22b65374",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-01T15:18:06Z",
+      "side": 1,
+      "message": "I don\u0027t have strong opinions about any of this. My vague feeling is that once we have something more-or-less working, we will see what we like and dislike about the setup and then we will have a better idea of what could be improved.\n\nAlmost unrelated idea: I think we may eventually want a general way to be able to associate code that creates/deletes bots (e.g. instance_types.LinuxMedium) with a set of dimensions (e.g. gce:1,machine_type:n1-standard-16,os:Linux); however, I\u0027d like that to be able to work for non-GCE bots, and for subsets of bots, e.g. \"Skolo Win bots\" as well as \"Skolo Win bots with Intel GPU.\" In other words, I slightly dis-prefer using bot name to identify bot group, because then I would need to name win bots like skia-e-win-intel-skylake-NNN, which is a bit verbose (and besides it would be too long for a Windows machine name).",
+      "parentUuid": "e116cf52_594baee8",
+      "range": {
+        "startLine": 116,
+        "startChar": 52,
+        "endLine": 116,
+        "endChar": 63
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1b19889f_4cd2daa9",
         "filename": "go/swarming/autoscaler/autoscaler.go",
         "patchSetId": 2
@@ -234,6 +258,30 @@
       "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bca31d8e_504213a2",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-01T15:18:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "848a308f_4b3adef4",
+      "range": {
+        "startLine": 117,
+        "startChar": 63,
+        "endLine": 117,
+        "endChar": 76
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -319,6 +367,30 @@
       "side": 1,
       "message": "So the bots normally have the map[string][]string representation, which is analogous to  []*swarming.SwarmingRpcsStringListPair but more convenient.  Tasks have []string, simply because that\u0027s how they\u0027re specified to Swarming.  The map[string]bool is convenient for determining whether a bot can run a task, since we can loop through the task\u0027s dimensions and check the map[string]bool for their presence.\n\nAll of that said, I\u0027m not sure what format we really need right now.  Presumably the Task Scheduler will write a blob of data somewhere indicating the number of task candidates for each dimension set.  We\u0027ll have one autoscaler per type of GCE instance, and each one will match the given candidates up against its own dimensions to determine how many candidates pertain to that scaler.  My best guess at this point is that the task candidate dimensions will be specified using []string and therefore the efficient way of matching them to bot dimensions will be map[string]bool.\n\nFTR, I really don\u0027t like this practice of obtaining the dimensions from the bots on the fly, but it\u0027s probably better than hard-coding them somewhere, or putting them in a config.",
       "parentUuid": "3900cd31_8dd00d44",
+      "range": {
+        "startLine": 173,
+        "startChar": 0,
+        "endLine": 178,
+        "endChar": 3
+      },
+      "revId": "d54a6eeab0ef78354ecff9b6c53213e8def2becc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5cc6ebac_6581c14a",
+        "filename": "go/swarming/autoscaler/autoscaler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-01T15:18:06Z",
+      "side": 1,
+      "message": "I\u0027m fine with leaving this as-is, but you might consider just storing botInfo.Dimensions unmodified and returning it unmodified, since we already have code that will transform that value into something useful, and it would (probably) simplify the code here.",
+      "parentUuid": "936f36fa_b3926c3c",
       "range": {
         "startLine": 173,
         "startChar": 0,
