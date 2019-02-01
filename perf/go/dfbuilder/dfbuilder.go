@@ -178,8 +178,11 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 			if err != nil {
 				return err
 			}
+			sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
 			mutex.Lock()
 			defer mutex.Unlock()
+			sklog.Debugf("before processing traces for %s, len(traceSet) is %d, len(paramSet) is %d", tileKey.OpsRowName(), len(traceSet), len(paramSet))
+			defer timer.New("dfbuilder_by_tile_mutex_held").Stop()
 			// For each trace, convert the encodedKey to a structured key
 			// and copy the trace values into their final destination.
 			for encodedKey, tileTrace := range traces {
@@ -203,6 +206,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 				}
 				traceSet[key] = trace
 			}
+			sklog.Debugf("after processing traces for %s, len(traceSet) is %d, len(paramSet) is %d", tileKey.OpsRowName(), len(traceSet), len(paramSet))
 			triggerProgress()
 			return nil
 		})

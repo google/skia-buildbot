@@ -247,11 +247,11 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 	defer cancel()
 	row, err := b.getTable().ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
-		return nil, false, fmt.Errorf("Failed to read OPS from BigTable: %s", err)
+		return nil, false, fmt.Errorf("Failed to read OPS from BigTable for %s: %s", tileKey.OpsRowName(), err)
 	}
 	// If there is no entry in BigTable then return an empty OPS.
 	if len(row) == 0 {
-		sklog.Warningf("Failed to read OPS from BT.")
+		sklog.Warningf("Failed to read OPS from BT for %s.", tileKey.OpsRowName())
 		entry, err := NewOpsCacheEntry()
 		return entry, false, err
 	}
@@ -527,7 +527,7 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 
 		// If the OPS contains our paramset then we're done.
 		if delta := entry.ops.Delta(p); len(delta) == 0 {
-			sklog.Infof("Nothing to do.")
+			sklog.Infof("No delta in UpdateOrderedParamSet for %s. Nothing to do.", tileKey.OpsRowName())
 			return entry.ops, nil
 		}
 
@@ -536,7 +536,7 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 		ops.Update(p)
 		newEntry, err = opsCacheEntryFromOPS(ops)
 		encodedOps, err := newEntry.ops.Encode()
-		sklog.Infof("Writing hash: new: %q old: %q", newEntry.hash, entry.hash)
+		sklog.Infof("Writing updated OPS for %s. hash: new: %q old: %q", tileKey.OpsRowName(), newEntry.hash, entry.hash)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to encode new ops: %s", err)
 		}
