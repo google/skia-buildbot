@@ -226,7 +226,7 @@ func New() (baseapp.App, error) {
 				}
 				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
 					sklog.Infof("healthz received: %q", m[alerts.LOCATION])
-					if l, ok := missingAlertsLivenesses[m[alerts.LOCATION]]; ok {
+					if l, ok := healthzLivenesses[m[alerts.LOCATION]]; ok {
 						l.Reset()
 					} else {
 						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
