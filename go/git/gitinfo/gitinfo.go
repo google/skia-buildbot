@@ -180,6 +180,10 @@ func (g *GitInfo) Reset(ctx context.Context, ref string) error {
 }
 
 func (g *GitInfo) Checkout(ctx context.Context, ref string) error {
+	if _, err := exec.RunCwd(ctx, g.dir, "git", "clean", "-n"); err != nil {
+		return fmt.Errorf("Error when trying to clean untracked files when checking out %s: %s", ref, err)
+	}
+
 	if _, err := exec.RunCwd(ctx, g.dir, "git", "checkout", ref); err != nil {
 		return fmt.Errorf("Failed to checkout %s: %s", ref, err)
 	}
