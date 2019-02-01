@@ -45,6 +45,8 @@ var (
 const (
 	// EXPIRE_DURATION is the time to wait before expiring an incident.
 	EXPIRE_DURATION = 2 * time.Minute
+
+	CANARY_ALERT_NAME = "CanaryAlertIndicatingAlertsAreWorkingCorrectly"
 )
 
 // Server is the state of the server.
@@ -137,10 +139,80 @@ func New() (baseapp.App, error) {
 	srv.loadTemplates()
 
 	locations := []string{"skia-public", "google.com:skia-corp", "google.com:skia-buildbots"}
-	livenesses := map[string]metrics2.Liveness{}
+	healthzLivenesses := map[string]metrics2.Liveness{}
+	missingAlertsLivenesses := map[string]metrics2.Liveness{}
 	for _, location := range locations {
-		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
+		healthzLivenesses[location] = metrics2.NewLiveness("recv_alert_to_pubsub_healthz", map[string]string{"location": location})
+		missingAlertsLivenesses[location] = metrics2.NewLiveness("recv_canary_alert", map[string]string{"location": location})
 	}
+
+	// Generate a fake alert if healthzLivenesses or missingAlertsLivenesses are too old.
+	go func() {
+		activeHealthzAlerts := map[string]map[string]string{}
+		activeMissingAlerts := map[string]map[string]string{}
+		for _ = range time.Tick(1 * time.Minute) {
+			for location, metric := range healthzLivenesses {
+				if metric.Get() > 120 {
+					// Haven't seen a healthz from this location for more than two minutes.
+					alert, ok := activeHealthzAlerts[location]
+					if !ok {
+						alert = map[string]string{
+							alerts.TYPE:         alerts.TYPE_ALERTS,
+							alerts.STATE:        alerts.STATE_ACTIVE,
+							incident.ABBR:       location,
+							incident.ALERT_NAME: "AlertToPubsubDown",
+							incident.CATEGORY:   "infra",
+							incident.SEVERITY:   "critical",
+							"description":       fmt.Sprintf("No healthz in more than 2 minutes from alert-to-pubsub in %s. This probably means alert-to-pubsub is down in %s. No alerts will appear from %s until this is fixed!", location, location, location),
+							"location":          location,
+						}
+						activeHealthzAlerts[location] = alert
+					}
+					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
+						sklog.Errorf("Error processing healthz alert: %s", err)
+					}
+				} else if alert, ok := activeHealthzAlerts[location]; ok {
+					// Mark the alert as resolved.
+					alert[alerts.STATE] = alerts.STATE_RESOLVED
+					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
+						sklog.Errorf("Error resolving healthz alert: %s", err)
+					} else {
+						activeHealthzAlerts[location] = nil
+					}
+				}
+			}
+			for location, metric := range missingAlertsLivenesses {
+				if metric.Get() > 120 {
+					// Haven't seen a canary alert from this location for more than two minutes.
+					alert, ok := activeMissingAlerts[location]
+					if !ok {
+						alert = map[string]string{
+							alerts.TYPE:         alerts.TYPE_ALERTS,
+							alerts.STATE:        alerts.STATE_ACTIVE,
+							incident.ABBR:       location,
+							incident.ALERT_NAME: "AlertsNotWorking",
+							incident.CATEGORY:   "infra",
+							incident.SEVERITY:   "critical",
+							"description":       fmt.Sprintf("No alerts in more than 2 minutes from Prometheus in %s. This probably means either Prometheus or alert-to-pubsub is down in %s. No alerts will appear from %s until this is fixed!", location, location, location),
+							"location":          location,
+						}
+						activeMissingAlerts[location] = alert
+					}
+					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
+						sklog.Errorf("Error processing healthz alert: %s", err)
+					}
+				} else if alert, ok := activeMissingAlerts[location]; ok {
+					// Mark the alert as resolved.
+					alert[alerts.STATE] = alerts.STATE_RESOLVED
+					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
+						sklog.Errorf("Error resolving healthz alert: %s", err)
+					} else {
+						activeMissingAlerts[location] = nil
+					}
+				}
+			}
+		}
+	}()
 
 	// Process all incoming PubSub requests.
 	go func() {
@@ -154,7 +226,14 @@ func New() (baseapp.App, error) {
 				}
 				if m[alerts.TYPE] == alerts.TYPE_HEALTHZ {
 					sklog.Infof("healthz received: %q", m[alerts.LOCATION])
-					if l, ok := livenesses[m[alerts.LOCATION]]; ok {
+					if l, ok := missingAlertsLivenesses[m[alerts.LOCATION]]; ok {
+						l.Reset()
+					} else {
+						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
+					}
+				} else if m[incident.ALERT_NAME] == CANARY_ALERT_NAME {
+					sklog.Infof("canary alert received: %q", m[alerts.LOCATION])
+					if l, ok := missingAlertsLivenesses[m[alerts.LOCATION]]; ok {
 						l.Reset()
 					} else {
 						sklog.Errorf("Unknown PubSub source location: %q", m[alerts.LOCATION])
