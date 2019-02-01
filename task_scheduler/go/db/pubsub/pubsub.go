@@ -25,7 +25,7 @@ const (
 	PROJECT_ID = "skia-public"
 
 	// Sets of topic, based on scheduler instance.
-	TOPIC_SET_PROD     = "prod"
+	TOPIC_SET_PROD     = "production"
 	TOPIC_SET_INTERNAL = "internal"
 	TOPIC_SET_STAGING  = "staging"
 
