@@ -526,6 +526,7 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 		}
 
 		// If the OPS contains our paramset then we're done.
+		sklog.Warningf("Delta is: %#v %#v", *entry.ops, p)
 		if delta := entry.ops.Delta(p); len(delta) == 0 {
 			sklog.Infof("Nothing to do.")
 			return entry.ops, nil
