@@ -17,7 +17,8 @@
     "copy-webpack-plugin": "^4.6.0",
     "fetch-mock": "~7.3.0",
     "pulito": "^4.1.1",
-    "webpack": "^4.28.1",
+    "terser-webpack-plugin": "^1.2.2",
+    "webpack": "~4.28.0",
     "webpack-cli": "^3.2.1"
   },
   "scripts": {
