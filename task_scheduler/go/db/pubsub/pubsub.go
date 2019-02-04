@@ -25,9 +25,9 @@ const (
 	PROJECT_ID = "skia-public"
 
 	// Sets of topic, based on scheduler instance.
-	TOPIC_SET_PROD     = "prod"
-	TOPIC_SET_INTERNAL = "internal"
-	TOPIC_SET_STAGING  = "staging"
+	TOPIC_SET_PRODUCTION = "production"
+	TOPIC_SET_INTERNAL   = "internal"
+	TOPIC_SET_STAGING    = "staging"
 
 	// Known topic names.
 	TOPIC_TASKS                      = "task-scheduler-modified-tasks"
@@ -58,13 +58,13 @@ const (
 
 var (
 	VALID_TOPIC_SETS = []string{
-		TOPIC_SET_PROD,
+		TOPIC_SET_PRODUCTION,
 		TOPIC_SET_INTERNAL,
 		TOPIC_SET_STAGING,
 	}
 
 	topics = map[string]topicSet{
-		TOPIC_SET_PROD: topicSet{
+		TOPIC_SET_PRODUCTION: topicSet{
 			tasks:            TOPIC_TASKS,
 			jobs:             TOPIC_JOBS,
 			taskComments:     TOPIC_TASK_COMMENTS,

@@ -8,7 +8,7 @@ ExecStart=/usr/local/bin/datahopper \
     --logtostderr \
     --bigtable_project=skia-public \
     --bigtable_instance=production \
-    --pubsub_topic_set=prod \
+    --pubsub_topic_set=production \
     --workdir=/mnt/pd0/datahopper_workdir \
 Restart=always
 User=default
