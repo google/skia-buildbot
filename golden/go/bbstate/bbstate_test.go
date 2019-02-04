@@ -26,7 +26,7 @@ func TestBuildBucketState(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Comment out the line below to run tests locally.
-	t.Skip()
+	// t.Skip()
 
 	// Get the client to be used to access GCS and the Monorail issue tracker.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", "", gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
@@ -57,14 +57,26 @@ func TestBuildBucketState(t *testing.T) {
 	gerritAPI, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
 	assert.NoError(t, err)
 
+	// bbConf := &Config{
+	// 	BuildBucketURL:     DefaultSkiaBuildBucketURL,
+	// 	BuildBucketName:    DefaultSkiaBucketName,
+	// 	Client:             httpClient,
+	// 	TryjobStore:        tjStore,
+	// 	GerritClient:       gerritAPI,
+	// 	PollInterval:       10 * time.Second,
+	// 	TimeWindow:         3 * time.Hour,
+	// 	BuildBucketVersion: 1,
+	// }
+
 	bbConf := &Config{
-		BuildBucketURL:  DefaultSkiaBuildBucketURL,
-		BuildBucketName: DefaultSkiaBucketName,
-		Client:          httpClient,
-		TryjobStore:     tjStore,
-		GerritClient:    gerritAPI,
-		PollInterval:    10 * time.Second,
-		TimeWindow:      3 * time.Hour,
+		BuildBucketURL:     "cr-buildbucket.appspot.com",
+		BuildBucketName:    "try",
+		Client:             httpClient,
+		TryjobStore:        tjStore,
+		GerritClient:       gerritAPI,
+		PollInterval:       10 * time.Second,
+		TimeWindow:         3 * time.Hour,
+		BuildBucketVersion: 2,
 	}
 
 	tjStatus, err := NewBuildBucketState(bbConf)
