@@ -171,13 +171,13 @@ func New() (baseapp.App, error) {
 					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
 						sklog.Errorf("Error processing healthz alert: %s", err)
 					}
-				} else if alert, ok := activeHealthzAlerts[location]; ok {
+				} else if alert, ok := activeHealthzAlerts[location]; ok && alert != nil {
 					// Mark the alert as resolved.
 					alert[alerts.STATE] = alerts.STATE_RESOLVED
 					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
 						sklog.Errorf("Error resolving healthz alert: %s", err)
 					} else {
-						activeHealthzAlerts[location] = nil
+						delete(activeHealthzAlerts, location)
 					}
 				}
 			}
