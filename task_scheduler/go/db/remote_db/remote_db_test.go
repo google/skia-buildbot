@@ -103,7 +103,7 @@ func newReqCountingTransport(rt http.RoundTripper) http.RoundTripper {
 // makeDB sets up a client/server pair wrapped in a clientWithBackdoor.
 func makeDB(t *testing.T) db.DBCloser {
 	serverLabel := fmt.Sprintf("remote-db-test-%s", uuid.New())
-	mod, err := pubsub.NewModifiedData(pubsub.TOPIC_SET_PROD, serverLabel, nil)
+	mod, err := pubsub.NewModifiedData(pubsub.TOPIC_SET_PRODUCTION, serverLabel, nil)
 	assert.NoError(t, err)
 	baseDB := memory.NewInMemoryDB(mod)
 	r := mux.NewRouter()
@@ -111,7 +111,7 @@ func makeDB(t *testing.T) db.DBCloser {
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
 	clientLabel := fmt.Sprintf("remote-db-test-%s", uuid.New())
-	dbclient, err := NewClient(ts.URL+"/db/", pubsub.TOPIC_SET_PROD, clientLabel, nil)
+	dbclient, err := NewClient(ts.URL+"/db/", pubsub.TOPIC_SET_PRODUCTION, clientLabel, nil)
 	assert.NoError(t, err)
 	dbclient.(*client).client.Transport = newReqCountingTransport(dbclient.(*client).client.Transport)
 	return &clientWithBackdoor{
