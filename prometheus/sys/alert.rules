@@ -489,15 +489,3 @@ ALERT AlertToPubSub
     abbr = "google.com:skia-buildbots",
     description = "Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
   }
-
-# Canary alert to check if alerts are working. AlertManager intercepts this
-# alert, so it does not create an actual alert.
-ALERT CanaryAlertIndicatingAlertsAreWorkingCorrectly
-  IF up{instance="skia-prom:8000"} == 1
-  FOR 1m
-  LABELS { category = "infra", severity = "critical" }
-  ANNOTATIONS {
-    abbr = "google.com:skia-buildbots",
-    description = "Hooray! Alerts are working for google.com:skia-buildbots!",
-  }
-
