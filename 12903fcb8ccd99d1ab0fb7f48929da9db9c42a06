@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53d997fe_3bcf1bfc",
+        "filename": "task_scheduler/go/db/pubsub/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-04T16:12:37Z",
+      "side": 1,
+      "message": "Might as well change it here too?",
+      "range": {
+        "startLine": 28,
+        "startChar": 11,
+        "endLine": 28,
+        "endChar": 15
+      },
+      "revId": "12903fcb8ccd99d1ab0fb7f48929da9db9c42a06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
