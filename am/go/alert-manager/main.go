@@ -177,7 +177,7 @@ func New() (baseapp.App, error) {
 					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
 						sklog.Errorf("Error resolving healthz alert: %s", err)
 					} else {
-						activeHealthzAlerts[location] = nil
+						delete(activeHealthzAlerts, location)
 					}
 				}
 			}
@@ -207,7 +207,7 @@ func New() (baseapp.App, error) {
 					if _, err := srv.incidentStore.AlertArrival(alert); err != nil {
 						sklog.Errorf("Error resolving healthz alert: %s", err)
 					} else {
-						activeMissingAlerts[location] = nil
+						delete(activeMissingAlerts, location)
 					}
 				}
 			}
