@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -217,8 +216,6 @@ type localDB struct {
 	txNextId int64
 	txActive map[int64]string
 	txMutex  sync.RWMutex
-
-	dbMetric *boltutil.DbMetric
 
 	// Count queries and results to get QPS metrics.
 	metricReadTaskQueries  metrics2.Counter
@@ -431,12 +428,6 @@ func NewDB(name, filename string, mod db.ModifiedData) (db.BackupDBCloser, error
 
 	d.CommentBox = memory.NewCommentBoxWithPersistence(mod, comments, d.writeCommentsMap)
 
-	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_JOBS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
-		return nil, err
-	} else {
-		d.dbMetric = dbMetric
-	}
-
 	return d, nil
 }
 
@@ -451,10 +442,6 @@ func (d *localDB) Close() error {
 		c <- true
 	}
 	d.txActive = map[int64]string{}
-	if err := d.dbMetric.Delete(); err != nil {
-		return err
-	}
-	d.dbMetric = nil
 	if err := d.txCount.Delete(); err != nil {
 		return err
 	}

@@ -346,14 +346,6 @@ ALERT TaskSchedulerIncrementalBackupReset
     description = "Task Scheduler modified job tracking for incremental backups has been reset since last full backup on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_reset"
   }
 
-ALERT DbMetricsLiveness
-  IF liveness_DbMetric_s/60 > 30
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "{{ $labels.instance }} has failed to update boltutil.DbMetrics for the last 30 minutes. Logs: https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ reReplaceAll `:[0-9]+` `` $labels.instance }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.job }}"
-  }
-
 
 ALERT TaskSchedulerTooManyCandidates
   IF task_candidate_count > 1500
