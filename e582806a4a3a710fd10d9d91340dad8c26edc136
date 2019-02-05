@@ -425,6 +425,24 @@
     },
     {
       "key": {
+        "uuid": "2b0a8c25_d666efa9",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T22:24:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "e92cb6a1_ab498f7c",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10286b82_94460f71",
         "filename": "golden/go/baseline/baseline.go",
         "patchSetId": 32
@@ -457,6 +475,24 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b0a6c87_3a73179c",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T22:24:54Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f33e8eab_3b042ac4",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -800,6 +836,30 @@
       "side": 1,
       "message": "IsSparseTile is a flag indicating that the tile should be \"condensed\" (commits without data should be removed). Added docs.",
       "parentUuid": "35a33730_087bfb66",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "effbbf1b_9149a587",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T22:24:54Z",
+      "side": 1,
+      "message": "My comment was that you are adding new functionality in this CL that is not tested.",
+      "parentUuid": "5f4273a0_876eda29",
       "range": {
         "startLine": 52,
         "startChar": 1,
