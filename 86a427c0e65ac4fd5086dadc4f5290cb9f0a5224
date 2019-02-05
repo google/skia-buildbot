@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "cc061894_7520c2f6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-05T18:21:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "522b0525_ec5b1475",
+      "revId": "86a427c0e65ac4fd5086dadc4f5290cb9f0a5224",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "edcd92e6_a2a5e024",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2019-02-05T18:16:01Z",
       "side": 1,
       "message": "Could we just remove this part? Seems like we already handle all the cases below.",
+      "range": {
+        "startLine": 1958,
+        "startChar": 0,
+        "endLine": 1967,
+        "endChar": 0
+      },
+      "revId": "86a427c0e65ac4fd5086dadc4f5290cb9f0a5224",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3f626cf_5f3ff175",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1967,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-05T18:21:31Z",
+      "side": 1,
+      "message": "Wow, we were retrieving the task an extra time just so that we could check whether it existed?  Done.",
+      "parentUuid": "edcd92e6_a2a5e024",
       "range": {
         "startLine": 1958,
         "startChar": 0,
