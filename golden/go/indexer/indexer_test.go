@@ -87,7 +87,7 @@ func TestIndexer(t *testing.T) {
 		GStorageClient: gsClient,
 	}
 
-	storages.InitBaseliner()
+	assert.NoError(t, storages.InitBaseliner())
 
 	ixr, err := New(storages, time.Minute)
 	assert.NoError(t, err)
