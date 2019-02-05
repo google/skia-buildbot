@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/perf/go/btts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/tracesetbuilder"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -132,12 +133,13 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 	// Determine which tiles we are querying over, and how each tile maps into our results.
 	mapper := buildTileMapOffsetToIndex(indices, b.store)
 
-	var mutex sync.Mutex // mutex protects traceSet, paramSet, and stepsCompleted.
-	traceSet := types.TraceSet{}
-	paramSet := paramtools.ParamSet{}
+	traceSetBuilder := tracesetbuilder.New(len(indices))
+
+	var mutex sync.Mutex // mutex protects stepsCompleted.
 	stepsCompleted := 0
-	// triggerProgress must only be called when the caller has mutex locked.
 	triggerProgress := func() {
+		mutex.Lock()
+		defer mutex.Unlock()
 		stepsCompleted += 1
 		if progress != nil {
 			progress(stepsCompleted, len(mapper))
@@ -179,34 +181,8 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 				return err
 			}
 			sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
-			mutex.Lock()
-			defer mutex.Unlock()
-			sklog.Debugf("before processing traces for %s, len(traceSet) is %d, len(paramSet) is %d", tileKey.OpsRowName(), len(traceSet), len(paramSet))
-			defer timer.New("dfbuilder_by_tile_mutex_held").Stop()
-			// For each trace, convert the encodedKey to a structured key
-			// and copy the trace values into their final destination.
-			for encodedKey, tileTrace := range traces {
-				p, err := ops.DecodeParamsFromString(encodedKey)
-				if err != nil {
-					// It is possible we matched a trace that appeared after we grabbed the OPS,
-					// so just ignore it.
-					continue
-				}
-				paramSet.AddParams(p)
-				key, err := query.MakeKey(p)
-				if err != nil {
-					return err
-				}
-				trace, ok := traceSet[key]
-				if !ok {
-					trace = types.NewTrace(len(indices))
-				}
-				for srcIndex, dstIndex := range traceMap {
-					trace[dstIndex] = tileTrace[srcIndex]
-				}
-				traceSet[key] = trace
-			}
-			sklog.Debugf("after processing traces for %s, len(traceSet) is %d, len(paramSet) is %d", tileKey.OpsRowName(), len(traceSet), len(paramSet))
+
+			traceSetBuilder.Add(ops, traceMap, traces)
 			triggerProgress()
 			return nil
 		})
@@ -214,6 +190,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("Failed while querying: %s", err)
 	}
+	traceSet, paramSet := traceSetBuilder.Build()
 	paramSet.Normalize()
 	d := &dataframe.DataFrame{
 		TraceSet: traceSet,
