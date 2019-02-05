@@ -15,11 +15,60 @@ bucket-lifecycle-config.json gs://skia-task-scheduler`.
 [More documentation of object lifecycle](https://cloud.google.com/storage/docs/lifecycle).
 
 
+Troubleshooting
+===============
+
+git-related errors in the log
+-----------------------------
+
+Eg. fatal: unable to access '$REPO': The requested URL returned error: 502
+
+Unfortunately, these are pretty common, especially in the early afternoon when
+googlesource is under load. Usually they manifest as a 502, or "repository not
+found". If these are occurring at an unusually high rate (more than one or two
+per hour) or the errors look different, contact an admin and ask if there are
+any known issues: http://go/gob-oncall
+
+
+Extremely slow startup
+----------------------
+
+Ie. more than a few minutes before the server starts responding to requests, or
+liveness_last_successful_task_scheduling_s greater than a few minutes
+immediately after server startup.
+
+The task scheduler has to load a lot of data from the DB on startup.
+Additionally, each of its clients reloads all of its data when the scheduler
+goes offline and comes back. These long-running reads can interact with writes
+such that operations get blocked and continue piling up. Requests time out and
+are retried, compounding the problem. If you notice this happening (an extremely
+long list of "task_scheduler_db Active Transactions" in the log is a clue), you
+can ease the load on the scheduler by shutting down both Status and Datahopper,
+restart the scheduler and wait until it is up and running, then restart Status,
+wait until it is up and running, and finally restart Datahopper. In each case,
+watch the logs and ensure that all "Reading Tasks from $start_ts to $end_ts"
+have completed successfully.
+TODO(borenet): This should not be necessary with the new DB implementation.
+
+
+DB is very slow
+---------------
+
+Eg. liveness_last_successful_task_scheduling_s is consistently greater than a
+few minutes, and "task_scheduler_db Active Transactions" in the log are piling
+up.
+
+Similar to the above, but not caused by long-running reads. BoltDB performance
+can degrade for a number of reasons, including excessive free pages. A potential
+fix is to stop the scheduler and run "bolt compact" over the database file.
+TODO(borenet): This should not be necessary with the new DB implementation.
+
+
 Alerts
 ======
 
 scheduling_failed
-----------------------
+-----------------
 
 The Task Scheduler has failed to schedule for some time. You should check the
 logs to try to diagnose what's failing. It's also possible that the scheduler
