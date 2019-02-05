@@ -1,6 +1,7 @@
 package httputils
 
 import (
+	"context"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -91,7 +92,8 @@ func TestBackoffTransport(t *testing.T) {
 	// A 0 code means the RoundTripper returns an error.
 	test := func(codes []int) {
 		wrapped.responseCodes = codes
-		r := httptest.NewRequest("GET", "http://example.com/foo", nil)
+		r, err := http.NewRequest("GET", "http://example.com/foo", nil)
+		assert.NoError(t, err)
 		now := time.Now()
 		resp, err := bt.RoundTrip(r)
 		dur := time.Now().Sub(now)
@@ -126,6 +128,80 @@ func TestBackoffTransport(t *testing.T) {
 	test([]int{0, 0, http.StatusOK})
 	// Retries exhausted for transport error.
 	test([]int{http.StatusInternalServerError, 0})
+}
+
+// RoundTripperFunc transforms a function into a RoundTripper
+type RoundTripperFunc func(req *http.Request) (*http.Response, error)
+
+func (f RoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestBackoffTransportWithContext(t *testing.T) {
+	testutils.LargeTest(t) // BackoffTransport sleeps between requests.
+	// Use a fail-faster config so the test doesn't take so long.
+	maxInterval := 600 * time.Millisecond
+	config := &BackOffConfig{
+		initialInterval: INITIAL_INTERVAL,
+		maxInterval:     maxInterval,
+		// We should never reach this deadline.
+		maxElapsedTime:      10 * maxInterval,
+		randomizationFactor: RANDOMIZATION_FACTOR,
+		backOffMultiplier:   BACKOFF_MULTIPLIER,
+	}
+
+	// Test canceling the context after the nth request. See MockRoundTripper docs for codes;
+	// len(codes) > cancelAfter. Request context will be canceled during the request with index
+	// cancelAfter. Asserts that the number of retries agrees with cancelAfter.
+	test := func(codes []int, cancelAfter int) {
+		mock := MockRoundTripper{
+			responseCodes: codes,
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		callCount := 0
+		wrapped := func(req *http.Request) (*http.Response, error) {
+			if cancelAfter == callCount {
+				cancel()
+			}
+			callCount++
+			return mock.RoundTrip(req)
+		}
+		bt := NewConfiguredBackOffTransport(config, RoundTripperFunc(wrapped))
+		req, err := http.NewRequest("GET", "http://example.com/foo", nil)
+		assert.NoError(t, err)
+		req = req.WithContext(ctx)
+		resp, err := bt.RoundTrip(req)
+		// We expect no calls after the context is canceled.
+		assert.Equal(t, cancelAfter, callCount-1)
+		// We expect the result to be the result of the call when the context is canceled.
+		expected := codes[cancelAfter]
+		if expected == 0 {
+			assert.Equal(t, mockRoundTripErr, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, expected, resp.StatusCode)
+			ReadAndClose(resp.Body)
+		}
+	}
+	// No retries needed.
+	test([]int{http.StatusOK}, 0)
+	// Context is canceled, so no retry.
+	test([]int{http.StatusServiceUnavailable}, 0)
+	// Second request should never happen.
+	test([]int{http.StatusServiceUnavailable, http.StatusInternalServerError}, 0)
+	// Some retries before context canceled.
+	test([]int{http.StatusServiceUnavailable, http.StatusOK}, 1)
+	test([]int{http.StatusServiceUnavailable, http.StatusInternalServerError}, 1)
+	test([]int{http.StatusServiceUnavailable, http.StatusInternalServerError, http.StatusBadGateway}, 2)
+
+	// Transport error; context is canceled, so no retry.
+	test([]int{0}, 0)
+	// Transport error; some retries before context is canceled.
+	test([]int{0, 0}, 1)
+	test([]int{0, http.StatusOK}, 1)
+	test([]int{0, http.StatusInternalServerError}, 1)
+	test([]int{http.StatusInternalServerError, 0}, 1)
 }
 
 func TestForceHTTPS(t *testing.T) {

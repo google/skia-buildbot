@@ -288,14 +288,14 @@ func NewConfiguredBackOffTransport(config *BackOffConfig, base http.RoundTripper
 // RoundTrip implements the RoundTripper interface.
 func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Initialize the exponential backoff client.
-	backOffClient := &backoff.ExponentialBackOff{
+	backOffClient := backoff.WithContext(&backoff.ExponentialBackOff{
 		InitialInterval:     t.backOffConfig.initialInterval,
 		RandomizationFactor: t.backOffConfig.randomizationFactor,
 		Multiplier:          t.backOffConfig.backOffMultiplier,
 		MaxInterval:         t.backOffConfig.maxInterval,
 		MaxElapsedTime:      t.backOffConfig.maxElapsedTime,
 		Clock:               backoff.SystemClock,
-	}
+	}, req.Context())
 	// Make a copy of the request's Body so that we can reuse it if the request
 	// needs to be backed off and retried.
 	bodyBuf := bytes.Buffer{}
