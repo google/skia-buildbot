@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e73e5d0b_40491082",
+        "filename": "go/query/query.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:09:37Z",
+      "side": 1,
+      "message": "nit: Consider using https://golang.org/pkg/strings/#Builder to reduce copying.",
+      "range": {
+        "startLine": 130,
+        "startChar": 0,
+        "endLine": 130,
+        "endChar": 34
+      },
+      "revId": "016f39dfada5b3a9cddbccd67786c1cf1c1e328a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
