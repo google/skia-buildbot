@@ -110,6 +110,24 @@ func MakeKey(m map[string]string) (string, error) {
 	return ret, nil
 }
 
+// MakeKeyFast returns a structured key from the given map[string]string. It does
+// no validation on names or values.
+func MakeKeyFast(m map[string]string) (string, error) {
+	ret := []string{","}
+	if len(m) == 0 {
+		return "", fmt.Errorf("Map must have at least one entry.")
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		ret = append(ret, k, "=", m[k], ",")
+	}
+	return strings.Join(ret, ""), nil
+}
+
 // ParseKey parses the structured key, and if valid, returns the parsed values
 // as a map[string]string, otherwise is returns a non-nil error.
 func ParseKey(key string) (map[string]string, error) {
