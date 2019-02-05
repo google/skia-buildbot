@@ -12,6 +12,10 @@ ExecStart=/usr/local/bin/task_scheduler \
     --logtostderr \
     --pubsub_topic_set=production \
     --workdir=/mnt/pd0/task_scheduler_workdir \
+    --repo=https://skia.googlesource.com/skia.git \
+    --repo=https://skia.googlesource.com/buildbot.git \
+    --repo=https://skia.googlesource.com/lottie-ci.git \
+    --repo=https://skia.googlesource.com/skcms.git \
     --resources_dir=/usr/local/share/task-scheduler/
 Restart=always
 User=default
