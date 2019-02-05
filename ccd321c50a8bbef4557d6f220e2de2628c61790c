@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c1f7e46f_abc636a7",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: Can we change the parameter type?",
+      "range": {
+        "startLine": 148,
+        "startChar": 104,
+        "endLine": 148,
+        "endChar": 110
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5dc2be69_6aaaae6a",
+        "filename": "go/deploy/deploy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: I think it will be better to consistently use the long name; otherwise, I will likely use \"prod\" where I need to use \"production\".",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 5
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb153628_7345b5e9",
+        "filename": "go/deploy/deploy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: I don\u0027t think anyone will want to change the name. If so, we could add a \"FlagNamed(name string)\" function.\n\nI sort of wonder if people will want a default value. Not sure if that will be a good idea.",
+      "range": {
+        "startLine": 64,
+        "startChar": 10,
+        "endLine": 64,
+        "endChar": 21
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc9cb5fd_a0d70d52",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 777,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: same Q as above",
+      "range": {
+        "startLine": 777,
+        "startChar": 101,
+        "endLine": 777,
+        "endChar": 107
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ecc813e_16b9d1bb",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: same Q as above",
+      "range": {
+        "startLine": 852,
+        "startChar": 64,
+        "endLine": 852,
+        "endChar": 70
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "980a9640_fba99e86",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 861,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: same Q as above",
+      "range": {
+        "startLine": 861,
+        "startChar": 60,
+        "endLine": 861,
+        "endChar": 66
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ec9c444_7c15b6ca",
+        "filename": "task_scheduler/go/db/remote_db/remote_db_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: deploy.Testing()",
+      "range": {
+        "startLine": 107,
+        "startChar": 15,
+        "endLine": 107,
+        "endChar": 53
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84d7486b_2bb83c0d",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 704,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-05T19:56:57Z",
+      "side": 1,
+      "message": "nit: change parameter type",
+      "range": {
+        "startLine": 704,
+        "startChar": 285,
+        "endLine": 704,
+        "endChar": 291
+      },
+      "revId": "ccd321c50a8bbef4557d6f220e2de2628c61790c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
