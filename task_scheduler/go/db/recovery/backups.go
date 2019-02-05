@@ -395,6 +395,7 @@ func (b *gsDBBackup) maybeBackupDB(now time.Time) {
 
 // See documentation for DBBackup.Tick.
 func (b *gsDBBackup) Tick() {
+	defer metrics2.FuncTimer().Stop()
 	now := time.Now()
 	// TODO(benjaminwagner): Tick should return as soon as the DB file is written.
 	b.maybeBackupDB(now)
