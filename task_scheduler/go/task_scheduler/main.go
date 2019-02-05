@@ -648,7 +648,7 @@ func main() {
 
 	// Git repos.
 	if *repoUrls == nil {
-		*repoUrls = common.PUBLIC_REPOS
+		sklog.Fatal("--repo is required.")
 	}
 	repos, err = repograph.NewMap(ctx, *repoUrls, wdAbs)
 	if err != nil {
@@ -667,8 +667,9 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		swarmClient := httputils.DefaultClientConfig().WithTokenSource(ts).WithDialTimeout(3 * time.Minute).With2xxOnly().Client()
-		swarm, err = swarming.NewApiClient(swarmClient, *swarmingServer)
+		cfg := httputils.DefaultClientConfig().WithTokenSource(ts).WithDialTimeout(time.Minute).With2xxOnly()
+		cfg.RequestTimeout = time.Minute
+		swarm, err = swarming.NewApiClient(cfg.Client(), *swarmingServer)
 		if err != nil {
 			sklog.Fatal(err)
 		}

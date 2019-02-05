@@ -184,7 +184,9 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 	}
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
 	go util.RepeatCtx(5*time.Second, ctx, func() {
+		sklog.Infof("Running beforeMainLoop()")
 		beforeMainLoop()
+		sklog.Infof("beforeMainLoop() finished.")
 		if err := s.MainLoop(ctx); err != nil {
 			sklog.Errorf("Failed to run the task scheduler: %s", err)
 		} else {
@@ -1397,7 +1399,7 @@ func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
 func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
-	sklog.Infof("Task Scheduler updating...")
+	sklog.Infof("Task Scheduler MainLoop starting...")
 
 	var e1, e2 error
 	var wg1, wg2 sync.WaitGroup
@@ -1473,9 +1475,11 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to schedule tasks: %s", err)
 	}
 
+	sklog.Infof("Task Scheduler cleaning up...")
 	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
+	sklog.Infof("Task Scheduler MainLoop finished.")
 	return nil
 }
 
