@@ -7,6 +7,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -59,8 +60,8 @@ type firestoreDB struct {
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage.
-func NewDB(ctx context.Context, project, instance string, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
-	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
+func NewDB(ctx context.Context, project string, deployment deploy.Deployment, ts oauth2.TokenSource, mod db.ModifiedData) (db.BackupDBCloser, error) {
+	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, deployment, ts)
 	if err != nil {
 		return nil, err
 	}

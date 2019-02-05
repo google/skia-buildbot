@@ -9,6 +9,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
@@ -44,8 +45,8 @@ type Blacklist struct {
 }
 
 // New returns a Blacklist instance.
-func New(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*Blacklist, error) {
-	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
+func New(ctx context.Context, project string, deployment deploy.Deployment, ts oauth2.TokenSource) (*Blacklist, error) {
+	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, deployment, ts)
 	if err != nil {
 		return nil, err
 	}

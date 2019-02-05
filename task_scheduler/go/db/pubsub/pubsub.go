@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/cleanup"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -23,11 +24,6 @@ const (
 
 	// Default project ID.
 	PROJECT_ID = "skia-public"
-
-	// Sets of topic, based on scheduler instance.
-	TOPIC_SET_PRODUCTION = "production"
-	TOPIC_SET_INTERNAL   = "internal"
-	TOPIC_SET_STAGING    = "staging"
 
 	// Known topic names.
 	TOPIC_TASKS                      = "task-scheduler-modified-tasks"
@@ -57,28 +53,22 @@ const (
 )
 
 var (
-	VALID_TOPIC_SETS = []string{
-		TOPIC_SET_PRODUCTION,
-		TOPIC_SET_INTERNAL,
-		TOPIC_SET_STAGING,
-	}
-
-	topics = map[string]topicSet{
-		TOPIC_SET_PRODUCTION: topicSet{
+	topics = map[deploy.Deployment]topicSet{
+		deploy.PROD: topicSet{
 			tasks:            TOPIC_TASKS,
 			jobs:             TOPIC_JOBS,
 			taskComments:     TOPIC_TASK_COMMENTS,
 			taskSpecComments: TOPIC_TASKSPEC_COMMENTS,
 			commitComments:   TOPIC_COMMIT_COMMENTS,
 		},
-		TOPIC_SET_INTERNAL: topicSet{
+		deploy.INTERNAL: topicSet{
 			tasks:            TOPIC_TASKS_INTERNAL,
 			jobs:             TOPIC_JOBS_INTERNAL,
 			taskComments:     TOPIC_TASK_COMMENTS_INTERNAL,
 			taskSpecComments: TOPIC_TASKSPEC_COMMENTS_INTERNAL,
 			commitComments:   TOPIC_COMMIT_COMMENTS_INTERNAL,
 		},
-		TOPIC_SET_STAGING: topicSet{
+		deploy.STAGING: topicSet{
 			tasks:            TOPIC_TASKS_STAGING,
 			jobs:             TOPIC_JOBS_STAGING,
 			taskComments:     TOPIC_TASK_COMMENTS_STAGING,

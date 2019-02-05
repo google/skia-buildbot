@@ -7,14 +7,12 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/task_scheduler \
     --bigtable_project=skia-public \
-    --bigtable_instance=staging \
     --gsBucket=skia-task-scheduler-staging \
     --host=task-scheduler-staging.skia.org \
-    --firestore_instance=staging \
     --isolate_server=https://isolateserver-dev.appspot.com \
     --logtostderr \
     --pool=Skia \
-    --pubsub_topic_set=staging \
+    --deployment=staging \
     --pubsub_topic=swarming-tasks-staging \
     --pubsub_subscriber=task-scheduler-staging \
     --repo=https://skia.googlesource.com/skiabot-test.git \

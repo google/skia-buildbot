@@ -7,14 +7,13 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/status \
     --bigtable_project=google.com:skia-corp \
-    --bigtable_instance=internal \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
     --use_metadata=true \
     --host=status-internal.skia.org \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \
-    --pubsub_topic_set=internal \
+    --deployment=internal \
     --repo=https://skia.googlesource.com/skia_internal.git \
     --repo=https://skia.googlesource.com/internal_test.git \
     --swarming_url=https://chrome-swarming.appspot.com \

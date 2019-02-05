@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	fs "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -20,9 +21,9 @@ const (
 )
 
 var (
+	deployment = deploy.Flag("deployment")
 	local      = flag.Bool("local", false, "True if running locally.")
 	boltDB     = flag.String("bolt_db", "", "Bolt DB to migrate from.")
-	fsInstance = flag.String("firestore_instance", "", "Firestore instance to migrate to.")
 	repoUrls   = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 
 	BEGINNING_OF_TIME = time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC)
@@ -113,9 +114,6 @@ func main() {
 	if *boltDB == "" {
 		sklog.Fatal("--bolt_db is required.")
 	}
-	if *fsInstance == "" {
-		sklog.Fatal("--firestore_instance is required.")
-	}
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
@@ -131,7 +129,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	newDB, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
+	newDB, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *deployment, ts, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

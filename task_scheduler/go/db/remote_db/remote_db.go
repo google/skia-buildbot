@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -85,9 +86,9 @@ type client struct {
 
 // NewClient returns a db.RemoteDB that connects to the server created by
 // NewServer. serverRoot should end with a slash.
-func NewClient(serverRoot, topicSet, label string, ts oauth2.TokenSource) (db.RemoteDB, error) {
+func NewClient(serverRoot string, deployment deploy.Deployment, label string, ts oauth2.TokenSource) (db.RemoteDB, error) {
 	c := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	mod, err := pubsub.NewModifiedData(topicSet, label, ts)
+	mod, err := pubsub.NewModifiedData(deployment, label, ts)
 	if err != nil {
 		return nil, err
 	}

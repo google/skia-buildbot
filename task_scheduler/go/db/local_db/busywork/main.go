@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"os"
 	"sort"
 	"strconv"
 	"sync"
@@ -18,6 +17,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
@@ -515,12 +515,10 @@ func main() {
 	common.Init()
 
 	ts, err := auth.NewDefaultTokenSource(*local)
-	hostname, err := os.Hostname()
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	id := fmt.Sprintf("busywork_%s", hostname)
-	d, err := firestore.NewDB(context.Background(), firestore.FIRESTORE_PROJECT, id, ts, nil)
+	d, err := firestore.NewDB(context.Background(), firestore.FIRESTORE_PROJECT, deploy.DEVELOPMENT, ts, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

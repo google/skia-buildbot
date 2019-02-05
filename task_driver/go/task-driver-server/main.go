@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
@@ -38,8 +39,8 @@ const (
 
 var (
 	// Flags.
-	btInstance   = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject    = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	deployment   = deploy.Flag("deployment")
 	host         = flag.String("host", "localhost", "HTTP service host")
 	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port         = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
@@ -330,11 +331,11 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	d, err = bigtable_db.NewBigTableDB(ctx, *btProject, *btInstance, ts)
+	d, err = bigtable_db.NewBigTableDB(ctx, *btProject, string(*deployment), ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	lm, err = logs.NewLogsManager(ctx, *btProject, *btInstance, ts)
+	lm, err = logs.NewLogsManager(ctx, *btProject, string(*deployment), ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

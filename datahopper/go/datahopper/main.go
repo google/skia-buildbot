@@ -7,7 +7,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,6 +19,7 @@ import (
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
@@ -40,20 +40,16 @@ import (
 
 // flags
 var (
-	// TODO(borenet): Combine btInstance, firestoreInstance, and
-	// pubsubTopicSet.
-	btInstance         = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject          = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile     = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
 	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
 
-	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
-	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	perfBucket = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	deployment = deploy.Flag("deployment")
 )
 
 var (
@@ -149,7 +145,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(w, "taskCfgCache"), 1, *btProject, *btInstance, newTs)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(w, "taskCfgCache"), 1, *btProject, string(*deployment), newTs)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
@@ -201,18 +197,18 @@ func main() {
 	// TODO(borenet): We should include metrics from all three (prod,
 	// internal, staging) instances.
 	var d db.RemoteDB
-	if *firestoreInstance != "" {
+	if *deployment == deploy.STAGING {
 		label := "datahopper"
-		mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, newTs)
+		mod, err := pubsub.NewModifiedData(*deployment, label, newTs)
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, mod)
+		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *deployment, newTs, mod)
 		if err != nil {
 			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 		}
 	} else {
-		d, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicSet, "datahopper", newTs)
+		d, err = remote_db.NewClient(*taskSchedulerDbUrl, *deployment, "datahopper", newTs)
 		if err != nil {
 			sklog.Fatal(err)
 		}

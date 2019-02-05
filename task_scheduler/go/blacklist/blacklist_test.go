@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -19,8 +19,7 @@ import (
 func setup(t *testing.T) (*Blacklist, func()) {
 	testutils.MediumTest(t)
 	testutils.ManualTest(t)
-	instance := fmt.Sprintf("test-%s", uuid.New())
-	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, deploy.Testing(), nil)
 	assert.NoError(t, err)
 	cleanup := func() {
 		assert.NoError(t, firestore.RecursiveDelete(b.client, b.client.ParentDoc, 5, 30*time.Second))
@@ -40,7 +39,7 @@ func TestAddRemove(t *testing.T) {
 		Name:             "My Rule",
 	}
 	assert.NoError(t, b1.addRule(r1))
-	b2, err := New(context.Background(), firestore.FIRESTORE_PROJECT, b1.client.ParentDoc.ID, nil)
+	b2, err := New(context.Background(), firestore.FIRESTORE_PROJECT, deploy.Deployment(b1.client.ParentDoc.ID), nil)
 	assert.NoError(t, err)
 	assertEqual := func() {
 		assert.NoError(t, testutils.EventuallyConsistent(10*time.Second, func() error {

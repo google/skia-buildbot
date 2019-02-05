@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deploy"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -2298,8 +2298,7 @@ func TestBlacklist(t *testing.T) {
 	ctx, gb, _, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
 	testutils.ManualTest(t)
-	instance := fmt.Sprintf("task-scheduler-test-%s", uuid.New())
-	bl, err := blacklist.New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
+	bl, err := blacklist.New(context.Background(), firestore.FIRESTORE_PROJECT, deploy.Testing(), nil)
 	assert.NoError(t, err)
 	s.bl = bl
 

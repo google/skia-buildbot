@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	btdb "go.skia.org/infra/task_driver/go/db/bigtable"
@@ -17,8 +18,8 @@ import (
 
 var (
 	// Flags.
-	btInstance = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject  = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	deployment = deploy.Flag("deployment")
 	id         = flag.String("id", "", "ID of Task Driver whose messages should be retrieved.")
 	output     = flag.String("output", "", "Optional, write results to this file.")
 )
@@ -30,7 +31,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	db, err := btdb.NewBigTableDB(ctx, *btProject, *btInstance, ts)
+	db, err := btdb.NewBigTableDB(ctx, *btProject, string(*deployment), ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

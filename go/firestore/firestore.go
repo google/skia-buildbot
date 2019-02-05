@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -35,10 +36,6 @@ const (
 	// Project ID. At the moment only the skia-firestore project has
 	// Firestore enabled.
 	FIRESTORE_PROJECT = "skia-firestore"
-
-	// List all instances here as constants.
-	INSTANCE_PROD = "prod"
-	INSTANCE_TEST = "test"
 
 	// Maximum number of docs in a single transaction.
 	MAX_TRANSACTION_DOCS = 500
@@ -86,15 +83,12 @@ type Client struct {
 // instance data via separate collections and documents. All references to
 // collections and documents are automatically prefixed with the app name as the
 // top-level collection and instance name as the parent document.
-func NewClient(ctx context.Context, project, app, instance string, ts oauth2.TokenSource) (*Client, error) {
+func NewClient(ctx context.Context, project, app string, deployment deploy.Deployment, ts oauth2.TokenSource) (*Client, error) {
 	if project == "" {
 		return nil, errors.New("Project name is required.")
 	}
 	if app == "" {
 		return nil, errors.New("App name is required.")
-	}
-	if instance == "" {
-		return nil, errors.New("Instance name is required.")
 	}
 	client, err := firestore.NewClient(ctx, project, option.WithTokenSource(ts))
 	if err != nil {
@@ -102,7 +96,7 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 	}
 	return &Client{
 		Client:    client,
-		ParentDoc: client.Collection(app).Doc(instance),
+		ParentDoc: client.Collection(app).Doc(string(deployment)),
 	}, nil
 }
 

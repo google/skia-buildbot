@@ -2,14 +2,13 @@ package firestore
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -23,8 +22,7 @@ func TestMain(m *testing.M) {
 func setup(t *testing.T) (db.DBCloser, func()) {
 	testutils.MediumTest(t)
 	testutils.ManualTest(t)
-	instance := fmt.Sprintf("test-%s", uuid.New())
-	d, err := NewDB(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil, nil)
+	d, err := NewDB(context.Background(), firestore.FIRESTORE_PROJECT, deploy.Testing(), nil, nil)
 	assert.NoError(t, err)
 	cleanup := func() {
 		c := d.(*firestoreDB).client

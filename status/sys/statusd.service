@@ -7,14 +7,13 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/status \
     --bigtable_project=skia-public \
-    --bigtable_instance=production \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
     --use_metadata=true \
     --host=status.skia.org \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \
-    --pubsub_topic_set=production \
+    --deployment=production \
     --repo=https://skia.googlesource.com/skia.git \
     --repo=https://skia.googlesource.com/buildbot.git \
     --repo=https://skia.googlesource.com/lottie-ci.git \

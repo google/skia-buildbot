@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
@@ -85,21 +86,14 @@ var (
 	triggerTemplate   *template.Template = nil
 
 	// Flags.
-	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	host              = flag.String("host", "localhost", "HTTP service host")
-	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
-	dbPort            = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
-	disableTryjobs    = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
-	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
-	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
-	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
-	// instance name. Once all schedulers are using Firestore for their
-	// task DB, firestoreInstance will have the same value. We should
-	// combine into a single instanceName flag. Additionally, the BigTable
-	// instance flag has the same set of values.
-	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	btProject      = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	deployment     = deploy.Flag("deployment")
+	host           = flag.String("host", "localhost", "HTTP service host")
+	port           = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
+	dbPort         = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
+	disableTryjobs = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
+	isolateServer  = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
+	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	repoUrls       = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
@@ -620,13 +614,13 @@ func main() {
 
 	// Initialize the database.
 	label := *host
-	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, tokenSource)
+	mod, err := pubsub.NewModifiedData(*deployment, label, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	mod = modified.NewMuxModifiedData(modified.NewModifiedData(), mod)
-	if *firestoreInstance != "" {
-		tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
+	if *deployment == deploy.STAGING {
+		tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *deployment, tokenSource, mod)
 		if err != nil {
 			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 		}
@@ -641,7 +635,7 @@ func main() {
 	})
 
 	// Blacklist DB.
-	bl, err = blacklist.New(ctx, firestore.FIRESTORE_PROJECT, *pubsubTopicSet, tokenSource)
+	bl, err = blacklist.New(ctx, firestore.FIRESTORE_PROJECT, *deployment, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -676,7 +670,7 @@ func main() {
 
 	// Start DB backup.
 	var b recovery.DBBackup
-	if *firestoreInstance == "" {
+	if *deployment == deploy.STAGING {
 		if *local && *gsBucket == "skia-task-scheduler" {
 			sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
 		}
@@ -707,7 +701,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, string(*deployment), tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -720,7 +714,7 @@ func main() {
 	})
 
 	// Set up periodic triggers.
-	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
+	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *deployment), tokenSource, func(ctx context.Context, name, id string) bool {
 		if err := ts.MaybeTriggerPeriodicJobs(ctx, name); err != nil {
 			sklog.Errorf("Failed to trigger periodic jobs; will retry later: %s", err)
 			return false // We will retry later.

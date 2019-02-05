@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
@@ -94,12 +95,9 @@ var (
 
 // flags
 var (
-	// TODO(borenet): Combine btInstance, firestoreInstance, and
-	// pubsubTopicSet.
-	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
-	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
+	deployment                  = deploy.Flag("deployment")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -113,7 +111,6 @@ var (
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
-	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 
 	repos repograph.Map
 )
@@ -730,19 +727,19 @@ func main() {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
 
-		if *firestoreInstance != "" {
+		if *deployment == deploy.STAGING {
 			label := *host
-			mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
+			mod, err := pubsub.NewModifiedData(*deployment, label, ts)
 			if err != nil {
 				sklog.Fatal(err)
 			}
-			taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
+			taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *deployment, ts, mod)
 			if err != nil {
 				sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 			}
 		} else {
 			label := *host
-			taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicSet, label, ts)
+			taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *deployment, label, ts)
 			if err != nil {
 				sklog.Fatalf("Failed to create remote task DB: %s", err)
 			}
@@ -782,7 +779,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour, *btProject, *btInstance, ts)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour, *btProject, string(*deployment), ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
@@ -856,11 +853,12 @@ func main() {
 	})
 
 	// Create the TaskDriver DB.
-	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, *btInstance, ts)
+	taskDriverDeployment := deploy.STAGING // Task Drivers aren't in prod yet.
+	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, string(taskDriverDeployment), ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, *btInstance, ts)
+	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, string(taskDriverDeployment), ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}

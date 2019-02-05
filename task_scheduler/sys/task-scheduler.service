@@ -7,10 +7,9 @@ After=mnt-pd0.mount network-online.target
 [Service]
 ExecStart=/usr/local/bin/task_scheduler \
     --bigtable_project=skia-public \
-    --bigtable_instance=production \
     --host=task-scheduler.skia.org \
     --logtostderr \
-    --pubsub_topic_set=production \
+    --deployment=production \
     --workdir=/mnt/pd0/task_scheduler_workdir \
     --resources_dir=/usr/local/share/task-scheduler/
 Restart=always

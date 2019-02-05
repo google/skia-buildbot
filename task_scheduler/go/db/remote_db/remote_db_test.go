@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/db"
 	memory "go.skia.org/infra/task_scheduler/go/db/memory"
@@ -103,7 +104,8 @@ func newReqCountingTransport(rt http.RoundTripper) http.RoundTripper {
 // makeDB sets up a client/server pair wrapped in a clientWithBackdoor.
 func makeDB(t *testing.T) db.DBCloser {
 	serverLabel := fmt.Sprintf("remote-db-test-%s", uuid.New())
-	mod, err := pubsub.NewModifiedData(pubsub.TOPIC_SET_PRODUCTION, serverLabel, nil)
+	deployment := deploy.Deployment(uuid.New().String())
+	mod, err := pubsub.NewModifiedData(deployment, serverLabel, nil)
 	assert.NoError(t, err)
 	baseDB := memory.NewInMemoryDB(mod)
 	r := mux.NewRouter()
@@ -111,7 +113,7 @@ func makeDB(t *testing.T) db.DBCloser {
 	assert.NoError(t, err)
 	ts := httptest.NewServer(r)
 	clientLabel := fmt.Sprintf("remote-db-test-%s", uuid.New())
-	dbclient, err := NewClient(ts.URL+"/db/", pubsub.TOPIC_SET_PRODUCTION, clientLabel, nil)
+	dbclient, err := NewClient(ts.URL+"/db/", deployment, clientLabel, nil)
 	assert.NoError(t, err)
 	dbclient.(*client).client.Transport = newReqCountingTransport(dbclient.(*client).client.Transport)
 	return &clientWithBackdoor{

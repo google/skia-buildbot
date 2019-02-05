@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"go.skia.org/infra/go/deploy"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -20,10 +21,10 @@ import (
 )
 
 // NewModifiedData returns a db.ModifiedData instance which uses pubsub.
-func NewModifiedData(topicSet, label string, ts oauth2.TokenSource) (db.ModifiedData, error) {
-	topicSetObj, ok := topics[topicSet]
+func NewModifiedData(deployment deploy.Deployment, label string, ts oauth2.TokenSource) (db.ModifiedData, error) {
+	topicSetObj, ok := topics[deployment]
 	if !ok {
-		return nil, fmt.Errorf("Topic must be one of %v, not %q", VALID_TOPIC_SETS, topicSet)
+		return nil, fmt.Errorf("Topic must be one of %v, not %q", deploy.VALID_DEPLOYMENTS, deployment)
 	}
 	t, err := NewModifiedTasks(topicSetObj.tasks, label, ts)
 	if err != nil {
