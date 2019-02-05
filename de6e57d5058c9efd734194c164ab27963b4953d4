@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "013ae417_d11f8d69",
+        "filename": "perf/go/tracesetbuilder/tracesetbuilder.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-05T18:19:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79ba8f7a_e4c2e3f2",
+      "range": {
+        "startLine": 142,
+        "startChar": 61,
+        "endLine": 142,
+        "endChar": 66
+      },
+      "revId": "de6e57d5058c9efd734194c164ab27963b4953d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
