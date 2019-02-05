@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8d8912a6_8ad89a1f",
+        "filename": "go/httputils/http.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done\nAdded comment to make it clearer that this might not work all the time.",
+      "parentUuid": "07b4b152_5c483660",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fc4fd587_b83ba25c",
         "filename": "golden/cmd/baseline_server/main.go",
         "patchSetId": 32
@@ -39,6 +57,30 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d8f6aee_d4fd228c",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done\nRemoved the default value, but kept the individual directories. IMO having explicit directories is much better than an implied directory structure.",
+      "parentUuid": "fc4fd587_b83ba25c",
+      "range": {
+        "startLine": 35,
+        "startChar": 51,
+        "endLine": 35,
+        "endChar": 64
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "bd7e6214_e00c0931",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "447554db_aa6fb2da",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 22
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d119fbf6_c2b17ac1",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 32
@@ -85,6 +151,30 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e44b093_08f9f80c",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d119fbf6_c2b17ac1",
+      "range": {
+        "startLine": 431,
+        "startChar": 2,
+        "endLine": 431,
+        "endChar": 11
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "0dea1eb9_95760aab",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 453,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "474e7f2c_3fc3811f",
+      "range": {
+        "startLine": 453,
+        "startChar": 24,
+        "endLine": 453,
+        "endChar": 38
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "787ed479_4c618a2f",
         "filename": "golden/go/baseline/baseline.go",
         "patchSetId": 32
@@ -131,6 +245,30 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eff92790_c8ff7943",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "787ed479_4c618a2f",
+      "range": {
+        "startLine": 37,
+        "startChar": 64,
+        "endLine": 37,
+        "endChar": 67
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "744d8ca1_e2e94549",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5884c5a3_2ae7e327",
+      "range": {
+        "startLine": 50,
+        "startChar": 3,
+        "endLine": 50,
+        "endChar": 23
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d8c7045_c8e7362d",
         "filename": "golden/go/baseline/baseline.go",
         "patchSetId": 32
@@ -177,6 +339,30 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e655bc11_48a52fdf",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done\nAdded a TODO for now to add tests. This is somewhat experimental and will undergo more \nchanges before it becomes fully stable.",
+      "parentUuid": "7d8c7045_c8e7362d",
+      "range": {
+        "startLine": 74,
+        "startChar": 9,
+        "endLine": 74,
+        "endChar": 15
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -221,6 +407,24 @@
     },
     {
       "key": {
+        "uuid": "e92cb6a1_ab498f7c",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "CommitDelta is experimental and a zero is acceptable when an empty baseline is returned.",
+      "parentUuid": "2784c1a4_a7cc4a43",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "10286b82_94460f71",
         "filename": "golden/go/baseline/baseline.go",
         "patchSetId": 32
@@ -232,6 +436,24 @@
       "writtenOn": "2019-01-24T20:20:01Z",
       "side": 1,
       "message": "nit: missing new fields here: CommitDelta, Total, Filled",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f33e8eab_3b042ac4",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "This is still evolving and some fields might go away. I wrote a TODO to make sure we the commit fields are necessary and a note that CommitDelta, Totals and Filled are not relevant in this context.",
+      "parentUuid": "10286b82_94460f71",
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -255,6 +477,24 @@
     },
     {
       "key": {
+        "uuid": "8773f267_db941647",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done\nAdded TODO for now. Will add tests when the API is less fluid.",
+      "parentUuid": "693d75ac_913c6377",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f11d5fa5_071ad203",
         "filename": "golden/go/storage/baseliner.go",
         "patchSetId": 32
@@ -266,6 +506,30 @@
       "writtenOn": "2019-01-24T20:20:01Z",
       "side": 1,
       "message": "Is this done?",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 31,
+        "endChar": 62
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f2d94025_93e0c412",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f11d5fa5_071ad203",
       "range": {
         "startLine": 31,
         "startChar": 3,
@@ -295,6 +559,24 @@
     },
     {
       "key": {
+        "uuid": "ec199d97_229f355d",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7c56937_b8fb536e",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5c87a63_dc10be83",
         "filename": "golden/go/storage/baseliner.go",
         "patchSetId": 32
@@ -315,6 +597,30 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9f76a9c_dd96067e",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5c87a63_dc10be83",
+      "range": {
+        "startLine": 99,
+        "startChar": 40,
+        "endLine": 99,
+        "endChar": 54
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -341,6 +647,30 @@
     },
     {
       "key": {
+        "uuid": "35de9bfd_086d1db8",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "619c455d_b5904918",
+      "range": {
+        "startLine": 106,
+        "startChar": 3,
+        "endLine": 106,
+        "endChar": 10
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52a3d99f_6b716150",
         "filename": "golden/go/storage/baseliner.go",
         "patchSetId": 32
@@ -361,6 +691,30 @@
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb62ca1d_4d1e9ad7",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52a3d99f_6b716150",
+      "range": {
+        "startLine": 119,
+        "startChar": 4,
+        "endLine": 119,
+        "endChar": 19
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -387,6 +741,30 @@
     },
     {
       "key": {
+        "uuid": "005b3986_a137a830",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f568bd9_acdf48c4",
+      "range": {
+        "startLine": 149,
+        "startChar": 25,
+        "endLine": 149,
+        "endChar": 31
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "35a33730_087bfb66",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 32
@@ -398,6 +776,30 @@
       "writtenOn": "2019-01-24T20:20:01Z",
       "side": 1,
       "message": "nit: Would be nice to see a unit test for IsSparseTile.",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f4273a0_876eda29",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "IsSparseTile is a flag indicating that the tile should be \"condensed\" (commits without data should be removed). Added docs.",
+      "parentUuid": "35a33730_087bfb66",
       "range": {
         "startLine": 52,
         "startChar": 1,
@@ -433,6 +835,30 @@
     },
     {
       "key": {
+        "uuid": "49151b12_0d93a364",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done\nRenamed getCondensedTile to getNewCondensedTile to make it clearer that it loads enought \ndata to create a dense tile. \nlastTrimmedTile acts as a starting point for getNewCondensedTile, since any commit in the \nnew dense tile is as old or newer than the first commit of the last dense tile.",
+      "parentUuid": "f72a9b33_88607769",
+      "range": {
+        "startLine": 169,
+        "startChar": 33,
+        "endLine": 169,
+        "endChar": 50
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cf226edd_b246a0f3",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 32
@@ -456,6 +882,30 @@
     },
     {
       "key": {
+        "uuid": "85c923e1_dcc2f2e4",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf226edd_b246a0f3",
+      "range": {
+        "startLine": 311,
+        "startChar": 85,
+        "endLine": 312,
+        "endChar": 13
+      },
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f92d1b2_9a83ce2a",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 32
@@ -467,6 +917,24 @@
       "writtenOn": "2019-01-24T20:20:01Z",
       "side": 1,
       "message": "nit: Would be nice to see a unit test of this function.",
+      "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f751435_510a3e90",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 32
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-05T22:07:50Z",
+      "side": 1,
+      "message": "Added TODO. Test will be added in follow up CL.",
+      "parentUuid": "8f92d1b2_9a83ce2a",
       "revId": "e582806a4a3a710fd10d9d91340dad8c26edc136",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
