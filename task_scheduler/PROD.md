@@ -15,11 +15,49 @@ bucket-lifecycle-config.json gs://skia-task-scheduler`.
 [More documentation of object lifecycle](https://cloud.google.com/storage/docs/lifecycle).
 
 
+Troubleshooting
+===============
+
+git-related errors in the log
+-----------------------------
+
+Unfortunately, these are pretty common, especially in the early afternoon when
+googlesource is under load. Usually they manifest as a 502, or "repository not
+found". If these are occurring at an unusually high rate (more than one or two
+per hour) or the errors look different, contact an admin and ask if there are
+any known issues.
+
+
+Extremely slow startup
+----------------------
+
+The task scheduler has to load a lot of data from the DB on startup.
+Additionally, each of its clients reloads all of its data when the scheduler
+goes offline and comes back. These long-running reads can interact with writes
+such that operations get blocked and continue piling up. Requests time out and
+are retried, compounding the problem. If you notice this happening (an extremely
+long list of active DB transactions is a clue), you can ease the load on the
+scheduler by shutting down both Status and Datahopper, restart the scheduler and
+wait until it is up and running, then restart Status, wait until it is up and
+running, and finally restart Datahopper.
+TODO(borenet): This should not be necessary with the new DB implementation.
+
+
+DB is very slow
+---------------
+
+Similar to the above, but not caused by long-running reads. BoltDB performance
+can degrade for a number of reasons, including excessive free pages. A potential
+fix is to run "bolt compact" over the database file (with the scheduler process
+stopped).
+TODO(borenet): This should not be necessary with the new DB implementation.
+
+
 Alerts
 ======
 
 scheduling_failed
-----------------------
+-----------------
 
 The Task Scheduler has failed to schedule for some time. You should check the
 logs to try to diagnose what's failing. It's also possible that the scheduler
