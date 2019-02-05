@@ -1940,30 +1940,19 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
-	// First, make sure we have the task in our DB.
-	if msg.UserData != "" {
-		// We use ID of the task in our DB for the UserData field.
-		t, err := s.db.GetTaskById(msg.UserData)
-		if err != nil {
-			sklog.Errorf("Swarming Pub/Sub: Failed to retrieve task %q by ID: %s", msg.SwarmingTaskId, msg.UserData)
-			return true
-		} else if t == nil {
-			isPending := false
-			func() {
-				s.pendingInsertMtx.RLock()
-				defer s.pendingInsertMtx.RUnlock()
-				if s.pendingInsert[msg.UserData] {
-					isPending = true
-				}
-			}()
-			if isPending {
-				sklog.Debugf("Received pub/sub message for task which hasn't yet been inserted into the db: %s (%s); not ack'ing message; will try again later.", msg.SwarmingTaskId, msg.UserData)
-				return false
-			} else {
-				sklog.Errorf("Failed to update task %q from pub/sub: no such task ID: %q", msg.SwarmingTaskId, msg.UserData)
-				return true
-			}
-		}
+	if msg.UserData == "" {
+		// This message is invalid. ACK it to make it go away.
+		return true
+	}
+
+	// If the task has been triggered but not yet inserted into the DB, NACK
+	// the message so that we'll receive it later.
+	s.pendingInsertMtx.RLock()
+	isPending := s.pendingInsert[msg.UserData]
+	s.pendingInsertMtx.RUnlock()
+	if isPending {
+		sklog.Debugf("Received pub/sub message for task which hasn't yet been inserted into the db: %s (%s); not ack'ing message; will try again later.", msg.SwarmingTaskId, msg.UserData)
+		return false
 	}
 
 	// Obtain the Swarming task data.
