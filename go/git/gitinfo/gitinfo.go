@@ -180,6 +180,10 @@ func (g *GitInfo) Reset(ctx context.Context, ref string) error {
 }
 
 func (g *GitInfo) Checkout(ctx context.Context, ref string) error {
+	if _, err := exec.RunCwd(ctx, g.dir, "git", "clean", "-n"); err != nil {
+		return fmt.Errorf("Error when trying to clean untracked files when checking out %s: %s", ref, err)
+	}
+
 	if _, err := exec.RunCwd(ctx, g.dir, "git", "checkout", ref); err != nil {
 		return fmt.Errorf("Failed to checkout %s: %s", ref, err)
 	}
@@ -603,6 +607,32 @@ func readCommitsFromGit(ctx context.Context, dir, branch string) ([]string, map[
 		hashes[i] = h.hash
 	}
 	return hashes, timestamps, nil
+}
+
+func GetBranchCommits(ctx context.Context, dir, branch string) ([]*vcsinfo.IndexCommit, error) {
+	output, err := exec.RunCwd(ctx, dir, "git", "log", "--format=format:%H%x20%ci", "--reverse", branch)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to execute git log: %s", err)
+	}
+	lines := strings.Split(output, "\n")
+	ret := make([]*vcsinfo.IndexCommit, 0, len(lines))
+	for _, line := range lines {
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) == 2 {
+			t, err := time.Parse("2006-01-02 15:04:05 -0700", parts[1])
+			if err != nil {
+				return nil, fmt.Errorf("Failed parsing Git log timestamp: %s", err)
+			}
+			t = t.UTC()
+			hash := parts[0]
+			ret = append(ret, &vcsinfo.IndexCommit{
+				Hash:      hash,
+				Timestamp: t,
+				Index:     len(ret),
+			})
+		}
+	}
+	return ret, nil
 }
 
 func readCommitsFromGitAllBranches(ctx context.Context, dir string) ([]string, map[string]time.Time, error) {
