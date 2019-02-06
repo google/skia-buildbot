@@ -135,7 +135,7 @@ function history(ele) {
     method: 'GET',
   }).then(jsonOrThrow).then(json => {
     json = json || [];
-    return json.map(i => html`<incident-sk state=${i} minimized></incident-sk>`);
+    return json.map(i => html`<incident-sk .state=${i} minimized></incident-sk>`);
   }).catch(errorMessage);
 }
 
