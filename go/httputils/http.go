@@ -428,6 +428,11 @@ func LoggingRequestResponse(h http.Handler) http.Handler {
 				buf := make([]byte, size)
 				buf = buf[:runtime.Stack(buf, false)]
 				sklog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
+
+				// Note: This will only change the response if WriteHeader has not been called yet.
+				// In practice that should still a lot of code since most of our HTTP handlers
+				// calculate a result first and serialize it/write it to the client at the very end.
+				http.Error(w, "Error Handing request", http.StatusInternalServerError)
 			}
 		}()
 		defer timer.New(fmt.Sprintf("Request: %s Latency:", r.URL.Path)).Stop()

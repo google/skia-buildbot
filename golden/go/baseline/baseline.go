@@ -5,22 +5,40 @@ package baseline
 import (
 	"fmt"
 
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
+	"golang.org/x/sync/errgroup"
 )
+
+// md5SumEmptyExp is the MD5 sum of an empty expectation.
+var md5SumEmptyExp = fileutil.Must(util.MD5Sum(types.TestExp{}))
 
 // CommitableBaseLine captures the data necessary to verify test results on the
 // commit queue.
 type CommitableBaseLine struct {
-	// Start commit covered by these baselines.
+	// StartCommit covered by these baselines.
 	StartCommit *tiling.Commit `json:"startCommit"`
 
-	// Commit is the commit for which this baseline was collected.
+	// EncCommit is the commit for which this baseline was collected.
 	EndCommit *tiling.Commit `json:"endCommit"`
+
+	// CommitDelta is the difference in index within the commits of a tile.
+	CommitDelta int `json:"commitDelta"`
+
+	// Total is the total number of traces that were iterated when generating the baseline.
+	Total int `json:"total"`
+
+	// Filled is the number of traces that had non-empty values at EndCommit.
+	Filled int `json:"filled"`
+
+	// MD5 is the hash of the Baseline field.
+	MD5 string `json:"md5"`
 
 	// Baseline captures the baseline of the current commit.
 	Baseline types.TestExp `json:"master"`
@@ -29,48 +47,92 @@ type CommitableBaseLine struct {
 	Issue int64
 }
 
-// GetBaselineForMaster calculates the master baseline for the given configuration of
-// expectations and the given tile. The commit of the baseline is last commit
-// in tile.
-func GetBaselineForMaster(exps types.Expectations, tile *tiling.Tile) *CommitableBaseLine {
+// TODO(stephana): Add tests for GetBaselinePerCommit.
+
+// GetBaselinesPerCommit calculates the baselines for each commit in the tile.
+func GetBaselinesPerCommit(exps types.Expectations, tile *tiling.Tile) (map[string]*CommitableBaseLine, error) {
 	commits := tile.Commits
 	if len(tile.Commits) == 0 {
-		return nil
+		return map[string]*CommitableBaseLine{}, nil
 	}
 
-	// Set the start and end commit in case there are no traces
-	var startCommit *tiling.Commit = tile.Commits[0]
-	var endCommit *tiling.Commit = tile.Commits[len(tile.Commits)-1]
+	perCommitBaselines := make([]*CommitableBaseLine, len(tile.Commits))
+	var egroup errgroup.Group
 
-	masterBaseline := types.TestExp{}
-	for _, trace := range tile.Traces {
-		gTrace := trace.(*types.GoldenTrace)
-		testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
-		if idx := gTrace.LastIndex(); idx >= 0 {
-			digest := gTrace.Values[idx]
-			if digest != types.MISSING_DIGEST && exps.Classification(testName, digest) == types.POSITIVE {
-				masterBaseline.AddDigest(testName, digest, types.POSITIVE)
-			}
+	for cIdx := range commits {
+		func(cIdx int) {
+			egroup.Go(func() error {
+				startCommitIdx := cIdx
+				masterBaseline := types.TestExp{}
+				filled := 0
+				for _, trace := range tile.Traces {
+					gTrace := trace.(*types.GoldenTrace)
+					testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+					digest := types.MISSING_DIGEST
+					idx := util.MinInt(cIdx, gTrace.LastIndex())
+					for ; idx >= 0; idx-- {
+						digest = gTrace.Values[idx]
+						if digest != types.MISSING_DIGEST {
+							break
+						}
+					}
 
-			startCommit = minCommit(startCommit, commits[idx])
-			endCommit = maxCommit(endCommit, commits[idx])
-		}
+					if digest != types.MISSING_DIGEST && exps.Classification(testName, digest) == types.POSITIVE {
+						masterBaseline.AddDigest(testName, digest, types.POSITIVE)
+					}
+
+					if idx == cIdx {
+						filled++
+					}
+					startCommitIdx = util.MaxInt(0, util.MinInt(startCommitIdx, idx))
+				}
+
+				md5Sum, err := util.MD5Sum(masterBaseline)
+				if err != nil {
+					return skerr.Fmt("Error calculating MD5 sum: %s", err)
+				}
+
+				perCommitBaselines[cIdx] = &CommitableBaseLine{
+					StartCommit: commits[startCommitIdx],
+					EndCommit:   commits[cIdx],
+					CommitDelta: cIdx - startCommitIdx,
+					Total:       len(tile.Traces),
+					Filled:      filled,
+					Baseline:    masterBaseline,
+					Issue:       0,
+					MD5:         md5Sum,
+				}
+				return nil
+			})
+		}(cIdx)
+	}
+	if err := egroup.Wait(); err != nil {
+		return nil, err
 	}
 
-	ret := &CommitableBaseLine{
+	ret := make(map[string]*CommitableBaseLine, len(commits))
+	for idx, bLine := range perCommitBaselines {
+		ret[commits[idx].Hash] = bLine
+	}
+	return ret, nil
+}
+
+// EmptyBaseline returns an instance of CommitableBaseline with the provided commits and nil
+// values in all other fields. The Baseline field contains an empty instance of types.TestExp.
+func EmptyBaseline(startCommit, endCommit *tiling.Commit) *CommitableBaseLine {
+	return &CommitableBaseLine{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
-		Baseline:    masterBaseline,
-		Issue:       0,
+		Baseline:    types.TestExp{},
+		MD5:         md5SumEmptyExp,
 	}
-	return ret
 }
 
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit, talliesByTest map[string]tally.Tally) *CommitableBaseLine {
-	var startCommit *tiling.Commit = nil
-	var endCommit *tiling.Commit = nil
+func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit, talliesByTest map[string]tally.Tally) (*CommitableBaseLine, error) {
+	var startCommit *tiling.Commit = commits[len(commits)-1]
+	var endCommit *tiling.Commit = commits[len(commits)-1]
 
 	baseLine := types.TestExp{}
 	for idx, tryjob := range tryjobs {
@@ -89,13 +151,25 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 			endCommit = maxCommit(endCommit, c)
 		}
 	}
+
+	md5Sum, err := util.MD5Sum(baseLine)
+	if err != nil {
+		return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
+	}
+
+	// Note: CommitDelta, Total and Filled are not relevant for an issue baseline since there
+	// are not traces and commits directly related to this.
+
+	// TODO(stephana): Review whether StartCommit and EndCommit are useful here.
+
 	ret := &CommitableBaseLine{
 		StartCommit: startCommit,
 		EndCommit:   endCommit,
 		Baseline:    baseLine,
 		Issue:       issueID,
+		MD5:         md5Sum,
 	}
-	return ret
+	return ret, nil
 }
 
 // CommitIssueBaseline commits the expectations for the given issue to the master baseline.
@@ -108,7 +182,7 @@ func CommitIssueBaseline(issueID int64, user string, issueChanges types.TestExp,
 
 	commitFn := func() error {
 		if err := expStore.AddChange(issueChanges, syntheticUser); err != nil {
-			return sklog.FmtErrorf("Unable to add expectations for issue %d: %s", issueID, err)
+			return skerr.Fmt("Unable to add expectations for issue %d: %s", issueID, err)
 		}
 		return nil
 	}
