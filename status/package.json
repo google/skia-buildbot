@@ -18,5 +18,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": ""
+  "license": "",
+  "dependencies": {
+    "task-driver-skia": "file:webpack",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.2.3"
+  }
 }
