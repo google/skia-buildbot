@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55fdfbf3_f4a3da5e",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-06T18:01:55Z",
+      "side": 1,
+      "message": "Is it reasonable to assume we will never intentionally have zero silences?",
+      "range": {
+        "startLine": 678,
+        "startChar": 49,
+        "endLine": 678,
+        "endChar": 70
+      },
+      "revId": "cc950f7baf850c8755c10db3a98dd12948245dae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
