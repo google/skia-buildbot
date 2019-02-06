@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e52df15a_907ea74c",
+        "filename": "Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-06T22:31:47Z",
+      "side": 0,
+      "message": "ctags isn\u0027t installed on the bots, and it seems like too much trouble to make this work. It\u0027s clear to me that no one uses \u0027make all\u0027 (since it\u0027s been broken for a while) so I don\u0027t think anyone will miss this.",
+      "range": {
+        "startLine": 61,
+        "startChar": 86,
+        "endLine": 61,
+        "endChar": 91
+      },
+      "revId": "f6bb0641a0b39b59b6765309ad4d284a8e2f6dd2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
