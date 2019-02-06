@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c51912cf_a86190cc",
+        "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-06T18:29:31Z",
+      "side": 1,
+      "message": "infinite loop? that seems annoying, can we just do it a few times?",
+      "range": {
+        "startLine": 103,
+        "startChar": 25,
+        "endLine": 103,
+        "endChar": 33
+      },
+      "revId": "46a99c373b079d2fd74fce5cc3c826e32c357267",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
