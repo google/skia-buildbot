@@ -22,6 +22,30 @@
       "revId": "2d500c5248a0909ca66086aa121dc90c559f3c1f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f222335_472c3d95",
+        "filename": "task_scheduler/startup-script.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-06T20:15:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56950cea_41e354bb",
+      "range": {
+        "startLine": 10,
+        "startChar": 47,
+        "endLine": 10,
+        "endChar": 70
+      },
+      "revId": "2d500c5248a0909ca66086aa121dc90c559f3c1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
