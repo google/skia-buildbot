@@ -110,10 +110,11 @@ def RunSteps(api):
           'install bower',
           cmd=['sudo', 'npm', 'i', '-g', 'bower@1.8.2'])
 
-  with api.context(cwd=infra_dir.join('go', 'database'), env=env):
-    api.step(
-        'setup database',
-        cmd=['./setup_test_db'])
+  if 'Build' not in builder:
+    with api.context(cwd=infra_dir.join('go', 'database'), env=env):
+      api.step(
+          'setup database',
+          cmd=['./setup_test_db'])
 
   if ('Large' in builder) or ('Race' in builder):
     with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
@@ -144,23 +145,27 @@ def RunSteps(api):
   env['PATH'] = api.path.pathsep.join([
       env['PATH'], str(api.path['depot_tools'])])
 
-  cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
-  if 'Race' in api.properties['buildername']:
-    cmd.extend(['--race', '--large', '--medium', '--small'])
-  elif 'Large' in api.properties['buildername']:
-    cmd.append('--large')
-  elif 'Medium' in api.properties['buildername']:
-    cmd.append('--medium')
-  else:
-    cmd.append('--small')
-  try:
+  if 'Build' in builder:
     with api.context(cwd=infra_dir, env=env):
-      api.step('run_unittests', cmd)
-  finally:
-    if ('Large' in builder) or ('Race' in builder):
-      with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
-        api.step('stop the cloud data store emulator',
-            cmd=['./run_emulator', 'stop'])
+      api.step('make all', ['make', 'all'])
+  else:
+    cmd = ['go', 'run', './run_unittests.go', '--alsologtostderr']
+    if 'Race' in builder:
+      cmd.extend(['--race', '--large', '--medium', '--small'])
+    elif 'Large' in builder:
+      cmd.append('--large')
+    elif 'Medium' in builder:
+      cmd.append('--medium')
+    else:
+      cmd.append('--small')
+    try:
+      with api.context(cwd=infra_dir, env=env):
+        api.step('run_unittests', cmd)
+    finally:
+      if ('Large' in builder) or ('Race' in builder):
+        with api.context(cwd=infra_dir.join('go', 'ds', 'emulator'), env=env):
+          api.step('stop the cloud data store emulator',
+              cmd=['./run_emulator', 'stop'])
 
 def GenTests(api):
   yield (
@@ -186,6 +191,11 @@ def GenTests(api):
                      patch_storage='gerrit',
                      path_config='kitchen',
                      repository='https://skia.googlesource.com/buildbot.git')
+  )
+  yield (
+      api.test('Infra-PerCommit-Build') +
+      api.properties(buildername='Infra-PerCommit-Build',
+                     path_config='kitchen')
   )
   yield (
       api.test('Infra-PerCommit-Large') +

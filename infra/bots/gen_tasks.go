@@ -55,6 +55,7 @@ var (
 	JOBS = []string{
 		"Housekeeper-OnDemand-Presubmit",
 		ISOLATE_GO_DEPS_NAME,
+		"Infra-PerCommit-Build",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -323,7 +324,7 @@ func infra(b *specs.TasksCfgBuilder, name string) string {
 	task.Caches = append(task.Caches, CACHES_GO...)
 	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("node"))
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GSUTIL...)
-	if strings.Contains(name, "Large") {
+	if strings.Contains(name, "Large") || strings.Contains(name, "Build") {
 		task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("protoc"))
 	}
 

@@ -9,9 +9,9 @@ testjs:
 sharedgo:
 	cd go && $(MAKE) all
 
-.PHONY: golden
-golden:
-	cd golden && $(MAKE) all
+#.PHONY: golden
+#golden:
+#	cd golden && $(MAKE) all
 
 .PHONY: perf
 perf:
@@ -58,7 +58,7 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 .PHONY: all
-all: autoroll datahopper golden perf sharedgo ct ctfe cq_watcher status task_scheduler tags
+all: autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler
 
 .PHONY: tags
 tags:
