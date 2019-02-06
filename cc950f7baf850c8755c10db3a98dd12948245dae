@@ -22,6 +22,30 @@
       "revId": "cc950f7baf850c8755c10db3a98dd12948245dae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bcb01e7_cbba842e",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 678,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-06T18:06:41Z",
+      "side": 1,
+      "message": "I think so because this includes all silences (active and archived).\nOnly time this will not be true is if we bring up a new instance or clear the datastore. Notifications will not work till there is a silence created but that\u0027s not a big deal.",
+      "parentUuid": "55fdfbf3_f4a3da5e",
+      "range": {
+        "startLine": 678,
+        "startChar": 49,
+        "endLine": 678,
+        "endChar": 70
+      },
+      "revId": "cc950f7baf850c8755c10db3a98dd12948245dae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
