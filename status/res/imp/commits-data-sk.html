@@ -65,6 +65,7 @@
     var VALID_TASK_SPEC_CATEGORIES = ["Build", "Housekeeper", "Infra", "Perf", "Test", "Upload"];
 
     var FILTER_ALL = "all";
+    var FILTER_DEFAULT = "default";
     var FILTER_INTERESTING = "interesting";
     var FILTER_FAILURES = "failures";
     var FILTER_FAIL_NO_COMMENT = "nocomment";
@@ -203,6 +204,12 @@
         filter: {
           type: String,
           observer:"_filterTaskSpecs",
+        },
+        is_sheriff: {
+          type: Boolean,
+        },
+        is_trooper: {
+          type: Boolean,
         },
         reload: {
           type: Number,
@@ -734,7 +741,14 @@
       _filterTaskSpecs: function() {
         console.time("filterTaskSpecs");
         var filteredTaskSpecs = [];
-        var selected = this.filter || FILTER_ALL;
+        var selected = this.filter || FILTER_DEFAULT;
+        if (selected === FILTER_DEFAULT) {
+          if (this.is_sheriff || this.is_trooper) {
+            selected = FILTER_FAILURES;
+          } else {
+            selected = FILTER_INTERESTING;
+          }
+        }
         if (selected == FILTER_ALL) {
           for (var taskSpec in this.task_specs) {
             filteredTaskSpecs.push(taskSpec);
