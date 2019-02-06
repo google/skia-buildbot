@@ -10,13 +10,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TableConfig maps a table name to a list of column families, describing which
-// tables and column InitBigtable should create.
-type TableConfig map[string][]string
-
 // InitBigtable takes a list of TableConfigs and creates the given tables and
 // column families if they don't exist already.
-func InitBigtable(projectID, instanceID string, tableConfigs ...TableConfig) error {
+func InitBigtable(projectID, instanceID, tableID string, colFamilies []string) error {
 	ctx := context.TODO()
 
 	// Set up admin client, tables, and column families.
@@ -25,30 +21,27 @@ func InitBigtable(projectID, instanceID string, tableConfigs ...TableConfig) err
 		return sklog.FmtErrorf("Unable to create admin client: %s", err)
 	}
 
-	for _, tConfig := range tableConfigs {
-		for tableName, colFamilies := range tConfig {
-			// Create the table. Ignore error if it already existed.
-			err, code := ErrToCode(adminClient.CreateTable(ctx, tableName))
-			if err != nil && code != codes.AlreadyExists {
-				return sklog.FmtErrorf("Error creating table %s: %s", err)
-			} else {
-				sklog.Infof("Created table: %s", tableName)
-			}
+	// Create the table. Ignore error if it already existed.
+	err, code := ErrToCode(adminClient.CreateTable(ctx, tableID))
+	if err != nil && code != codes.AlreadyExists {
+		return sklog.FmtErrorf("Error creating table %s: %s", tableID, err)
+	} else {
+		sklog.Infof("Created table: %s", tableID)
+	}
 
-			// Create the column families. Ignore errors if they already existed.
-			for _, colFamName := range colFamilies {
-				err, code = ErrToCode(adminClient.CreateColumnFamily(ctx, tableName, colFamName))
-				if err != nil && code != codes.AlreadyExists {
-					return sklog.FmtErrorf("Error creating column family %s in table %s: %s", colFamName, tableName, err)
-				}
-			}
+	// Create the column families. Ignore errors if they already existed.
+	for _, colFamName := range colFamilies {
+		err, code = ErrToCode(adminClient.CreateColumnFamily(ctx, tableID, colFamName))
+		if err != nil && code != codes.AlreadyExists {
+			return sklog.FmtErrorf("Error creating column family %s in table %s: %s", colFamName, tableID, err)
 		}
 	}
+
 	return nil
 }
 
 // DeleteTables deletes the tables given in the TableConfig.
-func DeleteTables(projectID, instanceID string, tableConfigs ...TableConfig) (err error) {
+func DeleteTables(projectID, instanceID string, tableNames ...string) (err error) {
 	ctx := context.TODO()
 
 	// Set up admin client, tables, and column families.
@@ -65,13 +58,11 @@ func DeleteTables(projectID, instanceID string, tableConfigs ...TableConfig) (er
 	}()
 
 	// Delete all tables if they exist.
-	for _, tConfig := range tableConfigs {
-		for tableName := range tConfig {
-			// Ignore NotFound errors.
-			err, code := ErrToCode(adminClient.DeleteTable(ctx, tableName))
-			if err != nil && code != codes.NotFound {
-				return err
-			}
+	for _, tableName := range tableNames {
+		// Ignore NotFound errors.
+		err, code := ErrToCode(adminClient.DeleteTable(ctx, tableName))
+		if err != nil && code != codes.NotFound {
+			return err
 		}
 	}
 	return nil
