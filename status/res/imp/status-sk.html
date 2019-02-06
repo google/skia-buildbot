@@ -146,7 +146,7 @@
     <!-- these must go above the points at which their bound values are used.  Otherwise,
     the bound values get set to "" and it clobbers the stored values -->
     <url-param-sk name="commit_label" value="{{label}}" default="author"></url-param-sk>
-    <url-param-sk name="filter" value="{{filter}}" default="interesting"></url-param-sk>
+    <url-param-sk name="filter" value="{{filter}}" default="default"></url-param-sk>
     <url-param-sk name="search_value" value="{{search}}"></url-param-sk>
 
     <app-sk id="app" class="fit"
@@ -278,6 +278,8 @@
             roll_statuses="[[roll_statuses]]"
             commits_to_load="[[commits_to_load]]"
             filter="[[filter]]"
+            is_sheriff="[[is_sheriff]]"
+            is_trooper="[[is_trooper]]"
             reload="[[reload]]"
             repo="[[repo]]"
             search="[[search]]"
@@ -341,6 +343,14 @@
         type: Boolean,
         computed: "_editRights(email, login_data)",
       },
+      is_sheriff: {
+        type: Boolean,
+        computed: "_isUser(email, sheriff)",
+      },
+      is_trooper: {
+        type: Boolean,
+        computed: "_isUser(email, trooper)",
+      },
       login_data: { 
         type: Object,
       },
@@ -372,6 +382,14 @@
 
     _editRights: function(email, login_data) {
       return login_data["editRights"] === true
+    },
+
+    _isUser: function(email, user) {
+      var parts = email.split('@');
+      if (parts.length !== 2) {
+          return false;
+      }
+      return parts[0] === user;
     },
 
     _or: function(a, b) {
