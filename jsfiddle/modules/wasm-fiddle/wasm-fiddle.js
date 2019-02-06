@@ -77,6 +77,8 @@ export class WasmFiddle extends HTMLElement {
     this.template = template;
     this.libraryName = libraryName; // e.g. 'CanvasKit' , 'PathKit'
     this.fiddleType = fiddleType; // e.g. 'canvaskit', 'pathkit'
+    this.hasRun = false;
+    this.loadedWasm = false;
   }
 
   /** @prop {String} content - The current code in the editor.*/
@@ -91,9 +93,8 @@ export class WasmFiddle extends HTMLElement {
     this._render();
     this.wasmPromise.then((LoadedWasm) => {
       this.Wasm = LoadedWasm;
-      if (this.content) {
-        this.run(); // auto-run the code if the code was loaded.
-      }
+      this.loadedWasm = true;
+      this._render();
     });
 
     if (!this.content) {
@@ -166,7 +167,8 @@ export class WasmFiddle extends HTMLElement {
       errorMessage(`${this.libraryName} is still loading. Try again in a few seconds.`);
       return;
     }
-
+    this.hasRun = true;
+    this._render();
     const canvas = this._resetCanvas();
 
     try {
