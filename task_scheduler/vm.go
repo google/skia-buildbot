@@ -26,7 +26,6 @@ func TaskSchedulerBase(name, ipAddress string) *gce.Instance {
 
 	_, filename, _, _ := runtime.Caller(0)
 	dir := path.Dir(filename)
-	vm.StartupScript = path.Join(dir, "startup-script.sh")
 	return vm
 }
 
@@ -34,18 +33,21 @@ func TaskSchedulerProd() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler", "35.202.175.145" /* Whitelisted in swarming, isolate and buildbucket servers */)
 	vm.DataDisks[0].SizeGb = 500
 	vm.ServiceAccount = "task-scheduler@skia-buildbots.google.com.iam.gserviceaccount.com"
+	vm.StartupScript = path.Join(dir, "startup-script-production.sh")
 	return vm
 }
 
 func TaskSchedulerInternal() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler-internal", "35.184.167.88" /* Whitelisted in swarming, isolate and buildbucket servers */)
 	vm.ServiceAccount = "task-scheduler-internal@skia-buildbots.google.com.iam.gserviceaccount.com"
+	vm.StartupScript = path.Join(dir, "startup-script-internal.sh")
 	return vm
 }
 
 func TaskSchedulerStaging() *gce.Instance {
 	vm := TaskSchedulerBase("skia-task-scheduler-staging", "35.239.145.127" /* Whitelisted in swarming, isolate and buildbucket servers */)
 	vm.ServiceAccount = "task-scheduler@skia-buildbots.google.com.iam.gserviceaccount.com"
+	vm.StartupScript = path.Join(dir, "startup-script-staging.sh")
 	return vm
 }
 
