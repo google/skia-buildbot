@@ -12,6 +12,14 @@ incident-sk {
     cursor: pointer;
   }
 
+  h3 {
+    display: inline-block;
+  }
+
+  .commentsToggle {
+    margin-left: 1em;
+  } 
+
   .note {
     padding: 0.4em;
   }
