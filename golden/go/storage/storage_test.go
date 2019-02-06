@@ -110,11 +110,13 @@ func TestWritingBaselines(t *testing.T) {
 	foundBaseline, err = gsClient.ReadBaseline("", issueID)
 	assert.NoError(t, err)
 	assert.Equal(t, issueBaseline, foundBaseline)
+	baseLiner, err := NewBaseliner(gsClient, nil, nil, nil, nil)
+	assert.NoError(t, err)
 
 	// Fetch the combined baselines
 	storages := &Storage{
 		GStorageClient: gsClient,
-		Baseliner:      NewBaseliner(gsClient, nil, nil, nil),
+		Baseliner:      baseLiner,
 	}
 	combined := &baseline.CommitableBaseLine{}
 	*combined = *masterBaseline
@@ -139,24 +141,26 @@ func TestBaselineRobustness(t *testing.T) {
 	}()
 
 	// Read the master baseline that has not been written
-	emptyBaseline := &baseline.CommitableBaseLine{Baseline: types.TestExp{}, Issue: 5344}
 	foundBaseline, err := gsClient.ReadBaseline("", 5344)
 	assert.NoError(t, err)
-	assert.Equal(t, emptyBaseline, foundBaseline)
+	assert.Nil(t, foundBaseline)
 
 	// Test reading a non-existing baseline for an issue
 	foundBaseline, err = gsClient.ReadBaseline("", 5344)
 	assert.NoError(t, err)
-	assert.Equal(t, emptyBaseline, foundBaseline)
+	assert.Nil(t, foundBaseline)
 
 	path, err := gsClient.WriteBaseLine(masterBaseline)
 	assert.NoError(t, err)
 	removePaths = append(removePaths, strings.TrimPrefix(path, "gs://"))
 
+	baseLiner, err := NewBaseliner(gsClient, nil, nil, nil, nil)
+	assert.NoError(t, err)
+
 	// Fetch the combined baselines when there are no baselines for the issue
 	storages := &Storage{
 		GStorageClient: gsClient,
-		Baseliner:      NewBaseliner(gsClient, nil, nil, nil),
+		Baseliner:      baseLiner,
 	}
 	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0)
 	assert.NoError(t, err)
