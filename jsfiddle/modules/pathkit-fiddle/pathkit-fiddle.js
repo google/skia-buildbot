@@ -24,7 +24,7 @@ const template = (ele) => html`
   ${codeEditor(ele)}
   <div class=output>
     <div class=buttons>
-      <button class=action @click=${ele.run}>Run</button>
+      <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '': 'prompt'}" @click=${ele.run}>Run</button>
       <button class=action @click=${ele.save}>Save</button>
     </div>
     <div id=canvasContainer><canvas width=500 height=500></canvas></div>

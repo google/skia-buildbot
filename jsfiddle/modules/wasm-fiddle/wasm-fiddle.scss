@@ -96,4 +96,24 @@ header {
   flex-basis: 0.000000001px;
 }
 
+button.action {
+  cursor: pointer;
 
+  &.prompt {
+    animation: pulse .8s 5 linear;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0px 0px 8px 4px #4caf50;
+  }
+
+  50% {
+    box-shadow: 0px 0px 8px 8px #4caf50;
+  }
+
+  100% {
+    box-shadow: 0px 0px 8px 4px #4caf50;
+  }
+}
