@@ -672,7 +672,10 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
     let isTrooper = this._user === this._trooper;
     let numActive = this._incidents.reduce((n, incident) => n += this._needsTriaging(incident, isTrooper) ? 1 : 0, 0);
 
-    if (Notification.permission === "granted") {
+    // Show desktop notifications only if permission was granted and only if
+    // silences have been successfully fetched. If silences have not been
+    // fetched yet then we might end up notifying on silenced incidents.
+    if (Notification.permission === "granted" && this._silences.length != 0) {
       const unNotifiedIncidents = this._incidents.filter(i =>
         !this._incidents_notified[i.key] && this._needsTriaging(i, isTrooper));
       this._sendDesktopNotification(unNotifiedIncidents);
