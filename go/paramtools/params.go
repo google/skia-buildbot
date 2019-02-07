@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"go.skia.org/infra/go/util"
 )
@@ -228,6 +229,7 @@ func (p ParamMatcher) MatchAny(params ParamSet) bool {
 //
 // OrderedParamSet is not Go routine safe.
 type OrderedParamSet struct {
+	mutex         sync.Mutex
 	KeyOrder      []string
 	ParamSet      ParamSet
 	paramsEncoder *paramsEncoder
@@ -273,6 +275,8 @@ func (o *OrderedParamSet) Delta(p ParamSet) ParamSet {
 // Update adds all the key/value pairs from ParamSet, which is usually the
 // ParamSet returned from Delta().
 func (o *OrderedParamSet) Update(p ParamSet) {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
 	o.paramsEncoder = nil
 	o.paramsDecoder = nil
 	// Add new keys to KeyOrder.
@@ -435,19 +439,34 @@ func (p *paramsEncoder) encodeAsString(params Params) (string, error) {
 	return strings.Join(ret, ""), nil
 }
 
-// EncodeParamsAsString encodes the Params as a string.
-func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
+func (o *OrderedParamSet) getParamsEncoder() *paramsEncoder {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+
 	if o.paramsEncoder == nil {
 		o.paramsEncoder = o.buildEncoder()
 	}
-	return o.paramsEncoder.encodeAsString(p)
+
+	return o.paramsEncoder
 }
 
-// DecodeParamsFromString decodes the Params from a string.
-func (o *OrderedParamSet) DecodeParamsFromString(s string) (Params, error) {
+// EncodeParamsAsString encodes the Params as a string.
+func (o *OrderedParamSet) EncodeParamsAsString(p Params) (string, error) {
+	return o.getParamsEncoder().encodeAsString(p)
+}
+
+func (o *OrderedParamSet) getParamsDecoder() *paramsDecoder {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
 
 	if o.paramsDecoder == nil {
 		o.paramsDecoder = o.buildDecoder()
 	}
-	return o.paramsDecoder.decodeStringToParams(s)
+
+	return o.paramsDecoder
+}
+
+// DecodeParamsFromString decodes the Params from a string.
+func (o *OrderedParamSet) DecodeParamsFromString(s string) (Params, error) {
+	return o.getParamsDecoder().decodeStringToParams(s)
 }
