@@ -22,6 +22,30 @@
       "revId": "6956256081d36d4a6093ead31721c021703b693d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8aaff661_3f5bca3b",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1028,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-07T20:46:50Z",
+      "side": 1,
+      "message": "Unfortunately, c.queue is not buffered, so if there is no worker to process this request, it\u0027ll just hang until there is.  I think len(c.queue) will always be 0 or 1.",
+      "parentUuid": "fde968b5_648403f8",
+      "range": {
+        "startLine": 1028,
+        "startChar": 1,
+        "endLine": 1028,
+        "endChar": 8
+      },
+      "revId": "6956256081d36d4a6093ead31721c021703b693d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
