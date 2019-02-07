@@ -1,7 +1,7 @@
 
 .PHONY: validate push_config
 validate: ./tmp/promtool absent
-	promk-absent --input=prometheus/alerts_alert_to_pubsub.yml --output=prometheus/absent_alerts_to_pubsub.yml
+	promk-absent --input=prometheus/alerts_alert_to_pubsub.yml --output=prometheus/absent_alerts_alert_to_pubsub.yml
 	promk-absent --input=prometheus/alerts_corp.yml --output=prometheus/absent_alerts_corp.yml
 	promk-absent --input=prometheus/alerts_general.yml --output=prometheus/absent_alerts_general.yml
 	promk-absent --input=prometheus/alerts_public.yml --output=prometheus/absent_alerts_public.yml
