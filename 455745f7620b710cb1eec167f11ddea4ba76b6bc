@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73037d7a_015c484f",
+        "filename": "am/modules/incident-sk/incident-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-07T22:22:45Z",
+      "side": 1,
+      "message": "single quotes.",
+      "range": {
+        "startLine": 115,
+        "startChar": 64,
+        "endLine": 115,
+        "endChar": 66
+      },
+      "revId": "455745f7620b710cb1eec167f11ddea4ba76b6bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c549c5e5_88b6b268",
+        "filename": "am/modules/incident-sk/incident-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-07T22:22:45Z",
+      "side": 1,
+      "message": "@selection-changed\u003d might be better.",
+      "range": {
+        "startLine": 170,
+        "startChar": 65,
+        "endLine": 170,
+        "endChar": 72
+      },
+      "revId": "455745f7620b710cb1eec167f11ddea4ba76b6bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
