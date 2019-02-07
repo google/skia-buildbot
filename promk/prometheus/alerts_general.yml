@@ -47,58 +47,27 @@ groups:
         https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
 
   - alert: TooManyGoRoutines
-    expr: go_goroutines{kubernetes_pod_name!=""} > 3000
+    expr: go_goroutines{app=~".+"} > 3000
     for: 2m
     labels:
       category: infra
       severity: warning
     annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
+      abbr: '{{ $labels.app }}'
       description: 'Too many Go routines in {{ $labels.kubernetes_pod_name }} for app
         {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
         https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
 
-  - alert: TooManyGoRoutines
-    expr: go_goroutines{job!="kubernetes-nodes",kubernetes_pod_name=""} > 3000
-    for: 2m
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.job }}'
-      description: 'Too many Go routines in {{ $labels.job }} running on {{ $labels.instance
-        }}. Logs:
-
-          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
-
-          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
-        '
-
   - alert: TooManyOpenFDs
-    expr: process_open_fds{kubernetes_pod_name!=""} > 2000
+    expr: process_open_fds{app=~".+"} > 2000
     labels:
       category: infra
       severity: warning
     annotations:
-      abbr: '{{ $labels.kubernetes_pod_name }}'
+      abbr: '{{ $labels.app }}'
       description: 'Too many open file handles on {{ $labels.kubernetes_pod_name }} for app
         {{ $labels.app }}. Logs: `kubectl logs {{ $labels.kubernetes_pod_name }}`
         https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=resource.type%3D%22container%22%0Aresource.labels.pod_id%3D%22{{ $labels.kubernetes_pod_name }}%22'
-
-  - alert: TooManyOpenFDs
-    expr: process_open_fds{kubernetes_pod_name=""} > 2000
-    labels:
-      category: infra
-      severity: warning
-    annotations:
-      abbr: '{{ $labels.job }}'
-      description: 'Too many open file handles for {{ $labels.job }} running on {{ $labels.instance
-        }}. Logs:
-
-          kubectl logs -l app={{ reReplaceAll `:[0-9]+` `` $labels.instance }} -c {{ $labels.job }}
-
-          https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&advancedFilter=logName%3D"projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.job }}"
-        '
 
   - alert: PersistentVolumeLowSpace
     expr: (kubelet_volume_stats_used_bytes /kubelet_volume_stats_capacity_bytes) > 0.9
