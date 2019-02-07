@@ -1058,6 +1058,8 @@ func (c *TaskCfgCache) TempGitRepo(ctx context.Context, rs types.RepoState, botU
 // tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
 func tempGitRepo(ctx context.Context, repo *git.Repo, rs types.RepoState) (rv *git.TempCheckout, rvErr error) {
+	defer metrics2.FuncTimer().Stop()
+
 	if rs.IsTryJob() {
 		return nil, fmt.Errorf("specs.tempGitRepo does not apply patches, and should not be called for try jobs.")
 	}
@@ -1084,6 +1086,8 @@ func tempGitRepo(ctx context.Context, repo *git.Repo, rs types.RepoState) (rv *g
 // tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
 func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
+	defer metrics2.FuncTimer().Stop()
+
 	// Run bot_update to obtain a checkout of the repo and its DEPS.
 	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
 	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
