@@ -127,7 +127,7 @@ func (d *firestoreDB) dateRangeHelper(coll *fs.CollectionRef, start, end time.Ti
 	init(len(queries))
 
 	// Run the queries.
-	return firestore.IterDocsInParallel(queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+	return d.client.IterDocsInParallel(queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
 }
 
 // firestoreDB doesn't support backups, but we implement the interface for

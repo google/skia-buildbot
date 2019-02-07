@@ -28,7 +28,7 @@ func setup(t *testing.T) (db.DBCloser, func()) {
 	assert.NoError(t, err)
 	cleanup := func() {
 		c := d.(*firestoreDB).client
-		assert.NoError(t, firestore.RecursiveDelete(c, c.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
 		assert.NoError(t, d.Close())
 	}
 	return d, cleanup
