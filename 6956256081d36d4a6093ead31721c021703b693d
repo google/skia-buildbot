@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fde968b5_648403f8",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1028,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-07T20:30:24Z",
+      "side": 1,
+      "message": "Maybe add a metric for len(c.queue)?",
+      "range": {
+        "startLine": 1028,
+        "startChar": 1,
+        "endLine": 1028,
+        "endChar": 8
+      },
+      "revId": "6956256081d36d4a6093ead31721c021703b693d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
