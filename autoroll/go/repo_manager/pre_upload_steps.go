@@ -32,7 +32,7 @@ type PreUploadStep func(context.Context, *http.Client, string) error
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
 	rv, ok := map[string]PreUploadStep{
-		"GoGenerate":            GoGenerate,
+		"GoGenerateCipd":        GoGenerateCipd,
 		"TrainInfra":            TrainInfra,
 		"FlutterLicenseScripts": FlutterLicenseScripts,
 	}[s]
@@ -165,8 +165,8 @@ func FlutterLicenseScripts(ctx context.Context, _ *http.Client, parentRepoDir st
 	return nil
 }
 
-// Run "go generate ./..."
-func GoGenerate(ctx context.Context, client *http.Client, parentRepoDir string) error {
+// Run "go generate" in go/cipd.
+func GoGenerateCipd(ctx context.Context, client *http.Client, parentRepoDir string) error {
 	// TODO(borenet): Should we plumb through --local and --workdir?
 	sklog.Info("Installing Go...")
 	goExc, goEnv, err := go_install.EnsureGo(client, cipdRoot, true)
@@ -192,11 +192,12 @@ func GoGenerate(ctx context.Context, client *http.Client, parentRepoDir string) 
 	}
 
 	// Run go generate.
-	sklog.Info("Running 'go generate ./...'")
+	generateDir := filepath.Join(parentRepoDir, "go", "cipd")
+	sklog.Infof("Running 'go generate' in %s", generateDir)
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Name: goExc,
-		Args: []string{"generate", "./..."},
-		Dir:  parentRepoDir,
+		Args: []string{"generate"},
+		Dir:  generateDir,
 		Env:  envSlice,
 	}); err != nil {
 		return err

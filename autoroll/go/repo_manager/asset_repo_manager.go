@@ -245,6 +245,7 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 	}); err != nil {
 		return 0, err
 	}
+	sklog.Infof("Rolling package %s from %s to %s.", rm.asset, from, to)
 
 	// Before running the pre-upload steps, which install Go and the infra
 	// repo's dependencies via CIPD, update the version of the Go DEPS CIPD

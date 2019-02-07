@@ -13,6 +13,7 @@ import (
 
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -82,6 +83,7 @@ func Ensure(client *http.Client, rootdir string, packages ...*Package) error {
 		if err != nil {
 			return fmt.Errorf("Failed to resolve package version %q @ %q: %s", pkg.Name, pkg.Version, err)
 		}
+		sklog.Infof("Installing version %s (from %s) of %s", pin.InstanceID, pkg.Version, pkg.Name)
 		pkgs[pkg.Dest] = common.PinSlice{pin}
 	}
 	if _, err := c.EnsurePackages(context.Background(), pkgs, cipd.CheckPresence, false); err != nil {

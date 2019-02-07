@@ -24,7 +24,7 @@
     "parentBranch": "master",
     "preUploadSteps": [
       "TrainInfra",
-      "GoGenerate"
+      "GoGenerateCipd"
     ],
     "parentRepo": "https://skia.googlesource.com/buildbot.git"
   },
