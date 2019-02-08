@@ -6,7 +6,6 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -48,7 +47,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 	}
 
 	q := d.commitComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	if err := d.client.IterDocs("GetCommitCommentsForRepos", q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c types.CommitComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
@@ -65,7 +64,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 	}
 
 	q = d.taskComments().Where("Timestamp", ">=", from).OrderBy("Timestamp", fs.Asc)
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	if err := d.client.IterDocs("GetTaskCommentsForRepos", q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c types.TaskComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
@@ -87,7 +86,7 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 	}
 
 	q = d.taskSpecComments().OrderBy("Timestamp", fs.Asc)
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
+	if err := d.client.IterDocs("GetTaskSpecCommentsForRepos", q, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, func(doc *fs.DocumentSnapshot) error {
 		var c types.TaskSpecComment
 		if err := doc.DataTo(&c); err != nil {
 			return err
@@ -119,7 +118,7 @@ func taskCommentId(c *types.TaskComment) string {
 func (d *firestoreDB) PutTaskComment(c *types.TaskComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := taskCommentId(c)
-	_, err := firestore.Create(d.taskComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
+	_, err := d.client.Create(d.taskComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
@@ -135,7 +134,7 @@ func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 	id := taskCommentId(c)
 	ref := d.taskComments().Doc(id)
 	exists := true
-	if _, err := firestore.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
+	if _, err := d.client.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
 		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 			exists = false
 		} else {
@@ -143,7 +142,7 @@ func (d *firestoreDB) DeleteTaskComment(c *types.TaskComment) error {
 		}
 	}
 	if exists {
-		if _, err := firestore.Delete(ref, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
+		if _, err := d.client.Delete(ref, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
 			return err
 		}
 		deleted := true
@@ -162,7 +161,7 @@ func taskSpecCommentId(c *types.TaskSpecComment) string {
 func (d *firestoreDB) PutTaskSpecComment(c *types.TaskSpecComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := taskSpecCommentId(c)
-	_, err := firestore.Create(d.taskSpecComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
+	_, err := d.client.Create(d.taskSpecComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
@@ -178,7 +177,7 @@ func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 	id := taskSpecCommentId(c)
 	ref := d.taskSpecComments().Doc(id)
 	exists := true
-	if _, err := firestore.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
+	if _, err := d.client.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
 		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 			exists = false
 		} else {
@@ -186,7 +185,7 @@ func (d *firestoreDB) DeleteTaskSpecComment(c *types.TaskSpecComment) error {
 		}
 	}
 	if exists {
-		if _, err := firestore.Delete(ref, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
+		if _, err := d.client.Delete(ref, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
 			return err
 		}
 		deleted := true
@@ -205,7 +204,7 @@ func commitCommentId(c *types.CommitComment) string {
 func (d *firestoreDB) PutCommitComment(c *types.CommitComment) error {
 	c.Timestamp = fixTimestamp(c.Timestamp)
 	id := commitCommentId(c)
-	_, err := firestore.Create(d.commitComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
+	_, err := d.client.Create(d.commitComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
 		return db.ErrAlreadyExists
 	}
@@ -221,7 +220,7 @@ func (d *firestoreDB) DeleteCommitComment(c *types.CommitComment) error {
 	id := commitCommentId(c)
 	ref := d.commitComments().Doc(id)
 	exists := true
-	if _, err := firestore.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
+	if _, err := d.client.Get(ref, DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT); err != nil {
 		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 			exists = false
 		} else {
@@ -229,7 +228,7 @@ func (d *firestoreDB) DeleteCommitComment(c *types.CommitComment) error {
 		}
 	}
 	if exists {
-		if _, err := firestore.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
+		if _, err := d.client.Delete(d.commitComments().Doc(id), DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT); err != nil {
 			return err
 		}
 		deleted := true

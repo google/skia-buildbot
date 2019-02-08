@@ -75,7 +75,7 @@ func (b *Blacklist) Update() error {
 	}
 	rules := map[string]*Rule{}
 	q := b.coll.Query
-	if err := firestore.IterDocs(q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
+	if err := b.client.IterDocs("GetBlacklistEntries", q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
 		var r Rule
 		if err := doc.DataTo(&r); err != nil {
 			return err
@@ -128,7 +128,7 @@ func (b *Blacklist) AddRule(r *Rule, repos repograph.Map) error {
 // addRule adds a new Rule to the Blacklist.
 func (b *Blacklist) addRule(r *Rule) (rvErr error) {
 	ref := b.coll.Doc(r.Name)
-	if _, err := firestore.Create(ref, r, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
+	if _, err := b.client.Create(ref, r, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
 		return err
 	}
 	b.mtx.Lock()
@@ -195,7 +195,7 @@ func (b *Blacklist) RemoveRule(id string) error {
 		return errors.New("Blacklist is nil; cannot remove rules.")
 	}
 	ref := b.coll.Doc(id)
-	if _, err := firestore.Delete(ref, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
+	if _, err := b.client.Delete(ref, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
 		return err
 	}
 	b.mtx.Lock()

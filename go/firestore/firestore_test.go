@@ -34,14 +34,15 @@ func TestWithTimeout(t *testing.T) {
 }
 
 func TestWithTimeoutAndRetries(t *testing.T) {
-	testutils.LargeTest(t)
+	c, cleanup := setup(t)
+	defer cleanup()
 
 	maxAttempts := 3
 	timeout := 200 * time.Millisecond
 
 	// No retries on success.
 	attempted := 0
-	err := withTimeoutAndRetries(maxAttempts, timeout, func(ctx context.Context) error {
+	err := c.withTimeoutAndRetries(maxAttempts, timeout, func(ctx context.Context) error {
 		attempted++
 		return nil
 	})
@@ -51,7 +52,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 	// Retry whitelisted errors.
 	attempted = 0
 	e := status.Errorf(codes.ResourceExhausted, "Retry Me")
-	err = withTimeoutAndRetries(maxAttempts, timeout, func(ctx context.Context) error {
+	err = c.withTimeoutAndRetries(maxAttempts, timeout, func(ctx context.Context) error {
 		attempted++
 		return e
 	})
@@ -60,7 +61,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 
 	// No retry for non-whitelisted errors.
 	attempted = 0
-	err = withTimeoutAndRetries(maxAttempts, timeout, func(ctx context.Context) error {
+	err = c.withTimeoutAndRetries(maxAttempts, timeout, func(ctx context.Context) error {
 		attempted++
 		return errors.New("some other error")
 	})
@@ -69,7 +70,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 }
 
 func setup(t *testing.T) (*Client, func()) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 	testutils.ManualTest(t)
 	project := "skia-firestore"
 	app := "firestore_pkg_tests"
@@ -77,7 +78,7 @@ func setup(t *testing.T) (*Client, func()) {
 	c, err := NewClient(context.Background(), project, app, instance, nil)
 	assert.NoError(t, err)
 	return c, func() {
-		assert.NoError(t, RecursiveDelete(c, c.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
 		assert.NoError(t, c.Close())
 	}
 }
@@ -110,7 +111,7 @@ func TestIterDocs(t *testing.T) {
 	labelValue := "my-label"
 	q := coll.Where("Label", "==", labelValue)
 	foundEntries := 0
-	assert.NoError(t, IterDocs(q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+	assert.NoError(t, c.IterDocs("TestIterDocs", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 		foundEntries++
 		return nil
 	}))
@@ -124,7 +125,7 @@ func TestIterDocs(t *testing.T) {
 			Index: i,
 			Label: labelValue,
 		}
-		_, err := Create(doc, e, attempts, timeout)
+		_, err := c.Create(doc, e, attempts, timeout)
 		assert.NoError(t, err)
 	}
 
@@ -137,7 +138,7 @@ func TestIterDocs(t *testing.T) {
 		found = append(found, &e)
 		return nil
 	}
-	assert.NoError(t, IterDocs(q, attempts, timeout, appendEntry))
+	assert.NoError(t, c.IterDocs("TestIterDocs", q, attempts, timeout, appendEntry))
 	assert.Equal(t, total, len(found))
 	// Ensure that there were no duplicates.
 	foundMap := make(map[string]*testEntry, len(found))
@@ -151,7 +152,7 @@ func TestIterDocs(t *testing.T) {
 
 	// Verify that stop and resume works when we hit the timeout.
 	found = make([]*testEntry, 0, total)
-	numRestarts, err := iterDocsInner(q, attempts, timeout, appendEntry, func(time.Time) bool {
+	numRestarts, err := c.iterDocsInner(q, attempts, timeout, appendEntry, func(time.Time) bool {
 		return len(found) == 50
 	})
 	assert.NoError(t, err)
@@ -169,7 +170,7 @@ func TestIterDocs(t *testing.T) {
 	// Verify that stop and resume works in the case of retried failures.
 	alreadyFailed := false
 	found = make([]*testEntry, 0, total)
-	err = IterDocs(q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+	err = c.IterDocs("TestIterDocs", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 		if len(found) == 50 && !alreadyFailed {
 			alreadyFailed = true
 			return status.Errorf(codes.ResourceExhausted, "retry me")
@@ -199,7 +200,7 @@ func TestIterDocs(t *testing.T) {
 		q := coll.Where("Index", ">=", start).Where("Index", "<", end)
 		queries = append(queries, q)
 	}
-	assert.NoError(t, IterDocsInParallel(queries, attempts, timeout, func(idx int, doc *firestore.DocumentSnapshot) error {
+	assert.NoError(t, c.IterDocsInParallel("TestIterDocs", queries, attempts, timeout, func(idx int, doc *firestore.DocumentSnapshot) error {
 		var e testEntry
 		if err := doc.DataTo(&e); err != nil {
 			return err
@@ -231,7 +232,7 @@ func TestGetAllDescendants(t *testing.T) {
 	// Create some documents.
 	add := func(coll *firestore.CollectionRef, name string) *firestore.DocumentRef {
 		doc := coll.Doc(name)
-		_, err := Create(doc, map[string]string{"name": name}, attempts, timeout)
+		_, err := c.Create(doc, map[string]string{"name": name}, attempts, timeout)
 		assert.NoError(t, err)
 		return doc
 	}
@@ -256,7 +257,7 @@ func TestGetAllDescendants(t *testing.T) {
 
 	// Verify that descendants are found.
 	check := func(parent *firestore.DocumentRef, expect []*firestore.DocumentRef) {
-		actual, err := GetAllDescendantDocuments(parent, attempts, timeout)
+		actual, err := c.GetAllDescendantDocuments(parent, attempts, timeout)
 		assert.NoError(t, err)
 		assert.Equal(t, len(expect), len(actual))
 		for idx, e := range expect {
@@ -269,16 +270,16 @@ func TestGetAllDescendants(t *testing.T) {
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
 
 	// Check that we can find descendants of missing documents.
-	_, err := Delete(ny, attempts, timeout)
+	_, err := c.Delete(ny, attempts, timeout)
 	assert.NoError(t, err)
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, ny, nyc, nc, ch})
-	_, err = Delete(nyc, attempts, timeout)
+	_, err = c.Delete(nyc, attempts, timeout)
 	assert.NoError(t, err)
 	check(topLevelDoc, []*firestore.DocumentRef{ca, la, sf, fl, nc, ch})
 
 	// Also test RecursiveDelete.
 	del := func(doc *firestore.DocumentRef, expect []*firestore.DocumentRef) {
-		assert.NoError(t, RecursiveDelete(c, doc, attempts, timeout))
+		assert.NoError(t, c.RecursiveDelete(doc, attempts, timeout))
 		check(topLevelDoc, expect)
 	}
 	del(ca, []*firestore.DocumentRef{fl, nc, ch})
