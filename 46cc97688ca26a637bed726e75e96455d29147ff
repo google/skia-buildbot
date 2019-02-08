@@ -231,6 +231,24 @@
     },
     {
       "key": {
+        "uuid": "870d6b0f_531bbeb8",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:41:24Z",
+      "side": 1,
+      "message": "That seems better than attributing the query to the wrong path. Done.",
+      "parentUuid": "1169e620_8bb423a0",
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d2436d3_7bed3e56",
         "filename": "task_scheduler/go/db/firestore/comments.go",
         "patchSetId": 1
