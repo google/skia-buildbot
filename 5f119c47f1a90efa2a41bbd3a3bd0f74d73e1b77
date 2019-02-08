@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f40f9457_45bf0ddf",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-08T14:26:56Z",
+      "side": 1,
+      "message": "Did you want to rename here also?",
+      "range": {
+        "startLine": 124,
+        "startChar": 60,
+        "endLine": 124,
+        "endChar": 72
+      },
+      "revId": "5f119c47f1a90efa2a41bbd3a3bd0f74d73e1b77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff18d0fd_b9edbe86",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-08T14:26:56Z",
+      "side": 1,
+      "message": "nit: probably should use strings.Builder and fmt.Fprintf.",
+      "range": {
+        "startLine": 140,
+        "startChar": 3,
+        "endLine": 140,
+        "endChar": 54
+      },
+      "revId": "5f119c47f1a90efa2a41bbd3a3bd0f74d73e1b77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
