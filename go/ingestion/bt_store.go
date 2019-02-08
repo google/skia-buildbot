@@ -5,13 +5,12 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/bigtable"
-	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/sklog"
 )
 
 const (
 	// TABLE_FILES_PROCESSED is the table to keep track of processed files.
-	TABLE_FILES_PROCESSED = "files-processed"
+	TABLE_FILES_PROCESSED = "ingestion-files-processed"
 
 	// COLFAM_FILES_PROCESSED is the column family used to keep track of processed files.
 	COLFAM_FILES_PROCESSED = "fproc"
@@ -24,16 +23,12 @@ var (
 	// VAL_TRUE is a true value.
 	VAL_TRUE = []byte("t")
 
-	// BigTableConfig describes the tables and column families used by this
-	// package. It can be used by bt.InitBigtable to set up the tables.
-	BigTableConfig = bt.TableConfig{
-		TABLE_FILES_PROCESSED: {
-			COLFAM_FILES_PROCESSED,
-		},
-	}
+	// ColumnFamilies contains the column families used by this package.
+	// It can be used by bt.InitBigtable to set up the tables.
+	ColumnFamilies = []string{COLFAM_FILES_PROCESSED}
 )
 
-// BTIStore implementes the IngestionStore interface.
+// BTIStore implements the IngestionStore interface.
 type BTIStore struct {
 	projectID  string
 	instanceID string
@@ -41,7 +36,7 @@ type BTIStore struct {
 	client     *bigtable.Client
 }
 
-// NewBTIStore creates a BigTable backed implemenation of IngestionStore.
+// NewBTIStore creates a BigTable backed implementation of IngestionStore.
 // nameSpace is a prefix that is added to every row key to allow multitenancy.
 func NewBTIStore(projectID, bigTableInstance, nameSpace string) (IngestionStore, error) {
 	if nameSpace == "" {
