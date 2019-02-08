@@ -75,7 +75,7 @@ func (b *Blacklist) Update() error {
 	}
 	rules := map[string]*Rule{}
 	q := b.coll.Query
-	if err := b.client.IterDocs("GetBlacklistEntries", q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
+	if err := b.client.IterDocs("GetBlacklistEntries", "", q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
 		var r Rule
 		if err := doc.DataTo(&r); err != nil {
 			return err

@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -127,7 +128,7 @@ func (d *firestoreDB) dateRangeHelper(name string, coll *fs.CollectionRef, start
 	init(len(queries))
 
 	// Run the queries.
-	return d.client.IterDocsInParallel(name, queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+	return d.client.IterDocsInParallel(name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
 }
 
 // firestoreDB doesn't support backups, but we implement the interface for
