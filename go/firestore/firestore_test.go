@@ -111,7 +111,7 @@ func TestIterDocs(t *testing.T) {
 	labelValue := "my-label"
 	q := coll.Where("Label", "==", labelValue)
 	foundEntries := 0
-	assert.NoError(t, c.IterDocs("TestIterDocs", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+	assert.NoError(t, c.IterDocs("TestIterDocs", "", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 		foundEntries++
 		return nil
 	}))
@@ -138,7 +138,7 @@ func TestIterDocs(t *testing.T) {
 		found = append(found, &e)
 		return nil
 	}
-	assert.NoError(t, c.IterDocs("TestIterDocs", q, attempts, timeout, appendEntry))
+	assert.NoError(t, c.IterDocs("TestIterDocs", "", q, attempts, timeout, appendEntry))
 	assert.Equal(t, total, len(found))
 	// Ensure that there were no duplicates.
 	foundMap := make(map[string]*testEntry, len(found))
@@ -170,7 +170,7 @@ func TestIterDocs(t *testing.T) {
 	// Verify that stop and resume works in the case of retried failures.
 	alreadyFailed := false
 	found = make([]*testEntry, 0, total)
-	err = c.IterDocs("TestIterDocs", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+	err = c.IterDocs("TestIterDocs", "", q, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 		if len(found) == 50 && !alreadyFailed {
 			alreadyFailed = true
 			return status.Errorf(codes.ResourceExhausted, "retry me")
@@ -200,7 +200,7 @@ func TestIterDocs(t *testing.T) {
 		q := coll.Where("Index", ">=", start).Where("Index", "<", end)
 		queries = append(queries, q)
 	}
-	assert.NoError(t, c.IterDocsInParallel("TestIterDocs", queries, attempts, timeout, func(idx int, doc *firestore.DocumentSnapshot) error {
+	assert.NoError(t, c.IterDocsInParallel("TestIterDocs", "", queries, attempts, timeout, func(idx int, doc *firestore.DocumentSnapshot) error {
 		var e testEntry
 		if err := doc.DataTo(&e); err != nil {
 			return err
