@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "55cb3ad8_597d9baf",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:14:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b783140_667a887b",
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e25e57d8_6f8335f7",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1
@@ -39,6 +57,30 @@
       "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc4d2db3_ebb6af00",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:14:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e25e57d8_6f8335f7",
+      "range": {
+        "startLine": 160,
+        "startChar": 3,
+        "endLine": 160,
+        "endChar": 12
+      },
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "a7f83ef9_85077d89",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:14:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "01d60601_421abac8",
+      "range": {
+        "startLine": 214,
+        "startChar": 13,
+        "endLine": 214,
+        "endChar": 18
+      },
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e57b76aa_f4359f66",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2019-02-08T18:52:57Z",
       "side": 1,
       "message": "uber-nit: might be nice to merge CountFooQuery and CountFooRows so that we only need to lock c.countersMtx once instead of twice.\n\nI think this would simplify most call sites, e.g.\n  c.CountReadQuery(ref.Path)\n  c.CountReadRows(ref.Path, 1)\nbecomes\n  c.CountReadQuery(ref.Path, 1)\n\nalthough others are a little more complicated, e.g.\n  c.CountReadQuery(ref.Path)\n  it :\u003d ref.Collections(ctx)\n  for {\n    ...\n    c.CountReadRows(ref.Path, 1)\n  }\nbecomes\n  count :\u003d 0\n  it :\u003d ref.Collections(ctx)\n  for {\n    ...\n    count++\n  }\n  c.CountReadQuery(ref.Path, count)",
+      "range": {
+        "startLine": 219,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 0
+      },
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae387654_81942749",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:14:28Z",
+      "side": 1,
+      "message": "Added c.Count*QueryAndRows for the situations where we can do both at the same time.  For the others, I think it would be unfortunate to count the ops after they\u0027re done as opposed to as they occur.",
+      "parentUuid": "e57b76aa_f4359f66",
       "range": {
         "startLine": 219,
         "startChar": 0,
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "fdc2eeed_d618ec47",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:14:28Z",
+      "side": 1,
+      "message": "Added a comment and changed to just use the ParentDoc path :-/",
+      "parentUuid": "98345eb7_00c2d8dd",
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6d2436d3_7bed3e56",
         "filename": "task_scheduler/go/db/firestore/comments.go",
         "patchSetId": 1
@@ -125,6 +233,30 @@
       "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ead7107_ed076fa5",
+        "filename": "task_scheduler/go/db/firestore/comments.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T20:14:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d2436d3_7bed3e56",
+      "range": {
+        "startLine": 89,
+        "startChar": 60,
+        "endLine": 89,
+        "endChar": 73
+      },
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
