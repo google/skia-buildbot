@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b0f930b2_715cb37b",
+        "filename": "am/modules/incident-sk/incident-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-08T15:15:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73037d7a_015c484f",
+      "range": {
+        "startLine": 115,
+        "startChar": 64,
+        "endLine": 115,
+        "endChar": 66
+      },
+      "revId": "455745f7620b710cb1eec167f11ddea4ba76b6bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c549c5e5_88b6b268",
         "filename": "am/modules/incident-sk/incident-sk.js",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "455745f7620b710cb1eec167f11ddea4ba76b6bc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "447fb1ae_14d5dade",
+        "filename": "am/modules/incident-sk/incident-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-08T15:15:47Z",
+      "side": 1,
+      "message": "That did not work. I think it only works for select-sk (not checkbox-sk).",
+      "parentUuid": "c549c5e5_88b6b268",
+      "range": {
+        "startLine": 170,
+        "startChar": 65,
+        "endLine": 170,
+        "endChar": 72
+      },
+      "revId": "455745f7620b710cb1eec167f11ddea4ba76b6bc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
