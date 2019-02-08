@@ -298,8 +298,10 @@ func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir stri
 }
 
 func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64, duration float64) {
-	name := path.Join(checkout, "out", "Static", "fiddle")
-	args := []string{"--duration", fmt.Sprintf("%f", duration), "--frame", fmt.Sprintf("%f", frame)}
+	name := path.Join("/usr/local/bin/fiddle_secwrap")
+
+	args := []string{path.Join(checkout, "out", "Static", "fiddle")}
+	args = append(args, "--duration", fmt.Sprintf("%f", duration), "--frame", fmt.Sprintf("%f", frame))
 	stderr := bytes.Buffer{}
 	stdout := bytes.Buffer{}
 	runCmd := &exec.Command{
