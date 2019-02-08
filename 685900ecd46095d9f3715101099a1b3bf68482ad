@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "56b649ac_996d274a",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T13:19:16Z",
+      "side": 1,
+      "message": "Changed to \"activeOps\"",
+      "parentUuid": "d0231040_d2e17009",
+      "range": {
+        "startLine": 86,
+        "startChar": 7,
+        "endLine": 86,
+        "endChar": 19
+      },
+      "revId": "685900ecd46095d9f3715101099a1b3bf68482ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "16ded6fe_ad5ad7bd",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "685900ecd46095d9f3715101099a1b3bf68482ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63578168_b532546e",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T13:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16ded6fe_ad5ad7bd",
+      "range": {
+        "startLine": 138,
+        "startChar": 2,
+        "endLine": 138,
+        "endChar": 14
+      },
+      "revId": "685900ecd46095d9f3715101099a1b3bf68482ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9e3313b2_2481a9b4",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T13:19:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42200a02_6224b0c1",
+      "range": {
+        "startLine": 290,
+        "startChar": 18,
+        "endLine": 290,
+        "endChar": 28
+      },
+      "revId": "685900ecd46095d9f3715101099a1b3bf68482ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d4f39f1_182ebacc",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "685900ecd46095d9f3715101099a1b3bf68482ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d09caced_0e291433",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T13:19:16Z",
+      "side": 1,
+      "message": "Good catch, done.",
+      "parentUuid": "2d4f39f1_182ebacc",
+      "range": {
+        "startLine": 436,
+        "startChar": 21,
+        "endLine": 436,
+        "endChar": 22
+      },
+      "revId": "685900ecd46095d9f3715101099a1b3bf68482ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
