@@ -12,6 +12,16 @@ incident-sk {
     cursor: pointer;
   }
 
+  .matchingSilencesHeaders {
+    display: inline-flex;
+    width: 100%;
+  }
+
+  .matchingSilencesHeaders checkbox-sk {
+    padding: 0.7em 1em;
+    margin-left: auto;
+  }
+
   .note {
     padding: 0.4em;
   }
