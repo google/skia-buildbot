@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "822dddcb_7b869082",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T18:24:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f40f9457_45bf0ddf",
+      "range": {
+        "startLine": 124,
+        "startChar": 60,
+        "endLine": 124,
+        "endChar": 72
+      },
+      "revId": "5f119c47f1a90efa2a41bbd3a3bd0f74d73e1b77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff18d0fd_b9edbe86",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "5f119c47f1a90efa2a41bbd3a3bd0f74d73e1b77",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5029cac_3d1de499",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-08T18:24:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ff18d0fd_b9edbe86",
+      "range": {
+        "startLine": 140,
+        "startChar": 3,
+        "endLine": 140,
+        "endChar": 54
+      },
+      "revId": "5f119c47f1a90efa2a41bbd3a3bd0f74d73e1b77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
