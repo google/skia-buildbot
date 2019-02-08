@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	gstorage "cloud.google.com/go/storage"
+	"github.com/davecgh/go-spew/spew"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -60,6 +61,7 @@ func (g *GStorageClient) WriteKnownDigests(digests []string) error {
 // WriteBaseLine writes the given baseline to GCS. It returns the path of the
 // written file in GCS (prefixed with 'gs://').
 func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (string, error) {
+	sklog.Infof("\n\nWriting baseline: %s\n\n", spew.Sdump(baseLine))
 	writeFn := func(w *gstorage.Writer) error {
 		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
 			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
@@ -68,7 +70,13 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 	}
 
 	outPath := g.getBaselinePath(baseLine.EndCommit.Hash, baseLine.Issue)
-	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
+
+	if err := g.writeToPath(outPath, "application/json", writeFn); err != nil {
+		return "", err
+	}
+
+	sklog.Infof("\n\nWritten baseline to %s", outPath)
+	return "gs://" + outPath, nil
 }
 
 func (g *GStorageClient) WriteBaseLineForCommit(baseLine *baseline.CommitableBaseLine) (string, error) {
