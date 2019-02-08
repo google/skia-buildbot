@@ -15,6 +15,8 @@ build: elements_html core_js
 	go install -v ./go/fiddler
 	go install -v ./go/fiddlecli
 	go install -v ./go/smoketest
+	mkdir -p ./bin
+	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
 .PHONY: image
 image: build
