@@ -88,10 +88,12 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 	for _, job := range jobs {
 		refs = append(refs, d.jobs().Doc(job.Id))
 	}
+	d.client.CountReadQuery(d.jobs().Path)
 	docs, err := tx.GetAll(refs)
 	if err != nil {
 		return err
 	}
+	d.client.CountReadRows(d.jobs().Path, len(docs))
 	for idx, doc := range docs {
 		if !doc.Exists() {
 			// This is expected for new jobs.
@@ -125,6 +127,8 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 	}
 
 	// Set the new contents of the jobs.
+	d.client.CountWriteQuery(d.jobs().Path)
+	d.client.CountWriteRows(d.jobs().Path, len(jobs))
 	for _, job := range jobs {
 		ref := d.jobs().Doc(job.Id)
 		if err := tx.Set(ref, job); err != nil {
@@ -181,7 +185,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	}
 
 	// Insert the jobs into the DB.
-	if err := d.client.RunTransaction("PutJobs", DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := d.client.RunTransaction("PutJobs", fmt.Sprintf("%d jobs", len(jobs)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putJobs(jobs, isNew, prevModified, tx)
 	}); err != nil {
 		return err
