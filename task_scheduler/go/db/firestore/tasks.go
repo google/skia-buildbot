@@ -101,6 +101,7 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 	if err != nil {
 		return err
 	}
+	d.client.CountReadQueryAndRows(d.tasks().Path, len(docs))
 	for idx, doc := range docs {
 		if !doc.Exists() {
 			// This is expected for new tasks.
@@ -134,6 +135,7 @@ func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified [
 	}
 
 	// Set the new contents of the tasks.
+	d.client.CountWriteQueryAndRows(d.tasks().Path, len(tasks))
 	for _, task := range tasks {
 		ref := d.tasks().Doc(task.Id)
 		if err := tx.Set(ref, task); err != nil {
@@ -192,7 +194,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 	}
 
 	// Insert the tasks into the DB.
-	if err := d.client.RunTransaction("PutTasks", DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := d.client.RunTransaction("PutTasks", fmt.Sprintf("%d tasks", len(tasks)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putTasks(tasks, isNew, prevModified, tx)
 	}); err != nil {
 		return err
