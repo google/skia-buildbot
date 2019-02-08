@@ -98,13 +98,21 @@ function matchingSilences(ele) {
   if (ele.hasAttribute('minimized')) {
     return ``;
   }
-  let ret = ele._silences.filter(silence => paramset.match(silence.param_set, ele._state.params)).map( silence =>
+  // Filter out silences whose paramsets do not match and
+  // which have no notes if displaySilencesWithComments is true.
+  let filteredSilences = ele._silences.filter(silence => paramset.match(silence.param_set, ele._state.params) &&
+                                             !(ele._displaySilencesWithComments && doesSilenceHaveNoNotes(silence)));
+  let ret = filteredSilences.map(silence =>
     html`<silence-sk .state=${silence} collapsable collapsed></silence-sk>`
   );
   if (!ret.length) {
     ret.push(html`<div class=nosilences>None</div>`);
   }
   return ret;
+}
+
+function doesSilenceHaveNoNotes(silence) {
+  return silence.notes.length == 1 && silence.notes[0].text === '';
 }
 
 function lastSeen(ele) {
@@ -157,7 +165,11 @@ const template = (ele) => html`
       <button @click=${ele._addNote}>Submit</button>
     </section>
     <section class=matchingSilences>
-      <h3>Matching Silences</h3>
+      <span class=matchingSilencesHeaders>
+        <h3>Matching Silences</h3>
+        <checkbox-sk ?checked=${ele._displaySilencesWithComments} @click=${ele._toggleSilencesWithComments} label="Show only silences with comments">
+        </checkbox-sk>
+      </span>
       ${matchingSilences(ele)}
     </section>
     <section class=history>
@@ -171,6 +183,7 @@ window.customElements.define('incident-sk', class extends HTMLElement {
   constructor() {
     super();
     this._silences = [];
+    this._displaySilencesWithComments = false;
   }
 
   /** @prop state {Object} An Incident. */
@@ -185,6 +198,13 @@ window.customElements.define('incident-sk', class extends HTMLElement {
   set silences(val) {
     this._render();
     this._silences = val;
+  }
+
+  _toggleSilencesWithComments(e) {
+    // This prevents a double event from happening.
+    e.preventDefault();
+    this._displaySilencesWithComments = !this._displaySilencesWithComments;
+    this._render();
   }
 
   _take(e) {
