@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3b4196e_d45d2e63",
+        "filename": "ct/go/copy_datastore/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-08T20:22:24Z",
+      "side": 1,
+      "message": "nit: probably better/easier to pass ds.Kind here and use datastore.PropertyList for the Next and Put calls. That way this function can also be used for CLUSTER_TELEMETRY_IDS.",
+      "range": {
+        "startLine": 28,
+        "startChar": 78,
+        "endLine": 28,
+        "endChar": 99
+      },
+      "revId": "fe208e4d98b77a53e24fd54e59e7ad0026b9c749",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f6a724b_878e40ec",
+        "filename": "ct/go/copy_datastore/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-08T20:22:24Z",
+      "side": 1,
+      "message": "I assume this should return an error if not all entities could be deleted.",
+      "range": {
+        "startLine": 108,
+        "startChar": 14,
+        "endLine": 108,
+        "endChar": 17
+      },
+      "revId": "fe208e4d98b77a53e24fd54e59e7ad0026b9c749",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
