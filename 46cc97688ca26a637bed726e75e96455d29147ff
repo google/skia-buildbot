@@ -213,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "1169e620_8bb423a0",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-08T20:32:28Z",
+      "side": 1,
+      "message": "One option is to use the first doc.Ref.Parent.Path. That doesn\u0027t work if the query returns no results, though.",
+      "parentUuid": "fdc2eeed_d618ec47",
+      "revId": "46cc97688ca26a637bed726e75e96455d29147ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6d2436d3_7bed3e56",
         "filename": "task_scheduler/go/db/firestore/comments.go",
         "patchSetId": 1
