@@ -69,7 +69,7 @@ type GoldClient interface {
 	// return PASS/FAIL for each test, the returned boolean indicates whether the test passed
 	// comparison with the expectations. An error is only returned if there was a technical problem
 	// in processing the test.
-	Test(name string, imgFileName string) (bool, error)
+	Test(name string, imgFileName string, dryrun bool) (bool, error)
 
 	// SetAuthOpt sets the authentication method for interacting with GCS and the Gold backend.
 	// Use any of the functions that return AuthOpt instance to generate this, e.g. LUCIAuthOpt.
@@ -183,7 +183,7 @@ func NewCloudClient(config *GoldClientConfig, goldResult *jsonio.GoldResults) (G
 }
 
 // Test implements the GoldClient interface.
-func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
+func (c *cloudClient) Test(name string, imgFileName string, dryrun bool) (bool, error) {
 	passed, err := c.addTest(name, imgFileName)
 
 	// If there was no error and this is new instance then save the resultState for the next call.
