@@ -102,7 +102,7 @@ func estResultSize(chunkSize time.Duration) int {
 //    will be provided as the first argument to this function so that the caller
 //    can distinguish results from different goroutines, thus avoiding the need
 //    for a mutex.
-func (d *firestoreDB) dateRangeHelper(coll *fs.CollectionRef, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
+func (d *firestoreDB) dateRangeHelper(name string, coll *fs.CollectionRef, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
 	// Adjust start and end times for Firestore resolution.
 	start = fixTimestamp(start)
 	end = fixTimestamp(end.Add(firestore.TS_RESOLUTION - time.Nanosecond))
@@ -127,7 +127,7 @@ func (d *firestoreDB) dateRangeHelper(coll *fs.CollectionRef, start, end time.Ti
 	init(len(queries))
 
 	// Run the queries.
-	return firestore.IterDocsInParallel(queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
+	return d.client.IterDocsInParallel(name, queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
 }
 
 // firestoreDB doesn't support backups, but we implement the interface for

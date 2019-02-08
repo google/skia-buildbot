@@ -23,7 +23,7 @@ func setup(t *testing.T) (*Blacklist, func()) {
 	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
 	assert.NoError(t, err)
 	cleanup := func() {
-		assert.NoError(t, firestore.RecursiveDelete(b.client, b.client.ParentDoc, 5, 30*time.Second))
+		assert.NoError(t, b.client.RecursiveDelete(b.client.ParentDoc, 5, 30*time.Second))
 		assert.NoError(t, b.Close())
 	}
 	return b, cleanup

@@ -70,7 +70,15 @@ func NewTimer(name string, tags ...map[string]string) Timer {
 // }
 //
 func FuncTimer() Timer {
-	pc, _, _, _ := runtime.Caller(1)
+	return FuncTimerWithStackOffset(1)
+}
+
+// FuncTimerWithStackOffset returns a FuncTimer with the specified stack offset.
+// This allows the caller to fine-tune which function gets timed, eg. using
+// helper functions. The offset is from the calling function, ie. to time the
+// current function you'd use zero.
+func FuncTimerWithStackOffset(offset int) Timer {
+	pc, _, _, _ := runtime.Caller(offset + 1)
 	f := runtime.FuncForPC(pc)
 	split := strings.Split(f.Name(), ".")
 	fn := "unknown"

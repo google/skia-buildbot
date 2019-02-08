@@ -7,7 +7,6 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
-	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -34,7 +33,7 @@ func (d *firestoreDB) jobs() *fs.CollectionRef {
 
 // See documentation for types.JobReader interface.
 func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
-	doc, err := firestore.Get(d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
+	doc, err := d.client.Get(d.jobs().Doc(id), DEFAULT_ATTEMPTS, GET_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
 		return nil, nil
 	} else if err != nil {
@@ -65,7 +64,7 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, 
 		jobs[idx] = append(jobs[idx], &job)
 		return nil
 	}
-	if err := d.dateRangeHelper(d.jobs(), start, end, init, elem); err != nil {
+	if err := d.dateRangeHelper("GetJobsFromDateRange", d.jobs(), start, end, init, elem); err != nil {
 		return nil, err
 	}
 	totalResults := 0
@@ -182,7 +181,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	}
 
 	// Insert the jobs into the DB.
-	if err := firestore.RunTransaction(d.client, DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+	if err := d.client.RunTransaction("PutJobs", DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
 		return d.putJobs(jobs, isNew, prevModified, tx)
 	}); err != nil {
 		return err
