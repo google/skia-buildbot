@@ -137,6 +137,7 @@ func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
 func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *tally.Tallies) error {
+	sklog.Infof("\n\n\nPushing issue %d \n\n\n", issueID)
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
