@@ -5,6 +5,7 @@
 # sourced before running lunch and mmma commands.
 
 set -e
+export TERM="xterm"
 
 function log_step() {
     echo ""
