@@ -17,6 +17,6 @@ COPY . /
 
 USER skia
 
-ENTRYPOINT ["/usr/local/bin/fiddler_restart.sh"]
+ENTRYPOINT ["/usr/local/bin/fiddler"]
 CMD ["--logtostderr", "--checkout=/tmp/skia/skia/", "--fiddle_root=/tmp", "--port=:8000"]
 
