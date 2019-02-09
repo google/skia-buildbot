@@ -7,6 +7,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
   libglu1-mesa \
   ffmpeg \
   xvfb \
+  strace \
   && rm -rf /var/lib/apt/lists/* \
   && useradd you-are-still \
   && useradd in-a \
@@ -17,6 +18,6 @@ COPY . /
 
 USER skia
 
-ENTRYPOINT ["/usr/local/bin/fiddler_restart.sh"]
+ENTRYPOINT ["/usr/local/bin/fiddler"]
 CMD ["--logtostderr", "--checkout=/tmp/skia/skia/", "--fiddle_root=/tmp", "--port=:8000"]
 
