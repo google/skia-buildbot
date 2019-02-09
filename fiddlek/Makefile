@@ -15,6 +15,8 @@ build: elements_html core_js
 	go install -v ./go/fiddler
 	go install -v ./go/fiddlecli
 	go install -v ./go/smoketest
+	mkdir -p ./bin
+	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
 .PHONY: image
 image: build
@@ -62,8 +64,7 @@ run_local_fiddle:
 
 .PHONY: run_local_fiddler
 run_local_fiddler:
-	docker run -ti -p8000:8000  fiddler
-
+	docker run -ti -p8000:8000 --cap-add=SYS_PTRACE fiddler
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

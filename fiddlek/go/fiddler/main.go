@@ -12,7 +12,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -98,11 +97,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Currently running a fiddle.", http.StatusTooManyRequests)
 		return
 	}
-	go func() {
-		// Fail out of the container after a single run.
-		<-time.Tick(*apoptosis)
-		os.Exit(0)
-	}()
+	defer setState(types.IDLE)
 	var request types.FiddleContext
 
 	res := &types.Result{
@@ -137,7 +132,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// We stay in the RUNNING state forever.
 	setState(types.RUNNING)
 
 	if request.Options.Duration == 0 {
@@ -240,12 +234,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 		serializeOutput(w, res)
 	}
-
-	go func() {
-		// Fail out of the container after the results have been sent.
-		<-time.Tick(3 * time.Second)
-		os.Exit(0)
-	}()
 }
 
 // encodeWebm encodes the webm as base64 and adds it to the results.
@@ -298,8 +286,10 @@ func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir stri
 }
 
 func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64, duration float64) {
-	name := path.Join(checkout, "out", "Static", "fiddle")
-	args := []string{"--duration", fmt.Sprintf("%f", duration), "--frame", fmt.Sprintf("%f", frame)}
+	name := path.Join("/usr/local/bin/fiddle_secwrap")
+
+	args := []string{path.Join(checkout, "out", "Static", "fiddle")}
+	args = append(args, "--duration", fmt.Sprintf("%f", duration), "--frame", fmt.Sprintf("%f", frame))
 	stderr := bytes.Buffer{}
 	stdout := bytes.Buffer{}
 	runCmd := &exec.Command{
