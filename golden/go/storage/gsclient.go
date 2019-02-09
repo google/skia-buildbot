@@ -9,6 +9,7 @@ import (
 
 	gstorage "cloud.google.com/go/storage"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
@@ -67,19 +68,16 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 		return nil
 	}
 
-	outPath := g.getBaselinePath(baseLine.EndCommit.Hash, baseLine.Issue)
-	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
-}
-
-func (g *GStorageClient) WriteBaseLineForCommit(baseLine *baseline.CommitableBaseLine) (string, error) {
-	writeFn := func(w *gstorage.Writer) error {
-		if err := json.NewEncoder(w).Encode(baseLine); err != nil {
-			return fmt.Errorf("Error encoding baseline to JSON: %s", err)
-		}
-		return nil
+	// We need a valid end commit or issue.
+	if baseLine.EndCommit == nil && baseLine.Issue <= 0 {
+		return "", skerr.Fmt("Received empty end commit and no issue. Cannot write baseline")
 	}
 
-	outPath := g.getBaselinePath(baseLine.EndCommit.Hash, baseLine.Issue)
+	hash := ""
+	if baseLine.EndCommit != nil {
+		hash = baseLine.EndCommit.Hash
+	}
+	outPath := g.getBaselinePath(hash, baseLine.Issue)
 	return "gs://" + outPath, g.writeToPath(outPath, "application/json", writeFn)
 }
 

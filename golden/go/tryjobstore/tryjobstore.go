@@ -19,10 +19,6 @@ import (
 )
 
 const (
-	// EV_TRYJOB_EXP_CHANGED is the event type that is fired when the expectations
-	// for an issue change. It sends an instance of *TryjobExpChange.
-	EV_TRYJOB_EXP_CHANGED = "tryjobstore:change"
-
 	// EV_TRYJOB_UPDATED is the event that is fired when a tryjob is updated (update or creation).
 	EV_TRYJOB_UPDATED = "tryjobstore:tryjob-updated"
 )
@@ -30,7 +26,6 @@ const (
 func init() {
 	// Register JSON codecs for the events fired by this package. This is necessary
 	// to distribute events globally.
-	gevent.RegisterCodec(EV_TRYJOB_EXP_CHANGED, util.JSONCodec(&IssueExpChange{}))
 	gevent.RegisterCodec(EV_TRYJOB_UPDATED, util.JSONCodec(&Tryjob{}))
 }
 
