@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
-	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
@@ -234,7 +233,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 
 	// When the expectations of a Gerrit issue change then trigger pushing the
 	// new expectations to GCS.
-	ixr.storages.EventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_EXP_CHANGED, ixr.writeIssueBaseline)
+	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_TRYJOB_EXP_CHANGED, ixr.writeIssueBaseline)
 
 	// Keep building indices as tiles become available and expecations change.
 	go func() {
@@ -336,7 +335,7 @@ func (ixr *Indexer) writeIssueBaseline(evData interface{}) {
 		return
 	}
 
-	issueID := evData.(*tryjobstore.IssueExpChange).IssueID
+	issueID := evData.(*expstorage.EventExpectationChange).IssueID
 	if issueID <= 0 {
 		sklog.Errorf("Invalid issue id received for issue exp change: %d", issueID)
 		return
