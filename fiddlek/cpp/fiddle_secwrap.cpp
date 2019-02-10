@@ -72,6 +72,12 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(shmctl),
         ALLOW_SYSCALL(prlimit64),
         ALLOW_SYSCALL(dup),
+        ALLOW_SYSCALL(link),
+        ALLOW_SYSCALL(rename),
+        ALLOW_SYSCALL(renameat),
+        ALLOW_SYSCALL(renameat2),
+        ALLOW_SYSCALL(chmod),
+        ALLOW_SYSCALL(chown),
 
         TRACE_SYSCALL(execve),
         TRACE_SYSCALL(mkdir),
@@ -82,7 +88,7 @@ static bool install_syscall_filter() {
         // Uncomment the following when trying to figure out which new
         // syscall's are being made:
 
-        // TRACE_ALL,
+        TRACE_ALL,
         // ALLOW_ALL,
         KILL_PROCESS,
     };
