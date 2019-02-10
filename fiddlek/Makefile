@@ -18,6 +18,12 @@ build: elements_html core_js
 	mkdir -p ./bin
 	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
 
+.PHONY: fiddle_secwrap
+fiddle_secwrap:
+	mkdir -p ./bin
+	clang++ -O2 ./cpp/fiddle_secwrap.cpp -o ./bin/fiddle_secwrap
+
+
 .PHONY: image
 image: build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/fiddle
