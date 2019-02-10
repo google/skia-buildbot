@@ -113,7 +113,9 @@ func (srv *Server) validate(n store.Named) bool {
 	}
 	// Update the status.
 	status := ""
-	if len(runResults.CompileErrors) > 0 || runResults.RunTimeError != "" {
+	if runResults == nil {
+		status = "Failed to run."
+	} else if len(runResults.CompileErrors) > 0 || runResults.RunTimeError != "" {
 		// update validity
 		status = fmt.Sprintf("%v %s", runResults.CompileErrors, runResults.RunTimeError)
 		if len(status) > 100 {

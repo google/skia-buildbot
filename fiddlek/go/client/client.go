@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	RETRIES = 10
+	RETRIES = 2
 )
 
 // singleRequest does a single request to run a fiddle
