@@ -200,6 +200,7 @@ void child_fail(pid_t child, const char* message) {
 
 const char *mkdir_allowed_prefixes[] = {
     "/tmp",
+    "/var/cache/fontconfig",
     NULL,
 };
 
@@ -215,6 +216,7 @@ const char *writing_allowed_prefixes[] = {
 
 const char *readonly_allowed_prefixes[] = {
     "/etc/fonts",
+    "/etc/fiddle/",
     "/etc/glvnd/",
     "/etc/ld.so.cache",
     "/lib/",
