@@ -6,6 +6,7 @@ RUN groupadd -g 2000 skia \
   build-essential \
   git \
   curl \
+  clang \
   wget
 
 USER skia
@@ -22,6 +23,8 @@ RUN go get -u github.com/kisielk/errcheck \
   golang.org/x/tools/cmd/goimports \
   go.chromium.org/luci/client/cmd/isolate
 RUN go get -u -t go.skia.org/infra/...
+RUN cd $GOPATH/src/go.skia.org/infra/fiddlek/ \
+    && make fiddle_secwrap
 
 USER root
 
