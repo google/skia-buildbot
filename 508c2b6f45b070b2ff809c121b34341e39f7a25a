@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4bb88c68_d7641e70",
+        "filename": "ct/go/copy_datastore/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-11T18:43:26Z",
+      "side": 1,
+      "message": "main function is the only function here now",
+      "parentUuid": "a930e5ac_58631e96",
+      "revId": "508c2b6f45b070b2ff809c121b34341e39f7a25a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7fc4146e_99dc0807",
         "filename": "ct/go/copy_datastore/main.go",
         "patchSetId": 6
@@ -33,6 +51,24 @@
       "revId": "508c2b6f45b070b2ff809c121b34341e39f7a25a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0d54db3_58528a45",
+        "filename": "ct/go/copy_datastore/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-11T18:43:26Z",
+      "side": 1,
+      "message": "I did not notice ds.DeleteAll before, I am now directly using that.\nAlso made a new MigrateData in go/ds with tests.",
+      "parentUuid": "7fc4146e_99dc0807",
+      "revId": "508c2b6f45b070b2ff809c121b34341e39f7a25a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
