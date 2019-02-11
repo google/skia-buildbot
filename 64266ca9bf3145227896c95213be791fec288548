@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "13344ba6_8d4ed847",
+        "filename": "fiddlek/cpp/fiddle_secwrap.cpp",
+        "patchSetId": 11
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T18:30:35Z",
+      "side": 1,
+      "message": "nit: execvp vs execv -- seems like we would want to be explicit about which binary to run rather than allow looking at PATH.",
+      "range": {
+        "startLine": 155,
+        "startChar": 10,
+        "endLine": 155,
+        "endChar": 16
+      },
+      "revId": "64266ca9bf3145227896c95213be791fec288548",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "238e8d7b_b22b2496",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T18:30:35Z",
+      "side": 0,
+      "message": "Since we no longer kill the container, are there cleanup steps we should add, e.g. cleaning up /tmp?",
+      "range": {
+        "startLine": 102,
+        "startChar": 2,
+        "endLine": 102,
+        "endChar": 50
+      },
+      "revId": "b6b5c8ac11bb88ae7494273c0e168518203987a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
