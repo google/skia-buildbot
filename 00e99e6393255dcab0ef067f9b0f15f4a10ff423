@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7c5c97d_17c8ae52",
+        "filename": "fiddlek/cpp/fiddle_secwrap.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T18:35:23Z",
+      "side": 1,
+      "message": "Maybe we should just mkdir this when building the container?",
+      "revId": "00e99e6393255dcab0ef067f9b0f15f4a10ff423",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "621096dd_ed467147",
+        "filename": "fiddlek/cpp/fiddle_secwrap.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T18:35:23Z",
+      "side": 1,
+      "message": "Can be removed?",
+      "revId": "00e99e6393255dcab0ef067f9b0f15f4a10ff423",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
