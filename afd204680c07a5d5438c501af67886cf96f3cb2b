@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f4163e9c_3293259e",
+        "filename": "fiddlek/cpp/fiddle_secwrap.cpp",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T18:46:22Z",
+      "side": 1,
+      "message": "Won\u0027t these allow writing files to arbitrary locations? I.e. first write the file to /tmp then rename/link to something else.",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 33
+      },
+      "revId": "afd204680c07a5d5438c501af67886cf96f3cb2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
