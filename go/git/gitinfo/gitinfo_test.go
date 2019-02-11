@@ -2,108 +2,44 @@ package gitinfo
 
 import (
 	"context"
-	"fmt"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
+	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
 )
 
-func TestDisplay(t *testing.T) {
+func TestVCSSuite(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	testCases := []struct {
-		hash    string
-		author  string
-		subject string
-	}{
-		{
-			hash:    "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-			author:  "Joe Gregorio (jcgregorio@google.com)",
-			subject: "First \"checkin\"",
-		},
-		{
-			hash:    "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			author:  "Joe Gregorio (jcgregorio@google.com)",
-			subject: "Added code. No body.",
-		},
-	}
-	for _, tc := range testCases {
-		details, err := r.Details(ctx, tc.hash, true)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if got, want := details.Author, tc.author; got != want {
-			t.Errorf("Details author mismatch: Got %q, Want %q", got, want)
-		}
-		if got, want := details.Subject, tc.subject; got != want {
-			t.Errorf("Details subject mismatch: Got %q, Want %q", got, want)
-		}
-	}
+	r, err := NewGitInfo(ctx, repoDir, false, false)
+	assert.NoError(t, err)
+	vcstu.TestDisplay(t, r)
 }
 
 func TestFrom(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
-	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// The two commits in the repo have timestamps of:
-	// 1406721715 and 1406721642.
-	testCases := []struct {
-		ts     int64
-		length int
-	}{
-		{
-			ts:     1406721715,
-			length: 0,
-		},
-		{
-			ts:     1406721714,
-			length: 1,
-		},
-		{
-			ts:     1406721642,
-			length: 1,
-		},
-		{
-			ts:     1406721641,
-			length: 2,
-		},
-	}
-	for _, tc := range testCases {
-		hashes := r.From(time.Unix(tc.ts, 0))
-		if got, want := len(hashes), tc.length; got != want {
-			t.Errorf("For ts: %d Length returned is wrong: Got %d Want %d", tc.ts, got, want)
-		}
-	}
+	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
+	assert.NoError(t, err)
+	vcstu.TestFrom(t, r)
 }
 
 func TestLastN(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,80 +74,31 @@ func TestLastN(t *testing.T) {
 
 func TestByIndex(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
-	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	commit, err := r.ByIndex(ctx, 0)
+	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
 	assert.NoError(t, err)
-	assert.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", commit.Hash)
-	commit, err = r.ByIndex(ctx, 1)
-	assert.NoError(t, err)
-	assert.Equal(t, "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18", commit.Hash)
-	commit, err = r.ByIndex(ctx, -1)
-	assert.Error(t, err)
+	vcstu.TestByIndex(t, r)
 }
 
 func TestLastNIndex(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
-	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	c1 := &vcsinfo.IndexCommit{
-		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-		Index:     0,
-		Timestamp: time.Unix(1406721642, 0).UTC(),
-	}
-	c2 := &vcsinfo.IndexCommit{
-		Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-		Index:     1,
-		Timestamp: time.Unix(1406721715, 0).UTC(),
-	}
-	testCases := []struct {
-		n        int
-		expected []*vcsinfo.IndexCommit
-	}{
-		{
-			n:        0,
-			expected: []*vcsinfo.IndexCommit{},
-		},
-		{
-			n:        1,
-			expected: []*vcsinfo.IndexCommit{c2},
-		},
-		{
-			n:        2,
-			expected: []*vcsinfo.IndexCommit{c1, c2},
-		},
-		{
-			n:        5,
-			expected: []*vcsinfo.IndexCommit{c1, c2},
-		},
-	}
-	for _, tc := range testCases {
-		actual := r.LastNIndex(tc.n)
-		assert.Equal(t, len(tc.expected), len(actual))
-		deepequal.AssertDeepEqual(t, tc.expected, actual)
-	}
+	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
+	assert.NoError(t, err)
+	vcstu.TestLastNIndex(t, r)
 }
 
 func TestIndexOf(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,84 +116,20 @@ func TestIndexOf(t *testing.T) {
 
 func TestRange(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
-	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ts1 := time.Unix(1406721642, 0).UTC()
-	ts2 := time.Unix(1406721715, 0).UTC()
-
-	c1 := &vcsinfo.IndexCommit{
-		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-		Index:     0,
-		Timestamp: ts1,
-	}
-	c2 := &vcsinfo.IndexCommit{
-		Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-		Index:     1,
-		Timestamp: ts2,
-	}
-	testCases := []struct {
-		begin    time.Time
-		end      time.Time
-		expected []*vcsinfo.IndexCommit
-		message  string
-	}{
-		{
-			begin:    ts1.Add(-5 * time.Second),
-			end:      ts1.Add(-4 * time.Second),
-			expected: []*vcsinfo.IndexCommit{},
-			message:  "No match, too early",
-		},
-		{
-			begin:    ts1.Add(4 * time.Second),
-			end:      ts1.Add(5 * time.Second),
-			expected: []*vcsinfo.IndexCommit{},
-			message:  "No match, too late",
-		},
-		{
-			begin:    ts2.Add(-1 * time.Millisecond),
-			end:      ts2,
-			expected: []*vcsinfo.IndexCommit{},
-			message:  "Test the end of the half open interval.",
-		},
-		{
-			begin:    ts2,
-			end:      ts2.Add(1 * time.Millisecond),
-			expected: []*vcsinfo.IndexCommit{c2},
-			message:  "Test the beginning of the half open interval.",
-		},
-		{
-			begin:    ts1,
-			end:      ts2.Add(1 * time.Millisecond),
-			expected: []*vcsinfo.IndexCommit{c1, c2},
-			message:  "Test just a little past the second value.",
-		},
-		{
-			begin:    ts1.Add(-1 * time.Second),
-			end:      ts2.Add(5 * time.Second),
-			expected: []*vcsinfo.IndexCommit{c1, c2},
-			message:  "Test larger margins.",
-		},
-	}
-	for idx, tc := range testCases {
-		actual := r.Range(tc.begin, tc.end)
-		assert.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
-		deepequal.AssertDeepEqual(t, tc.expected, actual)
-	}
+	r, err := NewGitInfo(context.TODO(), repoDir, false, false)
+	assert.NoError(t, err)
+	vcstu.TestRange(t, r)
 }
-
 func TestLog(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,11 +174,11 @@ hello.go
 
 func TestLogFine(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -383,11 +206,11 @@ func TestLogFine(t *testing.T) {
 
 func TestLogArgs(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -404,11 +227,11 @@ func TestLogArgs(t *testing.T) {
 
 func TestShortList(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -456,11 +279,11 @@ func TestShortList(t *testing.T) {
 
 func TestTileAddressFromHash(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -500,11 +323,11 @@ func TestTileAddressFromHash(t *testing.T) {
 
 func TestNumCommits(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, false)
+	r, err := NewGitInfo(ctx, repoDir, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -516,11 +339,11 @@ func TestNumCommits(t *testing.T) {
 
 func TestRevList(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, true)
+	r, err := NewGitInfo(ctx, repoDir, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -567,11 +390,11 @@ func TestRevList(t *testing.T) {
 
 func TestBranchInfo(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, true)
+	r, err := NewGitInfo(ctx, repoDir, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -623,11 +446,11 @@ func TestBranchInfo(t *testing.T) {
 
 func TestSetBranch(t *testing.T) {
 	testutils.MediumTest(t)
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
 
 	ctx := context.Background()
-	r, err := NewGitInfo(ctx, filepath.Join(tr.Dir, "testrepo"), false, true)
+	r, err := NewGitInfo(ctx, repoDir, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
