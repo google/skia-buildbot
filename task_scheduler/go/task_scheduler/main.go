@@ -15,12 +15,14 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
@@ -46,6 +48,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -675,12 +678,15 @@ func main() {
 		}
 	}
 
+	if *local && *gsBucket == "skia-task-scheduler" {
+		sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
+	}
+	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
+	gcsClient := gcs.NewGCSClient(storageClient, *gsBucket)
+
 	// Start DB backup.
 	var b recovery.DBBackup
 	if *firestoreInstance == "" {
-		if *local && *gsBucket == "skia-task-scheduler" {
-			sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
-		}
 		// TODO(benjaminwagner): The storage client library already handles buffering
 		// and retrying requests, so we may not want to use BackoffTransport for the
 		// httpClient provided to NewDBBackup.
@@ -708,7 +714,7 @@ func main() {
 	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
 		sklog.Fatal(err)
 	}
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource, gcsClient)
 	if err != nil {
 		sklog.Fatal(err)
 	}
