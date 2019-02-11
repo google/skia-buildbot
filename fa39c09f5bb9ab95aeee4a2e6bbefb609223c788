@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39f36722_618f5c9e",
+        "filename": "go/ds/ds.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T19:02:04Z",
+      "side": 1,
+      "message": "nit: For large databases this will be annoying.",
+      "revId": "fa39c09f5bb9ab95aeee4a2e6bbefb609223c788",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06c7f30d_290e8b96",
+        "filename": "go/ds/ds_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T19:02:04Z",
+      "side": 1,
+      "message": "nit: spot-check that data is the same?",
+      "revId": "fa39c09f5bb9ab95aeee4a2e6bbefb609223c788",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
