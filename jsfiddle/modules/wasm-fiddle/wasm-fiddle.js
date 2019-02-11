@@ -127,9 +127,6 @@ export class WasmFiddle extends HTMLElement {
       .then(jsonOrThrow)
       .then((json) => {
         this.content = json.code;
-        if (this.Wasm) {
-          this.run(); // auto-run the code if WASM is loaded.
-        }
       }
     ).catch((e) => {
       errorMessage('Fiddle not Found', 10000);
