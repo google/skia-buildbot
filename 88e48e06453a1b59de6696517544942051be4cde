@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "702767dc_2cfac55c",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T17:50:06Z",
+      "side": 0,
+      "message": "Do we need a RegisterCodec for expstorage.EV_TRYJOB_EXP_CHANGED?",
+      "revId": "88e48e06453a1b59de6696517544942051be4cde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
