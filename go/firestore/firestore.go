@@ -208,6 +208,8 @@ func (c *Client) getCounterHelper(op, count, path string) metrics2.Counter {
 // getCounters returns a read/write row and query metric for the given path.
 func (c *Client) getCounters(op, path string) (metrics2.Counter, metrics2.Counter) {
 	path = strings.TrimPrefix(path, c.ParentDoc.Path)
+	path = strings.TrimPrefix(path, "/")
+	path = strings.Split(path, "/")[0]
 	c.countersMtx.Lock()
 	defer c.countersMtx.Unlock()
 	return c.getCounterHelper(op, opCountQueries, path), c.getCounterHelper(op, opCountRows, path)
