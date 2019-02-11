@@ -3,6 +3,6 @@
     padding: 5px;
 }
 
-a[href] {
+main a[href] {
     color: #1F78B4;
 }
