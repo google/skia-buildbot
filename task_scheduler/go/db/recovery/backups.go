@@ -182,10 +182,10 @@ func (b *gsDBBackup) getBackupMetrics(now time.Time) (time.Time, int64, error) {
 	var count int64 = 0
 	countAfter := now.Add(-24 * time.Hour)
 	err := gcs.AllFilesInDir(b.gsClient, b.gsBucket, DB_BACKUP_DIR, func(item *storage.ObjectAttrs) {
-		if item.Updated.After(lastTime) {
+		if item.Created.After(lastTime) {
 			lastTime = item.Updated
 		}
-		if item.Updated.After(countAfter) {
+		if item.Created.After(countAfter) {
 			count++
 		}
 	})
