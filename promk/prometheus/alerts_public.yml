@@ -82,7 +82,7 @@ groups:
       description: 'Some named fiddles are failing. Visit https://named-fiddles.skia.org to see which ones.'
 
   - alert: FiddlerPodCommunicationErrors
-    expr: rate(run_exhaustion[20m]) * 20 * 60 > 1
+    expr: rate(run_exhaustion[20m]) * 20 * 60 > 5
     for: 5m
     labels:
       category: infra
