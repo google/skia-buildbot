@@ -22,6 +22,30 @@
       "revId": "b6b5c8ac11bb88ae7494273c0e168518203987a5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4c3ce3f_48ee739c",
+        "filename": "fiddlek/go/fiddler/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-11T18:38:18Z",
+      "side": 0,
+      "message": "Also, looks like the skia checkout is under /tmp, so it seems like someone could cause compile errors for all subsequent requests.",
+      "parentUuid": "238e8d7b_b22b2496",
+      "range": {
+        "startLine": 102,
+        "startChar": 2,
+        "endLine": 102,
+        "endChar": 50
+      },
+      "revId": "b6b5c8ac11bb88ae7494273c0e168518203987a5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
