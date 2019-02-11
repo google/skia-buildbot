@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a930e5ac_58631e96",
+        "filename": "ct/go/copy_datastore/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-11T16:16:49Z",
+      "side": 1,
+      "message": "super nit: IMO the main function should be first in a program so the reader sees immediately what\u0027s going to happen here.",
+      "revId": "508c2b6f45b070b2ff809c121b34341e39f7a25a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fc4146e_99dc0807",
+        "filename": "ct/go/copy_datastore/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-11T16:16:49Z",
+      "side": 1,
+      "message": "The tool in infra/cmd/dstool does a similar thing. It might be worth seeing if you can expand that (if even necessary) to delete entities.\nOr maybe this could also go into the infra/go/ds package to be used by migration scripts like this.",
+      "revId": "508c2b6f45b070b2ff809c121b34341e39f7a25a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
