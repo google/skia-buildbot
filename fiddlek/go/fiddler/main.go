@@ -62,6 +62,7 @@ func setStateStart() error {
 func setState(s types.State) {
 	mutex.Lock()
 	defer mutex.Unlock()
+	sklog.Info(s)
 	currentState = s
 }
 

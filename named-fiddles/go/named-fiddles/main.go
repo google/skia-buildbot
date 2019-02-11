@@ -107,7 +107,7 @@ func (srv *Server) validate(n store.Named) bool {
 	runResults, success := client.Do(b, false, "https://fiddle.skia.org", func(*types.RunResults) bool {
 		return true
 	})
-	if success {
+	if !success {
 		srv.errorsInRun.Inc(1)
 		return true
 	}
