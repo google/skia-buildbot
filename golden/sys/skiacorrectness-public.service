@@ -29,7 +29,8 @@ ExecStart=/usr/local/bin/skiacorrectness-public  \
     --force_login=false \
     --event_topic=gold-prod-eventbus \
     --app_title="Public Skia Gold" \
-    --ds_namespace=gold-skia-prod
+    --ds_namespace=gold-skia-prod \
+    --match_fields=name,style
 
 Restart=always
 User=default

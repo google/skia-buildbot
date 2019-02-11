@@ -30,7 +30,7 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --force_login \
     --event_topic=gold-prod-eventbus \
     --ds_namespace=gold-skia-prod \
-    --match_fields=gamma_correct,name
+    --match_fields=name,style
 
 Restart=always
 User=default
