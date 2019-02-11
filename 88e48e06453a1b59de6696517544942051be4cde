@@ -16,6 +16,24 @@
       "revId": "88e48e06453a1b59de6696517544942051be4cde",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40615dbf_87134387",
+        "filename": "golden/go/tryjobstore/tryjobstore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-11T17:58:50Z",
+      "side": 0,
+      "message": "That\u0027s not strictly necessary in this case because RegisterCodec only has to be called for events we want to distributed via PubSub. \nRight now this is intended to be handled by a handler within the process that fires the event.",
+      "parentUuid": "702767dc_2cfac55c",
+      "revId": "88e48e06453a1b59de6696517544942051be4cde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
