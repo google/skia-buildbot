@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7b2823cd_0a5cdb97",
+        "filename": "ct/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-12T16:12:17Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "35620440_451307a2",
+      "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a9adbf54_fae53a75",
         "filename": "ct/Makefile",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "8fe13353_0cbc3ab3",
+        "filename": "ct/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-12T16:12:17Z",
+      "side": 1,
+      "message": "Indexes can be removed only if all indexes are in the same file. I then found ds/index-skia-public.yaml and moved these indexes there.",
+      "parentUuid": "a9adbf54_fae53a75",
+      "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "15a3b778_3487697e",
         "filename": "ct/index.yaml",
         "patchSetId": 1
@@ -50,6 +86,24 @@
       "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cea065d_b77a8e76",
+        "filename": "ct/index.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-12T16:12:17Z",
+      "side": 1,
+      "message": "Removed file.",
+      "parentUuid": "15a3b778_3487697e",
+      "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
