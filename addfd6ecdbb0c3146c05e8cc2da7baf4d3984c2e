@@ -16,6 +16,24 @@
       "revId": "addfd6ecdbb0c3146c05e8cc2da7baf4d3984c2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1377d2f0_22fcccdc",
+        "filename": "ds/index-skia-public.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-12T16:26:42Z",
+      "side": 1,
+      "message": "\u003e Do you want to add this to the Makefile?\n\nI am not sure what direction Joe had in mind here so leaving it alone for now (and CC\u0027ing him).",
+      "parentUuid": "0595c0a0_7e00a192",
+      "revId": "addfd6ecdbb0c3146c05e8cc2da7baf4d3984c2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
