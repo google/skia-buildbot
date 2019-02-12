@@ -58,8 +58,8 @@ ROLLER_CONFIGS_KUBE_EXTERNAL=$(wildcard config/*.json)
 release-be-kube: autoroll-be-kube
 	CONFIG_DIR="$(CONFIG_DIR)" ./build_docker_backend_release "$(CONFIG_FILE)" "$(MESSAGE)"
 
-release-google3: autoroll-google3
-	./build_google3_release "$(MESSAGE)"
+release-google3: autoroll-google3 setup-internal-config-repo
+	CONFIG_DIR="$(ROLLER_INTERNAL_CONFIG_DIR)" ./build_google3_release "$(MESSAGE)"
 
 release-all: release-fe release-be-all release-google3
 
