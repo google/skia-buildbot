@@ -21,7 +21,7 @@ import (
 
 const (
 	// Default query that will get all tests.
-	DEFAULT_QUERY = "fdiffmax=-1&fref=false&frgbamax=255&frgbamin=0&head=true&include=false&limit=50&match=gamma_correct&match=name&metric=combined&neg=false&offset=0&pos=true&query=source_type%3Dgm&sort=desc&unt=false&nodiff=true"
+	DEFAULT_QUERY = "fdiffmax=-1&fref=false&frgbamax=255&frgbamin=0&head=true&include=false&limit=50&match=name&metric=combined&neg=false&offset=0&pos=true&query=source_type%3Dgm&sort=desc&unt=false&nodiff=true"
 
 	// Default URL for the Gold instance we want to query.
 	GOLD_URL = "https://gold.skia.org"
