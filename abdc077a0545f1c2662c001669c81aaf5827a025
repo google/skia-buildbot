@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ea48b2d9_296dfd1d",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-12T15:32:20Z",
+      "side": 1,
+      "message": "Why not just use bytes.Buffer?",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 232,
+        "endChar": 37
+      },
+      "revId": "abdc077a0545f1c2662c001669c81aaf5827a025",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
