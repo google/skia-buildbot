@@ -225,21 +225,19 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 
 // GetChromiumHash uses ls-remote to find and return Chromium's Tot commit hash.
 func GetChromiumHash(ctx context.Context) (string, error) {
-	stdoutFilePath := filepath.Join(os.TempDir(), "chromium-tot")
-	stdoutFile, err := os.Create(stdoutFilePath)
-	defer util.Close(stdoutFile)
-	defer util.Remove(stdoutFilePath)
+	stdoutFile, err := ioutil.TempFile("", "chromium-tot")
 	if err != nil {
-		return "", fmt.Errorf("Could not create %s: %s", stdoutFilePath, err)
+		return "", fmt.Errorf("Could not create temp file: %s", err)
 	}
+	defer util.Remove(stdoutFile.Name())
 	totArgs := []string{"ls-remote", "https://chromium.googlesource.com/chromium/src.git", "--verify", "refs/heads/master"}
 	err = ExecuteCmd(ctx, BINARY_GIT, totArgs, []string{}, GIT_LS_REMOTE_TIMEOUT, stdoutFile, nil)
 	if err != nil {
 		return "", fmt.Errorf("Error while finding Chromium's ToT: %s", err)
 	}
-	output, err := ioutil.ReadFile(stdoutFilePath)
+	output, err := ioutil.ReadFile(stdoutFile.Name())
 	if err != nil {
-		return "", fmt.Errorf("Cannot read %s: %s", stdoutFilePath, err)
+		return "", fmt.Errorf("Cannot read %s: %s", stdoutFile.Name(), err)
 	}
 	tokens := strings.Split(string(output), "\t")
 	return tokens[0], nil
