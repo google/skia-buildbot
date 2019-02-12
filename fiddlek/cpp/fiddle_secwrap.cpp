@@ -67,18 +67,16 @@ static bool install_syscall_filter() {
 
         ALLOW_SYSCALL(clone),
         ALLOW_SYSCALL(wait4),
-        ALLOW_SYSCALL(mknod),
         ALLOW_SYSCALL(getrandom),
         ALLOW_SYSCALL(shmctl),
         ALLOW_SYSCALL(prlimit64),
         ALLOW_SYSCALL(dup),
-        ALLOW_SYSCALL(link),
-        ALLOW_SYSCALL(rename),
-        ALLOW_SYSCALL(renameat),
-        ALLOW_SYSCALL(renameat2),
         ALLOW_SYSCALL(chmod),
         ALLOW_SYSCALL(chown),
 
+        TRACE_SYSCALL(mknod),
+        TRACE_SYSCALL(link),
+        TRACE_SYSCALL(rename),
         TRACE_SYSCALL(execve),
         TRACE_SYSCALL(mkdir),
         TRACE_SYSCALL(unlink),
@@ -220,6 +218,21 @@ const char *writing_allowed_prefixes[] = {
     NULL,
 };
 
+const char *link_allowed_prefixes[] = {
+    "/tmp/",
+    NULL,
+};
+
+const char *mknod_allowed_prefixes[] = {
+    "/tmp/",
+    NULL,
+};
+
+const char *rename_allowed_prefixes[] = {
+    "/tmp/",
+    NULL,
+};
+
 const char *readonly_allowed_prefixes[] = {
     "/etc/fonts",
     "/etc/fiddle/",
@@ -320,6 +333,24 @@ int do_trace(pid_t child, char *allowed_exec) {
             } else if (syscall == SYS_unlink) {
                 char *name = read_string(child, regs.rdi);
                 test_against_prefixes(child, "unlink", name, unlink_allowed_prefixes);
+                free(name);
+            } else if (syscall == SYS_mknod) {
+                char *name = read_string(child, regs.rdi);
+                test_against_prefixes(child, "mknod", name, mknod_allowed_prefixes);
+                free(name);
+            } else if (syscall == SYS_link) {
+                char *name = read_string(child, regs.rdi);
+                test_against_prefixes(child, "link", name, link_allowed_prefixes);
+                free(name);
+                name = read_string(child, regs.rsi);
+                test_against_prefixes(child, "link", name, link_allowed_prefixes);
+                free(name);
+            } else if (syscall == SYS_rename) {
+                char *name = read_string(child, regs.rdi);
+                test_against_prefixes(child, "rename", name, rename_allowed_prefixes);
+                free(name);
+                name = read_string(child, regs.rsi);
+                test_against_prefixes(child, "rename", name, rename_allowed_prefixes);
                 free(name);
             } else {
                 // this should never happen, but if we're in TRACE_ALL
