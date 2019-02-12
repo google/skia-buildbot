@@ -91,10 +91,17 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 
+	lastStatus := a.status.Get()
+
 	recent := a.recent.GetRecentRolls()
 	numFailures := 0
 	lastSuccessRev := ""
 	for _, roll := range recent {
+		if lastStatus != nil && lastStatus.LastRoll != nil && lastStatus.LastRoll.Issue == roll.Issue {
+			numFailures += lastStatus.AutoRollMiniStatus.NumFailedRolls
+			lastSuccessRev = lastStatus.LastRollRev
+			break
+		}
 		if roll.Failed() {
 			numFailures++
 		} else if roll.Succeeded() {
@@ -119,7 +126,6 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	lastRoll := a.recent.LastRoll()
 
 	if preserveLastError {
-		lastStatus := a.status.Get()
 		if lastStatus != nil {
 			errorMsg = lastStatus.Error
 		}
@@ -131,8 +137,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		sklog.Warningf("Last roll %d; errorMsg: %s", lastRollIssue, errorMsg)
 	}
 
-	sklog.Infof("Updating status (%d)", commitsNotRolled)
-	if err := status.Set(ctx, a.cfg.RollerName, &status.AutoRollStatus{
+	newStatus := &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
@@ -149,7 +154,9 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		Status:          state_machine.S_NORMAL_ACTIVE,
 		ValidModes:      []string{modes.MODE_RUNNING},
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
-	}); err != nil {
+	}
+	sklog.Infof("Updating status: %+v", newStatus)
+	if err := status.Set(ctx, a.cfg.RollerName, newStatus); err != nil {
 		return err
 	}
 	if lastRoll != nil && util.In(lastRoll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, autoroll.ROLL_RESULT_SUCCESS}) {
