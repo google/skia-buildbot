@@ -29,6 +29,10 @@ type LongCommit struct {
 	Branches  map[string]bool `json:"-"`
 }
 
+func NewLongCommit() *LongCommit {
+	return &LongCommit{ShortCommit: &ShortCommit{}}
+}
+
 // LongCommitSlice represents a slice of LongCommit objects used for sorting
 // commits by timestamp, most recent first.
 type LongCommitSlice []*LongCommit
