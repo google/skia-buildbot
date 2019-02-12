@@ -168,7 +168,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			end := time.Unix(int64(req.Domain.End), 0)
-			regression.RegressionsForAlert(ctx, &req.Config, d.paramsProvider(), cb, int(req.Domain.NumCommits), end, d.git, d.cidl, d.dfBuilder)
+			regression.RegressionsForAlert(ctx, &req.Config, d.paramsProvider(), cb, int(req.Domain.NumCommits), end, d.git, d.cidl, d.dfBuilder, nil)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true

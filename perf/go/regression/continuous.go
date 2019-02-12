@@ -22,10 +22,15 @@ type ConfigProvider func() ([]*alerts.Config, error)
 // ParamsetProvider is a function that's called to return the current paramset. It is passed to NewContinuous.
 type ParamsetProvider func() paramtools.ParamSet
 
+// StepProvider if a func that's called to return the current step within a config we're clustering.
+type StepProvider func(step, total int)
+
 // Current state of looking for regressions, i.e. the current commit and alert being worked on.
 type Current struct {
 	Commit *cid.CommitDetail `json:"commit"`
 	Alert  *alerts.Config    `json:"alert"`
+	Step   int               `json:"step"`
+	Total  int               `json:"total"`
 }
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -139,6 +144,19 @@ func (c *Continuous) reportRegressions(ctx context.Context, resps []*ClusterResp
 	}
 }
 
+func (c *Continuous) setCurrentConfig(cfg *alerts.Config) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.current.Alert = cfg
+}
+
+func (c *Continuous) setCurrentStep(step, total int) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.current.Step = step
+	c.current.Total = total
+}
+
 // Run starts the continuous running of clustering over the last numCommits
 // commits.
 //
@@ -147,6 +165,8 @@ func (c *Continuous) Run(ctx context.Context) {
 	newClustersGauge := metrics2.GetInt64Metric("perf_clustering_untriaged", nil)
 	runsCounter := metrics2.GetCounter("perf_clustering_runs", nil)
 	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
+	configsCounter := metrics2.GetCounter("perf_clustering_configs", nil)
+	clusterLiveness := metrics2.NewLiveness("perf_clustering", nil)
 
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
@@ -159,10 +179,9 @@ func (c *Continuous) Run(ctx context.Context) {
 			sklog.Errorf("Failed to load configs: %s", err)
 			continue
 		}
+		sklog.Infof("Clustering over %d configs.", len(configs))
 		for _, cfg := range configs {
-			c.mutex.Lock()
-			c.current.Alert = cfg
-			c.mutex.Unlock()
+			c.setCurrentConfig(cfg)
 
 			clusterResponseProcessor := func(resps []*ClusterResponse) {
 				c.reportRegressions(ctx, resps, cfg)
@@ -170,9 +189,12 @@ func (c *Continuous) Run(ctx context.Context) {
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Now(), c.git, c.cidl, c.dfBuilder)
+			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Now(), c.git, c.cidl, c.dfBuilder, c.setCurrentStep)
+			configsCounter.Inc(1)
+			clusterLiveness.Reset()
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
+		configsCounter.Reset()
 	}
 }
