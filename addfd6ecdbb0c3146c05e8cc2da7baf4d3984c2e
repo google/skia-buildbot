@@ -34,6 +34,24 @@
       "revId": "addfd6ecdbb0c3146c05e8cc2da7baf4d3984c2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ae6f5df_03c841e0",
+        "filename": "ds/index-skia-public.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-12T16:37:32Z",
+      "side": 1,
+      "message": "There are commands for Makefiles to switch projects, and using them here sounds like a good idea.\n\nSee https://github.com/google/skia-buildbot/blob/master/promk/Makefile#L46\nand the skia-public and skia-corp targets in that Makefile.",
+      "parentUuid": "1377d2f0_22fcccdc",
+      "revId": "addfd6ecdbb0c3146c05e8cc2da7baf4d3984c2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
