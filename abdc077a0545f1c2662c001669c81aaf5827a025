@@ -22,6 +22,30 @@
       "revId": "abdc077a0545f1c2662c001669c81aaf5827a025",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfcfdc91_d8042b38",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-12T18:31:53Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/buildbot/+/191588",
+      "parentUuid": "ea48b2d9_296dfd1d",
+      "range": {
+        "startLine": 228,
+        "startChar": 0,
+        "endLine": 232,
+        "endChar": 37
+      },
+      "revId": "abdc077a0545f1c2662c001669c81aaf5827a025",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
