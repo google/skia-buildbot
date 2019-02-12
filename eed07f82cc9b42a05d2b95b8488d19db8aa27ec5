@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35620440_451307a2",
+        "filename": "ct/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-12T15:29:21Z",
+      "side": 1,
+      "message": "nit: should probably be more specific, e.g. create_db_indexes.\n\nnit: missing .PHONY",
+      "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9adbf54_fae53a75",
+        "filename": "ct/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-12T15:29:21Z",
+      "side": 1,
+      "message": "Do we have any way to delete unused indexes if they are removed from index.yaml?",
+      "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15a3b778_3487697e",
+        "filename": "ct/index.yaml",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-12T15:29:21Z",
+      "side": 1,
+      "message": "nit: filename is a little vague; maybe db_indexes.yaml?",
+      "revId": "eed07f82cc9b42a05d2b95b8488d19db8aa27ec5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
