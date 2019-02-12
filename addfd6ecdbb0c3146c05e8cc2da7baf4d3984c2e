@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0595c0a0_7e00a192",
+        "filename": "ds/index-skia-public.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-12T16:24:05Z",
+      "side": 1,
+      "message": "Do you want to add this to the Makefile?\n\nIt looks like we need to specify the project for the create/cleanup commands. Right now it looks like it will affect whatever project happens to be the user\u0027s default project.\n\nI wonder if there\u0027s any problem with applying the same indexes to all projects?",
+      "revId": "addfd6ecdbb0c3146c05e8cc2da7baf4d3984c2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
