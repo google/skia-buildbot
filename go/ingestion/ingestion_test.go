@@ -41,8 +41,8 @@ func TestPollingIngesterWithStore(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Delete and recreate the BT tables to make sure there are no residual data.
-	assert.NoError(t, bt.DeleteTables(projectID, instanceID, BigTableConfig))
-	assert.NoError(t, bt.InitBigtable(projectID, instanceID, BigTableConfig))
+	assert.NoError(t, bt.DeleteTables(projectID, instanceID, TABLE_FILES_PROCESSED))
+	assert.NoError(t, InitBT(projectID, instanceID, TABLE_FILES_PROCESSED))
 
 	// Create the BT ingestion store.
 	store, err := NewBTIStore(projectID, instanceID, nameSpace)
