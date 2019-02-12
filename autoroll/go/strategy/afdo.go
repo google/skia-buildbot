@@ -34,7 +34,7 @@ var (
 		"^chromeos-chrome-amd64-" + // Prefix
 			"(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)" + // Version
 			"_rc-r(\\d+)" + // Revision
-			"\\.afdo\\.bz2$") // Suffix
+			"-merged\\.afdo\\.bz2$") // Suffix
 
 	// Error used to indicate that a version number is invalid.
 	errInvalidAFDOVersion = errors.New("Invalid AFDO version.")
