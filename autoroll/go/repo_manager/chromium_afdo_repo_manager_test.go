@@ -24,9 +24,9 @@ import (
 )
 
 const (
-	afdoRevPrev = "chromeos-chrome-amd64-66.0.3336.3_rc-r0.afdo.bz2"
-	afdoRevBase = "chromeos-chrome-amd64-66.0.3336.3_rc-r1.afdo.bz2"
-	afdoRevNext = "chromeos-chrome-amd64-66.0.3337.3_rc-r1.afdo.bz2"
+	afdoRevPrev = "chromeos-chrome-amd64-66.0.3336.3_rc-r0-merged.afdo.bz2"
+	afdoRevBase = "chromeos-chrome-amd64-66.0.3336.3_rc-r1-merged.afdo.bz2"
+	afdoRevNext = "chromeos-chrome-amd64-66.0.3337.3_rc-r1-merged.afdo.bz2"
 
 	afdoTimePrev = "2009-11-10T23:00:00Z"
 	afdoTimeBase = "2009-11-10T23:01:00Z"
