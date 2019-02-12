@@ -60,9 +60,26 @@ push_fiddle: skia-public
 cli:
 	go install -v ./go/fiddlecli
 
+.PHONY: test
+test: testgo testcpp
+
 .PHONY: testgo
 testgo:
 	go test -v ./...
+
+.PHONY: testcpp
+testcpp: build
+	clang ./cpp/fail_socket.cpp -o ./bin/fail_socket
+	clang ./cpp/fail_execve.cpp -o ./bin/fail_execve
+	clang ./cpp/fail_link.cpp -o ./bin/fail_link
+	clang ./cpp/fail_rename.cpp -o ./bin/fail_rename
+	clang ./cpp/fail_mknod.cpp -o ./bin/fail_mknod
+	./bin/fiddle_secwrap ./bin/fail_socket; test $$? -eq 1
+	./bin/fiddle_secwrap ./bin/fail_execve; test $$? -eq 255
+	./bin/fiddle_secwrap ./bin/fail_link; test $$? -eq 255
+	./bin/fiddle_secwrap ./bin/fail_rename; test $$? -eq 255
+	./bin/fiddle_secwrap ./bin/fail_mknod; test $$? -eq 255
+	echo "SUCCESS"
 
 .PHONY: run_local_fiddle
 run_local_fiddle:
