@@ -8,6 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/deepequal"
@@ -144,6 +145,31 @@ func TestStatus(t *testing.T) {
 	assert.NoError(t, a.UpdateStatus(ctx, "", true))
 	status = a.status.Get()
 	assert.Equal(t, "error message", status.Error)
+
+	// Overflow recent_rolls.RECENT_ROLLS_LENGTH.
+	closeIssue(issue4, autoroll.ROLL_RESULT_FAILURE)
+	assert.NoError(t, a.AddOrUpdateIssue(ctx, issue4, http.MethodPut))
+	recent = []*autoroll.AutoRollIssue{issue4, issue3}
+	// Rolls 3 and 4 failed, so we need 5 thru recent_rolls.RECENT_ROLLS_LENGTH + 3 to also fail for
+	// overflow.
+	for i := int64(5); i < recent_rolls.RECENT_ROLLS_LENGTH+3; i++ {
+		issueI := makeIssue(i, commits[2])
+		assert.NoError(t, a.AddOrUpdateIssue(ctx, issueI, http.MethodPost))
+		closeIssue(issueI, autoroll.ROLL_RESULT_FAILURE)
+		assert.NoError(t, a.AddOrUpdateIssue(ctx, issueI, http.MethodPut))
+		recent = append([]*autoroll.AutoRollIssue{issueI}, recent...)
+	}
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, commits[0], commits[2])
+	assert.NoError(t, a.UpdateStatus(ctx, "error message", false))
+	status = a.status.Get()
+	assert.Equal(t, recent_rolls.RECENT_ROLLS_LENGTH+1, status.NumFailedRolls)
+	assert.Equal(t, 2, status.NumNotRolledCommits)
+	assert.Equal(t, issue1.RollingTo, status.LastRollRev)
+	assert.Equal(t, "error message", status.Error)
+	assert.Nil(t, status.CurrentRoll)
+	deepequal.AssertDeepEqual(t, recent[0], status.LastRoll)
+	deepequal.AssertDeepEqual(t, recent, status.Recent)
 }
 
 func TestAddOrUpdateIssue(t *testing.T) {
