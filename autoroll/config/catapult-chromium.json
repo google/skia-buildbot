@@ -42,7 +42,7 @@
   "maxRollFrequency": "0m",
   "notifiers": [
     {
-      "filter": "info",
+      "filter": "warning",
       "chat": {
         "room": "speed-operations"
       },
