@@ -284,6 +284,27 @@ groups:
     annotations:
       description: 'android_ingest failing to record incoming data to transaction log. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#tx_log'
 
+  - alert: PerfAndroidClusteringSlow
+    expr: rate(perf_clustering_queries{app="skiaperf-android"}[30m])*30*60 < 10
+    for: 1h
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'https://android-master-perf.skia.org/t/ clustering appears to be stuck. Check the Status on the triage page.'
+
+  - alert: PerfClusteringSlow
+    expr: liveness_perf_clustering_s{app=~"skiaperf(-android|)"}/(60*60) > 2
+    for: 10m
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: '{{ $labels.app }} clustering is taking too long. Check the Status on the triage page.'
+
+
 # Prober
   - alert: ProbeFailure
     expr: prober{type="failure"} > 0
