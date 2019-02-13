@@ -383,14 +383,14 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	df := freshDataFrame.Get()
-	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
-		Header:   df.Header,
-		ParamSet: df.ParamSet,
-		TraceSet: types.TraceSet{},
-	}, git, false, r.FormValue("tz"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load init data.")
-		return
+
+	resp := &dataframe.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			ParamSet: df.ParamSet,
+		},
+		Ticks: []interface{}{},
+		Skps:  []int{},
+		Msg:   "",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
