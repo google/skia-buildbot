@@ -1188,3 +1188,20 @@ func SSliceCmp(a, b []string) int {
 	}
 	return -1
 }
+
+// AskForConfirmation waits for the user to type "y" or "n".
+func AskForConfirmation(format string, args ...interface{}) (bool, error) {
+	fmt.Println(fmt.Sprintf(format, args...))
+	var response string
+	if _, err := fmt.Scanln(&response); err != nil {
+		return false, err
+	}
+	if response == "y" {
+		return true, nil
+	} else if response == "n" {
+		return false, nil
+	} else {
+		fmt.Println("Please type 'y' or 'n' and then press enter.")
+		return AskForConfirmation(format, args...)
+	}
+}
