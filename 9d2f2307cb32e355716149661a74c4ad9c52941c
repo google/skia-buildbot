@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "045bcdef_d4e239d4",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T20:34:35Z",
+      "side": 0,
+      "message": "Ok, that all makes sense to me. My biggest concern is that there\u0027s a bug or an edge case we\u0027re not thinking about, and I would like to know sooner rather than later. If it\u0027s just one random task that\u0027s invalid, I probably wouldn\u0027t worry about it, but if it\u0027s a significant number, there\u0027s probably something wrong.",
+      "parentUuid": "7df3b32f_79b7f683",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "9d2f2307cb32e355716149661a74c4ad9c52941c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2268aaee_2f0d024d",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
