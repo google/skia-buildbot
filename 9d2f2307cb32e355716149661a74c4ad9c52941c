@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "8bf0aaca_9c5c58f0",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T20:44:17Z",
+      "side": 0,
+      "message": "Agreed. With the new DB, we should be able to scan through tasks without affecting the performance of the scheduler.  Let\u0027s maybe write a validator which scans the DB (once? periodically?) and reports on tasks and jobs which don\u0027t follow the rules.",
+      "parentUuid": "045bcdef_d4e239d4",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "9d2f2307cb32e355716149661a74c4ad9c52941c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2268aaee_2f0d024d",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
