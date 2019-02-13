@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4499fe14_40d72744",
+        "filename": "perf/logs.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-13T16:19:16Z",
+      "side": 1,
+      "message": "nit: logs.sh -\u003e view_logs.sh or download_logs.sh ?",
+      "revId": "82396d7e36747e257cb2294f16ce22341b200c07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3000fade_f5c940a3",
+        "filename": "perf/logs.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-13T16:19:16Z",
+      "side": 1,
+      "message": "nit: Add --project\u003dskia-public here?",
+      "revId": "82396d7e36747e257cb2294f16ce22341b200c07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
