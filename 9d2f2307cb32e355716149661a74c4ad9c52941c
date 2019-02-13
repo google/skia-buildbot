@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "7df3b32f_79b7f683",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T18:49:12Z",
+      "side": 0,
+      "message": "My reasoning is:\n1. If a task or job somehow made it into the DB in this bad state, it should already be breaking things; if not, then it seems unlikely to start.\n2. I\u0027m more worried about problems which might arise from external references to tasks or jobs which no longer exist because we skipped them during migration.\n3. Honestly, my biggest concern is that I get stuck performing a migration and have to write special cases for specific tasks or jobs and then restart the migration, losing valuable hours.  I\u0027d rather perform a carbon copy of the existing database, even if it means we have bad tasks/jobs, and then have to hunt down and remove them later.",
+      "parentUuid": "2e117d68_20232047",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "9d2f2307cb32e355716149661a74c4ad9c52941c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2268aaee_2f0d024d",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 1
