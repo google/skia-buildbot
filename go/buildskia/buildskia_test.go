@@ -3,6 +3,7 @@ package buildskia
 import (
 	"context"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -215,6 +216,7 @@ func TestGNDownloadSkia(t *testing.T) {
 	assert.Equal(t, len(expectedCommands), len(mock.Commands()))
 	for i, want := range expectedCommands {
 		got := exec.DebugString(mock.Commands()[i])
+		fmt.Printf("XXX:  %s\n", got)
 		if !strings.HasSuffix(got, want) {
 			t.Errorf("Failed: Command %q doesn't end with %q", got, want)
 		}
