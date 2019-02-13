@@ -4,7 +4,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"path/filepath"
 	"regexp"
 
@@ -131,8 +130,7 @@ func main() {
 		sklog.Error("Exiting because of dryrun mode")
 		return
 	}
-	sklog.Error("Continue?")
-	if conf, err := askForConfirmation(); err != nil || !conf {
+	if conf, err := util.AskForConfirmation("Confinue?"); err != nil || !conf {
 		sklog.Errorf("Not continuing (Error: %v)", err)
 		return
 	}
@@ -146,21 +144,6 @@ func main() {
 		}
 	}
 
-}
-
-func askForConfirmation() (bool, error) {
-	var response string
-	if _, err := fmt.Scanln(&response); err != nil {
-		return false, err
-	}
-	if response == "y" {
-		return true, nil
-	} else if response == "n" {
-		return false, nil
-	} else {
-		sklog.Info("Please type 'y' or 'n' and then press enter:")
-		return askForConfirmation()
-	}
 }
 
 func logIfVerbose(f string, args ...interface{}) {
