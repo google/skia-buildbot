@@ -29,36 +29,66 @@ var (
 	NOW               = time.Now()
 )
 
-func migrateTasks(oldDB, newDB db.DB) error {
-	return util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
-		sklog.Infof("Migrating tasks in %s - %s", start, end)
-		tasks, err := oldDB.GetTasksFromDateRange(start, end, "")
-		if err != nil {
-			return err
-		}
-		for _, t := range tasks {
-			t.DbModified = time.Time{}
-		}
-		return util.ChunkIter(len(tasks), fs.MAX_TRANSACTION_DOCS, func(start, end int) error {
-			return newDB.PutTasks(tasks[start:end])
-		})
-	})
+type timeChunk struct {
+	start time.Time
+	end   time.Time
 }
 
-func migrateJobs(oldDB, newDB db.DB) error {
-	return util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
-		sklog.Infof("Migrating jobs in %s - %s", start, end)
-		jobs, err := oldDB.GetJobsFromDateRange(start, end)
-		if err != nil {
+func retry(fn func() error) error {
+	sleep := 10 * time.Second
+	var err error
+	for i := 0; i < 5; i++ {
+		err = fn()
+		if err == nil {
+			return nil
+		}
+		sklog.Error(err)
+		sklog.Errorf("Retrying in %s", sleep)
+		time.Sleep(sleep)
+	}
+	return err
+}
+
+func migrateTasks(oldDB, newDB db.DB, chunks []*timeChunk) error {
+	for _, chunk := range chunks {
+		sklog.Infof("Migrating tasks in %s - %s", chunk.start, chunk.end)
+		if err := retry(func() error {
+			tasks, err := oldDB.GetTasksFromDateRange(chunk.start, chunk.end, "")
+			if err != nil {
+				return err
+			}
+			if err := util.ChunkIter(len(tasks), fs.MAX_TRANSACTION_DOCS, func(start, end int) error {
+				return newDB.PutTasks(tasks[start:end])
+			}); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
-		for _, j := range jobs {
-			j.DbModified = time.Time{}
+	}
+	return nil
+}
+
+func migrateJobs(oldDB, newDB db.DB, chunks []*timeChunk) error {
+	for _, chunk := range chunks {
+		sklog.Infof("Migrating jobs in %s - %s", chunk.start, chunk.end)
+		if err := retry(func() error {
+			jobs, err := oldDB.GetJobsFromDateRange(chunk.start, chunk.end)
+			if err != nil {
+				return err
+			}
+			if err := util.ChunkIter(len(jobs), fs.MAX_TRANSACTION_DOCS, func(start, end int) error {
+				return newDB.PutJobs(jobs[start:end])
+			}); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
+			return err
 		}
-		return util.ChunkIter(len(jobs), fs.MAX_TRANSACTION_DOCS, func(start, end int) error {
-			return newDB.PutJobs(jobs[start:end])
-		})
-	})
+	}
+	return nil
 }
 
 func migrateComments(oldDB, newDB db.DB) error {
@@ -95,10 +125,24 @@ func migrateComments(oldDB, newDB db.DB) error {
 }
 
 func migrate(oldDB, newDB db.DB) error {
-	if err := migrateTasks(oldDB, newDB); err != nil {
+	chunks := make([]*timeChunk, 0, 1000)
+	if err := util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
+		chunks = append(chunks, &timeChunk{
+			start: start,
+			end:   end,
+		})
+		return nil
+	}); err != nil {
 		return err
 	}
-	if err := migrateJobs(oldDB, newDB); err != nil {
+	for i, j := 0, len(chunks)-1; i < j; i, j = i+1, j-1 {
+		chunks[i], chunks[j] = chunks[j], chunks[i]
+	}
+
+	if err := migrateTasks(oldDB, newDB, chunks); err != nil {
+		return err
+	}
+	if err := migrateJobs(oldDB, newDB, chunks); err != nil {
 		return err
 	}
 	if err := migrateComments(oldDB, newDB); err != nil {

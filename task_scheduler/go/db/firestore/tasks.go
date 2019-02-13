@@ -7,9 +7,7 @@ import (
 	"time"
 
 	fs "cloud.google.com/go/firestore"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -91,49 +89,6 @@ func (d *firestoreDB) AssignId(task *types.Task) error {
 // putTasks sets the contents of the given tasks in Firestore, as part of the
 // given transaction. It is used by PutTask and PutTasks.
 func (d *firestoreDB) putTasks(tasks []*types.Task, isNew []bool, prevModified []time.Time, tx *fs.Transaction) error {
-	// Find the previous versions of the tasks. Ensure that they weren't
-	// updated concurrently.
-	refs := make([]*fs.DocumentRef, 0, len(tasks))
-	for _, task := range tasks {
-		refs = append(refs, d.tasks().Doc(task.Id))
-	}
-	docs, err := tx.GetAll(refs)
-	if err != nil {
-		return err
-	}
-	d.client.CountReadQueryAndRows(d.tasks().Path, len(docs))
-	for idx, doc := range docs {
-		if !doc.Exists() {
-			// This is expected for new tasks.
-			if !isNew[idx] {
-				sklog.Errorf("Task is not new but wasn't found in the DB: %+v", tasks[idx])
-				// If the task is supposed to exist but does not, then
-				// we have a problem.
-				return db.ErrConcurrentUpdate
-			}
-		} else if isNew[idx] {
-			// If the task is not supposed to exist but does, then
-			// we have a problem.
-			var old types.Task
-			if err := doc.DataTo(&old); err != nil {
-				return fmt.Errorf("Task has no DbModified timestamp but already exists in the DB. Failed to decode previous task with: %s", err)
-			}
-			sklog.Errorf("Task has no DbModified timestamp but already exists in the DB! \"New\" task:\n%+v\nExisting task:\n%+v", tasks[idx], old)
-			return db.ErrConcurrentUpdate
-		}
-		// If the task already exists, check the DbModified timestamp
-		// to ensure that someone else didn't update it.
-		if !isNew[idx] {
-			var old types.Task
-			if err := doc.DataTo(&old); err != nil {
-				return err
-			}
-			if old.DbModified != prevModified[idx] {
-				return db.ErrConcurrentUpdate
-			}
-		}
-	}
-
 	// Set the new contents of the tasks.
 	d.client.CountWriteQueryAndRows(d.tasks().Path, len(tasks))
 	for _, task := range tasks {
@@ -156,46 +111,13 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 		return fmt.Errorf("Tried to insert %d tasks but Firestore maximum per transaction is %d.", len(tasks), MAX_TRANSACTION_DOCS)
 	}
 
-	// Record the previous ID and DbModified timestamp. We'll reset these
-	// if we fail to insert the tasks into the DB.
-	now := fixTimestamp(time.Now())
-	isNew := make([]bool, len(tasks))
-	prevId := make([]string, len(tasks))
-	prevModified := make([]time.Time, len(tasks))
-	for idx, task := range tasks {
-		if util.TimeIsZero(task.Created) {
-			return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
-		}
-		if !now.After(task.DbModified) {
-			return fmt.Errorf("Task modification time is in the future: %s (current time is %s)", task.DbModified, now)
-		}
-		isNew[idx] = util.TimeIsZero(task.DbModified)
-		prevId[idx] = task.Id
-		prevModified[idx] = task.DbModified
-	}
-	defer func() {
-		if rvErr != nil {
-			for idx, task := range tasks {
-				task.Id = prevId[idx]
-				task.DbModified = prevModified[idx]
-			}
-		}
-	}()
-
-	// Assign new IDs (where needed) and DbModified timestamps.
 	for _, task := range tasks {
-		if task.Id == "" {
-			if err := d.AssignId(task); err != nil {
-				return err
-			}
-		}
-		task.DbModified = now
 		fixTaskTimestamps(task)
 	}
 
 	// Insert the tasks into the DB.
 	if err := d.client.RunTransaction("PutTasks", fmt.Sprintf("%d tasks", len(tasks)), DEFAULT_ATTEMPTS, PUT_MULTI_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
-		return d.putTasks(tasks, isNew, prevModified, tx)
+		return d.putTasks(tasks, nil, nil, tx)
 	}); err != nil {
 		return err
 	}
