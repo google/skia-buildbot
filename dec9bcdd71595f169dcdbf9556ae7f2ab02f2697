@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "2729e607_1afc6582",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T18:21:46Z",
+      "side": 1,
+      "message": "To be clear, I\u0027m not saying it *will* do something smart, just that if you\u0027re guessing, the compiler\u0027s/implementation\u0027s guess is probably no worse than your guess.\n\nIt looks like you are right -- append will start with a size of 2:\nhttps://play.golang.org/p/_HZB6zxFV1H\n\nSo, the impl is not particularly smart.",
+      "parentUuid": "669d1a1c_08655094",
+      "range": {
+        "startLine": 553,
+        "startChar": 41,
+        "endLine": 553,
+        "endChar": 44
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e1785c2_458675f1",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1

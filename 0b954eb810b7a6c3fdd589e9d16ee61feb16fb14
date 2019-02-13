@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c31c56c_9720a8b2",
+        "filename": "scripts/shutdown_swarming_bots/shutdown_swarming_bots.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T18:21:46Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 133,
+        "startChar": 45,
+        "endLine": 133,
+        "endChar": 46
+      },
+      "revId": "0b954eb810b7a6c3fdd589e9d16ee61feb16fb14",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
