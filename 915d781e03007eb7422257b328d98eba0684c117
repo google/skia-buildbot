@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d4052aab_0ec83bc1",
+        "filename": "am/go/silence/silence.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-13T18:59:03Z",
+      "side": 1,
+      "message": "This will be adjusted if it slows things down.",
+      "range": {
+        "startLine": 20,
+        "startChar": 25,
+        "endLine": 20,
+        "endChar": 28
+      },
+      "revId": "915d781e03007eb7422257b328d98eba0684c117",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
