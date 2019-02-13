@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "282db4f1_e29c4a97",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T17:56:39Z",
+      "side": 0,
+      "message": "nit: might be nice to keep these sanity checks.",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 3
+      },
+      "revId": "9d2f2307cb32e355716149661a74c4ad9c52941c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2268aaee_2f0d024d",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T17:56:39Z",
+      "side": 0,
+      "message": "nit: We might want a sanity check that Id and DbModified are not zero value.",
+      "range": {
+        "startLine": 178,
+        "startChar": 0,
+        "endLine": 181,
+        "endChar": 22
+      },
+      "revId": "9d2f2307cb32e355716149661a74c4ad9c52941c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
