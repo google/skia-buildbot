@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/sklog"
@@ -237,6 +238,11 @@ type TaskSpec struct {
 	// Isolate is the name of the isolate file used by this task.
 	Isolate string `json:"isolate"`
 
+	// IsolatedFile is the isolated obtained by isolating this task using
+	// the given Isolate file. Used internally by the Task Scheduler; not to
+	// be supplied by tasks.json.
+	IsolatedFile *isolate.IsolatedFile `json:"-"`
+
 	// MaxAttempts is the maximum number of attempts for this TaskSpec. If
 	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
 	MaxAttempts int `json:"max_attempts,omitempty"`
@@ -327,6 +333,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		ExtraTags:        extraTags,
 		IoTimeout:        t.IoTimeout,
 		Isolate:          t.Isolate,
+		IsolatedFile:     t.IsolatedFile.Copy(),
 		MaxAttempts:      t.MaxAttempts,
 		Outputs:          outputs,
 		Priority:         t.Priority,
@@ -437,14 +444,17 @@ type TaskCfgCache struct {
 	// cache[*].mtx when applicable, then recentMtx.
 	recentMtx       sync.RWMutex
 	recentTaskSpecs map[string]time.Time
-	repos           repograph.Map
-	table           *bigtable.Table
-	queue           chan func(int)
-	workdir         string
+
+	isolate *isolate.Client
+
+	repos   repograph.Map
+	table   *bigtable.Table
+	queue   chan func(int)
+	workdir string
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, btProject, btInstance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, btProject, btInstance string, isolateClient *isolate.Client, ts oauth2.TokenSource) (*TaskCfgCache, error) {
 	client, err := bigtable.NewClient(ctx, btProject, btInstance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
@@ -455,6 +465,7 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, wo
 		client:        client,
 		depotToolsDir: depotToolsDir,
 		queue:         queue,
+		isolate:       isolateClient,
 		repos:         repos,
 		table:         table,
 		workdir:       workdir,
@@ -647,7 +658,23 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 	}
 	if cfg != nil {
 		e.cfg = cfg
-		return cfg, e.c.updateSecondaryCaches(r, e.rs, cfg)
+
+		// We need to ensure that all of our tasks have associated
+		// isolate hashes. When this code was first written, this was
+		// not the case, so we need to check whether the hashes are
+		// present and if not we need to re-read the config and obtain
+		// the hashes.
+		allIsolated := true
+		for _, taskSpec := range cfg.Tasks {
+			if taskSpec.IsolatedFile == nil {
+				allIsolated = false
+				break
+			}
+		}
+		if allIsolated {
+			return cfg, e.c.updateSecondaryCaches(r, e.rs, cfg)
+		}
+		sklog.Warningf("Encountered RepoState with existing BigTable entry but no isolated hashes: %+v", e.rs)
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
@@ -669,7 +696,52 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 			}
 		}
 		cfg, err = ParseTasksCfg(string(contents))
-		return err
+		if err != nil {
+			return err
+		}
+
+		// Isolate all of the task specs and update their IsolateHashes.
+		// TODO(borenet): Batcharchive should do a decent job, but it'd
+		// be better to de-duplicate the isolate.Tasks here to save some
+		// work.
+		isolateTasks := make([]*isolate.Task, 0, len(cfg.Tasks))
+		isolateTasksMap := make(map[string]*isolate.Task, len(cfg.Tasks))
+		for name, taskSpec := range cfg.Tasks {
+			os := "linux"
+			for _, d := range taskSpec.Dimensions {
+				if strings.HasPrefix(d, "os:") {
+					os = d[len("os:"):]
+					break
+				}
+			}
+			t := &isolate.Task{
+				BaseDir:     checkout.Dir(),
+				Blacklist:   isolate.DEFAULT_BLACKLIST,
+				IsolateFile: path.Join(checkout.Dir(), "infra", "bots", taskSpec.Isolate),
+				OsType:      os,
+			}
+			isolateTasks = append(isolateTasks, t)
+			isolateTasksMap[name] = t
+		}
+		// Now, isolate all of the tasks.
+		if len(isolateTasks) > 0 {
+			_, isolatedFiles, err := e.c.isolate.IsolateTasks(ctx, isolateTasks)
+			if err != nil {
+				return err
+			}
+			if len(isolatedFiles) != len(isolateTasks) {
+				return fmt.Errorf("IsolateTasks returned incorrect number of isolated files (%d but wanted %d)", len(isolatedFiles), len(isolateTasks))
+			}
+			tasksToIsolatedFiles := make(map[*isolate.Task]*isolate.IsolatedFile, len(isolateTasks))
+			for idx, isolatedFile := range isolatedFiles {
+				tasksToIsolatedFiles[isolateTasks[idx]] = isolatedFile
+			}
+			for name, isolateTask := range isolateTasksMap {
+				sklog.Infof("Setting isolated file on %s to %+v", name, tasksToIsolatedFiles[isolateTask])
+				cfg.Tasks[name].IsolatedFile = tasksToIsolatedFiles[isolateTask]
+			}
+		}
+		return nil
 	}); err != nil {
 		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") || strings.Contains(err.Error(), "Failed to apply patch") {
 			e.err = err.Error()

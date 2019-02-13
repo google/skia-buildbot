@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
@@ -111,7 +112,9 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, nil)
+	isolateClient, err := isolate.NewClient(tmpDir, "fake-isolate-server")
+	assert.NoError(t, err)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, isolateClient, nil)
 	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"), nil)
 	assert.NoError(t, err)
