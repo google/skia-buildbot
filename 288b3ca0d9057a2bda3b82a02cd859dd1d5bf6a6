@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cf85354b_28b6990b",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T18:34:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "295dc864_324fbb4e",
+      "range": {
+        "startLine": 60,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 4
+      },
+      "revId": "288b3ca0d9057a2bda3b82a02cd859dd1d5bf6a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69a19435_1e23da55",
         "filename": "task_scheduler/go/db/migrate/migrate.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-02-13T17:56:39Z",
       "side": 1,
       "message": "What is the reason for creating all the chunks in advance here rather than just using IterTimeChunks in migrateTasks and migrateJobs?",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 2
+      },
+      "revId": "288b3ca0d9057a2bda3b82a02cd859dd1d5bf6a6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ecb4a96_e7a03bc6",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T18:34:36Z",
+      "side": 1,
+      "message": "IterTimeChunks goes in chronological order.  I reversed the order here so that we migrate the most recent data first.  This is to ensure that, in the case of an incomplete transition, I can make sure that we\u0027ve at least moved the most important data (the last month or so) before switching the scheduler over, and we can continue to move old data without disrupting the scheduler.",
+      "parentUuid": "69a19435_1e23da55",
       "range": {
         "startLine": 128,
         "startChar": 0,
