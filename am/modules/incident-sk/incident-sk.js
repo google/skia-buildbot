@@ -63,6 +63,8 @@ import { html, render } from 'lit-html'
 import { until } from 'lit-html/directives/until.js';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 
+const MAX_MATCHING_SILENCES_TO_DISPLAY = 50;
+
 function classOfH2(ele) {
   if (!ele._state.active) {
     return 'inactive';
@@ -102,7 +104,7 @@ function matchingSilences(ele) {
   // which have no notes if displaySilencesWithComments is true.
   let filteredSilences = ele._silences.filter(silence => paramset.match(silence.param_set, ele._state.params) &&
                                              !(ele._displaySilencesWithComments && doesSilenceHaveNoNotes(silence)));
-  let ret = filteredSilences.map(silence =>
+  let ret = filteredSilences.slice(0, MAX_MATCHING_SILENCES_TO_DISPLAY).map(silence =>
     html`<silence-sk .state=${silence} collapsable collapsed></silence-sk>`
   );
   if (!ret.length) {
@@ -112,7 +114,7 @@ function matchingSilences(ele) {
 }
 
 function doesSilenceHaveNoNotes(silence) {
-  return silence.notes.length == 1 && silence.notes[0].text === '';
+  return !silence.notes ||( silence.notes.length == 1 && silence.notes[0].text === '');
 }
 
 function lastSeen(ele) {

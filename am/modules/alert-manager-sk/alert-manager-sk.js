@@ -36,6 +36,8 @@ const INCIDENT = 'incident';
 const EDIT_SILENCE = 'edit_silence';
 const VIEW_STATS = 'view_stats';
 
+const MAX_SILENCES_TO_DISPLAY_IN_TAB = 50;
+
 function classOfH2(ele, incident) {
   let ret = [];
   if (!incident.active) {
@@ -169,7 +171,7 @@ const template = (ele) => html`
       ${incidentList(ele, ele._incidents)}
     </section>
     <section class=silences>
-      ${ele._silences.map(i => html`
+      ${ele._silences.slice(0, MAX_SILENCES_TO_DISPLAY_IN_TAB).map(i => html`
         <h2 class=${classOfSilenceH2(ele, i)} @click=${e => ele._silenceClick(i)}>
           <span>
             ${displaySilence(i)}
