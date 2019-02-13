@@ -3,21 +3,28 @@ package dataframe
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/cid"
 )
+
+const NUM_TILES = 3
 
 // Refresher keeps a fresh DataFrame of the last DEFAULT_NUM_COMMITS commits.
 type Refresher struct {
-	n         int // Number of commits in the DataFrame.
+	n         int32 // Tile size.
 	vcs       vcsinfo.VCS
 	df        *DataFrame
 	period    time.Duration
 	mutex     sync.Mutex
 	dfBuilder DataFrameBuilder
+	q         *query.Query
+	cidl      *cid.CommitIDLookup
 }
 
 // NewRefresher creates a new Refresher that updates the dataframe every
@@ -26,12 +33,18 @@ type Refresher struct {
 // A non-nil error will be returned if the initial DataFrame cannot be
 // populated. I.e. if NewRefresher returns w/o error than the caller
 // can be assured that Get() will return a non-nil DataFrame.
-func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration, n int) (*Refresher, error) {
+func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration, n int32, cidl *cid.CommitIDLookup) (*Refresher, error) {
+	q, err := query.New(url.Values{})
+	if err != nil {
+		return nil, err
+	}
 	ret := &Refresher{
 		vcs:       vcs,
 		dfBuilder: dfBuilder,
 		period:    period,
 		n:         n,
+		q:         q,
+		cidl:      cidl,
 	}
 	if err := ret.oneStep(ctx); err != nil {
 		return nil, fmt.Errorf("Failed to build the initial DataFrame: %s", err)
@@ -44,7 +57,16 @@ func (f *Refresher) oneStep(ctx context.Context) error {
 	if err := f.vcs.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to update repo: %s", err)
 	}
-	newDf, err := f.dfBuilder.NewN(nil, f.n)
+	// Pick enough commits far enough apart that they hit NUM_TILES tiles.
+	lastNCommits := f.vcs.LastNIndex(int(NUM_TILES*f.n + 1))
+	commits := []*cid.CommitID{}
+	for i := 0; i < NUM_TILES; i++ {
+		commits = append(commits, &cid.CommitID{
+			Offset: lastNCommits[i*int(f.n)].Index,
+			Source: "master",
+		})
+	}
+	newDf, err := f.dfBuilder.NewFromCommitIDsAndQuery(context.Background(), commits, f.cidl, f.q, nil)
 	if err != nil {
 		return err
 	}
