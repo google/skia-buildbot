@@ -1,0 +1,124 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "636aaa33_14a8a93a",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T16:12:41Z",
+      "side": 1,
+      "message": "nit: Maybe copy/paste: This function does nothing to account for documents which may be added or modified while it is taking place.",
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a2a6e7d_fea318d2",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T16:12:41Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e729a709_a7bb505c",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 552,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T16:12:41Z",
+      "side": 1,
+      "message": "nit: RecurseDocs also does this. Maybe pass in like IterDocs?",
+      "range": {
+        "startLine": 552,
+        "startChar": 1,
+        "endLine": 552,
+        "endChar": 58
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ceeb0501_715abfce",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T16:12:41Z",
+      "side": 1,
+      "message": "nit: Generally if you have no clue what number to put here, just let the compiler/implementation decide. If it\u0027s really smart, it will adapt at runtime based on previous calls.",
+      "range": {
+        "startLine": 553,
+        "startChar": 41,
+        "endLine": 553,
+        "endChar": 44
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e1785c2_458675f1",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T16:12:41Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 573,
+        "startChar": 1,
+        "endLine": 573,
+        "endChar": 48
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59d6dc9f_062665bb",
+        "filename": "task_scheduler/go/db/delete_firestore/delete_firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-13T16:12:41Z",
+      "side": 1,
+      "message": "Does it make sense to ask for confirmation, or is that just annoying?",
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
