@@ -273,14 +273,14 @@ func Init() {
 	}
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 
+	sklog.Info("About to build cidl.")
+	cidl = cid.New(ctx, git, *gitRepoUrl)
+
 	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, *dataFrameSize)
+	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, config.PERF_BIGTABLE_CONFIGS[*bigTableConfig].TileSize, cidl)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
-
-	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, git, *gitRepoUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
@@ -383,14 +383,14 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	df := freshDataFrame.Get()
-	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
-		Header:   df.Header,
-		ParamSet: df.ParamSet,
-		TraceSet: types.TraceSet{},
-	}, git, false, r.FormValue("tz"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load init data.")
-		return
+
+	resp := &dataframe.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			ParamSet: df.ParamSet,
+		},
+		Ticks: []interface{}{},
+		Skps:  []int{},
+		Msg:   "",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -412,15 +412,15 @@ type RangeRequest struct {
 // and returns a serialized JSON slice of cid.CommitDetails.
 func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	rr := &RangeRequest{}
-	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
+	var rr RangeRequest
+	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
 
-	df := freshDataFrame.Get()
-	begin := df.Header[0].Timestamp
-	end := df.Header[len(df.Header)-1].Timestamp
+	now := time.Now()
+	begin := now.Add(-24 * time.Hour).Unix()
+	end := now.Unix()
 	var err error
 	if rr.Begin != 0 || rr.End != 0 {
 		if rr.Begin != 0 {
@@ -429,8 +429,8 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 		if rr.End != 0 {
 			end = rr.End
 		}
-		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0), false)
 	}
+	df := dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0), false)
 
 	found := false
 	cids := []*cid.CommitID{}
