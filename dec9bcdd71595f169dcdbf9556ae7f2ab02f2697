@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e8317891_e0044fb8",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T17:40:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "636aaa33_14a8a93a",
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2a2a6e7d_fea318d2",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1
@@ -33,6 +51,24 @@
       "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cff36a8b_074c4d8a",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T17:40:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2a2a6e7d_fea318d2",
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "a51cc2ed_35c8a5d4",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 552,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T17:40:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e729a709_a7bb505c",
+      "range": {
+        "startLine": 552,
+        "startChar": 1,
+        "endLine": 552,
+        "endChar": 58
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ceeb0501_715abfce",
         "filename": "go/firestore/firestore.go",
         "patchSetId": 1
@@ -70,6 +130,30 @@
       "writtenOn": "2019-02-13T16:12:41Z",
       "side": 1,
       "message": "nit: Generally if you have no clue what number to put here, just let the compiler/implementation decide. If it\u0027s really smart, it will adapt at runtime based on previous calls.",
+      "range": {
+        "startLine": 553,
+        "startChar": 41,
+        "endLine": 553,
+        "endChar": 44
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "669d1a1c_08655094",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T17:40:14Z",
+      "side": 1,
+      "message": "I wasn\u0027t aware of that; for some reason I thought it always defaulted to a size of 2.",
+      "parentUuid": "ceeb0501_715abfce",
       "range": {
         "startLine": 553,
         "startChar": 41,
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "8d6d2a24_9f96d3e9",
+        "filename": "go/firestore/firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T17:40:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e1785c2_458675f1",
+      "range": {
+        "startLine": 573,
+        "startChar": 1,
+        "endLine": 573,
+        "endChar": 48
+      },
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "59d6dc9f_062665bb",
         "filename": "task_scheduler/go/db/delete_firestore/delete_firestore.go",
         "patchSetId": 1
@@ -119,6 +227,24 @@
       "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baccf1dd_27fb8ba7",
+        "filename": "task_scheduler/go/db/delete_firestore/delete_firestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-13T17:40:14Z",
+      "side": 1,
+      "message": "Good idea, since this is a big hammer. Done.",
+      "parentUuid": "59d6dc9f_062665bb",
+      "revId": "dec9bcdd71595f169dcdbf9556ae7f2ab02f2697",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
