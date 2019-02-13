@@ -60,7 +60,7 @@ func main() {
 		sklog.Infof("Removed %d entries of %s from %s", removeCount, k, *dstProject)
 
 		// Now migrate the kind.
-		if err := ds.MigrateData(ctx, srcClient, dstClient, k); err != nil {
+		if err := ds.MigrateData(ctx, srcClient, dstClient, k, false /* createNewKey */); err != nil {
 			sklog.Fatal(err)
 		}
 	}
