@@ -130,7 +130,7 @@ func main() {
 		sklog.Error("Exiting because of dryrun mode")
 		return
 	}
-	if conf, err := util.AskForConfirmation("Confinue?"); err != nil || !conf {
+	if conf, err := util.AskForConfirmation("Continue?"); err != nil || !conf {
 		sklog.Errorf("Not continuing (Error: %v)", err)
 		return
 	}
