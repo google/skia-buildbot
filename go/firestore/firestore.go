@@ -492,17 +492,16 @@ func (c *Client) Delete(ref *firestore.DocumentRef, attempts int, timeout time.D
 	return wr, err
 }
 
-// GetAllDescendantDocuments returns a slice of DocumentRefs for every
-// descendent of the given Document. This includes missing documents, ie. those
-// which do not exist but have sub-documents.
-func (c *Client) GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
-	defer c.recordOp("GetAllDescendantDocuments", ref.Path)()
-	return c.getAllDescendantDocuments(ref, attempts, timeout)
+// RecurseDocs runs the given func for every descendent of the given document.
+// This includes missing documents, ie. those which do not exist but have sub-
+// documents. The func is run for leaf documents before their parents.
+func (c *Client) RecurseDocs(ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
+	defer c.recordOp("RecurseDocs", ref.Path)()
+	return c.recurseDocs(ref, attempts, timeout, fn)
 }
 
-// getAllDescendantDocuments is a recursive helper function used by
-// GetAllDescendantDocuments.
-func (c *Client) getAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
+// recurseDocs is a recursive helper function used by RecurseDocs.
+func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
 	// TODO(borenet): Should we pause and resume like we do in IterDocs?
 	colls := map[string]*firestore.CollectionRef{}
 	if err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
@@ -520,9 +519,8 @@ func (c *Client) getAllDescendantDocuments(ref *firestore.DocumentRef, attempts 
 		}
 		return nil
 	}); err != nil {
-		return nil, err
+		return err
 	}
-	docs := map[string]*firestore.DocumentRef{}
 	for _, coll := range colls {
 		if err := c.withTimeoutAndRetries(attempts, timeout, func(ctx context.Context) error {
 			c.CountReadQuery(ref.Path)
@@ -535,23 +533,32 @@ func (c *Client) getAllDescendantDocuments(ref *firestore.DocumentRef, attempts 
 					return err
 				}
 				c.CountReadRows(ref.Path, 1)
-				docs[doc.Path] = doc
+				if err := c.recurseDocs(doc, attempts, timeout, fn); err != nil {
+					return err
+				}
 			}
 			return nil
 		}); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	rv := make([]*firestore.DocumentRef, 0, len(docs))
-	for _, doc := range docs {
-		children, err := c.getAllDescendantDocuments(doc, attempts, timeout)
-		if err != nil {
-			return nil, err
+	return fn(ref)
+}
+
+// GetAllDescendantDocuments returns a slice of DocumentRefs for every
+// descendent of the given Document. This includes missing documents, ie. those
+// which do not exist but have sub-documents.
+func (c *Client) GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
+	defer c.recordOp("GetAllDescendantDocuments", ref.Path)()
+	rv := make([]*firestore.DocumentRef, 0, 128)
+	if err := c.RecurseDocs(ref, attempts, timeout, func(doc *firestore.DocumentRef) error {
+		// Don't include the passed-in doc.
+		if doc.Path != ref.Path {
+			rv = append(rv, doc)
 		}
-		rv = append(rv, children...)
-	}
-	for _, doc := range docs {
-		rv = append(rv, doc)
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 	sort.Sort(DocumentRefSlice(rv))
 	return rv, nil
@@ -564,21 +571,9 @@ func (c *Client) getAllDescendantDocuments(ref *firestore.DocumentRef, attempts 
 // which may be added or modified while it is taking place.
 func (c *Client) RecursiveDelete(ref *firestore.DocumentRef, attempts int, timeout time.Duration) error {
 	defer c.recordOp("RecursiveDelete", ref.Path)()
-	docs, err := c.GetAllDescendantDocuments(ref, attempts, timeout)
-	if err != nil {
+	return c.RecurseDocs(ref, attempts, timeout, func(ref *firestore.DocumentRef) error {
+		c.CountWriteQueryAndRows(ref.Path, 1)
+		_, err := c.Delete(ref, attempts, timeout)
 		return err
-	}
-	// Also delete the passed-in doc.
-	docs = append(docs, ref)
-	return util.ChunkIter(len(docs), MAX_TRANSACTION_DOCS, func(start, end int) error {
-		return c.RunTransaction("RecursiveDelete-Delete", fmt.Sprintf("%s: %d-%d of %d", ref.Path, start, end, len(docs)), attempts, timeout, func(ctx context.Context, tx *firestore.Transaction) error {
-			c.CountWriteQueryAndRows(ref.Path, len(docs[start:end]))
-			for _, doc := range docs[start:end] {
-				if err := tx.Delete(doc); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
 	})
 }
