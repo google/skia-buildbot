@@ -68,18 +68,30 @@ func TestMigrateData(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, destCountEmpty)
 
-	// Migrate from source to destination.
-	assert.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND))
+	// Migrate from source to destination reusing the old keys.
+	assert.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND, false /* createNewKey */))
+	wait(t, destClient, TEST_KIND, nEntries)
 	destCountPopulated, err := destClient.Count(ctx, NewQuery(TEST_KIND))
 	assert.NoError(t, err)
 	assert.Equal(t, nEntries, destCountPopulated)
 	// Spot check to make sure source and destination data match.
-	for _, entitySrc := range []*testEntity{entitiesSrc[0], entitiesSrc[10], entitiesSrc[100], entitiesSrc[nEntries-1]} {
+	for _, entitySrc := range []*testEntity{entitiesSrc[0], entitiesSrc[10], entitiesSrc[nEntries-1]} {
 		entityDest := &testEntity{}
 		assert.NoError(t, destClient.Get(ctx, entitySrc.Key, entityDest))
+		assert.Equal(t, entitySrc.Key, entityDest.Key)
 		assert.Equal(t, entitySrc.Random, entityDest.Random)
 		assert.Equal(t, entitySrc.Sortable, entityDest.Sortable)
 	}
+	// Cleanup.
+	_, err = DeleteAll(destClient, TEST_KIND, true)
+	assert.NoError(t, err)
+
+	// Migrate from source to destination by creating new keys.
+	assert.NoError(t, MigrateData(ctx, srcClient, destClient, TEST_KIND, true /* createNewKey */))
+	wait(t, destClient, TEST_KIND, nEntries)
+	destCountPopulated, err = destClient.Count(ctx, NewQuery(TEST_KIND))
+	assert.NoError(t, err)
+	assert.Equal(t, nEntries, destCountPopulated)
 }
 
 func TestIterKeys(t *testing.T) {

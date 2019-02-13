@@ -50,8 +50,9 @@ func main() {
 		sklog.Fatal(err)
 	}
 	sklog.Infof("Removed %d entries of %s from %s", removeCount, ds.TASK, *dstProject)
-	// Now migrate the kind.
-	if err := ds.MigrateData(ctx, srcClient, dstClient, ds.TASK); err != nil {
+	// Now migrate the kind. Create new keys while migrating because reusing key IDs from the old
+	// location could cause the "the id allocated for a new entity was already in use" error.
+	if err := ds.MigrateData(ctx, srcClient, dstClient, ds.TASK, true /* createNewKey */); err != nil {
 		sklog.Fatal(err)
 	}
 }
