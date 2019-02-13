@@ -16,7 +16,6 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -141,7 +140,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
 
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, ts)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, isolateClient, ts)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
@@ -545,6 +544,9 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 				spec, err := s.taskCfgCache.GetTaskSpec(ctx, j.RepoState, tsName)
 				if err != nil {
 					return nil, err
+				}
+				if spec.IsolatedFile == nil {
+					return nil, fmt.Errorf("Got task spec with no isolated file: %s:\n%+v", tsName, spec)
 				}
 				c = &taskCandidate{
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
@@ -1041,27 +1043,23 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // taskCandidates.
 func (s *TaskScheduler) isolateTasks(ctx context.Context, rs types.RepoState, candidates []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
-	// Create and check out a temporary repo.
-	return s.taskCfgCache.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
-		// Isolate the tasks.
-		infraBotsDir := path.Join(c.Dir(), "infra", "bots")
-		baseDir := path.Dir(c.Dir())
-		tasks := make([]*isolate.Task, 0, len(candidates))
-		for _, c := range candidates {
-			tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, baseDir))
-		}
-		hashes, err := s.isolate.IsolateTasks(ctx, tasks)
-		if err != nil {
-			return err
-		}
-		if len(hashes) != len(candidates) {
-			return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
-		}
-		for i, c := range candidates {
-			c.IsolatedInput = hashes[i]
-		}
-		return nil
-	})
+	isolatedFiles := make([]*isolate.IsolatedFile, 0, len(candidates))
+	for _, c := range candidates {
+		isolatedFile := c.TaskSpec.IsolatedFile.Copy()
+		isolatedFile.Includes = append(isolatedFile.Includes, c.IsolatedHashes...)
+		isolatedFiles = append(isolatedFiles, isolatedFile)
+	}
+	hashes, err := s.isolate.ReUploadIsolatedFiles(ctx, isolatedFiles)
+	if err != nil {
+		return fmt.Errorf("Failed to re-upload Isolated files: %s", err)
+	}
+	if len(hashes) != len(candidates) {
+		return fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(candidates))
+	}
+	for idx, c := range candidates {
+		c.IsolatedInput = hashes[idx]
+	}
+	return nil
 }
 
 // isolateCandidates uploads inputs for the taskCandidates to the Isolate
@@ -1071,6 +1069,7 @@ func (s *TaskScheduler) isolateTasks(ctx context.Context, rs types.RepoState, ca
 func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*taskCandidate, errCh chan<- error) <-chan *taskCandidate {
 	defer metrics2.FuncTimer().Stop()
 
+	// TODO(borenet): We don't need this any more.
 	// First, group by RepoState since we have to isolate the code at
 	// that state for each task.
 	byRepoState := map[types.RepoState][]*taskCandidate{}
