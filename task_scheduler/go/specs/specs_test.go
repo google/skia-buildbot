@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
@@ -61,8 +62,18 @@ func TestCopyTaskSpec(t *testing.T) {
 		ExtraTags: map[string]string{
 			"dummy_tag": "dummy_val",
 		},
-		IoTimeout:      10 * time.Minute,
-		Isolate:        "abc123",
+		IoTimeout: 10 * time.Minute,
+		Isolate:   "abc123",
+		IsolatedFile: &isolate.IsolatedFile{
+			Algo:    "smrt",
+			Command: []string{"sit", "shake"},
+			Files: map[string]interface{}{
+				"a": "b",
+			},
+			Includes:    []string{"blah"},
+			RelativeCwd: "dot",
+			Version:     "NEW!",
+		},
 		MaxAttempts:    5,
 		Outputs:        []string{"out"},
 		Priority:       19.0,
@@ -100,7 +111,9 @@ func TestTaskSpecs(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -164,7 +177,9 @@ func TestAddedTaskSpecs(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -277,7 +292,9 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -329,7 +346,9 @@ func TestTaskCfgCacheError(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -357,31 +376,40 @@ func TestTaskCfgCacheError(t *testing.T) {
 		return exec.DefaultRun(cmd)
 	})
 	ctx = exec.NewContext(ctx, mock.Run)
-	repoStates := []types.RepoState{
-		types.RepoState{
-			Repo:     rs1.Repo,
-			Revision: rs1.Revision,
-			Patch: types.Patch{
-				Server:   "my-server",
-				Issue:    "12345",
-				Patchset: "1",
-			},
+	rs3 := types.RepoState{
+		Repo:     rs1.Repo,
+		Revision: rs1.Revision,
+		Patch: types.Patch{
+			Server:   "my-server",
+			Issue:    "12345",
+			Patchset: "1",
 		},
 	}
+	repoStates := []types.RepoState{rs3}
+
+	// This is a permanent error. It shouldn't be returned from
+	// GetTaskSpecsForRepoStates, since that would block scheduling
+	// permanently.
 	_, err = cache.GetTaskSpecsForRepoStates(ctx, repoStates)
-	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
+	assert.NoError(t, err)
+	_, err = cache.ReadTasksCfg(ctx, rs3)
+	assert.EqualError(t, err, "error: Failed to merge in the changes.; Stdout+Stderr:\n")
 	assert.Equal(t, 1, botUpdateCount)
 
 	// Try again, assert that we didn't run bot_update again.
 	_, err = cache.GetTaskSpecsForRepoStates(ctx, repoStates)
-	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
+	assert.NoError(t, err)
+	_, err = cache.ReadTasksCfg(ctx, rs3)
+	assert.EqualError(t, err, "error: Failed to merge in the changes.; Stdout+Stderr:\n")
 	assert.Equal(t, 1, botUpdateCount)
 
 	// Create a new cache, assert that it doesn't run bot_update.
-	cache2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache2"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache2"), DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 	_, err = cache2.GetTaskSpecsForRepoStates(ctx, repoStates)
-	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
+	assert.NoError(t, err)
+	_, err = cache2.ReadTasksCfg(ctx, rs3)
+	assert.EqualError(t, err, "error: Failed to merge in the changes.; Stdout+Stderr:\n")
 	assert.Equal(t, 1, botUpdateCount)
 }
 
@@ -617,7 +645,9 @@ func TestTempGitRepoParallel(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	rs := types.RepoState{
@@ -656,7 +686,9 @@ func TestTempGitRepoErr(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	// bot_update will fail to apply the issue if we don't fake it in Git.
@@ -738,11 +770,13 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	check := func(rs ...types.RepoState) {
-		c2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+		c2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, isolateClient, nil)
 		assert.NoError(t, err)
 		expectBotUpdateCount := botUpdateCount
 		for _, r := range rs {

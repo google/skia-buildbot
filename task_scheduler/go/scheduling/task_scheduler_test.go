@@ -1080,7 +1080,9 @@ func TestComputeBlamelist(t *testing.T) {
 	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
 	defer btCleanup()
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1, btProject, btInstance, nil)
+	isolateClient, err := isolate.NewClient(tmp, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1, btProject, btInstance, isolateClient, nil)
 	assert.NoError(t, err)
 
 	ids := []string{}
@@ -3362,8 +3364,7 @@ func TestIsolateTaskFailed(t *testing.T) {
 	defer cleanup()
 
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
-	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 
 	// Create a new commit with a bad isolate.
 	gb.Add(ctx, path.Join("infra", "bots", "dummy.isolate"), `sadkldsafkldsafkl30909098]]]]];;0`)
@@ -3381,22 +3382,23 @@ func TestIsolateTaskFailed(t *testing.T) {
   },
 }`)
 	fix := gb.Commit(ctx)
-
 	commits = append([]string{fix, badCommit}, commits...)
+	badIdx := 1
 
 	// Now we have 9 untested commits. Add 8 more to put the bad commit
 	// right in the middle.
 	for i := 0; i < 8; i++ {
+		badIdx++
 		commits = append([]string{gb.CommitGen(ctx, "dummyfile")}, commits...)
 	}
-
-	// We should run at tip-of-tree, and attempt to run at the bad commit.
-	err := s.MainLoop(ctx)
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "failed to process isolate"))
+	// Expect no error since we don't block scheduling for permanent errors.
+	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
-	assert.Equal(t, 17, len(s.queue))
-	assert.Equal(t, badCommit, s.queue[0].Revision)
+	// The bad commit should not show up in the queue.
+	assert.Equal(t, 16, len(s.queue))
+	for _, c := range s.queue {
+		assert.NotEqual(t, badCommit, c.Revision)
+	}
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
 	assert.NoError(t, err)
 
@@ -3405,15 +3407,15 @@ func TestIsolateTaskFailed(t *testing.T) {
 		for _, task := range byName {
 			if task.Revision == commits[0] {
 				t1 = task
-			} else {
-				assert.FailNow(t, fmt.Sprintf("Task has unknown revision %s: %+v", task.Revision, task))
 			}
+			assert.NotEqual(t, badCommit, task.Revision)
 		}
 	}
 	assert.NotNil(t, t1)
 
-	// Ensure that we got the blamelists right.
-	expect1 := util.CopyStringSlice(commits)
+	// Ensure that we got the blamelists right. We won't have a TasksCfg for
+	// the bad commit, so all blamelists will start with the fix commit.
+	expect1 := util.CopyStringSlice(commits[:badIdx])
 	sort.Strings(expect1)
 	sort.Strings(t1.Commits)
 	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
