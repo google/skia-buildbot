@@ -100,7 +100,7 @@ type ClusterRequestProcess struct {
 	message    string             // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) *ClusterRequestProcess {
+func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
 	ret := &ClusterRequestProcess{
 		request:                  req,
 		git:                      git,
@@ -117,20 +117,21 @@ func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, 
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 		iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
 		if err != nil {
-			sklog.Errorf("Failed to create iterator: %s", err)
-			ret.state = PROCESS_ERROR
-			ret.message = "Failed to create initial dataframe."
+			return nil, fmt.Errorf("Failed to create iterator: %s", err)
 		} else {
 			ret.iter = iter
 		}
 	}
-	return ret
+	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) *ClusterRequestProcess {
-	ret := newProcess(ctx, req, git, cidl, dfBuilder, clusterResponseProcessor)
+func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
+	ret, err := newProcess(ctx, req, git, cidl, dfBuilder, clusterResponseProcessor)
+	if err != nil {
+		return nil, err
+	}
 	go ret.Run(ctx)
-	return ret
+	return ret, nil
 }
 
 // RunningClusterRequests keeps track of all the ClusterRequestProcess's.
@@ -187,7 +188,7 @@ func (fr *RunningClusterRequests) background() {
 // Add starts a new running ClusterRequestProcess and returns
 // the ID of the process to be used in calls to Status() and
 // Response().
-func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) string {
+func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) (string, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	if req.Interesting == 0 {
@@ -202,9 +203,13 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 	}
 	clusterResponseProcessor := func(resps []*ClusterResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		fr.inProcess[id] = newRunningProcess(ctx, req, fr.git, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
+		proc, err := newRunningProcess(ctx, req, fr.git, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
+		if err != nil {
+			return "", err
+		}
+		fr.inProcess[id] = proc
 	}
-	return id
+	return id, nil
 }
 
 // Status returns the ProcessingState and the message of a

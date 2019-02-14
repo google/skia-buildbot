@@ -1,23 +1,25 @@
 package dataframe
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
-// Refresher keeps a fresh DataFrame of the last DEFAULT_NUM_COMMITS commits.
+// Refresher keeps a fresh DataFrame.
+//
+// N.B. that the Paramset and keys of TraceSet are valid.  The Header and the
+// values of the traces in the TraceSet are not representative of a full tile.
 type Refresher struct {
-	n         int // Number of commits in the DataFrame.
-	vcs       vcsinfo.VCS
-	df        *DataFrame
+	numTiles  int
 	period    time.Duration
-	mutex     sync.Mutex
 	dfBuilder DataFrameBuilder
+
+	mutex sync.Mutex // protects df.
+	df    *DataFrame
 }
 
 // NewRefresher creates a new Refresher that updates the dataframe every
@@ -26,25 +28,21 @@ type Refresher struct {
 // A non-nil error will be returned if the initial DataFrame cannot be
 // populated. I.e. if NewRefresher returns w/o error than the caller
 // can be assured that Get() will return a non-nil DataFrame.
-func NewRefresher(ctx context.Context, vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration, n int) (*Refresher, error) {
+func NewRefresher(dfBuilder DataFrameBuilder, period time.Duration, numTiles int) (*Refresher, error) {
 	ret := &Refresher{
-		vcs:       vcs,
 		dfBuilder: dfBuilder,
 		period:    period,
-		n:         n,
+		numTiles:  numTiles,
 	}
-	if err := ret.oneStep(ctx); err != nil {
+	if err := ret.oneStep(); err != nil {
 		return nil, fmt.Errorf("Failed to build the initial DataFrame: %s", err)
 	}
-	go ret.refresh(ctx)
+	go ret.refresh()
 	return ret, nil
 }
 
-func (f *Refresher) oneStep(ctx context.Context) error {
-	if err := f.vcs.Update(ctx, true, false); err != nil {
-		sklog.Errorf("Failed to update repo: %s", err)
-	}
-	newDf, err := f.dfBuilder.NewN(nil, f.n)
+func (f *Refresher) oneStep() error {
+	newDf, err := f.dfBuilder.NewKeysOnly(f.numTiles)
 	if err != nil {
 		return err
 	}
@@ -54,15 +52,20 @@ func (f *Refresher) oneStep(ctx context.Context) error {
 	return nil
 }
 
-func (f *Refresher) refresh(ctx context.Context) {
+func (f *Refresher) refresh() {
+	stepFailures := metrics2.GetCounter("dataframe_refresh_failures", nil)
 	for range time.Tick(f.period) {
-		if err := f.oneStep(ctx); err != nil {
+		if err := f.oneStep(); err != nil {
 			sklog.Errorf("Failed to refresh the DataFrame: %s", err)
+			stepFailures.Inc(1)
 		}
 	}
 }
 
 // Get returns a DataFrame. It is not safe for modification, only for reading.
+//
+// N.B. that the Paramset and keys of TraceSet are valid.  The Header and the
+// values of the traces in the TraceSet are not representative of a full tile.
 func (f *Refresher) Get() *DataFrame {
 	f.mutex.Lock()
 	defer f.mutex.Unlock()

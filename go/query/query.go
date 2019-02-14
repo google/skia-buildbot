@@ -215,6 +215,16 @@ type Query struct {
 	params []queryParam
 }
 
+// String returns a minimal string representation of the Query.
+func (q *Query) String() string {
+	ret := []string{}
+	for _, p := range q.params {
+		ret = append(ret, p.values...)
+		ret = append(ret, " ")
+	}
+	return strings.Join(ret, "")
+}
+
 // New creates a Query from the given url.Values. It represents a query to be
 // used against keys.
 func New(q url.Values) (*Query, error) {

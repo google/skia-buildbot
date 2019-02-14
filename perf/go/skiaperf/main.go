@@ -102,6 +102,7 @@ var (
 	namespace             = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
 	numContinuous         = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
 	numShift              = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
+	numTilesRefresher     = flag.Int("num_tiles_refresher", 2, "The number of tiles to load in the dataframe.Refresher.")
 	port                  = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	projectName           = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -273,14 +274,14 @@ func Init() {
 	}
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
 
+	sklog.Info("About to build cidl.")
+	cidl = cid.New(ctx, git, *gitRepoUrl)
+
 	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(ctx, git, dfBuilder, time.Minute, *dataFrameSize)
+	freshDataFrame, err = dataframe.NewRefresher(dfBuilder, 15*time.Minute, *numTilesRefresher)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
-
-	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, git, *gitRepoUrl)
 
 	alerts.DefaultSparse = *defaultSparse
 
@@ -383,14 +384,14 @@ func alertsHandler(w http.ResponseWriter, r *http.Request) {
 
 func initpageHandler(w http.ResponseWriter, r *http.Request) {
 	df := freshDataFrame.Get()
-	resp, err := dataframe.ResponseFromDataFrame(context.Background(), &dataframe.DataFrame{
-		Header:   df.Header,
-		ParamSet: df.ParamSet,
-		TraceSet: types.TraceSet{},
-	}, git, false, r.FormValue("tz"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to load init data.")
-		return
+
+	resp := &dataframe.FrameResponse{
+		DataFrame: &dataframe.DataFrame{
+			ParamSet: df.ParamSet,
+		},
+		Ticks: []interface{}{},
+		Skps:  []int{},
+		Msg:   "",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -412,15 +413,15 @@ type RangeRequest struct {
 // and returns a serialized JSON slice of cid.CommitDetails.
 func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	rr := &RangeRequest{}
-	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
+	var rr RangeRequest
+	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to decode JSON.")
 		return
 	}
 
-	df := freshDataFrame.Get()
-	begin := df.Header[0].Timestamp
-	end := df.Header[len(df.Header)-1].Timestamp
+	now := time.Now()
+	begin := now.Add(-24 * time.Hour).Unix()
+	end := now.Unix()
 	var err error
 	if rr.Begin != 0 || rr.End != 0 {
 		if rr.Begin != 0 {
@@ -429,8 +430,8 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 		if rr.End != 0 {
 			end = rr.End
 		}
-		df = dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0), false)
 	}
+	df := dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0), false)
 
 	found := false
 	cids := []*cid.CommitID{}
@@ -645,8 +646,13 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Could not decode POST body.")
 		return
 	}
+	id, err := clusterRequests.Add(context.Background(), req)
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
 	resp := ClusterStartResponse{
-		ID: clusterRequests.Add(context.Background(), req),
+		ID: id,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
