@@ -288,9 +288,9 @@
       // Populate the query element.
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       sk.get("/_/initpage/?tz=" + tz).then(JSON.parse).then(function(json) {
-        var header = json.dataframe.header;
-        this.state.begin = header[0].timestamp;
-        this.state.end   = header[header.length-1].timestamp+1;
+        let now = Math.floor(Date.now()/1000);
+        this.state.begin = now - 60*60*24;
+        this.state.end   = now;
         this.$.range.state = this.state;
 
         this.$.query.setKeyOrder(sk.perf.key_order);
@@ -567,6 +567,10 @@
     _addTraces: function(json, incremental, tab) {
       var dataframe = json.dataframe;
       var lines = {};
+
+      if (dataframe.traceset === null) {
+        return
+      }
 
       // Add in the 0-trace.
       if (this.state.show_zero) {
