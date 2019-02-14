@@ -50,3 +50,7 @@ Commands
 
      cbt createtable skia families=V:maxversions=1,S:maxversions=1,D:maxversions=1
 
+Read all the OPS hashes from the android table in the perf-bt instance.
+
+     cbt --instance perf-bt read android prefix=@ columns=D:H
+
