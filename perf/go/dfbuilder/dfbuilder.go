@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
@@ -22,7 +23,7 @@ import (
 )
 
 const (
-	NEW_N_FROM_KEY_STEP = 4 * 24 * time.Hour
+	NEW_N_FROM_KEY_STEP = 10 * 24 * time.Hour
 )
 
 // builder implements DataFrameBuilder using btts.
@@ -507,6 +508,54 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	}
 
 	return ret, nil
+}
+
+func (b *builder) tracelessStep(tileKey btts.TileKey, keys *util.StringSet, ps *paramtools.ParamSet) {
+	ops, err := b.store.GetOrderedParamSet(tileKey)
+	if err != nil {
+		return
+	}
+	(*ps).AddParamSet(ops.ParamSet)
+	encodedKeys, err := b.store.TileKeys(tileKey)
+	if err != nil {
+		return
+	}
+
+	for _, encodedKey := range encodedKeys {
+		p, err := ops.DecodeParamsFromString(encodedKey)
+		if err != nil {
+			continue
+		}
+		if key, err := query.MakeKeyFast(p); err == nil {
+			(*keys)[key] = true
+		}
+	}
+}
+
+// See DataFrameBuilder.
+func (b *builder) NewTraceless(numTiles int) (*dataframe.DataFrame, error) {
+	keys := util.StringSet{}
+	ps := paramtools.ParamSet{}
+
+	tileKey, err := b.store.GetLatestTile()
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < numTiles; i++ {
+		b.tracelessStep(tileKey, &keys, &ps)
+		tileKey = tileKey.PrevTile()
+	}
+	if len(keys) == 0 {
+		return nil, fmt.Errorf("Failed to find any traces.")
+	}
+	ts := types.TraceSet{}
+	for _, key := range keys.Keys() {
+		ts[key] = types.Trace{}
+	}
+	return &dataframe.DataFrame{
+		TraceSet: ts,
+		ParamSet: ps,
+	}, nil
 }
 
 // Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.
