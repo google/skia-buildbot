@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8891a969_8d790f16",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-14T17:32:49Z",
+      "side": 1,
+      "message": "nit: IMO it\u0027s confusing to label this as Android, since it\u0027s used for non-Android bare-metal perf tasks.",
+      "range": {
+        "startLine": 341,
+        "startChar": 6,
+        "endLine": 341,
+        "endChar": 13
+      },
+      "revId": "b9773bdc34090b4bfbb8aa5d657b080178542b5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9342d9ca_ac7d307c",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-14T17:32:49Z",
+      "side": 1,
+      "message": "nit: might as well add Windows",
+      "revId": "b9773bdc34090b4bfbb8aa5d657b080178542b5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
