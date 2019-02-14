@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/btts"
@@ -22,7 +23,13 @@ import (
 )
 
 const (
-	NEW_N_FROM_KEY_STEP = 4 * 24 * time.Hour
+	// NEW_N_FROM_KEY_STEP is the length of time to do a search for each step
+	// when constructing a NewN* query.
+	NEW_N_FROM_KEY_STEP = 12 * time.Hour
+
+	// NEW_N_MAX_SEARCH is the minimum number of NEW_N_FROM_KEY_STEP queries to
+	// perform that returned no data before giving up.
+	NEW_N_MAX_SEARCH = 4
 )
 
 // builder implements DataFrameBuilder using btts.
@@ -326,11 +333,13 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	sklog.Infof("Querying to: %v", end)
 	begin := end.Add(-NEW_N_FROM_KEY_STEP)
 
 	ret := dataframe.NewEmpty()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
+	numStepsNoData := 0
 
 	for total < n {
 		endIndex, err := b.findIndexForTime(ctx, end)
@@ -344,6 +353,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if endIndex == beginIndex {
 			break
 		}
+		sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 
 		// Query for traces.
 		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
@@ -355,8 +365,12 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 			return nil, fmt.Errorf("Failed while querying: %s", err)
 		}
 
-		// If there are no matches then we're done.
+		// If there are no matches then we might be done.
 		if len(df.TraceSet) == 0 {
+			numStepsNoData += 1
+		}
+		if numStepsNoData > NEW_N_MAX_SEARCH {
+			sklog.Infof("Failed querying: %s", q)
 			break
 		}
 
@@ -368,18 +382,6 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 					counts[i] += 1
 				}
 			}
-		}
-
-		// If we have no data for any commit then we are done.
-		done := true
-		for _, count := range counts {
-			if count > 0 {
-				done = false
-				break
-			}
-		}
-		if done {
-			break
 		}
 
 		ret.ParamSet.AddParamSet(df.ParamSet)
@@ -402,6 +404,11 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 					break
 				}
 			}
+		}
+		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d", total, steps, numStepsNoData)
+
+		if total == n {
+			break
 		}
 
 		if progress != nil {
@@ -433,6 +440,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	ret := dataframe.NewEmpty()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
+	numStepsNoData := 0
 
 	for total < n {
 		df, err := b.NewFromKeysAndRange(keys, begin, end, false, nil)
@@ -440,8 +448,11 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 			return nil, fmt.Errorf("Failed while querying: %s", err)
 		}
 
-		// If there are no matches then we're done.
+		// If there are no matches then we might be done.
 		if len(df.TraceSet) == 0 {
+			numStepsNoData += 1
+		}
+		if numStepsNoData > NEW_N_MAX_SEARCH {
 			break
 		}
 
@@ -453,18 +464,6 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 					counts[i] += 1
 				}
 			}
-		}
-
-		// If we have no data for any commit then we are done.
-		done := true
-		for _, count := range counts {
-			if count > 0 {
-				done = false
-				break
-			}
-		}
-		if done {
-			break
 		}
 
 		ret.ParamSet.AddParamSet(df.ParamSet)
@@ -489,6 +488,12 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 			}
 		}
 
+		sklog.Infof("Total: %d Steps: %d NumStepsNoData: %d", total, steps, numStepsNoData)
+
+		if total == n {
+			break
+		}
+
 		if progress != nil {
 			progress(steps, steps+1)
 		}
@@ -507,6 +512,56 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	}
 
 	return ret, nil
+}
+
+func (b *builder) tracelessStep(tileKey btts.TileKey, keys *util.StringSet, ps *paramtools.ParamSet) {
+	ops, err := b.store.GetOrderedParamSet(tileKey)
+	if err != nil {
+		return
+	}
+	(*ps).AddParamSet(ops.ParamSet)
+	encodedKeys, err := b.store.TileKeys(tileKey)
+	if err != nil {
+		return
+	}
+
+	for _, encodedKey := range encodedKeys {
+		p, err := ops.DecodeParamsFromString(encodedKey)
+		if err != nil {
+			continue
+		}
+		if key, err := query.MakeKeyFast(p); err == nil {
+			(*keys)[key] = true
+		}
+	}
+}
+
+// See DataFrameBuilder.
+func (b *builder) NewKeysOnly(numTiles int) (*dataframe.DataFrame, error) {
+	keys := util.StringSet{}
+	ps := paramtools.ParamSet{}
+
+	tileKey, err := b.store.GetLatestTile()
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < numTiles; i++ {
+		b.tracelessStep(tileKey, &keys, &ps)
+		tileKey = tileKey.PrevTile()
+	}
+	if len(keys) == 0 {
+		return nil, fmt.Errorf("Failed to find any traces.")
+	}
+	ts := types.TraceSet{}
+	for _, key := range keys.Keys() {
+		ts[key] = types.Trace{}
+	}
+	ps.Normalize()
+
+	return &dataframe.DataFrame{
+		TraceSet: ts,
+		ParamSet: ps,
+	}, nil
 }
 
 // Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.
