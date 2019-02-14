@@ -36,7 +36,7 @@ func (d *firestoreDB) taskSpecComments() *fs.CollectionRef {
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*types.RepoComments, error) {
-	from = fixTimestamp(from)
+	from = FixTimestamp(from)
 	// TODO(borenet): We should come up with something more efficient, but
 	// this is convenient because it doesn't require composite indexes.
 	commentsByRepo := make(map[string]*types.RepoComments, len(repos))
@@ -111,12 +111,12 @@ func (d *firestoreDB) GetCommentsForRepos(repos []string, from time.Time) ([]*ty
 
 // taskCommentId returns an ID for the TaskComment.
 func taskCommentId(c *types.TaskComment) string {
-	return fmt.Sprintf("%s#%s#%s#%s", url.QueryEscape(c.Repo), c.Revision, c.Name, fixTimestamp(c.Timestamp).Format(util.SAFE_TIMESTAMP_FORMAT))
+	return fmt.Sprintf("%s#%s#%s#%s", url.QueryEscape(c.Repo), c.Revision, c.Name, FixTimestamp(c.Timestamp).Format(util.SAFE_TIMESTAMP_FORMAT))
 }
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) PutTaskComment(c *types.TaskComment) error {
-	c.Timestamp = fixTimestamp(c.Timestamp)
+	c.Timestamp = FixTimestamp(c.Timestamp)
 	id := taskCommentId(c)
 	_, err := d.client.Create(d.taskComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
@@ -159,7 +159,7 @@ func taskSpecCommentId(c *types.TaskSpecComment) string {
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) PutTaskSpecComment(c *types.TaskSpecComment) error {
-	c.Timestamp = fixTimestamp(c.Timestamp)
+	c.Timestamp = FixTimestamp(c.Timestamp)
 	id := taskSpecCommentId(c)
 	_, err := d.client.Create(d.taskSpecComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {
@@ -202,7 +202,7 @@ func commitCommentId(c *types.CommitComment) string {
 
 // See documentation for db.CommentDB interface.
 func (d *firestoreDB) PutCommitComment(c *types.CommitComment) error {
-	c.Timestamp = fixTimestamp(c.Timestamp)
+	c.Timestamp = FixTimestamp(c.Timestamp)
 	id := commitCommentId(c)
 	_, err := d.client.Create(d.commitComments().Doc(id), c, DEFAULT_ATTEMPTS, PUT_SINGLE_TIMEOUT)
 	if st, ok := status.FromError(err); ok && st.Code() == codes.AlreadyExists {

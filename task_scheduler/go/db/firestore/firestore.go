@@ -48,7 +48,7 @@ const (
 
 // Fix the given timestamp. Firestore only supports microsecond precision, and
 // we always want to store UTC.
-func fixTimestamp(t time.Time) time.Time {
+func FixTimestamp(t time.Time) time.Time {
 	return t.UTC().Truncate(firestore.TS_RESOLUTION)
 }
 
@@ -105,8 +105,8 @@ func estResultSize(chunkSize time.Duration) int {
 //    for a mutex.
 func (d *firestoreDB) dateRangeHelper(name string, coll *fs.CollectionRef, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
 	// Adjust start and end times for Firestore resolution.
-	start = fixTimestamp(start)
-	end = fixTimestamp(end.Add(firestore.TS_RESOLUTION - time.Nanosecond))
+	start = FixTimestamp(start)
+	end = FixTimestamp(end.Add(firestore.TS_RESOLUTION - time.Nanosecond))
 
 	// Load tasks in at most N goroutines.
 	dateRange := end.Sub(start)

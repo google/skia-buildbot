@@ -20,10 +20,11 @@ const (
 )
 
 // Fix all timestamps for the given job.
-func fixJobTimestamps(job *types.Job) {
-	job.Created = fixTimestamp(job.Created)
-	job.DbModified = fixTimestamp(job.DbModified)
-	job.Finished = fixTimestamp(job.Finished)
+// DO NOT SUBMIT: probably shouldn't be public
+func FixJobTimestamps(job *types.Job) {
+	job.Created = FixTimestamp(job.Created)
+	job.DbModified = FixTimestamp(job.DbModified)
+	job.Finished = FixTimestamp(job.Finished)
 }
 
 // jobs returns a reference to the jobs collection.
@@ -149,7 +150,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 
 	// Record the previous ID and DbModified timestamp. We'll reset these
 	// if we fail to insert the jobs into the DB.
-	now := fixTimestamp(time.Now())
+	now := FixTimestamp(time.Now())
 	isNew := make([]bool, len(jobs))
 	prevId := make([]string, len(jobs))
 	prevModified := make([]time.Time, len(jobs))
@@ -179,7 +180,7 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 			job.Id = d.jobs().NewDoc().ID
 		}
 		job.DbModified = now
-		fixJobTimestamps(job)
+		FixJobTimestamps(job)
 	}
 
 	// Insert the jobs into the DB.

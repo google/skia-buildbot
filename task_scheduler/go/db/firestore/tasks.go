@@ -20,11 +20,12 @@ const (
 )
 
 // Fix all timestamps for the given task.
-func fixTaskTimestamps(task *types.Task) {
-	task.Created = fixTimestamp(task.Created)
-	task.DbModified = fixTimestamp(task.DbModified)
-	task.Finished = fixTimestamp(task.Finished)
-	task.Started = fixTimestamp(task.Started)
+// DO NOT SUBMIT: probably shouldn't be public
+func FixTaskTimestamps(task *types.Task) {
+	task.Created = FixTimestamp(task.Created)
+	task.DbModified = FixTimestamp(task.DbModified)
+	task.Finished = FixTimestamp(task.Finished)
+	task.Started = FixTimestamp(task.Started)
 }
 
 // tasks returns a reference to the tasks collection.
@@ -158,7 +159,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 
 	// Record the previous ID and DbModified timestamp. We'll reset these
 	// if we fail to insert the tasks into the DB.
-	now := fixTimestamp(time.Now())
+	now := FixTimestamp(time.Now())
 	isNew := make([]bool, len(tasks))
 	prevId := make([]string, len(tasks))
 	prevModified := make([]time.Time, len(tasks))
@@ -190,7 +191,7 @@ func (d *firestoreDB) PutTasks(tasks []*types.Task) (rvErr error) {
 			}
 		}
 		task.DbModified = now
-		fixTaskTimestamps(task)
+		FixTaskTimestamps(task)
 	}
 
 	// Insert the tasks into the DB.
