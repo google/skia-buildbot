@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math"
 	"net/url"
+	"sort"
 	"testing"
 	"time"
 
@@ -134,6 +135,11 @@ func TestTraces(t *testing.T) {
 		",0=1,1=0,": vec2,
 	}
 	assert.Equal(t, expected, results)
+
+	keys, err := b.TileKeys(tileKey)
+	assert.NoError(t, err)
+	sort.Strings(keys)
+	assert.Equal(t, []string{",0=0,1=0,", ",0=0,1=1,", ",0=1,1=0,", ",0=1,1=1,"}, keys)
 
 	// Now overwrite a value.
 	values = map[string]float32{
