@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
 	"golang.org/x/oauth2"
@@ -266,6 +267,7 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 
 // GetOrderedParamSet returns the OPS for the given tile.
 func (b *BigTableTraceStore) GetOrderedParamSet(tileKey TileKey) (*paramtools.OrderedParamSet, error) {
+	sklog.Infof("OPS for %d", tileKey.Offset())
 	entry, _, err := b.getOPS(tileKey)
 	if err != nil {
 		return nil, err
@@ -449,6 +451,49 @@ func (b *BigTableTraceStore) QueryCount(tileKey TileKey, q *regexp.Regexp) (int6
 	}
 
 	return ret, nil
+}
+
+// TileKeys returns all the keys for the given tile..
+func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
+	var g errgroup.Group
+
+	// Track the StringSets, one per shard.
+	stringSets := []*util.StringSet{}
+	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	defer cancel()
+
+	// Spawn one Go routine for each shard.
+	for i := int32(0); i < b.shards; i++ {
+		i := i
+		ss := util.StringSet{}
+		stringSets = append(stringSets, &ss)
+		g.Go(func() error {
+			return b.getTable().ReadRows(tctx, bigtable.PrefixRange(tileKey.TraceRowPrefix(i)), func(row bigtable.Row) bool {
+				parts := strings.Split(row.Key(), ":")
+				ss[parts[2]] = true
+				return true
+			}, bigtable.RowFilter(
+				bigtable.ChainFilters(
+					bigtable.LatestNFilter(1),
+					bigtable.FamilyFilter(VALUES_FAMILY),
+					bigtable.CellsPerRowLimitFilter(1),
+					bigtable.StripValueFilter(),
+				)))
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("Failed to query: %s", err)
+	}
+
+	// Now sum up all the StringSets.
+	total := util.StringSet{}
+	for _, ss := range stringSets {
+		for val := range *ss {
+			total[val] = true
+		}
+	}
+
+	return total.Keys(), nil
 }
 
 // GetSource returns the full GCS URL of the file that contained the point at 'index' of trace 'traceId'.
