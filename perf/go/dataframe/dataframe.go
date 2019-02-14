@@ -58,8 +58,13 @@ type DataFrameBuilder interface {
 	// points ending at the given 'end' time for the given keys.
 	NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*DataFrame, error)
 
+	// NewTraceless is a dataframe built for the most recent numTiles Tiles
+	// that has no data in it. Used for the dataframe Refresher.
+	NewTraceless(numTiles int) (*DataFrame, error)
+
 	// TODO Add func to count matches.
 	// TODO Add func to get merged paramset for a date range.
+
 }
 
 // ColumnHeader describes each column in a DataFrame.
