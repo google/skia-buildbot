@@ -114,6 +114,30 @@ $gitstatus = (cmd /c "git.bat status") | Out-String
 log $gitstatus
 Set-Location -Path $userDir
 
+$hostname =(cmd /c "hostname") | Out-String
+if ($hostname.StartsWith("ct-windows-builder") {
+  banner "Check out Chromium repository"
+  $chromiumCheckout = "c:\b\storage\chromium"
+  if (!(Test-Path ($chromiumCheckout))) {
+    Set-Location -Path $chromiumCheckout
+    Try {
+      cmd /c "fetch.bat chromium"
+    } Catch {
+      log "fetch.bat chromium failed:"
+      log $_.Exception.Message
+    }
+
+    $chromiumSrcDir = "$chromiumCheckout\src"
+    Set-Location -Path $chromiumSrcDir
+    log "git checkout master"
+    cmd /c "git.bat checkout master"
+    log "gclient sync"
+    cmd /c "gclient.bat sync"
+
+    Set-Location -Path $userDir
+  }
+}
+
 banner "Copy .boto file"
 $shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
 
@@ -135,8 +159,7 @@ $swarm_slave_dir = "c:\b\s"
 if (!(Test-Path ($swarm_slave_dir))) {
   new-item $swarm_slave_dir -itemtype directory
   $swarming = "https://chromium-swarm.appspot.com"
-  $hostname =(cmd /c "hostname") | Out-String
-  if ($hostname.StartsWith("skia-i-")) {
+  if ($hostname.StartsWith("skia-i-")) or ($hostname.StartsWith("ct-")) {
     $swarming = "https://chrome-swarming.appspot.com"
   }
   $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} -UseBasicParsing | ConvertFrom-Json

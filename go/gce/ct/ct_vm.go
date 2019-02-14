@@ -7,10 +7,15 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"path"
+	"path/filepath"
+	"runtime"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/ct/instance_types"
+	skia_instance_types "go.skia.org/infra/go/gce/swarming/instance_types"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -20,10 +25,12 @@ var (
 	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
 	androidBuilder = flag.Bool("android-builder", false, "Whether or not this is an android builder instance.")
 	linuxBuilder   = flag.Bool("linux-builder", false, "Whether or not this is a linux builder instance.")
+	windowsBuilder = flag.Bool("windows-builder", false, "Whether or not this is a windows builder instance.")
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	delete         = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")
 	deleteDataDisk = flag.Bool("delete-data-disk", false, "Delete the data disk. Only valid with --delete")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
+	workdir        = flag.String("workdir", ".", "Working directory.")
 )
 
 func main() {
@@ -34,8 +41,10 @@ func main() {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
 	}
 
-	if *androidBuilder && *linuxBuilder {
-		sklog.Fatal("Cannot specify both --android-builder and --linux-builder.")
+	// Get the absolute workdir.
+	wdAbs, err := filepath.Abs(*workdir)
+	if err != nil {
+		sklog.Fatal(err)
 	}
 
 	instanceNums, err := util.ParseIntSet(*instances)
@@ -69,6 +78,21 @@ func main() {
 			vm = instance_types.CTAndroidBuilderInstance(num)
 		} else if *linuxBuilder {
 			vm = instance_types.CTLinuxBuilderInstance(num)
+		} else if *windowsBuilder {
+			_, filename, _, _ := runtime.Caller(0)
+			checkoutRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
+			setupScript, startupScript, chromebotScript, err := skia_instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			fmt.Sprintf("HERE HERE")
+			fmt.Println("setupScript")
+			fmt.Println(setupScript)
+			fmt.Println("startupScript")
+			fmt.Println(startupScript)
+			fmt.Println("chromebotScript")
+			fmt.Println(chromebotScript)
+			vm = instance_types.CTWindowsBuilderInstance(num, setupScript, startupScript, chromebotScript)
 		} else {
 			vm = instance_types.CTInstance(num)
 		}

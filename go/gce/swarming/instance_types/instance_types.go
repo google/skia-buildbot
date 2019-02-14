@@ -161,19 +161,19 @@ func addWinConfigs(vm *gce.Instance, startupScriptPath, chromebotScript string) 
 }
 
 // Windows GCE instances.
-func winSwarmingBot(num int, machineType, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, WIN_SOURCE_IMAGE)
+func WinSwarmingBot(name, machineType, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, WIN_SOURCE_IMAGE)
 	return addWinConfigs(vm, startupScriptPath, chromebotScript)
 }
 
 // Medium Windows GCE instances.
 func WinMedium(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return winSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript)
+	return WinSwarmingBot(fmt.Sprintf("skia-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Large Windows GCE instances.
 func WinLarge(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return winSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript)
+	return WinSwarmingBot(fmt.Sprintf("skia-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript)
 }
 
 // Returns the path to the setup script, given a local checkout.

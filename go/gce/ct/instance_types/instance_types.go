@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
+	skia_instance_types "go.skia.org/infra/go/gce/swarming/instance_types"
 )
 
 const (
@@ -86,4 +87,9 @@ func CTLinuxBuilderInstance(num int) *gce.Instance {
 	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num), true /* useSSDDataDisk */)
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
 	return vm
+}
+
+// CT Windows Builder GCE instnaces.
+func CTWindowsBuilderInstance(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	return skia_instance_types.WinSwarmingBot(fmt.Sprintf("ct-windows-builder-%03d", num), gce.MACHINE_TYPE_HIGHMEM_64, setupScriptPath, startupScriptPath, chromebotScript)
 }
