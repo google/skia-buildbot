@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9e7d84a1_bd1794fc",
+        "filename": "task_scheduler/go/db/validate/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-14T12:42:03Z",
+      "side": 1,
+      "message": "I know you\u0027re also printing out the IDs of the invalid tasks, but it might be nice if this was a slice instead of just a count.  That way we could generate a report at the end.",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 18
+      },
+      "revId": "e8b8401c6dfd926bd58509f35a449accfac17680",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
