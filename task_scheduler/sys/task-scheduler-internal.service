@@ -10,6 +10,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --bigtable_instance=internal \
     --gsBucket=skia-task-scheduler-internal \
     --host=task-scheduler-internal.skia.org \
+    --firestore_instance=internal \
     --isolate_server=https://chrome-isolated.appspot.com \
     --logtostderr \
     --pool=SkiaInternal \
