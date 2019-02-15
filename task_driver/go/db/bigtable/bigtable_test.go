@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/bt"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_driver/go/db"
@@ -13,11 +12,7 @@ import (
 
 func setup(t *testing.T) (db.DB, func()) {
 	testutils.LargeTest(t)
-	project, instance, cleanup := bt_testutil.SetupBigTable(t, bt.TableConfig{
-		BT_TABLE: {
-			BT_COLUMN_FAMILY,
-		},
-	})
+	project, instance, cleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
 
 	d, err := NewBigTableDB(context.Background(), project, instance, nil)
 	assert.NoError(t, err)
