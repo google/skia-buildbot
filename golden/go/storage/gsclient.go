@@ -85,18 +85,22 @@ func (g *GStorageClient) WriteBaseLine(baseLine *baseline.CommitableBaseLine) (s
 func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseline.CommitableBaseLine, error) {
 	baselinePath := g.getBaselinePath(commitHash, issueID)
 	bucketName, storagePath := gcs.SplitGSPath(baselinePath)
+	sklog.Infof("Starting to read %s", baselinePath)
 
 	ctx := context.Background()
 	target := g.storageClient.Bucket(bucketName).Object(storagePath)
 
 	_, err := target.Attrs(ctx)
 	if err != nil {
+		sklog.Infof("Could not find %s", baselinePath)
 		// If the item doesn't exist we return nil
 		if err == gstorage.ErrObjectNotExist {
 			return nil, nil
 		}
 		return nil, sklog.FmtErrorf("Error fetching attributes of baseline file: %s", err)
 	}
+
+	sklog.Infof("Fetching %s", baselinePath)
 
 	reader, err := target.NewReader(ctx)
 	if err != nil {
@@ -108,6 +112,7 @@ func (g *GStorageClient) ReadBaseline(commitHash string, issueID int64) (*baseli
 	if err := json.NewDecoder(reader).Decode(ret); err != nil {
 		return nil, sklog.FmtErrorf("Error decoding baseline file: %s", err)
 	}
+	sklog.Infof("Done reading %s", baselinePath)
 	return ret, nil
 }
 
