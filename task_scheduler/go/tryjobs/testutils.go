@@ -14,7 +14,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	"go.skia.org/infra/go/buildbucket"
-	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -84,6 +83,8 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	assert.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
 	gb.Add(ctx, tasksJson, testTasksCfg)
+	gb.Add(ctx, path.Join("infra", "bots", "fake1.isolate"), "{}")
+	gb.Add(ctx, path.Join("infra", "bots", "fake2.isolate"), "{}")
 	gb.Commit(ctx)
 
 	rs := types.RepoState{
@@ -111,7 +112,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, nil)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, btProject, btInstance, nil)
 	assert.NoError(t, err)
 	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"), nil)
 	assert.NoError(t, err)

@@ -15,10 +15,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -29,7 +27,6 @@ import (
 
 const (
 	DEFAULT_TASK_SPEC_MAX_ATTEMPTS = types.DEFAULT_MAX_TASK_ATTEMPTS
-	DEFAULT_NUM_WORKERS            = 10
 
 	// The default JobSpec.Priority, when unspecified or invalid.
 	DEFAULT_JOB_SPEC_PRIORITY = 0.5
@@ -110,6 +107,17 @@ var (
 	PERIODIC_TRIGGERS = []string{TRIGGER_NIGHTLY, TRIGGER_WEEKLY}
 )
 
+// ErrorIsPermanent returns true if the given error cannot be recovered by
+// retrying. In this case, we will never be able to process the TasksCfg,
+// so we might as well cancel the jobs.
+func ErrorIsPermanent(err error) bool {
+	return (strings.Contains(err.Error(), "error: Failed to merge in the changes.") ||
+		strings.Contains(err.Error(), "Failed to apply patch") ||
+		strings.Contains(err.Error(), "failed to process isolate") ||
+		strings.Contains(err.Error(), "Failed to read tasks cfg: could not parse file:") ||
+		strings.Contains(err.Error(), "Invalid TasksCfg"))
+}
+
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
 func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	var rv TasksCfg
@@ -146,6 +154,10 @@ func EncodeTasksCfg(cfg *TasksCfg) ([]byte, error) {
 func ReadTasksCfg(repoDir string) (*TasksCfg, error) {
 	contents, err := ioutil.ReadFile(path.Join(repoDir, TASKS_CFG_FILE))
 	if err != nil {
+		// A nonexistent tasks.json file is valid; return an empty config.
+		if os.IsNotExist(err) {
+			return &TasksCfg{}, nil
+		}
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not read file: %s", err)
 	}
 	return ParseTasksCfg(string(contents))
@@ -176,12 +188,12 @@ type TasksCfg struct {
 func (c *TasksCfg) Validate() error {
 	for _, t := range c.Tasks {
 		if err := t.Validate(c); err != nil {
-			return err
+			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
 	}
 
 	if err := findCycles(c.Tasks, c.Jobs); err != nil {
-		return err
+		return fmt.Errorf("Invalid TasksCfg: %s", err)
 	}
 
 	return nil
@@ -236,6 +248,11 @@ type TaskSpec struct {
 
 	// Isolate is the name of the isolate file used by this task.
 	Isolate string `json:"isolate"`
+
+	// IsolatedFile is the isolated obtained by isolating this task using
+	// the given Isolate file. Used internally by the Task Scheduler; not to
+	// be supplied by tasks.json.
+	IsolatedFile *isolate.IsolatedFile `json:"-"`
 
 	// MaxAttempts is the maximum number of attempts for this TaskSpec. If
 	// zero, DEFAULT_TASK_SPEC_MAX_ATTEMPTS is used.
@@ -327,6 +344,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 		ExtraTags:        extraTags,
 		IoTimeout:        t.IoTimeout,
 		Isolate:          t.Isolate,
+		IsolatedFile:     t.IsolatedFile.Copy(),
 		MaxAttempts:      t.MaxAttempts,
 		Outputs:          outputs,
 		Priority:         t.Priority,
@@ -423,11 +441,9 @@ func (j *JobSpec) GetTaskSpecDAG(cfg *TasksCfg) (map[string][]string, error) {
 // periodically call Cleanup() to remove old entries.
 type TaskCfgCache struct {
 	// protected by mtx
-	cache         map[types.RepoState]*cacheEntry
-	client        *bigtable.Client
-	depotToolsDir string
-	file          string
-	mtx           sync.RWMutex
+	cache  map[types.RepoState]*CacheEntry
+	client *bigtable.Client
+	mtx    sync.RWMutex
 	// protected by mtx
 	addedTasksCache map[types.RepoState]util.StringSet
 	recentCommits   map[string]time.Time
@@ -439,41 +455,28 @@ type TaskCfgCache struct {
 	recentTaskSpecs map[string]time.Time
 	repos           repograph.Map
 	table           *bigtable.Table
-	queue           chan func(int)
-	workdir         string
 }
 
 // NewTaskCfgCache returns a TaskCfgCache instance.
-func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, workdir string, numWorkers int, btProject, btInstance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
+func NewTaskCfgCache(ctx context.Context, repos repograph.Map, btProject, btInstance string, ts oauth2.TokenSource) (*TaskCfgCache, error) {
 	client, err := bigtable.NewClient(ctx, btProject, btInstance, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create BigTable client: %s", err)
 	}
 	table := client.Open(BT_TABLE)
-	queue := make(chan func(int))
 	c := &TaskCfgCache{
-		client:        client,
-		depotToolsDir: depotToolsDir,
-		queue:         queue,
-		repos:         repos,
-		table:         table,
-		workdir:       workdir,
+		client: client,
+		repos:  repos,
+		table:  table,
 	}
 	// TODO(borenet): Pre-fetch entries for commits in range. This would be
 	// simpler if we passed in a Window or a list of commits or RepoStates.
 	// Maybe the recent* caches belong in a separate cache entirely?
-	c.cache = map[types.RepoState]*cacheEntry{}
+	c.cache = map[types.RepoState]*CacheEntry{}
 	c.addedTasksCache = map[types.RepoState]util.StringSet{}
 	c.recentCommits = map[string]time.Time{}
 	c.recentJobSpecs = map[string]time.Time{}
 	c.recentTaskSpecs = map[string]time.Time{}
-	for i := 0; i < numWorkers; i++ {
-		go func(i int) {
-			for f := range queue {
-				f(i)
-			}
-		}(i)
-	}
 	return c, nil
 }
 
@@ -490,13 +493,13 @@ func isStoredError(err error) bool {
 	return ok
 }
 
-func GetTasksCfgFromBigTable(table *bigtable.Table, rs types.RepoState) (*TasksCfg, error) {
+func GetTasksCfgFromBigTable(ctx context.Context, table *bigtable.Table, rs types.RepoState) (*TasksCfg, error) {
 	// Retrieve all rows for the TasksCfg from BigTable.
 	tasks := map[string]*TaskSpec{}
 	jobs := map[string]*JobSpec{}
 	var processErr error
 	var storedErr error
-	ctx, cancel := context.WithTimeout(context.Background(), QUERY_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, QUERY_TIMEOUT)
 	defer cancel()
 	prefix := rs.RowKey()
 	if err := table.ReadRows(ctx, bigtable.PrefixRange(prefix), func(row bigtable.Row) bool {
@@ -556,7 +559,7 @@ func GetTasksCfgFromBigTable(table *bigtable.Table, rs types.RepoState) (*TasksC
 	}, nil
 }
 
-func WriteTasksCfgToBigTable(table *bigtable.Table, rs types.RepoState, cfg *TasksCfg, err error) error {
+func WriteTasksCfgToBigTable(ctx context.Context, table *bigtable.Table, rs types.RepoState, cfg *TasksCfg, err error) error {
 	var rks []string
 	var mts []*bigtable.Mutation
 	prefix := rs.RowKey() + "#"
@@ -589,7 +592,7 @@ func WriteTasksCfgToBigTable(table *bigtable.Table, rs types.RepoState, cfg *Tas
 			mts = append(mts, mt)
 		}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), INSERT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(ctx, INSERT_TIMEOUT)
 	defer cancel()
 	errs, err := table.ApplyBulk(ctx, rks, mts)
 	if err != nil {
@@ -606,11 +609,11 @@ func WriteTasksCfgToBigTable(table *bigtable.Table, rs types.RepoState, cfg *Tas
 
 // Close frees up resources used by the TaskCfgCache.
 func (c *TaskCfgCache) Close() error {
-	close(c.queue)
 	return c.client.Close()
 }
 
-type cacheEntry struct {
+// CacheEntry is a single entry in the TaskCfgCache.
+type CacheEntry struct {
 	c *TaskCfgCache
 	// Only one of cfg or err may be non-empty.
 	cfg *TasksCfg
@@ -619,12 +622,10 @@ type cacheEntry struct {
 	rs  types.RepoState
 }
 
-// Get returns the TasksCfg for this cache entry. If it does not already exist
-// in the cache, we attempt to read it from BigTable. If it does not exist in
-// BigTable, it is read from the repo and written to BigTable.
-func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
-	e.mtx.Lock()
-	defer e.mtx.Unlock()
+// Get returns the TasksCfg (or error) for this cache entry. If it does not
+// already exist in the cache, we attempt to read it from BigTable. If it does
+// not exist in BigTable, returns nil. Assumes the caller holds e.mtx.
+func (e *CacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 	if e.cfg != nil {
 		return e.cfg, nil
 	}
@@ -632,29 +633,83 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 		return nil, errors.New(e.err)
 	}
 
-	r, ok := e.c.repos[e.rs.Repo]
-	if !ok {
-		return nil, fmt.Errorf("Unknown repo %q", e.rs.Repo)
-	}
-
 	// Try to read the TasksCfg from BigTable.
-	cfg, err := GetTasksCfgFromBigTable(e.c.table, e.rs)
+	cfg, err := GetTasksCfgFromBigTable(ctx, e.c.table, e.rs)
 	if err != nil {
 		if isStoredError(err) {
 			e.err = err.Error()
 		}
 		return nil, err
 	}
+	if cfg == nil {
+		return nil, nil
+	}
+	r, ok := e.c.repos[e.rs.Repo]
+	if !ok {
+		return nil, fmt.Errorf("Unknown repo %q", e.rs.Repo)
+	}
+	if err := e.c.updateSecondaryCaches(r, e.rs, cfg); err != nil {
+		return nil, err
+	}
+	e.cfg = cfg
+	return cfg, nil
+}
+
+// Set sets the value for this CacheEntry. Writes through to BigTable. Assumes
+// the caller holds e.mtx.
+func (e *CacheEntry) Set(ctx context.Context, cfg *TasksCfg, storedErr error) error {
+	if e.cfg != nil {
+		return fmt.Errorf("Entry already has a value! %+v", e.rs)
+	}
+	if err := WriteTasksCfgToBigTable(ctx, e.c.table, e.rs, cfg, storedErr); err != nil {
+		return err
+	}
 	if cfg != nil {
-		e.cfg = cfg
-		return cfg, e.c.updateSecondaryCaches(r, e.rs, cfg)
+		r, ok := e.c.repos[e.rs.Repo]
+		if !ok {
+			return fmt.Errorf("Unknown repo %q", e.rs.Repo)
+		}
+		if err := e.c.updateSecondaryCaches(r, e.rs, cfg); err != nil {
+			return err
+		}
+	}
+	e.cfg = cfg
+	if storedErr != nil {
+		e.err = storedErr.Error()
+	}
+	return nil
+}
+
+/*
+func todo() {
+		// We need to ensure that all of our tasks have associated
+		// isolate hashes. When this code was first written, this was
+		// not the case, so we need to check whether the hashes are
+		// present and if not we need to re-read the config and obtain
+		// the hashes.
+		allIsolated := true
+		for _, taskSpec := range cfg.Tasks {
+			if taskSpec.IsolatedFile == nil {
+				allIsolated = false
+				break
+			}
+			if len(taskSpec.IsolatedFile.Files) == 0 {
+				sklog.Errorf("Cached isolated file has no files: %+v", taskSpec.IsolatedFile)
+				allIsolated = false
+				break
+			}
+		}
+		if allIsolated {
+			return cfg, e.c.updateSecondaryCaches(r, e.rs, cfg)
+		}
+		sklog.Warningf("Encountered RepoState with existing BigTable entry but no isolated hashes: %+v", e.rs)
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
 	// window. Read it.
 	// Point the upstream to a local source of truth to eliminate network
 	// latency.
-	if err := e.c.TempGitRepo(ctx, e.rs, e.rs.IsTryJob(), func(checkout *git.TempCheckout) error {
+	if err := e.c.TempGitRepo(ctx, e.rs, true, func(checkout *git.TempCheckout) error {
 		contents, err := ioutil.ReadFile(path.Join(checkout.Dir(), TASKS_CFG_FILE))
 		if err != nil {
 			// The tasks.cfg file may not exist for a particular commit.
@@ -669,12 +724,65 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 			}
 		}
 		cfg, err = ParseTasksCfg(string(contents))
-		return err
+		if err != nil {
+			return err
+		}
+
+		// Isolates may need a .gclient file at the root of the checkout.
+		if err := ioutil.WriteFile(path.Join(checkout.Dir(), "..", ".gclient"), []byte("dummy"), os.ModePerm); err != nil {
+			return err
+		}
+
+		// Isolate all of the task specs and update their IsolateHashes.
+		// TODO(borenet): Batcharchive should do a decent job, but it'd
+		// be better to de-duplicate the isolate.Tasks here to save some
+		// work.
+		isolateTasks := make([]*isolate.Task, 0, len(cfg.Tasks))
+		isolateTasksMap := make(map[string]*isolate.Task, len(cfg.Tasks))
+		for name, taskSpec := range cfg.Tasks {
+			os := "linux"
+			for _, d := range taskSpec.Dimensions {
+				if strings.HasPrefix(d, "os:") {
+					os = d[len("os:"):]
+					break
+				}
+			}
+			t := &isolate.Task{
+				BaseDir:     checkout.Dir(),
+				Blacklist:   isolate.DEFAULT_BLACKLIST,
+				IsolateFile: path.Join(checkout.Dir(), "infra", "bots", taskSpec.Isolate),
+				OsType:      os,
+			}
+			isolateTasks = append(isolateTasks, t)
+			isolateTasksMap[name] = t
+		}
+		// Now, isolate all of the tasks.
+		if len(isolateTasks) > 0 {
+			_, isolatedFiles, err := e.c.isolate.IsolateTasks(ctx, isolateTasks)
+			if err != nil {
+				return err
+			}
+			if len(isolatedFiles) != len(isolateTasks) {
+				return fmt.Errorf("IsolateTasks returned incorrect number of isolated files (%d but wanted %d)", len(isolatedFiles), len(isolateTasks))
+			}
+			tasksToIsolatedFiles := make(map[*isolate.Task]*isolate.IsolatedFile, len(isolateTasks))
+			for idx, isolatedFile := range isolatedFiles {
+				tasksToIsolatedFiles[isolateTasks[idx]] = isolatedFile
+			}
+			for name, isolateTask := range isolateTasksMap {
+				cfg.Tasks[name].IsolatedFile = tasksToIsolatedFiles[isolateTask]
+			}
+		}
+		return nil
 	}); err != nil {
-		if strings.Contains(err.Error(), "error: Failed to merge in the changes.") || strings.Contains(err.Error(), "Failed to apply patch") {
+		// If this error is permanent, ie. something is wrong with this
+		// particular RepoState that we won't be able to resolve by
+		// retrying, then store an error so that we won't waste time
+		// retrying in the future.
+		if ErrorIsPermanent(err) {
 			e.err = err.Error()
 			if err2 := WriteTasksCfgToBigTable(e.c.table, e.rs, nil, err); err2 != nil {
-				return nil, fmt.Errorf("Failed to obtain TasksCfg due to merge error and failed to cache the error with: %s", err2)
+				return nil, fmt.Errorf("Failed to obtain TasksCfg due to permanent error and failed to cache the error with: %s; original error: %s", err2, err)
 			}
 		}
 		return nil, err
@@ -684,7 +792,7 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 	}
 	e.cfg = cfg
 	return cfg, WriteTasksCfgToBigTable(e.c.table, e.rs, cfg, nil)
-}
+}*/
 
 func (c *TaskCfgCache) updateSecondaryCaches(r *repograph.Graph, rs types.RepoState, cfg *TasksCfg) error {
 	// Write the commit and task specs into the recent lists.
@@ -711,10 +819,12 @@ func (c *TaskCfgCache) updateSecondaryCaches(r *repograph.Graph, rs types.RepoSt
 	return nil
 }
 
-func (c *TaskCfgCache) getEntry(rs types.RepoState) *cacheEntry {
+// getEntryLocked returns the given entry, creating it if it does not exist.
+// Assumes that the caller holds c.mtx.
+func (c *TaskCfgCache) getEntryLocked(rs types.RepoState) *CacheEntry {
 	rv, ok := c.cache[rs]
 	if !ok {
-		rv = &cacheEntry{
+		rv = &CacheEntry{
 			c:  c,
 			rs: rs,
 		}
@@ -723,18 +833,39 @@ func (c *TaskCfgCache) getEntry(rs types.RepoState) *cacheEntry {
 	return rv
 }
 
-// ReadTasksCfg reads the task cfg file from the given RepoState and returns it.
-// Stores a cache of already-read task cfg files. Syncs the repo and reads the
-// file if needed.
-func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs types.RepoState) (*TasksCfg, error) {
+// getEntry returns the given entry, creating it if it does not exist.
+func (c *TaskCfgCache) getEntry(rs types.RepoState) *CacheEntry {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	entry := c.getEntry(rs)
-	rv, err := entry.Get(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return rv, err
+	return c.getEntryLocked(rs)
+}
+
+// WithLockedEntry runs the given function with the given cache entry locked.
+// WithLockedEntry passes the existing values for TasksCfg and stored error into
+// the helper function and sets
+func (c *TaskCfgCache) WithLockedEntry(ctx context.Context, rs types.RepoState, fn func(*CacheEntry) error) error {
+	e := c.getEntry(rs)
+	e.mtx.Lock()
+	defer e.mtx.Unlock()
+	return fn(e)
+}
+
+// Sets the TasksCfg (or error) for the given RepoState in the cache.
+func (c *TaskCfgCache) Set(ctx context.Context, rs types.RepoState, cfg *TasksCfg, storedErr error) error {
+	return c.WithLockedEntry(ctx, rs, func(e *CacheEntry) error {
+		return e.Set(ctx, cfg, storedErr)
+	})
+}
+
+// Get returns the TasksCfg (or error) for the given RepoState in the cache.
+func (c *TaskCfgCache) Get(ctx context.Context, rs types.RepoState) (*TasksCfg, error) {
+	var cfg *TasksCfg
+	var err error
+	_ = c.WithLockedEntry(ctx, rs, func(e *CacheEntry) error {
+		cfg, err = e.Get(ctx)
+		return err
+	})
+	return cfg, err
 }
 
 // GetTaskSpecsForRepoStates returns a set of TaskSpecs for each of the
@@ -742,9 +873,9 @@ func (c *TaskCfgCache) ReadTasksCfg(ctx context.Context, rs types.RepoState) (*T
 func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []types.RepoState) (map[types.RepoState]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	entries := make(map[types.RepoState]*cacheEntry, len(rs))
+	entries := make(map[types.RepoState]*CacheEntry, len(rs))
 	for _, s := range rs {
-		entries[s] = c.getEntry(s)
+		entries[s] = c.getEntryLocked(s)
 	}
 
 	var m sync.Mutex
@@ -753,13 +884,26 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []types
 	errs := []error{}
 	for s, entry := range entries {
 		wg.Add(1)
-		go func(s types.RepoState, entry *cacheEntry) {
+		go func(s types.RepoState, entry *CacheEntry) {
 			defer wg.Done()
+			entry.mtx.Lock()
+			defer entry.mtx.Unlock()
 			cfg, err := entry.Get(ctx)
 			if err != nil {
+				// If we have a permanent error, log it but
+				// don't permanently stick the scheduler by
+				// returning it.
+				if ErrorIsPermanent(err) {
+					sklog.Errorf("Cached entry has permanent error; skipping: %s", err)
+					return
+				}
 				m.Lock()
 				defer m.Unlock()
 				errs = append(errs, err)
+				return
+			}
+			if cfg == nil {
+				sklog.Errorf("No cached entry for %+v", s)
 				return
 			}
 			// Make a copy of the task specs.
@@ -782,7 +926,7 @@ func (c *TaskCfgCache) GetTaskSpecsForRepoStates(ctx context.Context, rs []types
 // GetTaskSpec returns the TaskSpec at the given RepoState, or an error if no
 // such TaskSpec exists.
 func (c *TaskCfgCache) GetTaskSpec(ctx context.Context, rs types.RepoState, name string) (*TaskSpec, error) {
-	cfg, err := c.ReadTasksCfg(ctx, rs)
+	cfg, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -860,7 +1004,7 @@ func (c *TaskCfgCache) GetAddedTaskSpecsForRepoStates(ctx context.Context, rss [
 // GetJobSpec returns the JobSpec at the given RepoState, or an error if no such
 // JobSpec exists.
 func (c *TaskCfgCache) GetJobSpec(ctx context.Context, rs types.RepoState, name string) (*JobSpec, error) {
-	cfg, err := c.ReadTasksCfg(ctx, rs)
+	cfg, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -874,7 +1018,7 @@ func (c *TaskCfgCache) GetJobSpec(ctx context.Context, rs types.RepoState, name 
 // MakeJob is a helper function which retrieves the given JobSpec at the given
 // RepoState and uses it to create a Job instance.
 func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name string) (*types.Job, error) {
-	cfg, err := c.ReadTasksCfg(ctx, rs)
+	cfg, err := c.Get(ctx, rs)
 	if err != nil {
 		return nil, err
 	}
@@ -1016,163 +1160,4 @@ func findCycles(tasks map[string]*TaskSpec, jobs map[string]*JobSpec) error {
 		}
 	}
 	return nil
-}
-
-// TempGitRepo creates a git repository in a temporary directory, gets it into
-// the given RepoState, and runs the given function inside the repo dir.
-//
-// This method uses a worker pool; if all workers are busy, it will block until
-// one is free.
-func (c *TaskCfgCache) TempGitRepo(ctx context.Context, rs types.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
-	rvErr := make(chan error)
-	c.queue <- func(workerId int) {
-		var gr *git.TempCheckout
-		var err error
-		if botUpdate {
-			tmp, err2 := ioutil.TempDir("", "")
-			if err2 != nil {
-				rvErr <- err2
-				return
-			}
-			defer util.RemoveAll(tmp)
-			cacheDir := path.Join(c.workdir, "cache", fmt.Sprintf("%d", workerId))
-			gr, err = tempGitRepoBotUpdate(ctx, rs, c.depotToolsDir, cacheDir, tmp)
-		} else {
-			repo, ok := c.repos[rs.Repo]
-			if !ok {
-				rvErr <- fmt.Errorf("Unknown repo: %s", rs.Repo)
-				return
-			}
-			gr, err = tempGitRepo(ctx, repo.Repo(), rs)
-		}
-		if err != nil {
-			rvErr <- err
-			return
-		}
-		defer gr.Delete()
-		rvErr <- fn(gr)
-	}
-	return <-rvErr
-}
-
-// tempGitRepo creates a git repository in a temporary directory, gets it into
-// the given RepoState, and returns its location.
-func tempGitRepo(ctx context.Context, repo *git.Repo, rs types.RepoState) (rv *git.TempCheckout, rvErr error) {
-	defer metrics2.FuncTimer().Stop()
-
-	if rs.IsTryJob() {
-		return nil, fmt.Errorf("specs.tempGitRepo does not apply patches, and should not be called for try jobs.")
-	}
-
-	c, err := repo.TempCheckout(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if rvErr != nil {
-			c.Delete()
-		}
-	}()
-
-	// Check out the correct commit.
-	if _, err := c.Git(ctx, "checkout", rs.Revision); err != nil {
-		return nil, err
-	}
-
-	return c, nil
-}
-
-// tempGitRepoBotUpdate creates a git repository in a temporary directory, gets it into
-// the given RepoState, and returns its location.
-func tempGitRepoBotUpdate(ctx context.Context, rs types.RepoState, depotToolsDir, gitCacheDir, tmp string) (*git.TempCheckout, error) {
-	defer metrics2.FuncTimer().Stop()
-
-	// Run bot_update to obtain a checkout of the repo and its DEPS.
-	botUpdatePath := path.Join(depotToolsDir, "recipes", "recipe_modules", "bot_update", "resources", "bot_update.py")
-	projectName := strings.TrimSuffix(path.Base(rs.Repo), ".git")
-	spec := fmt.Sprintf("cache_dir = '%s'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': False, 'name': '%s', 'url': '%s'}]", gitCacheDir, projectName, rs.Repo)
-	revMap := map[string]string{
-		projectName: "got_revision",
-	}
-
-	revisionMappingFile := path.Join(tmp, "revision_mapping")
-	revMapBytes, err := json.Marshal(revMap)
-	if err != nil {
-		return nil, err
-	}
-	if err := ioutil.WriteFile(revisionMappingFile, revMapBytes, os.ModePerm); err != nil {
-		return nil, err
-	}
-
-	patchRepo := rs.Repo
-	patchRepoName := projectName
-	if rs.PatchRepo != "" {
-		patchRepo = rs.PatchRepo
-		patchRepoName = strings.TrimSuffix(path.Base(rs.PatchRepo), ".git")
-	}
-	outputJson := path.Join(tmp, "output_json")
-	cmd := []string{
-		"python", "-u", botUpdatePath,
-		"--specs", spec,
-		"--patch_root", patchRepoName,
-		"--revision_mapping_file", revisionMappingFile,
-		"--git-cache-dir", gitCacheDir,
-		"--output_json", outputJson,
-		"--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision),
-	}
-	if rs.IsTryJob() {
-		if strings.Contains(rs.Server, "codereview.chromium") {
-			cmd = append(cmd, []string{
-				"--issue", rs.Issue,
-				"--patchset", rs.Patchset,
-			}...)
-		} else {
-			gerritRef := fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
-			cmd = append(cmd, []string{
-				"--patch_ref", fmt.Sprintf("%s@%s", patchRepo, gerritRef),
-			}...)
-		}
-	}
-	t := metrics2.NewTimer("bot_update", map[string]string{
-		"patchRepo": patchRepo,
-	})
-	out, err := exec.RunCommand(ctx, &exec.Command{
-		Name: cmd[0],
-		Args: cmd[1:],
-		Dir:  tmp,
-		Env: []string{
-			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
-		},
-		InheritEnv: true,
-	})
-	dur := t.Stop()
-	if err != nil {
-		sklog.Warningf("bot_update error for %v; output: %s", rs, out)
-		return nil, err
-	}
-	if dur > 5*time.Minute {
-		sklog.Warningf("bot_update took %s for %v; output: %s", dur, rs, out)
-	}
-
-	// bot_update points the upstream to a local cache. Point back to the
-	// "real" upstream, in case the caller cares about the remote URL. Note
-	// that this doesn't change the remote URLs for the DEPS.
-	co := &git.TempCheckout{
-		GitDir: git.GitDir(path.Join(tmp, projectName)),
-	}
-	if _, err := co.Git(ctx, "remote", "set-url", "origin", rs.Repo); err != nil {
-		return nil, err
-	}
-
-	// Self-check.
-	head, err := co.RevParse(ctx, "HEAD")
-	if err != nil {
-		return nil, err
-	}
-	if head != rs.Revision {
-		return nil, fmt.Errorf("TempGitRepo ended up at the wrong revision. Wanted %q but got %q", rs.Revision, head)
-	}
-
-	return co, nil
 }
