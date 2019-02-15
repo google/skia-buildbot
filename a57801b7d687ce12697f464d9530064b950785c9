@@ -16,6 +16,24 @@
       "revId": "a57801b7d687ce12697f464d9530064b950785c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "933dfcad_5d74fc9b",
+        "filename": "task_scheduler/go/db/migrate/migrate.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-15T18:46:21Z",
+      "side": 1,
+      "message": "Yes, this is so that I don\u0027t have to go way back in time, or interrupt things, when I migrate the prod instance.",
+      "parentUuid": "bcc185ce_6dd044ec",
+      "revId": "a57801b7d687ce12697f464d9530064b950785c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
