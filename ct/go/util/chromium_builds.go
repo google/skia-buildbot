@@ -120,7 +120,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	var fetchTarget string
 	if targetPlatform == "Android" {
 		fetchTarget = "android"
-	} else if targetPlatform == "Linux" {
+	} else if targetPlatform == "Linux" || targetPlatform == "Windows" {
 		fetchTarget = "chromium"
 	} else {
 		return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
@@ -153,6 +153,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		"--chrome_revision=" + chromiumHash,
 		"--skia_revision=" + skiaHash,
 	}
+	// rmistry: Hopefully this script works on Windows.
 	syncCommand := &exec.Command{
 		Name: "python",
 		Args: syncArgs,

@@ -90,7 +90,7 @@ create_pagesets:
 
 .PHONY: build_repo
 build_repo:
-	go install -v ./go/worker_scripts/build_repo/
+	GOOS=windows GOARCH=386 go install -v ./go/worker_scripts/build_repo/
 
 .PHONY: isolate_telemetry
 isolate_telemetry:
