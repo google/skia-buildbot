@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f890f530_d9a65978",
+        "filename": "go/query/query.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: I generally call this \"DebugString\" if it\u0027s not a canonical representation. In this case, we don\u0027t even know what the param keys are, so it\u0027s only good for debugging.",
+      "range": {
+        "startLine": 219,
+        "startChar": 16,
+        "endLine": 219,
+        "endChar": 22
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1e45f9a_6f6e759f",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: Other logging uses tileKey.OpsRowName(); would be nice to be consistent to track across log statements.",
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75afa794_84448b3b",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: This function doesn\u0027t return TileKeys. Maybe rename TileTraceIds or TraceIdsForTile?",
+      "range": {
+        "startLine": 457,
+        "startChar": 29,
+        "endLine": 457,
+        "endChar": 37
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "290f1032_4b970120",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: util.StringSet is a pointer type, so using another pointer is extraneous here.",
+      "range": {
+        "startLine": 461,
+        "startChar": 17,
+        "endLine": 461,
+        "endChar": 32
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee4c3587_19f24208",
+        "filename": "perf/go/dataframe/fresh.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "missing \"else { stepFailures.Reset() }\"?",
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b15e8de_34d2953f",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 336,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: %s is more readable for time.Time",
+      "range": {
+        "startLine": 336,
+        "startChar": 27,
+        "endLine": 336,
+        "endChar": 29
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a05b747_2b80c3c1",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: \"Incomplete\"? Maybe include len(total) in the log message.",
+      "range": {
+        "startLine": 373,
+        "startChar": 16,
+        "endLine": 373,
+        "endChar": 22
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39314c97_09f86706",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "nit: it\u0027s now 12 hours",
+      "range": {
+        "startLine": 437,
+        "startChar": 51,
+        "endLine": 437,
+        "endChar": 76
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b504abb_2f945df5",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 651,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T22:58:44Z",
+      "side": 1,
+      "message": "Seems like this could be used for XSS.",
+      "range": {
+        "startLine": 651,
+        "startChar": 35,
+        "endLine": 651,
+        "endChar": 46
+      },
+      "revId": "94104df6f25e4061374660b0f6132d1e104977d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
