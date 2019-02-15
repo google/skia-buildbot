@@ -29,6 +29,10 @@ type LongCommit struct {
 	Branches  map[string]bool `json:"-"`
 }
 
+func NewLongCommit() *LongCommit {
+	return &LongCommit{ShortCommit: &ShortCommit{}}
+}
+
 // LongCommitSlice represents a slice of LongCommit objects used for sorting
 // commits by timestamp, most recent first.
 type LongCommitSlice []*LongCommit
@@ -50,6 +54,8 @@ type VCS interface {
 	// If includeBranchInfo is true the Branches field of the returned
 	// result will contain all branches that contain the given commit,
 	// otherwise Branches will be empty.
+	// Note: Retrieving the branch information can be expensive and should
+	// only be used if the membership in branches is really needed.
 	Details(ctx context.Context, hash string, includeBranchInfo bool) (*LongCommit, error)
 
 	// LastNIndex returns the last N commits.
@@ -72,4 +78,7 @@ type VCS interface {
 	// ResolveCommit will resolve the given commit against a secondary repo if one
 	// was defined with the VCS.
 	ResolveCommit(ctx context.Context, commitHash string) (string, error)
+
+	LogArgs(ctx context.Context, args ...string) (string, error)
+	LogFine(ctx context.Context, begin, end string, args ...string) (string, error)
 }
