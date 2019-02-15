@@ -7,7 +7,6 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	fs "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -25,40 +24,60 @@ var (
 	fsInstance = flag.String("firestore_instance", "", "Firestore instance to migrate to.")
 	repoUrls   = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 
-	BEGINNING_OF_TIME = time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC)
+	BEGINNING_OF_TIME = time.Date(2019, time.February, 1, 0, 0, 0, 0, time.UTC)
 	NOW               = time.Now()
 )
 
-func migrateTasks(oldDB, newDB db.DB) error {
-	return util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
-		sklog.Infof("Migrating tasks in %s - %s", start, end)
-		tasks, err := oldDB.GetTasksFromDateRange(start, end, "")
-		if err != nil {
-			return err
-		}
-		for _, t := range tasks {
-			t.DbModified = time.Time{}
-		}
-		return util.ChunkIter(len(tasks), fs.MAX_TRANSACTION_DOCS, func(start, end int) error {
-			return newDB.PutTasks(tasks[start:end])
-		})
-	})
+type timeChunk struct {
+	start time.Time
+	end   time.Time
 }
 
-func migrateJobs(oldDB, newDB db.DB) error {
-	return util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
-		sklog.Infof("Migrating jobs in %s - %s", start, end)
-		jobs, err := oldDB.GetJobsFromDateRange(start, end)
-		if err != nil {
+func retry(fn func() error) error {
+	sleep := 10 * time.Second
+	var err error
+	for i := 0; i < 5; i++ {
+		err = fn()
+		if err == nil {
+			return nil
+		}
+		sklog.Error(err)
+		sklog.Errorf("Retrying in %s", sleep)
+		time.Sleep(sleep)
+	}
+	return err
+}
+
+func migrateTasks(oldDB, newDB db.DB, chunks []*timeChunk) error {
+	for _, chunk := range chunks {
+		sklog.Infof("Migrating tasks in %s - %s", chunk.start, chunk.end)
+		if err := retry(func() error {
+			tasks, err := oldDB.GetTasksFromDateRange(chunk.start, chunk.end, "")
+			if err != nil {
+				return err
+			}
+			return newDB.PutTasksInChunks(tasks)
+		}); err != nil {
 			return err
 		}
-		for _, j := range jobs {
-			j.DbModified = time.Time{}
+	}
+	return nil
+}
+
+func migrateJobs(oldDB, newDB db.DB, chunks []*timeChunk) error {
+	for _, chunk := range chunks {
+		sklog.Infof("Migrating jobs in %s - %s", chunk.start, chunk.end)
+		if err := retry(func() error {
+			jobs, err := oldDB.GetJobsFromDateRange(chunk.start, chunk.end)
+			if err != nil {
+				return err
+			}
+			return newDB.PutJobsInChunks(jobs)
+		}); err != nil {
+			return err
 		}
-		return util.ChunkIter(len(jobs), fs.MAX_TRANSACTION_DOCS, func(start, end int) error {
-			return newDB.PutJobs(jobs[start:end])
-		})
-	})
+	}
+	return nil
 }
 
 func migrateComments(oldDB, newDB db.DB) error {
@@ -69,7 +88,7 @@ func migrateComments(oldDB, newDB db.DB) error {
 	for _, c := range comments {
 		for _, commitComments := range c.CommitComments {
 			for _, cc := range commitComments {
-				if err := newDB.PutCommitComment(cc); err != nil {
+				if err := newDB.PutCommitComment(cc); err != nil && err != db.ErrAlreadyExists {
 					return err
 				}
 			}
@@ -77,7 +96,7 @@ func migrateComments(oldDB, newDB db.DB) error {
 		for _, taskCommentsByCommit := range c.TaskComments {
 			for _, taskCommentsByName := range taskCommentsByCommit {
 				for _, tc := range taskCommentsByName {
-					if err := newDB.PutTaskComment(tc); err != nil {
+					if err := newDB.PutTaskComment(tc); err != nil && err != db.ErrAlreadyExists {
 						return err
 					}
 				}
@@ -85,7 +104,7 @@ func migrateComments(oldDB, newDB db.DB) error {
 		}
 		for _, taskSpecComments := range c.TaskSpecComments {
 			for _, tsc := range taskSpecComments {
-				if err := newDB.PutTaskSpecComment(tsc); err != nil {
+				if err := newDB.PutTaskSpecComment(tsc); err != nil && err != db.ErrAlreadyExists {
 					return err
 				}
 			}
@@ -95,10 +114,24 @@ func migrateComments(oldDB, newDB db.DB) error {
 }
 
 func migrate(oldDB, newDB db.DB) error {
-	if err := migrateTasks(oldDB, newDB); err != nil {
+	chunks := make([]*timeChunk, 0, 1000)
+	if err := util.IterTimeChunks(BEGINNING_OF_TIME, NOW, TIME_CHUNK, func(start, end time.Time) error {
+		chunks = append(chunks, &timeChunk{
+			start: start,
+			end:   end,
+		})
+		return nil
+	}); err != nil {
 		return err
 	}
-	if err := migrateJobs(oldDB, newDB); err != nil {
+	for i, j := 0, len(chunks)-1; i < j; i, j = i+1, j-1 {
+		chunks[i], chunks[j] = chunks[j], chunks[i]
+	}
+
+	if err := migrateTasks(oldDB, newDB, chunks); err != nil {
+		return err
+	}
+	if err := migrateJobs(oldDB, newDB, chunks); err != nil {
 		return err
 	}
 	if err := migrateComments(oldDB, newDB); err != nil {
