@@ -78,4 +78,7 @@ type VCS interface {
 	// ResolveCommit will resolve the given commit against a secondary repo if one
 	// was defined with the VCS.
 	ResolveCommit(ctx context.Context, commitHash string) (string, error)
+
+	LogArgs(ctx context.Context, args ...string) (string, error)
+	LogFine(ctx context.Context, begin, end string, args ...string) (string, error)
 }

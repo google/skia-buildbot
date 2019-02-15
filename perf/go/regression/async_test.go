@@ -88,6 +88,11 @@ func TestCalcCidsNotSparse(t *testing.T) {
 
 type mockVcs struct{}
 
+func (m *mockVcs) LogArgs(ctx context.Context, args ...string) (string, error) { return "", nil }
+func (m *mockVcs) LogFine(ctx context.Context, begin, end string, args ...string) (string, error) {
+	return "", nil
+}
+
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
 	return []*vcsinfo.IndexCommit{&vcsinfo.IndexCommit{Index: 2005}}
 }

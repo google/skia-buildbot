@@ -212,7 +212,8 @@ func main() {
 	sub.ReceiveSettings.MaxOutstandingMessages = MAX_PARALLEL_RECEIVES
 	sub.ReceiveSettings.NumGoroutines = MAX_PARALLEL_RECEIVES
 
-	vcs, err := gitinfo.CloneOrUpdate(ctx, cfg.GitUrl, "/tmp/skia_ingest_checkout", true)
+	var vcs vcsinfo.VCS
+	vcs, err = gitinfo.CloneOrUpdate(ctx, cfg.GitUrl, "/tmp/skia_ingest_checkout", true)
 	if err != nil {
 		sklog.Fatal(err)
 	}

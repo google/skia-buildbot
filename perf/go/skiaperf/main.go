@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
@@ -75,7 +76,7 @@ var (
 var (
 	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
 
-	git *gitinfo.GitInfo = nil
+	vcs vcsinfo.VCS
 
 	cidl *cid.CommitIDLookup = nil
 )
@@ -262,7 +263,7 @@ func Init() {
 	*gitRepoUrl = btConfig.GitUrl
 
 	sklog.Info("About to clone repo.")
-	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
+	vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}

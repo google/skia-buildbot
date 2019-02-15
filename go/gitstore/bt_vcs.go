@@ -53,6 +53,11 @@ func (b *btVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSE
 	b.secondaryExtractor = extractor
 }
 
+func (b *btVCS) LogArgs(ctx context.Context, args ...string) (string, error) { return "", nil }
+func (b *btVCS) LogFine(ctx context.Context, begin, end string, args ...string) (string, error) {
+	return "", nil
+}
+
 // Update implements the vcsinfo.VCS interface
 func (b *btVCS) Update(ctx context.Context, pull, allBranches bool) error {
 	// Simulate a pull by fetching the latest head of the target branch.

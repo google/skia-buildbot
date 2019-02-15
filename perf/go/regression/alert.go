@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -16,7 +16,7 @@ import (
 // RegressionsForAlert looks for regressions to the given alert over the last
 // 'numContinuous' commits with data and periodically calls
 // clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.ParamSet, clusterResponseProcessor ClusterResponseProcessor, numContinuous int, end time.Time, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
+func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.ParamSet, clusterResponseProcessor ClusterResponseProcessor, numContinuous int, end time.Time, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *cfg)
 	queries, err := cfg.QueriesFromParamset(ps)
@@ -44,7 +44,7 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.
 			N:           int32(numContinuous),
 			End:         end,
 		}
-		_, err := Run(ctx, req, git, cidl, dfBuilder, clusterResponseProcessor)
+		_, err := Run(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 		if err != nil {
 			sklog.Warningf("Failed while clustering %v %s", *req, err)
 			continue
