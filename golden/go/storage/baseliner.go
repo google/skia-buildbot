@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -254,12 +253,10 @@ func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.Commitab
 
 	// Look up the commit to see if it's valid.
 	if ret == nil {
-		details, err := b.vcs.Details(context.TODO(), commitHash, false)
-		if err != nil {
-			return nil, skerr.Fmt("Unknown commit: %s", commitHash)
-		}
-		commit := fromLongCommit(details)
-		ret = baseline.EmptyBaseline(commit, commit)
+		// TODO(stephana): This should verify that the given commit is valid, i.e. check it against
+		// a git commit.
+		sklog.Infof("Commit %s not found", commitHash)
+		ret = baseline.EmptyBaseline(nil, nil)
 	}
 	return ret, nil
 }
