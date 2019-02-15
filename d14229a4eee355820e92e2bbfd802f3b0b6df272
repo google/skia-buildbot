@@ -16,6 +16,24 @@
       "revId": "d14229a4eee355820e92e2bbfd802f3b0b6df272",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10124120_089a1826",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-15T14:39:46Z",
+      "side": 1,
+      "message": "Nothing will actually break of it is 0, and that makes it just another way to turn clustering off.",
+      "parentUuid": "71ba9484_5dcad1d5",
+      "revId": "d14229a4eee355820e92e2bbfd802f3b0b6df272",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
