@@ -319,11 +319,6 @@ func (s *Storage) getNewCondensedTile(lastTile *tiling.Tile) (*tiling.Tile, erro
 	ctx := context.TODO()
 	var err error
 
-	// Update the repository.
-	if err := s.Git.Update(ctx, true, false); err != nil {
-		return nil, err
-	}
-
 	// Get enough commits to fill a tile.
 	var hashes []string
 	if lastTile != nil {
