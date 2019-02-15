@@ -167,7 +167,6 @@ func (c *Continuous) Run(ctx context.Context) {
 	runsCounter := metrics2.GetCounter("perf_clustering_runs", nil)
 	clusteringLatency := metrics2.NewTimer("perf_clustering_latency", nil)
 	configsCounter := metrics2.GetCounter("perf_clustering_configs", nil)
-	clusterLiveness := metrics2.NewLiveness("perf_clustering", nil)
 
 	// TODO(jcgregorio) Add liveness metrics.
 	sklog.Infof("Continuous starting.")
@@ -198,7 +197,6 @@ func (c *Continuous) Run(ctx context.Context) {
 			}
 			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Now(), c.git, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
-			clusterLiveness.Reset()
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
