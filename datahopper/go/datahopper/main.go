@@ -231,7 +231,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	if err := StartFirestoreBackupMetrics(ctx); err != nil {
+	if err := StartFirestoreBackupMetrics(ctx, newTs); err != nil {
 		sklog.Fatal(err)
 	}
 
