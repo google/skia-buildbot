@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71ba9484_5dcad1d5",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-02-15T14:33:19Z",
+      "side": 1,
+      "message": "Nit: Add a check to see if *numContinuousParallel \u003e 0 ?",
+      "revId": "d14229a4eee355820e92e2bbfd802f3b0b6df272",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
