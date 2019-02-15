@@ -25,7 +25,7 @@ var (
 	fsInstance = flag.String("firestore_instance", "", "Firestore instance to migrate to.")
 	repoUrls   = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
 
-	BEGINNING_OF_TIME = time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC)
+	BEGINNING_OF_TIME = time.Date(2019, time.February, 1, 0, 0, 0, 0, time.UTC)
 	NOW               = time.Now()
 )
 

@@ -44,7 +44,7 @@ var (
 	// pubsubTopicSet.
 	btInstance         = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject          = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
+	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile     = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
@@ -198,7 +198,7 @@ func main() {
 	}()
 
 	// Tasks metrics.
-	// TODO(borenet): We should include metrics from all three (prod,
+	// TODO(borenet): We should include metrics from all three (production,
 	// internal, staging) instances.
 	var d db.RemoteDB
 	if *firestoreInstance != "" {
