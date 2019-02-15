@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f7bc7ba_e14e8813",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-15T21:07:05Z",
+      "side": 0,
+      "message": "Would it be a problem to leave this as-is and just return errors until Gold has caught up to the new commit?",
+      "range": {
+        "startLine": 257,
+        "startChar": 0,
+        "endLine": 262,
+        "endChar": 46
+      },
+      "revId": "4581b1a3ef4dee153f6bc5c229f8eacf774f8aad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
