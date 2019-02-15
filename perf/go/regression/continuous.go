@@ -2,6 +2,7 @@ package regression
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -174,6 +175,12 @@ func (c *Continuous) Run(ctx context.Context) {
 	for range time.Tick(time.Second) {
 		clusteringLatency.Start()
 		configs, err := c.provider()
+
+		// Shuffle the order of the configs.
+		rand.Shuffle(len(configs), func(i, j int) {
+			configs[i], configs[j] = configs[j], configs[i]
+		})
+
 		if err != nil {
 			// TODO(jcgregorio) Float these errors up to the UI.
 			sklog.Errorf("Failed to load configs: %s", err)
