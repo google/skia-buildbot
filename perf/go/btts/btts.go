@@ -170,10 +170,7 @@ type BigTableTraceStore struct {
 	tileSize      int32 // How many commits we store per tile.
 	shards        int32 // How many shards we break the traces into.
 	writesCounter metrics2.Counter
-
-	// tableMutex protects access to table.
-	tableMutex sync.Mutex
-	table      *bigtable.Table
+	table         *bigtable.Table
 
 	// lookup maps column names as strings, "V:2", to the index, 2.
 	// Used to speed up reading values out of rows.
@@ -186,8 +183,6 @@ type BigTableTraceStore struct {
 }
 
 func (b *BigTableTraceStore) getTable() *bigtable.Table {
-	b.tableMutex.Lock()
-	defer b.tableMutex.Unlock()
 	return b.table
 }
 
