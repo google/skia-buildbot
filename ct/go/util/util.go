@@ -470,9 +470,9 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}
 	var dimensions map[string]string
 	if runOnGCE {
-		dimensions = GCE_WORKER_DIMENSIONS
+		dimensions = GCE_LINUX_WORKER_DIMENSIONS
 	} else {
-		dimensions = GOLO_WORKER_DIMENSIONS
+		dimensions = GOLO_ANDROID_WORKER_DIMENSIONS
 	}
 
 	// The channel where batches of tasks to be triggered and collected will be sent to.
@@ -535,7 +535,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
 	serviceAccount := ""
-	if util.MapsEqual(dimensions, GCE_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) {
+	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
 	}

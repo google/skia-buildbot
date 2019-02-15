@@ -331,10 +331,14 @@ var (
 	}
 
 	// Swarming machine dimensions.
-	GCE_WORKER_DIMENSIONS          = map[string]string{"pool": SWARMING_POOL, "cores": "4"}
+	GCE_LINUX_WORKER_DIMENSIONS   = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "4"}
+	GCE_WINDOWS_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Windows", "cores": "16"}
+
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "CTAndroidBuilder", "cores": "64"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}
-	GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
+	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTWindowsBuilder", "cores": "64"}
+
+	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
 
 	// ct-perf.skia.org constants.
 	CTPerfWorkDir = filepath.Join(StorageDir, "ct-perf-workdir")
