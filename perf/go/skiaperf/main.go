@@ -101,6 +101,7 @@ var (
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	namespace             = flag.String("namespace", "", "The Cloud Datastore namespace, such as 'perf'.")
 	numContinuous         = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
+	numContinuousParallel = flag.Int("num_continuous_parallel", 3, "The number of parallel copies of continuous clustering to run.")
 	numShift              = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
 	numTilesRefresher     = flag.Int("num_tiles_refresher", 2, "The number of tiles to load in the dataframe.Refresher.")
 	port                  = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
@@ -126,7 +127,7 @@ var (
 
 	regStore *regression.Store
 
-	continuous *regression.Continuous
+	continuous []*regression.Continuous
 
 	storageClient *storage.Client
 
@@ -305,10 +306,13 @@ func Init() {
 	paramsProvider := newParamsetProvider(freshDataFrame)
 	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, git)
 
-	// Start running continuous clustering looking for regressions.
-	continuous = regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
 	if *doClustering {
-		go continuous.Run(ctx)
+		for i := 0; i < *numContinuousParallel; i++ {
+			// Start running continuous clustering looking for regressions.
+			c := regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
+			continuous = append(continuous, c)
+			go c.Run(ctx)
+		}
 	}
 }
 
@@ -1136,9 +1140,13 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func regressionCurrentHandler(w http.ResponseWriter, r *http.Request) {
+	status := []regression.Current{}
+	for _, c := range continuous {
+		status = append(status, c.CurrentStatus())
+	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(continuous.CurrentStatus()); err != nil {
-		sklog.Errorf("Failed to encode paramset: %s", err)
+	if err := json.NewEncoder(w).Encode(status); err != nil {
+		sklog.Errorf("Failed to encode status: %s", err)
 	}
 }
 

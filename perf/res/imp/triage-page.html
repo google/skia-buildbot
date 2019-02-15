@@ -104,6 +104,13 @@
       display: flex;
       flex-flow: row wrap;
     }
+
+    .status {
+      display: flex;
+    }
+    .status table {
+      display: inline-block;
+    }
   </style>
   <template>
     <header>
@@ -148,22 +155,26 @@
         <summary-sk>
           <h2>Status</h2>
         </summary-sk>
-        <div id=status>
+        <div>
           <p>The current work on detecting regressions:</p>
-          <table>
-            <tr>
-              <th>Alert</th>
-              <td><a href="/a/?[[_currentState.alert.id]]">[[_currentState.alert.display_name]]</a></td>
-            </tr>
-            <tr>
-              <th>Commit</th>
-              <td><commit-detail-sk cid="[[_currentState.commit]]"></commit-detail-sk></td>
-            </tr>
-            <tr>
-              <th>Step</th>
-              <td>[[_currentState.step]]/[[_currentState.total]]</td>
-            </tr>
-          </table>
+          <div class=status>
+            <template is="dom-repeat" items="{{_currentState}}">
+              <table>
+                <tr>
+                  <th>Alert</th>
+                  <td><a href="/a/?[[item.alert.id]]">[[item.alert.display_name]]</a></td>
+                </tr>
+                <tr>
+                  <th>Commit</th>
+                  <td><commit-detail-sk cid="[[item.commit]]"></commit-detail-sk></td>
+                </tr>
+                <tr>
+                  <th>Step</th>
+                  <td>[[item.step]]/[[item.total]]</td>
+                </tr>
+              </table>
+            </template>
+          </div>
         </div>
       </details-sk>
     </header>
