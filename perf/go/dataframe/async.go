@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"sort"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +17,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/types"
@@ -310,30 +309,33 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 // getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
 // the times that the given file changed in git between the given 'begin' and
 // 'end' hashes (inclusive).
-func getCommitTimesForFile(ctx context.Context, begin, end string, filename string, git *gitinfo.GitInfo) []int64 {
-	ret := []int64{}
+func getCommitTimesForFile(ctx context.Context, begin, end string, filename string, git vcsinfo.VCS) []int64 {
+	return []int64{}
 
-	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := git.LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
-	if err != nil {
-		sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
-		return ret
-	}
-
-	// Parse.
-	for _, s := range strings.Split(log, "\n") {
-		i, err := strconv.ParseInt(s, 10, 64)
+	/*
+		// Now query for all the changes to the skp version over the given range of commits.
+		git.
+		log, err := git.LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
 		if err != nil {
-			continue
+			sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
+			return ret
 		}
-		ret = append(ret, int64(i))
-	}
-	return ret
+
+		// Parse.
+		for _, s := range strings.Split(log, "\n") {
+			i, err := strconv.ParseInt(s, 10, 64)
+			if err != nil {
+				continue
+			}
+			ret = append(ret, int64(i))
+		}
+		return ret
+	*/
 }
 
 // getSkps returns the indices where the SKPs have been updated given
 // the ColumnHeaders.
-func getSkps(ctx context.Context, headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
+func getSkps(ctx context.Context, headers []*ColumnHeader, git vcsinfo.VCS) ([]int, error) {
 	// We have Offsets, which need to be converted to git hashes.
 	ci, err := git.ByIndex(ctx, int(headers[0].Offset))
 	if err != nil {
@@ -380,7 +382,7 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, git *gitinfo.GitInfo)
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git *gitinfo.GitInfo, truncate bool, tz string) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git vcsinfo.VCS, truncate bool, tz string) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}

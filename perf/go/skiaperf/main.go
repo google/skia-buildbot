@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -307,12 +308,15 @@ func Init() {
 	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, git)
 
 	if *doClustering {
-		for i := 0; i < *numContinuousParallel; i++ {
-			// Start running continuous clustering looking for regressions.
-			c := regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
-			continuous = append(continuous, c)
-			go c.Run(ctx)
-		}
+		go func() {
+			for i := 0; i < *numContinuousParallel; i++ {
+				// Start running continuous clustering looking for regressions.
+				time.Sleep(time.Minute)
+				c := regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
+				continuous = append(continuous, c)
+				go c.Run(context.Background())
+			}
+		}()
 	}
 }
 
@@ -1492,7 +1496,6 @@ func internalOnlyHandler(h http.Handler) http.Handler {
 }
 
 func main() {
-
 	common.InitWithMust(
 		"skiaperf",
 		common.PrometheusOpt(promPort),

@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -37,7 +38,7 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	git            *gitinfo.GitInfo
+	git            vcsinfo.VCS
 	cidl           *cid.CommitIDLookup
 	store          *Store
 	numCommits     int // Number of recent commits to do clustering over.

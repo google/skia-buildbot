@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -88,7 +89,7 @@ type ClusterResponse struct {
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
 	request                  *ClusterRequest
-	git                      *gitinfo.GitInfo
+	git                      vcsinfo.VCS
 	iter                     DataFrameIterator
 	clusterResponseProcessor ClusterResponseProcessor
 
@@ -100,7 +101,7 @@ type ClusterRequestProcess struct {
 	message    string             // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
+func newProcess(ctx context.Context, req *ClusterRequest, git vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
 	ret := &ClusterRequestProcess{
 		request:                  req,
 		git:                      git,
