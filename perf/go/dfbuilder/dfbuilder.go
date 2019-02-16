@@ -34,14 +34,16 @@ const (
 
 // builder implements DataFrameBuilder using btts.
 type builder struct {
-	vcs   vcsinfo.VCS
-	store *btts.BigTableTraceStore
+	vcs      vcsinfo.VCS
+	store    *btts.BigTableTraceStore
+	tileSize int32
 }
 
 func NewDataFrameBuilderFromBTTS(vcs vcsinfo.VCS, store *btts.BigTableTraceStore) dataframe.DataFrameBuilder {
 	return &builder{
-		vcs:   vcs,
-		store: store,
+		vcs:      vcs,
+		store:    store,
+		tileSize: store.TileSize(),
 	}
 }
 
@@ -81,6 +83,7 @@ func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex i
 	for i := beginIndex; i <= endIndex; i++ {
 		commit, err := vcs.ByIndex(ctx, int(i))
 		if err != nil {
+			sklog.Fatal(i, beginIndex, endIndex)
 			return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
 		}
 		headers = append(headers, &dataframe.ColumnHeader{
@@ -311,9 +314,20 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 }
 
 // findIndexForTime finds the index of the closest commit <= 'end'.
+//
+// Pass in zero time, i.e. time.Time{} to indicate to just get the most recent commit.
 func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, error) {
 	var err error
 	endIndex := 0
+
+	zeroTime := time.Time{}
+	if end == zeroTime {
+		commits := b.vcs.LastNIndex(1)
+		if len(commits) == 0 {
+			return 0, fmt.Errorf("Failed to find an end commit.")
+		}
+		return int32(commits[0].Index), nil
+	}
 
 	hashes := b.vcs.From(end)
 	if len(hashes) > 0 {
@@ -334,26 +348,23 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
 	sklog.Infof("Querying to: %v", end)
-	begin := end.Add(-NEW_N_FROM_KEY_STEP)
 
 	ret := dataframe.NewEmpty()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
 	numStepsNoData := 0
 
+	endIndex, err := b.findIndexForTime(ctx, end)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	beginIndex := endIndex - (b.tileSize - 1)
+	if beginIndex < 0 {
+		beginIndex = 0
+	}
+
+	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
-		endIndex, err := b.findIndexForTime(ctx, end)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to find end index: %s", err)
-		}
-		beginIndex, err := b.findIndexForTime(ctx, begin)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to find begin index: %s", err)
-		}
-		if endIndex == beginIndex {
-			break
-		}
-		sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 
 		// Query for traces.
 		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
@@ -416,8 +427,14 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		}
 		steps += 1
 
-		end = begin.Add(-time.Millisecond) // Since our ranges are half open, i.e. they always include 'begin'.
-		begin = end.Add(-NEW_N_FROM_KEY_STEP)
+		endIndex -= b.tileSize
+		beginIndex -= b.tileSize
+		if endIndex < 0 {
+			break
+		}
+		if beginIndex < 0 {
+			beginIndex = 0
+		}
 	}
 
 	if total < n {
