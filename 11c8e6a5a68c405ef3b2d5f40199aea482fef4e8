@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b4d8019d_10c0c2f0",
+        "filename": "task_scheduler/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-18T18:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd790407_0be2defc",
+      "range": {
+        "startLine": 89,
+        "startChar": 23,
+        "endLine": 89,
+        "endChar": 31
+      },
+      "revId": "11c8e6a5a68c405ef3b2d5f40199aea482fef4e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd790ae6_284510d5",
         "filename": "task_scheduler/go/db/firestore/jobs.go",
         "patchSetId": 2
@@ -54,6 +78,24 @@
       "side": 1,
       "message": "Let\u0027s just log an error instead?",
       "parentUuid": "fd790ae6_284510d5",
+      "revId": "11c8e6a5a68c405ef3b2d5f40199aea482fef4e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c5122d90_773e70ba",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-18T18:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e9f1046d_9b5ae7d3",
       "revId": "11c8e6a5a68c405ef3b2d5f40199aea482fef4e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
