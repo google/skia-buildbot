@@ -14,7 +14,7 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 include ../go/skiaversion/skiaversion.mk
 
 .PHONY: all
-all: task_scheduler
+all: task_scheduler validate_db
 
 .PHONY: task_scheduler
 task_scheduler: core_js elements_html skiaversion
@@ -83,5 +83,9 @@ vm_create_staging:
 .PHONY: vm_delete_staging
 vm_delete_staging:
 	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=staging
+
+.PHONY: validate_db
+validate_db:
+	go install -v ./go/db/validate_db
 
 include ../webtools/webtools.mk
