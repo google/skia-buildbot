@@ -306,46 +306,6 @@ ALERT TaskSchedulerErrorRate
     description = "The error rate for task_scheduler on {{ $labels.instance }} is too high. https://console.cloud.google.com/logs/viewer?project=google.com:skia-buildbots&minLogLevel=500&expandAll=false&resource=logging_log%2Fname%2F{{ $labels.log_group }}&logName=projects%2Fgoogle.com:skia-buildbots%2Flogs%2F{{ $labels.log_source }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#error_rate"
   }
 
-ALERT TaskSchedulerDBBackup
-  IF liveness_last_db_backup_s/60/60 > 25
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "The last Task Scheduler DB backup on {{ $labels.instance }} was more than 25 hours ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#old_db_backup"
-  }
-
-ALERT TaskSchedulerExtraDBBackups
-  IF recent_db_backup_count > 9
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "There are too many recent Task Scheduler DB backups for {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_recent_db_backups"
-  }
-
-ALERT TaskSchedulerDBBackupTrigger
-  IF liveness_db_backup_maybe_backup_db_s/60 > 10
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "The last time we checked for a Task Scheduler DB backup trigger file on {{ $labels.instance }} was more than 10 minutes ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#db_backup_trigger_liveness"
-  }
-
-ALERT TaskSchedulerIncrementalBackup
-  IF liveness_incremental_backup_s/60 > 10
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "The last time a Task Scheduler incremental backup succeeded on {{ $labels.instance }} was more than 10 minutes ago. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_liveness"
-  }
-
-ALERT TaskSchedulerIncrementalBackupReset
-  IF incremental_backup_reset > 0
-  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
-  ANNOTATIONS {
-    abbr = "{{ $labels.instance }}",
-    description = "Task Scheduler modified job tracking for incremental backups has been reset since last full backup on {{ $labels.instance }}. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#incremental_backup_reset"
-  }
-
 
 ALERT TaskSchedulerTooManyCandidates
   IF task_candidate_count > 1500
