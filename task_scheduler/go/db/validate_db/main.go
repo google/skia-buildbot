@@ -45,7 +45,7 @@ func validateTask(task *types.Task) error {
 	if util.TimeIsZero(task.Created) {
 		return fmt.Errorf("Created not set. Task %s created time is %s.", task.Id, task.Created)
 	}
-	if !NOW.After(task.DbModified) {
+	if !time.Now().After(task.DbModified) {
 		return fmt.Errorf("Task %s modification time is in the future: %s (current time is %s).", task.Id, task.DbModified, NOW)
 	}
 	return task.Validate()
@@ -65,14 +65,6 @@ func validateTasks(d db.TaskReader, chunks []*timeChunk) ([]string, error) {
 				invalidIds = append(invalidIds, t.Id)
 				continue
 			}
-			// Check that t.Id is correct; i.e. we can look up the task by this ID.
-			if byId, err := d.GetTaskById(t.Id); err != nil {
-				return nil, err
-			} else if byId == nil || byId.Id != t.Id {
-				sklog.Errorf("GetTaskById fails for an existing task!\n%+v\n%+v", t, byId)
-				invalidIds = append(invalidIds, t.Id)
-				continue
-			}
 		}
 	}
 	return invalidIds, nil
@@ -88,7 +80,7 @@ func validateJob(job *types.Job) error {
 	if util.TimeIsZero(job.DbModified) {
 		return fmt.Errorf("DbModified not set. Job %s DbModified time is %s.", job.Id, job.DbModified)
 	}
-	if !NOW.After(job.DbModified) {
+	if !time.Now().After(job.DbModified) {
 		return fmt.Errorf("Job %s modification time is in the future: %s (current time is %s).", job.Id, job.DbModified, NOW)
 	}
 	if !job.RepoState.Valid() {
@@ -109,14 +101,6 @@ func validateJobs(d db.JobReader, chunks []*timeChunk) ([]string, error) {
 			if err := validateJob(j); err != nil {
 				sklog.Errorf("%s %+v", err, j)
 				invalidIds = append(invalidIds, j.Id)
-			}
-			// Check that j.Id is correct; i.e. we can look up the job by this ID.
-			if byId, err := d.GetJobById(j.Id); err != nil {
-				return nil, err
-			} else if byId == nil || byId.Id != j.Id {
-				sklog.Errorf("GetJobById fails for an existing job!\n%+v\n%+v", j, byId)
-				invalidIds = append(invalidIds, j.Id)
-				continue
 			}
 		}
 	}

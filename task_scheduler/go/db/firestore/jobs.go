@@ -61,6 +61,9 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, 
 		if err := doc.DataTo(&job); err != nil {
 			return err
 		}
+		if doc.Ref.ID != job.Id {
+			sklog.Errorf("Job %s is stored with ID %s; GetJobById will not be able to find it!", job.Id, doc.Ref.ID)
+		}
 		jobs[idx] = append(jobs[idx], &job)
 		return nil
 	}
