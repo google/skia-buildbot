@@ -232,6 +232,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	if err := StartFirestoreBackupMetrics(ctx, newTs); err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Wait while the above goroutines generate data.
 	select {}
 }
