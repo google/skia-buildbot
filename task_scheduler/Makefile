@@ -84,4 +84,8 @@ vm_create_staging:
 vm_delete_staging:
 	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=staging
 
+.PHONY: db_validate
+db_validate:
+	go install -v ./go/db/validate
+
 include ../webtools/webtools.mk
