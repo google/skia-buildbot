@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd790ae6_284510d5",
+        "filename": "task_scheduler/go/db/firestore/jobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-18T18:14:58Z",
+      "side": 1,
+      "message": "Not sure if this is a good idea or not.",
+      "revId": "11c8e6a5a68c405ef3b2d5f40199aea482fef4e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
