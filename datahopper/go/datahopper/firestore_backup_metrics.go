@@ -58,7 +58,7 @@ func getFirestoreLastBackupCompleted(ctx context.Context, httpClient *http.Clien
 		sklog.Debugf("Sending Firestore list operations request: %q", listUrl)
 		resp, err := httpClient.Get(listUrl)
 		if err != nil {
-			return z, fmt.Errorf("Error performing Firestore list operations request.")
+			return z, fmt.Errorf("Error performing Firestore list operations request: %s", err)
 		}
 		operations := firestoreOperations{}
 		if err := json.NewDecoder(resp.Body).Decode(&operations); err != nil {

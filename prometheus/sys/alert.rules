@@ -152,6 +152,21 @@ ALERT SwarmingBotMetricsLiveness
     description = "{{ $labels.instance }} has failed to update swarming task metrics for pool {{ $labels.pool }} on {{ $labels.server }} for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#swarming_bot_metrics"
   }
 
+ALERT FirestoreBackupMetricsLiveness
+  IF liveness_last_successful_firestore_backup_metrics_update_s/60 > 15
+  LABELS { category = "infra", severity = "critical", owner = "benjaminwagner@google.com" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.instance }}",
+    description = "{{ $labels.instance }} has failed to update Firestore backup metrics for the last 15 minutes. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_backup_metrics"
+  }
+
+ALERT FirestoreBackupTooOld
+  IF liveness_last_successful_firestore_backup_s/60/60 > 26
+  LABELS { category = "infra", severity = "critical", owner = "benjaminwagner@google.com" }
+  ANNOTATIONS {
+    description = "The most recent successful Firestore nightly backup was more than 26 hours ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_nightly_backup"
+  }
+
 # Swarming
 
 ALERT BotMissing
