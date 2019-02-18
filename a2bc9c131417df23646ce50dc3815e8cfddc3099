@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe88795b_6f5f190b",
+        "filename": "firestore/Makefile",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-18T19:07:52Z",
+      "side": 1,
+      "message": "Why not pushk?",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 92
+      },
+      "revId": "a2bc9c131417df23646ce50dc3815e8cfddc3099",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
