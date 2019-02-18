@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --bigtable_project=skia-public \
     --bigtable_instance=production \
     --host=task-scheduler.skia.org \
+    --firestore_instance=production \
     --logtostderr \
     --pubsub_topic_set=production \
     --workdir=/mnt/pd0/task_scheduler_workdir \

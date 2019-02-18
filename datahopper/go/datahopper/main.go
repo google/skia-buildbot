@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
@@ -145,7 +146,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to sync depot_tools: %s", err)
 	}
-	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope)
+	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
