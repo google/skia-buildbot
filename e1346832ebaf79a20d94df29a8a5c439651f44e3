@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8a51be04_41fd56c4",
+        "filename": "datahopper/go/datahopper/firestore_backup_metrics.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-18T18:50:29Z",
+      "side": 1,
+      "message": "(You already reviewed this PS before I posted this comment.) Changed GS URI so that we can export individual collections in the future, if needed.",
+      "revId": "e1346832ebaf79a20d94df29a8a5c439651f44e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
