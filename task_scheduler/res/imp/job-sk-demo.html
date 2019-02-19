@@ -9,43 +9,81 @@
   <script type="text/javascript" charset="utf-8">
     // job1 represents real task data.
     var job1 = {
-        "buildbucketBuildId": 0,
-        "buildbucketLeaseKey": 0,
-        "created": "2016-10-10T15:56:13.393516175-04:00",
-        "dbModified": "2016-10-10T19:56:44.572122663Z",
-        "dependencies": {
-            "Build-Ubuntu-GCC-x86_64-Release-GN": null,
-            "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Build-Ubuntu-GCC-x86_64-Release-GN"],
-            "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": ["Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN"],
-        },
-        "finished": "2016-10-11T15:30:45.22367Z",
-        "id": "20161010T195613.393516175Z_0000000000000048",
-        "isForce": false,
-        "name": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN",
-        "priority": 0.8,
-        "issue": "2410843002",
-        "patchset": "1",
-        "server": "https://codereview.chromium.org",
-        "repo": "https://skia.googlesource.com/skia.git",
-        "revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
-        "status": "SUCCESS",
-        "tasks": {
-            "Build-Ubuntu-GCC-x86_64-Release-GN": [{
-                "id": "20161011T152315.308660290Z_0000000000000a40",
-                "status": "SUCCESS",
-                "swarmingTaskId": "31cd28b854e04d10",
-            }],
-            "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-                "id": "20161011T152506.638634008Z_0000000000000a41",
-                "status": "SUCCESS",
-                "swarmingTaskId": "31cd2a6aef2ec410",
-            }],
-            "Upload-Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-GN": [{
-                "id": "20161011T152813.960219550Z_0000000000000a42",
-                "status": "SUCCESS",
-                "swarmingTaskId": "31cd2d46acc0e110",
-            }],
-        },
+      "buildbucketBuildId": 8921090193851453000,
+      "buildbucketLeaseKey": 0,
+      "created": "2019-02-19T13:20:52.277737Z",
+      "dbModified": "2019-02-19T13:33:14.64704Z",
+      "dependencies": {
+        "Build-Debian9-EMCC-wasm-Release-CanvasKit": [
+          "Housekeeper-PerCommit-BundleRecipes"
+        ],
+        "Housekeeper-PerCommit-BundleRecipes": [],
+        "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          "Housekeeper-PerCommit-BundleRecipes",
+          "Build-Debian9-EMCC-wasm-Release-CanvasKit"
+        ],
+        "Upload-Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          "Housekeeper-PerCommit-BundleRecipes",
+          "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit"
+        ]
+      },
+      "finished": "2019-02-19T13:32:46.274182Z",
+      "id": "aYwjrLWysQRUW2lGFQvR",
+      "isForce": false,
+      "name": "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit",
+      "priority": 0,
+      "issue": "193176",
+      "patch_repo": "https://skia.googlesource.com/skia.git",
+      "patchset": "2",
+      "server": "https://skia-review.googlesource.com",
+      "repo": "https://skia.googlesource.com/skia.git",
+      "revision": "9883def4f8661f8eec4ccbae2e34d7fcb14bf65d",
+      "status": "SUCCESS",
+      "tasks": {
+        "Build-Debian9-EMCC-wasm-Release-CanvasKit": [
+          {
+            "attempt": 0,
+            "id": "J1iwABakhHfGNzGc0n0G",
+            "max_attempts": 2,
+            "status": "SUCCESS",
+            "swarmingTaskId": "431ebd696ac4fe10"
+          }
+        ],
+        "Housekeeper-PerCommit-BundleRecipes": [
+          {
+            "attempt": 0,
+            "id": "db0BuaY14LAtgqirQr0h",
+            "max_attempts": 2,
+            "status": "SUCCESS",
+            "swarmingTaskId": "431ebc8bdc182810"
+          }
+        ],
+        "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          {
+            "attempt": 0,
+            "id": "QT5J8rNsgnumXH67JwTr",
+            "max_attempts": 2,
+            "status": "FAILURE",
+            "swarmingTaskId": "431ec237d09f5410"
+          },
+          {
+            "attempt": 1,
+            "id": "fmHFVsREalHNMozGW7Pg",
+            "max_attempts": 2,
+            "status": "SUCCESS",
+            "swarmingTaskId": "431ec43eb083e010"
+          }
+        ],
+        "Upload-Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          {
+            "attempt": 0,
+            "id": "6qz24baK8BCl8ubhKo5K",
+            "max_attempts": 2,
+            "status": "SUCCESS",
+            "swarmingTaskId": "431ec69823433510"
+          }
+        ]
+      },
     };
 
     // job2 is fake data but is more visually interesting.

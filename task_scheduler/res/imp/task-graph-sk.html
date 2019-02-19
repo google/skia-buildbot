@@ -113,7 +113,7 @@
         graphKeys.sort();
         for (var taskName in taskData) {
           taskData[taskName].sort(function(a, b) {
-            return a.id.localeCompare(b.id);
+            return a.attempt < b.attempt;
           });
         }
 
