@@ -27,21 +27,23 @@ const (
 	// when constructing a NewN* query.
 	NEW_N_FROM_KEY_STEP = 12 * time.Hour
 
-	// NEW_N_MAX_SEARCH is the minimum number of NEW_N_FROM_KEY_STEP queries to
-	// perform that returned no data before giving up.
+	// NEW_N_MAX_SEARCH is the minimum number of queries to perform that returned
+	// no data before giving up.
 	NEW_N_MAX_SEARCH = 4
 )
 
 // builder implements DataFrameBuilder using btts.
 type builder struct {
-	vcs   vcsinfo.VCS
-	store *btts.BigTableTraceStore
+	vcs      vcsinfo.VCS
+	store    *btts.BigTableTraceStore
+	tileSize int32
 }
 
 func NewDataFrameBuilderFromBTTS(vcs vcsinfo.VCS, store *btts.BigTableTraceStore) dataframe.DataFrameBuilder {
 	return &builder{
-		vcs:   vcs,
-		store: store,
+		vcs:      vcs,
+		store:    store,
+		tileSize: store.TileSize(),
 	}
 }
 
@@ -311,9 +313,19 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 }
 
 // findIndexForTime finds the index of the closest commit <= 'end'.
+//
+// Pass in zero time, i.e. time.Time{} to indicate to just get the most recent commit.
 func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, error) {
 	var err error
 	endIndex := 0
+
+	if end.IsZero() {
+		commits := b.vcs.LastNIndex(1)
+		if len(commits) == 0 {
+			return 0, fmt.Errorf("Failed to find an end commit.")
+		}
+		return int32(commits[0].Index), nil
+	}
 
 	hashes := b.vcs.From(end)
 	if len(hashes) > 0 {
@@ -334,26 +346,23 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
 	sklog.Infof("Querying to: %v", end)
-	begin := end.Add(-NEW_N_FROM_KEY_STEP)
 
 	ret := dataframe.NewEmpty()
 	var total int32 // total number of commits we've added to ret so far.
 	steps := 1      // Total number of times we've gone through the loop below, used in the progress() callback.
 	numStepsNoData := 0
 
+	endIndex, err := b.findIndexForTime(ctx, end)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	beginIndex := endIndex - (b.tileSize - 1)
+	if beginIndex < 0 {
+		beginIndex = 0
+	}
+
+	sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 	for total < n {
-		endIndex, err := b.findIndexForTime(ctx, end)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to find end index: %s", err)
-		}
-		beginIndex, err := b.findIndexForTime(ctx, begin)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to find begin index: %s", err)
-		}
-		if endIndex == beginIndex {
-			break
-		}
-		sklog.Infof("BeginIndex: %d  EndIndex: %d", beginIndex, endIndex)
 
 		// Query for traces.
 		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
@@ -416,8 +425,14 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		}
 		steps += 1
 
-		end = begin.Add(-time.Millisecond) // Since our ranges are half open, i.e. they always include 'begin'.
-		begin = end.Add(-NEW_N_FROM_KEY_STEP)
+		endIndex -= b.tileSize
+		beginIndex -= b.tileSize
+		if endIndex < 0 {
+			break
+		}
+		if beginIndex < 0 {
+			beginIndex = 0
+		}
 	}
 
 	if total < n {
@@ -434,7 +449,6 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
 	defer timer.New("NewNFromKeys").Stop()
 
-	// For the lack of a better heuristic, we'll load one day of data at a time.
 	begin := end.Add(-NEW_N_FROM_KEY_STEP)
 
 	ret := dataframe.NewEmpty()
@@ -443,6 +457,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	numStepsNoData := 0
 
 	for total < n {
+		// TODO(jcgregorio) Convert NewFromKeysAndRange to take indices, not times.
 		df, err := b.NewFromKeysAndRange(keys, begin, end, false, nil)
 		if err != nil {
 			return nil, fmt.Errorf("Failed while querying: %s", err)

@@ -307,12 +307,15 @@ func Init() {
 	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, git)
 
 	if *doClustering {
-		for i := 0; i < *numContinuousParallel; i++ {
-			// Start running continuous clustering looking for regressions.
-			c := regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
-			continuous = append(continuous, c)
-			go c.Run(ctx)
-		}
+		go func() {
+			for i := 0; i < *numContinuousParallel; i++ {
+				// Start running continuous clustering looking for regressions.
+				time.Sleep(time.Minute)
+				c := regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
+				continuous = append(continuous, c)
+				go c.Run(context.Background())
+			}
+		}()
 	}
 }
 
@@ -652,7 +655,7 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := clusterRequests.Add(context.Background(), req)
 	if err != nil {
-		httputils.ReportError(w, r, err, err.Error())
+		httputils.ReportError(w, r, err, "Cluster request was invalid")
 		return
 	}
 	resp := ClusterStartResponse{
