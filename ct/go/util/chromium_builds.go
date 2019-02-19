@@ -69,6 +69,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
 		LogStdout: true,
 		LogStderr: true,
+		Env:       os.Environ(),
 	}
 	if _, err := exec.RunCommand(ctx, syncCommand); err != nil {
 		return fmt.Errorf("There was an error checking out chromium %s: %s", chromiumHash, err)
@@ -120,7 +121,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	var fetchTarget string
 	if targetPlatform == "Android" {
 		fetchTarget = "android"
-	} else if targetPlatform == "Linux" {
+	} else if targetPlatform == "Linux" || targetPlatform == "Windows" {
 		fetchTarget = "chromium"
 	} else {
 		return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
@@ -147,14 +148,24 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	// Run chromium sync command using the above commit hashes.
 	// Construct path to the sync_skia_in_chrome python script.
 	syncArgs := []string{
+		"/c",
+		"python",
 		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
 		"--destination=" + chromiumBuildDir,
 		"--fetch_target=" + fetchTarget,
 		"--chrome_revision=" + chromiumHash,
 		"--skia_revision=" + skiaHash,
 	}
+	// rmistry: Hopefully this script works on Windows.
+	fmt.Println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	fmt.Println("ABOUT TO FAIL???")
+	fmt.Println(os.Environ())
+	environ := []string{`PATH=C:\\Users\chrome-bot\depot_tools`}
+	fmt.Println(environ)
+	environ = append(environ, os.Environ()...)
 	syncCommand := &exec.Command{
-		Name: "python",
+		Name: "cmd",
+		// Name: "C:\\Users\\chrome-bot\\depot_tools\\python",
 		Args: syncArgs,
 		// The below is to bypass the blocking Android license agreement that shows
 		// up sometimes for Android CT builds.
@@ -162,16 +173,20 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
 		LogStdout: true,
 		LogStderr: true,
+		//// https://bugs.python.org/issue1384175#msg248951
+		// Env: []string{`PATH=C:\\Users\chrome-bot\depot_tools`, `SystemRoot=C:\\Windows`},
+		Env: environ,
+		// Env: os.Environ(),
 	}
 	if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
-		sklog.Warning("There was an error. Deleting base directory and trying again.")
-		util.RemoveAll(chromiumBuildDir)
-		util.MkdirAll(chromiumBuildDir, 0700)
-		// Resetting stdin.
-		syncCommand.Stdin = strings.NewReader("y")
-		if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
-			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
-		}
+		//sklog.Warning("There was an error. Deleting base directory and trying again.")
+		//util.RemoveAll(chromiumBuildDir)
+		//util.MkdirAll(chromiumBuildDir, 0700)
+		//// Resetting stdin.
+		//syncCommand.Stdin = strings.NewReader("y")
+		//if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
+		return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
+		//}
 	}
 
 	// Make sure we are starting from a clean slate.

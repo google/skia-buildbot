@@ -119,13 +119,13 @@ func main() {
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
-	}
+	//// Send start email.
+	//emailsArr := util.ParseEmails(*emails)
+	//emailsArr = append(emailsArr, util.CtAdmins...)
+	//if len(emailsArr) == 0 {
+	//	sklog.Error("At least one email address must be specified")
+	//	return
+	//}
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -133,13 +133,13 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
-	// Cleanup dirs after run completes.
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
+	//skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
+	//// Ensure webapp is updated and email is sent even if task fails.
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr, gs)
+	//// Cleanup dirs after run completes.
+	//defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))targetPlatform
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium analysis task on workers")
 	defer sklog.Flush()
@@ -201,24 +201,26 @@ func main() {
 
 	// Isolate telemetry.
 	isolateDeps := []string{}
-	group.Go("isolate telemetry", func() error {
-		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
-		if err != nil {
-			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
-		}
-		if telemetryHash == "" {
-			return sklog.FmtErrorf("Found empty telemetry hash!")
-		}
-		isolateDeps = append(isolateDeps, telemetryHash)
-		return nil
-	})
+	//group.Go("isolate telemetry", func() error {
+	//	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+	//	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	//	if err != nil {
+	//		return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
+	//	}
+	//	if telemetryHash == "" {
+	//		return sklog.FmtErrorf("Found empty telemetry hash!")
+	//	}
+	//	isolateDeps = append(isolateDeps, telemetryHash)
+	//	return nil
+	//})
 
 	// Wait for chromium build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {
 		sklog.Error(err)
 		return
 	}
+
+	sklog.Fatal("DONE DONE DONE")
 
 	// Clean up the chromium builds from Google storage after the run completes.
 	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
