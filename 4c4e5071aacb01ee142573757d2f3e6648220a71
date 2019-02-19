@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58f1dfd1_a3de834d",
+        "filename": "perf/go/btts/btts.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-19T15:07:48Z",
+      "side": 1,
+      "message": "nit: should probably be context.TODO(), since presumably you eventually want to pass in the context from e.g. the HTTP request. Same for many other diffs in this CL.",
+      "range": {
+        "startLine": 244,
+        "startChar": 45,
+        "endLine": 244,
+        "endChar": 55
+      },
+      "revId": "4c4e5071aacb01ee142573757d2f3e6648220a71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04c4254b_0ec1eb67",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-19T15:07:48Z",
+      "side": 1,
+      "message": "nit: maybe just use time.Time.IsZero or util.TimeIsZero.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 1
+      },
+      "revId": "4c4e5071aacb01ee142573757d2f3e6648220a71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24ddd7af_c8cc33f9",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-19T15:07:48Z",
+      "side": 1,
+      "message": "Did you mean to revert this change?",
+      "revId": "4c4e5071aacb01ee142573757d2f3e6648220a71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
