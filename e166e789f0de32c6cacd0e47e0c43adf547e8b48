@@ -17,6 +17,24 @@
       "revId": "e166e789f0de32c6cacd0e47e0c43adf547e8b48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "21d4c92b_f27cd068",
+        "filename": "infra/config/recipes.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-19T20:22:06Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "05eb2a2f_83f8322f",
+      "revId": "e166e789f0de32c6cacd0e47e0c43adf547e8b48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
