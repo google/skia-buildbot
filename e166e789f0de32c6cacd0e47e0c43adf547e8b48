@@ -1,0 +1,22 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "05eb2a2f_83f8322f",
+        "filename": "infra/config/recipes.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5835
+      },
+      "writtenOn": "2019-02-19T20:15:18Z",
+      "side": 1,
+      "message": "This will be fixed in another roll which is currently (ironically) in the autoroller (and which I\u0027ll be using to verify that the autoroller is actually fully working)",
+      "parentUuid": "f5da70f0_e43bf9f0",
+      "revId": "e166e789f0de32c6cacd0e47e0c43adf547e8b48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
