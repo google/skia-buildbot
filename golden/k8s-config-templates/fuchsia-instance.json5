@@ -1,0 +1,11 @@
+{
+    "TRACESERVER_MEMORY": "500Mi",
+    "TRACESERVER_CPU":   "500m",
+
+    "GERRIT_URL": "https://chromium-review.googlesource.com",
+
+    "SKCORR_TITLE": "Fuchsia Gold",
+    "SKCORR_DEFAULT_CORPUS": "fuchsia",
+
+
+}

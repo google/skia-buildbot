@@ -46,8 +46,8 @@ spec:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
       containers:
-        - name: gold-{{.INSTANCE_ID}}-traceserver
-          image: {{.TRACESERVER_IMAGE}}
+        - name: gold-traceserver
+          image: {{.TRACESERVER_IMAGE_URL}}
           args:
             - "--db_file=/mnt/traceserver/traces.db"
             - "--http_port=:9091"
@@ -64,11 +64,11 @@ spec:
               mountPath: /mnt/traceserver
           resources:
             limits:
-              memory: "{{.TRACESERVER_MEMORY}}"
-              cpu: "{{.TRACESERVER_CPU}}"
+              memory: "500Mi"
+              cpu: "500m"
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /ready
               port: 9091
             initialDelaySeconds: 30
             periodSeconds: 10
@@ -112,11 +112,11 @@ spec:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
       containers:
-        - name: gold-{{.INSTANCE_ID}}-ingestion
-          image: {{.TRACESERVER_IMAGE}}
+        - name: gold-ingestion
+          image: {{.INGESTION_IMAGE_URL}}
           args:
-            - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config.json5"
-            - "--namespace=gold-{{.INSTANCE_ID}}"
+            - "--config_filename=/etc/gold-{{.INSTANCE_ID}}-ingestion/ingestion-config.json5"
+            - "--ds_namespace=gold-{{.INSTANCE_ID}}"
             - "--http_port=:9091"
             - "--logtostderr"
             - "--no_cloud_log"
@@ -128,15 +128,15 @@ spec:
               name: http-health
           volumeMounts:
             - name: gold-{{.INSTANCE_ID}}-ingestion-config-volume
-              mountPath: /etc/gold-ingestion
+              mountPath: /etc/gold-{{.INSTANCE_ID}}-ingestion
             - name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
               mountPath: /data
             - name: gold-service-account-secrets
               mountPath: /etc/gold-config/
           resources:
             limits:
-              memory: "4Gi"
-              cpu: 2
+              memory: "2Gi"
+              cpu: 1
           readinessProbe:
             httpGet:
               path: /ready
@@ -155,17 +155,16 @@ spec:
     - metadata:
         name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
       spec:
-        storageClassName: ssd-disk
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 100Gi
+            storage: 20Gi
 ---
 # ##############################################
 #
 # Skiacorrectness
 #
-# #############################################
+# ##############################################
 apiVersion: v1
 kind: Service
 metadata:
@@ -189,7 +188,8 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gold-{{.INSTANCE_ID}}-skiacorrectness
+      app: gold-{{.INSTANCE_ID}}-skiacorrectness # Label selector that determines which Pods belong to the StatefulSet
+                                       # Must match spec: template: metadata: labels
   updateStrategy:
     type: RollingUpdate
   template:
@@ -205,35 +205,34 @@ spec:
         runAsUser: 2000 # aka skia
         fsGroup: 2000   # aka skia
       containers:
-        - name: gold-{{.INSTANCE_ID}}-skiacorrectness
-          image: gcr.io/skia-public/gold-skiacorrectness:2019-02-15T19_00_36Z-stephana-eccd15a-dirty
+        - name: gold-skiacorrectness
+          image: {{.CORRECTNESS_IMAGE_URL}}
           args:
             - "--logtostderr=true"
-            - "--app_title={{.SKCORR_TITLE}}"
+            - "--app_title={{.APP_TITLE}}"
             - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
             - "--cache_size=0"
-            - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
+            - "--default_corpus={{.DEFAULT_CORPUS}}"
             - "--ds_namespace=gold-{{.INSTANCE_ID}}"
             - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
-            - "--force_login=false"
+            - "--force_login={{.FORCE_LOGIN}}"
             - "--gerrit_url={{.GERRIT_URL}}"
-            - "--git_repo_dir=/data/ci-repo"
-            - "--git_repo_url=https://chromium.googlesource.com/chromium/src"
+            - "--git_repo_dir=/data/{{.INSTANCE_ID}}-repo"
+            - "--git_repo_url={{.REPO_URL}}"
             - "--gs_buckets=skia-gold-{{.INSTANCE_ID}}"
             - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
             - "--image_dir=/data/imagediffs"
-            - "--n_commits=100"
+            - "--n_commits={{.N_COMMITS}}"
             - "--no_cloud_log=true"
             - "--port=:8000"
-            - "--project_id=skia-public"
+            - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
-            - "--public_whitelist=all"
-            - "--redirect_url=https://skia.org/oauth2callback/"
+            - "--public_whitelist={{.WHITELIST}}"
+            - "--redirect_url={{.REDIRECT_URL}}"
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
             - "--service_account_file=/etc/gold-config/service-account.json"
             - "--site_url=https://{{.INSTANCE_ID}}-gold.skia.org"
-            - "--show_bot_progress=false"
-            - "--sparse"
+            - "--show_bot_progress={{.SHOW_BOT_PROGRESS}}"
             - "--storage_dir=/data/data-store"
             - "--trace_service=gold-{{.INSTANCE_ID}}-traceservice:9090"
           ports:
@@ -250,14 +249,14 @@ spec:
               mountPath: /etc/skia.org/
           resources:
             requests:
-              memory: "4Gi"
+              memory: "8Gi"
               cpu: "2"
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /ready
               port: 8000
-            initialDelaySeconds: 15
-            periodSeconds: 10
+            initialDelaySeconds: 45
+            periodSeconds: 15
       volumes:
         - name: gold-service-account-secrets
           secret:
