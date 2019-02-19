@@ -3,12 +3,14 @@ package regression
 import (
 	"context"
 	"math/rand"
+	"net/url"
 	"sync"
 	"time"
 
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
@@ -188,6 +190,29 @@ func (c *Continuous) Run(ctx context.Context) {
 		sklog.Infof("Clustering over %d configs.", len(configs))
 		for _, cfg := range configs {
 			c.setCurrentConfig(cfg)
+			if cfg.GroupBy != "" {
+				sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
+				u, err := url.ParseQuery(cfg.Query)
+				if err != nil {
+					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
+					continue
+				}
+				q, err := query.New(u)
+				if err != nil {
+					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
+					continue
+				}
+				df, err := c.dfBuilder.NewNFromQuery(context.Background(), time.Time{}, q, 20, nil)
+				if err != nil {
+					sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)
+					continue
+				}
+				if len(df.TraceSet) == 0 {
+					sklog.Warningf("Alert failed smoketest: %q Failed to get any traces for generic query.", cfg.DisplayName)
+					continue
+				}
+				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
+			}
 
 			clusterResponseProcessor := func(resps []*ClusterResponse) {
 				c.reportRegressions(ctx, resps, cfg)
@@ -195,7 +220,7 @@ func (c *Continuous) Run(ctx context.Context) {
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Now(), c.git, c.cidl, c.dfBuilder, c.setCurrentStep)
+			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Time{}, c.git, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()

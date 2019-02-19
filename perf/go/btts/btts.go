@@ -166,7 +166,6 @@ func NewOpsCacheEntryFromRow(row bigtable.Row) (*OpsCacheEntry, error) {
 }
 
 type BigTableTraceStore struct {
-	ctx           context.Context
 	tileSize      int32 // How many commits we store per tile.
 	shards        int32 // How many shards we break the traces into.
 	writesCounter metrics2.Counter
@@ -180,6 +179,10 @@ type BigTableTraceStore struct {
 
 	mutex    sync.RWMutex              // Protects opsCache.
 	opsCache map[string]*OpsCacheEntry // map[tile] -> ops.
+}
+
+func (b *BigTableTraceStore) TileSize() int32 {
+	return b.tileSize
 }
 
 func (b *BigTableTraceStore) getTable() *bigtable.Table {
@@ -199,7 +202,6 @@ func NewBigTableTraceStoreFromConfig(ctx context.Context, cfg *config.PerfBigTab
 		lookup[VALUES_FAMILY+":"+strconv.Itoa(i)] = i
 	}
 	ret := &BigTableTraceStore{
-		ctx:           ctx,
 		tileSize:      cfg.TileSize,
 		shards:        cfg.Shards,
 		table:         client.Open(cfg.Table),
@@ -239,7 +241,7 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 			sklog.Infof("OPS Cache is empty.")
 		}
 	}
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	row, err := b.getTable().ReadRow(tctx, tileKey.OpsRowName(), bigtable.RowFilter(bigtable.LatestNFilter(1)))
 	if err != nil {
@@ -289,7 +291,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 	muts = append(muts, mut)
 	rowKeys = append(rowKeys, fmt.Sprintf("&%x", sourceHash))
 
-	tctx, cancel := context.WithTimeout(b.ctx, WRITE_TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
 	defer cancel()
 	for k, v := range values {
 		mut := bigtable.NewMutation()
@@ -355,7 +357,7 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 	}
 	ret := map[string][]float32{}
 
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	err = b.getTable().ReadRows(tctx, rowSet, func(row bigtable.Row) bool {
 		vec := vec32.New(int(b.tileSize))
@@ -384,7 +386,7 @@ func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map
 	var mutex sync.Mutex
 	ret := map[string][]float32{}
 	var g errgroup.Group
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	// Spawn one Go routine for each shard.
 	for i := int32(0); i < b.shards; i++ {
@@ -421,7 +423,7 @@ func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map
 func (b *BigTableTraceStore) QueryCount(tileKey TileKey, q *regexp.Regexp) (int64, error) {
 	var g errgroup.Group
 	ret := int64(0)
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	// Spawn one Go routine for each shard.
 	for i := int32(0); i < b.shards; i++ {
@@ -454,7 +456,7 @@ func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
 
 	// Track the StringSets, one per shard.
 	stringSets := []*util.StringSet{}
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 
 	// Spawn one Go routine for each shard.
@@ -496,7 +498,7 @@ func (b *BigTableTraceStore) TileKeys(tileKey TileKey) ([]string, error) {
 // The traceId must be an OPS encoded key.
 func (b *BigTableTraceStore) GetSource(index int32, traceId string) (string, error) {
 	tileKey := TileKeyFromOffset(index / b.tileSize)
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	row, err := b.getTable().ReadRow(tctx, tileKey.TraceRowName(traceId, b.shards), bigtable.RowFilter(
 		bigtable.ChainFilters(
@@ -532,7 +534,7 @@ func (b *BigTableTraceStore) GetSource(index int32, traceId string) (string, err
 // GetLatestTile returns the latest, i.e. the newest tile.
 func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 	ret := BadTileKey
-	tctx, cancel := context.WithTimeout(b.ctx, TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
 	defer cancel()
 	err := b.getTable().ReadRows(tctx, bigtable.PrefixRange("@"), func(row bigtable.Row) bool {
 		var err error
@@ -554,7 +556,7 @@ func (b *BigTableTraceStore) GetLatestTile() (TileKey, error) {
 // UpdateOrderedParamSet will add all params from 'p' to the OrderedParamSet
 // for 'tileKey' and write it back to BigTable.
 func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools.ParamSet) (*paramtools.OrderedParamSet, error) {
-	tctx, cancel := context.WithTimeout(b.ctx, WRITE_TIMEOUT)
+	tctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
 	defer cancel()
 	var newEntry *OpsCacheEntry
 	for {

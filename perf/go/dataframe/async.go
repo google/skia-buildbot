@@ -90,8 +90,6 @@ type FrameRequestProcess struct {
 	// dfBuilder builds DataFrame's.
 	dfBuilder DataFrameBuilder
 
-	ctx context.Context
-
 	mutex         sync.RWMutex // Protects access to the remaining struct members.
 	response      *FrameResponse
 	lastUpdate    time.Time    // The last time this process was updated.
@@ -114,7 +112,6 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		state:         PROCESS_RUNNING,
 		totalSearches: len(req.Formulas) + len(req.Queries) + numKeys,
 		dfBuilder:     fr.dfBuilder,
-		ctx:           ctx,
 	}
 	go ret.Run(ctx)
 	return ret
@@ -296,7 +293,7 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 		df = NewHeaderOnly(p.git, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(p.ctx, df, p.git, true, p.request.TZ)
+	resp, err := ResponseFromDataFrame(context.Background(), df, p.git, true, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return
@@ -436,7 +433,7 @@ func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
 	} else {
-		return p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromQuery(context.Background(), end, q, p.request.NumCommits, p.progress)
 	}
 }
 
@@ -450,7 +447,7 @@ func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataF
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
 	} else {
-		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromKeys(context.Background(), end, keys.Keys, p.request.NumCommits, p.progress)
 	}
 }
 
@@ -475,7 +472,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromQuery(context.Background(), end, q, p.request.NumCommits, p.progress)
 		}
 		if err != nil {
 			return nil, err
@@ -496,7 +493,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		if p.request.RequestType == REQUEST_TIME_RANGE {
 			df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
 		} else {
-			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
+			df, err = p.dfBuilder.NewNFromKeys(context.Background(), end, keys.Keys, p.request.NumCommits, p.progress)
 		}
 		if err != nil {
 			return nil, err
