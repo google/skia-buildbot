@@ -294,17 +294,6 @@ groups:
     annotations:
       description: 'https://android-master-perf.skia.org/t/ clustering appears to be stuck. Check the Status on the triage page.'
 
-  - alert: PerfClusteringSlow
-    expr: liveness_perf_clustering_s{app=~"skiaperf(-android|)"}/(60*60) > 2
-    for: 10m
-    labels:
-      category: infra
-      severity: critical
-      owner: jcgregorio@google.com
-    annotations:
-      description: '{{ $labels.app }} clustering is taking too long. Check the Status on the triage page.'
-
-
 # Prober
   - alert: ProbeFailure
     expr: prober{type="failure"} > 0
