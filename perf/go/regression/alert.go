@@ -52,5 +52,4 @@ func RegressionsForAlert(ctx context.Context, cfg *alerts.Config, ps paramtools.
 		queriesCounter.Inc(1)
 	}
 	sklog.Infof("Finished clustering for: %#v", *cfg)
-	queriesCounter.Reset()
 }
