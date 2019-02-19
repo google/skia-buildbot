@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "c4d658be_4138ebc8",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-19T15:40:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04c4254b_0ec1eb67",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 1
+      },
+      "revId": "4c4e5071aacb01ee142573757d2f3e6648220a71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24ddd7af_c8cc33f9",
         "filename": "perf/go/skiaperf/main.go",
         "patchSetId": 6
@@ -62,6 +86,24 @@
       "revId": "4c4e5071aacb01ee142573757d2f3e6648220a71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e210535_93c14040",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-02-19T15:40:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24ddd7af_c8cc33f9",
+      "revId": "4c4e5071aacb01ee142573757d2f3e6648220a71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
