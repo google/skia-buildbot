@@ -25,12 +25,13 @@ var (
 			 "model" : "iPhone7",
 			 "os" : "iOS"
 		},
-		"issue": "0",
-		"patchset": "0",
-		"buildbucket_build_id" : "0",
+		"issue": "12345",
+		"patchset": "10",
+		"buildbucket_build_id" : "549340494940393",
 		"builder" : "Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal",
 		"swarming_bot_id" : "skia-rpi-102",
 		"swarming_task_id" : "3fcd8d4a539ba311",
+		"taskID" : "Xb0VhENPSRFGnf2elVQd",
 		"results" : [
 			 {
 					"key" : {
@@ -111,7 +112,14 @@ func TestValidate(t *testing.T) {
 
 func TestParseGoldResults(t *testing.T) {
 	testutils.SmallTest(t)
-	_ = testParse(t, testJSON)
+	r := testParse(t, testJSON)
+
+	// Make sure some key fields come out correctly, i.e. are converted correctly from string to int.
+	assert.Equal(t, "c4711517219f333c1116f47706eb57b51b5f8fc7", r.GitHash)
+	assert.Equal(t, "Xb0VhENPSRFGnf2elVQd", r.TaskID)
+	assert.Equal(t, int64(12345), r.Issue)
+	assert.Equal(t, int64(10), r.Patchset)
+	assert.Equal(t, int64(549340494940393), r.BuildBucketID)
 }
 
 func TestGenJson(t *testing.T) {
