@@ -13,6 +13,21 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
+func TestCopyIsolatedFile(t *testing.T) {
+	testutils.SmallTest(t)
+	f := &IsolatedFile{
+		Algo:    "smrt",
+		Command: []string{"sit", "shake"},
+		Files: map[string]interface{}{
+			"a": "b",
+		},
+		Includes:    []string{"blah"},
+		RelativeCwd: "dot",
+		Version:     "NEW!",
+	}
+	deepequal.AssertCopy(t, f, f.Copy())
+}
+
 func TestIsolateTasks(t *testing.T) {
 	testutils.LargeTest(t)
 
@@ -26,10 +41,11 @@ func TestIsolateTasks(t *testing.T) {
 
 	ctx := context.Background()
 	do := func(tasks []*Task, expectErr string) []string {
-		hashes, err := c.IsolateTasks(ctx, tasks)
+		hashes, files, err := c.IsolateTasks(ctx, tasks)
 		if expectErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, len(tasks), len(hashes))
+			assert.Equal(t, len(tasks), len(files))
 			return hashes
 		} else {
 			assert.EqualError(t, err, expectErr)
