@@ -439,7 +439,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			IsolateFile: path.Join(pathToIsolates, isolateName),
 			Deps:        isolateDeps,
 			ExtraVars:   isolateArgs,
-			OsType:      "linux",
+			OsType:      "windows", // rmistry: just testing
 		}
 		isolateTasks = append(isolateTasks, isolateTask)
 	}
@@ -1022,7 +1022,9 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
 		"TARGET_PLATFORM": targetPlatform,
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	// TODO(rmistry):
+	// LINUX?????
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "win", taskName, isolateArgs, []string{})
 	if err != nil {
 		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
@@ -1033,7 +1035,9 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	}
 	// Trigger swarming using the isolate hash.
 	var dimensions map[string]string
-	if targetPlatform == "Android" {
+	if targetPlatform == PLATFORM_WINDOWS {
+		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
+	} else if targetPlatform == PLATFORM_ANDROID {
 		dimensions = GCE_ANDROID_BUILDER_DIMENSIONS
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS

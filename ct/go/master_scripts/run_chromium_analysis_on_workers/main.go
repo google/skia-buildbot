@@ -119,13 +119,13 @@ func main() {
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
-	}
+	//// Send start email.
+	//emailsArr := util.ParseEmails(*emails)
+	//emailsArr = append(emailsArr, util.CtAdmins...)
+	//if len(emailsArr) == 0 {
+	//	sklog.Error("At least one email address must be specified")
+	//	return
+	//}
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -133,13 +133,13 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
-	// Cleanup dirs after run completes.
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
+	//skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
+	//// Ensure webapp is updated and email is sent even if task fails.
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr, gs)
+	//// Cleanup dirs after run completes.
+	//defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))targetPlatform
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium analysis task on workers")
 	defer sklog.Flush()
@@ -187,17 +187,18 @@ func main() {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuild string
-	group.Go("build chromium", func() error {
-		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
-		if err != nil {
-			return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
-		}
-		if len(chromiumBuilds) != 1 {
-			return sklog.FmtErrorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
-		}
-		chromiumBuild = chromiumBuilds[0]
-		return nil
-	})
+	chromiumBuild = "try-e7ced6d4e4146c-4cebd437912575-test-withpatch"
+	//group.Go("build chromium", func() error {
+	//	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
+	//	if err != nil {
+	//		return sklog.FmtErrorf("Error encountered when swarming build repo task: %s", err)
+	//	}
+	//	if len(chromiumBuilds) != 1 {
+	//		return sklog.FmtErrorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+	//	}
+	//	chromiumBuild = chromiumBuilds[0]
+	//	return nil
+	//})
 
 	// Isolate telemetry.
 	isolateDeps := []string{}
@@ -220,8 +221,13 @@ func main() {
 		return
 	}
 
+	//sklog.Fatal("DONE DONE DONE")
+	fmt.Println("ISOLATE DEPS IS:")
+	fmt.Println(isolateDeps)
+	fmt.Println(isolateDeps[0])
+
 	// Clean up the chromium builds from Google storage after the run completes.
-	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
+	//defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{

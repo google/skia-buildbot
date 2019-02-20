@@ -62,6 +62,7 @@ const (
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
 	PLATFORM_LINUX   = "Linux"
+	PLATFORM_WINDOWS = "Windows"
 
 	// Benchmarks supported by CT.
 	BENCHMARK_SKPICTURE_PRINTER        = "skpicture_printer_ct"
@@ -336,7 +337,8 @@ var (
 
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "CTAndroidBuilder", "cores": "64"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}
-	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTWindowsBuilder", "cores": "64"}
+	// TODO(rmistry): CHANGE TO 32 cores
+	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTBuilder", "os": "Windows"}
 
 	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
 

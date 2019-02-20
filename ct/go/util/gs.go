@@ -311,7 +311,7 @@ func (gs *GcsUtil) UploadFile(fileName, localDir, gsDir string) error {
 // in Google Storage. It also sets the appropriate ACLs on the uploaded file.
 func (gs *GcsUtil) UploadFileToBucket(fileName, localDir, gsDir, bucket string) error {
 	localFile := filepath.Join(localDir, fileName)
-	gsFile := filepath.Join(gsDir, fileName)
+	gsFile := path.Join(gsDir, fileName)
 	object := &storage.Object{Name: gsFile}
 	f, err := os.Open(localFile)
 	if err != nil {
