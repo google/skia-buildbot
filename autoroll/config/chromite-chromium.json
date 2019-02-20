@@ -25,6 +25,9 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
+  "cqExtraTrybots": [
+    "luci.chromium.try:chromeos-kevin-rel"
+  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
