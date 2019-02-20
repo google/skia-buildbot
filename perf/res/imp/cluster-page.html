@@ -227,7 +227,9 @@
           keys:       e.detail.shortcut,
           begin:      e.detail.begin,
           end:        e.detail.end,
-          xbaroffset: e.detail.xbar.offset
+          xbaroffset: e.detail.xbar.offset,
+          num_commits: 50,
+          request_type: 1,
         };
         window.open('/e/?' + sk.query.fromObject(query), '_blank');
       }.bind(this));
