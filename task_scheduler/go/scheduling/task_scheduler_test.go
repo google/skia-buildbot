@@ -8,12 +8,14 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	expect "github.com/stretchr/testify/assert"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
@@ -105,6 +107,7 @@ func makeTask(name, repo, revision string) *types.Task {
 			},
 			Name: name,
 		},
+		MaxAttempts:    types.DEFAULT_MAX_TASK_ATTEMPTS,
 		SwarmingTaskId: "swarmid",
 	}
 }
@@ -716,6 +719,88 @@ func TestProcessTaskCandidate(t *testing.T) {
 	assert.Equal(t, 0, len(c.Commits))
 }
 
+func TestRegularJobRetryScoring(t *testing.T) {
+	ctx, gb, d, _, s, _, cleanup := setup(t)
+	defer cleanup()
+
+	rs1 := getRS1(t, ctx, gb)
+	rs2 := getRS2(t, ctx, gb)
+
+	cache := newCacheWrapper(s.tCache)
+	now := time.Now()
+	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+
+	j1 := &types.Job{
+		Id:        "regularJobId1",
+		Created:   now.Add(-1 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: rs1,
+	}
+	j2 := &types.Job{
+		Id:        "regularJobId2",
+		Created:   now.Add(-1 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: rs2,
+	}
+	// Candidates at rs1 and rs2
+	c1 := &taskCandidate{
+		Jobs: jobSet(j1),
+		TaskKey: types.TaskKey{
+			RepoState: rs1,
+		},
+	}
+	c2 := &taskCandidate{
+		Jobs: jobSet(j2),
+		TaskKey: types.TaskKey{
+			RepoState: rs2,
+		},
+	}
+	// Regular task at HEAD with 2 commits has score 3.5 scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	expect.InDelta(t, 3.5*0.5, c2.Score, scoreDelta)
+	assert.Equal(t, 2, len(c2.Commits))
+	// Regular task at HEAD^ (no backfill) with 1 commit has score 2 scaled by
+	// priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	expect.InDelta(t, 2*0.5, c1.Score, scoreDelta)
+	assert.Equal(t, 1, len(c1.Commits))
+
+	// Add a task at rs2 that failed.
+	t2 := makeTask(c2.Name, c2.Repo, c2.Revision)
+	t2.Status = types.TASK_STATUS_FAILURE
+	t2.Commits = util.CopyStringSlice(c2.Commits)
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, s.tCache.Update())
+
+	// Update Attempt and RetryOf before calling processTaskCandidate.
+	c2.Attempt = 1
+	c2.RetryOf = t2.Id
+
+	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 0.75 scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	expect.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
+	assert.Equal(t, 2, len(c2.Commits))
+	// Regular task at rs1 (backfilling failed task) with 1 commit has score 1.25 scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	expect.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
+	assert.Equal(t, 1, len(c1.Commits))
+
+	// Actually, the task at rs2 had a mishap.
+	t2.Status = types.TASK_STATUS_MISHAP
+	cache.insert(t2)
+
+	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 5/6 scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	expect.InDelta(t, 5.0/6*0.5, c2.Score, scoreDelta)
+	assert.Equal(t, 2, len(c2.Commits))
+	// Regular task at rs1 (backfilling mishap task) with 1 commit has the same score.
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	expect.InDelta(t, 5.0/6*0.5, c1.Score, scoreDelta)
+	assert.Equal(t, 1, len(c1.Commits))
+}
+
 func TestProcessTaskCandidates(t *testing.T) {
 	ctx, gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
@@ -917,103 +1002,207 @@ func TestTestedness(t *testing.T) {
 
 func TestTestednessIncrease(t *testing.T) {
 	testutils.SmallTest(t)
-	tc := []struct {
-		a   int
-		b   int
-		out float64
-	}{
-		// Invalid cases.
-		{
-			a:   -1,
-			b:   10,
-			out: -1.0,
-		},
-		{
-			a:   10,
-			b:   -1,
-			out: -1.0,
-		},
-		{
-			a:   0,
-			b:   -1,
-			out: -1.0,
-		},
-		{
-			a:   0,
-			b:   0,
-			out: -1.0,
-		},
-		// Invalid because if we're re-running at already-tested commits
-		// then we should have a blamelist which is at most the size of
-		// the blamelist of the previous task. We naturally get negative
-		// testedness increase in these cases.
-		{
-			a:   2,
-			b:   1,
-			out: -0.5,
-		},
-		// Testing only new commits.
-		{
-			a:   1,
-			b:   0,
-			out: 1.0 + 1.0,
-		},
-		{
-			a:   2,
-			b:   0,
-			out: 2.0 + (1.0 + 1.0/2.0),
-		},
-		{
-			a:   3,
-			b:   0,
-			out: 3.0 + (1.0 + float64(2.0)/float64(3.0)),
-		},
-		{
-			a:   4096,
-			b:   0,
-			out: 4096.0 + (1.0 + float64(4095.0)/float64(4096.0)),
-		},
-		// Retries.
-		{
-			a:   1,
-			b:   1,
-			out: 0.0,
-		},
-		{
-			a:   2,
-			b:   2,
-			out: 0.0,
-		},
-		{
-			a:   3,
-			b:   3,
-			out: 0.0,
-		},
-		{
-			a:   4096,
-			b:   4096,
-			out: 0.0,
-		},
-		// Bisect/backfills.
-		{
-			a:   1,
-			b:   2,
-			out: 0.5, // (1 + 1) - (1 + 1/2)
-		},
-		{
-			a:   1,
-			b:   3,
-			out: float64(2.5) - (1.0 + float64(2.0)/float64(3.0)),
-		},
-		{
-			a:   5,
-			b:   10,
-			out: 2.0*(1.0+float64(4.0)/float64(5.0)) - (1.0 + float64(9.0)/float64(10.0)),
-		},
+	type tc struct {
+		blamelistLength int
+		// default (0) means no stoleFrom task, negative means invalid (no blamelist)
+		stoleFromBlamelistLength int
+		stoleFromStatus          types.TaskStatus // defaults to PENDING
+		attempt                  int              // defaults to 1st attempt
+		maxAttempts              int              // maxAttempts defaults to 2 (see below)
+		out                      float64
 	}
-	for i, c := range tc {
-		assert.Equal(t, c.out, testednessIncrease(c.a, c.b), fmt.Sprintf("test case #%d", i))
+	test := func(testCase tc) {
+		c := &taskCandidate{}
+		for i := 0; i < testCase.blamelistLength; i++ {
+			c.Commits = append(c.Commits, strconv.Itoa(i))
+		}
+		var task *types.Task
+		if testCase.stoleFromBlamelistLength != 0 {
+			task = &types.Task{
+				Attempt:     testCase.attempt,
+				MaxAttempts: testCase.maxAttempts,
+				Status:      testCase.stoleFromStatus,
+			}
+			if task.MaxAttempts == 0 {
+				task.MaxAttempts = types.DEFAULT_MAX_TASK_ATTEMPTS
+			}
+			assert.True(t, task.Attempt < task.MaxAttempts)
+			for i := 0; i < testCase.stoleFromBlamelistLength; i++ {
+				task.Commits = append(task.Commits, strconv.Itoa(i))
+			}
+		}
+		expect.InDelta(t, testCase.out, testednessIncrease(c, task), scoreDelta, fmt.Sprintf("%+v", testCase))
+		t.Log(testCase.out)
 	}
+	// Invalid cases: no blamelists.
+	test(tc{
+		blamelistLength: 0,
+		out:             0,
+	})
+	test(tc{
+		blamelistLength:          0,
+		stoleFromBlamelistLength: -1,
+		out:                      0,
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: -1,
+		out:                      0,
+	})
+	// Invalid because if we're re-running at already-tested commits
+	// then we should have a blamelist which is at most the size of
+	// the blamelist of the previous task.
+	test(tc{
+		blamelistLength:          2,
+		stoleFromBlamelistLength: 1,
+		out:                      0,
+	})
+	// Invalid because we're out of attempts.
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 1,
+		attempt:                  1,
+		out:                      0,
+	})
+	// Testing only new commits.
+	test(tc{
+		blamelistLength: 1,
+		out:             1.0 + 1.0, // 2
+	})
+	test(tc{
+		blamelistLength: 2,
+		out:             2.0 + (1.0 + 1.0/2.0), // 3.5
+	})
+	test(tc{
+		blamelistLength: 3,
+		out:             3.0 + (1.0 + float64(2.0)/float64(3.0)), // ~4.67
+	})
+	test(tc{
+		blamelistLength: 4096,
+		out:             4096.0 + (1.0 + float64(4095.0)/float64(4096.0)), // ~4098
+	})
+	// Retries.
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 1,
+		out:                      0,
+	})
+	test(tc{
+		blamelistLength:          2,
+		stoleFromBlamelistLength: 2,
+		out:                      0,
+	})
+	test(tc{
+		blamelistLength:          8,
+		stoleFromBlamelistLength: 8,
+		out:                      0,
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 1,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		out:                      1.0 + 0 - 1.0*1/2, // 0.5
+	})
+	test(tc{
+		blamelistLength:          2,
+		stoleFromBlamelistLength: 2,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		out:                      (1.0 + 1.0/2.0) - (1.0+1.0/2.0)*1/2, // 0.75
+	})
+	test(tc{
+		blamelistLength:          8,
+		stoleFromBlamelistLength: 8,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		out:                      (1.0 + 7.0/8.0) - (1.0+7.0/8.0)*1/2, // 0.9375
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 1,
+		stoleFromStatus:          types.TASK_STATUS_MISHAP,
+		out:                      1.0 + 1.0 - (1.0 + 1.0/2.0), // 0.5
+	})
+	test(tc{
+		blamelistLength:          2,
+		stoleFromBlamelistLength: 2,
+		stoleFromStatus:          types.TASK_STATUS_MISHAP,
+		out:                      (1.0 + 1.0/2.0) + 1.0 - (1.0 + 2.0/3.0), // ~0.833
+	})
+	test(tc{
+		blamelistLength:          8,
+		stoleFromBlamelistLength: 8,
+		stoleFromStatus:          types.TASK_STATUS_MISHAP,
+		out:                      (1.0 + 7.0/8.0) + 1.0 - (1.0 + 8.0/9.0), // ~0.986
+	})
+	// Larger MaxAttempts
+	test(tc{
+		blamelistLength:          2,
+		stoleFromBlamelistLength: 2,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		attempt:                  1,
+		maxAttempts:              3,
+		out:                      (1.0 + 1.0/2.0) - (1.0+1.0/2.0)*2/3, // 0.5
+	})
+	// Bisect/backfills.
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 2,
+		out:                      0.5, // (1 + 1) - (1 + 1/2)
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 3,
+		out:                      float64(2.5) - (1.0 + float64(2.0)/float64(3.0)), // ~0.833
+	})
+	test(tc{
+		blamelistLength:          5,
+		stoleFromBlamelistLength: 10,
+		out:                      2.0*(1.0+float64(4.0)/float64(5.0)) - (1.0 + float64(9.0)/float64(10.0)), // 1.7
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 2,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		out:                      (1.0 + 1.0) - (1.0+1.0/2.0)*1/2, // 1.25
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 3,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		out:                      (1.0 + (1.0 + 1.0/2.0)) - (1.0+2.0/3.0)*1/2, // ~1.67
+	})
+	test(tc{
+		blamelistLength:          5,
+		stoleFromBlamelistLength: 10,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		out:                      ((1.0 + 4.0/5.0) + (1.0 + 4.0/5.0)) - (1.0+9.0/10.0)*1/2, // 2.65
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 2,
+		stoleFromStatus:          types.TASK_STATUS_MISHAP,
+		out:                      (1.0 + (1.0 + 1.0/2.0)) - (1.0 + 2.0/3.0), // ~0.833
+	})
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 3,
+		stoleFromStatus:          types.TASK_STATUS_MISHAP,
+		out:                      (1.0 + (1.0 + 2.0/3.0)) - (1.0 + 3.0/4.0), // ~0.9167
+	})
+	test(tc{
+		blamelistLength:          5,
+		stoleFromBlamelistLength: 10,
+		stoleFromStatus:          types.TASK_STATUS_MISHAP,
+		out:                      ((1.0 + 4.0/5.0) + (1.0 + 5.0/6.0)) - (1.0 + 10.0/11.0), // ~1.724
+	})
+	// Larger MaxAttempts
+	test(tc{
+		blamelistLength:          1,
+		stoleFromBlamelistLength: 2,
+		stoleFromStatus:          types.TASK_STATUS_FAILURE,
+		attempt:                  1,
+		maxAttempts:              3,
+		out:                      (1.0 + 1.0) - (1.0+1.0/2.0)*2/3, // 1
+	})
 }
 
 func TestComputeBlamelist(t *testing.T) {
