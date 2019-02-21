@@ -102,6 +102,368 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea72a986_c8466f7a",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe mention value can not be nil.",
+      "range": {
+        "startLine": 77,
+        "startChar": 15,
+        "endLine": 77,
+        "endChar": 16
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1a47127_1af72b32",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: should be explicit about whether locks are held and what locks getVal is allowed to acquire.",
+      "range": {
+        "startLine": 86,
+        "startChar": 37,
+        "endLine": 86,
+        "endChar": 49
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "369cd549_ae647ad5",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe mention getVal can not return nil.",
+      "range": {
+        "startLine": 88,
+        "startChar": 65,
+        "endLine": 88,
+        "endChar": 66
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b89df997_1ef70b21",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe mention Get can not return nil",
+      "range": {
+        "startLine": 110,
+        "startChar": 61,
+        "endLine": 110,
+        "endChar": 62
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bddd5e6_f0e90ba2",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe mention \"The returned SetIfUnsetCache is goroutine-safe if backingCache is goroutine-safe.\"",
+      "range": {
+        "startLine": 133,
+        "startChar": 41,
+        "endLine": 133,
+        "endChar": 42
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8461cf93_a356e407",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 144,
+        "startChar": 56,
+        "endLine": 144,
+        "endChar": 62
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "182704a9_3ffdda81",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "Just delete this and do it as part of Cleanup instead? x3",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 2
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af47c3c7_b3e76980",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe mention value can not be nil",
+      "range": {
+        "startLine": 179,
+        "startChar": 28,
+        "endLine": 179,
+        "endChar": 29
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5c95b7f_9290b0cb",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe mention getVal can not return nil",
+      "range": {
+        "startLine": 197,
+        "startChar": 38,
+        "endLine": 197,
+        "endChar": 71
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fcdf587_25d8a06e",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: make it clear that the entry is also deleted from backingCache.",
+      "range": {
+        "startLine": 237,
+        "startChar": 34,
+        "endLine": 237,
+        "endChar": 50
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5141d0db_9d77b43f",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: mention shouldDelete can not call any methods on c.",
+      "range": {
+        "startLine": 237,
+        "startChar": 50,
+        "endLine": 237,
+        "endChar": 51
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14b72b7a_cf387b7a",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "Need to lock entry.mtx to avoid race. (Or state that Cleanup can not be called concurrently with any other method.)",
+      "range": {
+        "startLine": 242,
+        "startChar": 32,
+        "endLine": 242,
+        "endChar": 41
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1dd10a21_e8cc6105",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "Need to lock entry.mtx to avoid race. (Or state that ForEach can not be called concurrently with any other method.)",
+      "range": {
+        "startLine": 257,
+        "startChar": 15,
+        "endLine": 257,
+        "endChar": 24
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b4f5504_2042c38e",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe test Delete, Cleanup, and ForEach",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cc089ab1_bd0884de",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 4
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e0960d7_61c34079",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T23:35:47Z",
+      "side": 1,
+      "message": "nit: maybe assert this is the expected value",
+      "range": {
+        "startLine": 56,
+        "startChar": 2,
+        "endLine": 56,
+        "endChar": 3
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
