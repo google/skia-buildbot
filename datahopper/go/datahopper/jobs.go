@@ -389,7 +389,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 		if head == nil {
 			return sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
 		}
-		headTaskCfg, err := m.taskCfgCache.ReadTasksCfg(ctx, types.RepoState{
+		headTaskCfg, err := m.taskCfgCache.Get(ctx, types.RepoState{
 			Repo:     repoUrl,
 			Revision: head.Hash,
 		})
@@ -436,7 +436,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 				return false, nil
 			}
 			// Check that the remaining JobSpecs are still valid at this commit.
-			taskCfg, err := m.taskCfgCache.ReadTasksCfg(ctx, rs)
+			taskCfg, err := m.taskCfgCache.Get(ctx, rs)
 			if err != nil {
 				return false, sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
 			}

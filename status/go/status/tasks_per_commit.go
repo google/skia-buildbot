@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -44,15 +42,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []stri
 	if err != nil {
 		return nil, err
 	}
-	depotTools, err := git.NewCheckout(ctx, common.REPO_DEPOT_TOOLS, wd)
-	if err != nil {
-		return nil, err
-	}
-	if err := depotTools.Update(ctx); err != nil {
-		return nil, err
-	}
-	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools.Dir(), gitCache, 3, btProject, btInstance, ts)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, btProject, btInstance, ts)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +67,7 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs types.RepoState) (int,
 
 	if _, ok := c.cached[rs]; !ok {
 		// Find the number of TaskSpecs expected to run at this commit.
-		cfg, err := c.tcc.ReadTasksCfg(ctx, rs)
+		cfg, err := c.tcc.Get(ctx, rs)
 		if err != nil {
 			return 0, err
 		}
@@ -125,5 +115,5 @@ func (c *tasksPerCommitCache) update(ctx context.Context) error {
 			delete(c.cached, rs)
 		}
 	}
-	return c.tcc.Cleanup(c.period)
+	return c.tcc.Cleanup(ctx, c.period)
 }

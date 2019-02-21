@@ -213,7 +213,7 @@ func GetIsolateHash(ctx context.Context, pool, isolateDep string) (string, error
 		isolateTask.Deps = []string{isolateDep}
 	}
 	isolateTasks := []*isolate.Task{isolateTask}
-	hashes, err := isolateClient.IsolateTasks(ctx, isolateTasks)
+	hashes, _, err := isolateClient.IsolateTasks(ctx, isolateTasks)
 	if err != nil {
 		return "", fmt.Errorf("Could not isolate leasing task: %s", err)
 	}
