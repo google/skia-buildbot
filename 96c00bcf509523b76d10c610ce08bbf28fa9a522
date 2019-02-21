@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3da6459f_4d69c832",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1619,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T19:01:40Z",
+      "side": 1,
+      "message": "Can you explain how this makes the math work out?  If we really wanted to pretend a mishap didn\u0027t happen (ie. zero testedness), shouldn\u0027t we just set beforeTestedness to 0?  If, as we discussed yesterday, we think that some mishaps can actually provide information (ie. we messed up an infrastructure change), then maybe we should just treat mishaps the same as errors.  Or maybe we need a new result type for infrastructure failure that is separate from mishap (which would be limited to things like network failures, bots going down, etc).",
+      "range": {
+        "startLine": 1600,
+        "startChar": 3,
+        "endLine": 1619,
+        "endChar": 81
+      },
+      "revId": "96c00bcf509523b76d10c610ce08bbf28fa9a522",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

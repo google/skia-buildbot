@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "d6aa3841_f15e3456",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1589,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T19:01:40Z",
+      "side": 1,
+      "message": "These checks only make sense if c and stoleFrom have the same revision.  I don\u0027t think they work for bisects.",
+      "range": {
+        "startLine": 1578,
+        "startChar": 0,
+        "endLine": 1589,
+        "endChar": 3
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "61f07c8e_886793db",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 4
@@ -13,6 +36,30 @@
       "writtenOn": "2019-02-21T17:35:47Z",
       "side": 1,
       "message": "If I\u0027m pedantic, this should be multiplied by testednessFraction. However, that causes retries to be scored higher than bisects. Also, this way bisecting failures gets a slight boost.",
+      "range": {
+        "startLine": 1597,
+        "startChar": 52,
+        "endLine": 1597,
+        "endChar": 104
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89b6a8be_4cb0e0b0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1597,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T19:01:40Z",
+      "side": 1,
+      "message": "What if we don\u0027t presume the new task to be a success?  What if we instead assume that it has a 50/50 chance of success or failure?  We could define the \"expected\" testedness of the new task to be the midpoint between testednessFraction and 1.  If I have my math right, that would prioritize bisects higher than retries, and bisecting failures higher than successes.",
+      "parentUuid": "61f07c8e_886793db",
       "range": {
         "startLine": 1597,
         "startChar": 52,
