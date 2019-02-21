@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e23c853c_80d9302b",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T19:21:16Z",
+      "side": 1,
+      "message": "I don\u0027t really understand gob.Register. Have you tested this with isolated files with complex Files?",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bde2d60e_e7117524",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T19:21:16Z",
+      "side": 1,
+      "message": "nit: \"Copy\" method on a type ending in \"File\" sounds like a filesystem operation.",
+      "range": {
+        "startLine": 246,
+        "startChar": 23,
+        "endLine": 246,
+        "endChar": 29
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e49287b1_59d47479",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T19:21:16Z",
+      "side": 1,
+      "message": "nit: This isn\u0027t a \"deep\" copy. Seems like that might cause surprising behavior down the road.",
+      "range": {
+        "startLine": 254,
+        "startChar": 3,
+        "endLine": 254,
+        "endChar": 15
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fd03318_36aeebe2",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T19:21:16Z",
+      "side": 1,
+      "message": "nit: seems like this section could be collapsed to just:\nisolated.Includes \u003d append(isolated.Includes, t.Deps...)",
+      "range": {
+        "startLine": 361,
+        "startChar": 0,
+        "endLine": 366,
+        "endChar": 3
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a35b3eb_f843e9bd",
+        "filename": "go/isolate/isolate_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T19:21:16Z",
+      "side": 1,
+      "message": "nit: maybe test new function ReUploadIsolatedFiles",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
