@@ -733,20 +733,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	}
 
 	// Score the candidate.
-	// The score for a candidate is based on the "testedness" increase
-	// provided by running the task.
-	stoleFromCommits := 0
-	if stealingFrom != nil {
-		// Treat retries as if they're new; don't use stealingFrom.Commits.
-		if c.RetryOf != "" {
-			if stealingFrom.Id != c.RetryOf && stealingFrom.ForcedJobId == "" {
-				sklog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
-			}
-		} else if stealingFrom.ForcedJobId == c.ForcedJobId {
-			stoleFromCommits = len(stealingFrom.Commits)
-		}
-	}
-	score := testednessIncrease(len(c.Commits), stoleFromCommits)
+	score := testednessIncrease(c, stealingFrom)
 
 	// Scale the score by other factors, eg. time decay.
 	decay, err := s.timeDecayForCommit(now, revision)
@@ -1557,33 +1544,69 @@ func testedness(n int) float64 {
 }
 
 // testednessIncrease computes the increase in "testedness" obtained by running
-// a task with the given blamelist length which may have "stolen" commits from
-// a previous task with a different blamelist length. To do so, we compute the
-// "testedness" for every commit affected by the task,  before and after the
-// task would run. We subtract the "before" score from the "after" score to
-// obtain the "testedness" increase at each commit, then sum them to find the
-// total increase in "testedness" obtained by running the task.
-func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
-	// Invalid inputs.
-	if blamelistLength <= 0 || stoleFromBlamelistLength < 0 {
-		return -1.0
+// the given task candidate, which may have "stolen" commits from a previous
+// task, if stoleFrom is non-null. We compute a "testedness" metric for every
+// commit covered by either task, before and after the task would run. We
+// subtract the "before" score from the "after" score to obtain the "testedness"
+// increase.
+func testednessIncrease(c *taskCandidate, stoleFrom *types.Task) float64 {
+	blamelistLength := len(c.Commits)
+
+	// Sanity check.
+	if blamelistLength == 0 {
+		sklog.Errorf("testednessIncrease: Empty blamelist. %+v", c)
+		return 0
 	}
 
-	if stoleFromBlamelistLength == 0 {
+	if stoleFrom == nil {
 		// This task covers previously-untested commits. Previous testedness
 		// is -1.0 for each commit in the blamelist.
 		beforeTestedness := float64(-blamelistLength)
 		afterTestedness := testedness(blamelistLength)
 		return afterTestedness - beforeTestedness
-	} else if blamelistLength == stoleFromBlamelistLength {
-		// This is a retry. It provides no testedness increase, so shortcut here
-		// rather than perform the math to obtain the same answer.
-		return 0.0
 	} else {
 		// This is a bisect/backfill.
-		beforeTestedness := testedness(stoleFromBlamelistLength)
-		afterTestedness := testedness(blamelistLength) + testedness(stoleFromBlamelistLength-blamelistLength)
-		return afterTestedness - beforeTestedness
+		stoleFromBlamelistLength := len(stoleFrom.Commits)
+
+		// Sanity checks.
+		if blamelistLength > stoleFromBlamelistLength {
+			sklog.Errorf("testednessIncrease: blamelist is %d commits, which is more than stoleFrom blamelist of %d commits.\n%+v\n%+v", blamelistLength, stoleFromBlamelistLength, c, stoleFrom)
+			return 0
+		}
+		if stoleFrom.MaxAttempts == 0 {
+			sklog.Errorf("testednessIncrease: MaxAttempts unset. %+v", stoleFrom)
+			return 0
+		}
+		if stoleFrom.Attempt >= stoleFrom.MaxAttempts {
+			sklog.Errorf("testednessIncrease: Attempt %d not less than MaxAttempts %d. %+v", stoleFrom.Attempt, stoleFrom.MaxAttempts, stoleFrom)
+			return 0
+		}
+		if stoleFrom.Attempt < 0 {
+			sklog.Errorf("testednessIncrease: Attempt is negative!! %+v", stoleFrom)
+			return 0
+		}
+
+		if stoleFrom.Status == types.TASK_STATUS_FAILURE {
+			// Treat failures as being "partially" tested.
+			testednessFraction := float64(stoleFrom.Attempt+1) / float64(stoleFrom.MaxAttempts)
+			// The task before was a failure, so multiply by the fraction.
+			beforeTestedness := testedness(stoleFromBlamelistLength) * testednessFraction
+			// The new task is presumed to be a success.
+			afterTestedness := testedness(blamelistLength) + testedness(stoleFromBlamelistLength-blamelistLength)
+			return afterTestedness - beforeTestedness
+		} else if stoleFrom.Status == types.TASK_STATUS_MISHAP {
+			// This is a kludgy way of pretending the mishap "didn't happen": we
+			// temporarily pretend there is a successful task at the next commit that
+			// we are bisecting. The effect is that we just add 1 to the blamelist
+			// length.
+			beforeTestedness := testedness(stoleFromBlamelistLength + 1)
+			afterTestedness := testedness(blamelistLength) + testedness(stoleFromBlamelistLength-blamelistLength+1)
+			return afterTestedness - beforeTestedness
+		} else {
+			beforeTestedness := testedness(stoleFromBlamelistLength)
+			afterTestedness := testedness(blamelistLength) + testedness(stoleFromBlamelistLength-blamelistLength)
+			return afterTestedness - beforeTestedness
+		}
 	}
 }
 
