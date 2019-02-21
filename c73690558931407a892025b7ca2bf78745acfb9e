@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "61f07c8e_886793db",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1597,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T17:35:47Z",
+      "side": 1,
+      "message": "If I\u0027m pedantic, this should be multiplied by testednessFraction. However, that causes retries to be scored higher than bisects. Also, this way bisecting failures gets a slight boost.",
+      "range": {
+        "startLine": 1597,
+        "startChar": 52,
+        "endLine": 1597,
+        "endChar": 104
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a4fa320_8032359d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T17:35:47Z",
+      "side": 1,
+      "message": "We talked about retries having a lower score, but the math worked out this way. Should I try to fix it?",
+      "range": {
+        "startLine": 802,
+        "startChar": 64,
+        "endLine": 803,
+        "endChar": 9
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "26227436_d1aa41b5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1117,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T17:35:47Z",
+      "side": 1,
+      "message": "I put the scores in comments here. Let me know if they seem reasonable or if there are addl cases I should add.",
+      "range": {
+        "startLine": 1117,
+        "startChar": 47,
+        "endLine": 1117,
+        "endChar": 53
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
