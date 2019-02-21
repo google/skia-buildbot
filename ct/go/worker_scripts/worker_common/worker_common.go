@@ -9,6 +9,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -26,12 +27,19 @@ func Init(ctx context.Context) {
 	if *Local {
 		util.SetVarsForLocal()
 	} else {
+		if runtime.GOOS == "windows" {
+			// set this because of that bug.https://bugs.python.org/issue1384175#msg248951
+			os.Setenv("SystemRoot", "C:\\Windows")
+			util.DepotToolsDir = `C:\\Users\chrome-bot\depot_tools`
+		}
+
 		// Update depot_tools.
 		skutil.LogErr(util.ExecuteCmd(ctx, filepath.Join(util.DepotToolsDir, "update_depot_tools"), []string{}, []string{}, util.UPDATE_DEPOT_TOOLS_TIMEOUT, nil, nil))
 		// Add depot_tools to the PATH.
-		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+":"+util.DepotToolsDir))
+		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+util.DepotToolsDir))
+		// rmistry: put this back to see what happens...
 		// Add adb to the PATH.
-		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+":/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
+		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+"/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
 		// Bring up Xvfb on workers (for GCE instances).
 		if _, _, err := exec.RunIndefinitely(&exec.Command{
 			Name:        "sudo",

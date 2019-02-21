@@ -55,6 +55,7 @@ var (
 		"SkiaInternal":     InternalSwarming,
 		"CT":               InternalSwarming,
 		"CTAndroidBuilder": InternalSwarming,
+		"CTBuilder":        InternalSwarming,
 		"CTLinuxBuilder":   InternalSwarming,
 	}
 
