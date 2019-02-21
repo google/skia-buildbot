@@ -1,0 +1,464 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87427c91_28cdeb09",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "This file seems to assume that we\u0027ll only have the BigTable implementation of GitStore.  Can we either remove this interface under that assumption or split up the interface from the implementation a bit?",
+      "range": {
+        "startLine": 82,
+        "startChar": 5,
+        "endLine": 82,
+        "endChar": 13
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9eec24c_42c5d4a6",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Just to be clear, this means that we won\u0027t return an error if the caller gives us a bunch of bogus hashes?  If that\u0027s the case, can we make that clear in the doc?",
+      "range": {
+        "startLine": 88,
+        "startChar": 62,
+        "endLine": 89,
+        "endChar": 45
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "780ac4e9_d1b1720e",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "nit: name doesn\u0027t match doc",
+      "range": {
+        "startLine": 90,
+        "startChar": 26,
+        "endLine": 90,
+        "endChar": 30
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74d6b8d7_1f46914c",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Does this replace all branches in the store?  ie. if I call this function with fewer branches than the last time, do the ones I left out disappear?  I think that would be valid behavior (though I\u0027d probably rename to SetBranches and make it very clear in the doc that the caller is expected to provide all branches).  We do need a way to delete a ref.",
+      "range": {
+        "startLine": 92,
+        "startChar": 16,
+        "endLine": 92,
+        "endChar": 37
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4610b41_0bc50efa",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "I think somewhere we need to clearly document what a commit index means.  Does each branch start at index 0?  Intuitively, a commit with no parents should have an index of zero, but what happens during a merge?  Does the next commit get the highest index of any of its parents, plus one?  How often are the indexes recomputed?  What happens if history is changed?",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 101
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e468ac88_a72a6af1",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "How is this derived?",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 9
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c54cec8_f2a612d2",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 28
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11afd331_f5873e07",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Why not just pass in a TokenSource?",
+      "range": {
+        "startLine": 151,
+        "startChar": 67,
+        "endLine": 152,
+        "endChar": 47
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "360e852d_dcaa0b48",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit: please provide examples.  Also, this seems like it could be generally useful. Maybe it belongs in in go/util?",
+      "range": {
+        "startLine": 162,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 13
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c63cc940_6149ea68",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit: use the passed-in context?",
+      "range": {
+        "startLine": 179,
+        "startChar": 35,
+        "endLine": 179,
+        "endChar": 49
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3c12834_c02ea727",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit: pass in the context",
+      "range": {
+        "startLine": 219,
+        "startChar": 35,
+        "endLine": 219,
+        "endChar": 49
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30deffd7_e18aa23f",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit",
+      "range": {
+        "startLine": 257,
+        "startChar": 1,
+        "endLine": 257,
+        "endChar": 45
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbe29020_969e02cd",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit",
+      "range": {
+        "startLine": 393,
+        "startChar": 1,
+        "endLine": 393,
+        "endChar": 66
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f11553b1_01f1b6a5",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 549,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit: why not util.ChunkIter?",
+      "range": {
+        "startLine": 549,
+        "startChar": 1,
+        "endLine": 549,
+        "endChar": 76
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c9ce3f3_0b4bdbb0",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 762,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Can you explain (or add a comment) what this is doing and why?",
+      "range": {
+        "startLine": 762,
+        "startChar": 1,
+        "endLine": 762,
+        "endChar": 68
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84f0eef8_b766b59a",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 767,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "I\u0027m confused; this is a 9-digit integer, but the format string is for 8 digits.",
+      "range": {
+        "startLine": 767,
+        "startChar": 40,
+        "endLine": 767,
+        "endChar": 49
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03cb19f1_c81b459d",
+        "filename": "go/gitstore/gitstore_test.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Why not testutils.ManualTest?",
+      "range": {
+        "startLine": 21,
+        "startChar": 1,
+        "endLine": 22,
+        "endChar": 9
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "044b4ffd_f7e31bf5",
+        "filename": "go/gitstore/gitstore_test.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Wouldn\u0027t Timestamp.Unix() be equivalent?",
+      "range": {
+        "startLine": 40,
+        "startChar": 34,
+        "endLine": 40,
+        "endChar": 65
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f1cc2da_cc4fa13d",
+        "filename": "go/gitstore/gitstore_test.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "Nit",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 45,
+        "endChar": 16
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47a62130_6e98b650",
+        "filename": "go/gitstore/graph.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-21T14:49:03Z",
+      "side": 1,
+      "message": "How is this used?  Can we instead change repograph.Graph to be able to read from GitStore?",
+      "range": {
+        "startLine": 48,
+        "startChar": 5,
+        "endLine": 48,
+        "endChar": 16
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
