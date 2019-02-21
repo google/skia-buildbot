@@ -22,6 +22,30 @@
       "revId": "96c00bcf509523b76d10c610ce08bbf28fa9a522",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "223460e3_73f034de",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1619,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-21T20:47:38Z",
+      "side": 1,
+      "message": "We don\u0027t currently have a way to get the context of whether the current candidate is retrying a mishap at HEAD or if there were successes for later commits. I chose to assume there were later successes; otherwise retrying or bisecting mishaps would be prioritized higher than trying the same task spec at HEAD.\n\nI probably should have drawn the diagram like this:\n\n// Actual:    +- - - - -+  Pretend       +---------+  Pretend      +---------+\n//         c2 | ?????   |  before:   c2  | success |  after:   c2  | success |\n//            +---------+                |         |               +---------+\n//         c1 | mishap  |            c1  |         |           c1  | running |\n//            +---------+                +---------+               +---------+\n//\n// Bisect task with blamelist {c1, c2} at c1:\n// Actual:    +- - - - -+  Pretend       +---------+  Pretend      +---------+\n//         c3 | ?????   |  before    c3  | success |  after:   c3  | success |\n//            +---------+                |         |               |         |\n//         c2 | mishap  |            c2  |         |           c2  |         |\n//            |         |                |         |               +---------+\n//         c1 |         |            c1  |         |           c1  | running |\n//            +---------+                +---------+               +---------+",
+      "parentUuid": "3da6459f_4d69c832",
+      "range": {
+        "startLine": 1600,
+        "startChar": 3,
+        "endLine": 1619,
+        "endChar": 81
+      },
+      "revId": "96c00bcf509523b76d10c610ce08bbf28fa9a522",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
