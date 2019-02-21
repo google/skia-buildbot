@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
@@ -71,6 +72,7 @@ type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
 	cacheMtx           sync.Mutex
+	chr                *cacher.Cacher
 	db                 db.JobDB
 	gerrit             gerrit.GerritInterface
 	host               string
@@ -82,7 +84,7 @@ type TryJobIntegrator struct {
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache, chr *cacher.Cacher, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
@@ -101,6 +103,7 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 		bb:                 bb,
 		bucket:             bucket,
 		db:                 d,
+		chr:                chr,
 		gerrit:             gerrit,
 		host:               host,
 		jCache:             jCache,
@@ -385,6 +388,9 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 	}
 
 	// Create a Job.
+	if _, err := t.chr.GetOrCacheRepoState(ctx, rs); err != nil {
+		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
+	}
 	j, err := t.taskCfgCache.MakeJob(ctx, rs, params.BuilderName)
 	if err != nil {
 		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
