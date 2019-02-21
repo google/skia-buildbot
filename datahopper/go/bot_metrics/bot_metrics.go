@@ -285,7 +285,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 				if t.Id != "buildbot-id" {
 					cfg, ok := cfgs[commit]
 					if !ok {
-						c, err := tcc.ReadTasksCfg(ctx, types.RepoState{
+						c, err := tcc.Get(ctx, types.RepoState{
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})
