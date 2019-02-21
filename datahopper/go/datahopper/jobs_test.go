@@ -5,13 +5,11 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2/events"
@@ -354,10 +352,9 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 
-	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
 	defer btCleanup()
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(wd, "taskCfgCache"), 1, btProject, btInstance, nil)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	c1, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD^")
