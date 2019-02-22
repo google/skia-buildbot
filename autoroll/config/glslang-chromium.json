@@ -1,0 +1,37 @@
+{
+  "childName": "glslang",
+  "contacts": [
+    "dsinclair@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "glslang-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "dsinclair@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "src/third_party/glslang/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
+    "includeBugs": false,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
