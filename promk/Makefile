@@ -33,6 +33,11 @@ push_config: validate skia-public
 	# to "create" if this is the first time the configmap has been uploaded.
 	kubectl create configmap prometheus-server-conf --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
 
+backup-to-gcs: skia-public
+	go install ./go/backup-to-gcs
+	./build_backup_to_gcs_release
+	pushk backup-to-gcs
+
 push_config_corp: validate skia-corp
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
