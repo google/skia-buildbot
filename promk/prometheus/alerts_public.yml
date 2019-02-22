@@ -315,3 +315,14 @@ groups:
       severity: critical
     annotations:
       description: 'The prober has failed to probe in the last 5 minutes.'
+
+
+# Grafana Backup
+  - alert: GrafanaBackupLiveness
+    expr: liveness_backup_s > 60*60*25
+    for: 5m
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      description: 'backup-to-gcs has failed to back up the Grafana db in the last 24 hours. Check the logs.'
