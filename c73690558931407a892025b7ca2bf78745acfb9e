@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "e38aa996_a6482307",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1589,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T15:36:26Z",
+      "side": 1,
+      "message": "I initially thought this was to prevent us exceeding MaxAttempts.  The boundary checks are reasonable, but I guess I don\u0027t understand why we\u0027re inspecting stoleFrom when we\u0027re considering bisecting/retrying it, as opposed to performing these checks for every task before inserting into the DB and assuming that they\u0027re valid elsewhere.",
+      "parentUuid": "aec1b8af_f3d3a1d7",
+      "range": {
+        "startLine": 1578,
+        "startChar": 0,
+        "endLine": 1589,
+        "endChar": 3
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "61f07c8e_886793db",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 4
@@ -108,6 +132,30 @@
       "side": 1,
       "message": "Either I\u0027m misunderstanding your proposal, or my math doesn\u0027t match yours. See below.\n\nMaybe we should just simplify this and add a constant bonus for anything where stoleFrom.Status is failure or mishap?\n\nAssuming MaxAttempts\u003d2:\n\ncandidate with BL\u003d1 retrying failure with BL\u003d1\nafter: 1.0 * .75 + 0\nbefore: 1.0 * .5\nscore: .25\n\ncandidate with BL\u003d2 retrying failure with BL\u003d2\nafter: 1.5 * .75 + 0\nbefore: 1.5 * .5\nscore: .375\n\ncandidate with BL\u003d1 bisecting failure with BL\u003d2\nafter: 1.0*.75 + 1.0*.5\nbefore: 1.5*.5\nscore: .5\n\ncandidate with BL\u003d1 bisecting success with BL\u003d2\nafter: 1.0 + 1.0\nbefore: 1.5\nscore: .5\n\ncandidate with BL\u003d1 bisecting failure with BL\u003d3\nafter: 1.0*.75 + 1.5*.5\nbefore: 1.66*.5\nscore: .67\n\ncandidate with BL\u003d2 bisecting failure with BL\u003d3\nafter: 1.5*.75 + 1.0*.5\nbefore: 1.66*.5\nscore: .8\n\ncandidate with BL\u003d1 bisecting success with BL\u003d3\nafter: 1.0 + 1.5\nbefore: 1.66\nscore: .84\n\ncandidate with BL\u003d2 bisecting success with BL\u003d3\nafter: 1.5 + 1.0\nbefore: 1.66\nscore: .84",
       "parentUuid": "89b6a8be_4cb0e0b0",
+      "range": {
+        "startLine": 1597,
+        "startChar": 52,
+        "endLine": 1597,
+        "endChar": 104
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ee00c947_ae56d301",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1597,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T15:36:26Z",
+      "side": 1,
+      "message": "I was proposing that we *always* assume that the new task will have 0.75 testedness, not just when stoleFrom was a failure.  I think the math works out in that case.  At any rate, as much as I\u0027d like to have a \"nice\" mathematical solution, I\u0027d be okay with just giving a constant bonus to bisecting failures/mishaps.",
+      "parentUuid": "cd00aefd_67c8e97d",
       "range": {
         "startLine": 1597,
         "startChar": 52,
