@@ -464,6 +464,98 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9386ebb1_67e922e7",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T00:36:37Z",
+      "side": 1,
+      "message": "I haven\u0027t looked at all the code, but it seems like all of the calls to TempGitRepo will now be serialized, so there\u0027s no need for a worker pool.",
+      "range": {
+        "startLine": 152,
+        "startChar": 51,
+        "endLine": 152,
+        "endChar": 77
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd9b02d9_5cd6103c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 3403,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T00:36:37Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 3403,
+        "startChar": 1,
+        "endLine": 3403,
+        "endChar": 7
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c05b5923_6e61e8e0",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T00:36:37Z",
+      "side": 1,
+      "message": "nit: maybe move these into the functions where they\u0027re used, since the logic in those functions is closely tied to these values.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 32
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7adeb16c_80d3275f",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T00:36:37Z",
+      "side": 1,
+      "message": "nit: Seems like we should use the same logic for PatchRepo and Repo.",
+      "range": {
+        "startLine": 71,
+        "startChar": 49,
+        "endLine": 71,
+        "endChar": 60
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
