@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "23bcde10_76c849b5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1589,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T16:15:47Z",
+      "side": 1,
+      "message": "It\u0027s because I was getting NaNs in tests, which seemed like it would really mess up e.g. sorting the queue. I\u0027m happy to add this to Task.Validate if that makes more sense.",
+      "parentUuid": "e38aa996_a6482307",
+      "range": {
+        "startLine": 1578,
+        "startChar": 0,
+        "endLine": 1589,
+        "endChar": 3
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "61f07c8e_886793db",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 4
@@ -156,6 +180,30 @@
       "side": 1,
       "message": "I was proposing that we *always* assume that the new task will have 0.75 testedness, not just when stoleFrom was a failure.  I think the math works out in that case.  At any rate, as much as I\u0027d like to have a \"nice\" mathematical solution, I\u0027d be okay with just giving a constant bonus to bisecting failures/mishaps.",
       "parentUuid": "cd00aefd_67c8e97d",
+      "range": {
+        "startLine": 1597,
+        "startChar": 52,
+        "endLine": 1597,
+        "endChar": 104
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c88bc3d7_b8887af6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1597,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T16:15:47Z",
+      "side": 1,
+      "message": "Yeah, I\u0027m thinking maybe I\u0027ll just revert all the changes to testednessIncrease and just add 0.75 to the score if stoleFrom is failed or mishap, and then tune.",
+      "parentUuid": "ee00c947_ae56d301",
       "range": {
         "startLine": 1597,
         "startChar": 52,
