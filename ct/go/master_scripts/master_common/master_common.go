@@ -10,7 +10,7 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/sklog"
+	//"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -43,8 +43,8 @@ func initRest() {
 		util.SetVarsForLocal()
 	} else {
 		// Initialize mailing library.
-		if err := util.MailInit(*EmailClientSecretFile, *EmailTokenCacheFile); err != nil {
-			sklog.Fatalf("Could not initialize mailing library: %s", err)
-		}
+		//if err := util.MailInit(*EmailClientSecretFile, *EmailTokenCacheFile); err != nil {
+		//	sklog.Fatalf("Could not initialize mailing library: %s", err)
+		//}
 	}
 }
