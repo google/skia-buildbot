@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f45cb3e1_01bc1699",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "SGTM.  As mentioned in person, I do think it might be useful to have a super-simple in-memory implementation for comparison\u0027s sake, and maybe an impl which is directly backed by a git.Repo, to bridge the transition over to BigTable.  For the record, when we expect to have multiple non-trivial implementations of a given interface (especially for DBs), I like this package structure:\n\ngo/my_interface: Contains the interface, shared constants and helper funcs, and black-box test code.\ngo/my_interface/impl1: Contains one implementation of the interface. Tests call into the test funcs in go/my_interface\ngo/my_interface/impl2: Another impl\n\nFor now, I think the current organization is fine.",
+      "parentUuid": "b206ba24_7de3aa8e",
+      "range": {
+        "startLine": 82,
+        "startChar": 5,
+        "endLine": 82,
+        "endChar": 13
+      },
+      "revId": "c4f191c33b4fff8e2380468771fa083f6d9c3ec8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d9eec24c_42c5d4a6",
         "filename": "go/gitstore/gitstore.go",
         "patchSetId": 51

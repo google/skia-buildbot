@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb188195_3540e241",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "You don\u0027t need to change anything in this CL, but I\u0027ve got the same flag in a number of places but I\u0027ve called it \"bigtable_instance\".  In general I think it\u0027d be nice if, #1: all flags across all of our apps which mean the same thing have the same name, and #2: standardize on a flag style policy (I\u0027ve been using underscores, but you\u0027ve got dashes here, and do we allow camel case?) across all of our apps.  Maybe that\u0027s worth a team-wide discussion.",
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b927e51_32dc8e0a",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Is this here to inspect performance?  It doesn\u0027t seem to be used elsewhere, and loading the whole graph seems wasteful if the main point of this app is to retrieve the last N commits.",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 66
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b727bb3_eab0b773",
+        "filename": "gitsync/cmd/gitsync/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Nit: this is usually \"workdir\" for most apps.",
+      "range": {
+        "startLine": 26,
+        "startChar": 33,
+        "endLine": 26,
+        "endChar": 41
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a143406_a730381b",
+        "filename": "gitsync/cmd/gitsync/watcher.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Per our in-person conversation, I don\u0027t think timestamps are a reliable way to ensure that we\u0027ve ingested all of the commits.  I think you\u0027d be better off using git.Repo directly and following a similar procedure to repograph:\n1. Perform a git fetch\n2. List the new branch heads\n3. Compare the new branch heads to the old; for each branch, if the head commit has changed:\n  a. If the new head of the branch is a descendant of the old: use git rev-list to find the new hashes\n  b. If the new head is not a descendant of the old, then history has changed. Use git rev-list to load hashes until we find one we\u0027ve seen before.\n  c. Load the details for the new hashes.\n4. Push the new commit details and branch heads into BigTable.\n5. If we hit 3b, force a re-index.\n\nThat procedure is here: https://skia.googlesource.com/buildbot/+/master/go/git/repograph/graph.go#245",
+      "range": {
+        "startLine": 82,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 10
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5956dc2d_27bd697a",
+        "filename": "gitsync/dockerfiles/Dockerfile_gitsync",
+        "patchSetId": 52
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "This is okay for now, but we should really use git from CIPD, not from a package manager.  This ensures that we always have the version we want.  See https://skia-review.googlesource.com/c/buildbot/+/138581",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 40
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca6027e5_6168b958",
+        "filename": "gitsync/k8s_release_gitsync",
+        "patchSetId": 52
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Totally optional super-nit: if this app is only ever running in k8s, then I don\u0027t think we need to specify \"k8s\" in the release script name.  Similarly, this script is in the gitsync directory, so we don\u0027t really need that as part of the name.  Personally I like having the script always be named \"build_release\", with differently-named scripts only used in the case where they deviate from the norm.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94d5daf6_cc45fccb",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Seems like a lot of overlap with https://skia.googlesource.com/buildbot/+/master/go/git/gitdir.go#80.  Can we maybe refactor to share the parsing code?",
+      "range": {
+        "startLine": 617,
+        "startChar": 1,
+        "endLine": 617,
+        "endChar": 135
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16d9652c_0636def2",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Looking at the way GitStore and AllRepos are used makes me wonder if a different organization might be simpler from the caller\u0027s perspective.  For example, if we renamed GitStore to GitRepoStore (since it deals with a single repo) and added a new, higher-level GitStore interface which has GetRepoInfos (which replaces AllRepos) and GitStoreForRepo methods, then the caller only has to do something like:\n\nbtStore, _ :\u003d gitstore.NewBigTableGitStore(ctx, *btProject, *btInstance, *btTable, ts)\nrepoInfo, _ :\u003d bts.GetRepoInfos()\n// TODO: Check whether *repoUrl exists in repoInfo\n// TODO: Check whether *branch exists in repoInfo[*repoUrl]\nstore :\u003d btStore.GitStoreForRepo(*repoUrl)\nstore.Get(...)",
+      "range": {
+        "startLine": 194,
+        "startChar": 3,
+        "endLine": 194,
+        "endChar": 11
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbda5b14_161620a9",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 779,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "What, you don\u0027t think we\u0027ll still be using this code in 267 years?  :P",
+      "range": {
+        "startLine": 779,
+        "startChar": 62,
+        "endLine": 779,
+        "endChar": 66
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e73cf1b7_2f0e2005",
+        "filename": "go/util/repo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "In general, we should consider using GitBuilder rather than checking in a zip file.  The example repo covers most of the interesting cases: https://skia.googlesource.com/buildbot/+/master/go/git/testutils/git_builder.go#233",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 90
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "948e9535_c85685ad",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-22T17:56:13Z",
+      "side": 1,
+      "message": "Nit: \"branch\"?",
+      "range": {
+        "startLine": 9,
+        "startChar": 63,
+        "endLine": 9,
+        "endChar": 69
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
