@@ -513,6 +513,138 @@
     },
     {
       "key": {
+        "uuid": "7b6134be_bb757b11",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T15:46:23Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 56,
+        "startChar": 40,
+        "endLine": 56,
+        "endChar": 52
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cd5b70f_969cbe41",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T15:46:23Z",
+      "side": 1,
+      "message": "nit: debugging?",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0713e3c7_16b13f68",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T15:46:23Z",
+      "side": 1,
+      "message": "nit: debugging?",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 4
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ac3164c_b3913b20",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T15:46:23Z",
+      "side": 1,
+      "message": "Is this correct? Seems like the func below would send on rvErr when it\u0027s called in the preceding loop.\n\n(It probably doesn\u0027t matter, but I\u0027m mentioning it because I\u0027m not 100% sure that this doesn\u0027t cause a goroutine leak.)",
+      "range": {
+        "startLine": 154,
+        "startChar": 4,
+        "endLine": 154,
+        "endChar": 16
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "688cd070_24e27533",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T15:46:23Z",
+      "side": 1,
+      "message": "nit: might be easier to allow callers to call multiple times (just set r.queue \u003d nil)",
+      "range": {
+        "startLine": 176,
+        "startChar": 68,
+        "endLine": 177,
+        "endChar": 22
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "409f65cb_6d223b86",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-22T15:46:23Z",
+      "side": 1,
+      "message": "nit: uncomment or delete",
+      "range": {
+        "startLine": 290,
+        "startChar": 2,
+        "endLine": 290,
+        "endChar": 4
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c05b5923_6e61e8e0",
         "filename": "task_scheduler/go/types/repo_state.go",
         "patchSetId": 14
