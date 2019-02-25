@@ -1431,6 +1431,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0656692f_52216c4b",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-25T18:18:40Z",
+      "side": 1,
+      "message": "If you change BT_ROW_KEY_VERSION, it won\u0027t break anything. Also, adding new column families or columns won\u0027t break anything.",
+      "parentUuid": "6f6a425a_a40f4ac1",
+      "range": {
+        "startLine": 71,
+        "startChar": 49,
+        "endLine": 71,
+        "endChar": 60
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
