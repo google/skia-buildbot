@@ -31,10 +31,8 @@ import (
 	"go.skia.org/infra/go/taskname"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/perfclient"
-	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"google.golang.org/api/option"
 )
@@ -43,14 +41,13 @@ import (
 var (
 	// TODO(borenet): Combine btInstance, firestoreInstance, and
 	// pubsubTopicSet.
-	btInstance         = flag.String("bigtable_instance", "", "BigTable instance to use.")
-	btProject          = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
-	firestoreInstance  = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile     = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	taskSchedulerDbUrl = flag.String("task_db_url", "http://skia-task-scheduler:8008/db/", "Where the Skia task scheduler database is hosted.")
-	workdir            = flag.String("workdir", ".", "Working directory used by data processors.")
+	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
+	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	workdir           = flag.String("workdir", ".", "Working directory used by data processors.")
 
 	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
 	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
@@ -201,22 +198,14 @@ func main() {
 	// Tasks metrics.
 	// TODO(borenet): We should include metrics from all three (production,
 	// internal, staging) instances.
-	var d db.RemoteDB
-	if *firestoreInstance != "" {
-		label := "datahopper"
-		mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, newTs)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, mod)
-		if err != nil {
-			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
-		}
-	} else {
-		d, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicSet, "datahopper", newTs)
-		if err != nil {
-			sklog.Fatal(err)
-		}
+	label := "datahopper"
+	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, newTs)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	d, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, mod)
+	if err != nil {
+		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
 	if err := StartTaskMetrics(ctx, d); err != nil {
 		sklog.Fatal(err)

@@ -37,11 +37,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/modified"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
-	"go.skia.org/infra/task_scheduler/go/db/recovery"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
@@ -91,7 +88,7 @@ var (
 	port              = flag.String("port", ":8000", "HTTP service port for the web server (e.g., ':8000')")
 	dbPort            = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
 	disableTryjobs    = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
-	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
+	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
@@ -532,26 +529,10 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 
 	sklog.AddLogsRedirect(r)
 	swarming.RegisterPubSubServer(ts, r)
-	dbRouter := r.PathPrefix("/db").Subrouter()
-	dbRouter.Use(login.Restrict(allowed.NewAllowedFromList(VALID_DB_EMAILS)))
-	if err := remote_db.RegisterServer(taskDb, dbRouter); err != nil {
-		sklog.Fatal(err)
-	}
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
-}
-
-// runDbServer listens on dbPort and responds to HTTP requests at path /db with
-// RPC calls to taskDb. Does not return.
-func runDbServer(taskDb db.RemoteDB) {
-	r := mux.NewRouter()
-	err := remote_db.RegisterServer(taskDb, r.PathPrefix("/db").Subrouter())
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Fatal(http.ListenAndServe(*dbPort, httputils.LoggingGzipRequestResponse(r)))
 }
 
 func main() {
@@ -625,16 +606,9 @@ func main() {
 		sklog.Fatal(err)
 	}
 	mod = modified.NewMuxModifiedData(modified.NewModifiedData(), mod)
-	if *firestoreInstance != "" {
-		tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
-		if err != nil {
-			sklog.Fatalf("Failed to create Firestore DB client: %s", err)
-		}
-	} else {
-		tsDb, err = local_db.NewDB(local_db.DB_NAME, path.Join(wdAbs, local_db.DB_FILENAME), mod)
-		if err != nil {
-			sklog.Fatal(err)
-		}
+	tsDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource, mod)
+	if err != nil {
+		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
 	cleanup.AtExit(func() {
 		util.Close(tsDb)
@@ -675,21 +649,6 @@ func main() {
 		}
 	}
 
-	// Start DB backup.
-	var b recovery.DBBackup
-	if *firestoreInstance == "" {
-		if *local && *gsBucket == "skia-task-scheduler" {
-			sklog.Fatalf("Specify --gsBucket=dogben-test to run locally.")
-		}
-		// TODO(benjaminwagner): The storage client library already handles buffering
-		// and retrying requests, so we may not want to use BackoffTransport for the
-		// httpClient provided to NewDBBackup.
-		b, err = recovery.NewDBBackup(ctx, *gsBucket, tsDb, local_db.DB_NAME, wdAbs, httpClient)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-	}
-
 	// Find depot_tools.
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(wdAbs, "recipes.cfg")
@@ -714,11 +673,7 @@ func main() {
 	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
-	ts.Start(ctx, !*disableTryjobs, func() {
-		if b != nil {
-			b.Tick()
-		}
-	})
+	ts.Start(ctx, !*disableTryjobs, func() {})
 
 	// Set up periodic triggers.
 	if err := periodic.Listen(ctx, fmt.Sprintf("task-scheduler-%s", *pubsubTopicSet), tokenSource, func(ctx context.Context, name, id string) bool {
@@ -741,7 +696,6 @@ func main() {
 	}
 
 	go runServer(serverURL, tsDb)
-	go runDbServer(tsDb)
 
 	// Run indefinitely, responding to HTTP requests.
 	select {}
