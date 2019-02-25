@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "f073cfc4_556d28f6",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Done\nAll names changed to underscore and added one flag to disable loading the graph.",
+      "parentUuid": "fb188195_3540e241",
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b927e51_32dc8e0a",
         "filename": "gitsync/cmd/btgit/main.go",
         "patchSetId": 52
@@ -39,6 +57,30 @@
       "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4452716_f556b78a",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Done\nThis is purely for performance. Hidden behind a flag.",
+      "parentUuid": "7b927e51_32dc8e0a",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 66
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "64f3fbf7_0b96ad96",
+        "filename": "gitsync/cmd/gitsync/main.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b727bb3_eab0b773",
+      "range": {
+        "startLine": 26,
+        "startChar": 33,
+        "endLine": 26,
+        "endChar": 41
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a143406_a730381b",
         "filename": "gitsync/cmd/gitsync/watcher.go",
         "patchSetId": 52
@@ -85,6 +151,30 @@
       "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e8a4837_ef0f2128",
+        "filename": "gitsync/cmd/gitsync/watcher.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a143406_a730381b",
+      "range": {
+        "startLine": 82,
+        "startChar": 1,
+        "endLine": 82,
+        "endChar": 10
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "972dc70d_26fb0ddb",
+        "filename": "gitsync/dockerfiles/Dockerfile_gitsync",
+        "patchSetId": 52
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5956dc2d_27bd697a",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 40
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ca6027e5_6168b958",
         "filename": "gitsync/k8s_release_gitsync",
         "patchSetId": 52
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "a39a5044_cd04bfd9",
+        "filename": "gitsync/k8s_release_gitsync",
+        "patchSetId": 52
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ca6027e5_6168b958",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "94d5daf6_cc45fccb",
         "filename": "go/git/gitinfo/gitinfo.go",
         "patchSetId": 52
@@ -145,6 +283,30 @@
       "writtenOn": "2019-02-22T17:56:13Z",
       "side": 1,
       "message": "Seems like a lot of overlap with https://skia.googlesource.com/buildbot/+/master/go/git/gitdir.go#80.  Can we maybe refactor to share the parsing code?",
+      "range": {
+        "startLine": 617,
+        "startChar": 1,
+        "endLine": 617,
+        "endChar": 135
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3dea1384_3f75cf57",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "I think it\u0027s more another example of us having too much redundant git code.\nI don\u0027t see any real commonality between your link and this code. \nI am happy to delete the entire gitinfo package once we are solidly on \nBigTable.",
+      "parentUuid": "94d5daf6_cc45fccb",
       "range": {
         "startLine": 617,
         "startChar": 1,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "b5c14eed_3fbc9a2b",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "I am happy to implement this or something like it, but I\u0027d like to wait until I integrate this into Gold and actually use GitStore in a read-only way.",
+      "parentUuid": "16d9652c_0636def2",
+      "range": {
+        "startLine": 194,
+        "startChar": 3,
+        "endLine": 194,
+        "endChar": 11
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "cbda5b14_161620a9",
         "filename": "go/gitstore/gitstore.go",
         "patchSetId": 52
@@ -191,6 +377,30 @@
       "writtenOn": "2019-02-22T17:56:13Z",
       "side": 1,
       "message": "What, you don\u0027t think we\u0027ll still be using this code in 267 years?  :P",
+      "range": {
+        "startLine": 779,
+        "startChar": 62,
+        "endLine": 779,
+        "endChar": 66
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f450633_0fd7509b",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 779,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "I know it\u0027s reckless, but sometimes you just have to throw caution in the wind. :-)",
+      "parentUuid": "cbda5b14_161620a9",
       "range": {
         "startLine": 779,
         "startChar": 62,
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "3ee7c134_3abb6ae2",
+        "filename": "go/util/repo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Ack\nI added a TODO for now, since I would like to the keep the tests in vcsinfo/testutils unchanged and they rely on the structure of test repo.",
+      "parentUuid": "e73cf1b7_2f0e2005",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 90
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "948e9535_c85685ad",
         "filename": "go/vcsinfo/vcsinfo.go",
         "patchSetId": 52
@@ -246,6 +480,30 @@
       "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d640895_e69dce34",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-25T20:49:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "948e9535_c85685ad",
+      "range": {
+        "startLine": 9,
+        "startChar": 63,
+        "endLine": 9,
+        "endChar": 69
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
