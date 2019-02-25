@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -113,8 +113,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
 	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, nil)
 	assert.NoError(t, err)
-	d, err := local_db.NewDB("tasks_db", path.Join(tmpDir, "tasks.db"), nil)
-	assert.NoError(t, err)
+	d := memory.NewInMemoryDB(nil)
 	mock := mockhttpclient.NewURLMock()
 	projectRepoMapping := map[string]string{
 		patchProject:  gb.RepoUrl(),
