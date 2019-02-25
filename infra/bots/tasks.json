@@ -94,6 +94,11 @@
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e"
+        },
+        {
+          "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
+          "path": "recipe_bundle",
+          "version": "refs/heads/master"
         }
       ],
       "command": [
@@ -138,11 +143,7 @@
         "-properties",
         "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Housekeeper-OnDemand-Presubmit\",\"category\":\"cq\",\"patch_gerrit_url\":\"https://skia-review.googlesource.com\",\"patch_issue\":\"<(ISSUE)\",\"patch_project\":\"buildbot\",\"patch_ref\":\"refs/changes/<(ISSUE_SHORT)/<(ISSUE)/<(PATCHSET)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"reason\":\"CQ\",\"repo_name\":\"skia_buildbot\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"${ISOLATED_OUTDIR}\"}",
         "-logdog-annotation-url",
-        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations",
-        "-repository",
-        "https://chromium.googlesource.com/chromium/tools/build",
-        "-revision",
-        "HEAD"
+        "logdog://logs.chromium.org/skia/<(TASK_ID)/+/annotations"
       ],
       "dimensions": [
         "pool:Skia",

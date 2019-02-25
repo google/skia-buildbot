@@ -356,21 +356,6 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"repo_name":        "skia_buildbot",
 	}
 	task := kitchenTask(name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
-
-	replaceArg := func(key, value string) {
-		found := false
-		for idx, arg := range task.Command {
-			if arg == key {
-				task.Command[idx+1] = value
-				found = true
-			}
-		}
-		if !found {
-			task.Command = append(task.Command, key, value)
-		}
-	}
-	replaceArg("-repository", "https://chromium.googlesource.com/chromium/tools/build")
-	replaceArg("-revision", "HEAD")
 	task.Caches = append(task.Caches, []*specs.Cache{
 		&specs.Cache{
 			Name: "git",
@@ -382,6 +367,11 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		},
 	}...)
 	task.CipdPackages = append(task.CipdPackages, CIPD_PKGS_GIT...)
+	task.CipdPackages = append(task.CipdPackages, &specs.CipdPackage{
+		Name:    "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
+		Path:    "recipe_bundle",
+		Version: "refs/heads/master",
+	})
 	task.Dependencies = []string{} // No bundled recipes for this one.
 	b.MustAddTask(name, task)
 	return name
