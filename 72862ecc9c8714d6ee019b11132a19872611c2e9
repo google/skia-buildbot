@@ -1455,6 +1455,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fe47ca8_1a42a13d",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:21:48Z",
+      "side": 1,
+      "message": "Right; by \"breaking\" I mean that the cache will have to be reconstructed whenever Task Scheduler starts up again.",
+      "parentUuid": "0656692f_52216c4b",
+      "range": {
+        "startLine": 71,
+        "startChar": 49,
+        "endLine": 71,
+        "endChar": 60
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
