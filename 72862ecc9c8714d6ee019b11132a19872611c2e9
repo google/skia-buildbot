@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "370dbe0d_78d9d424",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "I just used map[string]interface{} out of laziness so that I didn\u0027t have to decipher the actual structure of the File.  But I just found the actual types here: https://godoc.org/go.chromium.org/luci/common/isolated#File.  Removed IsolatedFile type and used the original types directly.",
+      "parentUuid": "e23c853c_80d9302b",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bde2d60e_e7117524",
         "filename": "go/isolate/isolate.go",
         "patchSetId": 14
@@ -30,6 +48,30 @@
       "writtenOn": "2019-02-21T19:21:16Z",
       "side": 1,
       "message": "nit: \"Copy\" method on a type ending in \"File\" sounds like a filesystem operation.",
+      "range": {
+        "startLine": 246,
+        "startChar": 23,
+        "endLine": 246,
+        "endChar": 29
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff67026c_139c2a76",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Changed this to be a free function which takes an isolated.Isolated and returns a deep copy.  I think the new name is better.",
+      "parentUuid": "bde2d60e_e7117524",
       "range": {
         "startLine": 246,
         "startChar": 23,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "6c4cfc6c_c7fb0ee1",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Per above, I\u0027m now using the actual underlying type, and changed to perform a deep copy.",
+      "parentUuid": "e49287b1_59d47479",
+      "range": {
+        "startLine": 254,
+        "startChar": 3,
+        "endLine": 254,
+        "endChar": 15
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6fd03318_36aeebe2",
         "filename": "go/isolate/isolate.go",
         "patchSetId": 14
@@ -76,6 +142,30 @@
       "writtenOn": "2019-02-21T19:21:16Z",
       "side": 1,
       "message": "nit: seems like this section could be collapsed to just:\nisolated.Includes \u003d append(isolated.Includes, t.Deps...)",
+      "range": {
+        "startLine": 361,
+        "startChar": 0,
+        "endLine": 366,
+        "endChar": 3
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f6d1005_a2725f10",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done-ish.  Have to iterate over t.Deps so that I can cast each dep to isolated.HexDigest.",
+      "parentUuid": "6fd03318_36aeebe2",
       "range": {
         "startLine": 361,
         "startChar": 0,
@@ -105,6 +195,47 @@
     },
     {
       "key": {
+        "uuid": "4410236b_511cd73d",
+        "filename": "go/isolate/isolate_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done, although the test is a little cheesy, since all we really know is that we should get a different hash if the isolated changed between uploads.",
+      "parentUuid": "1a35b3eb_f843e9bd",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1b0a7f94_87e7dcb7",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "FTR I hate this name.  If anything better comes to mind, please suggest it.",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 26
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea72a986_c8466f7a",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -116,6 +247,30 @@
       "writtenOn": "2019-02-21T23:35:47Z",
       "side": 1,
       "message": "nit: maybe mention value can not be nil.",
+      "range": {
+        "startLine": 77,
+        "startChar": 15,
+        "endLine": 77,
+        "endChar": 16
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "137ac9d3_08f71b9a",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done, and added a check for that in setLocked.",
+      "parentUuid": "ea72a986_c8466f7a",
       "range": {
         "startLine": 77,
         "startChar": 15,
@@ -151,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "5cb3ef22_013cae81",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d1a47127_1af72b32",
+      "range": {
+        "startLine": 86,
+        "startChar": 37,
+        "endLine": 86,
+        "endChar": 49
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "369cd549_ae647ad5",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -171,6 +350,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a3d6fd1_8cf2b1bd",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "369cd549_ae647ad5",
+      "range": {
+        "startLine": 88,
+        "startChar": 65,
+        "endLine": 88,
+        "endChar": 66
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +400,30 @@
     },
     {
       "key": {
+        "uuid": "e2783b08_eba08771",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b89df997_1ef70b21",
+      "range": {
+        "startLine": 110,
+        "startChar": 61,
+        "endLine": 110,
+        "endChar": 62
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5bddd5e6_f0e90ba2",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -217,6 +444,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1fa8135_86e9b45a",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bddd5e6_f0e90ba2",
+      "range": {
+        "startLine": 133,
+        "startChar": 41,
+        "endLine": 133,
+        "endChar": 42
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -243,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "e9932b77_27554ff0",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8461cf93_a356e407",
+      "range": {
+        "startLine": 144,
+        "startChar": 56,
+        "endLine": 144,
+        "endChar": 62
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "182704a9_3ffdda81",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -263,6 +538,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49af926d_84819341",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "182704a9_3ffdda81",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 2
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -289,6 +588,30 @@
     },
     {
       "key": {
+        "uuid": "ef0ca35c_d1b22deb",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "af47c3c7_b3e76980",
+      "range": {
+        "startLine": 179,
+        "startChar": 28,
+        "endLine": 179,
+        "endChar": 29
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f5c95b7f_9290b0cb",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -309,6 +632,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "721b9fe6_7351a733",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f5c95b7f_9290b0cb",
+      "range": {
+        "startLine": 197,
+        "startChar": 38,
+        "endLine": 197,
+        "endChar": 71
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -358,6 +705,54 @@
     },
     {
       "key": {
+        "uuid": "88828032_5e653677",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5141d0db_9d77b43f",
+      "range": {
+        "startLine": 237,
+        "startChar": 50,
+        "endLine": 237,
+        "endChar": 51
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dfb123ce_0c51ea5f",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0fcdf587_25d8a06e",
+      "range": {
+        "startLine": 237,
+        "startChar": 34,
+        "endLine": 237,
+        "endChar": 50
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14b72b7a_cf387b7a",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -369,6 +764,30 @@
       "writtenOn": "2019-02-21T23:35:47Z",
       "side": 1,
       "message": "Need to lock entry.mtx to avoid race. (Or state that Cleanup can not be called concurrently with any other method.)",
+      "range": {
+        "startLine": 242,
+        "startChar": 32,
+        "endLine": 242,
+        "endChar": 41
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0194352f_bd788168",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Re-implemented in terms of ForEach.",
+      "parentUuid": "14b72b7a_cf387b7a",
       "range": {
         "startLine": 242,
         "startChar": 32,
@@ -404,6 +823,30 @@
     },
     {
       "key": {
+        "uuid": "7d3156a8_ae49353f",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1dd10a21_e8cc6105",
+      "range": {
+        "startLine": 257,
+        "startChar": 15,
+        "endLine": 257,
+        "endChar": 24
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b4f5504_2042c38e",
         "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
         "patchSetId": 14
@@ -418,6 +861,24 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db9b86d8_3a6ace42",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b4f5504_2042c38e",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -444,6 +905,30 @@
     },
     {
       "key": {
+        "uuid": "3a5a5c2c_42775e97",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cc089ab1_bd0884de",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 4
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8e0960d7_61c34079",
         "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
         "patchSetId": 14
@@ -467,6 +952,30 @@
     },
     {
       "key": {
+        "uuid": "4d826992_83b0bf1c",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e0960d7_61c34079",
+      "range": {
+        "startLine": 56,
+        "startChar": 2,
+        "endLine": 56,
+        "endChar": 3
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9386ebb1_67e922e7",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 14
@@ -478,6 +987,30 @@
       "writtenOn": "2019-02-22T00:36:37Z",
       "side": 1,
       "message": "I haven\u0027t looked at all the code, but it seems like all of the calls to TempGitRepo will now be serialized, so there\u0027s no need for a worker pool.",
+      "range": {
+        "startLine": 152,
+        "startChar": 51,
+        "endLine": 152,
+        "endChar": 77
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd61dd00_1380bc43",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "They aren\u0027t truly serialized; TaskScheduler.updateUnfinishedJobs could be running at the same time as TryJobIntegrator.getJobToSchedule.  I just changed this temporary initial setup to run GetOrCacheRepoState for each unfinished job in a separate goroutine, and changed to run TryJobIntegrator.getJobToSchedule to run in multiple goroutines as well.  It\u0027d be nice to find a way to do the same in gatherNewJobs as well, but it\u0027s not immediately clear to me how to make that work.",
+      "parentUuid": "9386ebb1_67e922e7",
       "range": {
         "startLine": 152,
         "startChar": 51,
@@ -513,6 +1046,30 @@
     },
     {
       "key": {
+        "uuid": "970aad02_88db155a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 3403,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd9b02d9_5cd6103c",
+      "range": {
+        "startLine": 3403,
+        "startChar": 1,
+        "endLine": 3403,
+        "endChar": 7
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b6134be_bb757b11",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 14
@@ -536,6 +1093,30 @@
     },
     {
       "key": {
+        "uuid": "70ecf135_9e03b97d",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b6134be_bb757b11",
+      "range": {
+        "startLine": 56,
+        "startChar": 40,
+        "endLine": 56,
+        "endChar": 52
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3cd5b70f_969cbe41",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 14
@@ -550,6 +1131,24 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b08fb4ca_696c5b04",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3cd5b70f_969cbe41",
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -576,6 +1175,30 @@
     },
     {
       "key": {
+        "uuid": "ed58ea92_87ea6ffb",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0713e3c7_16b13f68",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 100,
+        "endChar": 4
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ac3164c_b3913b20",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 14
@@ -587,6 +1210,30 @@
       "writtenOn": "2019-02-22T15:46:23Z",
       "side": 1,
       "message": "Is this correct? Seems like the func below would send on rvErr when it\u0027s called in the preceding loop.\n\n(It probably doesn\u0027t matter, but I\u0027m mentioning it because I\u0027m not 100% sure that this doesn\u0027t cause a goroutine leak.)",
+      "range": {
+        "startLine": 154,
+        "startChar": 4,
+        "endLine": 154,
+        "endChar": 16
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "157a9c00_7c434f43",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Good catch. Removed.",
+      "parentUuid": "0ac3164c_b3913b20",
       "range": {
         "startLine": 154,
         "startChar": 4,
@@ -622,6 +1269,30 @@
     },
     {
       "key": {
+        "uuid": "ba31826c_0dba01ef",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "I had that in the code originally, but I decided I wanted to discourage reuse of a single LazyTempGitRepo instance, since that increases the likelihood that the caller makes the mistake of not calling Done, or calling Do after Done, etc.",
+      "parentUuid": "688cd070_24e27533",
+      "range": {
+        "startLine": 176,
+        "startChar": 68,
+        "endLine": 177,
+        "endChar": 22
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "409f65cb_6d223b86",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 14
@@ -642,6 +1313,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55bc9861_c9e4cf4e",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "409f65cb_6d223b86",
+      "range": {
+        "startLine": 290,
+        "startChar": 2,
+        "endLine": 290,
+        "endChar": 4
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -668,6 +1363,30 @@
     },
     {
       "key": {
+        "uuid": "04882eb0_6bd1f5a5",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c05b5923_6e61e8e0",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 32
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7adeb16c_80d3275f",
         "filename": "task_scheduler/go/types/repo_state.go",
         "patchSetId": 14
@@ -679,6 +1398,30 @@
       "writtenOn": "2019-02-22T00:36:37Z",
       "side": 1,
       "message": "nit: Seems like we should use the same logic for PatchRepo and Repo.",
+      "range": {
+        "startLine": 71,
+        "startChar": 49,
+        "endLine": 71,
+        "endChar": 60
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f6a425a_a40f4ac1",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-25T18:10:27Z",
+      "side": 1,
+      "message": "(didn\u0027t change anything at the next patch set)\nI agree. I\u0027ve started to dislike what we\u0027re doing with the PROJECT_REPO_MAPPING below (not least because the tests spew errors).  Stephan has a CL coming soon which has a \"NormalizeGitURL\" function that trims \"https://\", \".git\", etc.  I\u0027m considering just doing that rather than trying to use the human-friendly names.  I also really dislike trying to parse a RepoState from a row key.  It feels wrong.  If we\u0027d be okay making a \"breaking\" change to TaskCfgCache and storing things in a different format in BigTable, I could remove the parsing at the same time I switch to NormalizeGitURL.",
+      "parentUuid": "7adeb16c_80d3275f",
       "range": {
         "startLine": 71,
         "startChar": 49,
