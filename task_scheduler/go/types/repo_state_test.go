@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -241,4 +242,48 @@ func TestParentsError(t *testing.T) {
 	_, err := input.Parents(repoMap)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Unknown repo")
+}
+
+func TestRepoStateRowKey(t *testing.T) {
+	testutils.SmallTest(t)
+
+	check := func(rs RepoState) {
+		rk := rs.RowKey()
+		clone, err := RepoStateFromRowKey(rk)
+		assert.NoError(t, err)
+		deepequal.AssertDeepEqual(t, rs, clone)
+	}
+
+	// Simple, no patch.
+	check(RepoState{
+		Repo:     common.REPO_SKIA,
+		Revision: "abc123",
+	})
+	// An unknown repo will dump an error in the log but won't return an
+	// error. This is useful for testing.
+	check(RepoState{
+		Repo:     "unknownRepo",
+		Revision: "abc123",
+	})
+	// Add a patch.
+	check(RepoState{
+		Repo:     common.REPO_SKIA,
+		Revision: "abc123",
+		Patch: Patch{
+			Issue:     "12345",
+			Patchset:  "2",
+			Server:    "fake.server.com",
+			PatchRepo: "other.git",
+		},
+	})
+	// Patches are valid without a PatchRepo.
+	check(RepoState{
+		Repo:     common.REPO_SKIA,
+		Revision: "abc123",
+		Patch: Patch{
+			Issue:    "12345",
+			Patchset: "2",
+			Server:   "fake.server.com",
+		},
+	})
 }
