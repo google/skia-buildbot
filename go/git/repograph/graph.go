@@ -245,7 +245,7 @@ func (r *Graph) UpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongC
 func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-
+	xxx
 	// Update the local copy.
 	sklog.Infof("Updating repograph.Graph...")
 	if err := r.repo.Update(ctx); err != nil {
