@@ -3,31 +3,117 @@ package specs
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"path"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/deepequal"
-	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
-	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var (
-	// Use this as an expected error when you don't care about the actual
-	// error which is returned.
-	ERR_DONT_CARE = fmt.Errorf("DONTCARE")
+	buildTask = &TaskSpec{
+		CipdPackages: []*CipdPackage{
+			&CipdPackage{
+				Name:    "android_sdk",
+				Path:    "android_sdk",
+				Version: "version:0",
+			},
+		},
+		Command:    []string{"ninja", "skia"},
+		Dimensions: []string{"pool:Skia", "os:Ubuntu"},
+		ExtraTags: map[string]string{
+			"is_build_task": "true",
+		},
+		Isolate:     "compile_skia.isolate",
+		MaxAttempts: 5,
+		Priority:    0.8,
+	}
+	testTask = &TaskSpec{
+		CipdPackages: []*CipdPackage{
+			&CipdPackage{
+				Name:    "skimage",
+				Path:    "skimage",
+				Version: "version:0",
+			},
+			&CipdPackage{
+				Name:    "skp",
+				Path:    "skp",
+				Version: "version:0",
+			},
+		},
+		Command:      []string{"test", "skia"},
+		Dependencies: []string{specs_testutils.BuildTask},
+		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
+		EnvPrefixes: map[string][]string{
+			"PATH": []string{"curdir"},
+		},
+		Isolate:  "test_skia.isolate",
+		Priority: 0.8,
+	}
+	perfTask = &TaskSpec{
+		CipdPackages: []*CipdPackage{
+			&CipdPackage{
+				Name:    "skimage",
+				Path:    "skimage",
+				Version: "version:0",
+			},
+			&CipdPackage{
+				Name:    "skp",
+				Path:    "skp",
+				Version: "version:0",
+			},
+		},
+		Command:      []string{"perf", "skia"},
+		Dependencies: []string{specs_testutils.BuildTask},
+		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
+		Isolate:      "perf_skia.isolate",
+		Priority:     0.8,
+	}
+
+	buildJob = &JobSpec{
+		Priority:  0.8,
+		TaskSpecs: []string{specs_testutils.BuildTask},
+	}
+	testJob = &JobSpec{
+		Priority:  0.8,
+		TaskSpecs: []string{specs_testutils.TestTask},
+	}
+	perfJob = &JobSpec{
+		Priority:  0.8,
+		TaskSpecs: []string{specs_testutils.PerfTask},
+	}
+
+	baseTasksCfg = &TasksCfg{
+		Tasks: map[string]*TaskSpec{
+			specs_testutils.BuildTask: buildTask,
+			specs_testutils.TestTask:  testTask,
+		},
+		Jobs: map[string]*JobSpec{
+			specs_testutils.BuildTask: buildJob,
+			specs_testutils.TestTask:  testJob,
+		},
+	}
+	nextTasksCfg = &TasksCfg{
+		Tasks: map[string]*TaskSpec{
+			specs_testutils.BuildTask: buildTask,
+			specs_testutils.PerfTask:  perfTask,
+			specs_testutils.TestTask:  testTask,
+		},
+		Jobs: map[string]*JobSpec{
+			specs_testutils.BuildTask: buildJob,
+			specs_testutils.PerfTask:  perfJob,
+			specs_testutils.TestTask:  testJob,
+		},
+	}
 )
 
 func TestCopyTaskSpec(t *testing.T) {
@@ -100,7 +186,7 @@ func TestTaskSpecs(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -111,13 +197,14 @@ func TestTaskSpecs(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
+	assert.NoError(t, cache.Set(ctx, rs1, baseTasksCfg, nil))
+	assert.NoError(t, cache.Set(ctx, rs2, nextTasksCfg, nil))
 	specs, err := cache.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	// c1 has a Build and Test task, c2 has a Build, Test, and Perf task.
 	total, countC1, countC2, countBuild, countTest, countPerf := 0, 0, 0, 0, 0, 0
 	for rs, byName := range specs {
 		for name := range byName {
-			sklog.Infof("%s %s", rs, name)
 			total++
 			if rs.Revision == c1 {
 				countC1++
@@ -164,7 +251,7 @@ func TestAddedTaskSpecs(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 	assert.NoError(t, err)
 
 	rs1 := types.RepoState{
@@ -175,7 +262,8 @@ func TestAddedTaskSpecs(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
-
+	assert.NoError(t, cache.Set(ctx, rs1, baseTasksCfg, nil))
+	assert.NoError(t, cache.Set(ctx, rs2, nextTasksCfg, nil))
 	addedTaskSpecs, err := cache.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))
@@ -186,41 +274,43 @@ func TestAddedTaskSpecs(t *testing.T) {
 
 	// c3 adds Beer and Belch (names chosen to avoid merge conficts)
 	gb.CreateBranchTrackBranch(ctx, "branchy-mcbranch-face", "master")
-	cfg, err := ReadTasksCfg(gb.Dir())
+	cfg3, err := ReadTasksCfg(gb.Dir())
 	assert.NoError(t, err)
-	cfg.Jobs["Beer"] = &JobSpec{TaskSpecs: []string{"Belch"}}
-	cfg.Tasks["Beer"] = &TaskSpec{
+	cfg3.Jobs["Beer"] = &JobSpec{TaskSpecs: []string{"Belch"}}
+	cfg3.Tasks["Beer"] = &TaskSpec{
 		Dependencies: []string{specs_testutils.BuildTask},
 		Isolate:      "swarm_recipe.isolate",
 	}
-	cfg.Tasks["Belch"] = &TaskSpec{
+	cfg3.Tasks["Belch"] = &TaskSpec{
 		Dependencies: []string{"Beer"},
 		Isolate:      "swarm_recipe.isolate",
 	}
-	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
+	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg3))
 	c3 := gb.Commit(ctx)
 
 	// c4 removes Perf
 	gb.CheckoutBranch(ctx, "master")
-	cfg, err = ReadTasksCfg(gb.Dir())
+	cfg4, err := ReadTasksCfg(gb.Dir())
 	assert.NoError(t, err)
-	delete(cfg.Jobs, specs_testutils.PerfTask)
-	delete(cfg.Tasks, specs_testutils.PerfTask)
-	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
+	delete(cfg4.Jobs, specs_testutils.PerfTask)
+	delete(cfg4.Tasks, specs_testutils.PerfTask)
+	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg4))
 	c4 := gb.Commit(ctx)
 
 	// c5 merges c3 and c4
 	c5 := gb.MergeBranch(ctx, "branchy-mcbranch-face")
+	cfg5, err := ReadTasksCfg(gb.Dir())
+	assert.NoError(t, err)
 
 	// c6 adds back Perf
-	cfg, err = ReadTasksCfg(gb.Dir())
+	cfg6, err := ReadTasksCfg(gb.Dir())
 	assert.NoError(t, err)
-	cfg.Jobs[specs_testutils.PerfTask] = &JobSpec{TaskSpecs: []string{specs_testutils.PerfTask}}
-	cfg.Tasks[specs_testutils.PerfTask] = &TaskSpec{
+	cfg6.Jobs[specs_testutils.PerfTask] = &JobSpec{TaskSpecs: []string{specs_testutils.PerfTask}}
+	cfg6.Tasks[specs_testutils.PerfTask] = &TaskSpec{
 		Dependencies: []string{specs_testutils.BuildTask},
 		Isolate:      "swarm_recipe.isolate",
 	}
-	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg))
+	gb.Add(ctx, "infra/bots/tasks.json", testutils.MarshalIndentJSON(t, cfg6))
 	c6 := gb.Commit(ctx)
 
 	rs3 := types.RepoState{
@@ -241,6 +331,10 @@ func TestAddedTaskSpecs(t *testing.T) {
 	}
 
 	assert.NoError(t, repos.Update(ctx))
+	assert.NoError(t, cache.Set(ctx, rs3, cfg3, nil))
+	assert.NoError(t, cache.Set(ctx, rs4, cfg4, nil))
+	assert.NoError(t, cache.Set(ctx, rs5, cfg5, nil))
+	assert.NoError(t, cache.Set(ctx, rs6, cfg6, nil))
 	addedTaskSpecs, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2, rs3, rs4, rs5, rs6})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(addedTaskSpecs[rs1]))
@@ -257,6 +351,18 @@ func TestAddedTaskSpecs(t *testing.T) {
 	assert.True(t, addedTaskSpecs[rs5]["Belch"])
 	assert.Equal(t, 1, len(addedTaskSpecs[rs2]))
 	assert.True(t, addedTaskSpecs[rs2][specs_testutils.PerfTask])
+}
+
+func cacheLen(c *atomic_miss_cache.AtomicMissCache) int {
+	length := 0
+	c.ForEach(context.Background(), func(_ context.Context, _ string, _ atomic_miss_cache.Value) {
+		length++
+	})
+	return length
+}
+
+func assertCacheLen(t *testing.T, c *atomic_miss_cache.AtomicMissCache, expect int) {
+	assert.Equal(t, expect, cacheLen(c))
 }
 
 func TestTaskCfgCacheCleanup(t *testing.T) {
@@ -277,7 +383,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -289,9 +395,11 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
+	assert.NoError(t, cache.Set(ctx, rs1, baseTasksCfg, nil))
+	assert.NoError(t, cache.Set(ctx, rs2, nextTasksCfg, nil))
 	_, err = cache.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(cache.cache))
+	assertCacheLen(t, cache.cache, 2)
 	_, err = cache.GetAddedTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(cache.addedTasksCache))
@@ -305,8 +413,8 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	diff := d2.Timestamp.Sub(d1.Timestamp)
 	now := time.Now()
 	period := now.Sub(d2.Timestamp) + (diff / 2)
-	assert.NoError(t, cache.Cleanup(period))
-	assert.Equal(t, 1, len(cache.cache))
+	assert.NoError(t, cache.Cleanup(ctx, period))
+	assertCacheLen(t, cache.cache, 1)
 	assert.Equal(t, 1, len(cache.addedTasksCache))
 }
 
@@ -329,7 +437,7 @@ func TestTaskCfgCacheError(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	cache, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 	assert.NoError(t, err)
 
 	// Load configs into the cache.
@@ -341,48 +449,40 @@ func TestTaskCfgCacheError(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c2,
 	}
+	assert.NoError(t, cache.Set(ctx, rs1, baseTasksCfg, nil))
+	assert.NoError(t, cache.Set(ctx, rs2, nextTasksCfg, nil))
 	_, err = cache.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(cache.cache))
+	assertCacheLen(t, cache.cache, 2)
 
-	botUpdateCount := 0
-	mock := exec.CommandCollector{}
-	mock.SetDelegateRun(func(cmd *exec.Command) error {
-		for _, arg := range cmd.Args {
-			if strings.Contains(arg, "bot_update") {
-				botUpdateCount++
-				return errors.New("error: Failed to merge in the changes.")
-			}
-		}
-		return exec.DefaultRun(cmd)
-	})
-	ctx = exec.NewContext(ctx, mock.Run)
-	repoStates := []types.RepoState{
-		types.RepoState{
-			Repo:     rs1.Repo,
-			Revision: rs1.Revision,
-			Patch: types.Patch{
-				Server:   "my-server",
-				Issue:    "12345",
-				Patchset: "1",
-			},
+	rs3 := types.RepoState{
+		Repo:     rs1.Repo,
+		Revision: rs1.Revision,
+		Patch: types.Patch{
+			Server:   "my-server",
+			Issue:    "12345",
+			Patchset: "1",
 		},
 	}
-	_, err = cache.GetTaskSpecsForRepoStates(ctx, repoStates)
-	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
-	assert.Equal(t, 1, botUpdateCount)
+	repoStates := []types.RepoState{rs3}
 
-	// Try again, assert that we didn't run bot_update again.
+	// This is a permanent error. It shouldn't be returned from
+	// GetTaskSpecsForRepoStates, since that would block scheduling
+	// permanently.
+	storedErr := errors.New("error: Failed to merge in the changes.; Stdout+Stderr:\n")
+	assert.NoError(t, cache.Set(ctx, rs3, nil, storedErr))
 	_, err = cache.GetTaskSpecsForRepoStates(ctx, repoStates)
-	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
-	assert.Equal(t, 1, botUpdateCount)
+	assert.NoError(t, err)
+	_, err = cache.Get(ctx, rs3)
+	assert.EqualError(t, err, storedErr.Error())
 
-	// Create a new cache, assert that it doesn't run bot_update.
-	cache2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmp, "cache2"), DEFAULT_NUM_WORKERS, project, instance, nil)
+	// Create a new cache, assert that we get the same error.
+	cache2, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 	assert.NoError(t, err)
 	_, err = cache2.GetTaskSpecsForRepoStates(ctx, repoStates)
-	assert.EqualError(t, err, "Errors loading task cfgs: [error: Failed to merge in the changes.; Stdout+Stderr:\n]")
-	assert.Equal(t, 1, botUpdateCount)
+	assert.NoError(t, err)
+	_, err = cache2.Get(ctx, rs3)
+	assert.EqualError(t, err, storedErr.Error())
 }
 
 // makeTasksCfg generates a JSON representation of a TasksCfg based on the given
@@ -419,7 +519,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Task \"a\" has unknown task \"b\" as a dependency.")
+	assert.EqualError(t, err, "Invalid TasksCfg: Task \"a\" has unknown task \"b\" as a dependency.")
 
 	// No tasks or jobs.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{}, map[string][]string{}))
@@ -431,7 +531,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Found a circular dependency involving \"a\" and \"a\"")
+	assert.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"a\" and \"a\"")
 
 	// Small cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -440,7 +540,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Found a circular dependency involving \"b\" and \"a\"")
+	assert.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"b\" and \"a\"")
 
 	// Longer cycle.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -457,7 +557,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"a"},
 	}))
-	assert.EqualError(t, err, "Found a circular dependency involving \"j\" and \"a\"")
+	assert.EqualError(t, err, "Invalid TasksCfg: Found a circular dependency involving \"j\" and \"a\"")
 
 	// No false positive on a complex-ish graph.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -485,7 +585,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"g"},
 	}))
-	assert.EqualError(t, err, "Task \"d\" is not reachable by any Job!")
+	assert.EqualError(t, err, "Invalid TasksCfg: Task \"d\" is not reachable by any Job!")
 
 	// Dependency on unknown task.
 	_, err = ParseTasksCfg(makeTasksCfg(t, map[string][]string{
@@ -499,182 +599,7 @@ func TestTasksCircularDependency(t *testing.T) {
 	}, map[string][]string{
 		"j": {"q"},
 	}))
-	assert.EqualError(t, err, "Job \"j\" has unknown task \"q\" as a dependency.")
-}
-
-func tempGitRepoSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, string, string) {
-	ctx := context.Background()
-	gb := git_testutils.GitInit(t, ctx)
-	gb.Add(ctx, "codereview.settings", `CODE_REVIEW_SERVER: codereview.chromium.org
-PROJECT: skia`)
-	c1 := gb.CommitMsg(ctx, "initial commit")
-	c2 := gb.CommitGen(ctx, "somefile")
-	return ctx, gb, c1, c2
-}
-
-func tempGitRepoBotUpdateTests(t *testing.T, cases map[types.RepoState]error) {
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-	ctx := context.Background()
-	cacheDir := path.Join(tmp, "cache")
-	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	for rs, expectErr := range cases {
-		c, err := tempGitRepoBotUpdate(ctx, rs, depotTools, cacheDir, tmp)
-		if expectErr != nil {
-			assert.Error(t, err)
-			if expectErr != ERR_DONT_CARE {
-				assert.EqualError(t, err, expectErr.Error())
-			}
-		} else {
-			defer c.Delete()
-			assert.NoError(t, err)
-			output, err := c.Git(ctx, "remote", "-v")
-			gotRepo := "COULD NOT FIND REPO"
-			for _, s := range strings.Split(output, "\n") {
-				if strings.HasPrefix(s, "origin") {
-					split := strings.Fields(s)
-					assert.Equal(t, 3, len(split))
-					gotRepo = split[1]
-					break
-				}
-			}
-			assert.Equal(t, rs.Repo, gotRepo)
-			gotRevision, err := c.RevParse(ctx, "HEAD")
-			assert.NoError(t, err)
-			assert.Equal(t, rs.Revision, gotRevision)
-			// If not a try job, we expect a clean checkout,
-			// otherwise we expect a dirty checkout, from the
-			// applied patch.
-			_, err = c.Git(ctx, "diff", "--exit-code", "--no-patch", rs.Revision)
-			if rs.IsTryJob() {
-				assert.NotNil(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-		}
-	}
-}
-
-func TestTempGitRepo(t *testing.T) {
-	testutils.LargeTest(t)
-	_, gb, c1, c2 := tempGitRepoSetup(t)
-	defer gb.Cleanup()
-
-	cases := map[types.RepoState]error{
-		{
-			Repo:     gb.RepoUrl(),
-			Revision: c1,
-		}: nil,
-		{
-			Repo:     gb.RepoUrl(),
-			Revision: c2,
-		}: nil,
-		{
-			Repo:     gb.RepoUrl(),
-			Revision: "bogusRev",
-		}: ERR_DONT_CARE,
-	}
-	tempGitRepoBotUpdateTests(t, cases)
-}
-
-func TestTempGitRepoPatch(t *testing.T) {
-	testutils.LargeTest(t)
-
-	ctx, gb, _, c2 := tempGitRepoSetup(t)
-	defer gb.Cleanup()
-
-	issue := "12345"
-	patchset := "3"
-	gb.CreateFakeGerritCLGen(ctx, issue, patchset)
-
-	cases := map[types.RepoState]error{
-		{
-			Patch: types.Patch{
-				Server:   gb.RepoUrl(),
-				Issue:    issue,
-				Patchset: patchset,
-			},
-			Repo:     gb.RepoUrl(),
-			Revision: c2,
-		}: nil,
-	}
-	tempGitRepoBotUpdateTests(t, cases)
-}
-
-func TestTempGitRepoParallel(t *testing.T) {
-	testutils.LargeTest(t)
-
-	ctx, gb, c1, _ := specs_testutils.SetupTestRepo(t)
-	defer gb.Cleanup()
-
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
-	assert.NoError(t, err)
-
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
-	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
-	assert.NoError(t, err)
-
-	rs := types.RepoState{
-		Repo:     gb.RepoUrl(),
-		Revision: c1,
-	}
-
-	var wg sync.WaitGroup
-	for i := 0; i < 100; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			assert.NoError(t, cache.TempGitRepo(ctx, rs, true, func(g *git.TempCheckout) error {
-				return nil
-			}))
-		}()
-	}
-	wg.Wait()
-}
-
-func TestTempGitRepoErr(t *testing.T) {
-	// bot_update uses lots of retries with exponential backoff, which makes
-	// this really slow.
-	t.Skip("TestTempGitRepoErr is very slow.")
-	testutils.LargeTest(t)
-
-	ctx, gb, c1, _ := specs_testutils.SetupTestRepo(t)
-	defer gb.Cleanup()
-
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
-	assert.NoError(t, err)
-
-	project, instance, cleanup := specs_testutils.SetupBigTable(t)
-	defer cleanup()
-	cache, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
-	assert.NoError(t, err)
-
-	// bot_update will fail to apply the issue if we don't fake it in Git.
-	rs := types.RepoState{
-		Patch: types.Patch{
-			Issue:    "my-issue",
-			Patchset: "my-patchset",
-			Server:   "my-server",
-		},
-		Repo:     gb.RepoUrl(),
-		Revision: c1,
-	}
-	assert.Error(t, cache.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
-		// This may fail with a nil pointer dereference due to a nil
-		// git.TempCheckout.
-		assert.FailNow(t, "We should not have gotten here.")
-		return nil
-	}))
+	assert.EqualError(t, err, "Invalid TasksCfg: Job \"j\" has unknown task \"q\" as a dependency.")
 }
 
 func TestGetTaskSpecDAG(t *testing.T) {
@@ -738,16 +663,17 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 
 	project, instance, cleanup := specs_testutils.SetupBigTable(t)
 	defer cleanup()
-	c, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+	c, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 	assert.NoError(t, err)
 
 	check := func(rs ...types.RepoState) {
-		c2, err := NewTaskCfgCache(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS, project, instance, nil)
+		c2, err := NewTaskCfgCache(ctx, repos, project, instance, nil)
 		assert.NoError(t, err)
 		expectBotUpdateCount := botUpdateCount
 		for _, r := range rs {
-			_, err := c2.ReadTasksCfg(ctx, r)
+			cfg, err := c2.Get(ctx, r)
 			assert.NoError(t, err)
+			assert.NotNil(t, cfg)
 		}
 		// Assert that we obtained the TasksCfg from BigTable and not by
 		// running bot_update.
@@ -758,14 +684,16 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 		defer c.mtx.Unlock()
 		c2.mtx.Lock()
 		defer c2.mtx.Unlock()
-		assert.Equal(t, len(c.cache), len(c2.cache))
-		for k, v := range c.cache {
-			v2, ok := c2.cache[k]
-			assert.True(t, ok)
-			assert.Equal(t, v.err, v2.err)
-			deepequal.AssertDeepEqual(t, v.cfg, v2.cfg)
-			deepequal.AssertDeepEqual(t, v.rs, v2.rs)
-		}
+		assert.Equal(t, cacheLen(c.cache), cacheLen(c2.cache))
+		c.cache.ForEach(ctx, func(ctx context.Context, key string, value1 atomic_miss_cache.Value) {
+			value2, err := c2.cache.Get(ctx, key)
+			assert.NoError(t, err)
+			v1 := value1.(*CachedValue)
+			v2 := value2.(*CachedValue)
+			assert.Equal(t, v1.Err, v2.Err)
+			deepequal.AssertDeepEqual(t, v1.Cfg, v2.Cfg)
+			deepequal.AssertDeepEqual(t, v1.RepoState, v2.RepoState)
+		})
 		deepequal.AssertDeepEqual(t, c.addedTasksCache, c2.addedTasksCache)
 		deepequal.AssertDeepEqual(t, c.recentCommits, c2.recentCommits)
 		deepequal.AssertDeepEqual(t, c.recentJobSpecs, c2.recentJobSpecs)
@@ -775,19 +703,26 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 	// Empty cache.
 	check()
 
-	// Insert one commit's worth of specs into the cache.
+	// No entries.
 	rs1 := types.RepoState{
 		Repo:     gb.RepoUrl(),
 		Revision: r1,
 	}
-	_, err = c.ReadTasksCfg(ctx, rs1)
+	cfg, err := c.Get(ctx, rs1)
+	assert.Equal(t, atomic_miss_cache.ErrNoSuchEntry, err)
+	assert.Nil(t, cfg)
+	assertCacheLen(t, c.cache, 0)
+	taskSpecs, err := c.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c.cache))
+	assert.Equal(t, 0, len(taskSpecs))
+
+	// One entry.
+	assert.NoError(t, c.Set(ctx, rs1, baseTasksCfg, nil))
 	check(rs1)
 
 	// Cleanup() the cache to remove the entries.
-	assert.NoError(t, c.Cleanup(time.Duration(0)))
-	assert.Equal(t, 0, len(c.cache))
+	assert.NoError(t, c.Cleanup(ctx, time.Duration(0)))
+	assertCacheLen(t, c.cache, 0)
 	check()
 
 	// Add two commits with identical tasks.json hash and check serialization.
@@ -802,8 +737,10 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 		Revision: r4,
 	}
 	assert.NoError(t, repos.Update(ctx))
+	assert.NoError(t, c.Set(ctx, rs3, nextTasksCfg, nil))
+	assert.NoError(t, c.Set(ctx, rs4, nextTasksCfg, nil))
 	_, err = c.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs3, rs4})
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(c.cache))
+	assertCacheLen(t, c.cache, 2)
 	check(rs3, rs4)
 }
