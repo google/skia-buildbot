@@ -106,7 +106,7 @@ type GoldResults struct {
 	BuildBucketID int64  `json:"buildbucket_build_id,string"`
 	Patchset      int64  `json:"patchset,string"`
 	Builder       string `json:"builder"` // Builder is not strictly necessary but makes debugging easier.
-	TaskID        string `json:"taskID"`
+	TaskID        string `json:"task_id"`
 }
 
 type rawGoldResults struct {
