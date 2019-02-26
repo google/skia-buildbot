@@ -2,6 +2,253 @@
   "comments": [
     {
       "key": {
+        "uuid": "99b569f9_e6df3d97",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: LazyTempGitRepo docs should probably state that it\u0027s OK to write to the parent dir of the TempCheckout.",
+      "range": {
+        "startLine": 75,
+        "startChar": 50,
+        "endLine": 75,
+        "endChar": 54
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5c23120_8ccf8a5b",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "I don\u0027t understand what this means.",
+      "range": {
+        "startLine": 80,
+        "startChar": 5,
+        "endLine": 82,
+        "endChar": 11
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59560b41_fd088891",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "Should this be a TODO? I can imagine someone adding os criteria to the isolate and expecting it to work.",
+      "range": {
+        "startLine": 94,
+        "startChar": 30,
+        "endLine": 94,
+        "endChar": 53
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f66b2d9f_4795568f",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: maybe \"isolatedFiles \u003d nil\" here to ensure Isolated is mutually-exclusive with Error.",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fcf1a35_844b4466",
+        "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "typo permanent",
+      "range": {
+        "startLine": 35,
+        "startChar": 19,
+        "endLine": 35,
+        "endChar": 28
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cee698c6_2e94910f",
+        "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: FWIW, json.Unmarshal(ri.Value, \u0026cv) avoids copying the bytes",
+      "range": {
+        "startLine": 54,
+        "startChar": 12,
+        "endLine": 54,
+        "endChar": 66
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ac54e51_19c42c97",
+        "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: unlikely to matter, but in tests we should probably call client.Close() to clean up",
+      "range": {
+        "startLine": 99,
+        "startChar": 1,
+        "endLine": 99,
+        "endChar": 7
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b338f96_79bbd476",
+        "filename": "task_scheduler/go/isolate_cache/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: maybe mention first RV, otherwise it\u0027s a little confusing.\n\nnit: maybe add doc to bt_testutil.SetupBigTable.",
+      "range": {
+        "startLine": 16,
+        "startChar": 45,
+        "endLine": 16,
+        "endChar": 52
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0560e32e_e73cfd79",
+        "filename": "task_scheduler/go/isolate_cache/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: wrong name",
+      "range": {
+        "startLine": 23,
+        "startChar": 3,
+        "endLine": 23,
+        "endChar": 16
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17162899_872a9bd3",
+        "filename": "task_scheduler/go/isolate_cache/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: maybe \"Shared\" (I initially thought this was about using multiple isolate caches pointing to the same BT instance.)",
+      "range": {
+        "startLine": 26,
+        "startChar": 10,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b5e3dce_7acadab5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: probably doesn\u0027t matter, but for tests it would be good to call Close",
+      "range": {
+        "startLine": 154,
+        "startChar": 1,
+        "endLine": 154,
+        "endChar": 3
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f5607748_78cfdb1f",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 23
@@ -185,6 +432,30 @@
     },
     {
       "key": {
+        "uuid": "8ac6ec8f_f70afcdc",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "Hmm, it doesn\u0027t really fit into Cacher either. I would suggest making a new package blamer for TaskCfgCache.GetAddedTaskSpecsForRepoStates, TaskScheduler.updateAddedTaskSpecs, and scheduling.ComputeBlamelist, but that\u0027s maybe more than you want to do in this CL.",
+      "parentUuid": "4ac9e41d_9fcb676d",
+      "range": {
+        "startLine": 770,
+        "startChar": 23,
+        "endLine": 770,
+        "endChar": 53
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b1d7ce59_338af886",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -224,6 +495,98 @@
         "startChar": 2,
         "endLine": 680,
         "endChar": 55
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f5314f9_77a92586",
+        "filename": "task_scheduler/go/syncer/syncer_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: missing Close",
+      "range": {
+        "startLine": 143,
+        "startChar": 1,
+        "endLine": 143,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "234bf4e4_05219b22",
+        "filename": "task_scheduler/go/syncer/syncer_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: missing Close",
+      "range": {
+        "startLine": 178,
+        "startChar": 1,
+        "endLine": 178,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6834858_7adbc28a",
+        "filename": "task_scheduler/go/syncer/syncer_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: missing Close",
+      "range": {
+        "startLine": 225,
+        "startChar": 1,
+        "endLine": 225,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea29512c_c6da22d3",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T22:46:21Z",
+      "side": 1,
+      "message": "nit: missing Close",
+      "range": {
+        "startLine": 135,
+        "startChar": 1,
+        "endLine": 135,
+        "endChar": 2
       },
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
