@@ -22,6 +22,30 @@
       "revId": "8bba371a86b9729a9d92a31161d677592e157920",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef8cba06_91eed531",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T14:16:12Z",
+      "side": 0,
+      "message": "Status uses it.  It could easily be changed to use db.DB, although I think I do like the fact that RemoteDB prevents us from accidentally modifying tasks and jobs.",
+      "parentUuid": "6b73d3d6_83206f78",
+      "range": {
+        "startLine": 1,
+        "startChar": 59,
+        "endLine": 1,
+        "endChar": 70
+      },
+      "revId": "8bba371a86b9729a9d92a31161d677592e157920",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
