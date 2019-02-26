@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -370,6 +371,34 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 	})
 }
 
+// getMostRecentCachedRev returns the Commit and TasksCfg for the most recent
+// commit which has an entry in the TaskCfgCache.
+func getMostRecentCachedRev(ctx context.Context, tcc *specs.TaskCfgCache, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
+	head := repo.Get("master")
+	if head == nil {
+		return nil, nil, sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
+	}
+	var commit *repograph.Commit
+	var cfg *specs.TasksCfg
+	if err := head.Recurse(func(c *repograph.Commit) (bool, error) {
+		tasksCfg, err := tcc.Get(ctx, types.RepoState{
+			Repo:     repoUrl,
+			Revision: c.Hash,
+		})
+		if err == atomic_miss_cache.ErrNoSuchEntry {
+			return true, nil
+		} else if err != nil {
+			return false, err
+		}
+		cfg = tasksCfg
+		commit = c
+		return false, nil
+	}); err != nil {
+		return nil, nil, err
+	}
+	return commit, cfg, nil
+}
+
 // updateOverdueJobSpecMetrics updates metrics for MEASUREMENT_OVERDUE_JOB_SPECS.
 func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now time.Time) error {
 	defer metrics2.FuncTimer().Stop()
@@ -384,17 +413,12 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 
 	// Process each repo individually.
 	for repoUrl, repo := range m.repos {
-		// Include only the jobs at current master. We don't report on JobSpecs that have been removed.
-		head := repo.Get("master")
-		if head == nil {
-			return sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
-		}
-		headTaskCfg, err := m.taskCfgCache.ReadTasksCfg(ctx, types.RepoState{
-			Repo:     repoUrl,
-			Revision: head.Hash,
-		})
+		// Include only the jobs at current master (or most recently
+		// cached commit). We don't report on JobSpecs that have been
+		// removed.
+		head, headTaskCfg, err := getMostRecentCachedRev(ctx, m.taskCfgCache, repoUrl, repo)
 		if err != nil {
-			return sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, head.Hash, err)
+			return err
 		}
 		// Set of JobSpec names left to process.
 		todo := util.StringSet{}
@@ -436,7 +460,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 				return false, nil
 			}
 			// Check that the remaining JobSpecs are still valid at this commit.
-			taskCfg, err := m.taskCfgCache.ReadTasksCfg(ctx, rs)
+			taskCfg, err := m.taskCfgCache.Get(ctx, rs)
 			if err != nil {
 				return false, sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
 			}
