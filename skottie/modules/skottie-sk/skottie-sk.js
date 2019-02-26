@@ -9,6 +9,7 @@
  */
 import '../skottie-config-sk'
 import '../skottie-player-sk'
+import 'elements-sk/checkbox-sk'
 import 'elements-sk/collapse-sk'
 import 'elements-sk/error-toast-sk'
 import { $$ } from 'common-sk/modules/dom'
@@ -17,6 +18,7 @@ import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { setupListeners, onUserEdit, reannotate} from '../lottie-annotations'
+import { stateReflector } from 'common-sk/modules/stateReflector'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 const bodymovin = require('lottie-web/build/player/lottie.min.js');
@@ -26,7 +28,7 @@ const LOADING_MODE = 2;
 const LOADED_MODE = 3;
 
 const displayDialog = (ele) => html`
-<skottie-config-sk state=${ele._state}></skottie-config-sk>
+<skottie-config-sk .state=${ele._state}></skottie-config-sk>
 `;
 
 const skottiePlayer = (ele) => html`
@@ -37,7 +39,23 @@ const skottiePlayer = (ele) => html`
   skottie-wasm
 </figcaption>`;
 
+const lottiePlayer = (ele) => {
+  if (!ele._showLottie) {
+    return '';
+  }
+  return html`
+<figure>
+  <div id=container title=lottie-web
+       style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
+  <figcaption>lottie-web (${bodymovin.version})</figcaption>
+</figure>`;
+}
+
+// TODO(kjlubick): Make the live preview use skottie
 const livePreview = (ele) => {
+  if (!ele._hasEdits || !ele._showLottie) {
+    return '';
+  }
   if (ele._hasEdits) {
     return html`
 <figure>
@@ -45,8 +63,6 @@ const livePreview = (ele) => {
        style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
   <figcaption>Preview [lottie-web]</figcaption>
 </figure>`;
-  } else {
-    return '';
   }
 }
 
@@ -58,41 +74,61 @@ const inlineDirections = (ele) => {
   return `<skottie-inline-sk width="${ele._state.width}" height="${ele._state.height}" src="${window.location.origin}/_/j/${ele._hash}"></skottie-inline-sk>`;
 }
 
+const jsonEditor = (ele) => {
+  if (!ele._showEditor) {
+    return '';
+  }
+  return html`
+<section class=editor>
+  <div id=json_editor></div>
+</section>`;
+}
+
 const displayLoaded = (ele) => html`
-<button class=edit-config @click=${ ele._startEdit}>${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...</button>
-<button @click=${ele._rewind}>Rewind</button>
-<button id=playpause @click=${ele._playpause}>Pause</button>
-<button ?hidden=${!ele._hasEdits} @click=${ele._applyEdits}>Apply Edits</button>
-<div class=download>
-  <a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>
-    JSON
-  </a>
-  ${ele._hasEdits? '(without edits)': ''}
+<button class=edit-config @click=${ ele._startEdit}>
+  ${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...
+</button>
+<div class=controls>
+  <button @click=${ele._rewind}>Rewind</button>
+  <button id=playpause @click=${ele._playpause}>Pause</button>
+  <button ?hidden=${!ele._hasEdits} @click=${ele._applyEdits}>Apply Edits</button>
+  <div class=download>
+    <a target=_blank download=${ele._state.filename} href=${ele._downloadUrl}>
+      JSON
+    </a>
+    ${ele._hasEdits? '(without edits)': ''}
+  </div>
+  <checkbox-sk label="Show lottie-web"
+               ?checked=${ele._showLottie}
+               @click=${ele._toggleLottie}>
+  </checkbox-sk>
+  <checkbox-sk label="Show editor"
+               ?checked=${ele._showEditor}
+               @click=${ele._toggleEditor}>
+  </checkbox-sk>
+  <button @click=${ele._toggleEmbed}>Embed</button>
+  <collapse-sk id=embed closed>
+    <p>
+      <label>
+        Embed using an iframe: <input size=120 value=${iframeDirections(ele)} scrolling=no>
+      </label>
+    </p>
+    <p>
+      <label>
+        Embed on skia.org: <input size=140 value=${inlineDirections(ele)} scrolling=no>
+      </label>
+    </p>
+  </collapse-sk>
 </div>
-<button @click=${ele._toggleEmbed}>Embed</button>
-<collapse-sk id=embed closed>
-  <p>
-    <label>Embed using an iframe: <input size=120 value="${iframeDirections(ele)}" scrolling=no></label>
-  </p>
-  <p>
-    <label>Embed on skia.org: <input size=140 value="${inlineDirections(ele)}" scrolling=no></label>
-  </p>
-</collapse-sk>
 <section class=figures>
   <figure>
     ${skottiePlayer(ele)}
   </figure>
-  <figure>
-    <div id=container title=lottie-web
-         style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
-    <figcaption>lottie-web (${bodymovin.version})</figcaption>
-  </figure>
+  ${lottiePlayer(ele)}
   ${livePreview(ele)}
 </section>
 
-<section class=editor>
-  <div id=json_editor></div>
-</section>
+${jsonEditor(ele)}
 `;
 
 const displayLoading = (ele) => html`
@@ -114,7 +150,7 @@ const pick = (ele) => {
 };
 
 const redir = (ele) => {
-  if (window.location.hostname != 'skottie-internal.skia.org') {
+  if (window.location.hostname !== 'skottie-internal.skia.org') {
     return html`<div>Googlers should use <a href="https://skottie-internal.skia.org">skottie-internal.skia.org</a>.</div>`;
   } else {
     return html``;
@@ -147,6 +183,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     // One of 'dialog', 'loading', or 'loaded'
     this._ui = DIALOG_MODE;
     this._hash = '';
+    this._skottiePlayer = null;
     this._lottie = null;
     this._live = null;
     this._playing = true;
@@ -154,6 +191,21 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._editor = null;
     this._editorLoaded = false;
     this._hasEdits = false;
+    this._showLottie = false;
+    this._showEditor = false;
+
+    this._stateChanged = stateReflector(
+      /*getState*/() => {
+        return {
+          // provide empty values
+          'l' : this._showLottie,
+          'e' : this._showEditor,
+        }
+    }, /*setState*/(newState) => {
+      this._showLottie = newState.l;
+      this._showEditor = newState.e;
+      this.render();
+    });
 
     this._duration = 0; // _duration = 0 is a sentinel value for "player not loaded yet"
 
@@ -169,7 +221,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this.addEventListener('skottie-selected', this)
     this.addEventListener('cancelled', this)
     window.addEventListener('popstate', this)
-    this._render();
+    this.render();
 
     // Start a continous animation loop.
     const drawFrame = () => {
@@ -189,10 +241,9 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         // If we want to have synchronized playing, it's best to force
         // all players to draw the same frame rather than letting them play
         // on their own timeline.
-        let player = this.querySelector('skottie-player-sk');
-        player && player.seek(progress / this._duration);
+        this._skottiePlayer && this._skottiePlayer.seek(progress / this._duration);
 
-        this._lottie.goToAndStop(progress);
+        this._lottie && this._lottie.goToAndStop(progress);
         this._live && this._live.goToAndStop(progress);
       }
     }
@@ -206,18 +257,53 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    this._render();
+    this.render();
+  }
+
+  _applyEdits() {
+    if (!this._editor || !this._editorLoaded || !this._hasEdits) {
+      return;
+    }
+    this._state.lottie = this._editor.get();
+    this._upload();
+  }
+
+  handleEvent(e) {
+    if (e.type === 'skottie-selected') {
+      this._state = e.detail;
+      this._upload();
+    } else if (e.type === 'cancelled') {
+      this._ui = LOADED_MODE;
+      this.render();
+      this._initializePlayer();
+    } else if (e.type === 'popstate') {
+      this._reflectFromURL();
+    }
   }
 
   _initializePlayer() {
-    let player = this.querySelector('skottie-player-sk');
-    player.initialize({
-                        width:  this._state.width,
-                        height: this._state.height,
-                        lottie: this._state.lottie,
-                      }).then(() => {
-                        this._duration = player.duration();
-                      });
+    this._skottiePlayer.initialize({
+      width:  this._state.width,
+      height: this._state.height,
+      lottie: this._state.lottie,
+    }).then(() => {
+      this._duration = this._skottiePlayer.duration();
+    });
+  }
+
+  _playpause() {
+    if (this._playing) {
+      this._wasmTimePassed = Date.now() - this._firstFrameTime;
+      this._lottie && this._lottie.pause();
+      this._live && this._live.pause();
+      $$('#playpause').textContent = 'Play';
+    } else {
+      this._lottie && this._lottie.play();
+      this._live && this._live.play();
+      this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
+      $$('#playpause').textContent = 'Pause';
+    }
+    this._playing = !this._playing;
   }
 
   _reflectFromURL() {
@@ -230,7 +316,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._hash = match[1];
     }
     this._ui = LOADING_MODE;
-    this._render();
+    this.render();
     // Run this on the next micro-task to allow mocks to be set up if needed.
     setTimeout(() => {
       fetch(`/_/j/${this._hash}`, {
@@ -238,29 +324,151 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       }).then(jsonOrThrow).then(json => {
         this._state = json;
         this._ui = LOADED_MODE;
-        this._render();
+        this.render();
         this._initializePlayer();
       }).catch((msg) => {
         errorMessage(msg);
         window.history.pushState(null, '', '/');
         this._ui = DIALOG_MODE;
-        this._render();
+        this.render();
       });
     });
-
   }
 
-  _applyEdits() {
-    if (!this._editor || !this._editorLoaded || !this._hasEdits) {
+  render() {
+    if (this._downloadUrl)  {
+      URL.revokeObjectURL(this._downloadUrl);
+    }
+    this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
+    render(template(this), this, {eventContext: this});
+
+    if (this._ui === LOADED_MODE) {
+      this._renderLottieWeb();
+      this._renderJSONEditor();
+    }
+    this._skottiePlayer = $$('skottie-player-sk', this);
+  }
+
+  _renderJSONEditor() {
+    if (!this._showEditor) {
+      this._editorLoaded = false;
+      this._editor = null;
       return;
     }
-    this._state.lottie = this._editor.get();
-    this._upload();
+    let editorContainer = $$('#json_editor');
+    // See https://github.com/josdejong/jsoneditor/blob/master/docs/api.md
+    // for documentation on this editor.
+    let editorOptions = {
+      sortObjectKeys: true,
+      // There are sometimes a few onChange events that happen
+      // during the initial .set(), so we have a safety variable
+      // _editorLoaded to prevent a bunch of recursion
+      onChange: () => {
+        if (!this._editorLoaded) {
+          return;
+        }
+        this._hasEdits = true;
+        onUserEdit(editorContainer, this._editor.get());
+        this.render();
+      }
+    };
+
+    if (!this._editor) {
+      this._editorLoaded = false;
+      editorContainer.innerHTML = '';
+      this._editor = new JSONEditor(editorContainer, editorOptions);
+      setupListeners(editorContainer);
+    }
+    if (!this._hasEdits) {
+      this._editorLoaded = false;
+      // Only set the JSON when it is loaded, either because it's
+      // the first time we got it from the server or because the user
+      // hit applyEdits.
+      this._editor.set(this._state.lottie);
+    }
+    reannotate(editorContainer, this._state.lottie);
+    // We are now pretty confident that the onChange events will only be
+    // when the user modifies the JSON.
+    this._editorLoaded = true;
+  }
+
+  _renderLottieWeb() {
+    if (!this._showLottie) {
+      return;
+    }
+    // Don't re-start the animation while the user edits.
+    if (!this._hasEdits) {
+      $$('#container').innerHTML = '';
+      this._lottie = bodymovin.loadAnimation({
+        container: $$('#container'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: this._playing,
+        // Apparently the lottie player modifies the data as it runs?
+        animationData: JSON.parse(JSON.stringify(this._state.lottie)),
+        rendererSettings: {
+          preserveAspectRatio:'xMidYMid meet'
+        },
+      });
+      this._live = null;
+    } else {
+      // we have edits, update the live preview version.
+      // It will re-start from the very beginning, but the user can
+      // hit "rewind" to re-sync them.
+      $$('#live').innerHTML = '';
+      this._live = bodymovin.loadAnimation({
+        container: $$('#live'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: this._playing,
+        // Apparently the lottie player modifies the data as it runs?
+        animationData: JSON.parse(JSON.stringify(this._editor.get())),
+        rendererSettings: {
+          preserveAspectRatio:'xMidYMid meet'
+        },
+      });
+    }
+  }
+
+  _rewind(e) {
+    // Handle rewinding when paused.
+    this._wasmTimePassed = 0;
+    if (!this._playing) {
+      this._live && this._live.goToAndStop(0);
+      this._lottie && this._lottie.goToAndStop(0);
+      this._firstFrameTime = null;
+      this._skottiePlayer.seek(0);
+    } else {
+      this._live && this._live.goToAndPlay(0);
+      this._lottie && this._lottie.goToAndPlay(0);
+      this._firstFrameTime = null;
+    }
   }
 
   _startEdit() {
     this._ui = DIALOG_MODE;
-    this._render();
+    this.render();
+  }
+
+  _toggleEditor(e) {
+    // avoid double toggles
+    e.preventDefault();
+    this._showEditor = !this._showEditor;
+    this._stateChanged();
+    this.render();
+  }
+
+  _toggleEmbed() {
+    let collapse = $$('#embed', this);
+    collapse.closed = !collapse.closed;
+  }
+
+  _toggleLottie(e) {
+    // avoid double toggles
+    e.preventDefault();
+    this._showLottie = !this._showLottie;
+    this._stateChanged();
+    this.render();
   }
 
   _upload() {
@@ -270,7 +478,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._editorLoaded = false;
     this._editor = null;
     // Clean up the old animation and other wasm objects
-    this._render();
+    this.render();
     fetch('/_/upload', {
       credentials: 'include',
       body: JSON.stringify(this._state),
@@ -283,145 +491,21 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._ui = LOADED_MODE;
       this._hash = json.hash;
       window.history.pushState(null, '', '/' + this._hash);
-      this._render();
-      this._initializePlayer();
-
-      // Re-sync all players
-      this._rewind();
+      this.render();
     }).catch(msg => {
       errorMessage(msg);
       window.history.pushState(null, '', '/');
       this._ui = DIALOG_MODE;
-      this._render();
+      this.render();
     });
     this._ui = LOADED_MODE;
-    this._render();
-  }
+    // Start drawing right away, no need to wait for
+    // the JSON to make a round-trip to the server.
+    this.render();
+    this._initializePlayer();
 
-  _playpause() {
-    if (this._playing) {
-      this._wasmTimePassed = Date.now() - this._firstFrameTime;
-      this._lottie.pause();
-      this._live && this._live.pause();
-      $$("#playpause").textContent = 'Play';
-    } else {
-      this._lottie.play();
-      this._live && this._live.play();
-      this._firstFrameTime = Date.now() - (this._wasmTimePassed || 0);
-      $$("#playpause").textContent = 'Pause';
-    }
-    this._playing = !this._playing;
-  }
-
-  _rewind(e) {
-    // Handle rewinding when paused.
-    this._wasmTimePassed = 0;
-    if (!this._playing) {
-      this._live && this._live.goToAndStop(0);
-      this._lottie.goToAndStop(0);
-      this._firstFrameTime = null;
-      this.querySelector('skottie-player-sk').seek(0);
-    } else {
-      this._live && this._live.goToAndPlay(0);
-      this._lottie.goToAndPlay(0);
-      this._firstFrameTime = null;
-    }
-  }
-
-  _render() {
-    if (this._downloadUrl)  {
-      URL.revokeObjectURL(this._downloadUrl);
-    }
-    this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
-    render(template(this), this, {eventContext: this});
-    if (this._ui == LOADED_MODE) {
-      // Don't re-start the animation while the user edits.
-      if (!this._hasEdits) {
-        $$('#container').innerHTML = '';
-        this._lottie = bodymovin.loadAnimation({
-          container: $$('#container'),
-          renderer: 'svg',
-          loop: true,
-          autoplay: this._playing,
-          // Apparently the lottie player modifies the data as it runs?
-          animationData: JSON.parse(JSON.stringify(this._state.lottie)),
-          rendererSettings: {
-            preserveAspectRatio:'xMidYMid meet'
-          },
-        });
-        this._live = null;
-      } else {
-        // we have edits, update the live preview version.
-        // It will re-start from the very beginning, but the user can
-        // hit "rewind" to re-sync them.
-        $$('#live').innerHTML = '';
-        this._live = bodymovin.loadAnimation({
-          container: $$('#live'),
-          renderer: 'svg',
-          loop: true,
-          autoplay: this._playing,
-          // Apparently the lottie player modifies the data as it runs?
-          animationData: JSON.parse(JSON.stringify(this._editor.get())),
-          rendererSettings: {
-            preserveAspectRatio:'xMidYMid meet'
-          },
-        });
-      }
-
-      let editorContainer = $$('#json_editor');
-      // See https://github.com/josdejong/jsoneditor/blob/master/docs/api.md
-      // for documentation on this editor.
-      let editorOptions = {
-        sortObjectKeys: true,
-        // There are sometimes a few onChange events that happen
-        // during the initial .set(), so we have a safety variable
-        // _editorLoaded to prevent a bunch of recursion
-        onChange: () => {
-          if (!this._editorLoaded) {
-            return;
-          }
-          this._hasEdits = true;
-          onUserEdit(editorContainer, this._editor.get());
-          this._render();
-        }
-      };
-
-      if (!this._editor) {
-        this._editorLoaded = false;
-        editorContainer.innerHTML = '';
-        this._editor = new JSONEditor(editorContainer, editorOptions);
-        setupListeners(editorContainer);
-      }
-      if (!this._hasEdits) {
-        this._editorLoaded = false;
-        // Only set the JSON when it is loaded, either because it's
-        // the first time we got it from the server or because the user
-        // hit applyEdits.
-        this._editor.set(this._state.lottie);
-      }
-      reannotate(editorContainer, this._state.lottie);
-      // We are now pretty confident that the onChange events will only be
-      // when the user modifies the JSON.
-      this._editorLoaded = true;
-    }
-  }
-
-  _toggleEmbed() {
-    let collapse = $$('#embed', this);
-    collapse.closed = !collapse.closed;
-  }
-
-  handleEvent(e) {
-    if (e.type == 'skottie-selected') {
-      this._state = e.detail;
-      this._upload();
-    } else if (e.type == 'cancelled') {
-      this._ui = LOADED_MODE;
-      this._editor = null;
-      this._render();
-    } else if (e.type == 'popstate') {
-      this._reflectFromURL();
-    }
+    // Re-sync all players
+    this._rewind();
   }
 
 });
