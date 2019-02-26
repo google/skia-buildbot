@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -x -e
+
+# Create and upload a container image for gitsync
+APPNAME=gitsync
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+
+# Add the dockerfile and binary.
+${INSTALL} --mode=644 -T ./dockerfiles/Dockerfile_gitsync  ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ./build/gitsync_k8s               ${ROOT}/usr/local/bin/${APPNAME}
+}
+
+source ../bash/docker_build.sh

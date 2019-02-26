@@ -6,7 +6,8 @@ import (
 )
 
 // IndexCommit is information about a commit that includes the offset from
-// the first commit.
+// the first commit in the repository. The first commit in the branch has Index 0.
+// Usually the indexing makes most sense the commits on a branch in first-parent order.
 type IndexCommit struct {
 	Hash      string
 	Index     int
@@ -27,6 +28,10 @@ type LongCommit struct {
 	Body      string          `json:"body"`
 	Timestamp time.Time       `json:"timestamp"`
 	Branches  map[string]bool `json:"-"`
+}
+
+func NewLongCommit() *LongCommit {
+	return &LongCommit{ShortCommit: &ShortCommit{}}
 }
 
 // LongCommitSlice represents a slice of LongCommit objects used for sorting
@@ -50,6 +55,8 @@ type VCS interface {
 	// If includeBranchInfo is true the Branches field of the returned
 	// result will contain all branches that contain the given commit,
 	// otherwise Branches will be empty.
+	// Note: Retrieving the branch information can be expensive and should
+	// only be used if the membership in branches is really needed.
 	Details(ctx context.Context, hash string, includeBranchInfo bool) (*LongCommit, error)
 
 	// LastNIndex returns the last N commits.
