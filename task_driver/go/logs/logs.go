@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/td"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -63,7 +62,7 @@ func rowKey(taskId, stepId, logId string, ts time.Time, insertId string) string 
 
 	// Timestamp.
 	if !util.TimeIsZero(ts) {
-		rv += "#" + ts.UTC().Format(local_db.TIMESTAMP_FORMAT)
+		rv += "#" + ts.UTC().Format(util.SAFE_TIMESTAMP_FORMAT)
 	} else {
 		return rv
 	}

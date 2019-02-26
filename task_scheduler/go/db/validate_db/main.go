@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -23,7 +22,6 @@ const (
 
 var (
 	local      = flag.Bool("local", false, "True if running locally.")
-	boltDB     = flag.String("bolt_db", "", "Bolt DB to validate.")
 	fsInstance = flag.String("firestore_instance", "", "Firestore instance to validate.")
 
 	BEGINNING_OF_TIME = time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC)
@@ -141,24 +139,16 @@ func validate(d db.DB) error {
 func main() {
 	common.Init()
 
-	if *boltDB != "" && *fsInstance != "" {
-		sklog.Fatal("Only one of --bolt_db or --firestore_instance may be specified.")
+	if *fsInstance == "" {
+		sklog.Fatal("--firestore_instance is required.")
 	}
 
 	ctx := context.Background()
-	var d db.DBCloser
-	var err error
-	if *boltDB != "" {
-		d, err = local_db.NewDB(local_db.DB_NAME, *boltDB, nil)
-	} else if *fsInstance != "" {
-		ts, err := auth.NewDefaultTokenSource(*local)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		d, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
-	} else {
-		sklog.Fatal("--bolt_db or --firestore_instance is required.")
+	ts, err := auth.NewDefaultTokenSource(*local)
+	if err != nil {
+		sklog.Fatal(err)
 	}
+	d, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
 	if err != nil {
 		sklog.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,12 +12,13 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -42,10 +44,11 @@ const (
 )
 
 var (
-	from    = flag.String("from", "", "Root dir of source repo.")
-	to      = flag.String("to", "", "Root dir of destination repo.")
-	botsCfg = flag.String("bots_cfg", "", "Name of file to write partial bot config data.")
-	now     = flag.Int("now", int(time.Now().Unix()), "Current timestamp; use to make this script reproducible.")
+	from       = flag.String("from", "", "Root dir of source repo.")
+	to         = flag.String("to", "", "Root dir of destination repo.")
+	botsCfg    = flag.String("bots_cfg", "", "Name of file to write partial bot config data.")
+	fsInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	now        = flag.Int("now", int(time.Now().Unix()), "Current timestamp; use to make this script reproducible.")
 
 	dimensions = []string{
 		"pool:Skia",
@@ -58,6 +61,13 @@ func main() {
 	nowTs := time.Unix(int64(*now), 0)
 
 	dimWhitelist := map[string]bool{}
+
+	ctx := context.Background()
+	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore, swarming.AUTH_SCOPE)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	var cfgB *specs.TasksCfg
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -65,7 +75,7 @@ func main() {
 		defer wg.Done()
 
 		// Obtain average task durations for the last 5 days.
-		db, err := local_db.NewDB(local_db.DB_NAME, "/tmp/task-scheduler.bdb", nil)
+		db, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -146,10 +156,6 @@ func main() {
 	}()
 
 	// Set up Swarming client.
-	ts, err := auth.NewDefaultTokenSource(true, swarming.AUTH_SCOPE)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 	swarmClient := httputils.DefaultClientConfig().WithTokenSource(ts).WithDialTimeout(3 * time.Minute).With2xxOnly().Client()
 	swarm, err := swarming.NewApiClient(swarmClient, "chromium-swarm.appspot.com")
 	if err != nil {
