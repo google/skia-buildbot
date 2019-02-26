@@ -119,6 +119,15 @@ skottie-sk {
   footer div {
     padding: 1em;
   }
+
+  .controls > * {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
 }
 
 #json_editor button {
