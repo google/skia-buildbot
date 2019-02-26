@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a6599cce_f0caa4aa",
+        "filename": "gitsync/cmd/gitsync/watcher.go",
+        "patchSetId": 56
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-26T17:37:31Z",
+      "side": 1,
+      "message": "This name needs to somehow be adjusted to include the repo we are referring to.\nTo be fixed separately.",
+      "range": {
+        "startLine": 55,
+        "startChar": 37,
+        "endLine": 55,
+        "endChar": 62
+      },
+      "revId": "cd1e6e47b6b5446d251508f9f635b68dbaf026fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
