@@ -47,6 +47,7 @@ var (
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	workdir           = flag.String("workdir", ".", "Working directory used by data processors.")
 
 	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
@@ -114,12 +115,14 @@ func main() {
 	tnp := taskname.DefaultTaskNameParser()
 
 	// Shared repo objects.
+	if *repoUrls == nil {
+		sklog.Fatal("At least one --repo is required.")
+	}
 	reposDir := path.Join(w, "repos")
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	// TODO(borenet): We should include all (public and private) repos.
-	repos, err := repograph.NewMap(ctx, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA, common.REPO_LOTTIE_CI}, reposDir)
+	repos, err := repograph.NewMap(ctx, *repoUrls, reposDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}
