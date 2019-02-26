@@ -319,6 +319,30 @@
     },
     {
       "key": {
+        "uuid": "380e7d7d_7822bcb1",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 617,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T13:17:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3dea1384_3f75cf57",
+      "range": {
+        "startLine": 617,
+        "startChar": 1,
+        "endLine": 617,
+        "endChar": 135
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16d9652c_0636def2",
         "filename": "go/gitstore/gitstore.go",
         "patchSetId": 52
@@ -363,6 +387,30 @@
       "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f36d8f9a_c58c69e3",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T13:17:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "b5c14eed_3fbc9a2b",
+      "range": {
+        "startLine": 194,
+        "startChar": 3,
+        "endLine": 194,
+        "endChar": 11
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -448,6 +496,30 @@
       "side": 1,
       "message": "Ack\nI added a TODO for now, since I would like to the keep the tests in vcsinfo/testutils unchanged and they rely on the structure of test repo.",
       "parentUuid": "e73cf1b7_2f0e2005",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 90
+      },
+      "revId": "cbc5f4a089ccc410dad8be6400c0204ac7d5ea2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4c17d77e_6b84c6dc",
+        "filename": "go/util/repo.go",
+        "patchSetId": 52
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T13:17:02Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3ee7c134_3abb6ae2",
       "range": {
         "startLine": 37,
         "startChar": 1,
