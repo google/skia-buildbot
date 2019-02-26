@@ -53,7 +53,7 @@ const template = (ele) => html`
   </label>
   <div class=warning ?hidden=${ele._warningHidden()}>
     <p>
-    The width or height of your file exceeds 1024, which will be very slow to render.
+    The width or height of your file exceeds 1024, which may not fit on the screen.
     Press a 'Rescale' button to fix the dimensions while preserving the aspect ratio.
     </p>
     <div>
