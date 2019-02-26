@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6b73d3d6_83206f78",
+        "filename": "task_scheduler/go/db/remote_db/remote_db.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T01:42:16Z",
+      "side": 0,
+      "message": "Is db.RemoteDB still used?",
+      "range": {
+        "startLine": 1,
+        "startChar": 59,
+        "endLine": 1,
+        "endChar": 70
+      },
+      "revId": "8bba371a86b9729a9d92a31161d677592e157920",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

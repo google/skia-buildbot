@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "79d569a6_2c07c596",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T01:42:16Z",
+      "side": 1,
+      "message": "nit: Maybe \"test\" instead?",
+      "range": {
+        "startLine": 48,
+        "startChar": 86,
+        "endLine": 48,
+        "endChar": 96
+      },
+      "revId": "3fa6ffb41430e82874565aec14531c627423827e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
