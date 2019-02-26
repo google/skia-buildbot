@@ -31,7 +31,7 @@ var (
 		"builder" : "Test-Android-Clang-iPhone7-GPU-PowerVRGT7600-arm64-Debug-All-Metal",
 		"swarming_bot_id" : "skia-rpi-102",
 		"swarming_task_id" : "3fcd8d4a539ba311",
-		"taskID" : "Xb0VhENPSRFGnf2elVQd",
+		"task_id" : "Xb0VhENPSRFGnf2elVQd",
 		"results" : [
 			 {
 					"key" : {
