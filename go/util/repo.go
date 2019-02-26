@@ -15,6 +15,10 @@ type TempRepo struct {
 	Dir string
 }
 
+// TODO(stephana): Use GitBuilder instead of checking in a Git repo.
+// See https://skia.googlesource.com/buildbot/+/master/go/git/testutils/git_builder.go#233
+// Note: This will require to refactor the tests in infra/go/vcsinfo/testutils.
+
 // NewTempRepoFrom returns a TempRepo instance based on the contents of the
 // given zip file path. Unzips to a temporary directory which is stored in
 // TempRepo.Dir.
@@ -29,13 +33,14 @@ func NewTempRepoFrom(zipfile string) *TempRepo {
 	return &TempRepo{Dir: tmpdir}
 }
 
-// NewTempRepo assumes the repo is called testrepo.zip and is in a directory
-// called testdata under the directory of the unit test that is calling it.
-//
-// The directory that was created is stored in TempRepo Path.
+// NewTempRepo assumes the repo is called testrepo.zip, is in a directory
+// called testdata under the directory of the unit test that is calling it
+// and contains a single directory 'testrepo'.
 func NewTempRepo() *TempRepo {
 	_, filename, _, _ := runtime.Caller(1)
-	return NewTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
+	ret := NewTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
+	ret.Dir = filepath.Join(ret.Dir, "testrepo")
+	return ret
 }
 
 // Cleanup cleans up the temporary repo.

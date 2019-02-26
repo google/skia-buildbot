@@ -426,7 +426,7 @@ func (g *GitInfo) GetFile(ctx context.Context, fileName, commit string) (string,
 	return output, nil
 }
 
-// InitalCommit returns the hash of the initial commit.
+// InitialCommit returns the hash of the initial commit.
 func (g *GitInfo) InitialCommit(ctx context.Context) (string, error) {
 	output, err := exec.RunCwd(ctx, g.dir, "git", "rev-list", "--max-parents=0", "HEAD")
 	if err != nil {
@@ -605,6 +605,36 @@ func readCommitsFromGit(ctx context.Context, dir, branch string) ([]string, map[
 	return hashes, timestamps, nil
 }
 
+// GetBranchCommits gets all the commits in the given branch and directory in topological order
+// and only with the first parent (omitting commits from branches that are merged in).
+// The earliest commits are returned first.
+// Note: Primarily used for testing and will probably be removed in the future.
+func GetBranchCommits(ctx context.Context, dir, branch string) ([]*vcsinfo.IndexCommit, error) {
+	output, err := exec.RunCwd(ctx, dir, "git", "log", "--format=format:%H%x20%ci", "--first-parent", "--topo-order", "--reverse", branch)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to execute git log: %s", err)
+	}
+	lines := strings.Split(output, "\n")
+	ret := make([]*vcsinfo.IndexCommit, 0, len(lines))
+	for _, line := range lines {
+		parts := strings.SplitN(line, " ", 2)
+		if len(parts) == 2 {
+			t, err := time.Parse("2006-01-02 15:04:05 -0700", parts[1])
+			if err != nil {
+				return nil, fmt.Errorf("Failed parsing Git log timestamp: %s", err)
+			}
+			t = t.UTC()
+			hash := parts[0]
+			ret = append(ret, &vcsinfo.IndexCommit{
+				Hash:      hash,
+				Timestamp: t,
+				Index:     len(ret),
+			})
+		}
+	}
+	return ret, nil
+}
+
 func readCommitsFromGitAllBranches(ctx context.Context, dir string) ([]string, map[string]time.Time, error) {
 	branches, err := GetBranches(ctx, dir)
 	if err != nil {
@@ -776,5 +806,5 @@ func (m *RepoMap) Repos() []string {
 	return rv
 }
 
-// Ensure that GitInfo implements vscinfo.VCS.
+// Ensure that GitInfo implements vcsinfo.VCS.
 var _ vcsinfo.VCS = &GitInfo{}
