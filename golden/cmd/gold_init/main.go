@@ -17,12 +17,13 @@ import (
 var (
 	btInstance = flag.String("bt_instance", "", "Bigtable instance to use in the project identified by 'project_id'")
 	projectID  = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
+	btTableID  = flag.String("bt_table_id", "production", "BigTable table ID.")
 )
 
 func main() {
 	common.Init()
 
-	if err := bt.InitBigtable(*projectID, *btInstance, ingestion.BigTableConfig); err != nil {
-		sklog.Fatalf("Error initializing bigtable")
+	if err := bt.InitBigtable(*projectID, *btInstance, *btTableID, ingestion.ColumnFamilies); err != nil {
+		sklog.Fatalf("Error initializing bigtable: %s", err)
 	}
 }
