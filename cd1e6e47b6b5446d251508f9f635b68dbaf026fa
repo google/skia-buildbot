@@ -22,6 +22,30 @@
       "revId": "cd1e6e47b6b5446d251508f9f635b68dbaf026fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6da5001_4a573ca4",
+        "filename": "gitsync/cmd/gitsync/watcher.go",
+        "patchSetId": 56
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T17:43:20Z",
+      "side": 1,
+      "message": "I\u0027d just add it as a label, ie.\nlvGitSync :\u003d metrics2.NewLiveness(\"last_successful_git_sync\", map[string]string{\"repo\": r.repoURL})",
+      "parentUuid": "a6599cce_f0caa4aa",
+      "range": {
+        "startLine": 55,
+        "startChar": 37,
+        "endLine": 55,
+        "endChar": 62
+      },
+      "revId": "cd1e6e47b6b5446d251508f9f635b68dbaf026fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

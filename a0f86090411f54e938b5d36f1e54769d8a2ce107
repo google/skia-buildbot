@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "35123b19_6a69e953",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 55
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T17:43:20Z",
+      "side": 1,
+      "message": "SGTM",
+      "parentUuid": "bc7d79cc_21bdda24",
+      "range": {
+        "startLine": 34,
+        "startChar": 14,
+        "endLine": 34,
+        "endChar": 16
+      },
+      "revId": "a0f86090411f54e938b5d36f1e54769d8a2ce107",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16fe08d3_8ab62250",
         "filename": "gitsync/cmd/btgit/main.go",
         "patchSetId": 55
