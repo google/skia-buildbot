@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -89,11 +91,11 @@ func runChromiumAnalysis() error {
 	}
 
 	tmpDir, err := ioutil.TempDir("", "patches")
-	remotePatchesDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
+	remotePatchesDir := path.Join(util.ChromiumAnalysisRunsStorageDir, *runID)
 
 	// Download the custom webpages for this run from Google storage.
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
+	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), path.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
 		return fmt.Errorf("Could not download %s: %s", customWebpagesName, err)
 	}
 	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
@@ -105,13 +107,17 @@ func runChromiumAnalysis() error {
 	}
 
 	// Download the specified chromium build.
-	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
+	if err := gs.DownloadChromiumBuild(*chromiumBuild, *targetPlatform); err != nil {
 		return err
 	}
+	// Leave it for only testing!
 	// Delete the chromium build to save space when we are done.
-	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
-
-	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
+	//defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
+	chromiumBinary := util.BINARY_CHROME
+	if *targetPlatform == util.PLATFORM_WINDOWS {
+		chromiumBinary = util.BINARY_CHROME_WINDOWS
+	}
+	chromiumBinaryPath := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, chromiumBinary)
 
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
@@ -126,7 +132,7 @@ func runChromiumAnalysis() error {
 			return err
 		}
 	}
-	defer skutil.RemoveAll(pathToPagesets)
+	//defer skutil.RemoveAll(pathToPagesets)
 
 	if !strings.Contains(*benchmarkExtraArgs, util.USE_LIVE_SITES_FLAGS) {
 		// Download archives if they do not exist locally.
@@ -134,14 +140,27 @@ func runChromiumAnalysis() error {
 		if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
 			return err
 		}
-		defer skutil.RemoveAll(pathToArchives)
+		//defer skutil.RemoveAll(pathToArchives)
 	}
+
+	// TESTING TESTING TESTING
+	// rmistry: does chrome come up at all!
+	//args := []string{chromiumBinaryPath}
+	// chromiumBinaryPath
+	// if err := util.ExecuteCmd(ctx, `C:\Program Files\Internet Explorer\iexplore.exe`, []string{}, []string{}, 1*time.Hour, nil, nil); err != nil {
+	// if err := util.ExecuteCmd(ctx, chromiumBinaryPath, []string{}, []string{}, 1*time.Hour, nil, nil); err != nil {
+	// 	return fmt.Errorf("Error running chrome.exe: %s", err)
+	// }
+
+	//sklog.Fatal("What happened above??")
+
+	// TESTING TESTING TESTING
 
 	// Establish nopatch output paths.
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
 	skutil.RemoveAll(localOutputDir)
 	skutil.MkdirAll(localOutputDir, 0700)
-	defer skutil.RemoveAll(localOutputDir)
+	//defer skutil.RemoveAll(localOutputDir)
 	remoteDir := filepath.Join(util.BenchmarkRunsDir, *runID)
 
 	// Construct path to CT's python scripts.
@@ -165,10 +184,17 @@ func runChromiumAnalysis() error {
 	} else {
 		sklog.Infoln("===== Going to run the task with parallel chrome processes =====")
 	}
+	// HACK TO SEE IF numWOrkers = 1 works for windows. IT DOES NOT
+	if *targetPlatform == util.PLATFORM_WINDOWS {
+		numWorkers = 1
+	}
 
 	// Create channel that contains all pageset file names. This channel will
 	// be consumed by the worker pool.
 	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
+
+	// Update v8 to get the required 64bit d8 binary for the current OS.
+	// I don't think this is working. I think we need to run telemetry isolates on windows instance!!!! dammit..
 
 	var wg sync.WaitGroup
 	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
@@ -198,7 +224,9 @@ func runChromiumAnalysis() error {
 
 				mutex.RLock()
 				for i := 0; ; i++ {
-					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
+					// fmt.Println("SLEEPING!!!!!!!!!!!!")
+					// time.Sleep(2 * time.Hour)
+					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinaryPath, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
 					if err == nil {
 						timeoutTracker.Reset()
 						// If *matchStdoutText is specified then add the number of times the text shows up in stdout
@@ -229,6 +257,15 @@ func runChromiumAnalysis() error {
 					} else if exec.IsTimeout(err) {
 						timeoutTracker.Increment()
 					}
+					fmt.Println("USER USER")
+					if u, err := user.Current(); err == nil {
+						fmt.Println(u.Username)
+						fmt.Println(u.Name)
+						fmt.Println(u.HomeDir)
+					}
+					fmt.Println("SLEEPING for 2 hours before of error!!!!!!!!!!!!")
+					fmt.Println(err)
+					time.Sleep(2 * time.Hour)
 					if i >= retryNum {
 						sklog.Errorf("%s failed inspite of %d retries. Last error: %s", pagesetName, retryNum, err)
 						break
