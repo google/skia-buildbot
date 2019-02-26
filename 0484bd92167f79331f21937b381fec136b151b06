@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2763a8c7_b32fba57",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T14:04:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6ba97184_4b1a91b1",
+      "range": {
+        "startLine": 267,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 3
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c241978_7507fbc8",
         "filename": "go/isolate/isolate_test.go",
         "patchSetId": 15
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "071ebabc_41850a4f",
+        "filename": "go/isolate/isolate_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T14:04:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c241978_7507fbc8",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 18
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "780b7b9d_58ae3287",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 15
@@ -59,6 +107,30 @@
       "writtenOn": "2019-02-26T02:57:33Z",
       "side": 1,
       "message": "nit: Is this correct?",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 3
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1685021a_e8fbd5be",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T14:04:20Z",
+      "side": 1,
+      "message": "Are you asking, or hinting that it isn\u0027t?  If the backingCache returns nil with no error, that\u0027s incorrect behavior according to the the ICache docs, but there seems to be no harm in guarding against that case here.  It also prevents us from incorrectly returning nil with no error, although I guess we could add a second if-statement before the return statement.",
+      "parentUuid": "780b7b9d_58ae3287",
       "range": {
         "startLine": 49,
         "startChar": 0,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "38db6098_579d4a00",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T14:04:20Z",
+      "side": 1,
+      "message": "Yeah. That behavior is required in order to implement Cleanup in terms of ForEach, but it\u0027s not desirable from a caller\u0027s standpoint. Changed to implement Cleanup without ForEach.",
+      "parentUuid": "592797f5_0d6ef77f",
+      "range": {
+        "startLine": 225,
+        "startChar": 5,
+        "endLine": 225,
+        "endChar": 15
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d35a08c4_818818c7",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 15
@@ -108,6 +204,24 @@
       "revId": "0484bd92167f79331f21937b381fec136b151b06",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdea80b3_8c5effbb",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-26T14:04:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d35a08c4_818818c7",
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
