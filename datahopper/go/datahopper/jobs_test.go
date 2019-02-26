@@ -5,17 +5,16 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2/events"
 	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -354,10 +353,9 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 
-	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
 	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
 	defer btCleanup()
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(wd, "taskCfgCache"), 1, btProject, btInstance, nil)
+	tcc, err := specs.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	c1, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD^")
@@ -367,6 +365,21 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	assert.NoError(t, err)
 	// c2 is 5 seconds after c1
 	c2time := repo.Get(c2).Timestamp
+
+	// Load the TasksCfg for each commit into the cache.
+	insertTasksCfg := func(commit string) {
+		out, err := git.GitDir(gb.Dir()).Git(ctx, "show", fmt.Sprintf("%s:infra/bots/tasks.json", commit))
+		assert.NoError(t, err)
+		cfg, err := specs.ParseTasksCfg(out)
+		assert.NoError(t, err)
+		sklog.Errorf("Inserting TasksCfg for %s", commit)
+		assert.NoError(t, tcc.Set(ctx, types.RepoState{
+			Repo:     gb.RepoUrl(),
+			Revision: commit,
+		}, cfg, nil))
+	}
+	insertTasksCfg(c1)
+	insertTasksCfg(c2)
 
 	// At 'now', c1 is 60 seconds old, c2 is 55 seconds old, and c3 (below) is 50 seconds old.
 	now := c1time.Add(time.Minute)
@@ -457,6 +470,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	c3 := gb.CommitMsgAt(ctx, "c3", c1time.Add(10*time.Second)) // 5 seconds after c2
 	assert.NoError(t, repos.Update(ctx))
 	c3time := repo.Get(c3).Timestamp
+	insertTasksCfg(c3)
 
 	// Update to c3. Build job age is now at c3. Perf job should be missing.
 	j6 := &types.Job{
