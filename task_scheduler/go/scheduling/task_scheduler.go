@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"path"
 	"reflect"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-multierror"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -25,14 +25,18 @@ import (
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/blacklist"
+	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/syncer"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 	"golang.org/x/oauth2"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -88,11 +92,13 @@ var (
 type TaskScheduler struct {
 	bl                  *blacklist.Blacklist
 	busyBots            *busyBots
+	cacher              *cacher.Cacher
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
 	db                  db.DB
 	depotToolsDir       string
-	isolate             *isolate.Client
+	isolateCache        *isolate_cache.Cache
+	isolateClient       *isolate.Client
 	jCache              cache.JobCache
 	lastScheduled       time.Time // protected by queueMtx.
 
@@ -141,21 +147,55 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
 	}
 
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(workdir, "taskCfgCache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, ts)
+	taskCfgCache, err := specs.NewTaskCfgCache(ctx, repos, btProject, btInstance, ts)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache, gerrit)
+	sc := syncer.New(ctx, repos, depotTools, workdir, syncer.DEFAULT_NUM_WORKERS)
+	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, ts)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create isolate cache: %s", err)
+	}
+	chr := cacher.New(sc, taskCfgCache, isolateClient, isolateCache)
+
+	// We just added the isolate cache, and existing jobs may not have been
+	// cached by Cacher already. Go through the unfinished jobs and cache
+	// them if necessary.
+	// TODO(borenet): Remove this after the dust has settled.
+	if err := jCache.Update(); err != nil {
+		return nil, fmt.Errorf("Failed to update job cache: %s", err)
+	}
+	unfinishedJobs, err := jCache.UnfinishedJobs()
+	if err != nil {
+		return nil, err
+	}
+	var g errgroup.Group
+	for _, job := range unfinishedJobs {
+		job := job // https://golang.org/doc/faq#closures_and_goroutines
+		g.Go(func() error {
+			if _, err := chr.GetOrCacheRepoState(ctx, job.RepoState); err != nil {
+				return fmt.Errorf("Failed to cache RepoState: %s", err)
+			}
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
 	s := &TaskScheduler{
 		bl:               bl,
 		busyBots:         newBusyBots(),
+		cacher:           chr,
 		candidateMetrics: map[string]metrics2.Int64Metric{},
 		db:               d,
 		depotToolsDir:    depotTools,
-		isolate:          isolateClient,
+		isolateCache:     isolateCache,
+		isolateClient:    isolateClient,
 		jCache:           jCache,
 		newTasks:         map[types.RepoState]util.StringSet{},
 		newTasksMtx:      sync.RWMutex{},
@@ -324,7 +364,7 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 			Repo:     repoUrl,
 			Revision: master.Hash,
 		}
-		cfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
+		cfg, err := s.taskCfgCache.Get(ctx, rs)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
 		}
@@ -544,7 +584,11 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 			if !ok {
 				spec, err := s.taskCfgCache.GetTaskSpec(ctx, j.RepoState, tsName)
 				if err != nil {
-					return nil, err
+					// Log an error but don't block scheduling due to transient errors.
+					sklog.Errorf("Failed to obtain task spec: %s", err)
+					// TODO(borenet): We should check specs.ErrorIsPermanent and
+					// consider canceling the job since we can never fulfill it.
+					continue
 				}
 				c = &taskCandidate{
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
@@ -1037,82 +1081,51 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	return rv
 }
 
-// isolateTasks sets up the given RepoState and isolates the given
-// taskCandidates.
-func (s *TaskScheduler) isolateTasks(ctx context.Context, rs types.RepoState, candidates []*taskCandidate) error {
-	defer metrics2.FuncTimer().Stop()
-	// Create and check out a temporary repo.
-	return s.taskCfgCache.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
-		// Isolate the tasks.
-		infraBotsDir := path.Join(c.Dir(), "infra", "bots")
-		baseDir := path.Dir(c.Dir())
-		tasks := make([]*isolate.Task, 0, len(candidates))
-		for _, c := range candidates {
-			tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, baseDir))
-		}
-		hashes, err := s.isolate.IsolateTasks(ctx, tasks)
-		if err != nil {
-			return err
-		}
-		if len(hashes) != len(candidates) {
-			return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
-		}
-		for i, c := range candidates {
-			c.IsolatedInput = hashes[i]
-		}
-		return nil
-	})
-}
-
 // isolateCandidates uploads inputs for the taskCandidates to the Isolate
-// server. Returns a channel of the successfully-isolated candidates which is
-// closed after all candidates have been isolated or failed. Each failure is
-// sent to errCh.
-func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*taskCandidate, errCh chan<- error) <-chan *taskCandidate {
+// server. Returns the list of candidates which were successfully isolated,
+// with their IsolatedInput hash set, and any error which occurred. Note that
+// the successful candidates AND an error may both be returned if some were
+// successfully isolated but others failed.
+func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*taskCandidate) ([]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// First, group by RepoState since we have to isolate the code at
-	// that state for each task.
-	byRepoState := map[types.RepoState][]*taskCandidate{}
+	isolatedCandidates := make([]*taskCandidate, 0, len(candidates))
+	isolatedFiles := make([]*isolated.Isolated, 0, len(candidates))
+	var errs *multierror.Error
 	for _, c := range candidates {
-		byRepoState[c.RepoState] = append(byRepoState[c.RepoState], c)
+		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
+		if err != nil {
+			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", err))
+			continue
+		}
+		for _, inc := range c.IsolatedHashes {
+			isolatedFile.Includes = append(isolatedFile.Includes, isolated.HexDigest(inc))
+		}
+		isolatedFiles = append(isolatedFiles, isolatedFile)
+		isolatedCandidates = append(isolatedCandidates, c)
+	}
+	hashes, err := s.isolateClient.ReUploadIsolatedFiles(ctx, isolatedFiles)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to re-upload Isolated files: %s", err)
+	}
+	if len(hashes) != len(isolatedFiles) {
+		return nil, fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(isolatedFiles))
+	}
+	for idx, c := range isolatedCandidates {
+		c.IsolatedInput = hashes[idx]
 	}
 
-	// Isolate the tasks by commit.
-	isolated := make(chan *taskCandidate)
-	var wg sync.WaitGroup
-	for rs, candidates := range byRepoState {
-		wg.Add(1)
-		go func(rs types.RepoState, candidates []*taskCandidate) {
-			defer wg.Done()
-			if err := s.isolateTasks(ctx, rs, candidates); err != nil {
-				names := make([]string, 0, len(candidates))
-				for _, c := range candidates {
-					names = append(names, fmt.Sprintf("%s@%s", c.Name, c.Revision))
-				}
-				errCh <- fmt.Errorf("Failed on %s: %s", strings.Join(names, ", "), err)
-				return
-			}
-			for _, c := range candidates {
-				isolated <- c
-			}
-		}(rs, candidates)
-	}
-	go func() {
-		wg.Wait()
-		close(isolated)
-	}()
-	return isolated
+	return isolatedCandidates, errs.ErrorOrNil()
 }
 
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
 // a channel of the successfully-triggered tasks which is closed after all tasks
 // have been triggered or failed. Each failure is sent to errCh.
-func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<- error) <-chan *types.Task {
+func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- error) <-chan *types.Task {
 	defer metrics2.FuncTimer().Stop()
 	triggered := make(chan *types.Task)
 	var wg sync.WaitGroup
-	for candidate := range isolated {
+	for _, candidate := range candidates {
 		wg.Add(1)
 		go func(candidate *taskCandidate) {
 			defer wg.Done()
@@ -1121,7 +1134,7 @@ func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
 			}
-			req, err := candidate.MakeTaskRequest(t.Id, s.isolate.ServerURL(), s.pubsubTopic)
+			req, err := candidate.MakeTaskRequest(t.Id, s.isolateClient.ServerURL(), s.pubsubTopic)
 			if err != nil {
 				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
 				return
@@ -1163,10 +1176,19 @@ func (s *TaskScheduler) triggerTasks(isolated <-chan *taskCandidate, errCh chan<
 func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
 	// Match free bots with tasks.
-	schedule := getCandidatesToSchedule(bots, queue)
+	candidates := getCandidatesToSchedule(bots, queue)
+
+	// Isolate the tasks.
+	isolated, isolateErr := s.isolateCandidates(ctx, candidates)
+	if isolateErr != nil && len(isolated) == 0 {
+		return isolateErr
+	}
 
 	// Setup the error channel.
 	errs := []error{}
+	if isolateErr != nil {
+		errs = append(errs, isolateErr)
+	}
 	errCh := make(chan error)
 	var errWg sync.WaitGroup
 	errWg.Add(1)
@@ -1177,11 +1199,8 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 		}
 	}()
 
-	// Isolate the tasks by RepoState.
-	isolated := s.isolateCandidates(ctx, schedule, errCh)
-
 	// Trigger Swarming tasks.
-	triggered := s.triggerTasks(isolated, errCh)
+	triggered := s.triggerTasks(candidates, errCh)
 
 	// Collect the tasks we triggered.
 	numTriggered := 0
@@ -1308,14 +1327,28 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 	// Find all new Jobs for all new commits.
 	newJobs := []*types.Job{}
 	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
+		// If this commit isn't in scheduling range, stop recursing.
+		if !s.window.TestCommit(repoUrl, c) {
+			return false, nil
+		}
+
 		rs := types.RepoState{
 			Repo:     repoUrl,
 			Revision: c.Hash,
 		}
-		cfg, err := s.taskCfgCache.ReadTasksCfg(ctx, rs)
+		cfg, err := s.cacher.GetOrCacheRepoState(ctx, rs)
 		if err != nil {
+			if specs.ErrorIsPermanent(err) {
+				// If we return an error here, we'll never
+				// recover from bad commits.
+				// TODO(borenet): We should consider canceling the jobs
+				// (how?) since we can never fulfill them.
+				sklog.Errorf("Failed to obtain new jobs due to permanent error: %s", err)
+				return true, nil
+			}
 			return false, err
 		}
+		alreadyScheduledAllJobs := true
 		for name, spec := range cfg.Jobs {
 			shouldRun := false
 			if !util.In(spec.Trigger, specs.PERIODIC_TRIGGERS) {
@@ -1346,6 +1379,7 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 					}
 				}
 				if !alreadyScheduled {
+					alreadyScheduledAllJobs = false
 					j, err := s.taskCfgCache.MakeJob(ctx, rs, name)
 					if err != nil {
 						return false, err
@@ -1353,6 +1387,12 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 					newJobs = append(newJobs, j)
 				}
 			}
+		}
+		// If we'd already scheduled all of the jobs for this commit,
+		// stop recursing, under the assumption that we've already
+		// scheduled all of the jobs for the ones before it.
+		if alreadyScheduledAllJobs {
+			return false, nil
 		}
 		if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
 			// Stop recursing here, since Jobs were added
@@ -1375,6 +1415,7 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 // updateAddedTaskSpecs updates the mapping of RepoStates to the new task specs
 // they added.
 func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
+	defer metrics2.FuncTimer().Stop()
 	repoStates := []types.RepoState{}
 	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
 		repoStates = append(repoStates, types.RepoState{
@@ -1476,7 +1517,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	}
 
 	sklog.Infof("Task Scheduler cleaning up...")
-	if err := s.taskCfgCache.Cleanup(time.Now().Sub(s.window.EarliestStart())); err != nil {
+	if err := s.taskCfgCache.Cleanup(ctx, time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
 	sklog.Infof("Task Scheduler MainLoop finished.")

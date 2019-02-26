@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -285,11 +286,14 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 				if t.Id != "buildbot-id" {
 					cfg, ok := cfgs[commit]
 					if !ok {
-						c, err := tcc.ReadTasksCfg(ctx, types.RepoState{
+						c, err := tcc.Get(ctx, types.RepoState{
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})
-						if err != nil {
+						if err == atomic_miss_cache.ErrNoSuchEntry {
+							sklog.Warningf("TaskCfgCache has no entry for %s@%s.", repoUrl, commit.Hash)
+							return true, nil
+						} else if err != nil {
 							// Some old commits only have tasks without jobs. Skip them.
 							if strings.Contains(err.Error(), "is not reachable by any Job") {
 								cfgs[commit] = &specs.TasksCfg{
