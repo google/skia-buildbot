@@ -1,0 +1,256 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5607748_78cfdb1f",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "Based on comment above (after specs.ErrorIsPermanent), we should check for and ignore ErrNoSuchEntry.",
+      "range": {
+        "startLine": 1414,
+        "startChar": 8,
+        "endLine": 1414,
+        "endChar": 11
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fd1711b_27b9008e",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: Since we\u0027re refactoring things, maybe TaskCfgCache should be moved out of the specs package.",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b29dbb47_404bdcf9",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "I would be OK if we just remove recent*. IMO it actually makes the UI worse, not better, because it seems to refuse input that it doesn\u0027t know about. (Maybe do that in a precursor CL to avoid more changes here.)\n\nWe could then get rid of updateSecondaryCaches, which I think means we can get rid of parsing BT row keys.",
+      "range": {
+        "startLine": 526,
+        "startChar": 0,
+        "endLine": 528,
+        "endChar": 43
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8b3f5a9_d0da4b96",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: Maybe make it a bit more clear that if the RS isn\u0027t already in the cache, an error is returned.",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce592ee5_e220c616",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: maybe mention return value",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00ceb7a9_a87466f6",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 729,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: mention that missing RSs will be omitted.",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75c83e19_f1c846a0",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 730,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: consider making this method private or just removing; the motivation for this was to parallelize across RSs, but that\u0027s no longer useful.",
+      "range": {
+        "startLine": 730,
+        "startChar": 23,
+        "endLine": 730,
+        "endChar": 48
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3873d4a_5140e857",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: should mention that this will only be accurate if all rss and their parents are already in the cache.",
+      "range": {
+        "startLine": 769,
+        "startChar": 58,
+        "endLine": 769,
+        "endChar": 59
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ac9e41d_9fcb676d",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: maybe should move this method and addedTasksCache to Cacher, which could ensure that all the necessary RSs are already cached.",
+      "range": {
+        "startLine": 770,
+        "startChar": 23,
+        "endLine": 770,
+        "endChar": 53
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1d7ce59_338af886",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 834,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "FWIW, this method is unused.",
+      "range": {
+        "startLine": 834,
+        "startChar": 23,
+        "endLine": 834,
+        "endChar": 33
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1241325f_9e1c02a2",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "I don\u0027t think this actually tests anything.",
+      "range": {
+        "startLine": 680,
+        "startChar": 2,
+        "endLine": 680,
+        "endChar": 55
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09eecafd_f0301065",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T21:27:29Z",
+      "side": 1,
+      "message": "nit: maybe change this message to something different from above for debuggability",
+      "range": {
+        "startLine": 396,
+        "startChar": 53,
+        "endLine": 396,
+        "endChar": 77
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
