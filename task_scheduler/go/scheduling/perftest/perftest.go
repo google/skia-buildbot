@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -18,8 +19,10 @@ import (
 	"reflect"
 	"time"
 
+	"cloud.google.com/go/datastore"
 	"github.com/davecgh/go-spew/spew"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
@@ -32,13 +35,17 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
+)
+
+var (
+	fsInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"testing\"")
 )
 
 func assertNoError(err error) {
@@ -265,7 +272,8 @@ func main() {
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
-	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"), nil)
+	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore)
+	d, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *fsInstance, ts, nil)
 	assertNoError(err)
 	w, err := window.New(time.Hour, 0, nil)
 	assertNoError(err)

@@ -44,9 +44,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
-	"go.skia.org/infra/task_scheduler/go/db/local_db"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
-	"go.skia.org/infra/task_scheduler/go/db/remote_db"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -99,7 +97,7 @@ var (
 	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
-	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"prod\"")
+	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -108,7 +106,6 @@ var (
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	chromeInfraAuthJWT          = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
-	taskSchedulerDbUrl          = flag.String("task_db_url", "https://task-scheduler.skia.org/db/", "Where the Skia task scheduler database is hosted.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
@@ -718,35 +715,21 @@ func main() {
 	lkgrObj.UpdateLoop(10*time.Minute, ctx)
 
 	// Create remote Tasks DB.
-	if *testing {
-		taskDb, err = local_db.NewDB("status-testing", path.Join(*workdir, "status-testing.bdb"), nil)
-		if err != nil {
-			sklog.Fatalf("Failed to create local task DB: %s", err)
-		}
-		defer util.Close(taskDb.(db.DBCloser))
-	} else {
+	if !*testing {
 		// Create the git cookie updater.
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
+	}
 
-		if *firestoreInstance != "" {
-			label := *host
-			mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
-			if err != nil {
-				sklog.Fatal(err)
-			}
-			taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
-			if err != nil {
-				sklog.Fatalf("Failed to create Firestore DB client: %s", err)
-			}
-		} else {
-			label := *host
-			taskDb, err = remote_db.NewClient(*taskSchedulerDbUrl, *pubsubTopicSet, label, ts)
-			if err != nil {
-				sklog.Fatalf("Failed to create remote task DB: %s", err)
-			}
-		}
+	label := *host
+	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
+	if err != nil {
+		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
 
 	criaTs, err := auth.NewJWTServiceAccountTokenSource("", *chromeInfraAuthJWT, auth.SCOPE_USERINFO_EMAIL)
