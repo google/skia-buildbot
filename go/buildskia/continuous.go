@@ -230,7 +230,7 @@ func (b *ContinuousBuilder) updateCurrent(ctx context.Context) {
 		}
 		return
 	}
-	details, err := b.repo.Details(ctx, b.hashes[len(b.hashes)-1], true)
+	details, err := b.repo.Details(ctx, b.hashes[len(b.hashes)-1], false)
 	if err != nil {
 		sklog.Errorf("Unable to retrieve build info: %s", err)
 		if b.current == nil {
@@ -348,13 +348,13 @@ func decimate(ctx context.Context, hashes []string, vcs vcsinfo.VCS, limit int) 
 	// PRESERVE_DURATION apart. Once we find that spot set oldiesEnd
 	// to that index.
 	oldiesEnd := 0
-	c, err := vcs.Details(ctx, hashes[0], true)
+	c, err := vcs.Details(ctx, hashes[0], false)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 	}
 	lastTS := time.Time{}
 	for i, h := range hashes {
-		c, err = vcs.Details(ctx, h, true)
+		c, err = vcs.Details(ctx, h, false)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 		}

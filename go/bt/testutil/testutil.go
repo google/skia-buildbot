@@ -9,11 +9,11 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func SetupBigTable(t testutils.TestingT, cfgs ...bt.TableConfig) (string, string, func()) {
+func SetupBigTable(t testutils.TestingT, tableID string, colFamilies ...string) (string, string, func()) {
 	project := "test-project"
 	instance := fmt.Sprintf("test-instance-%s", uuid.New())
-	assert.NoError(t, bt.InitBigtable(project, instance, cfgs...))
+	assert.NoError(t, bt.InitBigtable(project, instance, tableID, colFamilies))
 	return project, instance, func() {
-		assert.NoError(t, bt.DeleteTables(project, instance, cfgs...))
+		assert.NoError(t, bt.DeleteTables(project, instance, tableID))
 	}
 }

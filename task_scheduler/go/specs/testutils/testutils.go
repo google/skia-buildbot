@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"go.skia.org/infra/go/bt"
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -222,9 +221,5 @@ func SetupBigTable(t testutils.TestingT) (string, string, func()) {
 	// The table and column family names are specs.BT_TABLE and
 	// specs.BT_COLUMN_FAMILY, but are hard-coded here to avoid a dependency
 	// cycle.
-	return bt_testutil.SetupBigTable(t, bt.TableConfig{
-		"tasks-cfg": {
-			"CFGS",
-		},
-	})
+	return bt_testutil.SetupBigTable(t, "tasks-cfg", "CFGS")
 }

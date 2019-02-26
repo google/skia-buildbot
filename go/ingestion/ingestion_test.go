@@ -41,8 +41,8 @@ func TestPollingIngesterWithStore(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Delete and recreate the BT tables to make sure there are no residual data.
-	assert.NoError(t, bt.DeleteTables(projectID, instanceID, BigTableConfig))
-	assert.NoError(t, bt.InitBigtable(projectID, instanceID, BigTableConfig))
+	assert.NoError(t, bt.DeleteTables(projectID, instanceID, TABLE_FILES_PROCESSED))
+	assert.NoError(t, InitBT(projectID, instanceID, TABLE_FILES_PROCESSED))
 
 	// Create the BT ingestion store.
 	store, err := NewBTIStore(projectID, instanceID, nameSpace)
@@ -177,7 +177,7 @@ func MockSource(t *testing.T, bucketID string, objectPrefix string, vcs vcsinfo.
 	hashes := vcs.From(time.Unix(0, 0))
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
-		detail, err := vcs.Details(context.Background(), h, true)
+		detail, err := vcs.Details(context.Background(), h, false)
 		assert.NoError(t, err)
 		t := detail.Timestamp
 		objPrefix := fmt.Sprintf("%s/%d/%d/%d/%d/%d", objectPrefix, t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute())

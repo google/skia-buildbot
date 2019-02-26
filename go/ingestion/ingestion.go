@@ -393,7 +393,7 @@ func (i *Ingester) getStartTimeOfInterest(ctx context.Context) (int64, error) {
 	}
 
 	// Get the commit time of the first commit of interest.
-	detail, err := i.vcs.Details(ctx, hashes[0], true)
+	detail, err := i.vcs.Details(ctx, hashes[0], false)
 	if err != nil {
 		return 0, err
 	}

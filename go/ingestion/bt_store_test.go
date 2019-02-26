@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -30,7 +29,7 @@ func TestBTIStore(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Set up the table and column families.
-	assert.NoError(t, bt.InitBigtable(projectID, instanceID, BigTableConfig))
+	assert.NoError(t, InitBT(projectID, instanceID, TABLE_FILES_PROCESSED))
 
 	store, err := NewBTIStore(projectID, instanceID, nameSpace)
 	assert.NoError(t, err)
