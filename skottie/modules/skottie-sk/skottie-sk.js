@@ -107,19 +107,20 @@ const displayLoaded = (ele) => html`
                @click=${ele._toggleEditor}>
   </checkbox-sk>
   <button @click=${ele._toggleEmbed}>Embed</button>
-  <collapse-sk id=embed closed>
-    <p>
-      <label>
-        Embed using an iframe: <input size=120 value=${iframeDirections(ele)} scrolling=no>
-      </label>
-    </p>
-    <p>
-      <label>
-        Embed on skia.org: <input size=140 value=${inlineDirections(ele)} scrolling=no>
-      </label>
-    </p>
-  </collapse-sk>
 </div>
+<collapse-sk id=embed closed>
+  <p>
+    <label>
+      Embed using an iframe: <input size=120 value=${iframeDirections(ele)} scrolling=no>
+    </label>
+  </p>
+  <p>
+    <label>
+      Embed on skia.org: <input size=140 value=${inlineDirections(ele)} scrolling=no>
+    </label>
+  </p>
+</collapse-sk>
+
 <section class=figures>
   <figure>
     ${skottiePlayer(ele)}
