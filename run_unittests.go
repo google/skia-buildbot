@@ -442,6 +442,7 @@ func main() {
 	tests = append(tests, cmdTest([]string{"make", "testci"}, "common-sk", "common-sk elements", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"make", "test"}, "push", "push elements", testutils.MEDIUM_TEST))
+	tests = append(tests, cmdTest([]string{"./check.sh"}, "license", "check go package licenses", testutils.MEDIUM_TEST))
 
 	if !*race {
 		// put this behind a flag because polylintTests trys to build the polymer files
