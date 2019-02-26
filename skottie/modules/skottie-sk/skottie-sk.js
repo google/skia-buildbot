@@ -107,19 +107,20 @@ const displayLoaded = (ele) => html`
                @click=${ele._toggleEditor}>
   </checkbox-sk>
   <button @click=${ele._toggleEmbed}>Embed</button>
-  <collapse-sk id=embed closed>
-    <p>
-      <label>
-        Embed using an iframe: <input size=120 value=${iframeDirections(ele)} scrolling=no>
-      </label>
-    </p>
-    <p>
-      <label>
-        Embed on skia.org: <input size=140 value=${inlineDirections(ele)} scrolling=no>
-      </label>
-    </p>
-  </collapse-sk>
 </div>
+<collapse-sk id=embed closed>
+  <p>
+    <label>
+      Embed using an iframe: <input size=120 value=${iframeDirections(ele)} scrolling=no>
+    </label>
+  </p>
+  <p>
+    <label>
+      Embed on skia.org: <input size=140 value=${inlineDirections(ele)} scrolling=no>
+    </label>
+  </p>
+</collapse-sk>
+
 <section class=figures>
   <figure>
     ${skottiePlayer(ele)}
@@ -159,7 +160,7 @@ const redir = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <h2>Skottie</h2><span><a href='https://skia.googlesource.com/skia/+/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
+  <h2>Skottie</h2><span><a href='https://www.npmjs.com/package/canvaskit-wasm/v/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
 </header>
 <main>
   ${pick(ele)}
