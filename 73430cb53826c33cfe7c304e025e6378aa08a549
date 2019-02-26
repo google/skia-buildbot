@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21cf54d2_93902096",
+        "filename": "datahopper/go/bot_metrics/bot_metrics.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T16:37:24Z",
+      "side": 1,
+      "message": "nit: maybe put this in task_scheduler/go/specs/specs.go:\nvar (\n  ErrNoSuchEntry \u003d atomic_miss_cache.ErrNoSuchEntry\n)",
+      "range": {
+        "startLine": 22,
+        "startChar": 23,
+        "endLine": 22,
+        "endChar": 40
+      },
+      "revId": "73430cb53826c33cfe7c304e025e6378aa08a549",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ec79ef2_ba7171ca",
+        "filename": "go/atomic_miss_cache/atomic_miss_cache.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T16:37:24Z",
+      "side": 1,
+      "message": "maybe insert \"on cache miss\" so that the name makes a little more sense. (also copy-pasted below)",
+      "range": {
+        "startLine": 6,
+        "startChar": 62,
+        "endLine": 6,
+        "endChar": 64
+      },
+      "revId": "73430cb53826c33cfe7c304e025e6378aa08a549",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b73b4337_46ea0365",
+        "filename": "go/isolate/isolate_test.go",
+        "patchSetId": 21
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T16:37:24Z",
+      "side": 1,
+      "message": "Unless I\u0027m misunderstanding something, this does not modify iso.",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 27
+      },
+      "revId": "73430cb53826c33cfe7c304e025e6378aa08a549",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
