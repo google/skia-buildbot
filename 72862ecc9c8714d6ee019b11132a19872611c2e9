@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "5f5b4948_7221c827",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ff67026c_139c2a76",
+      "range": {
+        "startLine": 246,
+        "startChar": 23,
+        "endLine": 246,
+        "endChar": 29
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e49287b1_59d47479",
         "filename": "go/isolate/isolate.go",
         "patchSetId": 14
@@ -131,6 +155,30 @@
     },
     {
       "key": {
+        "uuid": "b6c83486_deed97ab",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6c4cfc6c_c7fb0ee1",
+      "range": {
+        "startLine": 254,
+        "startChar": 3,
+        "endLine": 254,
+        "endChar": 15
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6fd03318_36aeebe2",
         "filename": "go/isolate/isolate.go",
         "patchSetId": 14
@@ -175,6 +223,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7bdde5f_8583f9c4",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1f6d1005_a2725f10",
+      "range": {
+        "startLine": 361,
+        "startChar": 0,
+        "endLine": 366,
+        "endChar": 3
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -236,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "91e1e468_f9bcb448",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "BlockingMissCache? (I.e. if there\u0027s a cache miss, all requests for that entry will block until that entry is populated.)\n\nI also like \"AtomicMiss\" but mostly because it sounds like a bad action movie.",
+      "parentUuid": "1b0a7f94_87e7dcb7",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 26
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea72a986_c8466f7a",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -280,6 +376,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "198ec827_f24218d1",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "137ac9d3_08f71b9a",
+      "range": {
+        "startLine": 77,
+        "startChar": 15,
+        "endLine": 77,
+        "endChar": 16
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -800,6 +920,30 @@
     },
     {
       "key": {
+        "uuid": "13d113a9_ff55c125",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0194352f_bd788168",
+      "range": {
+        "startLine": 242,
+        "startChar": 32,
+        "endLine": 242,
+        "endChar": 41
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1dd10a21_e8cc6105",
         "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
         "patchSetId": 14
@@ -1020,6 +1164,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cd660de_6b98afa0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "In gatherNewJobs, you\u0027d have to run RecurseAllBranches once to gather all the cache misses, then populate the cache, then run RecurseAllBranches again to create the missing jobs. IMO it\u0027s rare enough that we have multiple commits coming in on the same cycle that the extra complication doesn\u0027t seem worthwhile.",
+      "parentUuid": "fd61dd00_1380bc43",
+      "range": {
+        "startLine": 152,
+        "startChar": 51,
+        "endLine": 152,
+        "endChar": 77
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1246,6 +1414,30 @@
     },
     {
       "key": {
+        "uuid": "5a9bbf4d_926cc1d8",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "157a9c00_7c434f43",
+      "range": {
+        "startLine": 154,
+        "startChar": 4,
+        "endLine": 154,
+        "endChar": 16
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "688cd070_24e27533",
         "filename": "task_scheduler/go/syncer/syncer.go",
         "patchSetId": 14
@@ -1290,6 +1482,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a1f2bd4_ed960fbf",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ba31826c_0dba01ef",
+      "range": {
+        "startLine": 176,
+        "startChar": 68,
+        "endLine": 177,
+        "endChar": 22
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -1479,6 +1695,30 @@
       "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cd21e21_766991ce",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0fe47ca8_1a42a13d",
+      "range": {
+        "startLine": 71,
+        "startChar": 49,
+        "endLine": 71,
+        "endChar": 60
+      },
+      "revId": "72862ecc9c8714d6ee019b11132a19872611c2e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6ba97184_4b1a91b1",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "nit:\nincludes \u003d make([]isolated.HexDigest, len(iso.Includes))\ncopy(includes, iso.Includes)",
+      "range": {
+        "startLine": 267,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 3
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c241978_7507fbc8",
+        "filename": "go/isolate/isolate_test.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "nit: Maybe add another test where all the pointers are nil. You won\u0027t be able to use AssertCopy.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 18
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "780b7b9d_58ae3287",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "nit: Is this correct?",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 3
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "592797f5_0d6ef77f",
+        "filename": "go/set_if_unset_cache/set_if_unset_cache.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "nit: Hmm, seems surprising that ForEach would include nil values.",
+      "range": {
+        "startLine": 225,
+        "startChar": 5,
+        "endLine": 225,
+        "endChar": 15
+      },
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d35a08c4_818818c7",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-26T02:57:33Z",
+      "side": 1,
+      "message": "nit: don\u0027t need this as well as passing b to goroutine func",
+      "revId": "0484bd92167f79331f21937b381fec136b151b06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
