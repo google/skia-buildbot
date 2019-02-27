@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -146,6 +147,9 @@ func (d *DownloadHelper) Download(name, hash string) error {
 	if d.subdir != "" {
 		object = d.subdir + "/" + object
 	}
+	sklog.Info("DOWNLOAD!!")
+	sklog.Info(d.bucket)
+	sklog.Info(object)
 	resp, err := d.s.Bucket(d.bucket).Object(object).NewReader(context.Background())
 	if err != nil {
 		return fmt.Errorf("Download helper can't get reader for %s: %s", name, err)
@@ -158,8 +162,10 @@ func (d *DownloadHelper) Download(name, hash string) error {
 	if _, err := io.Copy(f, resp); err != nil {
 		return fmt.Errorf("Download helper can't download %s: %s", name, err)
 	}
-	if err := f.Chmod(0755); err != nil {
-		return err
+	if runtime.GOOS != "windows" {
+		if err := f.Chmod(0755); err != nil {
+			return err
+		}
 	}
 	return nil
 }

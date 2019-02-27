@@ -400,7 +400,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 }
 
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON, targetPlatform string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -439,7 +439,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			IsolateFile: path.Join(pathToIsolates, isolateName),
 			Deps:        isolateDeps,
 			ExtraVars:   isolateArgs,
-			OsType:      "linux",
+			OsType:      "win", // rmistry: Make this configurable according to the target platofrm.
 		}
 		isolateTasks = append(isolateTasks, isolateTask)
 	}
@@ -470,7 +470,12 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}
 	var dimensions map[string]string
 	if runOnGCE {
-		dimensions = GCE_LINUX_WORKER_DIMENSIONS
+		if targetPlatform == PLATFORM_WINDOWS {
+			// THIS NEEDS TO BE WINDOWS WORKERS..
+			dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
+		} else {
+			dimensions = GCE_LINUX_WORKER_DIMENSIONS
+		}
 	} else {
 		dimensions = GOLO_ANDROID_WORKER_DIMENSIONS
 	}
@@ -511,17 +516,18 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 				defer wg.Done()
 				if _, _, err := task.Collect(ctx, s); err != nil {
 					sklog.Errorf("task %s failed: %s", task.Title, err)
-					sklog.Infof("Retrying task %s", task.Title)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
-					if err != nil {
-						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
-						return
-					}
-					// Collect the retried task.
-					if _, _, err := retryTask[0].Collect(ctx, s); err != nil {
-						sklog.Errorf("task %s failed inspite of a retry: %s", retryTask[0].Title, err)
-						return
-					}
+					// Do not retry for my tests right now..
+					//sklog.Infof("Retrying task %s", task.Title)
+					//retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					//if err != nil {
+					//	sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
+					//	return
+					//}
+					//// Collect the retried task.
+					//if _, _, err := retryTask[0].Collect(ctx, s); err != nil {
+					//	sklog.Errorf("task %s failed inspite of a retry: %s", retryTask[0].Title, err)
+					//	return
+					//}
 				}
 			}()
 		}
@@ -631,7 +637,7 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 		return outputFilePath, noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
-	remoteOutputDir := filepath.Join(BenchmarkRunsDir, runID, "consolidated_outputs")
+	remoteOutputDir := path.Join(BenchmarkRunsStorageDir, runID, "consolidated_outputs")
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
 		return outputFilePath, noOutputSlaves, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
@@ -749,9 +755,10 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 	if browserExtraArgs != "" {
 		args = append(args, "--extra-browser-args="+browserExtraArgs)
 	}
-	// Set the DISPLAY.
-	env := []string{
-		"DISPLAY=:0",
+	env := []string{}
+	if targetPlatform != PLATFORM_WINDOWS {
+		// Set the DISPLAY.
+		env = append(env, "DISPLAY=:0")
 	}
 	// Append the original environment as well.
 	for _, e := range os.Environ() {
@@ -888,7 +895,7 @@ func MergeUploadCSVFilesOnWorkers(ctx context.Context, localOutputDir, pathToPyF
 	}
 
 	// Copy the output file to Google Storage.
-	remoteOutputDir := filepath.Join(remoteDir, strconv.Itoa(startRange), "outputs")
+	remoteOutputDir := path.Join(remoteDir, strconv.Itoa(startRange), "outputs")
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
 		return fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
@@ -939,7 +946,7 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 // TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
 // archives it, and triggers its swarming task. The swarming task will run the isolate_telemetry
 // worker script which will return the isolate hash.
-func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON string, patches []string, hardTimeout, ioTimeout time.Duration, local bool) (string, error) {
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool) (string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -962,7 +969,14 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		"CHROMIUM_HASH": chromiumHash,
 		"PATCHES":       strings.Join(patches, ","),
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	dimensions := GCE_LINUX_BUILDER_DIMENSIONS
+	osType := "linux"
+	if targetPlatform == PLATFORM_WINDOWS {
+		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
+		osType = "win"
+	}
+
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, osType, taskName, isolateArgs, []string{})
 	if err != nil {
 		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
@@ -972,7 +986,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, GCE_LINUX_BUILDER_DIMENSIONS, map[string]string{"runid": runID}, []string{}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(GCE_LINUX_BUILDER_DIMENSIONS))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, []string{}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1022,7 +1036,9 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
 		"TARGET_PLATFORM": targetPlatform,
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	// TODO(rmistry):
+	// LINUX?????
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "win", taskName, isolateArgs, []string{})
 	if err != nil {
 		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
@@ -1033,7 +1049,9 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	}
 	// Trigger swarming using the isolate hash.
 	var dimensions map[string]string
-	if targetPlatform == "Android" {
+	if targetPlatform == PLATFORM_WINDOWS {
+		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
+	} else if targetPlatform == PLATFORM_ANDROID {
 		dimensions = GCE_ANDROID_BUILDER_DIMENSIONS
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
