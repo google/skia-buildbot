@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "60a49cc6_3a1d0fd9",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:42:50Z",
+      "side": 1,
+      "message": "Maybe this should be true to preserve existing behavior for running locally. I assume bots always set one of the small/medium/large flags.",
+      "range": {
+        "startLine": 41,
+        "startChar": 15,
+        "endLine": 41,
+        "endChar": 20
+      },
+      "revId": "88b55a1dd9be8f7b5198291f4c7928c34dc2c9b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
