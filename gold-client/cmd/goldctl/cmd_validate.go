@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
@@ -51,7 +50,7 @@ func (v *validateEnv) runValidateCmd(cmd *cobra.Command, args []string) {
 		for _, msg := range errMessages {
 			logErrf(cmd, "   %s\n", msg)
 		}
-		os.Exit(1)
+		exitProcess(1)
 	}
 	ifErrLogExit(cmd, closeFn())
 	logVerbose(cmd, fmt.Sprintf("Result:\n%s\n", spew.Sdump(goldResult)))
