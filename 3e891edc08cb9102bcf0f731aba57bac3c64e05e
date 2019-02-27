@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0831b954_c9b34c2b",
+        "filename": "go/git/util.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "87481460_6d6a0a6c",
+      "range": {
+        "startLine": 8,
+        "startChar": 54,
+        "endLine": 8,
+        "endChar": 56
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "690815ea_0f8c6169",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 28
@@ -45,6 +69,30 @@
       "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "017328f5_f9dbcc5e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "690815ea_0f8c6169",
+      "range": {
+        "startLine": 157,
+        "startChar": 1,
+        "endLine": 157,
+        "endChar": 13
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "95b4af47_9de3b0e0",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4bb7240_a48714c8",
+      "range": {
+        "startLine": 254,
+        "startChar": 24,
+        "endLine": 254,
+        "endChar": 31
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d246f35_37c7fc88",
         "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
         "patchSetId": 28
@@ -91,6 +163,30 @@
       "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a6e5953_e96db7b1",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d246f35_37c7fc88",
+      "range": {
+        "startLine": 104,
+        "startChar": 1,
+        "endLine": 104,
+        "endChar": 7
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "76d32da0_92458b70",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache_test.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4bb2c3e2_793fcdb0",
+      "range": {
+        "startLine": 11,
+        "startChar": 30,
+        "endLine": 11,
+        "endChar": 36
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b146c4a9_7562e4c9",
         "filename": "task_scheduler/go/task_cfg_cache/testutils/testutils.go",
         "patchSetId": 28
@@ -128,6 +248,30 @@
       "writtenOn": "2019-02-27T19:35:29Z",
       "side": 1,
       "message": "FWIW, I think of these as TasksCfg1 and TasksCfg2 (i.e. TasksCfg for c1/c2).",
+      "range": {
+        "startLine": 91,
+        "startChar": 1,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "098af647_0d94dcd6",
+        "filename": "task_scheduler/go/task_cfg_cache/testutils/testutils.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b146c4a9_7562e4c9",
       "range": {
         "startLine": 91,
         "startChar": 1,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "80736c44_44185f36",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71f5b51a_429b101a",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 13
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d711459_728a2f0b",
         "filename": "task_scheduler/go/types/repo_state.go",
         "patchSetId": 28
@@ -174,6 +342,30 @@
       "writtenOn": "2019-02-27T19:35:29Z",
       "side": 1,
       "message": "Should this be p.PatchRepo?",
+      "range": {
+        "startLine": 69,
+        "startChar": 14,
+        "endLine": 69,
+        "endChar": 16
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d5c5285_cc876fb1",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Why? If it\u0027s set it\u0027ll be filled in on line 72.",
+      "parentUuid": "6d711459_728a2f0b",
       "range": {
         "startLine": 69,
         "startChar": 14,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "6b9638e1_2df31d33",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cf7da6bc_26305fe8",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 36
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0076efbf_fd172b31",
         "filename": "task_scheduler/go/types/repo_state.go",
         "patchSetId": 28
@@ -220,6 +436,24 @@
       "writtenOn": "2019-02-27T19:35:29Z",
       "side": 1,
       "message": "Maybe repo \u003d s.Repo?",
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c90b3276_b1f9c53a",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:24:34Z",
+      "side": 1,
+      "message": "None of the repos we test should fail to be normalized.  If they do, we either have a bug in NormalizeURL or the repo was specified improperly.  Either way, other things are going to break, and I\u0027d rather just crash.",
+      "parentUuid": "0076efbf_fd172b31",
       "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
