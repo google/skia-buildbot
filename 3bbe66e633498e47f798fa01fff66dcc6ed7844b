@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "44bec954_b5895cb5",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99b569f9_e6df3d97",
+      "range": {
+        "startLine": 75,
+        "startChar": 50,
+        "endLine": 75,
+        "endChar": 54
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d5c23120_8ccf8a5b",
         "filename": "task_scheduler/go/cacher/cacher.go",
         "patchSetId": 23
@@ -36,6 +60,30 @@
       "writtenOn": "2019-02-26T22:46:21Z",
       "side": 1,
       "message": "I don\u0027t understand what this means.",
+      "range": {
+        "startLine": 80,
+        "startChar": 5,
+        "endLine": 82,
+        "endChar": 11
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbae721f_1ec4d23c",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "I left this around by accident; a previous version of the code created an isolate.Task for every TaskSpec (hundreds, vs the 6 isolates we actually use) and passed them all to \"isolate batcharchive\".  That command should do a good job recognizing that there are only a handful of isolate files and avoid uploading files multiple times, but de-duplicating beforehand saves some work.",
+      "parentUuid": "d5c23120_8ccf8a5b",
       "range": {
         "startLine": 80,
         "startChar": 5,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1164ac96_4e9277e1",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "That\u0027s actually pretty tricky to implement.  As written, we\u0027d need to inspect the dimensions specified by the TaskSpec and derive the OsType from them.  Honestly, I don\u0027t even know what the set of valid OsTypes are, and I think the only way it gets used is if the isolate itself has some if-condition regarding the OS.  For now, I think we\u0027re better off either using a different isolate if we want different behavior for different OS.  If we do decide we want this, I think the better option is to add an explicit \"IsolateOsType\" property to the TaskSpec so that we don\u0027t have to risk getting it wrong here.",
+      "parentUuid": "59560b41_fd088891",
+      "range": {
+        "startLine": 94,
+        "startChar": 30,
+        "endLine": 94,
+        "endChar": 53
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f66b2d9f_4795568f",
         "filename": "task_scheduler/go/cacher/cacher.go",
         "patchSetId": 23
@@ -85,6 +157,24 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f50b564c_e7a25347",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f66b2d9f_4795568f",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "22cf3a09_45d75f71",
+        "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3fcf1a35_844b4466",
+      "range": {
+        "startLine": 35,
+        "startChar": 19,
+        "endLine": 35,
+        "endChar": 28
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cee698c6_2e94910f",
         "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
         "patchSetId": 23
@@ -131,6 +245,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3029cc00_edc36633",
+        "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cee698c6_2e94910f",
+      "range": {
+        "startLine": 54,
+        "startChar": 12,
+        "endLine": 54,
+        "endChar": 66
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "c1f303e7_49c27260",
+        "filename": "task_scheduler/go/isolate_cache/isolate_cache.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ac54e51_19c42c97",
+      "range": {
+        "startLine": 99,
+        "startChar": 1,
+        "endLine": 99,
+        "endChar": 7
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b338f96_79bbd476",
         "filename": "task_scheduler/go/isolate_cache/testutils.go",
         "patchSetId": 23
@@ -177,6 +339,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0290404_6e6583b5",
+        "filename": "task_scheduler/go/isolate_cache/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b338f96_79bbd476",
+      "range": {
+        "startLine": 16,
+        "startChar": 45,
+        "endLine": 16,
+        "endChar": 52
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "30221ec4_4d2b3c8a",
+        "filename": "task_scheduler/go/isolate_cache/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0560e32e_e73cfd79",
+      "range": {
+        "startLine": 23,
+        "startChar": 3,
+        "endLine": 23,
+        "endChar": 16
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "17162899_872a9bd3",
         "filename": "task_scheduler/go/isolate_cache/testutils.go",
         "patchSetId": 23
@@ -223,6 +433,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4cf0865d_ca4d0893",
+        "filename": "task_scheduler/go/isolate_cache/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17162899_872a9bd3",
+      "range": {
+        "startLine": 26,
+        "startChar": 10,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +506,30 @@
     },
     {
       "key": {
+        "uuid": "fbc24f31_de8d549b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 1414,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Do we need to?  If GetOrCacheRepoState returned no error above, then the TasksCfg should be cached in memory and we shouldn\u0027t encounter ErrNoSuchEntry.  Added a check, but I think it should be unnecessary.",
+      "parentUuid": "f5607748_78cfdb1f",
+      "range": {
+        "startLine": 1414,
+        "startChar": 8,
+        "endLine": 1414,
+        "endChar": 11
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6fd1711b_27b9008e",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -289,6 +547,24 @@
     },
     {
       "key": {
+        "uuid": "76268133_2e810d4f",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6fd1711b_27b9008e",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b29dbb47_404bdcf9",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -300,6 +576,30 @@
       "writtenOn": "2019-02-26T21:27:29Z",
       "side": 1,
       "message": "I would be OK if we just remove recent*. IMO it actually makes the UI worse, not better, because it seems to refuse input that it doesn\u0027t know about. (Maybe do that in a precursor CL to avoid more changes here.)\n\nWe could then get rid of updateSecondaryCaches, which I think means we can get rid of parsing BT row keys.",
+      "range": {
+        "startLine": 526,
+        "startChar": 0,
+        "endLine": 528,
+        "endChar": 43
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b665eb15_a9c15c63",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "b29dbb47_404bdcf9",
       "range": {
         "startLine": 526,
         "startChar": 0,
@@ -329,6 +629,24 @@
     },
     {
       "key": {
+        "uuid": "771f4543_feb7efed",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 696,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b8b3f5a9_d0da4b96",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce592ee5_e220c616",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -346,6 +664,24 @@
     },
     {
       "key": {
+        "uuid": "3af4c880_e99458a9",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce592ee5_e220c616",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "00ceb7a9_a87466f6",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -360,6 +696,24 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b3656cd_8a32f655",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 729,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "00ceb7a9_a87466f6",
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -386,6 +740,30 @@
     },
     {
       "key": {
+        "uuid": "d0f1686e_ac5973a6",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 730,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "75c83e19_f1c846a0",
+      "range": {
+        "startLine": 730,
+        "startChar": 23,
+        "endLine": 730,
+        "endChar": 48
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3873d4a_5140e857",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -406,6 +784,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab79c367_6607b693",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 769,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3873d4a_5140e857",
+      "range": {
+        "startLine": 769,
+        "startChar": 58,
+        "endLine": 769,
+        "endChar": 59
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -456,6 +858,30 @@
     },
     {
       "key": {
+        "uuid": "3bff9484_1e0845ea",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 770,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Yeah, I\u0027d rather not get into that in this CL. I think the right thing to do for now is to spew errors when we have entries missing from the cache (outside of Cacher).  I have tried to ensure that there\u0027s a call to Cacher.GetOrCacheRepoState before each RepoState is actually used for anything.  IMO that\u0027s a better goal than adding fallbacks where we could silently pay large costs for a programming error.",
+      "parentUuid": "8ac6ec8f_f70afcdc",
+      "range": {
+        "startLine": 770,
+        "startChar": 23,
+        "endLine": 770,
+        "endChar": 53
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b1d7ce59_338af886",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 23
@@ -467,6 +893,30 @@
       "writtenOn": "2019-02-26T21:27:29Z",
       "side": 1,
       "message": "FWIW, this method is unused.",
+      "range": {
+        "startLine": 834,
+        "startChar": 23,
+        "endLine": 834,
+        "endChar": 33
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a6de768c_d7db21d1",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 834,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "b1d7ce59_338af886",
       "range": {
         "startLine": 834,
         "startChar": 23,
@@ -502,6 +952,30 @@
     },
     {
       "key": {
+        "uuid": "fc2317aa_5b6809f2",
+        "filename": "task_scheduler/go/specs/specs_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 680,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "1241325f_9e1c02a2",
+      "range": {
+        "startLine": 680,
+        "startChar": 2,
+        "endLine": 680,
+        "endChar": 55
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f5314f9_77a92586",
         "filename": "task_scheduler/go/syncer/syncer_test.go",
         "patchSetId": 23
@@ -522,6 +996,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46d21231_64a91ff4",
+        "filename": "task_scheduler/go/syncer/syncer_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f5314f9_77a92586",
+      "range": {
+        "startLine": 143,
+        "startChar": 1,
+        "endLine": 143,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -548,6 +1046,30 @@
     },
     {
       "key": {
+        "uuid": "be80419d_6bdb1877",
+        "filename": "task_scheduler/go/syncer/syncer_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "234bf4e4_05219b22",
+      "range": {
+        "startLine": 178,
+        "startChar": 1,
+        "endLine": 178,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6834858_7adbc28a",
         "filename": "task_scheduler/go/syncer/syncer_test.go",
         "patchSetId": 23
@@ -568,6 +1090,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d703f67c_28acb660",
+        "filename": "task_scheduler/go/syncer/syncer_test.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f6834858_7adbc28a",
+      "range": {
+        "startLine": 225,
+        "startChar": 1,
+        "endLine": 225,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -594,6 +1140,30 @@
     },
     {
       "key": {
+        "uuid": "e6e3054a_c1f995e4",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea29512c_c6da22d3",
+      "range": {
+        "startLine": 135,
+        "startChar": 1,
+        "endLine": 135,
+        "endChar": 2
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "09eecafd_f0301065",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 23
@@ -614,6 +1184,30 @@
       "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b63a80a_162cb6bb",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T15:15:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09eecafd_f0301065",
+      "range": {
+        "startLine": 396,
+        "startChar": 53,
+        "endLine": 396,
+        "endChar": 77
+      },
+      "revId": "3bbe66e633498e47f798fa01fff66dcc6ed7844b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
