@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "c68f88ff_6b388c40",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T20:41:37Z",
+      "side": 1,
+      "message": "Oh, sorry, I read \"Fatalf\" and thought \"Errorf\".",
+      "parentUuid": "2d5c5285_cc876fb1",
+      "range": {
+        "startLine": 69,
+        "startChar": 14,
+        "endLine": 69,
+        "endChar": 16
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cf7da6bc_26305fe8",
         "filename": "task_scheduler/go/types/repo_state.go",
         "patchSetId": 28
@@ -457,6 +481,24 @@
       "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8614d046_078a7e82",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T20:41:37Z",
+      "side": 1,
+      "message": "same here",
+      "parentUuid": "c90b3276_b1f9c53a",
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
