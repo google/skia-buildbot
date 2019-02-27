@@ -279,7 +279,7 @@ func Init() {
 	cidl = cid.New(ctx, git, *gitRepoUrl)
 
 	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(dfBuilder, 15*time.Minute, *numTilesRefresher)
+	freshDataFrame, err = dataframe.NewRefresher(git, dfBuilder, 15*time.Minute, *numTilesRefresher)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
