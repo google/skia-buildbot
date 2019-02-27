@@ -18,11 +18,12 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 type CapacityClient struct {
-	tcc   *specs.TaskCfgCache
+	tcc   *task_cfg_cache.TaskCfgCache
 	tasks cache.TaskCache
 	repos repograph.Map
 	// The cached measurements
@@ -31,7 +32,7 @@ type CapacityClient struct {
 }
 
 // Caller is responsible for periodically updating the arguments.
-func New(tcc *specs.TaskCfgCache, tasks cache.TaskCache, repos repograph.Map) *CapacityClient {
+func New(tcc *task_cfg_cache.TaskCfgCache, tasks cache.TaskCache, repos repograph.Map) *CapacityClient {
 	return &CapacityClient{tcc: tcc, tasks: tasks, repos: repos}
 }
 
