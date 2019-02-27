@@ -46,6 +46,30 @@
       "revId": "674f9dbdb5d05c555196824e57d03672dadfb3de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "538b4777_a3942634",
+        "filename": "task_scheduler/res/imp/task-scheduler-blacklist-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T18:10:58Z",
+      "side": 0,
+      "message": "Ok with me.",
+      "parentUuid": "a9e07747_9227f42a",
+      "range": {
+        "startLine": 175,
+        "startChar": 14,
+        "endLine": 175,
+        "endChar": 49
+      },
+      "revId": "674f9dbdb5d05c555196824e57d03672dadfb3de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
