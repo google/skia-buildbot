@@ -14,15 +14,16 @@ import (
 type imgTestEnv struct {
 	// Flags used by imgtest:init and imgtest:add.
 	flagCommit       string // flag containing the commit hash
-	flagKeysFile     string
-	flagIssueID      string
-	flagPatchsetID   string
-	flagJobID        string
-	flagInstanceID   string
-	flagWorkDir      string
-	flagPassFailStep bool
+	flagDryRun       bool
 	flagFailureFile  string
+	flagInstanceID   string
+	flagIssueID      string
+	flagJobID        string
+	flagKeysFile     string
+	flagPassFailStep bool
+	flagPatchsetID   string
 	flagURL          string
+	flagWorkDir      string
 
 	// Flags used by imgtest:add
 	flagTestName string
@@ -107,6 +108,7 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	cmd.Flags().StringVarP(&i.flagJobID, "jobid", "", "", "Job ID if this is a tryjob run. Current the BuildBucket id.")
 	cmd.Flags().StringVarP(&i.flagFailureFile, "failure-file", "", "", "Path to the file where to write failure information")
 	cmd.Flags().StringVarP(&i.flagURL, "url", "", "", "URL of the Gold instance. Used for testing, if empty the URL will be derived from the value of 'instance'")
+	cmd.Flags().BoolVarP(&i.flagDryRun, "dryrun", "", false, "Run in dryrun mode. This will cause ")
 
 	if !optional {
 		_ = cmd.MarkFlagRequired("instance")
@@ -156,10 +158,10 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 
 	if !pass {
 		logErrf(cmd, "Test: %s FAIL\n", i.flagTestName)
-		os.Exit(1)
+		exitProcess(1)
 	}
 	logInfof(cmd, "Test: %s PASS\n", i.flagTestName)
-	os.Exit(0)
+	exitProcess(0)
 }
 
 // readKeysFile is a helper function to read a JSON file with key/value pairs.
