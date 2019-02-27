@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87481460_6d6a0a6c",
+        "filename": "go/git/util.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 8,
+        "startChar": 54,
+        "endLine": 8,
+        "endChar": 56
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "690815ea_0f8c6169",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "nit: should call Close in TaskScheduler.Close",
+      "range": {
+        "startLine": 157,
+        "startChar": 1,
+        "endLine": 157,
+        "endChar": 13
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4bb7240_a48714c8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "nit: should call in task_scheduler/go/task_scheduler/main.go",
+      "range": {
+        "startLine": 254,
+        "startChar": 24,
+        "endLine": 254,
+        "endChar": 31
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d246f35_37c7fc88",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "nit: Sorry, just realized my comments about closing the BT client for isolate_cache.Cache also apply to TaskCfgCache.",
+      "range": {
+        "startLine": 104,
+        "startChar": 1,
+        "endLine": 104,
+        "endChar": 7
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bb2c3e2_793fcdb0",
+        "filename": "task_scheduler/go/task_cfg_cache/task_cfg_cache_test.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "You may have meant require.",
+      "range": {
+        "startLine": 11,
+        "startChar": 30,
+        "endLine": 11,
+        "endChar": 36
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b146c4a9_7562e4c9",
+        "filename": "task_scheduler/go/task_cfg_cache/testutils/testutils.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "FWIW, I think of these as TasksCfg1 and TasksCfg2 (i.e. TasksCfg for c1/c2).",
+      "range": {
+        "startLine": 91,
+        "startChar": 1,
+        "endLine": 91,
+        "endChar": 13
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "71f5b51a_429b101a",
+        "filename": "task_scheduler/go/tryjobs/testutils.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "nit: should call Close",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 13
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d711459_728a2f0b",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "Should this be p.PatchRepo?",
+      "range": {
+        "startLine": 69,
+        "startChar": 14,
+        "endLine": 69,
+        "endChar": 16
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf7da6bc_26305fe8",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "debugging?",
+      "range": {
+        "startLine": 77,
+        "startChar": 1,
+        "endLine": 77,
+        "endChar": 36
+      },
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0076efbf_fd172b31",
+        "filename": "task_scheduler/go/types/repo_state.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-27T19:35:29Z",
+      "side": 1,
+      "message": "Maybe repo \u003d s.Repo?",
+      "revId": "3e891edc08cb9102bcf0f731aba57bac3c64e05e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
