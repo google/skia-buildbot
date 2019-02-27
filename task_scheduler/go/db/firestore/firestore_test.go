@@ -21,8 +21,8 @@ func TestMain(m *testing.M) {
 }
 
 func setup(t *testing.T) (db.DBCloser, func()) {
-	testutils.MediumTest(t)
 	testutils.ManualTest(t)
+
 	instance := fmt.Sprintf("test-%s", uuid.New())
 	d, err := NewDB(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil, nil)
 	assert.NoError(t, err)

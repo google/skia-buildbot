@@ -70,8 +70,8 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 }
 
 func setup(t *testing.T) (*Client, func()) {
-	testutils.LargeTest(t)
 	testutils.ManualTest(t)
+
 	project := "skia-firestore"
 	app := "firestore_pkg_tests"
 	instance := fmt.Sprintf("test-%s", uuid.New())
