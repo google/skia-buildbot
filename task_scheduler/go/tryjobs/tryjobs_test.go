@@ -371,7 +371,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	// Invalid JobSpec.
 	b8 := Build(t, now)
 	b8.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
-	MockCancelBuild(mock, b8.Id, "Failed to obtain JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master } \\\\u003cnil\\\\u003e}", nil)
+	MockCancelBuild(mock, b8.Id, "Failed to create Job from JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master } \\\\u003cnil\\\\u003e}", nil)
 	result, err = trybots.getJobToSchedule(ctx, b8, now)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
 	assert.Nil(t, result)
@@ -381,7 +381,7 @@ func TestGetJobToSchedule(t *testing.T) {
 	b9 := Build(t, now)
 	b9.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	expect := fmt.Errorf("no cancel!")
-	MockCancelBuild(mock, b9.Id, "Failed to obtain JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master } \\\\u003cnil\\\\u003e}", expect)
+	MockCancelBuild(mock, b9.Id, "Failed to create Job from JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master } \\\\u003cnil\\\\u003e}", expect)
 	result, err = trybots.getJobToSchedule(ctx, b9, now)
 	assert.EqualError(t, err, expect.Error())
 	assert.Nil(t, result)

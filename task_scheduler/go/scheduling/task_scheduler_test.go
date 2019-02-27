@@ -33,8 +33,10 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
+	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
-	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	swarming_testutils "go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -188,7 +190,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *types.Task, dims ma
 func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *swarming_testutils.TestClient, *TaskScheduler, *mockhttpclient.URLMock, func()) {
 	testutils.LargeTest(t)
 
-	ctx, gb, _, _ := specs_testutils.SetupTestRepo(t)
+	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -209,12 +211,15 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
+	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
+		testutils.AssertCloses(t, s)
 		testutils.RemoveAll(t, tmp)
 		gb.Cleanup()
+		btCleanupIsolate()
 		btCleanup()
 	}
 }
@@ -279,7 +284,7 @@ func TestGatherNewJobs(t *testing.T) {
 	cfg, err := specs.ReadTasksCfg(gb.Dir())
 	assert.NoError(t, err)
 	for name, jobSpec := range cfg.Jobs {
-		if name != specs_testutils.BuildTask {
+		if name != tcc_testutils.BuildTaskName {
 			jobSpec.Trigger = specs.TRIGGER_MASTER_ONLY
 		}
 	}
@@ -305,7 +310,13 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	rs2 := getRS2(t, ctx, gb)
 
 	// Get all of the task specs, for future use.
-	ts, err := s.taskCfgCache.GetTaskSpecsForRepoStates(ctx, []types.RepoState{rs1, rs2})
+	_, err := s.cacher.GetOrCacheRepoState(ctx, rs1)
+	assert.NoError(t, err)
+	_, err = s.cacher.GetOrCacheRepoState(ctx, rs2)
+	assert.NoError(t, err)
+	cfg1, err := s.taskCfgCache.Get(ctx, rs1)
+	assert.NoError(t, err)
+	cfg2, err := s.taskCfgCache.Get(ctx, rs2)
 	assert.NoError(t, err)
 
 	// Run on an empty job list, ensure empty list returned.
@@ -319,7 +330,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Created:      now,
 		Id:           "job1id",
 		Name:         "j1",
-		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
@@ -327,17 +338,17 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Jobs: jobSet(j1),
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
-			Name:      specs_testutils.BuildTask,
+			Name:      tcc_testutils.BuildTaskName,
 		},
-		TaskSpec: ts[rs1][specs_testutils.BuildTask].Copy(),
+		TaskSpec: cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
 	tc2 := &taskCandidate{
 		Jobs: jobSet(j1),
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
-			Name:      specs_testutils.TestTask,
+			Name:      tcc_testutils.TestTaskName,
 		},
-		TaskSpec: ts[rs1][specs_testutils.TestTask].Copy(),
+		TaskSpec: cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 
 	test([]*types.Job{j1}, map[types.TaskKey]*taskCandidate{
@@ -351,7 +362,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Created:      now,
 		Id:           "job2id",
 		Name:         "j2",
-		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
@@ -359,7 +370,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Created:      now,
 		Id:           "job3id",
 		Name:         "j3",
-		Dependencies: map[string][]string{specs_testutils.PerfTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
@@ -367,25 +378,25 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Jobs: jobSet(j2, j3),
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
-			Name:      specs_testutils.BuildTask,
+			Name:      tcc_testutils.BuildTaskName,
 		},
-		TaskSpec: ts[rs2][specs_testutils.BuildTask].Copy(),
+		TaskSpec: cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
 	tc4 := &taskCandidate{
 		Jobs: jobSet(j2),
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
-			Name:      specs_testutils.TestTask,
+			Name:      tcc_testutils.TestTaskName,
 		},
-		TaskSpec: ts[rs2][specs_testutils.TestTask].Copy(),
+		TaskSpec: cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 	tc5 := &taskCandidate{
 		Jobs: jobSet(j3),
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
-			Name:      specs_testutils.PerfTask,
+			Name:      tcc_testutils.PerfTaskName,
 		},
-		TaskSpec: ts[rs2][specs_testutils.PerfTask].Copy(),
+		TaskSpec: cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
 	}
 	allCandidates := map[types.TaskKey]*taskCandidate{
 		tc1.TaskKey: tc1,
@@ -397,7 +408,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	test([]*types.Job{j1, j2, j3}, allCandidates)
 
 	// Finish j3, ensure that its task specs no longer show up.
-	delete(allCandidates, j3.MakeTaskKey(specs_testutils.PerfTask))
+	delete(allCandidates, j3.MakeTaskKey(tcc_testutils.PerfTaskName))
 	// This is hacky, but findTaskCandidatesForJobs accepts an already-
 	// filtered list of jobs, so we have to pretend it never existed.
 	delete(tc3.Jobs, j3)
@@ -416,23 +427,23 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// Fake out the initial candidates.
 	k1 := types.TaskKey{
 		RepoState: rs1,
-		Name:      specs_testutils.BuildTask,
+		Name:      tcc_testutils.BuildTaskName,
 	}
 	k2 := types.TaskKey{
 		RepoState: rs1,
-		Name:      specs_testutils.TestTask,
+		Name:      tcc_testutils.TestTaskName,
 	}
 	k3 := types.TaskKey{
 		RepoState: rs2,
-		Name:      specs_testutils.BuildTask,
+		Name:      tcc_testutils.BuildTaskName,
 	}
 	k4 := types.TaskKey{
 		RepoState: rs2,
-		Name:      specs_testutils.TestTask,
+		Name:      tcc_testutils.TestTaskName,
 	}
 	k5 := types.TaskKey{
 		RepoState: rs2,
-		Name:      specs_testutils.PerfTask,
+		Name:      tcc_testutils.PerfTaskName,
 	}
 	candidates := map[types.TaskKey]*taskCandidate{
 		k1: {
@@ -442,7 +453,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		k2: {
 			TaskKey: k2,
 			TaskSpec: &specs.TaskSpec{
-				Dependencies: []string{specs_testutils.BuildTask},
+				Dependencies: []string{tcc_testutils.BuildTaskName},
 			},
 		},
 		k3: {
@@ -452,13 +463,13 @@ func TestFilterTaskCandidates(t *testing.T) {
 		k4: {
 			TaskKey: k4,
 			TaskSpec: &specs.TaskSpec{
-				Dependencies: []string{specs_testutils.BuildTask},
+				Dependencies: []string{tcc_testutils.BuildTaskName},
 			},
 		},
 		k5: {
 			TaskKey: k5,
 			TaskSpec: &specs.TaskSpec{
-				Dependencies: []string{specs_testutils.BuildTask},
+				Dependencies: []string{tcc_testutils.BuildTaskName},
 			},
 		},
 	}
@@ -469,11 +480,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
 	assert.Equal(t, 1, len(c[gb.RepoUrl()]))
-	assert.Equal(t, 2, len(c[gb.RepoUrl()][specs_testutils.BuildTask]))
+	assert.Equal(t, 2, len(c[gb.RepoUrl()][tcc_testutils.BuildTaskName]))
 	for _, byRepo := range c {
 		for _, byName := range byRepo {
 			for _, candidate := range byName {
-				assert.Equal(t, candidate.Name, specs_testutils.BuildTask)
+				assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 			}
 		}
 	}
@@ -505,7 +516,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		for _, byRepo := range c {
 			for _, byName := range byRepo {
 				for _, candidate := range byName {
-					assert.Equal(t, candidate.Name, specs_testutils.BuildTask)
+					assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 					assert.Equal(t, c2, candidate.Revision)
 				}
 			}
@@ -527,7 +538,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		for _, byName := range byRepo {
 			assert.Equal(t, 2, len(byName))
 			for _, candidate := range byName {
-				assert.Equal(t, candidate.Name, specs_testutils.BuildTask)
+				assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 			}
 		}
 	}
@@ -573,12 +584,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 	c, err = s.filterTaskCandidates(candidates)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
-	assert.Equal(t, 2, len(c[gb.RepoUrl()][specs_testutils.TestTask]))
-	assert.Equal(t, 1, len(c[gb.RepoUrl()][specs_testutils.PerfTask]))
+	assert.Equal(t, 2, len(c[gb.RepoUrl()][tcc_testutils.TestTaskName]))
+	assert.Equal(t, 1, len(c[gb.RepoUrl()][tcc_testutils.PerfTaskName]))
 	for _, byRepo := range c {
 		for _, byName := range byRepo {
 			for _, candidate := range byName {
-				assert.NotEqual(t, candidate.Name, specs_testutils.BuildTask)
+				assert.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
 			}
 		}
 	}
@@ -591,18 +602,18 @@ func TestFilterTaskCandidates(t *testing.T) {
 	candidates[tryKey] = &taskCandidate{
 		TaskKey: tryKey,
 		TaskSpec: &specs.TaskSpec{
-			Dependencies: []string{specs_testutils.BuildTask},
+			Dependencies: []string{tcc_testutils.BuildTaskName},
 		},
 	}
 	c, err = s.filterTaskCandidates(candidates)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
-	assert.Equal(t, 2, len(c[gb.RepoUrl()][specs_testutils.TestTask]))
-	assert.Equal(t, 1, len(c[gb.RepoUrl()][specs_testutils.PerfTask]))
+	assert.Equal(t, 2, len(c[gb.RepoUrl()][tcc_testutils.TestTaskName]))
+	assert.Equal(t, 1, len(c[gb.RepoUrl()][tcc_testutils.PerfTaskName]))
 	for _, byRepo := range c {
 		for _, byName := range byRepo {
 			for _, candidate := range byName {
-				assert.NotEqual(t, candidate.Name, specs_testutils.BuildTask)
+				assert.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
 				assert.False(t, candidate.IsTryJob())
 			}
 		}
@@ -724,6 +735,10 @@ func TestProcessTaskCandidates(t *testing.T) {
 
 	rs1 := getRS1(t, ctx, gb)
 	rs2 := getRS2(t, ctx, gb)
+	_, err := s.cacher.GetOrCacheRepoState(ctx, rs1)
+	assert.NoError(t, err)
+	_, err = s.cacher.GetOrCacheRepoState(ctx, rs2)
+	assert.NoError(t, err)
 
 	// Processing of individual candidates is already tested; just verify
 	// that if we pass in a bunch of candidates they all get processed.
@@ -736,10 +751,10 @@ func TestProcessTaskCandidates(t *testing.T) {
 			assert.True(t, c.Score > CANDIDATE_SCORE_FORCE_RUN*0.5)
 			assert.Equal(t, 2, len(c.Commits))
 		} else if c.Revision == rs2.Revision {
-			if c.Name == specs_testutils.PerfTask {
+			if c.Name == tcc_testutils.PerfTaskName {
 				assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 				assert.Equal(t, 1, len(c.Commits))
-			} else if c.Name == specs_testutils.BuildTask {
+			} else if c.Name == tcc_testutils.BuildTaskName {
 				// Already covered by the forced job, but we don't steal scores. There
 				// are two jobs that depend on the Build task, so priority is 1-0.5^2.
 				assert.InDelta(t, 3.5*0.75, c.Score, scoreDelta)
@@ -757,28 +772,28 @@ func TestProcessTaskCandidates(t *testing.T) {
 	testJob1 := &types.Job{
 		Id:        "testJob1",
 		Created:   ts,
-		Name:      specs_testutils.TestTask,
+		Name:      tcc_testutils.TestTaskName,
 		Priority:  0.5,
 		RepoState: rs1,
 	}
 	testJob2 := &types.Job{
 		Id:        "testJob2",
 		Created:   ts,
-		Name:      specs_testutils.TestTask,
+		Name:      tcc_testutils.TestTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
 	}
 	perfJob2 := &types.Job{
 		Id:        "perfJob2",
 		Created:   ts,
-		Name:      specs_testutils.PerfTask,
+		Name:      tcc_testutils.PerfTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
 	}
 	forcedBuildJob2 := &types.Job{
 		Id:        "forcedBuildJob2",
 		Created:   ts,
-		Name:      specs_testutils.BuildTask,
+		Name:      tcc_testutils.BuildTaskName,
 		Priority:  0.5,
 		RepoState: rs2,
 	}
@@ -794,19 +809,19 @@ func TestProcessTaskCandidates(t *testing.T) {
 	perfTryjob2 := &types.Job{
 		Id:        "perfJob2",
 		Created:   ts,
-		Name:      specs_testutils.PerfTask,
+		Name:      tcc_testutils.PerfTaskName,
 		Priority:  0.5,
 		RepoState: tryjobRs,
 	}
 
 	candidates := map[string]map[string][]*taskCandidate{
 		gb.RepoUrl(): {
-			specs_testutils.BuildTask: {
+			tcc_testutils.BuildTaskName: {
 				{
 					Jobs: jobSet(testJob1),
 					TaskKey: types.TaskKey{
 						RepoState: rs1,
-						Name:      specs_testutils.BuildTask,
+						Name:      tcc_testutils.BuildTaskName,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
@@ -814,7 +829,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					Jobs: jobSet(testJob2, perfJob2),
 					TaskKey: types.TaskKey{
 						RepoState: rs2,
-						Name:      specs_testutils.BuildTask,
+						Name:      tcc_testutils.BuildTaskName,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
@@ -822,18 +837,18 @@ func TestProcessTaskCandidates(t *testing.T) {
 					Jobs: jobSet(forcedBuildJob2),
 					TaskKey: types.TaskKey{
 						RepoState:   rs2,
-						Name:        specs_testutils.BuildTask,
+						Name:        tcc_testutils.BuildTaskName,
 						ForcedJobId: forcedBuildJob2.Id,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
 			},
-			specs_testutils.TestTask: {
+			tcc_testutils.TestTaskName: {
 				{
 					Jobs: jobSet(testJob1),
 					TaskKey: types.TaskKey{
 						RepoState: rs1,
-						Name:      specs_testutils.TestTask,
+						Name:      tcc_testutils.TestTaskName,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
@@ -841,17 +856,17 @@ func TestProcessTaskCandidates(t *testing.T) {
 					Jobs: jobSet(testJob2),
 					TaskKey: types.TaskKey{
 						RepoState: rs2,
-						Name:      specs_testutils.TestTask,
+						Name:      tcc_testutils.TestTaskName,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
 			},
-			specs_testutils.PerfTask: {
+			tcc_testutils.PerfTaskName: {
 				{
 					Jobs: jobSet(perfJob2),
 					TaskKey: types.TaskKey{
 						RepoState: rs2,
-						Name:      specs_testutils.PerfTask,
+						Name:      tcc_testutils.PerfTaskName,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
@@ -859,7 +874,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					Jobs: jobSet(perfTryjob2),
 					TaskKey: types.TaskKey{
 						RepoState: tryjobRs,
-						Name:      specs_testutils.PerfTask,
+						Name:      tcc_testutils.PerfTaskName,
 					},
 					TaskSpec: &specs.TaskSpec{},
 				},
@@ -1020,7 +1035,6 @@ func TestComputeBlamelist(t *testing.T) {
 	testutils.LargeTest(t)
 
 	// Setup.
-	specs_testutils.SetupBigTable(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	defer gb.Cleanup()
@@ -1077,10 +1091,11 @@ func TestComputeBlamelist(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
-	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	defer btCleanup()
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, tmp, 1, btProject, btInstance, nil)
+	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
+	defer btCleanupIsolate()
+	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	ids := []string{}
@@ -1324,6 +1339,10 @@ func TestRegenerateTaskQueue(t *testing.T) {
 
 	rs1 := getRS1(t, ctx, gb)
 	rs2 := getRS2(t, ctx, gb)
+	_, err := s.cacher.GetOrCacheRepoState(ctx, rs1)
+	assert.NoError(t, err)
+	_, err = s.cacher.GetOrCacheRepoState(ctx, rs2)
+	assert.NoError(t, err)
 	c1 := rs1.Revision
 	c2 := rs2.Revision
 
@@ -1332,35 +1351,35 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	j1 := &types.Job{
 		Created:      now,
 		Name:         "j1",
-		Dependencies: map[string][]string{specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	j2 := &types.Job{
 		Created:      now,
 		Name:         "j2",
-		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
 	j3 := &types.Job{
 		Created:      now,
 		Name:         "j3",
-		Dependencies: map[string][]string{specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
 	j4 := &types.Job{
 		Created:      now,
 		Name:         "j4",
-		Dependencies: map[string][]string{specs_testutils.TestTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.TestTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
 	j5 := &types.Job{
 		Created:      now,
 		Name:         "j5",
-		Dependencies: map[string][]string{specs_testutils.PerfTask: {specs_testutils.BuildTask}, specs_testutils.BuildTask: {}},
+		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
 		Priority:     0.5,
 		RepoState:    rs2.Copy(),
 	}
@@ -1391,12 +1410,12 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// The one at HEAD should have a two-commit blamelist and a
 	// score of 3.5, scaled by a priority of 0.875 due to three jobs
 	// depending on it (1 - 0.5^3).
-	assert.Equal(t, specs_testutils.BuildTask, queue[0].Name)
+	assert.Equal(t, tcc_testutils.BuildTaskName, queue[0].Name)
 	assert.Equal(t, []string{c2, c1}, queue[0].Commits)
 	assert.InDelta(t, 3.5*0.875, queue[0].Score, scoreDelta)
 	// The other should have one commit in its blamelist and
 	// a score of 0.5, scaled by a priority of 0.75 due to two jobs.
-	assert.Equal(t, specs_testutils.BuildTask, queue[1].Name)
+	assert.Equal(t, tcc_testutils.BuildTaskName, queue[1].Name)
 	assert.Equal(t, []string{c1}, queue[1].Commits)
 	assert.InDelta(t, 0.5*0.75, queue[1].Score, scoreDelta)
 
@@ -1417,25 +1436,25 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.Equal(t, 2, len(queue))
 	testSort()
 	for _, c := range queue {
-		if c.Name == specs_testutils.TestTask {
+		if c.Name == tcc_testutils.TestTaskName {
 			assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 			assert.Equal(t, 1, len(c.Commits))
 		} else {
-			assert.Equal(t, c.Name, specs_testutils.BuildTask)
+			assert.Equal(t, c.Name, tcc_testutils.BuildTaskName)
 			assert.InDelta(t, 2.0*0.875, c.Score, scoreDelta)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		}
 	}
 	buildIdx := 0
 	testIdx := 1
-	if queue[1].Name == specs_testutils.BuildTask {
+	if queue[1].Name == tcc_testutils.BuildTaskName {
 		buildIdx = 1
 		testIdx = 0
 	}
-	assert.Equal(t, specs_testutils.BuildTask, queue[buildIdx].Name)
+	assert.Equal(t, tcc_testutils.BuildTaskName, queue[buildIdx].Name)
 	assert.Equal(t, c2, queue[buildIdx].Revision)
 
-	assert.Equal(t, specs_testutils.TestTask, queue[testIdx].Name)
+	assert.Equal(t, tcc_testutils.TestTaskName, queue[testIdx].Name)
 	assert.Equal(t, c1, queue[testIdx].Revision)
 
 	// Run the other Build task.
@@ -1452,13 +1471,13 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	testSort()
 	perfIdx := -1
 	for i, c := range queue {
-		if c.Name == specs_testutils.PerfTask {
+		if c.Name == tcc_testutils.PerfTaskName {
 			perfIdx = i
 			assert.Equal(t, c2, c.Revision)
 			assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 			assert.Equal(t, []string{c.Revision}, c.Commits)
 		} else {
-			assert.Equal(t, c.Name, specs_testutils.TestTask)
+			assert.Equal(t, c.Name, tcc_testutils.TestTaskName)
 			if c.Revision == c2 {
 				assert.InDelta(t, 3.5*0.5, c.Score, scoreDelta)
 				assert.Equal(t, []string{c2, c1}, c.Commits)
@@ -1471,7 +1490,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.True(t, perfIdx > -1)
 
 	// Run the Test task at tip of tree; its blamelist covers both commits.
-	t3 := makeTask(specs_testutils.TestTask, gb.RepoUrl(), c2)
+	t3 := makeTask(tcc_testutils.TestTaskName, gb.RepoUrl(), c2)
 	t3.Commits = []string{c2, c1}
 	t3.Status = types.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "fake isolated hash"
@@ -1488,10 +1507,10 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.Equal(t, 2, len(queue))
 	testSort()
 	// First candidate should be the perf task.
-	assert.Equal(t, specs_testutils.PerfTask, queue[0].Name)
+	assert.Equal(t, tcc_testutils.PerfTaskName, queue[0].Name)
 	assert.InDelta(t, 2.0*0.5, queue[0].Score, scoreDelta)
 	// The test task is next, a backfill.
-	assert.Equal(t, specs_testutils.TestTask, queue[1].Name)
+	assert.Equal(t, tcc_testutils.TestTaskName, queue[1].Name)
 	assert.InDelta(t, 0.5*0.5, queue[1].Score, scoreDelta)
 }
 
@@ -1667,10 +1686,10 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
-	t1 := tasks[c2][specs_testutils.BuildTask]
+	t1 := tasks[c2][tcc_testutils.BuildTaskName]
 	assert.NotNil(t, t1)
 	assert.Equal(t, c2, t1.Revision)
-	assert.Equal(t, specs_testutils.BuildTask, t1.Name)
+	assert.Equal(t, tcc_testutils.BuildTaskName, t1.Name)
 	assert.Equal(t, []string{c2, c1}, t1.Commits)
 	assert.Equal(t, 1, len(s.queue))
 
@@ -1722,7 +1741,7 @@ func TestSchedulingE2E(t *testing.T) {
 				if task.Revision != commit {
 					continue
 				}
-				assert.Equal(t, specs_testutils.BuildTask, task.Name)
+				assert.Equal(t, tcc_testutils.BuildTaskName, task.Name)
 				assert.Nil(t, t4)
 				t4 = task
 				assert.Equal(t, c1, task.Revision)
@@ -1731,19 +1750,19 @@ func TestSchedulingE2E(t *testing.T) {
 		} else {
 			assert.Equal(t, 3, len(v))
 			for _, task := range v {
-				if task.Name == specs_testutils.TestTask {
+				if task.Name == tcc_testutils.TestTaskName {
 					assert.Nil(t, t2)
 					t2 = task
 					assert.Equal(t, c2, task.Revision)
 					assert.Equal(t, []string{c2, c1}, task.Commits)
-				} else if task.Name == specs_testutils.PerfTask {
+				} else if task.Name == tcc_testutils.PerfTaskName {
 					assert.Nil(t, t3)
 					t3 = task
 					assert.Equal(t, c2, task.Revision)
 					assert.Equal(t, []string{c2}, task.Commits)
 				} else {
 					// This is the first task we triggered.
-					assert.Equal(t, specs_testutils.BuildTask, task.Name)
+					assert.Equal(t, tcc_testutils.BuildTaskName, task.Name)
 				}
 			}
 		}
@@ -1839,7 +1858,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 
 	// Finish the one task.
 	tasksList := []*types.Task{}
-	t1 := tasks[c2][specs_testutils.BuildTask]
+	t1 := tasks[c2][tcc_testutils.BuildTaskName]
 	t1.Status = types.TASK_STATUS_SUCCESS
 	t1.Finished = time.Now()
 	t1.IsolatedOutput = "abc123"
@@ -1870,7 +1889,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[head]))
-	task := tasks[head][specs_testutils.BuildTask]
+	task := tasks[head][tcc_testutils.BuildTaskName]
 	assert.Equal(t, head, task.Revision)
 	expect := commits[:len(commits)-2]
 	sort.Strings(expect)
@@ -1968,7 +1987,6 @@ func (s *spyDB) PutTasks(tasks []*types.Task) error {
 func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *TaskScheduler, *swarming_testutils.TestClient, []string, func(*types.Task), func()) {
 	testutils.LargeTest(t)
 
-	specs_testutils.SetupBigTable(t)
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
 	workdir, err := ioutil.TempDir("", "")
@@ -2029,7 +2047,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, urlMock.Client())
 	assert.NoError(t, err)
 
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
+	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
 	assert.NoError(t, err)
 
@@ -2063,8 +2082,10 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	assert.Nil(t, err)
 	assert.Equal(t, 8, len(commits))
 	return ctx, gb, d, s, swarmingClient, commits, mock, func() {
+		testutils.AssertCloses(t, s)
 		gb.Cleanup()
 		testutils.RemoveAll(t, workdir)
+		btCleanupIsolate()
 		btCleanup()
 	}
 }
@@ -2380,7 +2401,7 @@ func TestTrybots(t *testing.T) {
 		Repo:     rs2.Repo,
 		Revision: rs2.Revision,
 	}
-	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, specs_testutils.TestTask, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
+	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, tcc_testutils.TestTaskName, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
 	tryjobs.MockPeek(mock, []*buildbucket_api.ApiCommonBuildMessage{b}, now, "", "", nil)
 	tryjobs.MockTryLeaseBuild(mock, b.Id, now, nil)
 	tryjobs.MockJobStarted(mock, b.Id, now, nil)
@@ -2452,15 +2473,15 @@ func TestGetTasksForJob(t *testing.T) {
 	var j1, j2, j3, j4, j5 *types.Job
 	for _, j := range jobs {
 		if j.Revision == c1 {
-			if j.Name == specs_testutils.BuildTask {
+			if j.Name == tcc_testutils.BuildTaskName {
 				j1 = j
 			} else {
 				j2 = j
 			}
 		} else {
-			if j.Name == specs_testutils.BuildTask {
+			if j.Name == tcc_testutils.BuildTaskName {
 				j3 = j
-			} else if j.Name == specs_testutils.TestTask {
+			} else if j.Name == tcc_testutils.TestTaskName {
 				j4 = j
 			} else {
 				j5 = j
@@ -2493,22 +2514,22 @@ func TestGetTasksForJob(t *testing.T) {
 	// Test that we get the new tasks where applicable.
 	expect := map[string]map[string][]*types.Task{
 		j1.Id: {
-			specs_testutils.BuildTask: {},
+			tcc_testutils.BuildTaskName: {},
 		},
 		j2.Id: {
-			specs_testutils.BuildTask: {},
-			specs_testutils.TestTask:  {},
+			tcc_testutils.BuildTaskName: {},
+			tcc_testutils.TestTaskName:  {},
 		},
 		j3.Id: {
-			specs_testutils.BuildTask: {t1},
+			tcc_testutils.BuildTaskName: {t1},
 		},
 		j4.Id: {
-			specs_testutils.BuildTask: {t1},
-			specs_testutils.TestTask:  {},
+			tcc_testutils.BuildTaskName: {t1},
+			tcc_testutils.TestTaskName:  {},
 		},
 		j5.Id: {
-			specs_testutils.BuildTask: {t1},
-			specs_testutils.PerfTask:  {},
+			tcc_testutils.BuildTaskName: {t1},
+			tcc_testutils.PerfTaskName:  {},
 		},
 	}
 	for _, j := range jobs {
@@ -2543,9 +2564,9 @@ func TestGetTasksForJob(t *testing.T) {
 	// Verify that both the original t1 and its retry show up.
 	t1, err = s.tCache.GetTask(t1.Id) // t1 was updated.
 	assert.NoError(t, err)
-	expect[j3.Id][specs_testutils.BuildTask] = []*types.Task{t1, t2}
-	expect[j4.Id][specs_testutils.BuildTask] = []*types.Task{t1, t2}
-	expect[j5.Id][specs_testutils.BuildTask] = []*types.Task{t1, t2}
+	expect[j3.Id][tcc_testutils.BuildTaskName] = []*types.Task{t1, t2}
+	expect[j4.Id][tcc_testutils.BuildTaskName] = []*types.Task{t1, t2}
+	expect[j5.Id][tcc_testutils.BuildTaskName] = []*types.Task{t1, t2}
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
@@ -2586,14 +2607,14 @@ func TestGetTasksForJob(t *testing.T) {
 	assert.Equal(t, 2, len(tasks)) // Test and perf at c2.
 	var t4, t5 *types.Task
 	for _, task := range tasks {
-		if task.Name == specs_testutils.TestTask {
+		if task.Name == tcc_testutils.TestTaskName {
 			t4 = task
 		} else {
 			t5 = task
 		}
 	}
-	expect[j4.Id][specs_testutils.TestTask] = []*types.Task{t4}
-	expect[j5.Id][specs_testutils.PerfTask] = []*types.Task{t5}
+	expect[j4.Id][tcc_testutils.TestTaskName] = []*types.Task{t4}
+	expect[j5.Id][tcc_testutils.PerfTaskName] = []*types.Task{t5}
 	for _, j := range jobs {
 		tasksByName, err := s.getTasksForJob(j)
 		assert.NoError(t, err)
@@ -3361,9 +3382,11 @@ func TestIsolateTaskFailed(t *testing.T) {
 	ctx, gb, _, s, swarmingClient, commits, _, cleanup := testMultipleCandidatesBackfillingEachOtherSetup(t)
 	defer cleanup()
 
-	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
-	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
-	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	bots := make([]*swarming_api.SwarmingRpcsBotInfo, 0, 25)
+	for i := 0; i < 25; i++ {
+		bots = append(bots, makeBot(fmt.Sprintf("bot%d", i), map[string]string{"pool": "Skia"}))
+	}
+	swarmingClient.MockBots(bots)
 
 	// Create a new commit with a bad isolate.
 	gb.Add(ctx, path.Join("infra", "bots", "dummy.isolate"), `sadkldsafkldsafkl30909098]]]]];;0`)
@@ -3381,7 +3404,6 @@ func TestIsolateTaskFailed(t *testing.T) {
   },
 }`)
 	fix := gb.Commit(ctx)
-
 	commits = append([]string{fix, badCommit}, commits...)
 
 	// Now we have 9 untested commits. Add 8 more to put the bad commit
@@ -3389,32 +3411,23 @@ func TestIsolateTaskFailed(t *testing.T) {
 	for i := 0; i < 8; i++ {
 		commits = append([]string{gb.CommitGen(ctx, "dummyfile")}, commits...)
 	}
-
-	// We should run at tip-of-tree, and attempt to run at the bad commit.
+	// Expect no error since we don't block scheduling for permanent errors.
 	err := s.MainLoop(ctx)
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "failed to process isolate"))
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "failed to process isolate")
+	assert.True(t, specs.ErrorIsPermanent(err))
 	assert.NoError(t, s.tCache.Update())
-	assert.Equal(t, 17, len(s.queue))
-	assert.Equal(t, badCommit, s.queue[0].Revision)
+	// We'll try to trigger all tasks but the one for the bad commit will
+	// fail. Ensure that we triggered all of the others.
+	assert.Equal(t, 0, len(s.queue))
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
 	assert.NoError(t, err)
 
-	var t1 *types.Task
+	numTasks := 0
 	for _, byName := range tasks {
-		for _, task := range byName {
-			if task.Revision == commits[0] {
-				t1 = task
-			} else {
-				assert.FailNow(t, fmt.Sprintf("Task has unknown revision %s: %+v", task.Revision, task))
-			}
+		for _, _ = range byName {
+			numTasks++
 		}
 	}
-	assert.NotNil(t, t1)
-
-	// Ensure that we got the blamelists right.
-	expect1 := util.CopyStringSlice(commits)
-	sort.Strings(expect1)
-	sort.Strings(t1.Commits)
-	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
+	assert.Equal(t, 18, numTasks)
 }
