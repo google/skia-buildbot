@@ -22,6 +22,30 @@
       "revId": "88b55a1dd9be8f7b5198291f4c7928c34dc2c9b9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcafad3d_efb9f8da",
+        "filename": "go/testutils/testutils.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T20:11:14Z",
+      "side": 1,
+      "message": "Yeah, I debated that.  I\u0027ll switch it to true, but my reasoning was that \"manual\" (to me anyway) suggests that it doesn\u0027t run unless I explicitly say so.",
+      "parentUuid": "60a49cc6_3a1d0fd9",
+      "range": {
+        "startLine": 41,
+        "startChar": 15,
+        "endLine": 41,
+        "endChar": 20
+      },
+      "revId": "88b55a1dd9be8f7b5198291f4c7928c34dc2c9b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
