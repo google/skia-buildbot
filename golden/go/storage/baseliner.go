@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -135,7 +136,7 @@ func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 }
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *tally.Tallies) error {
+func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile, tallies *tally.Tallies) error {
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
@@ -147,7 +148,7 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies 
 		return skerr.Fmt("Unable to get TryjobResults")
 	}
 	talliesByTest := tallies.ByTest()
-	baseLine, err := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, tile.Commits, talliesByTest)
+	baseLine, err := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, cpxTile, talliesByTest)
 	if err != nil {
 		return skerr.Fmt("Error calculating issue baseline: %s", err)
 	}

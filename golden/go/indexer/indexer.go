@@ -39,7 +39,7 @@ const (
 // considered as immutable. Whenever the underlying data change
 // a new index is calculated via a pdag.
 type SearchIndex struct {
-	tilePair             *types.TilePair
+	cpxTile              *types.ComplexTile
 	tallies              *tally.Tallies
 	talliesWithIgnores   *tally.Tallies
 	summaries            *summary.Summaries
@@ -57,9 +57,9 @@ type SearchIndex struct {
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *SearchIndex {
+func newSearchIndex(storages *storage.Storage, cpxTile *types.ComplexTile) *SearchIndex {
 	return &SearchIndex{
-		tilePair:             tilePair,
+		cpxTile:              cpxTile,
 		tallies:              tally.New(),
 		talliesWithIgnores:   tally.New(),
 		summaries:            summary.New(storages),
@@ -72,17 +72,18 @@ func newSearchIndex(storages *storage.Storage, tilePair *types.TilePair) *Search
 }
 
 // GetTile returns the current tile either with or without the ignored traces.
-func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
-	if includeIgnores {
-		return idx.tilePair.TileWithIgnores
-	}
-	return idx.tilePair.Tile
-}
+// func (idx *SearchIndex) GetTile(includeIgnores bool) *tiling.Tile {
+// 	if includeIgnores {
+// 		return idx.tilePair.TileWithIgnores
+// 	}
+// 	return idx.tilePair.Tile
+// }
 
 // GetIgnoreMatcher returns a matcher for the ignore rules that were used to
 // build the tile with ignores.
 func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
-	return idx.tilePair.IgnoreRules
+	// return idx.tilePair.IgnoreRules
+	return idx.cpxTile.IgnoreRules
 }
 
 // Proxy to tally.Tallies.ByTest
@@ -111,7 +112,7 @@ func (idx *SearchIndex) TalliesByTrace(includeIgnores bool) map[string]tally.Tal
 
 // ByQuery returns a Tally of all the digests that match the given query.
 func (idx *SearchIndex) TalliesByQuery(query url.Values, includeIgnores bool) tally.Tally {
-	return idx.tallies.ByQuery(idx.GetTile(includeIgnores), query)
+	return idx.tallies.ByQuery(idx.cpxTile.GetTile(includeIgnores), query)
 }
 
 // Proxy to summary.Summary.Get.
@@ -124,10 +125,11 @@ func (idx *SearchIndex) GetSummaries(includeIgnores bool) map[string]*summary.Su
 
 // Proxy to summary.CalcSummaries.
 func (idx *SearchIndex) CalcSummaries(testNames []string, query url.Values, includeIgnores, head bool) (map[string]*summary.Summary, error) {
-	if includeIgnores {
-		return idx.summaries.CalcSummaries(idx.tilePair.TileWithIgnores, testNames, query, head)
-	}
-	return idx.summaries.CalcSummaries(idx.tilePair.Tile, testNames, query, head)
+	// if includeIgnores {
+	// 	return idx.summaries.CalcSummaries(idx.tilePair.TileWithIgnores, testNames, query, head)
+	// }
+	// return idx.summaries.CalcSummaries(idx.tilePair.Tile, testNames, query, head)
+	return idx.summaries.CalcSummaries(idx.cpxTile.GetTile(includeIgnores), testNames, query, head)
 }
 
 // Proxy to paramsets.Get
@@ -237,15 +239,15 @@ func (ixr *Indexer) start(interval time.Duration) error {
 
 	// Keep building indices as tiles become available and expecations change.
 	go func() {
-		var tilePair *types.TilePair
+		var cpxTile *types.ComplexTile
 		for {
 			testChanges := []types.TestExp{}
 
 			// See if there is a tile or changed tests.
-			tilePair = nil
+			cpxTile = nil
 			select {
 			// Catch a new tile.
-			case tilePair = <-tileStream:
+			case cpxTile = <-tileStream:
 
 			// Catch any test changes.
 			case tn := <-expCh:
@@ -265,8 +267,8 @@ func (ixr *Indexer) start(interval time.Duration) error {
 
 			// If there is a tile, re-index everything and forget the
 			// individual tests that changed.
-			if tilePair != nil {
-				if err := ixr.indexTilePair(tilePair); err != nil {
+			if cpxTile != nil {
+				if err := ixr.indexTilePair(cpxTile); err != nil {
 					sklog.Errorf("Unable to index tile: %s", err)
 				}
 			} else if len(testChanges) > 0 {
@@ -280,10 +282,10 @@ func (ixr *Indexer) start(interval time.Duration) error {
 }
 
 // indexTilePair runs the given TilePair through the the indexing pipeline.
-func (ixr *Indexer) indexTilePair(tilePair *types.TilePair) error {
+func (ixr *Indexer) indexTilePair(cpxTile *types.ComplexTile) error {
 	defer timer.New("indexTilePair").Stop()
 	// Create a new index from the given tile.
-	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, tilePair))
+	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile))
 }
 
 // indexTest creates an updated index by indexing the given list of expectation changes.
@@ -299,7 +301,7 @@ func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 	defer timer.New("indexTests").Stop()
 	lastIdx := ixr.GetIndex()
 	newIdx := &SearchIndex{
-		tilePair:             lastIdx.tilePair,
+		cpxTile:              lastIdx.cpxTile,
 		tallies:              lastIdx.tallies,            // stay the same even if tests change.
 		talliesWithIgnores:   lastIdx.talliesWithIgnores, // stay the same even if tests change.
 		summaries:            lastIdx.summaries.Clone(),
@@ -443,7 +445,7 @@ func writeMasterBaseline(state interface{}) error {
 
 	// Write the baseline asynchronously.
 	go func() {
-		if err := idx.storages.Baseliner.PushMasterBaselines(idx.GetTile(false)); err != nil {
+		if err := idx.storages.Baseliner.PushMasterBaselines(idx.cpxTile); err != nil {
 			sklog.Errorf("Error pushing master baseline to GCS: %s", err)
 		}
 	}()
@@ -451,7 +453,7 @@ func writeMasterBaseline(state interface{}) error {
 	return nil
 }
 
-// runWamer is the pipeline function to run the wamer. It runs it
+// runWarmer is the pipeline function to run the wamer. It runs it
 // asynchronously since its results are not relevant for the searchIndex.
 func runWarmer(state interface{}) error {
 	idx := state.(*SearchIndex)

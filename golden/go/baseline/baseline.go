@@ -130,7 +130,7 @@ func EmptyBaseline(startCommit, endCommit *tiling.Commit) *CommitableBaseLine {
 
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit, talliesByTest map[string]tally.Tally) (*CommitableBaseLine, error) {
+func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, cpxTile *types.ComplexTile, talliesByTest map[string]tally.Tally) (*CommitableBaseLine, error) {
 	var startCommit *tiling.Commit = commits[len(commits)-1]
 	var endCommit *tiling.Commit = commits[len(commits)-1]
 
