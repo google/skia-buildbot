@@ -35,13 +35,14 @@ function leaf(v) {
   }
 }
 
-const SHAPES = {
-  '0': 'Precomputed',
-  '1': 'Solid',
-  '2': 'Image',
-  '3': 'Null',
-  '4': 'Shape',
-  '5': 'Text',
+const LAYERS = {
+   '0': 'Precomposed',
+   '1': 'Solid',
+   '2': 'Image',
+   '3': 'Null',
+   '4': 'Shape',
+   '5': 'Text',
+  '13': 'Camera',
 }
 
 const BLEND_MODE = {
@@ -253,7 +254,7 @@ export const SCHEMA = {
         return `Blend Mode: ${s}`
       }),
       'ty': leaf((text) => {
-        let s = SHAPES[text] || 'UNKNOWN/INVALID';
+        let s = LAYERS[text] || 'UNKNOWN/INVALID';
         return `Type of Layer: ${s}`
       }),
 
