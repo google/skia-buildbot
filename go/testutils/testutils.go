@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/compute/metadata"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
 )
@@ -23,12 +22,14 @@ const (
 	SMALL_TEST  = "small"
 	MEDIUM_TEST = "medium"
 	LARGE_TEST  = "large"
+	MANUAL_TEST = "manual"
 )
 
 var (
 	small         = flag.Bool(SMALL_TEST, false, "Whether or not to run small tests.")
 	medium        = flag.Bool(MEDIUM_TEST, false, "Whether or not to run medium tests.")
 	large         = flag.Bool(LARGE_TEST, false, "Whether or not to run large tests.")
+	manual        = flag.Bool(MANUAL_TEST, false, "Whether or not to run manual tests.")
 	uncategorized = flag.Bool("uncategorized", false, "Only run uncategorized tests.")
 
 	// DEFAULT_RUN indicates whether the given test type runs by default
@@ -37,11 +38,13 @@ var (
 		SMALL_TEST:  true,
 		MEDIUM_TEST: true,
 		LARGE_TEST:  true,
+		MANUAL_TEST: true,
 	}
 
 	TIMEOUT_SMALL  = "4s"
 	TIMEOUT_MEDIUM = "15s"
 	TIMEOUT_LARGE  = "4m"
+	TIMEOUT_MANUAL = TIMEOUT_LARGE
 
 	TIMEOUT_RACE = "5m"
 
@@ -50,6 +53,7 @@ var (
 		SMALL_TEST,
 		MEDIUM_TEST,
 		LARGE_TEST,
+		MANUAL_TEST,
 	}
 
 	// TryAgainErr use used by TryUntil.
@@ -84,7 +88,7 @@ func ShouldRun(testType string) bool {
 	}
 
 	// Fallback if no test filter is specified.
-	if !*small && !*medium && !*large {
+	if !*small && !*medium && !*large && !*manual {
 		return DEFAULT_RUN[testType]
 	}
 
@@ -95,6 +99,8 @@ func ShouldRun(testType string) bool {
 		return *medium
 	case LARGE_TEST:
 		return *large
+	case MANUAL_TEST:
+		return *manual
 	}
 	return false
 }
@@ -129,9 +135,9 @@ func LargeTest(t TestingT) {
 
 // ManualTest is a function which should be called at the beginning of tests
 // which shouldn't run on the bots due to excessive running time, external
-// requirements, etc.
+// requirements, etc. These only run when the --manual flag is set.
 func ManualTest(t TestingT) {
-	if os.Getenv("SWARMING_HEADLESS") == "1" {
+	if !ShouldRun(MANUAL_TEST) {
 		t.Skip("Not running manual tests.")
 	}
 }
@@ -285,11 +291,4 @@ func EventuallyConsistent(duration time.Duration, f func() error) error {
 		}
 	}
 	return fmt.Errorf("Failed to pass test in allotted time.")
-}
-
-// LocalOnlyTest will skip the test if it is bein run on GCE.
-func LocalOnlyTest(t TestingT) {
-	if metadata.OnGCE() {
-		t.Skipf("Test is only run locally.")
-	}
 }
