@@ -8,11 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2"
 )
@@ -24,7 +23,7 @@ type tasksPerCommitCache struct {
 	mtx    sync.Mutex
 	period time.Duration
 	repos  repograph.Map
-	tcc    *specs.TaskCfgCache
+	tcc    *task_cfg_cache.TaskCfgCache
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
@@ -39,12 +38,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir, recipesCfgFile string,
 			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
 		}
 	}
-	depotTools, err := depot_tools.GetDepotTools(ctx, wd, recipesCfgFile)
-	if err != nil {
-		return nil, err
-	}
-	gitCache := path.Join(wd, "cache")
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, gitCache, 3, btProject, btInstance, ts)
+	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, ts)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +63,13 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs types.RepoState) (int,
 
 	if _, ok := c.cached[rs]; !ok {
 		// Find the number of TaskSpecs expected to run at this commit.
-		cfg, err := c.tcc.ReadTasksCfg(ctx, rs)
-		if err != nil {
+		cfg, err := c.tcc.Get(ctx, rs)
+		if err == task_cfg_cache.ErrNoSuchEntry {
+			// The TasksCfg for this RepoState hasn't been cached
+			// yet. Return 0 with no error for now.
+			sklog.Warningf("No cache entry for %s@%s; returning 0.", rs.Repo, rs.Revision)
+			return 0, nil
+		} else if err != nil {
 			return 0, err
 		}
 		tasksForCommit := make(map[string]bool, len(cfg.Tasks))
@@ -114,5 +113,5 @@ func (c *tasksPerCommitCache) update(ctx context.Context) error {
 			delete(c.cached, rs)
 		}
 	}
-	return c.tcc.Cleanup(c.period)
+	return c.tcc.Cleanup(ctx, c.period)
 }

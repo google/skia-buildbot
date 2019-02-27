@@ -654,6 +654,9 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	cleanup.AtExit(func() {
+		util.LogErr(ts.Close())
+	})
 
 	sklog.Infof("Created task scheduler. Starting loop.")
 	ts.Start(ctx, !*disableTryjobs, func() {})
