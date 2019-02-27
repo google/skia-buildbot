@@ -14,11 +14,6 @@
 
     <job-trigger-sk></job-trigger-sk>
 
-  Properties:
-    // input
-    job_specs: Array<String> the names of the available job_specs.
-    commits: Array<String> commit hashes.
-
   Methods:
     None.
 
@@ -50,13 +45,11 @@
         <div class="container">
           <h2>Job</h2>
           <autocomplete-input-sk
-              autocomplete="[[job_specs]]"
               id="job_specs_input"
               value="{{item.name}}"
               on-change="_jobs_changed"></autocomplete-input-sk>
           <h2>Commit</h2>
           <autocomplete-input-sk
-              autocomplete="[[commits]]"
               id="commit_input"
               value="{{item.commit}}"
               on-change="_jobs_changed"></autocomplete-input-sk>
@@ -81,12 +74,6 @@
       is: "job-trigger-sk",
 
       properties: {
-        job_specs: {
-          type: Array,
-        },
-        commits: {
-          type: Array,
-        },
         _immediate: {
           type: Boolean,
           value: false,

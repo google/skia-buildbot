@@ -96,8 +96,6 @@
     <template>
       <job-search-sk
           recent_repos="[[recent_repos]]"
-          recent_job_names="[[recent_job_names]]"
-          recent_commits="[[recent_commits]]"
           recent_servers="[[recent_servers]]"
           valid_statuses="[[valid_statuses]]"
           ></job-search-sk>
@@ -110,12 +108,6 @@
             recent_repos: {
               type: Array,
             },
-            recent_job_names: {
-              type: Array,
-            },
-            recent_commits: {
-              type: Array,
-            },
             recent_servers: {
               type: Array,
             },
@@ -126,23 +118,17 @@
 
         ready: function() {
           var recent_repos = new Set();
-          var recent_job_names = new Set();
-          var recent_commits = new Set();
           var recent_servers = new Set();
           var valid_statuses = new Set();
           for (var i = 0; i < jobs.length; i++) {
             var job = jobs[i];
             recent_repos.add(job.repo);
-            recent_job_names.add(job.name);
-            recent_commits.add(job.revision);
             if (job.server) {
               recent_servers.add(job.server);
             }
             valid_statuses.add(job.status);
           }
           this.set("recent_repos", Array.from(recent_repos));
-          this.set("recent_job_names", Array.from(recent_job_names));
-          this.set("recent_commits", Array.from(recent_commits));
           this.set("recent_servers", Array.from(recent_servers));
           this.set("valid_statuses", Array.from(valid_statuses));
         },

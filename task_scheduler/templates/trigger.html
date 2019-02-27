@@ -3,19 +3,4 @@
 <h2>Trigger Jobs</h2>
 <job-trigger-sk id="trigger_sk"></job-trigger-sk>
 
-<script>
-// Add task_spec and commit lists from the server to the task-trigger-sk.
-var t = document.getElementById("trigger_sk");
-t.job_specs = [
-  {{range .JobSpecs}}
-  "{{.}}",
-  {{end}}
-];
-t.commits = [
-  {{range .Commits}}
-  "{{.}}",
-  {{end}}
-];
-</script>
-
 {{template "footer.html"}}

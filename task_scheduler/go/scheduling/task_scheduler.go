@@ -283,12 +283,6 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidat
 	return rv
 }
 
-// RecentSpecsAndCommits returns the lists of recent JobSpec names, TaskSpec
-// names and commit hashes.
-func (s *TaskScheduler) RecentSpecsAndCommits() ([]string, []string, []string) {
-	return s.taskCfgCache.RecentSpecsAndCommits()
-}
-
 // MaybeTriggerPeriodicJobs triggers all periodic jobs with the given trigger
 // name, if those jobs haven't already been triggered.
 func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName string) error {

@@ -430,13 +430,6 @@ type TaskCfgCache struct {
 	mtx           sync.RWMutex
 	// protected by mtx
 	addedTasksCache map[types.RepoState]util.StringSet
-	recentCommits   map[string]time.Time
-	recentJobSpecs  map[string]time.Time
-	// protects recentCommits, recentJobSpecs, and recentTaskSpecs. When
-	// locking multiple mutexes, mtx should be locked first, followed by
-	// cache[*].mtx when applicable, then recentMtx.
-	recentMtx       sync.RWMutex
-	recentTaskSpecs map[string]time.Time
 	repos           repograph.Map
 	table           *bigtable.Table
 	queue           chan func(int)
@@ -461,12 +454,8 @@ func NewTaskCfgCache(ctx context.Context, repos repograph.Map, depotToolsDir, wo
 	}
 	// TODO(borenet): Pre-fetch entries for commits in range. This would be
 	// simpler if we passed in a Window or a list of commits or RepoStates.
-	// Maybe the recent* caches belong in a separate cache entirely?
 	c.cache = map[types.RepoState]*cacheEntry{}
 	c.addedTasksCache = map[types.RepoState]util.StringSet{}
-	c.recentCommits = map[string]time.Time{}
-	c.recentJobSpecs = map[string]time.Time{}
-	c.recentTaskSpecs = map[string]time.Time{}
 	for i := 0; i < numWorkers; i++ {
 		go func(i int) {
 			for f := range queue {
@@ -632,11 +621,6 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 		return nil, errors.New(e.err)
 	}
 
-	r, ok := e.c.repos[e.rs.Repo]
-	if !ok {
-		return nil, fmt.Errorf("Unknown repo %q", e.rs.Repo)
-	}
-
 	// Try to read the TasksCfg from BigTable.
 	cfg, err := GetTasksCfgFromBigTable(e.c.table, e.rs)
 	if err != nil {
@@ -647,7 +631,7 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 	}
 	if cfg != nil {
 		e.cfg = cfg
-		return cfg, e.c.updateSecondaryCaches(r, e.rs, cfg)
+		return cfg, nil
 	}
 
 	// We haven't seen this RepoState before, or it's scrolled out of our
@@ -679,36 +663,8 @@ func (e *cacheEntry) Get(ctx context.Context) (*TasksCfg, error) {
 		}
 		return nil, err
 	}
-	if err := e.c.updateSecondaryCaches(r, e.rs, cfg); err != nil {
-		return nil, err
-	}
 	e.cfg = cfg
 	return cfg, WriteTasksCfgToBigTable(e.c.table, e.rs, cfg, nil)
-}
-
-func (c *TaskCfgCache) updateSecondaryCaches(r *repograph.Graph, rs types.RepoState, cfg *TasksCfg) error {
-	// Write the commit and task specs into the recent lists.
-	c.recentMtx.Lock()
-	defer c.recentMtx.Unlock()
-	d := r.Get(rs.Revision)
-	if d == nil {
-		return fmt.Errorf("Unknown revision %s in %s", rs.Revision, rs.Repo)
-	}
-	ts := d.Timestamp
-	if ts.After(c.recentCommits[rs.Revision]) {
-		c.recentCommits[rs.Revision] = ts
-	}
-	for name := range cfg.Tasks {
-		if ts.After(c.recentTaskSpecs[name]) {
-			c.recentTaskSpecs[name] = ts
-		}
-	}
-	for name := range cfg.Jobs {
-		if ts.After(c.recentJobSpecs[name]) {
-			c.recentJobSpecs[name] = ts
-		}
-	}
-	return nil
 }
 
 func (c *TaskCfgCache) getEntry(rs types.RepoState) *cacheEntry {
@@ -914,23 +870,6 @@ func (c *TaskCfgCache) Cleanup(period time.Duration) error {
 			delete(c.addedTasksCache, repoState)
 		}
 	}
-	c.recentMtx.Lock()
-	defer c.recentMtx.Unlock()
-	for k, ts := range c.recentCommits {
-		if ts.Before(periodStart) {
-			delete(c.recentCommits, k)
-		}
-	}
-	for k, ts := range c.recentTaskSpecs {
-		if ts.Before(periodStart) {
-			delete(c.recentTaskSpecs, k)
-		}
-	}
-	for k, ts := range c.recentJobSpecs {
-		if ts.Before(periodStart) {
-			delete(c.recentJobSpecs, k)
-		}
-	}
 	return nil
 }
 
@@ -940,14 +879,6 @@ func stringMapKeys(m map[string]time.Time) []string {
 		rv = append(rv, k)
 	}
 	return rv
-}
-
-// RecentSpecsAndCommits returns lists of recent job and task spec names and
-// commit hashes.
-func (c *TaskCfgCache) RecentSpecsAndCommits() ([]string, []string, []string) {
-	c.recentMtx.RLock()
-	defer c.recentMtx.RUnlock()
-	return stringMapKeys(c.recentJobSpecs), stringMapKeys(c.recentTaskSpecs), stringMapKeys(c.recentCommits)
 }
 
 // findCycles searches for cyclical dependencies in the task specs and returns

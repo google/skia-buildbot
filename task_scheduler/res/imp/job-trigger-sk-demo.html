@@ -36,46 +36,11 @@
 <body>
 <dom-module id="job-trigger-demo">
   <template>
-    <job-trigger-sk job_specs="[[job_specs]]" commits="[[commits]]"></job-trigger-sk>
+    <job-trigger-sk></job-trigger-sk>
   </template>
   <script>
   Polymer({
     is: 'job-trigger-demo',
-
-    properties: {
-      job_specs: {
-        type: Array,
-        value: function() {
-          return [
-            "Build-Mac-Clang-Arm7-Debug-Android",
-            "Build-Mac-Clang-Arm7-Debug-iOS",
-            "Build-Mac-Clang-x86_64-Debug",
-            "Build-Mac-Clang-x86_64-Release",
-            "Build-Mac-Clang-x86_64-Release-CMake",
-            "Build-Ubuntu-Clang-x86_64-Debug",
-            "Build-Ubuntu-GCC-Arm64-Debug-Android",
-            "Build-Ubuntu-GCC-Arm64-Release-Android",
-          ];
-        },
-      },
-      commits: {
-        type: Array,
-        value: function() {
-          return [
-            "1afb8f8965b0549525c1ad8d8baa885ccdb48f6d",
-            "cb4efa90ab5f6ea7cf5e0f44aec6f4e6418aad3d",
-            "632d004677de66a985d05c25a25e25272c740ede",
-            "3917cf4ef76dabecd340f1e4cd7999802809e5ca",
-            "1d8de594f126b9a80bd8f8fa2005e90faf3b5b17",
-            "1d20258360a7fc0fac86a8a1ec8ad5016100f7d6",
-            "111a42d9cebf0bb8844c5d24f67fac57cc619d29",
-            "05dceabf3422b785b52439378aa5527c42c6ca18",
-            "7732c0cae7403639ad0ce88b8f06d9030ee1ca84",
-            "6efeda4838f5944e4e14ff156be5593aa59cf1aa",
-          ];
-        },
-      }
-    },
   });
   </script>
 </dom-module>

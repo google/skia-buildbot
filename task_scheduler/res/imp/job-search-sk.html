@@ -14,8 +14,6 @@
 
   Properties:
     recent_repos: Array, optional list of repo URLs used for auto-completion.
-    recent_job_names: Array, optional list of job names used for auto-completion.
-    recent_commits: Array, optional list of commit hashes used for auto-completion.
     recent_servers: Array, optional list of codereview servers used for auto-completion.
     valid_statuses: Array, optional list of valid job statuses used for auto-completion.
 
@@ -82,7 +80,7 @@
             <div class="timeSelect">Start: <date-time-picker-sk format="ISO" value="{{_time_start}}"></date-time-picker-sk></div>
             <div class="timeSelect">End: <date-time-picker-sk format="ISO" value="{{_time_end}}"></date-time-picker-sk></div>
             <autocomplete-input-sk value="{{repo}}" label="Repo" autocomplete="[[recent_repos]]"></autocomplete-input-sk>
-            <autocomplete-input-sk value="{{revision}}" label="Revision" autocomplete="[[recent_commits]]"></autocomplete-input-sk>
+            <autocomplete-input-sk value="{{revision}}" label="Revision"></autocomplete-input-sk>
             <autocomplete-input-sk value="{{server}}" label="Server" autocomplete="[[recent_servers]]"></autocomplete-input-sk>
             <paper-input value="{{issue}}" label="Issue"></paper-input>
           </div>
@@ -90,7 +88,7 @@
             <autocomplete-input-sk value="{{patchset}}" label="Patchset"></autocomplete-input-sk>
             <autocomplete-input-sk value="{{buildbucket_build_id}}" label="Buildbucket Build ID"></autocomplete-input-sk>
             <div><paper-checkbox checked="{{isForce}}">Is Force</paper-input></div>
-            <autocomplete-input-sk value="{{name}}" label="Name" autocomplete="[[recent_job_names]]"></autocomplete-input-sk>
+            <autocomplete-input-sk value="{{name}}" label="Name"></autocomplete-input-sk>
             <autocomplete-input-sk value="{{status}}" label="Status" autocomplete="[[valid_statuses]]"></autocomplete-input-sk>
             <div class="searchButton layout vertical center">
               <paper-button on-tap="_search" class="searchButton bg-redorange" raised>Search</paper-button>
@@ -159,12 +157,6 @@
 
       properties: {
         recent_repos: {
-          type: Array,
-        },
-        recent_job_names: {
-          type: Array,
-        },
-        recent_commits: {
           type: Array,
         },
         recent_servers: {

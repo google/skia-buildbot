@@ -7,8 +7,6 @@
 // Add status information from the server to the task-scheduler-blacklist-sk.
 var elem = document.getElementById("blacklist_sk");
 var data = JSON.parse("{{.Data}}");
-elem.task_specs = data.TaskSpecs;
-elem.commits = data.Commits;
 elem.rules = data.Rules;
 </script>
 {{template "footer.html"}}
