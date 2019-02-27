@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -65,7 +66,7 @@ func main() {
 	ctx := context.Background()
 	for _, repoURL := range *repoURLs {
 		go func(repoURL string) {
-			repoDir, err := gitstore.NormalizeURL(repoURL)
+			repoDir, err := git.NormalizeURL(repoURL)
 			if err != nil {
 				sklog.Fatalf("Error getting normalized URL for %q:  %s", repoURL, err)
 			}
