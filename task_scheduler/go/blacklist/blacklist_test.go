@@ -17,8 +17,8 @@ import (
 )
 
 func setup(t *testing.T) (*Blacklist, func()) {
-	testutils.MediumTest(t)
 	testutils.ManualTest(t)
+
 	instance := fmt.Sprintf("test-%s", uuid.New())
 	b, err := New(context.Background(), firestore.FIRESTORE_PROJECT, instance, nil)
 	assert.NoError(t, err)
