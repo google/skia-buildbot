@@ -11,18 +11,6 @@ var repos = [
   {{end}}
 ];
 
-var jobs = [
-  {{range .JobSpecs}}
-    "{{.}}",
-  {{end}}
-];
-
-var commits = [
-  {{range .Commits}}
-    "{{.}}",
-  {{end}}
-];
-
 var servers = [
   {{range .Servers}}
     "{{.}}",
@@ -37,8 +25,6 @@ var statuses = [
 
 var elem = document.getElementsByTagName("job-search-sk")[0];
 elem.recent_repos = repos;
-elem.recent_job_names = jobs;
-elem.recent_commits = commits;
 elem.recent_servers = servers;
 elem.valid_statuses = statuses;
 </script>

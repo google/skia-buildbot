@@ -767,9 +767,6 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 			deepequal.AssertDeepEqual(t, v.rs, v2.rs)
 		}
 		deepequal.AssertDeepEqual(t, c.addedTasksCache, c2.addedTasksCache)
-		deepequal.AssertDeepEqual(t, c.recentCommits, c2.recentCommits)
-		deepequal.AssertDeepEqual(t, c.recentJobSpecs, c2.recentJobSpecs)
-		deepequal.AssertDeepEqual(t, c.recentTaskSpecs, c2.recentTaskSpecs)
 	}
 
 	// Empty cache.

@@ -173,16 +173,11 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	_, t, c := ts.RecentSpecsAndCommits()
 	rules := ts.GetBlacklist().GetRules()
 	enc, err := json.Marshal(&struct {
-		Commits   []string
-		Rules     []*blacklist.Rule
-		TaskSpecs []string
+		Rules []*blacklist.Rule
 	}{
-		Commits:   c,
-		Rules:     rules,
-		TaskSpecs: t,
+		Rules: rules,
 	})
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode JSON.")
@@ -205,14 +200,7 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	j, _, c := ts.RecentSpecsAndCommits()
-	page := struct {
-		JobSpecs []string
-		Commits  []string
-	}{
-		JobSpecs: j,
-		Commits:  c,
-	}
+	page := struct{}{}
 	if err := triggerTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
 		return
@@ -372,17 +360,12 @@ func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	j, _, c := ts.RecentSpecsAndCommits()
 	page := struct {
 		Repos    []string          `json:"recent_repos"`
-		JobSpecs []string          `json:"recent_job_names"`
-		Commits  []string          `json:"recent_commits"`
 		Servers  []string          `json:"recent_servers"`
 		Statuses []types.JobStatus `json:"valid_statuses"`
 	}{
 		Repos:    *repoUrls,
-		JobSpecs: j,
-		Commits:  c,
 		Servers:  []string{gerrit.GERRIT_SKIA_URL},
 		Statuses: types.VALID_JOB_STATUSES,
 	}
