@@ -22,6 +22,30 @@
       "revId": "674f9dbdb5d05c555196824e57d03672dadfb3de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9e07747_9227f42a",
+        "filename": "task_scheduler/res/imp/task-scheduler-blacklist-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-27T17:51:26Z",
+      "side": 0,
+      "message": "Yeah... should I create a new cache for this?  I don\u0027t really want it in taskCfgCache.  Personally, I\u0027m okay if this is missing for a little while.  Seems like a small price for the improvements brought by the other CL.",
+      "parentUuid": "030ed77a_f84826fb",
+      "range": {
+        "startLine": 175,
+        "startChar": 14,
+        "endLine": 175,
+        "endChar": 49
+      },
+      "revId": "674f9dbdb5d05c555196824e57d03672dadfb3de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
