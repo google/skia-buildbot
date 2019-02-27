@@ -54,7 +54,7 @@
     # Required for mesa linux drivers > 17.0.4
     - name: Install newer libdrm2
       apt:
-        name: libdrm2=2.4.91-2~bpo9+1
+        name: libdrm2=2.4.95-1~bpo9+1
 
     # These are needed for general use
     - name: Install collectd, without the JDK
