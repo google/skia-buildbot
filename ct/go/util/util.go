@@ -450,7 +450,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	for i := 0; i < len(isolateTasks); i += 1000 {
 		startRange := i
 		endRange := util.MinInt(len(isolateTasks), i+1000)
-		hashes, err := s.GetIsolateClient().IsolateTasks(ctx, isolateTasks[startRange:endRange])
+		hashes, _, err := s.GetIsolateClient().IsolateTasks(ctx, isolateTasks[startRange:endRange])
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not isolate targets: %s", err)
 		}

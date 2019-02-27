@@ -12,7 +12,7 @@ import (
 const (
 	ISSUE_SHORT_LENGTH = 2
 
-	BT_ROW_KEY_VERSION = "0"
+	BT_ROW_KEY_VERSION = "1"
 )
 
 // Patch describes a patch which may be applied to a code checkout.
@@ -66,7 +66,26 @@ func (p Patch) GetPatchRef() string {
 
 // RowKey returns a BigTable-compatible row key for the Patch.
 func (p Patch) RowKey() string {
-	return strings.Join(p.patchIdentifier(), "#")
+	return strings.Join(append(p.patchIdentifier(), p.PatchRepo, p.Server), "#")
+}
+
+// PatchFromRowKey parses a Patch from the given BigTable row key.
+func PatchFromRowKey(rowKey string) (Patch, error) {
+	const BT_ROW_KEY_PATCH_PARTS = 5
+	split := strings.SplitN(rowKey, "#", BT_ROW_KEY_PATCH_PARTS)
+	if len(split) != BT_ROW_KEY_PATCH_PARTS {
+		return Patch{}, fmt.Errorf("Invalid row key %s", rowKey)
+	}
+	rv := Patch{
+		Issue:     split[1],
+		PatchRepo: split[3],
+		Patchset:  split[2],
+		Server:    split[4],
+	}
+	if !rv.Valid() {
+		return Patch{}, fmt.Errorf("Invalid row key: %s", rowKey)
+	}
+	return rv, nil
 }
 
 // RepoState encapsulates all of the parameters which define the state of a
@@ -142,4 +161,31 @@ func (s RepoState) RowKey() string {
 		repo = s.Repo
 	}
 	return strings.Join([]string{BT_ROW_KEY_VERSION, s.Revision, repo, s.Patch.RowKey()}, "#")
+}
+
+// RepoStateFromRowKey parses a RepoState from the given BigTable row key.
+func RepoStateFromRowKey(rowKey string) (RepoState, error) {
+	const BT_ROW_KEY_REPO_STATE_PARTS = 4
+	split := strings.SplitN(rowKey, "#", BT_ROW_KEY_REPO_STATE_PARTS)
+	if len(split) != BT_ROW_KEY_REPO_STATE_PARTS {
+		return RepoState{}, fmt.Errorf("Improperly formatted row key: %s", rowKey)
+	}
+	if split[0] != BT_ROW_KEY_VERSION {
+		return RepoState{}, fmt.Errorf("Row key has incorrect version %s; expected %s", split[0], BT_ROW_KEY_VERSION)
+	}
+	repo, ok := common.PROJECT_REPO_MAPPING[split[2]]
+	if !ok {
+		sklog.Errorf("Unknown repo: %s; using repo name instead of lookup from PROJECT_REPO_MAPPING", split[2])
+		repo = split[2]
+	}
+	rv := RepoState{
+		Repo:     repo,
+		Revision: split[1],
+	}
+	patch, err := PatchFromRowKey(split[3])
+	if err != nil {
+		return RepoState{}, err
+	}
+	rv.Patch = patch
+	return rv, nil
 }
