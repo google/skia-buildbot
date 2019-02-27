@@ -58,11 +58,13 @@ type Storage struct {
 	NCommits int
 
 	// Internal variables used to cache trimmed tiles.
-	lastTrimmedTile        *tiling.Tile
-	lastTrimmedIgnoredTile *tiling.Tile
-	lastIgnoreRev          int64
-	lastIgnoreRules        paramtools.ParamMatcher
-	mutex                  sync.Mutex
+	lastCpxTile *types.ComplexTile
+
+	// lastTrimmedTile        *tiling.Tile
+	// lastTrimmedIgnoredTile *tiling.Tile
+	// lastIgnoreRev          int64
+	// lastIgnoreRules        paramtools.ParamMatcher
+	mutex sync.Mutex
 }
 
 // TODO(stephana): Baseliner will eventually factored into the baseline package and
@@ -113,11 +115,11 @@ func (s *Storage) LoadWhiteList(fName string) error {
 // Should the call to read a new tile fail it will send that last
 // successfully read tile. Thus it guarantees to send a tile in the provided
 // interval, assuming at least one tile could be read.
-func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.TilePair {
-	retCh := make(chan *types.TilePair)
+func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.ComplexTile {
+	retCh := make(chan *types.ComplexTile)
 
 	go func() {
-		var lastTile *types.TilePair = nil
+		var lastTile *types.ComplexTile = nil
 
 		readOneTile := func() {
 			if tilePair, err := s.GetLastTileTrimmed(); err != nil {
@@ -161,62 +163,64 @@ Loop:
 // GetLastTrimmed returns the last tile as read-only trimmed to contain at
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
-func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
-	// Retrieve the most recent tile.
-	var tile *tiling.Tile
+func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
+	// Retrieve the most recent tile from the tilestore
+	var rawTile *tiling.Tile
+	var commitsSum *types.CommitsSummary
 	var err error
 
 	// If it's a sparse tile, we build it anew.
 	if s.IsSparseTile {
-		tile, err = s.getNewCondensedTile(s.lastTrimmedTile)
+		rawTile, commitsSum, err = s.getNewCondensedTile(s.lastCpxTile.TileWithIgnores)
 		if err != nil {
 			return nil, skerr.Fmt("Error getting condensed tile: %s", err)
 		}
 	} else {
-		tile = s.MasterTileBuilder.GetTile()
+		rawTile = s.MasterTileBuilder.GetTile()
+		commitsSum = types.NewCommitsSummary(rawTile.Commits, nil)
 	}
-	tile = s.getWhiteListedTile(tile)
+	rawTile = s.getWhiteListedTile(rawTile)
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if s.NCommits <= 0 {
-		return &types.TilePair{
-			Tile:            tile,
-			TileWithIgnores: tile,
-		}, nil
+		return types.NewComplexTile(rawTile, rawTile, commitsSum, nil, 0), nil
 	}
 
+	// Get the ignore revision and check if the tile has changed at all.
 	currentIgnoreRev := s.IgnoreStore.Revision()
+	if !s.lastCpxTile.Changed(rawTile, currentIgnoreRev, commitsSum) {
+		return s.lastCpxTile, nil
+	}
 
 	// Check if the tile hasn't changed and the ignores haven't changed.
-	if s.lastTrimmedTile != nil && tile == s.lastTrimmedTile && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev {
-		return &types.TilePair{
-			Tile:            s.lastTrimmedIgnoredTile,
-			TileWithIgnores: s.lastTrimmedTile,
-			IgnoreRules:     s.lastIgnoreRules,
-		}, nil
-	}
-
-	// check if all the expectations of all commits have been added to the tile.
-	s.checkCommitableIssues(tile)
+	// if s.lastTrimmedTile != nil && rawTile == s.lastTrimmedTile && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev {
+	// 	return &types.TilePair{
+	// 		Tile:            s.lastTrimmedIgnoredTile,
+	// 		TileWithIgnores: s.lastTrimmedTile,
+	// 		IgnoreRules:     s.lastIgnoreRules,
+	// 	}, nil
+	// }
 
 	// Get the tile without the ignored traces.
-	retIgnoredTile, ignoreRules, err := FilterIgnored(tile, s.IgnoreStore)
+	retIgnoredTile, ignoreRules, err := FilterIgnored(rawTile, s.IgnoreStore)
 	if err != nil {
 		return nil, err
 	}
 
-	// Cache this tile.
-	s.lastIgnoreRev = currentIgnoreRev
-	s.lastTrimmedTile = tile
-	s.lastTrimmedIgnoredTile = retIgnoredTile
-	s.lastIgnoreRules = ignoreRules
+	cpxTile := types.NewComplexTile(retIgnoredTile, rawTile, commitsSum, ignoreRules, currentIgnoreRev)
 
-	return &types.TilePair{
-		Tile:            s.lastTrimmedIgnoredTile,
-		TileWithIgnores: s.lastTrimmedTile,
-		IgnoreRules:     s.lastIgnoreRules,
-	}, nil
+	// check if all the expectations of all commits have been added to the tile.
+	s.checkCommitableIssues(cpxTile)
+	s.lastCpxTile = cpxTile
+
+	// Cache this tile.
+	// s.lastIgnoreRev = currentIgnoreRev
+	// s.lastTrimmedTile = tile
+	// s.lastTrimmedIgnoredTile = retIgnoredTile
+	// s.lastIgnoreRules = ignoreRules
+
+	return cpxTile, nil
 }
 
 // FilterIgnored returns a copy of the given tile with all traces removed
@@ -315,7 +319,7 @@ func (s *Storage) getWhiteListedTile(tile *tiling.Tile) *tiling.Tile {
 // getNewCondensedTile returns a tile that contains only commits that have at least one
 // nonempty entry. If lastTile is not nil, its first commit is used as a starting point to
 // fetch the tiles necessary to build the condensed tile (from several "sparse" tiles.)
-func (s *Storage) getNewCondensedTile(lastTile *tiling.Tile) (*tiling.Tile, error) {
+func (s *Storage) getNewCondensedTile(lastTile *tiling.Tile) (*tiling.Tile, *types.CommitsSummary, error) {
 	ctx := context.TODO()
 	var err error
 
@@ -342,7 +346,7 @@ func (s *Storage) getNewCondensedTile(lastTile *tiling.Tile) (*tiling.Tile, erro
 	// Build a Tile from those CommitIDs.
 	sparseTile, _, err := s.TraceDB.TileFromCommits(commitIDs)
 	if err != nil {
-		return nil, skerr.Fmt("Failed to load tile from commitIDs: %s", err)
+		return nil, nil, skerr.Fmt("Failed to load tile from commitIDs: %s", err)
 	}
 
 	targetCommits := make([]string, 0, s.NCommits)
@@ -361,12 +365,12 @@ func (s *Storage) getNewCondensedTile(lastTile *tiling.Tile) (*tiling.Tile, erro
 	commitIDs = getCommitIDs(targetCommits, s.Git)
 	denseTile, _, err := s.TraceDB.TileFromCommits(commitIDs)
 	if err != nil {
-		return nil, skerr.Fmt("Failed to load dense tile from commitIDs: %s", err)
+		return nil, nil, skerr.Fmt("Failed to load dense tile from commitIDs: %s", err)
 	}
 
 	if commitLen := denseTile.LastCommitIndex() + 1; commitLen > s.NCommits {
 		if denseTile, err = denseTile.Trim(0, s.NCommits); err != nil {
-			return nil, skerr.Fmt("Error trimming dense tile: %s", err)
+			return nil, nil, skerr.Fmt("Error trimming dense tile: %s", err)
 		}
 	}
 
@@ -374,7 +378,7 @@ func (s *Storage) getNewCondensedTile(lastTile *tiling.Tile) (*tiling.Tile, erro
 	for _, c := range denseTile.Commits {
 		details, err := s.Git.Details(ctx, c.Hash, true)
 		if err != nil {
-			return nil, skerr.Fmt("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
+			return nil, nil, skerr.Fmt("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
 		}
 		c.Author = details.Author
 	}
@@ -397,7 +401,7 @@ func getCommitIDs(hashes []string, git *gitinfo.GitInfo) []*tracedb.CommitID {
 
 // checkCommitableIssues checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
-func (s *Storage) checkCommitableIssues(tile *tiling.Tile) {
+func (s *Storage) checkCommitableIssues(cpxTile *types.ComplexTile) {
 	go func() {
 		var egroup errgroup.Group
 
