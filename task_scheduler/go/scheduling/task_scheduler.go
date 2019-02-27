@@ -145,7 +145,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TaskCfgCache: %s", err)
 	}
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache, gerrit)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, jCache, w, projectRepoMapping, repos, taskCfgCache, gerrit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
@@ -1696,6 +1696,11 @@ func (s *TaskScheduler) jobFinished(j *types.Job) error {
 		return fmt.Errorf("jobFinished called on Job with status %q", j.Status)
 	}
 	j.Finished = time.Now()
+	if j.IsTryJob() {
+		if err := s.tryjobs.JobFinished(j); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

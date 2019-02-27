@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -70,44 +71,36 @@ const (
 type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
-	cacheMtx           sync.Mutex
 	db                 db.JobDB
+	finished           map[string]bool
+	finishedMtx        sync.Mutex
 	gerrit             gerrit.GerritInterface
 	host               string
 	jCache             cache.JobCache
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *specs.TaskCfgCache
-	tjCache            *tryJobCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *specs.TaskCfgCache, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
 	}
 	bb.BasePath = apiUrl
-	jCache, err := cache.NewJobCache(d, w, cache.GitRepoGetRevisionTimestamp(rm))
-	if err != nil {
-		return nil, err
-	}
-	tjCache, err := newTryJobCache(d, w)
-	if err != nil {
-		return nil, err
-	}
 	gerrit.TurnOnAuthenticatedGets()
 	rv := &TryJobIntegrator{
 		bb:                 bb,
 		bucket:             bucket,
 		db:                 d,
+		finished:           map[string]bool{},
 		gerrit:             gerrit,
 		host:               host,
 		jCache:             jCache,
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
 		taskCfgCache:       taskCfgCache,
-		tjCache:            tjCache,
 	}
 	return rv, nil
 }
@@ -127,73 +120,49 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 	})
 }
 
-// updateCaches updates both internal caches.
-func (t *TryJobIntegrator) updateCaches() error {
-	t.cacheMtx.Lock()
-	defer t.cacheMtx.Unlock()
-	if err := t.tjCache.Update(); err != nil {
-		return err
+// getActiveTryJobs returns the unfinished tryjobs.
+func (t *TryJobIntegrator) getActiveTryJobs() ([]*types.Job, error) {
+	jobs, err := t.jCache.UnfinishedJobs()
+	if err != nil {
+		return nil, err
 	}
-	return t.jCache.Update()
+	tryjobs := make(map[string]*types.Job, len(jobs))
+	for _, job := range jobs {
+		if job.IsTryJob() {
+			tryjobs[job.Id] = job
+		}
+	}
+	t.finishedMtx.Lock()
+	defer t.finishedMtx.Unlock()
+	for finishedJob, _ := range t.finished {
+		if _, ok := tryjobs[finishedJob]; ok {
+			// We've already run JobFinished for this Job. Don't
+			// send a heartbeat for it.
+			delete(tryjobs, finishedJob)
+		} else {
+			// The cache has updated and no longer has this job
+			// marked as unfinished. We can remove it from our
+			// local cache.
+			delete(t.finished, finishedJob)
+		}
+	}
+	rv := make([]*types.Job, 0, len(tryjobs))
+	for _, job := range tryjobs {
+		rv = append(rv, job)
+	}
+	sort.Sort(types.JobSlice(rv))
+	return rv, nil
 }
 
 // updateJobs sends updates to Buildbucket for all active try Jobs.
 func (t *TryJobIntegrator) updateJobs(now time.Time) error {
-	// Get all Jobs associated with in-progress Buildbucket builds.
-	if err := t.updateCaches(); err != nil {
-		return err
-	}
-
-	jobs, err := t.tjCache.GetActiveTryJobs()
+	tryjobs, err := t.getActiveTryJobs()
 	if err != nil {
 		return err
 	}
 
-	// Divide up finished and unfinished Jobs.
-	finished := make([]*types.Job, 0, len(jobs))
-	unfinished := make([]*types.Job, 0, len(jobs))
-	for _, j := range jobs {
-		if j.Done() {
-			finished = append(finished, j)
-		} else {
-			unfinished = append(unfinished, j)
-		}
-	}
-
 	// Send heartbeats for unfinished Jobs.
-	var heartbeatErr error
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		heartbeatErr = t.sendHeartbeats(now, unfinished)
-	}()
-
-	// Send updates for finished Jobs, empty the lease keys to mark them
-	// as inactive in the DB.
-	errs := []error{}
-	insert := make([]*types.Job, 0, len(finished))
-	for _, j := range finished {
-		if err := t.jobFinished(j); err != nil {
-			errs = append(errs, err)
-		} else {
-			j.BuildbucketLeaseKey = 0
-			insert = append(insert, j)
-		}
-	}
-	if err := t.db.PutJobsInChunks(insert); err != nil {
-		errs = append(errs, err)
-	}
-
-	wg.Wait()
-	if heartbeatErr != nil {
-		errs = append(errs, heartbeatErr)
-	}
-
-	if len(errs) > 0 {
-		return fmt.Errorf("Failed to update jobs; got errors: %v", errs)
-	}
-	return nil
+	return t.sendHeartbeats(now, tryjobs)
 }
 
 // sendHeartbeats sends heartbeats to Buildbucket for all of the unfinished try
@@ -417,10 +386,6 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 }
 
 func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
-	if err := t.updateCaches(); err != nil {
-		return err
-	}
-
 	// Grab all of the pending Builds from Buildbucket.
 	// TODO(borenet): Buildbot maintains a maximum lease count. Should we do
 	// that too?
@@ -511,8 +476,8 @@ func (t *TryJobIntegrator) jobStarted(j *types.Job) error {
 	return nil
 }
 
-// jobFinished notifies Buildbucket that the given Job has finished.
-func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
+// JobFinished notifies Buildbucket that the given Job has finished.
+func (t *TryJobIntegrator) JobFinished(j *types.Job) error {
 	if !j.Done() {
 		return fmt.Errorf("JobFinished called for unfinished Job!")
 	}
@@ -562,5 +527,9 @@ func (t *TryJobIntegrator) jobFinished(j *types.Job) error {
 			}
 		}
 	}
+	j.BuildbucketLeaseKey = 0
+	t.finishedMtx.Lock()
+	defer t.finishedMtx.Unlock()
+	t.finished[j.Id] = true
 	return nil
 }

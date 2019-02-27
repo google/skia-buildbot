@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
@@ -125,7 +126,9 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, mock.Client())
 	assert.NoError(t, err)
 
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, g)
+	jCache, err := cache.NewJobCache(d, window, cache.GitRepoGetRevisionTimestamp(rm))
+	assert.NoError(t, err)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, window, projectRepoMapping, rm, taskCfgCache, g)
 	assert.NoError(t, err)
 
 	return ctx, integrator, gb, mock, func() {

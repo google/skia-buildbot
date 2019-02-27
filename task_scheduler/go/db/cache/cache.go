@@ -408,9 +408,9 @@ func (c *taskCache) reset() error {
 
 // See documentation for TaskCache interface.
 func (c *taskCache) Update() error {
-	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
+	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	if err != nil {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
@@ -679,9 +679,9 @@ func (c *jobCache) reset() error {
 
 // See documentation for JobCache interface.
 func (c *jobCache) Update() error {
-	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
+	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	if err != nil {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {

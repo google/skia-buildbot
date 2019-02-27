@@ -2403,6 +2403,7 @@ func TestTrybots(t *testing.T) {
 	assert.False(t, tryJob.Done())
 
 	// Run through the try job's tasks.
+	tryjobs.MockJobSuccess(mock, tryJob, now, nil, true)
 	for i := 0; i < 10; i++ {
 		assert.NoError(t, s.MainLoop(ctx))
 		assert.NoError(t, s.tCache.Update())
