@@ -50,7 +50,7 @@ func (v *validateEnv) runValidateCmd(cmd *cobra.Command, args []string) {
 		for _, msg := range errMessages {
 			logErrf(cmd, "   %s\n", msg)
 		}
-		exitProcess(1)
+		exitProcess(cmd, 1)
 	}
 	ifErrLogExit(cmd, closeFn())
 	logVerbose(cmd, fmt.Sprintf("Result:\n%s\n", spew.Sdump(goldResult)))
