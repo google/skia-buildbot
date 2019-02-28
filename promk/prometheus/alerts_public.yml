@@ -267,7 +267,7 @@ groups:
 
 # Perf
   - alert: AndroidIngestFailures
-    expr: rate(process_failures[1h]) > 0
+    expr: rate(process_failures[1h]) > 0.01
     labels:
       category: infra
       severity: critical
