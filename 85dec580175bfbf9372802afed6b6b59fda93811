@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "aa053140_f1e50bf8",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1700,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-28T20:35:58Z",
+      "side": 1,
+      "message": "Changed the calling code to log an error and move on. We have a number of places where we might encounter a transient error when calling out to some external service.  In most cases, I\u0027ve tried to write code so that we can at least get some portion of the work done, but I still bubble errors up to the top of MainLoop.  It\u0027d be a lot simpler to just log errors and rely on error-rate alerts, the difference being that we couldn\u0027t rely on the last_successful_task_scheduling liveness except for show-stopping errors which prevented us from doing anything.  We should consider making the same change for updateRepos...",
+      "parentUuid": "a5186d72_c14cb513",
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9325f9ea_51dbac9d",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "8bf842f3_3c2a03ce",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-28T20:35:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9325f9ea_51dbac9d",
+      "range": {
+        "startLine": 129,
+        "startChar": 40,
+        "endLine": 129,
+        "endChar": 49
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d8e3b5fa_b2464fad",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
@@ -53,6 +95,30 @@
       "writtenOn": "2019-02-28T19:47:31Z",
       "side": 1,
       "message": "The code you deleted looked for \"job.BuildbucketLeaseKey \u003d\u003d 0\". Will these always be equivalent?",
+      "range": {
+        "startLine": 131,
+        "startChar": 5,
+        "endLine": 131,
+        "endChar": 19
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baf44012_792766c1",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-02-28T20:35:58Z",
+      "side": 1,
+      "message": "Ah, I think I\u0027m just realizing what I\u0027d forgotten: an \"active\" tryjob is not necessarily an unfinished job according to our DB; it\u0027s a job which we haven\u0027t marked as finished in Buildbucket.  I think I need to change this to look through ALL jobs and filter out those which have no BuildbucketLeaseKey.  Then I think I change the behavior for jobFinished back to what it was, ie. when I have an \"active\" try job which is finished, then I call jobFinished, as opposed to having the task scheduler call it.",
+      "parentUuid": "d8e3b5fa_b2464fad",
       "range": {
         "startLine": 131,
         "startChar": 5,
