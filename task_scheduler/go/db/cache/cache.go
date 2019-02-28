@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -653,6 +654,8 @@ func (c *jobCache) expireAndUpdate(jobs []*types.Job) {
 
 // reset re-initializes c. Assumes the caller holds a lock.
 func (c *jobCache) reset() error {
+	defer metrics2.FuncTimer().Stop()
+
 	if c.queryId != "" {
 		c.db.StopTrackingModifiedJobs(c.queryId)
 	}
@@ -663,6 +666,7 @@ func (c *jobCache) reset() error {
 	now := time.Now()
 	start := c.timeWindow.EarliestStart()
 	sklog.Infof("Reading Jobs from %s to %s.", start, now)
+	t0 := time.Now()
 	jobs, err := c.db.GetJobsFromDateRange(start, now)
 	if err != nil {
 		c.db.StopTrackingModifiedJobs(queryId)
@@ -674,6 +678,7 @@ func (c *jobCache) reset() error {
 	c.triggeredForCommit = map[string]map[string]bool{}
 	c.unfinished = map[string]*types.Job{}
 	c.expireAndUpdate(jobs)
+	sklog.Infof("Read %d jobs in %s", len(jobs), time.Now().Sub(t0))
 	return nil
 }
 

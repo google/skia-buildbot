@@ -8,6 +8,7 @@ import (
 	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -496,6 +497,8 @@ type BackupDBCloser interface {
 // GetTasksFromWindow returns all tasks matching the given Window from the
 // TaskReader.
 func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*types.Task, error) {
+	defer metrics2.FuncTimer().Stop()
+
 	startTimesByRepo := w.StartTimesByRepo()
 	if len(startTimesByRepo) == 0 {
 		// If the timeWindow has no associated repos, default to loading
@@ -505,10 +508,12 @@ func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*type
 	tasks := make([]*types.Task, 0, 1024)
 	for repo, start := range startTimesByRepo {
 		sklog.Infof("Reading Tasks from %s to %s.", start, now)
+		t0 := time.Now()
 		t, err := db.GetTasksFromDateRange(start, now, repo)
 		if err != nil {
 			return nil, err
 		}
+		sklog.Infof("Read %d tasks in %s", len(t), time.Now().Sub(t0))
 		tasks = append(tasks, t...)
 	}
 	sort.Sort(types.TaskSlice(tasks))
