@@ -1132,7 +1132,8 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 	isolatedFiles := make([]*isolated.Isolated, 0, len(candidates))
 	var errs *multierror.Error
 	for _, c := range candidates {
-		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
+		os := cacher.GetOSDimension(c.TaskSpec.Dimensions)
+		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate, os)
 		if err != nil {
 			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", err))
 			continue

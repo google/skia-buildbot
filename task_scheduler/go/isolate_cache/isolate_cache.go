@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	BT_TABLE         = "isolated_cache"
-	BT_COLUMN_FAMILY = "ISOLATE"
-	BT_COLUMN        = "ISO"
+	BT_TABLE           = "isolated_cache"
+	BT_COLUMN_FAMILY   = "ISOLATE"
+	BT_COLUMN          = "ISO"
+	BT_ROW_KEY_VERSION = "2"
 )
 
 var (
@@ -29,8 +30,8 @@ var (
 
 // CachedValue maps isolate filenames to isolated hashes.
 type CachedValue struct {
-	// Isolated maps isolate filenames to IsolatedFiles.
-	Isolated map[string]*isolated.Isolated
+	// Isolated maps isolate filenames to OS to IsolatedFiles.
+	Isolated map[string]map[string]*isolated.Isolated
 
 	// Error stores a permanent error. Mutually-exclusive with Isolated.
 	Error string
@@ -110,10 +111,15 @@ func New(ctx context.Context, btProject, btInstance string, ts oauth2.TokenSourc
 	}, nil
 }
 
+// rowKey returns a BigTable row key for the given RepoState.
+func rowKey(rs types.RepoState) string {
+	return BT_ROW_KEY_VERSION + "#" + rs.RowKey()
+}
+
 // Get returns the cached IsolatedFile for the given RepoState and isolated
 // file, if it exists, or ErrNoSuchEntry otherwise.
-func (c *Cache) Get(ctx context.Context, rs types.RepoState, isolateFile string) (*isolated.Isolated, error) {
-	val, err := c.cache.Get(ctx, rs.RowKey())
+func (c *Cache) Get(ctx context.Context, rs types.RepoState, isolateFile, os string) (*isolated.Isolated, error) {
+	val, err := c.cache.Get(ctx, rowKey(rs))
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +127,13 @@ func (c *Cache) Get(ctx context.Context, rs types.RepoState, isolateFile string)
 	if cv.Error != "" {
 		return nil, errors.New(cv.Error)
 	}
-	rv, ok := cv.Isolated[isolateFile]
+	isolateds, ok := cv.Isolated[isolateFile]
 	if !ok {
 		return nil, atomic_miss_cache.ErrNoSuchEntry
+	}
+	rv, ok := isolateds[os]
+	if !ok {
+		return nil, fmt.Errorf("No isolated entry for %s on %s at %+v", isolateFile, os, rs)
 	}
 	return isolate.CopyIsolated(rv), nil
 }
@@ -131,7 +141,7 @@ func (c *Cache) Get(ctx context.Context, rs types.RepoState, isolateFile string)
 // SetIfUnset sets the cached IsolatedFiles by calling the given function if
 // they do not yet exist in the cache.
 func (c *Cache) SetIfUnset(ctx context.Context, rs types.RepoState, fn func(context.Context) (*CachedValue, error)) error {
-	_, err := c.cache.SetIfUnset(ctx, rs.RowKey(), func(ctx context.Context) (atomic_miss_cache.Value, error) {
+	_, err := c.cache.SetIfUnset(ctx, rowKey(rs), func(ctx context.Context) (atomic_miss_cache.Value, error) {
 		cv, err := fn(ctx)
 		return cv, err
 	})

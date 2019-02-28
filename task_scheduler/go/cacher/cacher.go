@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/git"
@@ -74,7 +75,7 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 
 	// Obtain the IsolatedFiles.
 	if err := c.isolateCache.SetIfUnset(ctx, rs, func(ctx context.Context) (*isolate_cache.CachedValue, error) {
-		isolatedFiles := map[string]*isolated.Isolated{}
+		isolatedFiles := map[string]map[string]*isolated.Isolated{}
 		err := ltgr.Do(ctx, func(co *git.TempCheckout) error {
 			// Isolates may need a .gclient file at the root of the checkout.
 			if err := ioutil.WriteFile(path.Join(co.Dir(), "..", ".gclient"), []byte("dummy"), os.ModePerm); err != nil {
@@ -82,11 +83,14 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 			}
 
 			// Isolate all of the task specs and update their IsolateHashes.
-			isolateFileNames := []string{}
-			done := map[string]bool{}
+			done := map[string]map[string]bool{} // Maps isolate file name to map of OS to hash.
 			isolateTasks := []*isolate.Task{}
 			for _, taskSpec := range cv.Cfg.Tasks {
-				if done[taskSpec.Isolate] {
+				os := GetOSDimension(taskSpec.Dimensions)
+				if _, ok := done[taskSpec.Isolate]; !ok {
+					done[taskSpec.Isolate] = map[string]bool{}
+				}
+				if done[taskSpec.Isolate][os] {
 					continue
 				}
 				t := &isolate.Task{
@@ -95,9 +99,8 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 					IsolateFile: path.Join(co.Dir(), "infra", "bots", taskSpec.Isolate),
 					OsType:      "linux", // Unused by our isolates.
 				}
-				isolateFileNames = append(isolateFileNames, taskSpec.Isolate)
 				isolateTasks = append(isolateTasks, t)
-				done[taskSpec.Isolate] = true
+				done[taskSpec.Isolate][os] = true
 			}
 			// Now, isolate all of the tasks.
 			if len(isolateTasks) > 0 {
@@ -108,8 +111,12 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 				if len(isolatedFilesSlice) != len(isolateTasks) {
 					return fmt.Errorf("IsolateTasks returned incorrect number of isolated files (%d but wanted %d)", len(isolatedFiles), len(isolateTasks))
 				}
-				for idx, name := range isolateFileNames {
-					isolatedFiles[name] = isolatedFilesSlice[idx]
+				for idx, task := range isolateTasks {
+					isolate := path.Base(task.IsolateFile)
+					if _, ok := isolatedFiles[isolate]; !ok {
+						isolatedFiles[isolate] = map[string]*isolated.Isolated{}
+					}
+					isolatedFiles[isolate][task.OsType] = isolatedFilesSlice[idx]
 				}
 			}
 			return nil
@@ -131,4 +138,17 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 	}
 
 	return cv.Cfg, nil
+}
+
+// GetOSDimension returns the "os" dimension from the given set of dimensions.
+// Defaults to "linux" if not set.
+func GetOSDimension(dims []string) string {
+	os := "linux"
+	for _, d := range dims {
+		if strings.HasPrefix(d, "os:") {
+			os = d[len("os:"):]
+			break
+		}
+	}
+	return os
 }
