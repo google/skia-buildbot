@@ -90,7 +90,7 @@ func (c *tryJobCache) reset() error {
 	now := time.Now()
 	start := c.timeWindow.EarliestStart()
 	sklog.Infof("Reading Jobs from %s to %s.", start, now)
-	jobs, err := c.db.GetJobsFromDateRange(start, now)
+	jobs, err := db.GetJobsFromWindow(c.db, c.timeWindow, now)
 	if err != nil {
 		c.db.StopTrackingModifiedJobs(queryId)
 		return err
