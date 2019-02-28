@@ -82,10 +82,11 @@ EOF
 sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
 sudo /etc/init.d/collectd restart
 
-# Setup unattended upgrades.
+# Setup unattended upgrades. Limit cached packages to 1GB.
 cat <<EOF | sudo tee /etc/apt/apt.conf.d/20auto-upgrades
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::MaxSize "1024";
 EOF
 
 cat <<EOF | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
