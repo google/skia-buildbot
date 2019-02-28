@@ -76,3 +76,7 @@ func (n *Node) BranchCommits() []string {
 	ret = util.Reverse(ret)
 	return ret
 }
+
+func (n *Node) BranchCommitsToAncestor(ancestor string) []string {
+	return nil
+}
