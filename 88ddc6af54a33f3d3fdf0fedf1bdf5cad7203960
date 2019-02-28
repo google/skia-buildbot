@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43aeba47_76b3e668",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 457,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-02-28T20:08:04Z",
+      "side": 1,
+      "message": "this._skottiePlayer \u0026\u0026 this._skottiePlayer.seek",
+      "range": {
+        "startLine": 457,
+        "startChar": 4,
+        "endLine": 457,
+        "endChar": 23
+      },
+      "revId": "88ddc6af54a33f3d3fdf0fedf1bdf5cad7203960",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
