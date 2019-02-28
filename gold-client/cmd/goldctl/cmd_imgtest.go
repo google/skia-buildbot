@@ -156,10 +156,10 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 
 	if !pass {
 		logErrf(cmd, "Test: %s FAIL\n", i.flagTestName)
-		exitProcess(1)
+		exitProcess(cmd, 1)
 	}
 	logInfof(cmd, "Test: %s PASS\n", i.flagTestName)
-	exitProcess(0)
+	exitProcess(cmd, 0)
 }
 
 // readKeysFile is a helper function to read a JSON file with key/value pairs.
