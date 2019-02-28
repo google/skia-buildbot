@@ -9,9 +9,41 @@ import (
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
+	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
+
+func TestCopyIsolatedFile(t *testing.T) {
+	testutils.SmallTest(t)
+
+	link := "link"
+	mode := 777
+	size := int64(9000)
+	ro := isolated.Writeable
+	iso := &isolated.Isolated{
+		Algo:    "smrt",
+		Command: []string{"sit", "shake"},
+		Files: map[string]isolated.File{
+			"my-file": isolated.File{
+				Digest: "abc123",
+				Link:   &link,
+				Mode:   &mode,
+				Size:   &size,
+				Type:   isolated.Basic,
+			},
+		},
+		Includes:    []isolated.HexDigest{"blah"},
+		ReadOnly:    &ro,
+		RelativeCwd: "dot",
+		Version:     "NEW!",
+	}
+	deepequal.AssertCopy(t, iso, CopyIsolated(iso))
+
+	iso.Files["my-file"] = isolated.File{}
+	cp := CopyIsolated(iso)
+	deepequal.AssertDeepEqual(t, iso, cp)
+}
 
 func TestIsolateTasks(t *testing.T) {
 	testutils.LargeTest(t)
@@ -26,10 +58,11 @@ func TestIsolateTasks(t *testing.T) {
 
 	ctx := context.Background()
 	do := func(tasks []*Task, expectErr string) []string {
-		hashes, err := c.IsolateTasks(ctx, tasks)
+		hashes, files, err := c.IsolateTasks(ctx, tasks)
 		if expectErr == "" {
 			assert.NoError(t, err)
 			assert.Equal(t, len(tasks), len(hashes))
+			assert.Equal(t, len(tasks), len(files))
 			return hashes
 		} else {
 			assert.EqualError(t, err, expectErr)
@@ -127,4 +160,62 @@ func TestIsolateTasks(t *testing.T) {
 	}
 	gotHashes := do(tasks, "")
 	deepequal.AssertDeepEqual(t, expectHashes, gotHashes)
+}
+
+func TestReUploadIsolatedFiles(t *testing.T) {
+	testutils.LargeTest(t)
+
+	// Setup.
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+
+	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+
+	link := "link"
+	mode := 777
+	size := int64(9000)
+	ro := isolated.Writeable
+	i1 := &isolated.Isolated{
+		Algo:    "smrt",
+		Command: []string{"sit", "shake"},
+		Files: map[string]isolated.File{
+			"my-file": isolated.File{
+				Digest: "abc123",
+				Link:   &link,
+				Mode:   &mode,
+				Size:   &size,
+				Type:   isolated.Basic,
+			},
+		},
+		Includes:    []isolated.HexDigest{"blah"},
+		ReadOnly:    &ro,
+		RelativeCwd: "dot",
+		Version:     "NEW!",
+	}
+	// Initial upload.
+	hashes, err := c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(hashes))
+	hash1 := hashes[0]
+	assert.Equal(t, 40, len(hash1)) // Sanity check.
+
+	// Re-upload the same Isolated. We should have the same hash.
+	hashes, err = c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(hashes))
+	hash2 := hashes[0]
+	assert.Equal(t, hash1, hash2)
+
+	// Now, change the Isolated. We should get a different hash.
+	i1.Includes = append(i1.Includes, "anotherhash")
+	hashes, err = c.ReUploadIsolatedFiles(ctx, []*isolated.Isolated{i1})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(hashes))
+	hash3 := hashes[0]
+	assert.Equal(t, 40, len(hash3)) // Sanity check.
+	assert.NotEqual(t, hash1, hash3)
 }

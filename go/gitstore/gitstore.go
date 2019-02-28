@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/crc32"
-	"net/url"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -14,6 +13,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/bt"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -135,7 +135,7 @@ type RepoInfo struct {
 	// assigned whenever a new repo is added.
 	ID int64
 
-	// RepoURL contains the URL of the repo as returned by NormalizeURL(...).
+	// RepoURL contains the URL of the repo as returned by git.NormalizeURL(...).
 	RepoURL string
 
 	// Branches contain all the branches in the repo, mapping branch_name -> branch_pointer.
@@ -168,30 +168,6 @@ func InitBT(conf *BTConfig) error {
 		cfBranches,
 		cfTsCommit,
 	})
-}
-
-// NormalizeURL strips everything from the URL except of host and the path. A trailing ".git" is
-// also stripped. The purpose is to allow for small variations in repo URL to be recognized as the
-// same repo. The URL needs to contain a valid transport protocol, e.g. https, ssh.
-// These URLs will all return 'github.com/skia-dev/textfiles':
-//
-//  	"https://github.com/skia-dev/textfiles.git"
-//    "ssh://git@github.com/skia-dev/textfiles"
-//    "ssh://git@github.com:skia-dev/textfiles.git"
-//
-func NormalizeURL(inputURL string) (string, error) {
-	parsedURL, err := url.Parse(inputURL)
-	if err != nil {
-		return "", err
-	}
-
-	// If the scheme is ssh we have to account for the scp-like syntax with a ':'
-	host := parsedURL.Host
-	if parsedURL.Scheme == "ssh" {
-		host = strings.Replace(host, ":", "/", 1)
-	}
-	path := "/" + strings.TrimLeft(strings.TrimSuffix(parsedURL.Path, ".git"), "/:")
-	return host + path, nil
 }
 
 // AllRepos returns a map of all repos contained in given BigTable project/instance/table.
@@ -235,7 +211,7 @@ func AllRepos(ctx context.Context, conf *BTConfig) (map[string]*RepoInfo, error)
 
 // NewBTGitStore returns an instance of GitStore that uses BigTable as its backend storage.
 // The given repoURL serves to identify the repository. Internally it is stored normalized
-// via a call to NormalizeURL.
+// via a call to git.NormalizeURL.
 func NewBTGitStore(ctx context.Context, config *BTConfig, repoURL string) (GitStore, error) {
 	// Create the client.
 	client, err := bigtable.NewClient(ctx, config.ProjectID, config.InstanceID)
@@ -243,7 +219,7 @@ func NewBTGitStore(ctx context.Context, config *BTConfig, repoURL string) (GitSt
 		return nil, skerr.Fmt("Error creating bigtable client: %s", err)
 	}
 
-	repoURL, err = NormalizeURL(repoURL)
+	repoURL, err = git.NormalizeURL(repoURL)
 	if err != nil {
 		return nil, skerr.Fmt("Error normalizing URL %q: %s", repoURL, err)
 	}

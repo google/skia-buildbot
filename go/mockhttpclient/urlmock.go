@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/texttheater/golang-levenshtein/levenshtein"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -275,8 +276,9 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 func (m *URLMock) Empty() bool {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	for _, resps := range m.mockOnce {
+	for url, resps := range m.mockOnce {
 		if resps != nil && len(resps) > 0 {
+			sklog.Errorf("not empty: %s", url)
 			return false
 		}
 	}

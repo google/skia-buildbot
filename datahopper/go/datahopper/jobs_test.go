@@ -5,23 +5,23 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2/events"
 	metrics2_testutils "go.skia.org/infra/go/metrics2/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/specs"
-	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -348,16 +348,15 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	defer testutils.RemoveAll(t, wd)
 
 	d := memory.NewInMemoryDB(nil)
-	ctx, gb, _, _ := specs_testutils.SetupTestRepo(t)
+	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
 	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, wd)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
 
-	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	defer btCleanup()
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(wd, "taskCfgCache"), 1, btProject, btInstance, nil)
+	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	c1, err := git.GitDir(gb.Dir()).RevParse(ctx, "HEAD^")
@@ -368,6 +367,21 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	// c2 is 5 seconds after c1
 	c2time := repo.Get(c2).Timestamp
 
+	// Load the TasksCfg for each commit into the cache.
+	insertTasksCfg := func(commit string) {
+		out, err := git.GitDir(gb.Dir()).Git(ctx, "show", fmt.Sprintf("%s:infra/bots/tasks.json", commit))
+		assert.NoError(t, err)
+		cfg, err := specs.ParseTasksCfg(out)
+		assert.NoError(t, err)
+		sklog.Errorf("Inserting TasksCfg for %s", commit)
+		assert.NoError(t, tcc.Set(ctx, types.RepoState{
+			Repo:     gb.RepoUrl(),
+			Revision: commit,
+		}, cfg, nil))
+	}
+	insertTasksCfg(c1)
+	insertTasksCfg(c2)
+
 	// At 'now', c1 is 60 seconds old, c2 is 55 seconds old, and c3 (below) is 50 seconds old.
 	now := c1time.Add(time.Minute)
 	c1age := "60"
@@ -377,15 +391,15 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	check := func(buildAge, testAge, perfAge string) {
 		tags := map[string]string{
 			"repo":        gb.RepoUrl(),
-			"job_name":    specs_testutils.BuildTask,
+			"job_name":    tcc_testutils.BuildTaskName,
 			"job_trigger": "",
 		}
 		assert.Equal(t, buildAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 
-		tags["job_name"] = specs_testutils.TestTask
+		tags["job_name"] = tcc_testutils.TestTaskName
 		assert.Equal(t, testAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 
-		tags["job_name"] = specs_testutils.PerfTask
+		tags["job_name"] = tcc_testutils.PerfTaskName
 		assert.Equal(t, perfAge, metrics2_testutils.GetRecordedMetric(t, MEASUREMENT_OVERDUE_JOB_SPECS, tags))
 	}
 
@@ -398,7 +412,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 
 	// Insert jobs.
 	j1 := &types.Job{
-		Name: specs_testutils.BuildTask,
+		Name: tcc_testutils.BuildTaskName,
 		RepoState: types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: c1,
@@ -406,7 +420,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c1time,
 	}
 	j2 := &types.Job{
-		Name: specs_testutils.BuildTask,
+		Name: tcc_testutils.BuildTaskName,
 		RepoState: types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: c2,
@@ -414,7 +428,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c2time,
 	}
 	j3 := &types.Job{
-		Name: specs_testutils.TestTask,
+		Name: tcc_testutils.TestTaskName,
 		RepoState: types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: c1,
@@ -422,7 +436,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c1time,
 	}
 	j4 := &types.Job{
-		Name: specs_testutils.TestTask,
+		Name: tcc_testutils.TestTaskName,
 		RepoState: types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: c2,
@@ -430,7 +444,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 		Created: c2time,
 	}
 	j5 := &types.Job{
-		Name: specs_testutils.PerfTask,
+		Name: tcc_testutils.PerfTaskName,
 		RepoState: types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: c2,
@@ -457,10 +471,11 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	c3 := gb.CommitMsgAt(ctx, "c3", c1time.Add(10*time.Second)) // 5 seconds after c2
 	assert.NoError(t, repos.Update(ctx))
 	c3time := repo.Get(c3).Timestamp
+	insertTasksCfg(c3)
 
 	// Update to c3. Build job age is now at c3. Perf job should be missing.
 	j6 := &types.Job{
-		Name: specs_testutils.BuildTask,
+		Name: tcc_testutils.BuildTaskName,
 		RepoState: types.RepoState{
 			Repo:     gb.RepoUrl(),
 			Revision: c3,
@@ -469,5 +484,5 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	}
 	assert.NoError(t, d.PutJob(j6))
 	assert.NoError(t, om.updateOverdueJobSpecMetrics(ctx, now))
-	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", specs_testutils.PerfTask, gb.RepoUrl()))
+	check(c3age, c1age, fmt.Sprintf("Could not find anything for overdue_job_specs_s{job_name=\"%s\",job_trigger=\"\",repo=\"%s\"}", tcc_testutils.PerfTaskName, gb.RepoUrl()))
 }

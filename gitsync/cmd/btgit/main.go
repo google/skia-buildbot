@@ -5,6 +5,7 @@ import (
 	"flag"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	// Normalize the URL as GitStore does.
-	normURL, err := gitstore.NormalizeURL(*repoURL)
+	normURL, err := git.NormalizeURL(*repoURL)
 	if err != nil {
 		sklog.Fatalf("Error getting normalized URL for %s:  %s", *repoURL, err)
 	}

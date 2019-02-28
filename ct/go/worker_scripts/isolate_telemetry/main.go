@@ -85,7 +85,7 @@ func buildRepo() error {
 		IsolateFile: isolateFile,
 	}
 	isolateTasks := []*isolate.Task{isolateTask}
-	hashes, err := i.IsolateTasks(ctx, isolateTasks)
+	hashes, _, err := i.IsolateTasks(ctx, isolateTasks)
 	if err != nil {
 		return fmt.Errorf("Could not isolate telemetry task: %s", err)
 	}

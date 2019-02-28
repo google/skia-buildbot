@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -191,7 +192,7 @@ func addMetric(s *events.EventStream, repoUrl string, pct float64, period time.D
 // cycle runs ingestion of task data, maps each task to the commits it covered
 // before any other task, and inserts event data based on the lag time between
 // a commit landing and each task finishing for that commit.
-func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *specs.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
+func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, edb events.EventDB, em *events.EventMetrics, lastFinished, now time.Time, workdir string) error {
 	totalCommits := 0
 	for _, r := range repos {
 		totalCommits += r.Len()
@@ -285,11 +286,14 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 				if t.Id != "buildbot-id" {
 					cfg, ok := cfgs[commit]
 					if !ok {
-						c, err := tcc.ReadTasksCfg(ctx, types.RepoState{
+						c, err := tcc.Get(ctx, types.RepoState{
 							Repo:     repoUrl,
 							Revision: commit.Hash,
 						})
-						if err != nil {
+						if err == task_cfg_cache.ErrNoSuchEntry {
+							sklog.Warningf("TaskCfgCache has no entry for %s@%s.", repoUrl, commit.Hash)
+							return true, nil
+						} else if err != nil {
 							// Some old commits only have tasks without jobs. Skip them.
 							if strings.Contains(err.Error(), "is not reachable by any Job") {
 								cfgs[commit] = &specs.TasksCfg{
@@ -394,7 +398,7 @@ func writeTs(workdir string, ts time.Time) error {
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *specs.TaskCfgCache, workdir string) error {
+func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, workdir string) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err

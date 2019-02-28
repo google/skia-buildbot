@@ -5,7 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -241,4 +242,39 @@ func TestParentsError(t *testing.T) {
 	_, err := input.Parents(repoMap)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Unknown repo")
+}
+
+func TestRepoStateRowKey(t *testing.T) {
+	testutils.SmallTest(t)
+
+	check := func(rs RepoState, expect string) {
+		assert.Equal(t, expect, rs.RowKey())
+	}
+
+	// Simple, no patch.
+	check(RepoState{
+		Repo:     common.REPO_SKIA,
+		Revision: "abc123",
+	}, "2#abc123#skia.googlesource.com/skia#####")
+	// Add a patch.
+	check(RepoState{
+		Repo:     common.REPO_SKIA,
+		Revision: "abc123",
+		Patch: Patch{
+			Issue:     "12345",
+			Patchset:  "2",
+			Server:    "fake.server.com",
+			PatchRepo: "https://skia.googlesource.com/other.git",
+		},
+	}, "2#abc123#skia.googlesource.com/skia#45#12345#2#skia.googlesource.com/other#fake.server.com")
+	// Patches are valid without a PatchRepo.
+	check(RepoState{
+		Repo:     common.REPO_SKIA,
+		Revision: "abc123",
+		Patch: Patch{
+			Issue:    "12345",
+			Patchset: "2",
+			Server:   "fake.server.com",
+		},
+	}, "2#abc123#skia.googlesource.com/skia#45#12345#2##fake.server.com")
 }

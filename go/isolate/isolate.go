@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/storage"
+	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/httputils"
@@ -184,6 +185,7 @@ func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 }
 
 // isolateFile is a struct representing the contents of a .isolate file.
+// TODO(borenet): Can we use something from go.chromium.org/luci/client/isolate?
 type isolateFile struct {
 	Command  []string
 	Files    []string
@@ -227,32 +229,76 @@ func (f *isolateFile) Encode(w io.Writer) error {
 	return nil
 }
 
-// isolatedFile is a struct representing the contents of a .isolated file.
-type isolatedFile struct {
-	Algo        string                 `json:"algo,omitempty"`
-	Command     []string               `json:"command,omitempty"`
-	Files       map[string]interface{} `json:"files,omitempty"`
-	Includes    []string               `json:"includes,omitempty"`
-	RelativeCwd string                 `json:"relative_cwd,omitempty"`
-	Version     string                 `json:"version,omitempty"`
+// Copy the Isolated.
+func CopyIsolated(iso *isolated.Isolated) *isolated.Isolated {
+	if iso == nil {
+		return nil
+	}
+	var files map[string]isolated.File
+	if iso.Files != nil {
+		files = make(map[string]isolated.File, len(iso.Files))
+		for k, v := range iso.Files {
+			var link *string
+			if v.Link != nil {
+				linkVal := *v.Link
+				link = &linkVal
+			}
+			var mode *int
+			if v.Mode != nil {
+				modeVal := *v.Mode
+				mode = &modeVal
+			}
+			var size *int64
+			if v.Size != nil {
+				sizeVal := *v.Size
+				size = &sizeVal
+			}
+			files[k] = isolated.File{
+				Digest: v.Digest,
+				Link:   link,
+				Mode:   mode,
+				Size:   size,
+				Type:   v.Type,
+			}
+		}
+	}
+	var includes isolated.HexDigests
+	if iso.Includes != nil {
+		includes = make([]isolated.HexDigest, len(iso.Includes))
+		copy(includes, iso.Includes)
+	}
+	var ro *isolated.ReadOnlyValue
+	if iso.ReadOnly != nil {
+		rov := *iso.ReadOnly
+		ro = &rov
+	}
+	return &isolated.Isolated{
+		Algo:        iso.Algo,
+		Command:     util.CopyStringSlice(iso.Command),
+		Files:       files,
+		Includes:    includes,
+		ReadOnly:    ro,
+		RelativeCwd: iso.RelativeCwd,
+		Version:     iso.Version,
+	}
 }
 
-// readIsolatedFile reads the given isolated file.
-func readIsolatedFile(filepath string) (*isolatedFile, error) {
+// ReadIsolatedFile reads the given isolated file.
+func ReadIsolatedFile(filepath string) (*isolated.Isolated, error) {
 	f, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(f)
-	var isolated isolatedFile
-	if err := json.NewDecoder(f).Decode(&isolated); err != nil {
+	var iso isolated.Isolated
+	if err := json.NewDecoder(f).Decode(&iso); err != nil {
 		return nil, err
 	}
-	return &isolated, nil
+	return &iso, nil
 }
 
-// writeIsolatedFile writes the given isolated file.
-func writeIsolatedFile(filepath string, i *isolatedFile) error {
+// WriteIsolatedFile writes the given isolated file.
+func WriteIsolatedFile(filepath string, i *isolated.Isolated) error {
 	f, err := os.Create(filepath)
 	if err != nil {
 		return err
@@ -262,20 +308,6 @@ func writeIsolatedFile(filepath string, i *isolatedFile) error {
 		return err
 	}
 	return f.Close()
-}
-
-// addIsolatedIncludes inserts the given isolated hashes as includes into the
-// given isolated file.
-func addIsolatedIncludes(filepath string, includes []string) error {
-	isolated, err := readIsolatedFile(filepath)
-	if err != nil {
-		return err
-	}
-	if isolated.Includes == nil {
-		isolated.Includes = make([]string, 0, len(includes))
-	}
-	isolated.Includes = append(isolated.Includes, includes...)
-	return writeIsolatedFile(filepath, isolated)
 }
 
 // BatchArchiveTasks runs `isolate batcharchive` for the tasks.
@@ -300,17 +332,65 @@ func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, j
 
 // IsolateTasks uploads the necessary inputs for the task to the isolate server
 // and returns the isolated hashes.
-func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, error) {
+func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*isolated.Isolated, error) {
 	// Validation.
 	if len(tasks) == 0 {
-		return []string{}, nil
+		return []string{}, []*isolated.Isolated{}, nil
 	}
 	for _, t := range tasks {
 		if err := t.Validate(); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
+	// Setup.
+	tmpDir, err := ioutil.TempDir("", "isolate")
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to create temporary dir: %s", err)
+	}
+	defer util.RemoveAll(tmpDir)
+
+	// Write the .isolated.gen.json files.
+	genJsonFiles := make([]string, 0, len(tasks))
+	isolatedFilePaths := make([]string, 0, len(tasks))
+	for i, t := range tasks {
+		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
+		genJsonFile := path.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
+		isolatedFile := path.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
+		if err := WriteIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
+			return nil, nil, err
+		}
+		genJsonFiles = append(genJsonFiles, genJsonFile)
+		isolatedFilePaths = append(isolatedFilePaths, isolatedFile)
+	}
+
+	// Isolate the tasks.
+	if err := c.BatchArchiveTasks(ctx, genJsonFiles, ""); err != nil {
+		return nil, nil, err
+	}
+
+	// Read the isolated files and add any extra dependencies.
+	isolatedFiles := make([]*isolated.Isolated, 0, len(isolatedFilePaths))
+	for i, f := range isolatedFilePaths {
+		t := tasks[i]
+		iso, err := ReadIsolatedFile(f)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, dep := range t.Deps {
+			iso.Includes = append(iso.Includes, isolated.HexDigest(dep))
+		}
+		isolatedFiles = append(isolatedFiles, iso)
+	}
+	hashes, err := c.ReUploadIsolatedFiles(ctx, isolatedFiles)
+	if err != nil {
+		return nil, nil, err
+	}
+	return hashes, isolatedFiles, err
+}
+
+// ReUploadIsolatedFiles re-uploads the given existing isolated files, eg. to add dependencies.
+func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*isolated.Isolated) ([]string, error) {
 	// Setup.
 	tmpDir, err := ioutil.TempDir("", "isolate")
 	if err != nil {
@@ -318,36 +398,17 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 	}
 	defer util.RemoveAll(tmpDir)
 
-	// Write the .isolated.gen.json files.
-	genJsonFiles := make([]string, 0, len(tasks))
-	isolatedFiles := make([]string, 0, len(tasks))
-	for i, t := range tasks {
+	// Re-upload the isolated files.
+	isolatedFilePaths := make([]string, 0, len(isolatedFiles))
+	for i, isolatedFile := range isolatedFiles {
 		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
-		genJsonFile := path.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
-		isolatedFile := path.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
-		if err := WriteIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
+		filePath := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
+		isolatedFilePaths = append(isolatedFilePaths, filePath)
+		if err := WriteIsolatedFile(filePath, isolatedFile); err != nil {
 			return nil, err
 		}
-		genJsonFiles = append(genJsonFiles, genJsonFile)
-		isolatedFiles = append(isolatedFiles, isolatedFile)
 	}
 
-	// Isolate the tasks.
-	if err := c.BatchArchiveTasks(ctx, genJsonFiles, ""); err != nil {
-		return nil, err
-	}
-
-	// Rewrite the isolated files with any extra dependencies.
-	for i, f := range isolatedFiles {
-		t := tasks[i]
-		if t.Deps != nil && len(t.Deps) > 0 {
-			if err := addIsolatedIncludes(f, t.Deps); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	// Re-upload the isolated files.
 	cmd := []string{
 		c.isolateserver, "archive", "--verbose",
 		"--isolate-server", c.serverUrl,
@@ -355,7 +416,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 	if c.serviceAccountJSON != "" {
 		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
 	}
-	for _, f := range isolatedFiles {
+	for _, f := range isolatedFilePaths {
 		dirname, filename := path.Split(f)
 		cmd = append(cmd, "--files", fmt.Sprintf("%s:%s", dirname, filename))
 	}
@@ -375,11 +436,11 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, err
 			hashes[m[2]] = m[1]
 		}
 	}
-	if len(hashes) != len(tasks) {
+	if len(hashes) != len(isolatedFiles) {
 		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes:\n%s", string(output))
 	}
-	rv := make([]string, 0, len(tasks))
-	for i := range tasks {
+	rv := make([]string, 0, len(isolatedFiles))
+	for i, _ := range isolatedFiles {
 		rv = append(rv, hashes[fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))])
 	}
 	return rv, nil

@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -281,7 +282,7 @@ func addJobAggregates(s *events.EventStream) error {
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func StartJobMetrics(ctx context.Context, jobDb db.JobReader, repos repograph.Map, tcc *specs.TaskCfgCache) error {
+func StartJobMetrics(ctx context.Context, jobDb db.JobReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		db:     jobDb,
@@ -335,13 +336,13 @@ type overdueJobMetrics struct {
 
 	jCache       cache.JobCache
 	repos        repograph.Map
-	taskCfgCache *specs.TaskCfgCache
+	taskCfgCache *task_cfg_cache.TaskCfgCache
 	window       *window.Window
 }
 
 // Return an overdueJobMetrics instance. The caller is responsible for updating
 // the passed-in repos and TaskCfgCache.
-func newOverdueJobMetrics(jobDb db.JobReader, repos repograph.Map, tcc *specs.TaskCfgCache) (*overdueJobMetrics, error) {
+func newOverdueJobMetrics(jobDb db.JobReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) (*overdueJobMetrics, error) {
 	w, err := window.New(OVERDUE_JOB_METRICS_PERIOD, OVERDUE_JOB_METRICS_NUM_COMMITS, repos)
 	if err != nil {
 		return nil, err
@@ -370,6 +371,34 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 	})
 }
 
+// getMostRecentCachedRev returns the Commit and TasksCfg for the most recent
+// commit which has an entry in the TaskCfgCache.
+func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCache, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
+	head := repo.Get("master")
+	if head == nil {
+		return nil, nil, sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
+	}
+	var commit *repograph.Commit
+	var cfg *specs.TasksCfg
+	if err := head.Recurse(func(c *repograph.Commit) (bool, error) {
+		tasksCfg, err := tcc.Get(ctx, types.RepoState{
+			Repo:     repoUrl,
+			Revision: c.Hash,
+		})
+		if err == task_cfg_cache.ErrNoSuchEntry {
+			return true, nil
+		} else if err != nil {
+			return false, err
+		}
+		cfg = tasksCfg
+		commit = c
+		return false, nil
+	}); err != nil {
+		return nil, nil, err
+	}
+	return commit, cfg, nil
+}
+
 // updateOverdueJobSpecMetrics updates metrics for MEASUREMENT_OVERDUE_JOB_SPECS.
 func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now time.Time) error {
 	defer metrics2.FuncTimer().Stop()
@@ -384,17 +413,12 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 
 	// Process each repo individually.
 	for repoUrl, repo := range m.repos {
-		// Include only the jobs at current master. We don't report on JobSpecs that have been removed.
-		head := repo.Get("master")
-		if head == nil {
-			return sklog.FmtErrorf("Can't resolve %q in %q.", "master", repoUrl)
-		}
-		headTaskCfg, err := m.taskCfgCache.ReadTasksCfg(ctx, types.RepoState{
-			Repo:     repoUrl,
-			Revision: head.Hash,
-		})
+		// Include only the jobs at current master (or most recently
+		// cached commit). We don't report on JobSpecs that have been
+		// removed.
+		head, headTaskCfg, err := getMostRecentCachedRev(ctx, m.taskCfgCache, repoUrl, repo)
 		if err != nil {
-			return sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, head.Hash, err)
+			return err
 		}
 		// Set of JobSpec names left to process.
 		todo := util.StringSet{}
@@ -436,7 +460,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 				return false, nil
 			}
 			// Check that the remaining JobSpecs are still valid at this commit.
-			taskCfg, err := m.taskCfgCache.ReadTasksCfg(ctx, rs)
+			taskCfg, err := m.taskCfgCache.Get(ctx, rs)
 			if err != nil {
 				return false, sklog.FmtErrorf("Error reading TaskCfg for %q at %q: %s", repoUrl, c.Hash, err)
 			}

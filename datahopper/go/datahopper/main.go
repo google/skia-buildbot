@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/httputils"
@@ -33,7 +32,7 @@ import (
 	"go.skia.org/infra/perf/go/perfclient"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
-	"go.skia.org/infra/task_scheduler/go/specs"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"google.golang.org/api/option"
 )
 
@@ -46,7 +45,6 @@ var (
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	workdir           = flag.String("workdir", ".", "Working directory used by data processors.")
 
 	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
@@ -136,23 +134,16 @@ func main() {
 	})
 
 	// TaskCfgCache.
-	if *recipesCfgFile == "" {
-		*recipesCfgFile = path.Join(*workdir, "recipes.cfg")
-	}
-	depotTools, err := depot_tools.Sync(ctx, w, *recipesCfgFile)
-	if err != nil {
-		sklog.Fatalf("Failed to sync depot_tools: %s", err)
-	}
 	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	tcc, err := specs.NewTaskCfgCache(ctx, repos, depotTools, path.Join(w, "taskCfgCache"), 1, *btProject, *btInstance, newTs)
+	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, newTs)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
 	go util.RepeatCtx(30*time.Minute, ctx, func() {
-		if err := tcc.Cleanup(OVERDUE_JOB_METRICS_PERIOD); err != nil {
+		if err := tcc.Cleanup(ctx, OVERDUE_JOB_METRICS_PERIOD); err != nil {
 			sklog.Errorf("Failed to cleanup TaskCfgCache: %s", err)
 		}
 	})

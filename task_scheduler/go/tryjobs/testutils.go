@@ -18,13 +18,17 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
-	"go.skia.org/infra/task_scheduler/go/specs"
-	specs_testutils "go.skia.org/infra/task_scheduler/go/specs/testutils"
+	"go.skia.org/infra/task_scheduler/go/isolate_cache"
+	"go.skia.org/infra/task_scheduler/go/syncer"
+	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
+	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
 )
@@ -84,6 +88,8 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	assert.NoError(t, os.MkdirAll(path.Join(gb.Dir(), "infra", "bots"), os.ModePerm))
 	tasksJson := path.Join("infra", "bots", "tasks.json")
 	gb.Add(ctx, tasksJson, testTasksCfg)
+	gb.Add(ctx, path.Join("infra", "bots", "fake1.isolate"), "{}")
+	gb.Add(ctx, path.Join("infra", "bots", "fake2.isolate"), "{}")
 	gb.Commit(ctx)
 
 	rs := types.RepoState{
@@ -110,8 +116,8 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	// Set up other TryJobIntegrator inputs.
 	window, err := window.New(time.Hour, 100, rm)
 	assert.NoError(t, err)
-	btProject, btInstance, btCleanup := specs_testutils.SetupBigTable(t)
-	taskCfgCache, err := specs.NewTaskCfgCache(ctx, rm, depot_tools_testutils.GetDepotTools(t, ctx), path.Join(tmpDir, "cache"), specs.DEFAULT_NUM_WORKERS, btProject, btInstance, nil)
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
+	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, rm, btProject, btInstance, nil)
 	assert.NoError(t, err)
 	d := memory.NewInMemoryDB(nil)
 	mock := mockhttpclient.NewURLMock()
@@ -125,13 +131,26 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	g, err := gerrit.NewGerrit(fakeGerritUrl, gitcookies, mock.Client())
 	assert.NoError(t, err)
 
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, g)
+	depotTools := depot_tools_testutils.GetDepotTools(t, ctx)
+	s := syncer.New(ctx, rm, depotTools, tmpDir, syncer.DEFAULT_NUM_WORKERS)
+	isolateClient, err := isolate.NewClient(tmpDir, isolate.ISOLATE_SERVER_URL_FAKE)
+	assert.NoError(t, err)
+	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
+	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
+	assert.NoError(t, err)
+	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache)
+
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, chr, g)
 	assert.NoError(t, err)
 
 	return ctx, integrator, gb, mock, func() {
+		testutils.AssertCloses(t, isolateClient)
+		testutils.AssertCloses(t, taskCfgCache)
 		testutils.RemoveAll(t, tmpDir)
 		gb.Cleanup()
+		btCleanupIsolate()
 		btCleanup()
+		assert.NoError(t, s.Close())
 	}
 }
 
