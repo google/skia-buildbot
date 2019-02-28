@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/git"
@@ -83,10 +84,20 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 
 			// Isolate all of the task specs and update their IsolateHashes.
 			isolateFileNames := []string{}
-			done := map[string]bool{}
+			done := map[string]map[string]bool{} // Maps isolate file name to map of OS to hash.
 			isolateTasks := []*isolate.Task{}
 			for _, taskSpec := range cv.Cfg.Tasks {
-				if done[taskSpec.Isolate] {
+				os := "linux"
+				for _, d := range taskSpec.Dimensions {
+					if strings.HasPrefix(d, "os:") {
+						os = d[len("os:"):]
+						break
+					}
+				}
+				if _, ok := done[taskSpec.Isolate]; !ok {
+					done[taskSpec.Isolate] = map[string]bool{}
+				}
+				if done[taskSpec.Isolate][os] {
 					continue
 				}
 				t := &isolate.Task{
@@ -97,7 +108,7 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 				}
 				isolateFileNames = append(isolateFileNames, taskSpec.Isolate)
 				isolateTasks = append(isolateTasks, t)
-				done[taskSpec.Isolate] = true
+				done[taskSpec.Isolate][os] = true
 			}
 			// Now, isolate all of the tasks.
 			if len(isolateTasks) > 0 {
