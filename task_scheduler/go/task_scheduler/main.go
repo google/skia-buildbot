@@ -175,7 +175,7 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	rules := ts.GetBlacklist().GetRules()
 	enc, err := json.Marshal(&struct {
-		Rules []*blacklist.Rule
+		Rules []*blacklist.Rule `json:"rules"`
 	}{
 		Rules: rules,
 	})
@@ -243,7 +243,12 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	if err := json.NewEncoder(w).Encode(ts.GetBlacklist()); err != nil {
+	resp := &struct {
+		Rules []*blacklist.Rule `json:"rules"`
+	}{
+		Rules: ts.GetBlacklist().GetRules(),
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
 		return
 	}
