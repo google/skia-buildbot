@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5186d72_c14cb513",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1700,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-28T19:47:31Z",
+      "side": 1,
+      "message": "I think one reason we didn\u0027t do things this way is that it would block scheduling all tasks if Buildbucket is down.",
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9325f9ea_51dbac9d",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-28T19:47:31Z",
+      "side": 1,
+      "message": "nit: maybe don\u0027t include this, since the number of tryjobs is a lot less than the total number of unfinished jobs",
+      "range": {
+        "startLine": 129,
+        "startChar": 40,
+        "endLine": 129,
+        "endChar": 49
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8e3b5fa_b2464fad",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-28T19:47:31Z",
+      "side": 1,
+      "message": "The code you deleted looked for \"job.BuildbucketLeaseKey \u003d\u003d 0\". Will these always be equivalent?",
+      "range": {
+        "startLine": 131,
+        "startChar": 5,
+        "endLine": 131,
+        "endChar": 19
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d04c8e2c_78c2e892",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-28T19:47:31Z",
+      "side": 1,
+      "message": "Is this tested? Maybe add an explicit test just to be sure.",
+      "range": {
+        "startLine": 137,
+        "startChar": 1,
+        "endLine": 148,
+        "endChar": 2
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b649583_9e79209e",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 480,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-28T19:47:31Z",
+      "side": 1,
+      "message": "Maybe add a function timer before making this change. Currently this func is outside of the scheduling loop, but this CL means it will block scheduling if it\u0027s slow.",
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
