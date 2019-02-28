@@ -120,6 +120,7 @@ type TaskScheduler struct {
 	taskCfgCache     *task_cfg_cache.TaskCfgCache
 	tCache           cache.TaskCache
 	timeDecayAmt24Hr float64
+	triggeredCount   metrics2.Counter
 	tryjobs          *tryjobs.TryJobIntegrator
 	window           *window.Window
 	workdir          string
@@ -160,59 +161,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	}
 	chr := cacher.New(sc, taskCfgCache, isolateClient, isolateCache)
 
-	// We just added the isolate cache, and existing jobs may not have been
-	// cached by Cacher already. Go through the unfinished jobs and cache
-	// them if necessary.
-	// TODO(borenet): Remove this after the dust has settled.
-	if err := jCache.Update(); err != nil {
-		return nil, fmt.Errorf("Failed to update job cache: %s", err)
-	}
-	unfinishedJobs, err := jCache.UnfinishedJobs()
-	if err != nil {
-		return nil, err
-	}
-	repoStatesToCache := map[types.RepoState]bool{}
-	var g errgroup.Group
-	for _, job := range unfinishedJobs {
-		repoStatesToCache[job.RepoState] = true
-	}
-	// Also cache the repo states for all commits in range.
-	startTimesByRepo := w.StartTimesByRepo()
-	for repoUrl, repo := range repos {
-		ts, ok := startTimesByRepo[repoUrl]
-		if !ok {
-			return nil, fmt.Errorf("No start time for repo %s", repoUrl)
-		}
-		commits, err := repo.GetCommitsNewerThan(ts)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to load commits: %s", err)
-		}
-		for _, c := range commits {
-			repoStatesToCache[types.RepoState{
-				Repo:     repoUrl,
-				Revision: c.Hash,
-			}] = true
-			// Also explicitly cache all parents of each commit, to
-			// ensure that the TaskCfgCache's addedTasksCache gets
-			// the correct results.
-			for _, p := range c.Parents {
-				repoStatesToCache[types.RepoState{
-					Repo:     repoUrl,
-					Revision: p,
-				}] = true
-			}
-		}
-	}
-	for rs, _ := range repoStatesToCache {
-		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
-		g.Go(func() error {
-			if _, err := chr.GetOrCacheRepoState(ctx, rs); err != nil {
-				return fmt.Errorf("Failed to cache RepoState: %s", err)
-			}
-			return nil
-		})
-	}
-	if err := g.Wait(); err != nil {
+	if err := initCaches(ctx, chr, jCache, w, repos); err != nil {
 		return nil, err
 	}
 
@@ -243,6 +192,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		taskCfgCache:     taskCfgCache,
 		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
+		triggeredCount:   metrics2.GetCounter("task_scheduler_triggered_count"),
 		tryjobs:          tryjobs,
 		window:           w,
 		workdir:          workdir,
@@ -286,6 +236,68 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 			lvUpdate.Reset()
 		}
 	})
+}
+
+// initCaches ensures that all of the RepoStates we care about are present
+// in the various caches.
+func initCaches(ctx context.Context, chr *cacher.Cacher, jCache cache.JobCache, w *window.Window, repos repograph.Map) error {
+	defer metrics2.FuncTimer().Stop()
+
+	sklog.Infof("Initializing caches...")
+	defer sklog.Infof("Done initializing caches.")
+
+	// We just added the isolate cache, and existing jobs may not have been
+	// cached by Cacher already. Go through the unfinished jobs and cache
+	// them if necessary.
+	if err := jCache.Update(); err != nil {
+		return fmt.Errorf("Failed to update job cache: %s", err)
+	}
+	unfinishedJobs, err := jCache.UnfinishedJobs()
+	if err != nil {
+		return err
+	}
+	repoStatesToCache := map[types.RepoState]bool{}
+	var g errgroup.Group
+	for _, job := range unfinishedJobs {
+		repoStatesToCache[job.RepoState] = true
+	}
+	// Also cache the repo states for all commits in range.
+	startTimesByRepo := w.StartTimesByRepo()
+	for repoUrl, repo := range repos {
+		ts, ok := startTimesByRepo[repoUrl]
+		if !ok {
+			return fmt.Errorf("No start time for repo %s", repoUrl)
+		}
+		commits, err := repo.GetCommitsNewerThan(ts)
+		if err != nil {
+			return fmt.Errorf("Failed to load commits: %s", err)
+		}
+		for _, c := range commits {
+			repoStatesToCache[types.RepoState{
+				Repo:     repoUrl,
+				Revision: c.Hash,
+			}] = true
+			// Also explicitly cache all parents of each commit, to
+			// ensure that the TaskCfgCache's addedTasksCache gets
+			// the correct results.
+			for _, p := range c.Parents {
+				repoStatesToCache[types.RepoState{
+					Repo:     repoUrl,
+					Revision: p,
+				}] = true
+			}
+		}
+	}
+	for rs, _ := range repoStatesToCache {
+		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
+		g.Go(func() error {
+			if _, err := chr.GetOrCacheRepoState(ctx, rs); err != nil {
+				return fmt.Errorf("Failed to cache RepoState: %s", err)
+			}
+			return nil
+		})
+	}
+	return g.Wait()
 }
 
 // TaskSchedulerStatus is a struct which provides status information about the
@@ -1282,7 +1294,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 				}
 			}
 			if len(remove) != numTriggered {
-				return fmt.Errorf("WHAAT")
+				return fmt.Errorf("Number of tasks to remove from the queue (%d) differs from the number of tasks triggered (%d)", len(remove), numTriggered)
 			}
 
 			// Remove the tasks from the queue.
@@ -1307,6 +1319,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 	} else {
 		sklog.Infof("Triggered no tasks (%d in queue, %d bots available)", len(queue), len(bots))
 	}
+	s.triggeredCount.Inc(int64(numTriggered))
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
 	s.queue = queue
