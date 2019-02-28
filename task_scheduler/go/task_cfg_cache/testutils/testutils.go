@@ -7,14 +7,109 @@ import (
 	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
-	BuildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
-	TestTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	PerfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	BuildTaskName = "Build-Ubuntu-GCC-Arm7-Release-Android"
+	TestTaskName  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	PerfTaskName  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+)
 
-	BT_PROJECT = "test-project"
+var (
+	BuildTask = &specs.TaskSpec{
+		CipdPackages: []*specs.CipdPackage{
+			&specs.CipdPackage{
+				Name:    "android_sdk",
+				Path:    "android_sdk",
+				Version: "version:0",
+			},
+		},
+		Command:    []string{"ninja", "skia"},
+		Dimensions: []string{"pool:Skia", "os:Ubuntu"},
+		ExtraTags: map[string]string{
+			"is_build_task": "true",
+		},
+		Isolate:     "compile_skia.isolate",
+		MaxAttempts: 5,
+		Priority:    0.8,
+	}
+	TestTask = &specs.TaskSpec{
+		CipdPackages: []*specs.CipdPackage{
+			&specs.CipdPackage{
+				Name:    "skimage",
+				Path:    "skimage",
+				Version: "version:0",
+			},
+			&specs.CipdPackage{
+				Name:    "skp",
+				Path:    "skp",
+				Version: "version:0",
+			},
+		},
+		Command:      []string{"test", "skia"},
+		Dependencies: []string{BuildTaskName},
+		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
+		EnvPrefixes: map[string][]string{
+			"PATH": []string{"curdir"},
+		},
+		Isolate:  "test_skia.isolate",
+		Priority: 0.8,
+	}
+	PerfTask = &specs.TaskSpec{
+		CipdPackages: []*specs.CipdPackage{
+			&specs.CipdPackage{
+				Name:    "skimage",
+				Path:    "skimage",
+				Version: "version:0",
+			},
+			&specs.CipdPackage{
+				Name:    "skp",
+				Path:    "skp",
+				Version: "version:0",
+			},
+		},
+		Command:      []string{"perf", "skia"},
+		Dependencies: []string{BuildTaskName},
+		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
+		Isolate:      "perf_skia.isolate",
+		Priority:     0.8,
+	}
+
+	BuildJob = &specs.JobSpec{
+		Priority:  0.8,
+		TaskSpecs: []string{BuildTaskName},
+	}
+	TestJob = &specs.JobSpec{
+		Priority:  0.8,
+		TaskSpecs: []string{TestTaskName},
+	}
+	PerfJob = &specs.JobSpec{
+		Priority:  0.8,
+		TaskSpecs: []string{PerfTaskName},
+	}
+	TasksCfg1 = &specs.TasksCfg{
+		Tasks: map[string]*specs.TaskSpec{
+			BuildTaskName: BuildTask,
+			TestTaskName:  TestTask,
+		},
+		Jobs: map[string]*specs.JobSpec{
+			BuildTaskName: BuildJob,
+			TestTaskName:  TestJob,
+		},
+	}
+	TasksCfg2 = &specs.TasksCfg{
+		Tasks: map[string]*specs.TaskSpec{
+			BuildTaskName: BuildTask,
+			PerfTaskName:  PerfTask,
+			TestTaskName:  TestTask,
+		},
+		Jobs: map[string]*specs.JobSpec{
+			BuildTaskName: BuildJob,
+			PerfTaskName:  PerfJob,
+			TestTaskName:  TestJob,
+		},
+	}
 )
 
 // The test repo has two commits. The first commit adds a tasks.cfg file
