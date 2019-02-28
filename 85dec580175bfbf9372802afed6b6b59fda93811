@@ -131,6 +131,30 @@
     },
     {
       "key": {
+        "uuid": "414ea11d_9b998e69",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-02-28T22:03:23Z",
+      "side": 1,
+      "message": "Prior to this CL, \"active tryjob\" meant \"job.BuildbucketLeaseKey !\u003d 0\". After this CL, this *should* always be the same as \"job.IsTryJob() \u0026\u0026 !job.Done()\" because we will update the job status in our DB if and only if we also tell Buildbucket it\u0027s finished and clear BuildbucketLeaseKey.\n\nThere is a very very unlikely scenario where we update the status of a tryjob in the DB just before you deploy this change, so we have a job in the DB where \"job.IsTryJob() \u0026\u0026 job.Done() \u0026\u0026 job.BuildbucketLeaseKey !\u003d 0\" is true.\n\nI suppose we could keep the current asynchronous process to tell Buildbucket that a job is finished and still get rid of tryJobCache by adding a new method to JobCache (either \"get all cached jobs\" or \"get all jobs with a BuildbucketLeaseKey\" or maybe \"get all jobs where this function returns true\").\n\nIf I can propose yet another alternative (oh boy, here we go again...), it might make sense to restructure the job cache (and task cache) into modules. The main struct (JobCacheManager?) would just maintain a sorted list of Jobs and a list of modules (JobCacheModule?). Each time the list of jobs changes, JobCacheManager provides each JobCacheModule with the full list of Jobs and the JobCacheModule recreates its cache with the new list. (It\u0027s possible that this approach will result in too much GCing, in which case the JobCacheManager can provide lists of new, updated, and expired jobs.)",
+      "parentUuid": "baf44012_792766c1",
+      "range": {
+        "startLine": 131,
+        "startChar": 5,
+        "endLine": 131,
+        "endChar": 19
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d04c8e2c_78c2e892",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
