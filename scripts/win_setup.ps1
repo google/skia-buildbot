@@ -126,8 +126,14 @@ $data = $metadataclient.DownloadString($url)
 log $data
 Set-Content $chromebotSchTask $data
 
+banner "Disabling GCE's sysprep"
+Stop-Service GCEAgent
+Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Google Compute Engine Agent" -Recurse
+schtasks /delete /tn GCEStartup /f
+Stop-Process -processname "GCEWindowsAgent"
+
 banner "Set chrome-bot's scheduled task"
-schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL LIMITED
+schtasks /Create /IT /TN skiabot /SC ONLOGON /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL HIGHEST
 
 $bot_dir = "C:\b"
 banner "Create $bot_dir"

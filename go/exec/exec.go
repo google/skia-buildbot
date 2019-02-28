@@ -45,6 +45,7 @@ import (
 	"io"
 	"os"
 	osexec "os/exec"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -153,6 +154,16 @@ func squashWriters(writers ...io.Writer) io.Writer {
 		return nonNil[0]
 	default:
 		return io.MultiWriter(nonNil...)
+	}
+}
+
+// WinWrapper modifies the specified command to be "cmd /c ..." for Windows.
+func WinWrapper(c *Command) {
+	if runtime.GOOS == "windows" {
+		oldName := c.Name
+		c.Name = "cmd"
+		newArgs := []string{"/c", oldName}
+		c.Args = append(newArgs, c.Args...)
 	}
 }
 
