@@ -16,6 +16,24 @@
       "revId": "d4cfebb911525ff926202c62a59efe3ba0690f98",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82e25a33_a1cbc9e0",
+        "filename": "gold-client/cmd/goldctl/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-02-28T14:40:49Z",
+      "side": 1,
+      "message": "Done\nSee: https://skia-review.googlesource.com/c/buildbot/+/196340",
+      "parentUuid": "d7476d8f_f877cc48",
+      "revId": "d4cfebb911525ff926202c62a59efe3ba0690f98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
