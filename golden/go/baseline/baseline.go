@@ -50,13 +50,13 @@ type CommitableBaseLine struct {
 // TODO(stephana): Add tests for GetBaselinePerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
-func GetBaselinesPerCommit(exps types.Expectations, tile *tiling.Tile) (map[string]*CommitableBaseLine, error) {
-	commits := tile.Commits
-	if len(tile.Commits) == 0 {
+func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) (map[string]*CommitableBaseLine, error) {
+	commits := cpxTile.AllCommits()
+	if len(commits) == 0 {
 		return map[string]*CommitableBaseLine{}, nil
 	}
 
-	perCommitBaselines := make([]*CommitableBaseLine, len(tile.Commits))
+	perCommitBaselines := make([]*CommitableBaseLine, len(commits))
 	var egroup errgroup.Group
 
 	for cIdx := range commits {

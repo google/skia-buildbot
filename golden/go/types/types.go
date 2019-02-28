@@ -81,7 +81,7 @@ func (tc *TestClassification) DeepCopy() TestClassification {
 }
 
 // TilePair contains two tiles of the underlying data.
-type TilePair struct {
+type ComplexTile struct {
 	// Tile is the current tile without ignored traces.
 	Tile *tiling.Tile
 
@@ -90,6 +90,51 @@ type TilePair struct {
 
 	// IgnoreRules contains the rules used to created the TileWithIgnores.
 	IgnoreRules paramtools.ParamMatcher
+
+	irRev int64
+
+	CommitsSummary *CommitsSummary
+}
+
+func NewComplexTile(tile, tileWithIgnores *tiling.Tile, commitsSum *CommitsSummary, ir paramtools.ParamMatcher, irRev int64) *ComplexTile {
+	return &ComplexTile{
+		Tile:            tile,
+		TileWithIgnores: tileWithIgnores,
+		CommitsSummary:  commitsSum,
+		irRev:           irRev,
+		IgnoreRules:     ir,
+	}
+}
+
+func (c *ComplexTile) Changed(completeTile *tiling.Tile, ignoreRev int64, commitSum *CommitsSummary) bool {
+	return true
+}
+
+func (c *ComplexTile) AllCommits() []*tiling.Commit {
+	return c.CommitsSummary.commits
+}
+
+func (c *ComplexTile) DataCommits() []*tiling.Commit {
+	return c.Tile.Commits
+}
+
+func (c *ComplexTile) GetTile(includeIgnores bool) *tiling.Tile {
+	if includeIgnores {
+		return c.TileWithIgnores
+	}
+	return c.Tile
+}
+
+type CommitsSummary struct {
+	commits []*tiling.Commit
+	card    []int
+}
+
+func NewCommitsSummary(commits []*tiling.Commit, cardinalities []int) *CommitsSummary {
+	return &CommitsSummary{
+		commits: commits,
+		card:    cardinalities,
+	}
 }
 
 const (
