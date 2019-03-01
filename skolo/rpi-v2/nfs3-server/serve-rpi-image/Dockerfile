@@ -14,7 +14,7 @@ FROM erichough/nfs-server:1.1.1
 
 COPY ./rpi.img /opt/rpi.img
 
-ENV IMAGE_PATH='/opt/prod/root'
+ENV IMAGE_PATH='/exported/root'
 ENV NFS_VERSION=3
 
 COPY ./setup_and_serve.sh /usr/local/bin
