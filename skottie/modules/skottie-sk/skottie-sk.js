@@ -27,6 +27,9 @@ const DIALOG_MODE = 1;
 const LOADING_MODE = 2;
 const LOADED_MODE = 3;
 
+// SCRUBBER_RANGE is the input range for the scrubbing control.
+const SCRUBBER_RANGE = 1000;
+
 const displayDialog = (ele) => html`
 <skottie-config-sk .state=${ele._state}></skottie-config-sk>
 `;
@@ -107,6 +110,9 @@ const displayLoaded = (ele) => html`
                @click=${ele._toggleEditor}>
   </checkbox-sk>
   <button @click=${ele._toggleEmbed}>Embed</button>
+  <div class=scrub>
+    <input id=scrub type=range min=0 max=${SCRUBBER_RANGE} @input=${ele._onScrub} @change=${ele._onScrubEnd}>
+  </div>
 </div>
 <collapse-sk id=embed closed>
   <p>
@@ -194,6 +200,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._hasEdits = false;
     this._showLottie = false;
     this._showEditor = false;
+    this._scrubbing = false;
+    this._playingOnStartOfScrub = false;
 
     this._stateChanged = stateReflector(
       /*getState*/() => {
@@ -246,6 +254,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
         this._lottie && this._lottie.goToAndStop(progress);
         this._live && this._live.goToAndStop(progress);
+        $$('#scrub', this).value = Math.floor(SCRUBBER_RANGE * progress / this._duration);
       }
     }
 
@@ -429,6 +438,31 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         },
       });
     }
+  }
+
+  // This fires every time the user moves the scrub slider.
+  _onScrub(e) {
+    if (!this._scrubbing) {
+      // Pause the animation while dragging the slider.
+      this._playingOnStartOfScrub = this._playing;
+      if (this._playing) {
+        this._playpause()
+      }
+      this._scrubbing = true;
+    }
+
+    let seek = (e.currentTarget.value / SCRUBBER_RANGE);
+    this._live && this._live.goToAndStop(seek);
+    this._lottie && this._lottie.goToAndStop(seek * this._duration);
+    this._skottiePlayer && this._skottiePlayer.seek(seek);
+  }
+
+  // This fires when the user releases the scrub slider.
+  _onScrubEnd(e) {
+    if (this._playingOnStartOfScrub) {
+      this._playpause()
+    }
+    this._scrubbing = false;
   }
 
   _rewind(e) {

@@ -128,6 +128,15 @@ skottie-sk {
   [hidden] {
     display: none !important;
   }
+
+  .scrub {
+    display: block;
+    margin: 8px;
+
+    input {
+      width: 20em;
+    }
+  }
 }
 
 #json_editor button {
