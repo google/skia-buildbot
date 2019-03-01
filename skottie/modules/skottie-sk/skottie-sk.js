@@ -31,11 +31,11 @@ const LOADED_MODE = 3;
 const SCRUBBER_RANGE = 1000;
 
 const displayDialog = (ele) => html`
-<skottie-config-sk .state=${ele._state}></skottie-config-sk>
+<skottie-config-sk .state=${ele._state} .width=${ele._width} .height=${ele._height}></skottie-config-sk>
 `;
 
 const skottiePlayer = (ele) => html`
-<skottie-player-sk paused width=${ele._state.width} height=${ele._state.height}>
+<skottie-player-sk paused width=${ele._width} height=${ele._height}>
 </skottie-player-sk>
 
 <figcaption>
@@ -49,7 +49,7 @@ const lottiePlayer = (ele) => {
   return html`
 <figure>
   <div id=container title=lottie-web
-       style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
+       style='width: ${ele._width}px; height: ${ele._height}px'></div>
   <figcaption>lottie-web (${bodymovin.version})</figcaption>
 </figure>`;
 }
@@ -63,18 +63,18 @@ const livePreview = (ele) => {
     return html`
 <figure>
   <div id=live title=live-preview
-       style='width: ${ele._state.width}px; height: ${ele._state.height}px'></div>
+       style='width: ${ele._width}px; height: ${ele._height}px'></div>
   <figcaption>Preview [lottie-web]</figcaption>
 </figure>`;
   }
 }
 
 const iframeDirections = (ele) => {
-  return `<iframe width="${ele._state.width}" height="${ele._state.height}" src="${window.location.origin}/e/${ele._hash}" scrolling=no>`;
+  return `<iframe width="${ele._width}" height="${ele._height}" src="${window.location.origin}/e/${ele._hash}" scrolling=no>`;
 }
 
 const inlineDirections = (ele) => {
-  return `<skottie-inline-sk width="${ele._state.width}" height="${ele._state.height}" src="${window.location.origin}/_/j/${ele._hash}"></skottie-inline-sk>`;
+  return `<skottie-inline-sk width="${ele._width}" height="${ele._height}" src="${window.location.origin}/_/j/${ele._hash}"></skottie-inline-sk>`;
 }
 
 const jsonEditor = (ele) => {
@@ -89,7 +89,7 @@ const jsonEditor = (ele) => {
 
 const displayLoaded = (ele) => html`
 <button class=edit-config @click=${ ele._startEdit}>
-  ${ele._state.filename} ${ele._state.width}x${ele._state.height} ${ele._state.fps} fps ...
+  ${ele._state.filename} ${ele._width}x${ele._height} ...
 </button>
 <div class=controls>
   <button @click=${ele._rewind}>Rewind</button>
@@ -183,9 +183,6 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._state = {
       filename: '',
       lottie: null,
-      width: 256,
-      height: 256,
-      fps: 30,
     };
     // One of 'dialog', 'loading', or 'loaded'
     this._ui = DIALOG_MODE;
@@ -203,16 +200,23 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._scrubbing = false;
     this._playingOnStartOfScrub = false;
 
+    this._width = 0;
+    this._height = 0;
+
     this._stateChanged = stateReflector(
       /*getState*/() => {
         return {
           // provide empty values
           'l' : this._showLottie,
           'e' : this._showEditor,
+          'w' : this._width,
+          'h' : this._height,
         }
     }, /*setState*/(newState) => {
       this._showLottie = newState.l;
       this._showEditor = newState.e;
+      this._width = newState.w;
+      this._height = newState.h;
       this.render();
     });
 
@@ -278,10 +282,35 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._upload();
   }
 
+  _autoSize() {
+    let changed = false;
+    if (!this._width) {
+      this._width = this._state.lottie.w;
+      changed = true;
+    }
+    if (!this._height) {
+      this._height = this._state.lottie.h;
+      changed = true;
+    }
+    return changed;
+  }
+
   handleEvent(e) {
     if (e.type === 'skottie-selected') {
-      this._state = e.detail;
-      this._upload();
+      this._state = e.detail.state;
+      this._width = e.detail.width;
+      this._height = e.detail.height;
+      this._autoSize();
+      this._stateChanged();
+      if (e.detail.fileChanged) {
+        this._upload();
+      } else {
+        this._ui = LOADED_MODE;
+        this.render();
+        this._initializePlayer();
+        // Re-sync all players
+        this._rewind();
+      }
     } else if (e.type === 'cancelled') {
       this._ui = LOADED_MODE;
       this.render();
@@ -293,8 +322,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
   _initializePlayer() {
     this._skottiePlayer.initialize({
-      width:  this._state.width,
-      height: this._state.height,
+      width:  this._width,
+      height: this._height,
       lottie: this._state.lottie,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
@@ -333,6 +362,14 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         credentials: 'include',
       }).then(jsonOrThrow).then(json => {
         this._state = json;
+        // remove legacy fields from state, if they are there.
+        this._state.width = undefined;
+        this._state.height = undefined;
+        this._state.fps = undefined;
+
+        if (this._autoSize()) {
+          this._stateChanged();
+        }
         this._ui = LOADED_MODE;
         this.render();
         this._initializePlayer();
@@ -507,7 +544,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
   }
 
   _upload() {
-    // POST the JSON along with options to /_/upload
+    // POST the JSON to /_/upload
     this._hash = '';
     this._hasEdits = false;
     this._editorLoaded = false;
@@ -526,6 +563,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._ui = LOADED_MODE;
       this._hash = json.hash;
       window.history.pushState(null, '', '/' + this._hash);
+      this._stateChanged();
       this.render();
     }).catch(msg => {
       errorMessage(msg);

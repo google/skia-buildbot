@@ -167,30 +167,11 @@ func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 
 type UploadRequest struct {
 	Lottie   interface{} `json:"lottie"`
-	Width    int         `json:"width"`
-	Height   int         `json:"height"`
-	FPS      float32     `json:"fps"`
 	Filename string      `json:"filename"`
 }
 
 type UploadResponse struct {
 	Hash string `json:"hash"`
-}
-
-func (req *UploadRequest) validate(w http.ResponseWriter) error {
-	if req.FPS < 1 || req.FPS > 120 {
-		http.Error(w, "FPS must be between 1 and 120.", http.StatusBadRequest)
-		return invalidRequestErr
-	}
-	if req.Width < 1 || req.Width > 2048 {
-		http.Error(w, "Width must be between 1 and 2048.", http.StatusBadRequest)
-		return invalidRequestErr
-	}
-	if req.Height < 1 || req.Height > 2048 {
-		http.Error(w, "Height must be between 1 and 2048.", http.StatusBadRequest)
-		return invalidRequestErr
-	}
-	return nil
 }
 
 func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -202,9 +183,6 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error decoding JSON.")
 		return
 	}
-	if err := req.validate(w); err != nil {
-		return
-	}
 
 	b, err := json.Marshal(req.Lottie)
 	if err != nil {
@@ -212,8 +190,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Calculate md5 of file.
-	// TODO(jcgregorio) include options in md5 calculation once they're added to the UI.
+	// Calculate md5 of UploadRequest (lottie contents and file name)
 	h := md5.New()
 	b, err = json.Marshal(req)
 	if err != nil {
