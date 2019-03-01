@@ -12,5 +12,7 @@
 echo "$IMAGE_PATH 192.168.1.0/24(ro,no_root_squash,sync,no_subtree_check,fsid=0)" > /etc/exports
 
 mkdir -p $IMAGE_PATH
-mount /opt/rpi.img $IMAGE_PATH -o ro,norecovery,offset=67108864,sizelimit=2367684608,noauto
+
+# Note: Fix the requirement that the sizelimit has to be adjusted all the time.
+mount /opt/rpi.img $IMAGE_PATH -o ro,norecovery,offset=50331648,sizelimit=1772843520,noauto
 /usr/local/bin/entrypoint.sh

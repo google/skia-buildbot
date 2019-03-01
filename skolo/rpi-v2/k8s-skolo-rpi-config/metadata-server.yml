@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: metadata-server
+spec:
+  selector:
+    matchLabels:
+      name: metadata-server
+  template:
+    metadata:
+      labels:
+        name: metadata-server
+    spec:
+      containers:
+        - name: metadata-server
+          image: gcr.io/skia-public/metadata-server@sha256:61256ed577a59fecafd11e9fbfac9ff854c00b6483f556adfd3589daaf69605d
+          args:
+            - "--logtostderr=true"
+            - "--conf=/skolo/config/metadata-server.json5"
+            - "--port=:8080"
+          ports:
+            - containerPort: 8080
+              hostPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: skolo-config-volume
+              mountPath: /skolo/config
+            - name: skolo-service-account-secrets
+              mountPath: /etc/service-accounts
+          securityContext:
+            privileged: true
+      volumes:
+        - name: skolo-config-volume
+          configMap:
+            defaultMode: 420
+            name: skolo-config
+        - name: skolo-service-account-secrets
+          secret:
+            secretName: skolo-service-accounts
