@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nfs3-image-server
+spec:
+  selector:
+    matchLabels:
+      name: nfs3-image-server
+  template:
+    metadata:
+      labels:
+        name: nfs3-image-server
+    spec:
+      containers:
+      - name: nfs3-image-server
+        image: gcr.io/skia-public/serve-rpi-image:stephana-29-11-18-16-30
+        # imagePullPolicy: Never
+        ports:
+        - containerPort: 2049
+          hostPort: 2049
+          protocol: TCP
+        - containerPort: 2049
+          hostPort: 2049
+          protocol: UDP
+        - containerPort: 111
+          hostPort: 111
+          protocol: TCP
+        - containerPort: 111
+          hostPort: 111
+          protocol: UDP
+        - containerPort: 32765
+          hostPort: 32765
+          protocol: TCP
+        - containerPort: 32765
+          hostPort: 32765
+          protocol: UDP
+        - containerPort: 32767
+          hostPort: 32767
+          protocol: TCP
+        - containerPort: 32767
+          hostPort: 32767
+          protocol: UDP
+        securityContext:
+          privileged: true
