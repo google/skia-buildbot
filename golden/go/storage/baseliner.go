@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
+	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -49,8 +50,8 @@ type Baseliner struct {
 	// baselineCache caches the baselines all commits of the current tile.
 	baselineCache map[string]*baseline.CommitableBaseLine
 
-	// currentTile is the newest tile.
-	currentTile *tiling.Tile
+	// cpxTile is the latest tile we have.
+	cpxTile *types.ComplexTile
 
 	// issueBaselineCache caches baselines for issue by mapping from issueID to baseline.
 	issueBaselineCache *lru.Cache
@@ -80,12 +81,17 @@ func (b *Baseliner) CanWriteBaseline() bool {
 }
 
 // PushMasterBaselines writes the baselines for the master branch to GCS.
-func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
+func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile) error {
 	if !b.CanWriteBaseline() {
 		return skerr.Fmt("Trying to write baseline while GCS path is not configured.")
 	}
 
-	perCommitBaselines, err := b.calcMasterBaselines(tile)
+	// Calculate the baselines for the master tile.
+	exps, err := b.expectationsStore.Get()
+	if err != nil {
+		return skerr.Fmt("Unable to retrieve expectations: %s", err)
+	}
+	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, cpxTile)
 	if err != nil {
 		return skerr.Fmt("Error getting master baseline: %s", err)
 	}
@@ -127,7 +133,7 @@ func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 
 	// Swap out the baseline cache and the list of last written files.
 	b.mutex.Lock()
-	b.currentTile = tile
+	b.cpxTile = cpxTile
 	b.baselineCache = perCommitBaselines
 	b.lastWrittenBaselines = written
 	b.mutex.Unlock()
@@ -135,7 +141,7 @@ func (b *Baseliner) PushMasterBaselines(tile *tiling.Tile) error {
 }
 
 // PushIssueBaseline writes the baseline for a Gerrit issue to GCS.
-func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies *tally.Tallies) error {
+func (b *Baseliner) PushIssueBaseline(issueID int64, cpxTile *types.ComplexTile, tallies *tally.Tallies) error {
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
@@ -147,7 +153,7 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies 
 		return skerr.Fmt("Unable to get TryjobResults")
 	}
 	talliesByTest := tallies.ByTest()
-	baseLine, err := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, tile.Commits, talliesByTest)
+	baseLine, err := baseline.GetBaselineForIssue(issueID, tryjobs, tryjobResults, exp, cpxTile, talliesByTest)
 	if err != nil {
 		return skerr.Fmt("Error calculating issue baseline: %s", err)
 	}
@@ -216,15 +222,6 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 		masterBaseline.Baseline.Update(issueBaseline.Baseline)
 	}
 	return masterBaseline, nil
-}
-
-// calcMasterBaselines retrieves the master baseline based on the given tile.
-func (b *Baseliner) calcMasterBaselines(tile *tiling.Tile) (map[string]*baseline.CommitableBaseLine, error) {
-	exps, err := b.expectationsStore.Get()
-	if err != nil {
-		return nil, skerr.Fmt("Unable to retrieve expectations: %s", err)
-	}
-	return baseline.GetBaselinesPerCommit(exps, tile)
 }
 
 func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {
