@@ -45,10 +45,18 @@ Function setRegistryVar($path, $name, $value) {
 }
 
 Function setupAutoLogon() {
-  $winLogon = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows` NT\CurrentVersion\WinLogon"
+  $winLogon = "HKLM:\SOFTWARE\Microsoft\Windows` NT\CurrentVersion\Winlogon"
   setRegistryVar "$winLogon" DefaultUserName $username
   setRegistryVar "$winLogon" DefaultPassword $password
   setRegistryVar "$winLogon" AutoAdminLogon 1
+  setRegistryVar "$winLogon" ForceAdminLogon 1
+
+  $domain = (Get-WmiObject Win32_ComputerSystem).Name
+  setRegistryVar "$winLogon" DefaultDomainName $domain
+
+  # For some reason these need to be deleted otherwise autologon won't work...
+  Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoLogonCount
+  # Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name DefaultDomainName
 }
 
 Function addToRegistryPath($dir) {

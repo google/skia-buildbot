@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gce"
+	skia_instance_types "go.skia.org/infra/go/gce/swarming/instance_types"
 )
 
 const (
@@ -86,4 +87,16 @@ func CTLinuxBuilderInstance(num int) *gce.Instance {
 	vm := CT20170602(fmt.Sprintf("ct-linux-builder-%03d", num), true /* useSSDDataDisk */)
 	vm.MachineType = gce.MACHINE_TYPE_HIGHMEM_64
 	return vm
+}
+
+// CT Windows Builder GCE instances.
+func CTWindowsBuilderInstance(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := skia_instance_types.Swarming20180406(fmt.Sprintf("ct-windows-builder-%03d", num), gce.MACHINE_TYPE_HIGHMEM_64, gce.SERVICE_ACCOUNT_CT_SWARMING, setupScriptPath, skia_instance_types.WIN_SOURCE_IMAGE)
+	return skia_instance_types.AddWinConfigs(vm, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+}
+
+// CT Windows GCE instances.
+func CTWindowsInstance(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
+	vm := skia_instance_types.Swarming20180406(fmt.Sprintf("%s%03d", CT_WORKER_PREFIX, num), gce.MACHINE_TYPE_HIGHMEM_4, gce.SERVICE_ACCOUNT_CT_SWARMING, setupScriptPath, skia_instance_types.WIN_SOURCE_IMAGE)
+	return skia_instance_types.AddWinConfigs(vm, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_STANDARD)
 }
