@@ -49,7 +49,7 @@ push: release skia-public
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
 
-wasm_libs_tot:
+wasm_libs_tot: get_latest_skia
 	rm -rf build
 	mkdir -p build/canvaskit
 	# Extract them from the most recently built ones. These are built

@@ -20,7 +20,8 @@
  * <pre>
  *
  * @evt skottie-selected - This event is generated when the user presses Go.
- *         The updated state is available in the event detail.
+ *         The updated state, width, and height is available in the event detail.
+ *         There is also an indication if the lottie file was changed.
  *
  * @evt cancelled - This event is generated when the user presses Cancel.
  *
@@ -43,14 +44,14 @@ const template = (ele) => html`
     ${ele._state.filename ? ele._state.filename : 'No file selected.'}
   </div>
   <label class=number>
-    <input type=number id=width value=${ele._state.width} required /> Width (px)
+    <input type=number id=width .value=${ele._width} required /> Width (px)
   </label>
   <label class=number>
-    <input type=number id=height value=${ele._state.height} required /> Height (px)
+    <input type=number id=height .value=${ele._height} required /> Height (px)
   </label>
-  <label class=number title='Frames Per Second'>
-    <input type=number id=fps value=${ele._state.fps} required  step='0.01'/> FPS (Hz)
-  </label>
+  <p>
+    0 for width/height means use the default from the animation
+  </p>
   <div class=warning ?hidden=${ele._warningHidden()}>
     <p>
     The width or height of your file exceeds 1024, which may not fit on the screen.
@@ -73,11 +74,11 @@ class SkottieConfigSk extends HTMLElement {
     super();
     this._state = {
       filename: '',
-      lottie: null,
-      width: DEFAULT_SIZE,
-      height: DEFAULT_SIZE,
-      fps: DEFAULT_FPS,
+      lottie: null
     };
+    this._width = DEFAULT_SIZE;
+    this._height = DEFAULT_SIZE;
+    this._fileChanged = false;
     this._starting_state = Object.assign({}, this._state);
   }
 
@@ -90,6 +91,13 @@ class SkottieConfigSk extends HTMLElement {
     this.removeEventListener('input', this._inputEvent);
   }
 
+  /** @prop height {Number} Selected height for animation. */
+  get height() { return this._height; }
+  set height(val) {
+    this._height= +val;
+    this._render();
+  }
+
   /** @prop state {string} Object that describes the state of the config dialog. */
   get state() { return this._state; }
   set state(val) {
@@ -98,8 +106,15 @@ class SkottieConfigSk extends HTMLElement {
     this._render();
   }
 
+  /** @prop width {Number} Selected width for animation. */
+  get width() { return this._width; }
+  set width(val) {
+    this._width = +val;
+    this._render();
+  }
+
   _hasCancel() {
-     return this._starting_state.lottie != null;
+     return !!this._starting_state.lottie;
   }
 
   _readyToGo() {
@@ -107,6 +122,7 @@ class SkottieConfigSk extends HTMLElement {
   }
 
   _onFileChange(e) {
+    this._fileChanged = true;
     let reader = new FileReader();
     reader.addEventListener('load', () => {
       let parsed = {};
@@ -119,9 +135,8 @@ class SkottieConfigSk extends HTMLElement {
       }
       this._state.lottie = parsed;
       this._state.filename = e.target.files[0].name;
-      this._state.width = parsed.w || DEFAULT_SIZE;
-      this._state.height = parsed.h || DEFAULT_SIZE;
-      this._state.fps = parsed.fr || DEFAULT_FPS;
+      this._width = parsed.w || DEFAULT_SIZE;
+      this._height = parsed.h || DEFAULT_SIZE;
       this._render();
     });
     reader.addEventListener('error', () => {
@@ -131,28 +146,32 @@ class SkottieConfigSk extends HTMLElement {
   }
 
   _rescale(n) {
-    let max = Math.max(this._state.width, this._state.height);
+    let max = Math.max(this._width, this._height);
     if (max <= n) {
       return
     }
-    this._state.width = Math.floor(this._state.width * n / max);
-    this._state.height = Math.floor(this._state.height * n / max);
+    this._width = Math.floor(this._width * n / max);
+    this._height = Math.floor(this._height * n / max);
     this._render();
   }
 
   _warningHidden() {
-    return this._state.width <= 1024 && this._state.width <= 1024;
+    return this._width <= 1024 && this._width <= 1024;
   }
 
   _updateState() {
-    this._state.width = +$$('#width', this).value;
-    this._state.height = +$$('#height', this).value;
-    this._state.fps = +$$('#fps', this).value;
+    this._width = +$$('#width', this).value;
+    this._height = +$$('#height', this).value;
   }
 
   _go() {
     this._updateState();
-    this.dispatchEvent(new CustomEvent('skottie-selected', { detail: this._state, bubbles: true }));
+    this.dispatchEvent(new CustomEvent('skottie-selected', { detail: {
+      'state' : this._state,
+      'fileChanged': this._fileChanged,
+      'width' : this._width,
+      'height': this._height,
+    }, bubbles: true }));
   }
 
   _cancel() {
