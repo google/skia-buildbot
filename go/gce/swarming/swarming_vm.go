@@ -212,6 +212,8 @@ func main() {
 					return err
 				}
 
+				fmt.Println("XXXXXXXXX")
+				fmt.Println("WAITING WAITING WAITING")
 				if strings.Contains(vm.Os, "Win") {
 					if err := g.WaitForLogMessage(vm, "*** Start Swarming. ***", 5*time.Minute); err != nil {
 						return err

@@ -126,8 +126,26 @@ $data = $metadataclient.DownloadString($url)
 log $data
 Set-Content $chromebotSchTask $data
 
+banner "Disabling GCE's sysprep"
+# Stop-Service GCEAgent
+# Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Google Compute Engine Agent" -Recurse
+schtasks /delete /tn GCEStartup /f
+# Stop-Process -processname "GCEWindowsAgent"
+
 banner "Set chrome-bot's scheduled task"
-schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL LIMITED
+schtasks /Create /IT /TN skiabot /SC ONLOGON /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL HIGHEST
+
+banner "Set one-time scheduled task to restart machine after first initialization"
+# schtasks /Create /RU system /SC ONCE /TN "reboot" /TR "shutdown -r" -executionpolicy Unrestricted
+# schtasks /Create /IT /TN skiabot /SC ONLOGON /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL HIGHEST
+
+# EXPERIMENT
+# banner "Create Startup Dir"                                                     
+# $startup_dir = "C:\Users\$username\Start Menu\Programs\Startup"
+# if (!(Test-Path ($startup_dir))) {                                              
+#   New-Item -ItemType directory -Path $startup_dir                               
+# }
+# Copy-Item "$chromebotSchTask" -Destination "C:\Users\$username\Start Menu\Programs\Startup"
 
 $bot_dir = "C:\b"
 banner "Create $bot_dir"
