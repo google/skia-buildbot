@@ -43,6 +43,12 @@ const template = (ele) => html`
   <div class="filename ${ele._state.filename ? '' : 'empty'}">
     ${ele._state.filename ? ele._state.filename : 'No file selected.'}
   </div>
+  <label class=file>Asset Folder (.zip) to upload
+    <input type=file name=folder id=folder @change=${ele._onFolderChange}/>
+  </label>
+  <div class="filename ${ele._state.assetsFilename ? '' : 'empty'}">
+    ${ele._state.assetsFilename ? ele._state.assetsFilename : 'No asset folder selected.'}
+  </div>
   <label class=number>
     <input type=number id=width .value=${ele._width} required /> Width (px)
   </label>
@@ -74,7 +80,9 @@ class SkottieConfigSk extends HTMLElement {
     super();
     this._state = {
       filename: '',
-      lottie: null
+      lottie: null,
+      assets: '',
+      assetsFileName: '',
     };
     this._width = DEFAULT_SIZE;
     this._height = DEFAULT_SIZE;
@@ -123,7 +131,7 @@ class SkottieConfigSk extends HTMLElement {
 
   _onFileChange(e) {
     this._fileChanged = true;
-    let reader = new FileReader();
+    const reader = new FileReader();
     reader.addEventListener('load', () => {
       let parsed = {};
       try {
@@ -143,6 +151,21 @@ class SkottieConfigSk extends HTMLElement {
       errorMessage('Failed to load.');
     });
     reader.readAsText(e.target.files[0]);
+  }
+
+  _onFolderChange(e) {
+    this._fileChanged = true;
+    const toLoad = e.target.files[0];
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      this._state.assetsZip = reader.result;
+      this._state.assetsFilename = toLoad.name;
+      this._render();
+    });
+    reader.addEventListener('error', () => {
+      errorMessage('Failed to load '+ toLoad.name);
+    });
+    reader.readAsDataURL(toLoad);
   }
 
   _rescale(n) {

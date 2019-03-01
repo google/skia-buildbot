@@ -1,8 +1,11 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -12,6 +15,7 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -22,6 +26,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -31,6 +36,9 @@ const (
 	// BUCKET is the Cloud Storage bucket we store files in.
 	BUCKET          = "skottie-renderer"
 	BUCKET_INTERNAL = "skottie-renderer-internal"
+
+	MAX_ZIP_SIZE  = 20 * 1024 * 1024
+	MAX_ZIP_FILES = 100
 )
 
 // flags
@@ -165,9 +173,30 @@ func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (srv *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	hash := mux.Vars(r)["hash"]
+	name := mux.Vars(r)["name"]
+	path := strings.Join([]string{hash, "assets", name}, "/")
+	reader, err := srv.bucket.Object(path).NewReader(r.Context())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Can't load file from GCS")
+		return
+	}
+	if _, err = io.Copy(w, reader); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write binary file.")
+		return
+	}
+}
+
 type UploadRequest struct {
 	Lottie   interface{} `json:"lottie"`
 	Filename string      `json:"filename"`
+	// assets is a base64 encoded dataURL of the assets folder
+	// It starts with "data:application/zip;base64,"
+	AssetsZip      string `json:"assetsZip"`
+	AssetsFilename string `json:"assetsFilename`
 }
 
 type UploadResponse struct {
@@ -203,6 +232,22 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hash := fmt.Sprintf("%x", h.Sum(nil))
 
+	if (*lockedDown || *local) && req.AssetsZip != "" {
+		if err := srv.uploadZip(hash, req.AssetsZip, ctx); err != nil {
+			httputils.ReportError(w, r, err, "Could not process asset folder.")
+			return
+		}
+	}
+
+	// We don't need to store the zip contents
+	req.AssetsZip = ""
+	req.Filename = ""
+	b, err = json.Marshal(req)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Can't re-encode request without assets.")
+		return
+	}
+
 	// Write JSON file.
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
 	obj := srv.bucket.Object(path)
@@ -231,6 +276,61 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+const prefixToRemove = "data:application/zip;base64,"
+
+var validFileName = regexp.MustCompile(`^[A-Za-z0-9\._\-]+$`)
+
+func (srv *Server) uploadZip(lottieHash, b64Zip string, ctx context.Context) error {
+	if strings.HasPrefix(b64Zip, prefixToRemove) {
+		b64Zip = b64Zip[len(prefixToRemove):]
+	}
+	if len(b64Zip) > MAX_ZIP_SIZE {
+		return skerr.Fmt("ignoring large zip file with size %d bytes", len(b64Zip))
+	}
+	data, err := base64.StdEncoding.DecodeString(b64Zip)
+	if err != nil {
+		return skerr.Fmt("Could not decode base64 string %s", err)
+	}
+
+	zb := bytes.NewReader(data)
+
+	zr, err := zip.NewReader(zb, int64(len(data)))
+	if err != nil {
+		return skerr.Fmt("Could not unzip bytes %s", err)
+	}
+
+	if len(zr.File) > MAX_ZIP_FILES {
+		return skerr.Fmt("ignoring large zip file with %d files", len(zr.File))
+	}
+
+	for _, f := range zr.File {
+		if f != nil {
+			if !validFileName.MatchString(f.Name) {
+				sklog.Warningf("Saw potentially malicious filename in zip file: %q", f.Name)
+				continue
+			}
+			fr, err := f.Open()
+			if err != nil {
+				return skerr.Fmt("Could not open zipped file %s: %s", f.Name, err)
+			}
+			defer fr.Close()
+			sklog.Infof("See %s in zip file, should upload it", f.Name)
+			path := strings.Join([]string{lottieHash, "assets", f.Name}, "/")
+			obj := srv.bucket.Object(path)
+			wr := obj.NewWriter(ctx)
+
+			wr.ObjectAttrs.ContentEncoding = "application/octet-stream"
+			if _, err := io.Copy(wr, fr); err != nil {
+				return skerr.Fmt("Could not write %s to GCS %s: %s", f.Name, path, err)
+			}
+			if err := wr.Close(); err != nil {
+				return skerr.Fmt("Could not write %s to GCS on close %s: %s", f.Name, path, err)
+			}
+		}
+	}
+	return nil
+}
+
 func main() {
 	common.InitWithMust(
 		"skottie",
@@ -248,16 +348,17 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/drive", srv.driveHandler)
-	r.HandleFunc("/tos", srv.tosHandler)
-	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
-	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.mainHandler)
-	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.embedHandler)
+	r.HandleFunc("/drive", srv.driveHandler).Methods("GET")
+	r.HandleFunc("/tos", srv.tosHandler).Methods("GET")
+	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler).Methods("GET")
+	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.mainHandler).Methods("GET")
+	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.embedHandler).Methods("GET")
 
-	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
-	r.HandleFunc("/_/upload", srv.uploadHandler)
+	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
+	r.HandleFunc(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler).Methods("GET")
+	r.HandleFunc("/_/upload", srv.uploadHandler).Methods("POST")
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(httputils.MakeResourceHandler(*resourcesDir)))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(httputils.MakeResourceHandler(*resourcesDir))))).Methods("GET")
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)

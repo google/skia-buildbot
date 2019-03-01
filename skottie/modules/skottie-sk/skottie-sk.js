@@ -183,6 +183,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._state = {
       filename: '',
       lottie: null,
+      assets: '',
+      assetsFilename: '',
     };
     // One of 'dialog', 'loading', or 'loaded'
     this._ui = DIALOG_MODE;
@@ -191,6 +193,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._lottie = null;
     this._live = null;
     this._playing = true;
+    this._assetsPath = '/_/a/';
     this._downloadUrl = null; // The URL to download the lottie JSON from.
     this._editor = null;
     this._editorLoaded = false;
@@ -258,7 +261,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
 
         this._lottie && this._lottie.goToAndStop(progress);
         this._live && this._live.goToAndStop(progress);
-        $$('#scrub', this).value = Math.floor(SCRUBBER_RANGE * progress / this._duration);
+        const scrubber = $$('#scrub', this);
+        scrubber && (scrubber.value = Math.floor(SCRUBBER_RANGE * progress / this._duration));
       }
     }
 
@@ -325,9 +329,72 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       width:  this._width,
       height: this._height,
       lottie: this._state.lottie,
+      assets: this._state.assets,
     }).then(() => {
       this._duration = this._skottiePlayer.duration();
     });
+  }
+
+  _loadAssetsAndRender() {
+    const toLoad = [];
+
+    const lottie = this._state.lottie;
+    if (lottie.fonts && lottie.fonts.list) {
+      toLoad.push(...this._loadFonts(lottie.fonts.list));
+    }
+    if (lottie.assets && lottie.assets.length) {
+      toLoad.push(...this._loadAssets(lottie.assets));
+    }
+    Promise.all(toLoad).then((externalAssets) => {
+      const assets = {};
+      for (const asset of externalAssets) {
+        assets[asset.name] = asset.bytes;
+      }
+      this._state.assets = assets;
+      this.render();
+      this._initializePlayer();
+    });
+
+  }
+
+  _loadFonts(fonts) {
+    const promises = [];
+    for (const font of fonts) {
+      if (font.fPath && font.fPath.startsWith('https://fonts.googleapis.com')) {
+        // We have a local copy with a flattened directory structure which
+        // makes them easier to find.
+        promises.push(fetch(`https://storage.googleapis.com/skia-cdn/google-web-fonts/${font.fName}.ttf`)
+          .then((resp) => {
+            return resp.arrayBuffer().then((buffer) => {
+              return {
+                'name': font.fName,
+                'bytes': buffer
+              };
+            });
+          }));
+      }
+    }
+    return promises;
+  }
+
+  _loadAssets(assets) {
+    const promises = [];
+    for (const asset of assets) {
+      // asset.p is the filename, if it's an image
+      if (asset.p) {
+        promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
+          .then((resp) => {
+            return resp.arrayBuffer().then((buffer) => {
+              return {
+                'name': asset.p,
+                'bytes': buffer
+              };
+            });
+          }));
+      }
+
+    }
+    return promises;
   }
 
   _playpause() {
@@ -363,16 +430,16 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       }).then(jsonOrThrow).then(json => {
         this._state = json;
         // remove legacy fields from state, if they are there.
-        this._state.width = undefined;
-        this._state.height = undefined;
-        this._state.fps = undefined;
+        delete this._state.width;
+        delete this._state.height;
+        delete this._state.fps;
 
         if (this._autoSize()) {
           this._stateChanged();
         }
         this._ui = LOADED_MODE;
-        this.render();
-        this._initializePlayer();
+        this._loadAssetsAndRender();
+        this._rewind();
       }).catch((msg) => {
         errorMessage(msg);
         window.history.pushState(null, '', '/');
@@ -389,11 +456,17 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
     render(template(this), this, {eventContext: this});
 
-    if (this._ui === LOADED_MODE) {
-      this._renderLottieWeb();
-      this._renderJSONEditor();
-    }
     this._skottiePlayer = $$('skottie-player-sk', this);
+
+    if (this._ui === LOADED_MODE) {
+      try {
+        this._renderLottieWeb();
+        this._renderJSONEditor();
+      } catch(e) {
+        console.warn('caught error while rendering third party code', e);
+      }
+
+    }
   }
 
   _renderJSONEditor() {
@@ -451,6 +524,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         renderer: 'svg',
         loop: true,
         autoplay: this._playing,
+        assetsPath: `${this._assetsPath}/${this._hash}/`,
         // Apparently the lottie player modifies the data as it runs?
         animationData: JSON.parse(JSON.stringify(this._state.lottie)),
         rendererSettings: {
@@ -468,6 +542,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         renderer: 'svg',
         loop: true,
         autoplay: this._playing,
+        assetsPath: `${this._assetsPath}/${this._hash}/`,
         // Apparently the lottie player modifies the data as it runs?
         animationData: JSON.parse(JSON.stringify(this._editor.get())),
         rendererSettings: {
@@ -506,10 +581,10 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     // Handle rewinding when paused.
     this._wasmTimePassed = 0;
     if (!this._playing) {
+      this._skottiePlayer.seek(0);
+      this._firstFrameTime = null;
       this._live && this._live.goToAndStop(0);
       this._lottie && this._lottie.goToAndStop(0);
-      this._firstFrameTime = null;
-      this._skottiePlayer.seek(0);
     } else {
       this._live && this._live.goToAndPlay(0);
       this._lottie && this._lottie.goToAndPlay(0);
@@ -551,6 +626,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._editor = null;
     // Clean up the old animation and other wasm objects
     this.render();
+    console.log(this._state);
     fetch('/_/upload', {
       credentials: 'include',
       body: JSON.stringify(this._state),
@@ -562,8 +638,15 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       // Should return with the hash.
       this._ui = LOADED_MODE;
       this._hash = json.hash;
+      console.log(this._state);
+
       window.history.pushState(null, '', '/' + this._hash);
       this._stateChanged();
+      if (this._state.assetsFilename) {
+        this._loadAssetsAndRender();
+        // Re-sync all players
+        this._rewind();
+      }
       this.render();
     }).catch(msg => {
       errorMessage(msg);
@@ -571,14 +654,20 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._ui = DIALOG_MODE;
       this.render();
     });
-    this._ui = LOADED_MODE;
-    // Start drawing right away, no need to wait for
-    // the JSON to make a round-trip to the server.
-    this.render();
-    this._initializePlayer();
 
-    // Re-sync all players
-    this._rewind();
+    if (!this._state.assetsFilename) {
+      this._ui = LOADED_MODE;
+      // Start drawing right away, no need to wait for
+      // the JSON to make a round-trip to the server.
+      this.render();
+      this._initializePlayer();
+
+      this._rewind();
+    } else {
+      this._ui = LOADING_MODE;
+      this.render();
+    }
+
   }
 
 });
