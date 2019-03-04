@@ -219,7 +219,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to str
 
 	// Run the pre-upload steps.
 	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.httpClient, rm.parentDir); err != nil {
+		if err := s(ctx, rm.depotToolsEnv, rm.httpClient, rm.parentDir); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
 	}

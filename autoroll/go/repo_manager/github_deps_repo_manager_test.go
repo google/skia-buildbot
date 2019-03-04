@@ -238,7 +238,7 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, *http.Client, string) error {
+		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
 		},
@@ -269,7 +269,7 @@ func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	ran := false
 	expectedErr := errors.New("Expected error")
 	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, *http.Client, string) error {
+		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return expectedErr
 		},

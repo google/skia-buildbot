@@ -216,7 +216,7 @@ func TestRanPreUploadStepsManifest(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 	ran := false
 	rm.(*manifestRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, *http.Client, string) error {
+		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
 		},

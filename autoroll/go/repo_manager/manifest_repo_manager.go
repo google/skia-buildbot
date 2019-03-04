@@ -159,7 +159,7 @@ func (mr *manifestRepoManager) CreateNewRoll(ctx context.Context, from, to strin
 
 	// Run the pre-upload steps.
 	for _, s := range mr.PreUploadSteps() {
-		if err := s(ctx, mr.httpClient, mr.parentDir); err != nil {
+		if err := s(ctx, nil, mr.httpClient, mr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
