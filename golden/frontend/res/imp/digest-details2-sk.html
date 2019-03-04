@@ -58,7 +58,6 @@
 <link rel="import" href="../common/imp/paramset.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<link rel="import" href="blame-sk.html">
 <link rel="import" href="dots-sk.html">
 <link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="purge-sk.html">
@@ -270,10 +269,6 @@
         test="{{details.test}}"
         digests={{details.traces.digests}}>
       </dot-legend-sk>
-      <blame-sk id="blame"
-        commits="{{commits}}"
-        value="{{details.diff.blame}}">
-      </blame-sk>
     </div>
   </template>
   <script>
