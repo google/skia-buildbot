@@ -338,18 +338,40 @@ func (b *btGitStore) PutBranches(ctx context.Context, branches map[string]string
 		return err
 	}
 
+	// Load the commit graph.
 	graph, err := b.GetGraph(ctx)
 	if err != nil {
 		return skerr.Fmt("Error loading graph: %s", err)
 	}
 
+	// updateFromm maps branchName -> branch_pointer_to_old_head to capture the branches we  need to update
+	// and whether the branch existed before this update (the value of the map is not nil).
+	updateFrom := make(map[string]*BranchPointer, len(branches))
+	for branchName, head := range branches {
+		// Assume we start out with a completely fresh branch
+		var oldHeadPtr *BranchPointer = nil
+		if foundHeadPtr, ok := repoInfo.Branches[branchName]; ok {
+			// We are already done and do not need to update this branch.
+			if foundHeadPtr.Head == head {
+				continue
+			}
+
+			oldHeadNode := graph.GetNode(foundHeadPtr.Head)
+			if oldHeadNode == nil {
+				return skerr.Fmt("Unable to find previous head commit %s in graph", foundHeadPtr.Head)
+			}
+			oldHeadPtr = foundHeadPtr
+		}
+		updateFrom[branchName] = oldHeadPtr
+	}
+
 	var egroup errgroup.Group
-	for branchName, branchHead := range branches {
-		func(branchName, branchHead string) {
+	for branchName, oldHeadPtr := range updateFrom {
+		func(branchName string, oldHeadPtr *BranchPointer) {
 			egroup.Go(func() error {
-				return b.updateBranch(ctx, branchName, branchHead, repoInfo, graph)
+				return b.updateBranch(ctx, branchName, branches[branchName], oldHeadPtr, graph)
 			})
-		}(branchName, branchHead)
+		}(branchName, oldHeadPtr)
 	}
 	if err := egroup.Wait(); err != nil {
 		return skerr.Fmt("Error updating branches: %s", err)
@@ -379,7 +401,8 @@ func (b *btGitStore) RangeByTime(ctx context.Context, start, end time.Time, bran
 	endTS := sortableTimestamp(end)
 
 	result := newSRTimestampCommits(b.shards)
-	err := b.iterShardedRange(ctx, branch, typTimeStamp, startTS, endTS, cfTsCommit, "", result)
+	filters := []bigtable.Filter{bigtable.FamilyFilter(cfTsCommit)}
+	err := b.iterShardedRange(ctx, branch, typTimeStamp, startTS, endTS, filters, result)
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +416,8 @@ func (b *btGitStore) RangeN(ctx context.Context, startIndex, endIndex int, branc
 	endIdx := sortableIndex(endIndex)
 
 	result := newSRIndexCommits(b.shards)
-	err := b.iterShardedRange(ctx, branch, typIndex, startIdx, endIdx, cfCommit, "", result)
+	filters := []bigtable.Filter{bigtable.FamilyFilter(cfCommit)}
+	err := b.iterShardedRange(ctx, branch, typIndex, startIdx, endIdx, filters, result)
 	if err != nil {
 		return nil, err
 	}
@@ -449,26 +473,24 @@ var graphColFilter = fmt.Sprintf("(%s)", strings.Join([]string{colHash, colParen
 // GetGraph implements the GitStore interface.
 func (b *btGitStore) GetGraph(ctx context.Context) (*CommitGraph, error) {
 	result := newRawNodesResult(b.shards)
-	if err := b.iterShardedRange(ctx, "", typCommit, "", "", cfCommit, graphColFilter, result); err != nil {
+	filters := []bigtable.Filter{
+		bigtable.FamilyFilter(cfCommit),
+		bigtable.ColumnFilter(graphColFilter),
+	}
+	if err := b.iterShardedRange(ctx, "", typCommit, "", "", filters, result); err != nil {
 		return nil, skerr.Fmt("Error getting sharded commits: %s", err)
 	}
-
 	rawGraph, timeStamps := result.Merge()
 	return buildGraph(rawGraph, timeStamps), nil
 }
 
-func (b *btGitStore) getAsIndexCommits(ctx context.Context, hashes []string) ([]*vcsinfo.IndexCommit, error) {
-	details, err := b.Get(ctx, hashes)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make([]*vcsinfo.IndexCommit, len(details))
-	for idx, commit := range details {
+func (b *btGitStore) getAsIndexCommits(ctx context.Context, ancestors []*Node, startIdx int) ([]*vcsinfo.IndexCommit, error) {
+	ret := make([]*vcsinfo.IndexCommit, len(ancestors))
+	for idx, commitNode := range ancestors {
 		ret[idx] = &vcsinfo.IndexCommit{
-			Index:     idx,
-			Hash:      commit.Hash,
-			Timestamp: commit.Timestamp,
+			Index:     startIdx + idx,
+			Hash:      commitNode.Hash,
+			Timestamp: commitNode.Timestamp,
 		}
 	}
 	return ret, nil
@@ -476,16 +498,28 @@ func (b *btGitStore) getAsIndexCommits(ctx context.Context, hashes []string) ([]
 
 // updateBranch updates the indices for the named branch and stores the branch pointer. It
 // calculates the branch based on the given commit graph.
-func (b *btGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, repoInfo *RepoInfo, graph *CommitGraph) error {
-	// Find the target commit.
+// If there is no previous branch then oldBranchPtr should be nil.
+func (b *btGitStore) updateBranch(ctx context.Context, branchName, newBranchHead string, oldBranchPtr *BranchPointer, graph *CommitGraph) error {
+	// Make sure the new head node is in branch.
 	headNode := graph.GetNode(newBranchHead)
 	if headNode == nil {
 		return skerr.Fmt("Head commit %s not found in commit graph", newBranchHead)
 	}
 
-	// Get all commits in the branch.
-	hashes := headNode.BranchCommits()
-	indexCommits, err := b.getAsIndexCommits(ctx, hashes)
+	// If we have not previous branch we set the corresponding values so the logic below still works.
+	if oldBranchPtr == nil {
+		oldBranchPtr = &BranchPointer{Head: "", Index: 0}
+	}
+
+	branchNodes := graph.DecendantChain(oldBranchPtr.Head, newBranchHead)
+	startIndex := 0
+
+	// If the hash of the first Node matches the hash of the old branchpointer we need to adjust
+	// the initial value of index.
+	if branchNodes[0].Hash == oldBranchPtr.Head {
+		startIndex = oldBranchPtr.Index
+	}
+	indexCommits, err := b.getAsIndexCommits(ctx, branchNodes, startIndex)
 	if err != nil {
 		return skerr.Fmt("Error getting index commits for branch %s: %s", branchName, err)
 	}
@@ -610,14 +644,8 @@ func (b *btGitStore) writeTimestampIndex(ctx context.Context, indexCommits []*vc
 // shards triggering as many queries as there are shards. If endKey is empty, then startKey is
 // used to generate a prefix and a Prefix scan is performed.
 // The results of the query are added to the instance of shardedResults.
-func (b *btGitStore) iterShardedRange(ctx context.Context, branch, rowType, startKey, endKey, cfFam, colFilter string, result shardedResults) error {
+func (b *btGitStore) iterShardedRange(ctx context.Context, branch, rowType, startKey, endKey string, filters []bigtable.Filter, result shardedResults) error {
 	var egroup errgroup.Group
-
-	// Set up the filter for the query
-	filters := []bigtable.Filter{bigtable.FamilyFilter(cfFam)}
-	if colFilter != "" {
-		filters = append(filters, bigtable.ColumnFilter(colFilter))
-	}
 
 	// Query all shards in parallel.
 	for shard := uint32(0); shard < b.shards; shard++ {
