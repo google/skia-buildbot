@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "526caa62_8571533f",
+        "filename": "go/gitstore/gitstore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 502,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-04T20:12:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3c522cf_10b99b49",
+      "range": {
+        "startLine": 501,
+        "startChar": 0,
+        "endLine": 502,
+        "endChar": 31
+      },
+      "revId": "82bff9457281dbe4491d7c4a7dee5008bc78967f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3339d0cd_34351412",
         "filename": "go/gitstore/graph.go",
         "patchSetId": 7
@@ -68,6 +92,54 @@
       "revId": "82bff9457281dbe4491d7c4a7dee5008bc78967f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d78203ab_640f0b08",
+        "filename": "go/gitstore/graph.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-04T20:12:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3339d0cd_34351412",
+      "range": {
+        "startLine": 63,
+        "startChar": 3,
+        "endLine": 63,
+        "endChar": 17
+      },
+      "revId": "82bff9457281dbe4491d7c4a7dee5008bc78967f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d1e55ef5_c61764ed",
+        "filename": "go/gitstore/graph.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-04T20:12:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ab05673b_11b21a29",
+      "range": {
+        "startLine": 63,
+        "startChar": 57,
+        "endLine": 63,
+        "endChar": 59
+      },
+      "revId": "82bff9457281dbe4491d7c4a7dee5008bc78967f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
