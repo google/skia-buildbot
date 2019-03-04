@@ -39,5 +39,31 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0m"
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "info",
+      "email": {
+        "emails": [
+          "swiftshader-team+autoroll-info@google.com"
+        ]
+      }
+    },
+    {
+      "filter": "warning",
+      "email": {
+        "emails": [
+          "swiftshader-team+autoroll-warning@google.com"
+        ]
+      }
+    },
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "swiftshader-team+autoroll-error@google.com"
+        ]
+      }
+    }
+  ]
 }
