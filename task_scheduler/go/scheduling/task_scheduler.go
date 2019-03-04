@@ -287,6 +287,14 @@ func initCaches(ctx context.Context, chr *cacher.Cacher, jCache cache.JobCache, 
 				}] = true
 			}
 		}
+		// Explicitly cache the HEAD of each branch, just in case they
+		// scrolled out of the window.
+		for _, branchHead := range repo.BranchHeads() {
+			repoStatesToCache[types.RepoState{
+				Repo:     repoUrl,
+				Revision: branchHead.Head,
+			}] = true
+		}
 	}
 	for rs, _ := range repoStatesToCache {
 		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
