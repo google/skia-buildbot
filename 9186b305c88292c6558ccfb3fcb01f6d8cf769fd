@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "943ca6f1_9a6ff590",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-04T20:08:08Z",
+      "side": 1,
+      "message": "It would be nice to tell autogzip that I don\u0027t want this to be gzipped (as it is unlikely to save space and only incurs overhead), but I\u0027m not sure I can do that...",
+      "revId": "9186b305c88292c6558ccfb3fcb01f6d8cf769fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
