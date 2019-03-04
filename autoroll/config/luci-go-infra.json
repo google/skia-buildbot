@@ -1,0 +1,36 @@
+{
+  "childName": "luci-go",
+  "contacts": [
+    "tandrii@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "infra/infra",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "infra",
+  "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
+  "rollerName": "luci-go-infra-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "tandrii+infra-roll@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "infra/go/src/go.chromium.org/luci",
+    "childRepo": "https://chromium.googlesource.com/infra/luci/luci-go.git",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  }
+}
