@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1c36fd24_fb712562",
+        "filename": "autoroll/config/luci-go-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5610
+      },
+      "writtenOn": "2019-03-04T20:45:56Z",
+      "side": 1,
+      "message": "really?",
+      "range": {
+        "startLine": 30,
+        "startChar": 3,
+        "endLine": 30,
+        "endChar": 20
+      },
+      "revId": "487b503e7a552d8920d0a91fcc5e0b80c2520ead",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
