@@ -229,7 +229,7 @@ func TestRanPreUploadStepsDeps(t *testing.T) {
 
 	ran := false
 	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, *http.Client, string) error {
+		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
 		},

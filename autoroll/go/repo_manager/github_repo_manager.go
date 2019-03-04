@@ -282,7 +282,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Run the pre-upload steps.
 	for _, s := range rm.PreUploadSteps() {
-		if err := s(ctx, rm.httpClient, rm.parentRepo.Dir()); err != nil {
+		if err := s(ctx, nil, rm.httpClient, rm.parentRepo.Dir()); err != nil {
 			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
 		}
 	}

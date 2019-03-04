@@ -320,7 +320,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 
 	// Run the pre-upload steps.
 	for _, s := range r.PreUploadSteps() {
-		if err := s(ctx, r.httpClient, r.workdir); err != nil {
+		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
