@@ -16,6 +16,24 @@
       "revId": "5309916dc915c6aded03873ef15ee6bf0c87a12a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8859b5fd_4ab8e0b6",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-04T15:24:09Z",
+      "side": 1,
+      "message": "I prefer the first approach. Let\u0027s try that next time the parameters change. I figured that environment variables should be a common enough need.",
+      "parentUuid": "328f4d44_da44cb59",
+      "revId": "5309916dc915c6aded03873ef15ee6bf0c87a12a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
