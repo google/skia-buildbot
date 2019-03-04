@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/go-multierror"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/common"
@@ -424,13 +424,7 @@ func (s *TaskScheduler) MaybeTriggerPeriodicJobs(ctx context.Context, triggerNam
 			Revision: master.Hash,
 		}
 		cfg, err := s.taskCfgCache.Get(ctx, rs)
-		// TODO(dogben): HACK! I'm not sure the right way to fix this. skia_internal
-		// does not have any tasks configured. I don't think there's currently a way
-		// to distinguish this case from the case that the cache hasn't been
-		// populated yet.
-		if err == task_cfg_cache.ErrNoSuchEntry && repoUrl == common.REPO_SKIA_INTERNAL {
-			continue
-		} else if err != nil {
+		if err != nil {
 			return fmt.Errorf("Failed to retrieve TaskCfg from %s: %s", repoUrl, err)
 		}
 		for name, js := range cfg.Jobs {
