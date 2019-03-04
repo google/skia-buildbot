@@ -295,7 +295,7 @@ func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to string, e
 	// Run the pre-upload steps.
 	sklog.Infof("Running pre-upload steps.")
 	for _, s := range dr.PreUploadSteps() {
-		if err := s(ctx, dr.httpClient, dr.parentDir); err != nil {
+		if err := s(ctx, dr.depotToolsEnv, dr.httpClient, dr.parentDir); err != nil {
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
