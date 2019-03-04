@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "328f4d44_da44cb59",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-04T15:13:37Z",
+      "side": 1,
+      "message": "Random thoughts:\n\nWhat do you think about having a PreUploadParams struct instead that we pass into PreUploadSteps. The doc of each PreUploadStep will say which params are required, the PreUploadSteps can also assert to make sure what the params they need exist.\n\nor\n\nPass in the whole repo manager. Preupload steps will take what they need out of it. Not sure if authenticated httpClient is available everywhere but only a few steps need it.",
+      "revId": "5309916dc915c6aded03873ef15ee6bf0c87a12a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
