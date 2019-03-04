@@ -2,8 +2,6 @@ package gitstore
 
 import (
 	"time"
-
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -15,12 +13,13 @@ const (
 // buildGraph takes a rawGraph (a slice where each element contains a commit hash followed by its
 // parents) and returns an instance of CommitGraph.
 func buildGraph(rawGraph [][]string, timeStamps []time.Time) *CommitGraph {
-	nodeMap := make(map[string]*Node, initialGraphSize)
-	for _, rawNode := range rawGraph {
+	nodeMap := make(map[string]*Node, len(rawGraph))
+	for idx, rawNode := range rawGraph {
 		hash := rawNode[0]
 		nodeMap[hash] = &Node{
-			Hash:    hash,
-			Parents: make([]*Node, len(rawNode)-1),
+			Hash:      hash,
+			Parents:   make([]*Node, len(rawNode)-1),
+			Timestamp: timeStamps[idx],
 		}
 	}
 
@@ -61,18 +60,25 @@ type Node struct {
 	Parents   []*Node
 }
 
-// BranchCommits returns all the commit hashes that are first-parents of this node. Assuming
-// 'n' is the HEAD of a branch this will return all the hashes for the branch.
-func (n *Node) BranchCommits() []string {
-	curr := n
-	ret := make([]string, 0, initialGraphSize)
+// DescendantChain returns all nodes in the commit graph in the range of
+// (firstAncestor, lastDescendant) where the parameters are both commit hashes.
+// 'firstAncestor' can be "" in which case it will return all ancestors of 'lastDescendant'.
+// 'lastDescendant' must not be empty and must exist in graph or this will panic.
+func (g *CommitGraph) DecendantChain(firstAncestor, lastDescendant string) []*Node {
+	curr := g.Nodes[lastDescendant]
+	ret := make([]*Node, 0, len(g.Nodes))
 	for curr != nil {
-		ret = append(ret, curr.Hash)
-		if len(curr.Parents) == 0 {
+		ret = append(ret, curr)
+		if (len(curr.Parents) == 0) || (curr.Hash == firstAncestor) {
 			break
 		}
 		curr = curr.Parents[0]
 	}
-	ret = util.Reverse(ret)
+
+	// Reverse the result
+	for idx := 0; idx < len(ret)/2; idx++ {
+		rightIdx := len(ret) - 1 - idx
+		ret[idx], ret[rightIdx] = ret[rightIdx], ret[idx]
+	}
 	return ret
 }
