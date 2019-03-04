@@ -81,15 +81,76 @@ func (tc *TestClassification) DeepCopy() TestClassification {
 }
 
 // TilePair contains two tiles of the underlying data.
-type TilePair struct {
+type ComplexTile struct {
 	// Tile is the current tile without ignored traces.
-	Tile *tiling.Tile
+	tile *tiling.Tile
 
 	// TileWithIgnores is the current tile containing all available data.
-	TileWithIgnores *tiling.Tile
+	tileWithIgnores *tiling.Tile
 
 	// IgnoreRules contains the rules used to created the TileWithIgnores.
-	IgnoreRules paramtools.ParamMatcher
+	ignoreRules paramtools.ParamMatcher
+
+	irRev int64
+
+	commitsSummary *CommitsSummary
+}
+
+func NewComplexTile(tile, tileWithIgnores *tiling.Tile, commitsSum *CommitsSummary, ir paramtools.ParamMatcher, irRev int64) *ComplexTile {
+	return &ComplexTile{
+		tile:            tile,
+		tileWithIgnores: tileWithIgnores,
+		commitsSummary:  commitsSum,
+		irRev:           irRev,
+		ignoreRules:     ir,
+	}
+}
+
+func (c *ComplexTile) Changed(completeTile *tiling.Tile, ignoreRev int64, commitSum *CommitsSummary) bool {
+	return true
+}
+
+func (c *ComplexTile) AllCommits() []*tiling.Commit {
+	return c.commitsSummary.commits
+}
+
+func (c *ComplexTile) DataCommits() []*tiling.Commit {
+	return c.tileWithIgnores.Commits
+}
+
+func (c *ComplexTile) GetTile(includeIgnores bool) *tiling.Tile {
+	if includeIgnores {
+		return c.tileWithIgnores
+	}
+	return c.tile
+}
+
+func (c *ComplexTile) IgnoreRules() paramtools.ParamMatcher {
+	return c.ignoreRules
+}
+
+func (c *ComplexTile) FilledCommits() int {
+	return c.commitsSummary.filled
+}
+
+type CommitsSummary struct {
+	commits []*tiling.Commit
+	card    []int
+	filled  int
+}
+
+func NewCommitsSummary(commits []*tiling.Commit, cardinalities []int) *CommitsSummary {
+	filled := 0
+	for _, card := range cardinalities {
+		if card > 0 {
+			filled++
+		}
+	}
+	return &CommitsSummary{
+		commits: commits,
+		card:    cardinalities,
+		filled:  filled,
+	}
 }
 
 const (
