@@ -396,7 +396,8 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_SUCCESS_THROTTLED, S_STOPPED, F_NOOP)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_IDLE, F_CLOSE_FAILED)
 	b.T(S_NORMAL_FAILURE, S_NORMAL_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
-	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_FAILURE_THROTTLED, F_UPDATE_REPOS)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_FAILURE_THROTTLED, F_UPDATE_ROLL)
+	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_SUCCESS, F_NOOP)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_RETRY_FAILED_NORMAL)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_SWITCH_TO_DRY_RUN)
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_NORMAL_IDLE, F_CLOSE_FAILED)
@@ -424,9 +425,10 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_SUCCESS_LEAVING_OPEN, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_OUTDATED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
 	b.T(S_DRY_RUN_FAILURE, S_DRY_RUN_FAILURE_THROTTLED, F_NOTIFY_FAILURE_THROTTLE)
-	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE_THROTTLED, F_UPDATE_REPOS)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE_THROTTLED, F_UPDATE_ROLL)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_ACTIVE, F_RETRY_FAILED_DRY_RUN)
-	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_IDLE, F_CLOSE_DRY_RUN_FAILED)
+	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_DRY_RUN_FAILURE, F_CLOSE_DRY_RUN_FAILED)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_STOPPED, F_CLOSE_STOPPED)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
@@ -530,6 +532,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_FAILURE_THROTTLED:
+		// The roll may have been manually submitted.
+		currentRoll := s.a.GetActiveRoll()
+		if currentRoll.IsFinished() && currentRoll.IsSuccess() {
+			return S_NORMAL_SUCCESS, nil
+		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
 		} else if s.a.GetNextRollRev() != s.a.GetActiveRoll().RollingTo() {
@@ -618,10 +625,15 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_DRY_RUN_IDLE, nil
 	case S_DRY_RUN_FAILURE_THROTTLED:
+		// The roll may have been manually submitted.
+		currentRoll := s.a.GetActiveRoll()
+		if currentRoll.IsFinished() && currentRoll.IsSuccess() {
+			return S_DRY_RUN_IDLE, nil
+		}
 		if desiredMode == modes.MODE_STOPPED {
 			return S_STOPPED, nil
 		} else if s.a.GetNextRollRev() != s.a.GetActiveRoll().RollingTo() {
-			return S_DRY_RUN_IDLE, nil
+			return S_DRY_RUN_FAILURE, nil
 		} else if desiredMode == modes.MODE_RUNNING {
 			return S_NORMAL_ACTIVE, nil
 		} else if s.a.FailureThrottle().IsThrottled() {
