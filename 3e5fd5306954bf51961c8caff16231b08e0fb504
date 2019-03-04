@@ -16,6 +16,24 @@
       "revId": "3e5fd5306954bf51961c8caff16231b08e0fb504",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aedb5a37_3ec94078",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-04T15:34:19Z",
+      "side": 1,
+      "message": "You could create a link to the JSON that gets served by the backend, but the JSON is already on the user\u0027s computer in the form of this._state.lottie, so why not download it from there. createObjectURL is the only way to get a download link to a Blob or File object.",
+      "parentUuid": "10fd592c_96bb2cb5",
+      "revId": "3e5fd5306954bf51961c8caff16231b08e0fb504",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
