@@ -380,6 +380,18 @@ func TestNormal(t *testing.T) {
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
 	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	// Someone might forcibly submit the CL while we're throttled.
+	roll.SetSucceeded()
+	r.SetRolledPast("HEAD+2", true)
+	r.SetNextRollRev("HEAD+3")
+	checkNextState(t, sm, S_NORMAL_SUCCESS)
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetFailed()
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+
 	// Hack the timer to fake that the throttling has expired, then ensure
 	// that we retry the CQ.
 	counterFile := "fail_counter"
@@ -391,12 +403,25 @@ func TestNormal(t *testing.T) {
 	uploaded := r.GetActiveRoll()
 	assert.Equal(t, roll, uploaded)
 
-	// Failed again, and now there's a new commit. Ensure that we close
-	// the active CL and upload another.
+	// Failed again, and now there's a new commit. Ensure that we exit
+	// failure-throttling, close the active CL and upload another.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
 	roll.SetFailed()
-	r.SetNextRollRev("HEAD+3")
+	checkNextState(t, sm, S_NORMAL_FAILURE)
+	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
+	r.SetNextRollRev("HEAD+4")
+	checkNextState(t, sm, S_NORMAL_IDLE)
+	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
+	checkNextState(t, sm, S_NORMAL_ACTIVE)
+	uploaded = r.GetActiveRoll()
+	assert.NotEqual(t, roll, uploaded)
+
+	// Failed yet again, with yet another new commit. Ensure that we close
+	// the active CL and upload another, without failure-throttling.
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetFailed()
+	r.SetNextRollRev("HEAD+5")
 	checkNextState(t, sm, S_NORMAL_FAILURE)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
@@ -410,12 +435,12 @@ func TestNormal(t *testing.T) {
 	roll.SetSucceeded()
 	r.SetCurrentRev(r.GetNextRollRev())
 	checkNextState(t, sm, S_NORMAL_SUCCESS)
-	r.SetRolledPast("HEAD+3", true)
+	r.SetRolledPast("HEAD+5", true)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 
 	// Upload a new roll, which fails. Ensure that we can stop the roller
 	// from the throttled state.
-	r.SetNextRollRev("HEAD+4")
+	r.SetNextRollRev("HEAD+6")
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.SetFailed()
@@ -483,6 +508,16 @@ func TestDryRun(t *testing.T) {
 	roll.SetFailed()
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	// Someone might forcibly submit the CL while we're throttled.
+	roll.SetSucceeded()
+	r.SetRolledPast("HEAD+2", true)
+	r.SetNextRollRev("HEAD+3")
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetDryRunFailed()
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
 	// Hack the timer to fake that the throttling has expired, then ensure
 	// that we retry the CQ.
 	counterFile := "fail_counter"
@@ -494,12 +529,26 @@ func TestDryRun(t *testing.T) {
 	uploaded := r.GetActiveRoll()
 	assert.Equal(t, roll, uploaded)
 
-	// Failed again, and now there's a new commit. Assert that we closed
-	// the CL and upload another.
+	// Failed again, and now there's a new commit. Ensure that we exit
+	// failure-throttling, close the active CL and upload another.
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertDryRun()
 	roll.SetDryRunFailed()
-	r.SetNextRollRev("HEAD+3")
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
+	r.SetNextRollRev("HEAD+4")
+	checkNextState(t, sm, S_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
+	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	uploaded = r.GetActiveRoll()
+	assert.NotEqual(t, roll, uploaded)
+
+	// Failed yet again, with yet another new commit. Ensure that we close
+	// the active CL and upload another, without failure-throttling.
+	roll = r.GetActiveRoll().(*TestRollCLImpl)
+	roll.SetDryRunFailed()
+	r.SetNextRollRev("HEAD+5")
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
