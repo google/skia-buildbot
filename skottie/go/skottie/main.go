@@ -100,14 +100,15 @@ func (srv *Server) loadTemplates() {
 		filepath.Join(*resourcesDir, "embed.html"),
 	))
 }
-
-func (srv *Server) mainHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		srv.loadTemplates()
-	}
-	if err := srv.templates.ExecuteTemplate(w, "index.html", nil); err != nil {
-		sklog.Errorf("Failed to expand template: %s", err)
+func (srv *Server) templateHandler(filename string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		if *local {
+			srv.loadTemplates()
+		}
+		if err := srv.templates.ExecuteTemplate(w, filename, nil); err != nil {
+			sklog.Errorf("Failed to expand template %s: %s", filename, err)
+		}
 	}
 }
 
@@ -116,36 +117,6 @@ func (srv *Server) verificationHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := w.Write([]byte("google-site-verification: google99d1f93c6755806b.html"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to write.")
-	}
-}
-
-func (srv *Server) tosHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		srv.loadTemplates()
-	}
-	if err := srv.templates.ExecuteTemplate(w, "tos.html", nil); err != nil {
-		sklog.Errorf("Failed to expand template: %s", err)
-	}
-}
-
-func (srv *Server) driveHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		srv.loadTemplates()
-	}
-	if err := srv.templates.ExecuteTemplate(w, "drive.html", nil); err != nil {
-		sklog.Errorf("Failed to expand template: %s", err)
-	}
-}
-
-func (srv *Server) embedHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		srv.loadTemplates()
-	}
-	if err := srv.templates.ExecuteTemplate(w, "embed.html", nil); err != nil {
-		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -216,11 +187,6 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed writing JSON to GCS on close.")
 		return
 	}
-	if !*lockedDown {
-		if err := obj.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
-			sklog.Errorf("Failed to make JSON public: %s", err)
-		}
-	}
 
 	resp := UploadResponse{
 		Hash: hash,
@@ -248,11 +214,11 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/drive", srv.driveHandler)
-	r.HandleFunc("/tos", srv.tosHandler)
+	r.HandleFunc("/drive", srv.templateHandler("drive.html"))
+	r.HandleFunc("/tos", srv.templateHandler("tos.html"))
 	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
-	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.mainHandler)
-	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.embedHandler)
+	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html"))
+	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html"))
 
 	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
 	r.HandleFunc("/_/upload", srv.uploadHandler)
