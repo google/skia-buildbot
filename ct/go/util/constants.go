@@ -1,6 +1,7 @@
 package util
 
 import (
+	"path"
 	"path/filepath"
 	"time"
 
@@ -44,17 +45,18 @@ const (
 	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
-	BINARY_CHROME        = "chrome"
-	BINARY_RECORD_WPR    = "record_wpr"
-	BINARY_RUN_BENCHMARK = "run_benchmark"
-	BINARY_GCLIENT       = "gclient"
-	BINARY_NINJA         = "ninja"
-	BINARY_LUA_PICTURES  = "lua_pictures"
-	BINARY_SKPINFO       = "skpinfo"
-	BINARY_ADB           = "adb"
-	BINARY_GIT           = "git"
-	BINARY_MAIL          = "mail"
-	BINARY_LUA           = "lua"
+	BINARY_CHROME         = "chrome"
+	BINARY_CHROME_WINDOWS = "chrome.exe"
+	BINARY_RECORD_WPR     = "record_wpr"
+	BINARY_RUN_BENCHMARK  = "run_benchmark"
+	BINARY_GCLIENT        = "gclient"
+	BINARY_NINJA          = "ninja"
+	BINARY_LUA_PICTURES   = "lua_pictures"
+	BINARY_SKPINFO        = "skpinfo"
+	BINARY_ADB            = "adb"
+	BINARY_GIT            = "git"
+	BINARY_MAIL           = "mail"
+	BINARY_LUA            = "lua"
 	// TODO(rmistry): Remove once all CT bots have been upgraded to use 2.7.11
 	//                by default.
 	BINARY_PYTHON_2_7_11 = "/usr/local/lib/python2.7.11/bin/python"
@@ -62,6 +64,7 @@ const (
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
 	PLATFORM_LINUX   = "Linux"
+	PLATFORM_WINDOWS = "Windows"
 
 	// Benchmarks supported by CT.
 	BENCHMARK_SKPICTURE_PRINTER        = "skpicture_printer_ct"
@@ -226,15 +229,17 @@ var (
 	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
-	// Names of remote directories and files.
-	BinariesDir             = filepath.Join(BINARIES_DIR_NAME)
-	LuaRunsDir              = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
-	BenchmarkRunsDir        = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
-	PixelDiffRunsDir        = filepath.Join(TASKS_DIR_NAME, PIXEL_DIFF_TASKS_DIR_NAME)
-	ChromiumPerfRunsDir     = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
-	ChromiumAnalysisRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
-	FixArchivesRunsDir      = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
-	TraceDownloadsDir       = filepath.Join(TASKS_DIR_NAME, TRACE_DOWNLOADS_DIR_NAME)
+	// Names of local and remote directories and files.
+	BinariesDir                    = filepath.Join(BINARIES_DIR_NAME)
+	LuaRunsDir                     = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
+	BenchmarkRunsDir               = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	BenchmarkRunsStorageDir        = path.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	PixelDiffRunsDir               = filepath.Join(TASKS_DIR_NAME, PIXEL_DIFF_TASKS_DIR_NAME)
+	ChromiumPerfRunsDir            = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
+	ChromiumPerfRunsStorageDir     = path.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
+	ChromiumAnalysisRunsStorageDir = path.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
+	FixArchivesRunsDir             = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
+	TraceDownloadsDir              = filepath.Join(TASKS_DIR_NAME, TRACE_DOWNLOADS_DIR_NAME)
 
 	// Information about the different CT pageset types.
 	PagesetTypeToInfo = map[string]*PagesetTypeInfo{
@@ -332,11 +337,11 @@ var (
 
 	// Swarming machine dimensions.
 	GCE_LINUX_WORKER_DIMENSIONS   = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "4"}
-	GCE_WINDOWS_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Windows", "cores": "16"}
+	GCE_WINDOWS_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Windows", "cores": "4"}
 
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "CTAndroidBuilder", "cores": "64"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}
-	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTWindowsBuilder", "cores": "64"}
+	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTBuilder", "os": "Windows"}
 
 	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
 
