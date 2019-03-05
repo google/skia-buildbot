@@ -165,7 +165,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, err
 	}
 
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, jCache, w, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
@@ -1850,10 +1850,15 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 			j.Status = j.DeriveStatus()
 			if j.Done() {
 				if err := s.jobFinished(j); err != nil {
-					return err
+					// jobFinished may call out to external
+					// APIs. Rather than blocking scheduling
+					// on transient errors, log the error
+					// and don't insert the job into the DB.
+					sklog.Errorf("jobFinished callback failed: %s", err)
+				} else {
+					modifiedJobs = append(modifiedJobs, j)
 				}
 			}
-			modifiedJobs = append(modifiedJobs, j)
 		}
 	}
 	if len(modifiedTasks) > 0 {
