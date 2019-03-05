@@ -46,6 +46,30 @@
       "revId": "3d30f961abe0b5fa840425fa5edbc05f5f64db00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a74cbb43_a036578b",
+        "filename": "ct/isolates/build_repo.isolate",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T22:22:39Z",
+      "side": 1,
+      "message": "It still needs to be in a variables section.",
+      "parentUuid": "63ee2aa5_7da84cb8",
+      "range": {
+        "startLine": 34,
+        "startChar": 11,
+        "endLine": 34,
+        "endChar": 38
+      },
+      "revId": "3d30f961abe0b5fa840425fa5edbc05f5f64db00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
