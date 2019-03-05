@@ -22,6 +22,30 @@
       "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8802d368_5dc6f350",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1135,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-05T15:14:12Z",
+      "side": 0,
+      "message": "This is required because of the modified scheduled task for chrome-bot. It needs to reboot so that chrome-bot can auto-login.",
+      "parentUuid": "0a1bc29a_5edef415",
+      "range": {
+        "startLine": 1134,
+        "startChar": 39,
+        "endLine": 1135,
+        "endChar": 42
+      },
+      "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
