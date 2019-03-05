@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "38dabbae_f25126e3",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2f0937d_3844ca26",
+      "range": {
+        "startLine": 42,
+        "startChar": 21,
+        "endLine": 42,
+        "endChar": 22
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d1abd68_1f3bfa8e",
         "filename": "skottie/go/skottie/main.go",
         "patchSetId": 5
@@ -39,6 +63,24 @@
       "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29227f64_f7728390",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done.  Friendly reminder that there\u0027s no query params, just the named variables from the router definition around line 481",
+      "parentUuid": "2d1abd68_1f3bfa8e",
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "52444331_70d05fd7",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f59112df_3a22c799",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 10
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8e8595d4_5117f3c4",
         "filename": "skottie/go/skottie/main.go",
         "patchSetId": 5
@@ -85,6 +151,30 @@
       "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "276c2426_0e764833",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8e8595d4_5117f3c4",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 15
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "422e6ea3_391d1143",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "ReportError always does a 500 error, when in this case, the user screwed up.  I also don\u0027t like to reflect user input to the user via a message to reduce the possibility of XSS",
+      "parentUuid": "2be85fec_6081039d",
+      "range": {
+        "startLine": 227,
+        "startChar": 2,
+        "endLine": 229,
+        "endChar": 3
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1058aba1_766b8403",
         "filename": "skottie/go/skottie/main.go",
         "patchSetId": 5
@@ -131,6 +245,30 @@
       "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49b91235_fbf80f58",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "See chat for history",
+      "parentUuid": "1058aba1_766b8403",
+      "range": {
+        "startLine": 246,
+        "startChar": 8,
+        "endLine": 246,
+        "endChar": 18
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "4a229f3c_54ad3735",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53e79d45_c55f7a07",
+      "range": {
+        "startLine": 43,
+        "startChar": 30,
+        "endLine": 43,
+        "endChar": 33
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9713a0d8_4a093d46",
         "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
         "patchSetId": 5
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "c4d59651_a27e3b52",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9713a0d8_4a093d46",
+      "range": {
+        "startLine": 45,
+        "startChar": 10,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6583da97_02a172ea",
         "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
         "patchSetId": 5
@@ -194,6 +380,24 @@
       "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "817c3c2d_d0207310",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-05T22:11:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6583da97_02a172ea",
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
