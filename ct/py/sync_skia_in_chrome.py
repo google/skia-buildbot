@@ -24,7 +24,6 @@ GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 DEFAULT_FETCH_TARGET = 'chromium'
-GIT = 'git'
 
 # Sync Chrome to LKGR.
 CHROME_REV_LKGR = 'CHROME_REV_LKGR'
@@ -137,13 +136,13 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
-  actual_chrome_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+  actual_chrome_rev = shell_utils.run([gclient_utils.GIT, 'rev-parse', 'HEAD'],
                                       log_in_real_time=False).rstrip()
 
 
   # Find the actually-obtained Skia revision.
   with misc.ChDir(os.path.join('third_party', 'skia')):
-    actual_skia_rev = shell_utils.run([GIT, 'rev-parse', 'HEAD'],
+    actual_skia_rev = shell_utils.run([gclient_utils.GIT, 'rev-parse', 'HEAD'],
                                       log_in_real_time=False).rstrip()
 
   # Run gclient hooks
@@ -154,8 +153,9 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
   if os.name != 'nt':
     submodule_cmd = ('\'git config -f '
                      '$toplevel/.git/config submodule.$name.ignore all\'')
-    shell_utils.run(' '.join([GIT, 'submodule', 'foreach', submodule_cmd]),
-                    shell=True)
+    shell_utils.run(
+        ' '.join([gclient_utils.GIT, 'submodule', 'foreach', submodule_cmd]),
+        shell=True)
 
   # Verify that we got the requested revisions of Chrome and Skia.
   if (skia_revision != actual_skia_rev[:len(skia_revision)] and
