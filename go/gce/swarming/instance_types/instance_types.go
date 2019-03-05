@@ -19,14 +19,20 @@ const (
 	DEV_NAME_PREFIX      = "skia-d-"
 	INTERNAL_NAME_PREFIX = "skia-i-"
 
-	USER_CHROME_BOT = "chrome-bot"
+	USER_CHROME_BOT = gce.USER_CHROME_BOT
 
-	OS_DEBIAN_9 = "Debian9"
-	OS_WIN_2016 = "Win2016"
-
-	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2018-04-06-000"
-	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2018-04-09-000"
+	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2019-03-04-000"
+	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2019-03-04-000"
 	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
+
+	INSTANCE_TYPE_CT            = "ct"
+	INSTANCE_TYPE_LINUX_SMALL   = "linux-small"
+	INSTANCE_TYPE_LINUX_MEDIUM  = "linux-medium"
+	INSTANCE_TYPE_LINUX_LARGE   = "linux-large"
+	INSTANCE_TYPE_LINUX_GPU     = "linux-gpu"
+	INSTANCE_TYPE_LINUX_SKYLAKE = "linux-skylake"
+	INSTANCE_TYPE_WIN_MEDIUM    = "win-medium"
+	INSTANCE_TYPE_WIN_LARGE     = "win-large"
 )
 
 var (
@@ -36,7 +42,7 @@ var (
 	STARTUP_SCRIPT_WIN_PATH    = filepath.Join("scripts", "win_startup.ps1")
 	CHROME_BOT_SCRIPT_WIN_PATH = filepath.Join("scripts", "chromebot-schtask.ps1")
 
-	externalNamePrefixRegexp = regexp.MustCompile("^skia-")
+	externalNamePrefixRegexp = regexp.MustCompile("^skia-e-")
 )
 
 // Base configs for Swarming GCE instances.
@@ -74,7 +80,7 @@ func Swarming20180406(name string, machineType, serviceAccount, setupScriptPath,
 
 // Linux GCE instances.
 func linuxSwarmingBot(num int, machineType, setupScriptPath string) *gce.Instance {
-	return Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, DEBIAN_SOURCE_IMAGE_EXTERNAL)
+	return Swarming20180406(fmt.Sprintf("skia-e-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, DEBIAN_SOURCE_IMAGE_EXTERNAL)
 }
 
 // Micro Linux GCE instances.
@@ -168,12 +174,12 @@ func WinSwarmingBot(name, machineType, setupScriptPath, startupScriptPath, chrom
 
 // Medium Windows GCE instances.
 func WinMedium(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
 // Large Windows GCE instances.
 func WinLarge(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return WinSwarmingBot(fmt.Sprintf("skia-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
+	return WinSwarmingBot(fmt.Sprintf("skia-e-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
 // Returns the path to the setup script, given a local checkout.
