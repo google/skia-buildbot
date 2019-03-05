@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6fc2825b_e73fc822",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-05T22:16:47Z",
+      "side": 1,
+      "message": "I could never figure out why this did not work, also did not work in the python scripts. PATHEXT does exist as a system variable.",
+      "parentUuid": "28b47fd1_31760a95",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 2
+      },
+      "revId": "bca60e67f7b0272a11e567b04972e3daa77f083e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "567e7356_e2a89014",
         "filename": "ct/go/util/constants.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "bca60e67f7b0272a11e567b04972e3daa77f083e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb8227b6_b97fac0f",
+        "filename": "ct/go/util/constants.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-05T22:16:47Z",
+      "side": 1,
+      "message": "Oh, I do not think these were ever all remote. Changed to local and remote.",
+      "parentUuid": "567e7356_e2a89014",
+      "range": {
+        "startLine": 232,
+        "startChar": 13,
+        "endLine": 232,
+        "endChar": 19
+      },
+      "revId": "bca60e67f7b0272a11e567b04972e3daa77f083e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
