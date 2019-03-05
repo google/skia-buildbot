@@ -91,6 +91,19 @@ create_pagesets:
 .PHONY: build_repo
 build_repo:
 	go install -v ./go/worker_scripts/build_repo/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/build_repo.exe ./go/worker_scripts/build_repo/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/run_chromium_analysis.exe ./go/worker_scripts/run_chromium_analysis/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/run_chromium_perf.exe ./go/worker_scripts/run_chromium_perf/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/isolate_telemetry.exe ./go/worker_scripts/isolate_telemetry/
+	cp ${GOPATH}/bin/*.exe /usr/local/bin/
+	cp ${GOPATH}/bin/build_repo /usr/local/bin/
+	cp ${GOPATH}/bin/run_chromium_analysis /usr/local/bin/
+	cp ${GOPATH}/bin/run_chromium_perf /usr/local/bin/
+	cp ${GOPATH}/bin/isolate_telemetry /usr/local/bin/
+	cp -R py/* /usr/local/share/ct-master/py/
+	cp -R isolates/* /usr/local/share/ct-master/isolates/
+	cp -R py/* /usr/local/share/ct-masterd/py/
+	cp -R isolates/* /usr/local/share/ct-masterd/isolates/
 
 .PHONY: isolate_telemetry
 isolate_telemetry:
