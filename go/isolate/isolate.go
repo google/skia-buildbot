@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -23,9 +24,15 @@ import (
 )
 
 const (
-	DEFAULT_NAMESPACE          = "default-gzip"
-	ISOLATE_EXE_SHA1           = "9734e966a14f9e26f86e38a020fcd7584248d285"
-	ISOLATESERVER_EXE_SHA1     = "f4715e284c74ead3a0a6d4928b557f3029b38774"
+	DEFAULT_NAMESPACE      = "default-gzip"
+	ISOLATE_EXE_SHA1       = "9734e966a14f9e26f86e38a020fcd7584248d285"
+	ISOLATESERVER_EXE_SHA1 = "f4715e284c74ead3a0a6d4928b557f3029b38774"
+
+	ISOLATE_WIN_EXE_SHA1       = "af227603890ea1d8c082b5caf15e46a6bf060a2e"
+	ISOLATESERVER_WIN_EXE_SHA1 = "36faf9ac5a05538b5bb3efc5b0e69916f4e61a53"
+	GCS_WIN_BUCKET             = "skia-public-binaries"
+	GCS_WIN_SUBDIR             = "chromium-luci-win"
+
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
@@ -79,17 +86,31 @@ func NewClient(workdir, server string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	bucket := GCS_BUCKET
+	bucketSubDir := GCS_SUBDIR
+	isolateSHA1 := ISOLATE_EXE_SHA1
+	isolateBinaryName := "isolate"
+	isolateServerSHA1 := ISOLATESERVER_EXE_SHA1
+	isolateServerBinaryName := "isolateserver"
+	if runtime.GOOS == "windows" {
+		isolateSHA1 = ISOLATE_WIN_EXE_SHA1
+		isolateBinaryName = "isolate.exe"
+		bucket = GCS_WIN_BUCKET
+		bucketSubDir = GCS_WIN_SUBDIR
+		isolateServerSHA1 = ISOLATESERVER_WIN_EXE_SHA1
+		isolateServerBinaryName = "isolateserver.exe"
+	}
 	c := &Client{
-		gcs:           gcs.NewDownloadHelper(s, GCS_BUCKET, GCS_SUBDIR, workdir),
-		isolate:       path.Join(workdir, "isolate"),
-		isolateserver: path.Join(workdir, "isolateserver"),
+		gcs:           gcs.NewDownloadHelper(s, bucket, bucketSubDir, workdir),
+		isolate:       filepath.Join(workdir, isolateBinaryName),
+		isolateserver: filepath.Join(workdir, isolateServerBinaryName),
 		serverUrl:     server,
 		workdir:       absPath,
 	}
-	if err := c.gcs.MaybeDownload("isolate", ISOLATE_EXE_SHA1); err != nil {
+	if err := c.gcs.MaybeDownload(isolateBinaryName, isolateSHA1); err != nil {
 		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolate binary: %s", err)
 	}
-	if err := c.gcs.MaybeDownload("isolateserver", ISOLATESERVER_EXE_SHA1); err != nil {
+	if err := c.gcs.MaybeDownload(isolateServerBinaryName, isolateServerSHA1); err != nil {
 		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolateserver binary: %s", err)
 	}
 
@@ -355,8 +376,8 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 	isolatedFilePaths := make([]string, 0, len(tasks))
 	for i, t := range tasks {
 		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
-		genJsonFile := path.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
-		isolatedFile := path.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
+		genJsonFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
+		isolatedFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
 		if err := WriteIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
 			return nil, nil, err
 		}
@@ -418,6 +439,10 @@ func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*iso
 	}
 	for _, f := range isolatedFilePaths {
 		dirname, filename := path.Split(f)
+		if runtime.GOOS == "windows" {
+			// Win path prefixes seem to confuse isolate server.
+			dirname = strings.TrimPrefix(dirname, `c:`)
+		}
 		cmd = append(cmd, "--files", fmt.Sprintf("%s:%s", dirname, filename))
 	}
 	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
