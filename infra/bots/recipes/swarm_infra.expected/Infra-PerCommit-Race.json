@@ -181,8 +181,7 @@
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
-      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]",
-      "TMPDIR": null
+      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
     "name": "run_unittests"
   },
@@ -202,8 +201,7 @@
       "GOROOT": "[START_DIR]/go/go",
       "PATH": "[START_DIR]/go/go/bin:[START_DIR]/go_deps/bin:[START_DIR]/gcloud_linux/bin:[START_DIR]/protoc/bin:[START_DIR]/node/node/bin:<PATH>:[DEPOT_TOOLS]",
       "PUBSUB_EMULATOR_HOST": "localhost:8893",
-      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]",
-      "TMPDIR": null
+      "SKIABOT_TEST_DEPOT_TOOLS": "[DEPOT_TOOLS]"
     },
     "name": "stop the cloud data store emulator"
   },
