@@ -39,11 +39,11 @@ const (
 var (
 	PERF_BIGTABLE_CONFIGS = map[string]*PerfBigTableConfig{
 		NANO: &PerfBigTableConfig{
-			TileSize: 50,
+			TileSize: 256,
 			Project:  "skia-public",
-			Instance: "perf-bt",
-			Table:    "skia",
-			Topic:    "perf-ingestion-skia",
+			Instance: "production",
+			Table:    "perf-skia",
+			Topic:    "perf-ingestion-skia-production",
 			GitUrl:   "https://skia.googlesource.com/skia",
 			Shards:   8,
 		},
