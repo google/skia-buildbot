@@ -141,7 +141,6 @@ def RunSteps(api):
 
   # Run tests.
   env['SKIABOT_TEST_DEPOT_TOOLS'] = api.path['depot_tools']
-  env['TMPDIR'] = None
   env['PATH'] = api.path.pathsep.join([
       env['PATH'], str(api.path['depot_tools'])])
 
