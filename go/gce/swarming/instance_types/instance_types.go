@@ -147,9 +147,9 @@ func SkiaCT(num int, setupScriptPath string) *gce.Instance {
 }
 
 // Configs for Windows GCE instances.
-func addWinConfigs(vm *gce.Instance, startupScriptPath, chromebotScript string) *gce.Instance {
+func AddWinConfigs(vm *gce.Instance, startupScriptPath, chromebotScript, bootDiskType string) *gce.Instance {
 	vm.BootDisk.SizeGb = 300
-	vm.BootDisk.Type = gce.DISK_TYPE_PERSISTENT_SSD
+	vm.BootDisk.Type = bootDiskType
 	vm.DataDisks = nil
 	// Most of the Windows setup, including the gitconfig/netrc, occurs in
 	// the setup and startup scripts, which also install and schedule the
@@ -161,19 +161,19 @@ func addWinConfigs(vm *gce.Instance, startupScriptPath, chromebotScript string) 
 }
 
 // Windows GCE instances.
-func winSwarmingBot(num int, machineType, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	vm := Swarming20180406(fmt.Sprintf("skia-gce-%03d", num), machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, WIN_SOURCE_IMAGE)
-	return addWinConfigs(vm, startupScriptPath, chromebotScript)
+func WinSwarmingBot(name, machineType, setupScriptPath, startupScriptPath, chromebotScript, bootDiskType string) *gce.Instance {
+	vm := Swarming20180406(name, machineType, gce.SERVICE_ACCOUNT_CHROMIUM_SWARM, setupScriptPath, WIN_SOURCE_IMAGE)
+	return AddWinConfigs(vm, startupScriptPath, chromebotScript, bootDiskType)
 }
 
 // Medium Windows GCE instances.
 func WinMedium(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return winSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript)
+	return WinSwarmingBot(fmt.Sprintf("skia-gce-%03d", num), gce.MACHINE_TYPE_STANDARD_16, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
 // Large Windows GCE instances.
 func WinLarge(num int, setupScriptPath, startupScriptPath, chromebotScript string) *gce.Instance {
-	return winSwarmingBot(num, gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript)
+	return WinSwarmingBot(fmt.Sprintf("skia-gce-%03d", num), gce.MACHINE_TYPE_HIGHCPU_64, setupScriptPath, startupScriptPath, chromebotScript, gce.DISK_TYPE_PERSISTENT_SSD)
 }
 
 // Returns the path to the setup script, given a local checkout.
