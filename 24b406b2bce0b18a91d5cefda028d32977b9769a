@@ -70,6 +70,30 @@
       "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5dfae256_311a11a4",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1135,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-05T15:20:04Z",
+      "side": 0,
+      "message": "Right",
+      "parentUuid": "fd90b993_de18576a",
+      "range": {
+        "startLine": 1134,
+        "startChar": 39,
+        "endLine": 1135,
+        "endChar": 42
+      },
+      "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
