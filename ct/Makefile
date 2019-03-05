@@ -91,10 +91,12 @@ create_pagesets:
 .PHONY: build_repo
 build_repo:
 	go install -v ./go/worker_scripts/build_repo/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/build_repo.exe ./go/worker_scripts/build_repo/
 
 .PHONY: isolate_telemetry
 isolate_telemetry:
 	go install -v ./go/worker_scripts/isolate_telemetry/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/isolate_telemetry.exe ./go/worker_scripts/isolate_telemetry/
 
 .PHONY: capture_archives
 capture_archives:
@@ -115,10 +117,12 @@ pixel_diff:
 .PHONY: run_chromium_perf
 run_chromium_perf:
 	go install -v ./go/worker_scripts/run_chromium_perf/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/run_chromium_perf.exe ./go/worker_scripts/run_chromium_perf/
 
 .PHONY: run_chromium_analysis
 run_chromium_analysis:
 	go install -v ./go/worker_scripts/run_chromium_analysis/
+	GOOS=windows GOARCH=amd64 go build -o ${GOPATH}/bin/run_chromium_analysis.exe ./go/worker_scripts/run_chromium_analysis/
 
 .PHONY: metrics_analysis
 metrics_analysis:
