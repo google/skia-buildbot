@@ -127,7 +127,7 @@ log $data
 Set-Content $chromebotSchTask $data
 
 banner "Set chrome-bot's scheduled task"
-schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL LIMITED
+schtasks /Create /IT /TN skiabot /SC ONLOGON /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL HIGHEST
 
 $bot_dir = "C:\b"
 banner "Create $bot_dir"
