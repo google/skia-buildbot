@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d13c4955_d6684b70",
+        "filename": "ct/isolates/build_repo.isolate",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:28:14Z",
+      "side": 1,
+      "message": "You might try moving command out of the conditions section. The above command should work on Windows also -- normally you can leave off \".exe\".",
+      "range": {
+        "startLine": 34,
+        "startChar": 11,
+        "endLine": 34,
+        "endChar": 38
+      },
+      "revId": "3d30f961abe0b5fa840425fa5edbc05f5f64db00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
