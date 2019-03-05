@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "5274890a_0a98e983",
+        "filename": "ct/go/util/chromium_builds.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T22:24:57Z",
+      "side": 1,
+      "message": "Python does something different and stupid -- it does not look at PATHEXT, but it does automatically add \".exe\" regardless of PATHEXT.\n\nGolang should handle it correctly though...",
+      "parentUuid": "6fc2825b_e73fc822",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 2
+      },
+      "revId": "bca60e67f7b0272a11e567b04972e3daa77f083e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "567e7356_e2a89014",
         "filename": "ct/go/util/constants.go",
         "patchSetId": 2
