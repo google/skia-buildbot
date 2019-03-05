@@ -65,7 +65,6 @@ func goVars(ctx context.Context, workdir string) (string, []string) {
 		"GIT_USER_AGENT=git/1.9.1", // I don't think this version matters.
 		fmt.Sprintf("PATH=%s", PATH),
 		fmt.Sprintf("SKIABOT_TEST_DEPOT_TOOLS=%s", depotToolsDir),
-		"TMPDIR=",
 	}
 	return infraDir, env
 }
