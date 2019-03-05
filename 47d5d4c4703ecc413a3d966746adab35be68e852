@@ -22,6 +22,30 @@
       "revId": "47d5d4c4703ecc413a3d966746adab35be68e852",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44e071e3_eec28e9d",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T16:07:34Z",
+      "side": 1,
+      "message": "Well, I don\u0027t want to make you sad...",
+      "parentUuid": "f024a3d8_ecd6db2a",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "47d5d4c4703ecc413a3d966746adab35be68e852",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
