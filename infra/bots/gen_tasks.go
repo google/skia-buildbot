@@ -26,7 +26,7 @@ const (
 	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
-	DEFAULT_OS_LINUX = "Debian-9.4"
+	DEFAULT_OS_LINUX = "Debian-9.8"
 
 	ISOLATE_GO_DEPS_NAME = "Housekeeper-PerCommit-IsolateGoDeps"
 
