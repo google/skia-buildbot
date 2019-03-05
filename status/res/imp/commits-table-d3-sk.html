@@ -31,10 +31,10 @@
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
     logged_in: Boolean, if the links should be for internal or external pages.
-    relanded_map: Object, a map of an issue number that was relanded to the commit that relands it.
+    relanded_map: Object, a map of a commit hash that was relanded to the commit object that relands it.
     repo: String, the current repo.  Used to direct comments to the right place.
     repo_base: The base URL for commits. Commit hashes will be appended to this.
-    reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it.
+    reverted_map: Object, a map of a commit hash that was reverted to the commit object that reverts it.
     swarming_url: String, the URL of the Swarming server.
     task_scheduler_url: String, the URL of the Task Scheduler.
 
@@ -325,22 +325,22 @@
             return commit.ignoreFailure;
         });
         var reverts = this._addIronIcon(newCommits.select(".commit-revert"), "icons:undo", "tiny fg-failure", function(commit){
-          var reverterCommit = reverted_map[commit.issue];
+          var reverterCommit = reverted_map[commit.hash];
           return (reverterCommit !== undefined && reverterCommit.timestamp > commit.timestamp);
         });
         reverts.on("mouseover", function(commit){
-          var reverterIssue = reverted_map[commit.issue].issue;
+          var reverterIssue = reverted_map[commit.hash].issue;
           d3.select("#"+commit.patchStorage+reverterIssue).classed("bg-failure", true);
         })
         reverts.on("mouseleave", function(commit){
           d3.selectAll(".commit.bg-failure").classed("bg-failure", false);
         })
         var relands = this._addIronIcon(newCommits.select(".commit-reland"), "icons:redo", "tiny fg-success", function(commit){
-          var relanderCommit = relanded_map[commit.issue];
+          var relanderCommit = relanded_map[commit.hash];
           return (relanderCommit !== undefined && relanderCommit.timestamp > commit.timestamp);
         });
         relands.on("mouseover", function(commit){
-          var relanderIssue = relanded_map[commit.issue].issue;
+          var relanderIssue = relanded_map[commit.hash].issue;
           d3.select("#"+commit.patchStorage+relanderIssue).classed("bg-success", true);
         });
         relands.on("mouseleave", function(commit){
