@@ -22,6 +22,30 @@
       "revId": "3d30f961abe0b5fa840425fa5edbc05f5f64db00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63ee2aa5_7da84cb8",
+        "filename": "ct/isolates/build_repo.isolate",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-05T22:07:30Z",
+      "side": 1,
+      "message": "I tried moving command out of conditions but it complained with:\n\n  \u003cNo command was specified!\u003e\n  \u003cPlease secify a command when triggering your Swarming task\u003e",
+      "parentUuid": "d13c4955_d6684b70",
+      "range": {
+        "startLine": 34,
+        "startChar": 11,
+        "endLine": 34,
+        "endChar": 38
+      },
+      "revId": "3d30f961abe0b5fa840425fa5edbc05f5f64db00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
