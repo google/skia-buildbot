@@ -167,7 +167,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     this._render();
     return canvasReady.then((ck) => {
       this._engine.kit = ck;
-      this._initializeSkottie(config.lottie);
+      this._initializeSkottie(config.lottie, config.assets);
       this._render();
     });
   }
@@ -207,7 +207,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
     }
   }
 
-  _initializeSkottie(lottieJSON) {
+  _initializeSkottie(lottieJSON, assets) {
     this._state.loading = false;
 
     // Rebuild the surface only if needed.
@@ -232,7 +232,8 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._engine.animation && this._engine.animation.delete();
 
-    this._engine.animation = this._engine.kit.MakeManagedAnimation(JSON.stringify(lottieJSON));
+    this._engine.animation = this._engine.kit.MakeManagedAnimation(
+                                          JSON.stringify(lottieJSON), assets);
     if (!this._engine.surface) {
       throw new Error('Could not parse Lottie JSON.');
     }

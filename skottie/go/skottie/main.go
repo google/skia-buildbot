@@ -1,17 +1,22 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"mime"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -22,6 +27,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -31,6 +37,11 @@ const (
 	// BUCKET is the Cloud Storage bucket we store files in.
 	BUCKET          = "skottie-renderer"
 	BUCKET_INTERNAL = "skottie-renderer-internal"
+
+	MAX_FILENAME_SIZE = 5 * 1024
+	MAX_JSON_SIZE     = 10 * 1024 * 1024
+	MAX_ZIP_SIZE      = 20 * 1024 * 1024
+	MAX_ZIP_FILES     = 100
 )
 
 // flags
@@ -46,6 +57,7 @@ var (
 
 var (
 	invalidRequestErr = errors.New("")
+	canUploadZips     = false
 )
 
 // Server is the state of the server.
@@ -136,13 +148,46 @@ func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// assetsHandler expects a URL as follows:
+// [endpoint]/[hash]/[name]
+// It then looks in the GCS location:
+// gs://[bucket]/[hash]/assets/[name]
+func (srv *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	hash := mux.Vars(r)["hash"]
+	name := mux.Vars(r)["name"]
+	path := strings.Join([]string{hash, "assets", name}, "/")
+	reader, err := srv.bucket.Object(path).NewReader(r.Context())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Can't load file from GCS")
+		return
+	}
+	if _, err = io.Copy(w, reader); err != nil {
+		httputils.ReportError(w, r, err, "Failed to write binary file.")
+		return
+	}
+}
+
 type UploadRequest struct {
-	Lottie   interface{} `json:"lottie"`
+	Lottie   interface{} `json:"lottie"` // the parsed JSON
 	Filename string      `json:"filename"`
+	// AssetsZip is a base64 encoded dataURL of the assets folder
+	// or a base64 encoded dataURL of a zip produced by lottiefiles.com.
+	// It starts with "data:application/zip;base64,"
+	AssetsZip string `json:"assetsZip"`
+	// AssetsFilename is the human-friendly filename for the optional
+	// assetsZip. It is only used to generate the hash and is stripped
+	// out upon storage. We remove the name of the zip because if
+	// a user loads the page fresh, they won't have the zip folder
+	//  contents and we want to indicate they should
+	// re-attach them if they re-upload the animation.
+	AssetsFilename string `json:"assetsFilename"`
 }
 
 type UploadResponse struct {
-	Hash string `json:"hash"`
+	Hash   string      `json:"hash"`
+	Lottie interface{} `json:"lottie"` // the parsed JSON
 }
 
 func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -154,16 +199,15 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error decoding JSON.")
 		return
 	}
-
-	b, err := json.Marshal(req.Lottie)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Can't re-encode lottie file.")
+	// Check for maliciously sized input on any field we upload to GCS
+	if len(req.AssetsFilename) > MAX_ZIP_SIZE || len(req.Filename) > MAX_FILENAME_SIZE {
+		httputils.ReportError(w, r, nil, "Input file(s) too big")
 		return
 	}
 
 	// Calculate md5 of UploadRequest (lottie contents and file name)
 	h := md5.New()
-	b, err = json.Marshal(req)
+	b, err := json.Marshal(req)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Can't re-encode request.")
 		return
@@ -174,27 +218,248 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hash := fmt.Sprintf("%x", h.Sum(nil))
 
-	// Write JSON file.
-	path := strings.Join([]string{hash, "lottie.json"}, "/")
-	obj := srv.bucket.Object(path)
-	wr := obj.NewWriter(ctx)
-	wr.ObjectAttrs.ContentEncoding = "application/json"
-	if _, err := wr.Write(b); err != nil {
-		httputils.ReportError(w, r, err, "Failed writing JSON to GCS.")
-		return
-	}
-	if err := wr.Close(); err != nil {
-		httputils.ReportError(w, r, err, "Failed writing JSON to GCS on close.")
+	if strings.HasSuffix(req.Filename, ".json") {
+		if err := srv.createFromJSON(&req, hash, ctx); err != nil {
+			httputils.ReportError(w, r, err, "Failed handing input of JSON.")
+			return
+		}
+	} else if canUploadZips && strings.HasSuffix(req.Filename, ".zip") {
+		if err := srv.createFromZip(&req, hash, ctx); err != nil {
+			httputils.ReportError(w, r, err, "Failed handing input of JSON.")
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		msg := "Only .json files allowed"
+		if canUploadZips {
+			msg = "Only .json and .zip files allowed"
+		}
+		if _, err := w.Write([]byte(msg)); err != nil {
+			sklog.Errorf("Failed to write error response: %s", err)
+		}
 		return
 	}
 
 	resp := UploadResponse{
-		Hash: hash,
+		Hash:   hash,
+		Lottie: req.Lottie,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write response: %s", err)
 	}
+}
+
+func (srv *Server) createFromJSON(req *UploadRequest, hash string, ctx context.Context) error {
+	b, err := json.Marshal(req.Lottie)
+	if err != nil {
+		return skerr.Fmt("Can't re-encode lottie file: %s", err)
+	}
+	if len(b) > MAX_JSON_SIZE {
+		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", len(b), err)
+	}
+
+	if canUploadZips && req.AssetsZip != "" {
+		if err := srv.uploadAssetsZip(hash, req.AssetsZip, ctx); err != nil {
+			return skerr.Fmt("Could not process asset folder: %s", err)
+		}
+	}
+
+	// We don't need to store the zip contents or filename.
+	req.AssetsZip = ""
+	req.AssetsFilename = ""
+	return srv.uploadState(req, hash, ctx)
+}
+
+func (srv *Server) uploadState(req *UploadRequest, hash string, ctx context.Context) error {
+	// Write JSON file, containing the state (filename, lottie, etc)
+	bytesToUpload, err := json.Marshal(req)
+	if err != nil {
+		return skerr.Fmt("Can't re-encode request: %s", err)
+	}
+
+	path := strings.Join([]string{hash, "lottie.json"}, "/")
+	obj := srv.bucket.Object(path)
+	wr := obj.NewWriter(ctx)
+	wr.ObjectAttrs.ContentEncoding = "application/json"
+	if _, err := wr.Write(bytesToUpload); err != nil {
+		return skerr.Fmt("Failed writing JSON to GCS: %s", err)
+	}
+	if err := wr.Close(); err != nil {
+		return skerr.Fmt("Failed writing JSON to GCS on close: %s", err)
+	}
+	return nil
+}
+
+func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Context) error {
+	zr, err := readBase64Zip(req.AssetsZip)
+	if err != nil {
+		return err
+	}
+
+	prefix := ""
+	var jsonFile *zip.File
+
+	// Example zip contents from lottiefiles.com looks like:
+	// Dogrun/Dogrun.aep
+	// Dogrun/dogrun.json
+	// Dogrun/images/
+	// Dogrun/images/img_0.png
+	// ...
+	// We need to identify the "prefix", if any ("Dogrun/" in the example)
+	// and ignore that for all other files.
+	// We seek out the json file and then assume there is a [prefix]images/
+	// directory with the assets we need.
+
+	for _, f := range zr.File {
+		if match := topJSONFile.FindStringSubmatch(f.Name); match != nil {
+			// match 1 is prefix, match 2 is filename
+			prefix = match[1]
+			jsonFile = f
+			break
+		} else {
+			sklog.Infof(f.Name)
+		}
+	}
+	if jsonFile == nil {
+		return skerr.Fmt("Could not find json file")
+	}
+
+	if jsonFile.UncompressedSize64 > MAX_JSON_SIZE {
+		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", jsonFile.UncompressedSize64, err)
+	}
+
+	fr, err := jsonFile.Open()
+	if err != nil {
+		return skerr.Fmt("Could not unzip lottie.json: %s", err)
+	}
+
+	lottieBytes, err := ioutil.ReadAll(fr)
+	if err := json.Unmarshal(lottieBytes, &req.Lottie); err != nil {
+		return skerr.Fmt("lottie.json was invalid JSON: %s", err)
+	}
+
+	// We don't need to store the zip contents
+	req.AssetsZip = ""
+	// Remove the name of the folder because if a user loads the page fresh, they
+	// won't have the zip folder contents and we want to indicate they should
+	// re-attach them if they re-upload the animation.
+	req.AssetsFilename = ""
+
+	if err := srv.uploadState(req, hash, ctx); err != nil {
+		return skerr.Fmt("Could not upload lottie.json state: %s", err)
+	}
+
+	// Look for images in a dedicated subfolder
+	prefix += "images/"
+	for _, f := range zr.File {
+		if f != nil {
+			if !strings.HasPrefix(f.Name, prefix) {
+				sklog.Infof("Not uploading %q, because it's not an asset", f.Name)
+				continue
+			}
+			strippedName := strings.TrimPrefix(f.Name, prefix)
+			if len(strippedName) < 1 {
+				// Ignore directory listing
+				continue
+			}
+			if !validFileName.MatchString(strippedName) {
+				sklog.Infof("Ignoring potentially maliciously-named file %q", f.Name)
+				continue
+			}
+			dest := strings.Join([]string{hash, "assets", strippedName}, "/")
+			sklog.Infof("Uploading %s from zip file to %s", strippedName, dest)
+			// TODO(kjlubick): Upload in parallel
+			if err := srv.writeZipFileToGCS(f, dest, "application/octet-stream", ctx); err != nil {
+				return skerr.Fmt("Failed while uploading asset %s to %s: %s", f.Name, dest, err)
+			}
+		}
+	}
+	return nil
+}
+
+func (srv *Server) writeZipFileToGCS(f *zip.File, dest, encoding string, ctx context.Context) error {
+	fr, err := f.Open()
+	if err != nil {
+		return skerr.Fmt("Failed reading out of zip file when uploading %s: %s", dest, err)
+	}
+	defer util.Close(fr)
+	obj := srv.bucket.Object(dest)
+	wr := obj.NewWriter(ctx)
+	wr.ObjectAttrs.ContentEncoding = encoding
+	if _, err := io.Copy(wr, fr); err != nil {
+		return skerr.Fmt("Failed writing JSON to GCS: %s", err)
+	}
+	if err := wr.Close(); err != nil {
+		return skerr.Fmt("Failed writing JSON to GCS on close: %s", err)
+	}
+	return nil
+}
+
+var topJSONFile = regexp.MustCompile(`^(?P<prefix>.+?)(?P<name>[^/]+\.json)$`)
+var validFileName = regexp.MustCompile(`^[A-Za-z0-9\._\-]+$`)
+
+func (srv *Server) uploadAssetsZip(lottieHash, b64Zip string, ctx context.Context) error {
+	zr, err := readBase64Zip(b64Zip)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range zr.File {
+		if f != nil {
+			if !validFileName.MatchString(f.Name) {
+				sklog.Warningf("Saw potentially malicious filename in zip file: %q", f.Name)
+				continue
+			}
+			fr, err := f.Open()
+			if err != nil {
+				return skerr.Fmt("Could not open zipped file %s: %s", f.Name, err)
+			}
+			defer util.Close(fr)
+			sklog.Infof("See %s in zip file, should upload it", f.Name)
+			path := strings.Join([]string{lottieHash, "assets", f.Name}, "/")
+			obj := srv.bucket.Object(path)
+			wr := obj.NewWriter(ctx)
+
+			wr.ObjectAttrs.ContentEncoding = "application/octet-stream"
+			if _, err := io.Copy(wr, fr); err != nil {
+				return skerr.Fmt("Could not write %s to GCS %s: %s", f.Name, path, err)
+			}
+			if err := wr.Close(); err != nil {
+				return skerr.Fmt("Could not write %s to GCS on close %s: %s", f.Name, path, err)
+			}
+		}
+	}
+	return nil
+}
+
+const BASE64_ZIP_PREFIX = "data:application/zip;base64,"
+
+func readBase64Zip(b64Zip string) (*zip.Reader, error) {
+	if strings.HasPrefix(b64Zip, BASE64_ZIP_PREFIX) {
+		b64Zip = strings.TrimPrefix(b64Zip, BASE64_ZIP_PREFIX)
+	} else {
+		return nil, skerr.Fmt("Not a base64 encoded zip")
+	}
+	if len(b64Zip) > MAX_ZIP_SIZE {
+		return nil, skerr.Fmt(".zip too big (%d bytes)", len(b64Zip))
+	}
+	data, err := base64.StdEncoding.DecodeString(b64Zip)
+	if err != nil {
+		return nil, skerr.Fmt("Could not decode base64 string %s", err)
+	}
+
+	zb := bytes.NewReader(data)
+
+	zr, err := zip.NewReader(zb, int64(len(data)))
+	if err != nil {
+		return nil, skerr.Fmt("Could not unzip bytes %s", err)
+	}
+
+	if len(zr.File) > MAX_ZIP_FILES {
+		return nil, skerr.Fmt(".zip has too many files (%d)", len(zr.File))
+	}
+	return zr, nil
 }
 
 func main() {
@@ -207,6 +472,7 @@ func main() {
 	if *lockedDown && *local {
 		sklog.Fatalf("Can't be run as both --locked_down and --local.")
 	}
+	canUploadZips = *lockedDown || *local
 
 	srv, err := New()
 	if err != nil {
@@ -220,10 +486,11 @@ func main() {
 	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html"))
 	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html"))
 
-	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler)
-	r.HandleFunc("/_/upload", srv.uploadHandler)
+	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
+	r.HandleFunc(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler).Methods("GET")
+	r.HandleFunc("/_/upload", srv.uploadHandler).Methods("POST")
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(httputils.MakeResourceHandler(*resourcesDir)))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(httputils.MakeResourceHandler(*resourcesDir))))).Methods("GET")
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
