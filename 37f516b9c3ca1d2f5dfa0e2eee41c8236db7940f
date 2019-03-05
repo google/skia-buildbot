@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2f0937d_3844ca26",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "I\u0027ve seen ones up to 10MB, so you might want to make this larger.",
+      "range": {
+        "startLine": 42,
+        "startChar": 21,
+        "endLine": 42,
+        "endChar": 22
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d1abd68_1f3bfa8e",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "Document the URL structure that assetsHandler expects, i.e. the query params it uses.",
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f59112df_3a22c799",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "AssetsZip ?",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 171,
+        "endChar": 10
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e8595d4_5117f3c4",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "Docs?",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 15
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2be85fec_6081039d",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "httputils.ReportError(w, r, fmt.Errorf(\"Incorrect file extension:\", req.Filename), msg)",
+      "range": {
+        "startLine": 227,
+        "startChar": 2,
+        "endLine": 229,
+        "endChar": 3
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1058aba1_766b8403",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "I\u0027ve been out too long, where id skerr come from? And why isn\u0027t it:\n\n   skerr.Errorf(...)\n\nto align it with\n\n   fmt.Errorf(...)?",
+      "range": {
+        "startLine": 246,
+        "startChar": 8,
+        "endLine": 246,
+        "endChar": 18
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53e79d45_c55f7a07",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "uploads:",
+      "range": {
+        "startLine": 43,
+        "startChar": 30,
+        "endLine": 43,
+        "endChar": 33
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9713a0d8_4a093d46",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "Proper sentences:\n\nA plain JSON file.",
+      "range": {
+        "startLine": 45,
+        "startChar": 10,
+        "endLine": 45,
+        "endChar": 11
+      },
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6583da97_02a172ea",
+        "filename": "skottie/modules/skottie-config-sk/skottie-config-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-05T20:59:33Z",
+      "side": 1,
+      "message": "no blank line",
+      "revId": "37f516b9c3ca1d2f5dfa0e2eee41c8236db7940f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
