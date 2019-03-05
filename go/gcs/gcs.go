@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -158,8 +159,10 @@ func (d *DownloadHelper) Download(name, hash string) error {
 	if _, err := io.Copy(f, resp); err != nil {
 		return fmt.Errorf("Download helper can't download %s: %s", name, err)
 	}
-	if err := f.Chmod(0755); err != nil {
-		return err
+	if runtime.GOOS != "windows" {
+		if err := f.Chmod(0755); err != nil {
+			return err
+		}
 	}
 	return nil
 }
