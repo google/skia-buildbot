@@ -303,6 +303,14 @@ ALERT TaskSchedulerLiveness
     description = "{{ $labels.instance }} has failed to schedule for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#scheduling_failed"
   }
 
+ALERT TaskSchedulerUpdateReposLiveness
+  IF liveness_last_successful_repo_update_s/60 > 10
+  LABELS { category = "infra", severity = "critical", owner = "borenet@google.com" }
+  ANNOTATIONS {
+    abbr = "{{ $labels.instance }}",
+    description = "{{ $labels.instance }} has failed to update repos and insert new jobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#scheduling_failed"
+  }
+
 ALERT TaskSchedulerLatency
   IF prober{type="latency",probename="task_scheduler"} > 300
   FOR 10m

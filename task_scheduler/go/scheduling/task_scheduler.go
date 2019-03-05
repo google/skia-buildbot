@@ -228,12 +228,20 @@ func (s *TaskScheduler) Start(ctx context.Context, enableTryjobs bool, beforeMai
 			lvScheduling.Reset()
 		}
 	})
-	lvUpdate := metrics2.NewLiveness("last_successful_tasks_update")
+	lvUpdateUnfinishedTasks := metrics2.NewLiveness("last_successful_tasks_update")
 	go util.RepeatCtx(5*time.Minute, ctx, func() {
 		if err := s.updateUnfinishedTasks(); err != nil {
 			sklog.Errorf("Failed to run periodic tasks update: %s", err)
 		} else {
-			lvUpdate.Reset()
+			lvUpdateUnfinishedTasks.Reset()
+		}
+	})
+	lvUpdateRepos := metrics2.NewLiveness("last_successful_repo_update")
+	go util.RepeatCtx(10*time.Second, ctx, func() {
+		if err := s.updateRepos(ctx); err != nil {
+			sklog.Errorf("Failed to update repos: %s", err)
+		} else {
+			lvUpdateRepos.Reset()
 		}
 	})
 }
@@ -1506,37 +1514,24 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 
 	sklog.Infof("Task Scheduler MainLoop starting...")
 
-	var e1, e2 error
-	var wg1, wg2 sync.WaitGroup
+	var getSwarmingBotsErr error
+	var wg sync.WaitGroup
 
 	var bots []*swarming_api.SwarmingRpcsBotInfo
-	wg1.Add(1)
+	wg.Add(1)
 	go func() {
-		defer wg1.Done()
+		defer wg.Done()
 
 		var err error
 		bots, err = getFreeSwarmingBots(s.swarming, s.busyBots, s.pools)
 		if err != nil {
-			e1 = err
+			getSwarmingBotsErr = err
 			return
 		}
 
-	}()
-
-	wg2.Add(1)
-	go func() {
-		defer wg2.Done()
-		if err := s.updateRepos(ctx); err != nil {
-			e2 = err
-			return
-		}
 	}()
 
 	now := time.Now()
-	// TODO(borenet): This is only needed for the perftest because it no
-	// longer has access to the TaskCache used by TaskScheduler. Since it
-	// pushes tasks into the DB between executions of MainLoop, we need to
-	// update the cache here so that we see those changes.
 	if err := s.tCache.Update(); err != nil {
 		return fmt.Errorf("Failed to update task cache: %s", err)
 	}
@@ -1553,16 +1548,6 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to update blacklist: %s", err)
 	}
 
-	wg2.Wait()
-	if e2 != nil {
-		return fmt.Errorf("Failed to update repos: %s", e2)
-	}
-
-	// Add Jobs for new commits.
-	if err := s.gatherNewJobs(ctx); err != nil {
-		return fmt.Errorf("Failed to gather new jobs: %s", err)
-	}
-
 	// Regenerate the queue.
 	sklog.Infof("Task Scheduler regenerating the queue...")
 	queue, err := s.regenerateTaskQueue(ctx, now)
@@ -1570,9 +1555,9 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to regenerate task queue: %s", err)
 	}
 
-	wg1.Wait()
-	if e1 != nil {
-		return fmt.Errorf("Failed to retrieve free Swarming bots: %s", e1)
+	wg.Wait()
+	if getSwarmingBotsErr != nil {
+		return fmt.Errorf("Failed to retrieve free Swarming bots: %s", getSwarmingBotsErr)
 	}
 
 	sklog.Infof("Task Scheduler scheduling tasks...")
@@ -1588,7 +1573,8 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	return nil
 }
 
-// updateRepos syncs the scheduler's repos.
+// updateRepos syncs the scheduler's repos and inserts any new jobs into the
+// database.
 func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 	for _, r := range s.repos {
@@ -1599,7 +1585,7 @@ func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	if err := s.window.Update(); err != nil {
 		return err
 	}
-	return nil
+	return s.gatherNewJobs(ctx)
 }
 
 // QueueLen returns the length of the queue.

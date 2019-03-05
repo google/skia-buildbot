@@ -229,7 +229,7 @@ func TestGatherNewJobs(t *testing.T) {
 	defer cleanup()
 
 	testGatherNewJobs := func(expectedJobs int) {
-		assert.NoError(t, s.gatherNewJobs(ctx))
+		assert.NoError(t, s.updateRepos(ctx))
 		jobs, err := s.jCache.UnfinishedJobs()
 		assert.NoError(t, err)
 		assert.Equal(t, expectedJobs, len(jobs))
@@ -1653,6 +1653,7 @@ func TestSchedulingE2E(t *testing.T) {
 
 	// Start testing. No free bots, so we get a full queue with nothing
 	// scheduled.
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
 	assert.NoError(t, err)
@@ -1849,6 +1850,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{c1, c2})
@@ -1884,6 +1886,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	head, err := s.repos[gb.RepoUrl()].Repo().RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
@@ -2064,6 +2067,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	// Cycle once.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 0, len(s.queue))
@@ -2081,6 +2085,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	commits, err := s.repos[gb.RepoUrl()].Repo().RevList(ctx, fmt.Sprintf("%s..HEAD", head))
 	assert.Nil(t, err)
 	assert.Equal(t, 8, len(commits))
+	assert.NoError(t, s.updateRepos(ctx)) // Most tests want this.
 	return ctx, gb, d, s, swarmingClient, commits, mock, func() {
 		testutils.AssertCloses(t, s)
 		gb.Cleanup()
@@ -2217,6 +2222,7 @@ func TestSchedulingRetry(t *testing.T) {
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2280,6 +2286,7 @@ func TestParentTaskId(t *testing.T) {
 	// Run the available compile task at c2.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2337,6 +2344,7 @@ func TestBlacklist(t *testing.T) {
 		Description:      "desc",
 		Name:             "My-Rule",
 	}, s.repos))
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
@@ -2362,6 +2370,7 @@ func TestTrybots(t *testing.T) {
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	now := time.Now()
 
+	assert.NoError(t, s.updateRepos(ctx))
 	n := 0
 	for i := 0; i < 10; i++ {
 		assert.NoError(t, s.MainLoop(ctx))
@@ -2466,6 +2475,7 @@ func TestGetTasksForJob(t *testing.T) {
 	c2 := getRS2(t, ctx, gb).Revision
 
 	// Cycle once, check that we have empty sets for all Jobs.
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	jobs, err := s.jCache.UnfinishedJobs()
 	assert.NoError(t, err)
@@ -2630,6 +2640,7 @@ func TestTaskTimeouts(t *testing.T) {
 	// reasonable default values.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu", "gpu": "none"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	unfinished, err := s.tCache.UnfinishedTasks()
@@ -2678,6 +2689,7 @@ func TestTaskTimeouts(t *testing.T) {
 	// Cycle, ensure that we get the expected timeouts.
 	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Mac", "gpu": "my-gpu"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot2})
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	unfinished, err = s.tCache.UnfinishedTasks()
@@ -2733,6 +2745,7 @@ func TestPeriodicJobs(t *testing.T) {
 	}
 	gb.Add(ctx, specs.TASKS_CFG_FILE, testutils.MarshalJSON(t, &cfg))
 	gb.Commit(ctx)
+	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
 
 	// Trigger the periodic jobs. Make sure that we inserted the new Job.
@@ -3412,6 +3425,7 @@ func TestIsolateTaskFailed(t *testing.T) {
 		commits = append([]string{gb.CommitGen(ctx, "dummyfile")}, commits...)
 	}
 	// Expect no error since we don't block scheduling for permanent errors.
+	assert.NoError(t, s.updateRepos(ctx))
 	err := s.MainLoop(ctx)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "failed to process isolate")
