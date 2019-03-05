@@ -4,15 +4,15 @@ package main
    Program for automating creation and setup of Swarming bot VMs.
 
    Bot numbers should be assigned as follows:
-     1-99 (skia-gce-0..): Temporary or experimental bots.
-     100-499 (skia-gce-[1234]..): Linux
-       100-199: Haswell, Debian9, n1-highmem-2
-       200-299: Haswell, Debian9, n1-standard-16
-       300-399: Haswell, Debian9, n1-highcpu-64
-       400-499: Skylake, Debian9, n1-standard-16
-     500-699 (skia-gce-[56]..): Windows
-       500-599: Haswell, Win2016, n1-highmem-2
-       600-699: Haswell, Win2016, n1-highcpu-64
+     1-99 (skia-e-gce-0..): Temporary or experimental bots.
+     100-499 (skia-e-gce-[1234]..): Linux
+       100-199: linux-small
+       200-299: linux-medium
+       300-399: linux-large
+       400-499: linux-skylake
+     500-699 (skia-e-gce-[56]..): Windows
+       500-599: win-medium
+       600-699: win-large
      700-999: unassigned
 */
 
@@ -34,39 +34,20 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-const (
-	USER_CHROME_BOT = "chrome-bot"
-
-	OS_DEBIAN_9 = "Debian9"
-	OS_WIN_2016 = "Win2016"
-
-	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2018-04-06-000"
-	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2018-04-09-000"
-	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2016-dc-v20190108"
-	INSTANCE_TYPE_CT             = "ct"
-	INSTANCE_TYPE_LINUX_SMALL    = "linux-small"
-	INSTANCE_TYPE_LINUX_MEDIUM   = "linux-medium"
-	INSTANCE_TYPE_LINUX_LARGE    = "linux-large"
-	INSTANCE_TYPE_LINUX_GPU      = "linux-gpu"
-	INSTANCE_TYPE_LINUX_SKYLAKE  = "linux-skylake"
-	INSTANCE_TYPE_WIN_MEDIUM     = "win-medium"
-	INSTANCE_TYPE_WIN_LARGE      = "win-large"
-)
-
 var (
 	VALID_INSTANCE_TYPES = []string{
-		INSTANCE_TYPE_CT,
-		INSTANCE_TYPE_LINUX_SMALL,
-		INSTANCE_TYPE_LINUX_MEDIUM,
-		INSTANCE_TYPE_LINUX_LARGE,
-		INSTANCE_TYPE_LINUX_GPU,
-		INSTANCE_TYPE_LINUX_SKYLAKE,
-		INSTANCE_TYPE_WIN_MEDIUM,
-		INSTANCE_TYPE_WIN_LARGE,
+		instance_types.INSTANCE_TYPE_CT,
+		instance_types.INSTANCE_TYPE_LINUX_SMALL,
+		instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
+		instance_types.INSTANCE_TYPE_LINUX_LARGE,
+		instance_types.INSTANCE_TYPE_LINUX_GPU,
+		instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
+		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
+		instance_types.INSTANCE_TYPE_WIN_LARGE,
 	}
 	WIN_INSTANCE_TYPES = []string{
-		INSTANCE_TYPE_WIN_MEDIUM,
-		INSTANCE_TYPE_WIN_LARGE,
+		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
+		instance_types.INSTANCE_TYPE_WIN_LARGE,
 	}
 )
 
@@ -126,25 +107,25 @@ func main() {
 	project := gce.PROJECT_ID_SWARMING
 	var getInstance func(int) *gce.Instance
 	switch *instanceType {
-	case INSTANCE_TYPE_CT:
+	case instance_types.INSTANCE_TYPE_CT:
 		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript) }
-	case INSTANCE_TYPE_LINUX_SMALL:
+	case instance_types.INSTANCE_TYPE_LINUX_SMALL:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript) }
-	case INSTANCE_TYPE_LINUX_MEDIUM:
+	case instance_types.INSTANCE_TYPE_LINUX_MEDIUM:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num, setupScript) }
-	case INSTANCE_TYPE_LINUX_LARGE:
+	case instance_types.INSTANCE_TYPE_LINUX_LARGE:
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num, setupScript) }
-	case INSTANCE_TYPE_LINUX_GPU:
+	case instance_types.INSTANCE_TYPE_LINUX_GPU:
 		zone = gce.ZONE_GPU
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript) }
-	case INSTANCE_TYPE_LINUX_SKYLAKE:
+	case instance_types.INSTANCE_TYPE_LINUX_SKYLAKE:
 		zone = gce.ZONE_SKYLAKE
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript) }
-	case INSTANCE_TYPE_WIN_MEDIUM:
+	case instance_types.INSTANCE_TYPE_WIN_MEDIUM:
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.WinMedium(num, setupScript, startupScript, chromebotScript)
 		}
-	case INSTANCE_TYPE_WIN_LARGE:
+	case instance_types.INSTANCE_TYPE_WIN_LARGE:
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.WinLarge(num, setupScript, startupScript, chromebotScript)
 		}
