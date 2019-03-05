@@ -1131,11 +1131,11 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 				return err
 			}
 		}
-		// Reboot to run the startup script. (Can't do this on Windows or we will
-		// interrupt the scheduled task script.)
-		if err := g.Reboot(ctx, vm); err != nil {
-			return err
-		}
+	}
+
+	// Reboot to run the startup script.
+	if err := g.Reboot(ctx, vm); err != nil {
+		return err
 	}
 
 	return nil
