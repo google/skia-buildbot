@@ -79,12 +79,12 @@ type AutoRoller struct {
 func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail, chatBotConfigReader chatbot.ConfigReader, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, gitcookiesPath string, gcsClient gcs.GCSClient, client *http.Client, rollerName string, local bool) (*AutoRoller, error) {
 	// Validation and setup.
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to validate config: %s", err)
 	}
 
 	cr, err := c.CodeReview().Init(g, githubClient)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to initialize code review: %s", err)
 	}
 
 	// Create the RepoManager.
@@ -115,7 +115,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, errors.New("Invalid roller config; no repo manager defined!")
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to initialize repo manager: %s", err)
 	}
 
 	sklog.Info("Creating strategy history")
@@ -150,37 +150,37 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 	safetyThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/attempt_counter", c.SafetyThrottle.TimeWindow, c.SafetyThrottle.AttemptCount)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create safety throttler: %s", err)
 	}
 
 	failureThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/fail_counter", time.Hour, 1)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create failure throttler: %s", err)
 	}
 
 	maxRollFreq, err := human.ParseDuration(c.MaxRollFrequency)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to parse maxRollFrequency: %s", err)
 	}
 	successThrottle, err := state_machine.NewThrottler(ctx, gcsClient, rollerName+"/success_counter", maxRollFreq, 1)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create success throttler: %s", err)
 	}
 	sklog.Info("Getting sheriff")
 	emails, err := getSheriff(c.ParentName, c.ChildName, c.RollerName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to get sheriff: %s", err)
 	}
 	sklog.Info("Creating notifier")
 	configCopies := replaceSheriffPlaceholder(ctx, c.Notifiers, emails)
 	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create notifier: %s", err)
 	}
 	sklog.Info("Creating status cache.")
 	statusCache, err := status.NewCache(ctx, rollerName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create status cache: %s", err)
 	}
 	arb := &AutoRoller{
 		cfg:             c,
@@ -207,14 +207,14 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create state machine: %s", err)
 	}
 	arb.sm = sm
 	current := recent.CurrentRoll()
 	if current != nil {
 		roll, err := arb.retrieveRoll(ctx, current.Issue)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to retrieve current roll: %s", err)
 		}
 		arb.currentRoll = roll
 	}
