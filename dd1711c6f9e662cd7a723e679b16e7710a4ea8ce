@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "95c3bbf6_ba520b6b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1854,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:39:22Z",
+      "side": 1,
+      "message": "This is no longer true.",
+      "range": {
+        "startLine": 1853,
+        "startChar": 8,
+        "endLine": 1854,
+        "endChar": 13
+      },
+      "revId": "dd1711c6f9e662cd7a723e679b16e7710a4ea8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bf0471a6_d28e39bb",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1857,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:39:22Z",
+      "side": 1,
+      "message": "nit: include j.Id and j.Status",
+      "range": {
+        "startLine": 1857,
+        "startChar": 19,
+        "endLine": 1857,
+        "endChar": 46
+      },
+      "revId": "dd1711c6f9e662cd7a723e679b16e7710a4ea8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91cc41c4_262fda2f",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:39:22Z",
+      "side": 1,
+      "message": "nit: no longer used?",
+      "range": {
+        "startLine": 85,
+        "startChar": 105,
+        "endLine": 85,
+        "endChar": 121
+      },
+      "revId": "dd1711c6f9e662cd7a723e679b16e7710a4ea8ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

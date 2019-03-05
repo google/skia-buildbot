@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e24f5875_348389f9",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:39:22Z",
+      "side": 0,
+      "message": "intentionally removed?",
+      "revId": "68efe94a9b222bd6644e7fe8213c1b2f36dd6d77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
