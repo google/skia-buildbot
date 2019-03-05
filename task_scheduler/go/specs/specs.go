@@ -83,7 +83,8 @@ func ErrorIsPermanent(err error) bool {
 		strings.Contains(err.Error(), "Failed to apply patch") ||
 		strings.Contains(err.Error(), "failed to process isolate") ||
 		strings.Contains(err.Error(), "Failed to read tasks cfg: could not parse file:") ||
-		strings.Contains(err.Error(), "Invalid TasksCfg"))
+		strings.Contains(err.Error(), "Invalid TasksCfg") ||
+		strings.Contains(err.Error(), "The \"gclient_gn_args_from\" value must be in recursedeps"))
 }
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
