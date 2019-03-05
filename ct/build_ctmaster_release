@@ -41,6 +41,12 @@ for worker_script in ./go/worker_scripts/*; do
     ${INSTALL} --mode=755 -T $worker_script_binary ${ROOT}/usr/local/bin/$worker_script_name
   fi
 done
+
+# Copy over the windows executables.
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/build_repo.exe            ${ROOT}/usr/local/bin/build_repo.exe
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/isolate_telemetry.exe     ${ROOT}/usr/local/bin/isolate_telemetry.exe
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/run_chromium_analysis.exe ${ROOT}/usr/local/bin/run_chromium_analysis.exe
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/run_chromium_perf.exe     ${ROOT}/usr/local/bin/run_chromium_perf.exe
 }
 
 source ../bash/docker_build.sh
