@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f024a3d8_ecd6db2a",
+        "filename": "go/gce/swarming/swarming_vm.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-05T12:54:23Z",
+      "side": 1,
+      "message": "This makes me sad.  How big of an effort is it to recreate these now?",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 34
+      },
+      "revId": "47d5d4c4703ecc413a3d966746adab35be68e852",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
