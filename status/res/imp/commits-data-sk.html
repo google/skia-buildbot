@@ -37,8 +37,8 @@
     commits: Array<Object>, the commit objects, in chronological order.
     commits_map: Object, a map of commit hash to commit objects.
     loading: Boolean, if the data is being fetched from the server or parsed.
-    relanded_map: Object, a map of an issue number that was relanded to the commit that relands it
-    reverted_map: Object, a map of an issue number that was reverted to the commit that reverts it
+    relanded_map: Object, a map of a commit hash that was relanded to the commit object that relands it
+    reverted_map: Object, a map of a commit hash that was reverted to the commit object that reverts it
     swarming_url: String, the URL of the Swarming server.
     task_scheduler_url: String, the URL of the Task Scheduler.
 
@@ -125,7 +125,7 @@
     // both issue and patchStorage.
     function findIssueAndReviewTool(commit) {
       // See if it is a Gerrit CL.
-      var gerritRE = /(.|[\r\n])*Reviewed-on: https:\/\/skia-review.googlesource.com\/(c\/)?([0-9]*)/g;
+      var gerritRE = /(.|[\r\n])*Reviewed-on:.*\/([0-9]*)/g;
       var gerritTokens = gerritRE.exec(commit.body);
       if (gerritTokens) {
         return {
@@ -146,11 +146,16 @@
 
     // Find and return the commit which was reverted by the given commit.
     function findRevertedCommit(commits, commit) {
+      console.log("findRevertedCommit");
+      console.log(commit);
       patt = new RegExp("^This reverts commit ([a-f0-9]+)");
       var tokens = patt.exec(commit.body);
       if (tokens) {
+        console.log("  found tokens:");
+        console.log(tokens);
         return commits[tokens[tokens.length - 1]];
       }
+      console.log("  found no tokens.");
       return null;
     }
 
@@ -559,14 +564,16 @@
           var reverted = findRevertedCommit(commitsMap, commit);
           if (reverted) {
             commit.isRevert = true;
-            this.reverted_map[reverted.issue] = commit;
+            console.log("Reverted commit: ");
+            console.log(reverted);
+            this.reverted_map[reverted.hash] = commit;
           }
 
           commit.isReland = false;
           var relanded = findRelandedCommit(commitsMap, commit);
           if (relanded) {
             commit.isReland = true;
-            this.relanded_map[relanded.issue] = commit;
+            this.relanded_map[relanded.hash] = commit;
           }
         }
 
@@ -575,7 +582,7 @@
           commit.ignoreFailure = commit.comments &&
                                  commit.comments.length > 0 &&
                                  commit.comments[commit.comments.length-1].ignoreFailure;
-          if (this.reverted_map[commit.issue]) {
+          if (this.reverted_map[commit.hash]) {
             commit.ignoreFailure = true;
           }
 
