@@ -6,7 +6,7 @@ set -e -x
 
 source ../kube/config.sh
 
-TOPIC=perf-ingestion-skia
+TOPIC=perf-ingestion-skia-production
 
 gcloud pubsub topics create ${TOPIC} || true
 gsutil notification create -f json -e OBJECT_FINALIZE -t projects/${PROJECT_ID}/topics/${TOPIC} -p buildstats-json-v1  gs://skia-perf
