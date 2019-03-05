@@ -155,6 +155,30 @@
     },
     {
       "key": {
+        "uuid": "e58b14df_56252690",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-05T18:51:20Z",
+      "side": 1,
+      "message": "I switched back to the old behavior, which should prevent race conditions or problems due to failure to notify Buildbucket for finished jobs.  A modular cache seems like a reasonable idea, but the cache changes so infrequently that I\u0027m not sure it warrants the refactor.",
+      "parentUuid": "414ea11d_9b998e69",
+      "range": {
+        "startLine": 131,
+        "startChar": 5,
+        "endLine": 131,
+        "endChar": 19
+      },
+      "revId": "85dec580175bfbf9372802afed6b6b59fda93811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d04c8e2c_78c2e892",
         "filename": "task_scheduler/go/tryjobs/tryjobs.go",
         "patchSetId": 2
