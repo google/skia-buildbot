@@ -702,15 +702,22 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 	j1Before := j1.Created
 	j1After := j1Before.Add(1 * TS_RESOLUTION)
 	timeEnd := now.Add(2 * TS_RESOLUTION)
-	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
-	jobs, err = db.GetJobsFromDateRange(j1Before, j1After)
+	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
-	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
+	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, "bogusRepo")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+	jobs, err = db.GetJobsFromDateRange(j1Before, j1After, j1.Repo)
+	assert.NoError(t, err)
+	AssertDeepEqual(t, []*types.Job{j1}, jobs)
+	assert.NotEqual(t, "", j1.Repo)
 
 	// Insert two more jobs. Ensure at least 1 microsecond between job Created
 	// times so that j1After != j2Before and j2After != j3Before.
@@ -748,55 +755,55 @@ func TestJobDB(t testutils.TestingT, db JobDB) {
 
 	timeEnd = now.Add(3 * TS_RESOLUTION)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(jobs))
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j1After)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j1After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j2After)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j2After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, j3After)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j3After, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j1, j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j2, j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{j3}, jobs)
 
-	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd)
+	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd, "")
 	assert.NoError(t, err)
 	AssertDeepEqual(t, []*types.Job{}, jobs)
 }

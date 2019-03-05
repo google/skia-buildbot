@@ -47,7 +47,7 @@ func (d *firestoreDB) GetJobById(id string) (*types.Job, error) {
 }
 
 // See documentation for types.JobReader interface.
-func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
+func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([]*types.Job, error) {
 	var jobs [][]*types.Job
 	init := func(numGoroutines int) {
 		jobs = make([][]*types.Job, numGoroutines)
@@ -63,11 +63,22 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, 
 		}
 		if doc.Ref.ID != job.Id {
 			sklog.Errorf("Job %s is stored with ID %s; GetJobById will not be able to find it!", job.Id, doc.Ref.ID)
+			return nil
+		}
+		if repo != "" {
+			if job.Repo != repo {
+				sklog.Errorf("Query returned job with wrong repo; wanted %q but got %q; job: %+v", repo, job.Repo, job)
+				return nil
+			}
 		}
 		jobs[idx] = append(jobs[idx], &job)
 		return nil
 	}
-	if err := d.dateRangeHelper("GetJobsFromDateRange", d.jobs(), start, end, init, elem); err != nil {
+	q := d.jobs().Query
+	if repo != "" {
+		q = q.Where(KEY_REPO, "==", repo)
+	}
+	if err := d.dateRangeHelper("GetJobsFromDateRange", q, start, end, init, elem); err != nil {
 		return nil, err
 	}
 	totalResults := 0
