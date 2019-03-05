@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef4392c0_a27aa7c6",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:21:13Z",
+      "side": 1,
+      "message": "We don\u0027t need to do this for every bot.",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 4
+      },
+      "revId": "563a83ae6b8939a132e88ae3625ffa4c055743c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f98432f0_18df3229",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:21:13Z",
+      "side": 1,
+      "message": "You might want to decouple the CT bot version from the Skia bot version. Seems somewhat likely that I will update the Skia bots and forget the CT bots.",
+      "range": {
+        "startLine": 103,
+        "startChar": 128,
+        "endLine": 103,
+        "endChar": 164
+      },
+      "revId": "563a83ae6b8939a132e88ae3625ffa4c055743c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1334b067_6dbeefb9",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:21:13Z",
+      "side": 1,
+      "message": "You seem to be ignoring the machineType param.",
+      "range": {
+        "startLine": 103,
+        "startChar": 50,
+        "endLine": 103,
+        "endChar": 76
+      },
+      "revId": "563a83ae6b8939a132e88ae3625ffa4c055743c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9a8852b_9bffd845",
+        "filename": "go/gce/ct/instance_types/instance_types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T21:21:13Z",
+      "side": 1,
+      "message": "You seem to be ignoring the diskType param.",
+      "range": {
+        "startLine": 104,
+        "startChar": 82,
+        "endLine": 104,
+        "endChar": 115
+      },
+      "revId": "563a83ae6b8939a132e88ae3625ffa4c055743c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
