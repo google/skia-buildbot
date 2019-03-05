@@ -22,5 +22,20 @@
         ],
       },
     }],
+    ['OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/isolate_telemetry.exe',
+        ],
+        'command': [
+          '../../../bin/isolate_telemetry.exe',
+          '-logtostderr',
+          '--run_id=<(RUN_ID)',
+          '--chromium_hash=<(CHROMIUM_HASH)',
+          '--patches=<(PATCHES)',
+          '--out=${ISOLATED_OUTDIR}',
+        ],
+      },
+    }],
   ]
 }

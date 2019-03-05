@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -119,13 +120,13 @@ func main() {
 
 	ctx := context.Background()
 
-	// Send start email.
-	emailsArr := util.ParseEmails(*emails)
-	emailsArr = append(emailsArr, util.CtAdmins...)
-	if len(emailsArr) == 0 {
-		sklog.Error("At least one email address must be specified")
-		return
-	}
+	//// Send start email.
+	//emailsArr := util.ParseEmails(*emails)
+	//emailsArr = append(emailsArr, util.CtAdmins...)
+	//if len(emailsArr) == 0 {
+	//	sklog.Error("At least one email address must be specified")
+	//	return
+	//}
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)
 	if err != nil {
@@ -133,13 +134,13 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
-	// Ensure webapp is updated and email is sent even if task fails.
-	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
-	// Cleanup dirs after run completes.
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *taskID, *runID))
+	//skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Chromium analysis", *runID, *description))
+	//// Ensure webapp is updated and email is sent even if task fails.
+	//defer updateWebappTask()
+	//defer sendEmail(emailsArr, gs)
+	//// Cleanup dirs after run completes.
+	//defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))targetPlatform
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium analysis task on workers")
 	defer sklog.Flush()
@@ -157,7 +158,7 @@ func main() {
 		return
 	}
 
-	remoteOutputDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
+	remoteOutputDir := filepath.Join(util.ChromiumAnalysisRunsStorageDir, *runID)
 
 	// Copy the patches and custom webpages to Google Storage.
 	chromiumPatchName := *runID + ".chromium.patch"
@@ -187,6 +188,7 @@ func main() {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuild string
+	//chromiumBuild = "try-e7ced6d4e4146c-4cebd437912575-test-withpatch"
 	group.Go("build chromium", func() error {
 		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, *master_common.ServiceAccountFile, []string{chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
 		if err != nil {
@@ -201,9 +203,11 @@ func main() {
 
 	// Isolate telemetry.
 	isolateDeps := []string{}
+	// isolateDeps = append(isolateDeps, "7a9f8d3f749949c8bb2bae2484626add0fdc3f88")
+
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, *master_common.ServiceAccountFile, *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
 		if err != nil {
 			return sklog.FmtErrorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -211,6 +215,7 @@ func main() {
 			return sklog.FmtErrorf("Found empty telemetry hash!")
 		}
 		isolateDeps = append(isolateDeps, telemetryHash)
+		fmt.Println(telemetryHash)
 		return nil
 	})
 
@@ -220,8 +225,10 @@ func main() {
 		return
 	}
 
+	// sklog.Fatal("WORKING?")
+
 	// Clean up the chromium builds from Google storage after the run completes.
-	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
+	//defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
@@ -243,7 +250,11 @@ func main() {
 	}
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, 12*time.Hour, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	// hack
+	numPages = 4
+	maxPagesPerBot = 2
+	// hack
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, *master_common.ServiceAccountFile, *targetPlatform, 12*time.Hour, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		sklog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
@@ -266,7 +277,7 @@ func main() {
 	}
 
 	// Construct the output link.
-	outputLink = util.GCS_HTTP_LINK + filepath.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "consolidated_outputs", *runID+".output")
+	outputLink = util.GCS_HTTP_LINK + path.Join(util.GCSBucketName, util.BenchmarkRunsDir, *runID, "consolidated_outputs", *runID+".output")
 
 	// Display the no output slaves.
 	for _, noOutputSlave := range noOutputSlaves {

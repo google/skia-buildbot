@@ -140,10 +140,22 @@ func (gs *GcsUtil) downloadRemoteDir(localDir, gsDir string) error {
 				return
 			}
 			for _, result := range resp.Items {
-				fileName := filepath.Base(result.Name)
+				fmt.Println("localDir")
+				fmt.Println(localDir)
+				fmt.Println("result.Name")
+				fmt.Println(result.Name)
+				fileName := path.Base(result.Name)
+				fmt.Println("fileName")
+				fmt.Println(fileName)
 				// If downloading from subdir then add it to the fileName.
-				fileGsDir := filepath.Dir(result.Name)
+				fileGsDir := path.Dir(result.Name)
+				fmt.Println("fileGsDir")
+				fmt.Println(fileGsDir)
 				subDirs := strings.TrimPrefix(fileGsDir, gsDir)
+				fmt.Println("gsDir")
+				fmt.Println(gsDir)
+				fmt.Println("subDirs")
+				fmt.Println(subDirs)
 				if subDirs != "" {
 					dirTokens := strings.Split(subDirs, "/")
 					for i := range dirTokens {
@@ -215,9 +227,9 @@ func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir st
 
 // DownloadChromiumBuild downloads the specified Chromium build from Google
 // Storage to a local dir.
-func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
+func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild, targetPlatform string) error {
 	localDir := filepath.Join(ChromiumBuildsDir, chromiumBuild)
-	gsDir := filepath.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
+	gsDir := path.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
 	sklog.Infof("Downloading %s from Google Storage to %s", gsDir, localDir)
 	if err := gs.downloadRemoteDir(localDir, gsDir); err != nil {
 		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
@@ -229,8 +241,10 @@ func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 		return fmt.Errorf("Error when unzipping %s: %s", zipFilePath, err)
 	}
 
-	// Downloaded chrome binary needs to be set as an executable.
-	util.LogErr(os.Chmod(filepath.Join(localDir, "chrome"), 0777))
+	if targetPlatform != PLATFORM_WINDOWS {
+		// Downloaded chrome binary needs to be set as an executable on linux.
+		util.LogErr(os.Chmod(filepath.Join(localDir, "chrome"), 0777))
+	}
 
 	return nil
 }
@@ -311,7 +325,7 @@ func (gs *GcsUtil) UploadFile(fileName, localDir, gsDir string) error {
 // in Google Storage. It also sets the appropriate ACLs on the uploaded file.
 func (gs *GcsUtil) UploadFileToBucket(fileName, localDir, gsDir, bucket string) error {
 	localFile := filepath.Join(localDir, fileName)
-	gsFile := filepath.Join(gsDir, fileName)
+	gsFile := path.Join(gsDir, fileName)
 	object := &storage.Object{Name: gsFile}
 	f, err := os.Open(localFile)
 	if err != nil {
@@ -362,12 +376,12 @@ func (gs *GcsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetTyp
 	// Create the local dir.
 	util.MkdirAll(localDir, 0700)
 
-	gsDir := filepath.Join(SWARMING_DIR_NAME, remoteDirName, pagesetType)
+	gsDir := path.Join(SWARMING_DIR_NAME, remoteDirName, pagesetType)
 	endRange := num + startRange - 1
 	// The channel where remote files to be downloaded will be sent to.
 	chRemoteDirs := make(chan string, num)
 	for i := startRange; i <= endRange; i++ {
-		chRemoteDirs <- filepath.Join(gsDir, strconv.Itoa(i))
+		chRemoteDirs <- path.Join(gsDir, strconv.Itoa(i))
 	}
 	close(chRemoteDirs)
 
@@ -382,6 +396,7 @@ func (gs *GcsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetTyp
 		go func(goroutineNum int) {
 			defer wg.Done()
 			for remoteDir := range chRemoteDirs {
+				// rmistry
 				if err := gs.downloadFromSwarmingDir(remoteDir, gsDir, localDir, goroutineNum, &mtx, artifactToIndex); err != nil {
 					sklog.Error(err)
 					return
@@ -423,8 +438,8 @@ func (gs *GcsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, ru
 			return fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
 		}
 		for _, result := range resp.Items {
-			fileName := filepath.Base(result.Name)
-			fileGsDir := filepath.Dir(result.Name)
+			fileName := path.Base(result.Name)
+			fileGsDir := path.Dir(result.Name)
 			index, err := strconv.Atoi(path.Base(fileGsDir))
 			if err != nil {
 				return fmt.Errorf("%s was not in expected format: %s", fileGsDir, err)
