@@ -12,23 +12,15 @@ import misc
 import shell_utils
 
 
-WHICH = 'where' if os.name == 'nt' else 'which'
 SKIA_TRUNK = 'skia'
-GIT = 'git'
-
-
-def _GetGclientPy():
-  """ Return the path to the gclient.py file. """
-  return os.path.join('/', 'home', 'chrome-bot', 'depot_tools', 'gclient.py')
-
-
-GCLIENT_PY = _GetGclientPy()
+GIT = 'git.bat' if os.name == 'nt' else 'git'
+GCLIENT_PY = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GCLIENT_FILE = '.gclient'
 
 
 def _RunCmd(cmd):
   """ Run a "gclient ..." command. """
-  return shell_utils.run(['python', GCLIENT_PY] + cmd)
+  return shell_utils.run([GCLIENT_PY] + cmd)
 
 
 def GClient():
