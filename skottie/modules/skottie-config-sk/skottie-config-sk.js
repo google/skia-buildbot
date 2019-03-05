@@ -32,16 +32,36 @@ import { html, render } from 'lit-html'
 import { $$ } from 'common-sk/modules/dom'
 
 const DEFAULT_SIZE = 128;
-const DEFAULT_FPS = 29.97;
+
+const allowZips = window.location.hostname === "skottie-internal.skia.org" ||
+                  window.location.hostname === "localhost";
 
 const cancelButton = (ele) => ele._hasCancel() ? html`<button id=cancel @click=${ele._cancel}>Cancel</button>` : '';
 
 const template = (ele) => html`
+  <div ?hidden=${!allowZips}>
+    We support 3 types of uploads:
+    <ul>
+      <li>A plain JSON file.</li>
+      <li>A JSON file with a zip file of assets (e.g. images) used by the animation.</li>
+      <li>
+        A zip file produced by lottiefiles.com
+        (<a href="https://lottiefiles.com/1187-puppy-run">example</a>)
+        with a JSON file in the top level and an images/ directory.
+      </li>
+    </ul>
+  </div>
   <label class=file>Lottie file to upload
     <input type=file name=file id=file @change=${ele._onFileChange}/>
   </label>
   <div class="filename ${ele._state.filename ? '' : 'empty'}">
     ${ele._state.filename ? ele._state.filename : 'No file selected.'}
+  </div>
+  <label class=file ?hidden=${!allowZips}>Optional Asset Folder (.zip)
+    <input type=file name=folder id=folder @change=${ele._onFolderChange}/>
+  </label>
+  <div class="filename ${ele._state.assetsFilename ? '' : 'empty'}" ?hidden=${!allowZips}>
+    ${ele._state.assetsFilename ? ele._state.assetsFilename : 'No asset folder selected.'}
   </div>
   <label class=number>
     <input type=number id=width .value=${ele._width} required /> Width (px)
@@ -49,9 +69,9 @@ const template = (ele) => html`
   <label class=number>
     <input type=number id=height .value=${ele._height} required /> Height (px)
   </label>
-  <p>
+  <div>
     0 for width/height means use the default from the animation
-  </p>
+  </div>
   <div class=warning ?hidden=${ele._warningHidden()}>
     <p>
     The width or height of your file exceeds 1024, which may not fit on the screen.
@@ -74,7 +94,9 @@ class SkottieConfigSk extends HTMLElement {
     super();
     this._state = {
       filename: '',
-      lottie: null
+      lottie: null,
+      assetsZip: '',
+      assetsFileName: '',
     };
     this._width = DEFAULT_SIZE;
     this._height = DEFAULT_SIZE;
@@ -118,31 +140,71 @@ class SkottieConfigSk extends HTMLElement {
   }
 
   _readyToGo() {
-    return !this._state.lottie;
+    return !this._state.filename && (this._state.lottie || this._state.assetsZip);
   }
 
   _onFileChange(e) {
     this._fileChanged = true;
-    let reader = new FileReader();
+    const toLoad = e.target.files[0];
+    const reader = new FileReader();
+    if (toLoad.name.endsWith('.json')) {
+      reader.addEventListener('load', () => {
+        let parsed = {};
+        try {
+          parsed = JSON.parse(reader.result);
+        }
+        catch(error) {
+          errorMessage(`Not a valid JSON file: ${error}`);
+          return;
+        }
+        this._state.lottie = parsed;
+        this._state.filename = toLoad.name;
+        this._width = parsed.w || DEFAULT_SIZE;
+        this._height = parsed.h || DEFAULT_SIZE;
+        this._render();
+      });
+      reader.addEventListener('error', () => {
+        errorMessage('Failed to load.');
+      });
+      reader.readAsText(toLoad);
+    } else if (allowZips && toLoad.name.endsWith('.zip')) {
+      reader.addEventListener('load', () => {
+        this._state.lottie = '';
+        this._state.assetsZip = reader.result;
+        this._state.filename = toLoad.name;
+
+        this._width = DEFAULT_SIZE;
+        this._height = DEFAULT_SIZE;
+        this._render();
+      });
+      reader.addEventListener('error', () => {
+        errorMessage('Failed to load '+ toLoad.name);
+      });
+      reader.readAsDataURL(toLoad);
+    } else {
+      let msg = `Bad file type ${toLoad.name}, only .json and .zip supported`;
+      if (!allowZips) {
+        msg = `Bad file type ${toLoad.name}, only .json supported`;
+      }
+      errorMessage(msg);
+      this._state.filename = '';
+      this._state.lottie = '';
+    }
+  }
+
+  _onFolderChange(e) {
+    this._fileChanged = true;
+    const toLoad = e.target.files[0];
+    const reader = new FileReader();
     reader.addEventListener('load', () => {
-      let parsed = {};
-      try {
-        parsed = JSON.parse(reader.result);
-      }
-      catch(error) {
-        errorMessage(`Not a valid JSON file: ${error}`);
-        return;
-      }
-      this._state.lottie = parsed;
-      this._state.filename = e.target.files[0].name;
-      this._width = parsed.w || DEFAULT_SIZE;
-      this._height = parsed.h || DEFAULT_SIZE;
+      this._state.assetsZip = reader.result;
+      this._state.assetsFilename = toLoad.name;
       this._render();
     });
     reader.addEventListener('error', () => {
-      errorMessage('Failed to load.');
+      errorMessage('Failed to load '+ toLoad.name);
     });
-    reader.readAsText(e.target.files[0]);
+    reader.readAsDataURL(toLoad);
   }
 
   _rescale(n) {
