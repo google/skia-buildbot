@@ -121,6 +121,38 @@ banner "Copy _netrc file"
 $shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
 $shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
 
+$hostname =(cmd /c "hostname") | Out-String
+if ($hostname.StartsWith("ct-windows-builder")) {
+  banner "Check out Chromium repository"
+
+  cmd /c "git config --global user.name chrome-bot"
+  cmd /c "git config --global user.email chrome-bot@chromium.org"
+  cmd /c "git config --global core.autocrlf false"
+  cmd /c "git config --global core.filemode false"
+  cmd /c "git config --global branch.autosetuprebase always"
+
+  $chromiumCheckout = "c:\b\storage\chromium"
+  if (!(Test-Path ($chromiumCheckout))) {
+    new-item $chromiumCheckout -itemtype directory
+    Set-Location -Path $chromiumCheckout
+    Try {
+      cmd /c "fetch.bat chromium"
+    } Catch {
+      log "fetch.bat chromium failed:"
+      log $_.Exception.Message
+    }
+
+    $chromiumSrcDir = "$chromiumCheckout\src"
+    Set-Location -Path $chromiumSrcDir
+    log "git checkout master"
+    cmd /c "git.bat checkout master"
+    log "gclient sync"
+    cmd /c "gclient.bat sync"
+
+    Set-Location -Path $userDir
+  }
+}
+
 banner "Copy .gitconfig file"
 $shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
 
@@ -135,8 +167,7 @@ $swarm_slave_dir = "c:\b\s"
 if (!(Test-Path ($swarm_slave_dir))) {
   new-item $swarm_slave_dir -itemtype directory
   $swarming = "https://chromium-swarm.appspot.com"
-  $hostname =(cmd /c "hostname") | Out-String
-  if ($hostname.StartsWith("skia-i-")) {
+  if ($hostname.StartsWith("skia-i-") -Or $hostname.StartsWith("ct-")) {
     $swarming = "https://chrome-swarming.appspot.com"
   }
   $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} -UseBasicParsing | ConvertFrom-Json
