@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a1bc29a_5edef415",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T15:12:21Z",
+      "side": 0,
+      "message": "Are you sure this no longer applies? On what Win version?\n\nI created some Win machines recently, and the reboot at this point was not necessary.",
+      "range": {
+        "startLine": 1134,
+        "startChar": 39,
+        "endLine": 1135,
+        "endChar": 42
+      },
+      "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
