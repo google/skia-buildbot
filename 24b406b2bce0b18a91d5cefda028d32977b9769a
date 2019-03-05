@@ -46,6 +46,30 @@
       "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fd90b993_de18576a",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1135,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-05T15:19:10Z",
+      "side": 0,
+      "message": "Ok, so previously chrome-bot was not being auto-logged-in, but it was working because the scheduled task was ONSTART?",
+      "parentUuid": "8802d368_5dc6f350",
+      "range": {
+        "startLine": 1134,
+        "startChar": 39,
+        "endLine": 1135,
+        "endChar": 42
+      },
+      "revId": "24b406b2bce0b18a91d5cefda028d32977b9769a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
