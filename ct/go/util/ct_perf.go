@@ -119,7 +119,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults 
 
 	// Step 4: Upload the results file to Google storage bucket CT_PERF_BUCKET for ingestion by ct-perf.skia.org.
 	//         It is stored in location of this format: gs://<bucket>/<one or more dir names>/YYYY/MM/DD/HH/<zero or more dir names><some unique name>.json
-	gsDir := filepath.Join("ingest", time.Now().UTC().Format("2006/01/02/15/"))
+	gsDir := path.Join("ingest", time.Now().UTC().Format("2006/01/02/15/"))
 	if err := gs.UploadFileToBucket(filepath.Base(jsonFile), workdir, gsDir, CT_PERF_BUCKET); err != nil {
 		return sklog.FmtErrorf("Could not upload %s to gs://%s/%s: %s", jsonFile, CT_PERF_BUCKET, gsDir, err)
 	}
