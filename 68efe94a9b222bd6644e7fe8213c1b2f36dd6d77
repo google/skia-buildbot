@@ -16,6 +16,24 @@
       "revId": "68efe94a9b222bd6644e7fe8213c1b2f36dd6d77",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46134de6_85c7907a",
+        "filename": "task_scheduler/go/tryjobs/tryjobs.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-06T12:59:08Z",
+      "side": 0,
+      "message": "Added back both comments.",
+      "parentUuid": "e24f5875_348389f9",
+      "revId": "68efe94a9b222bd6644e7fe8213c1b2f36dd6d77",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
