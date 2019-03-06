@@ -78,6 +78,11 @@ if (!(Test-Path ($tmp))) {
 $webclient = New-Object System.Net.WebClient
 $shell = new-object -com shell.application
 
+# Update DNS Server for internet access.
+$wmi = `
+    Get-WmiObject win32_networkadapterconfiguration -filter "ipenabled = 'true'"
+$wmi.SetDNSServerSearchOrder("8.8.8.8")
+
 banner "Install depot tools."
 $fileName = "$tmp\depot_tools.zip"
 $depotToolsPath = "$userDir\depot_tools"
