@@ -22,6 +22,30 @@
       "revId": "8bcf74918dfa451b1bb6b90a9279f2d243a5183a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95bc10f7_9ff8f338",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-06T15:45:16Z",
+      "side": 1,
+      "message": "That\u0027s definitely an option - if there are name collisions (images/Roboto.ttf and fonts/Roboto.ttf), that\u0027s the user\u0027s fault and we\u0027ll upload one over the other, so that everything is served out of assets/[name]\n\nSG?",
+      "parentUuid": "b30560cf_309c6286",
+      "range": {
+        "startLine": 356,
+        "startChar": 12,
+        "endLine": 356,
+        "endChar": 18
+      },
+      "revId": "8bcf74918dfa451b1bb6b90a9279f2d243a5183a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
