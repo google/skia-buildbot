@@ -11,22 +11,31 @@
         'files': [
           '../../../bin/run_chromium_analysis',
         ],
-        'command': [
-          '../../../bin/run_chromium_analysis',
-          '-logtostderr',
-          '--start_range=<(START_RANGE)',
-          '--num=<(NUM)',
-          '--pageset_type=<(PAGESET_TYPE)',
-          '--chromium_build=<(CHROMIUM_BUILD)',
-          '--run_id=<(RUN_ID)',
-          '--benchmark_name=<(BENCHMARK)',
-          '--benchmark_extra_args=<(BENCHMARK_ARGS)',
-          '--browser_extra_args=<(BROWSER_EXTRA_ARGS)',
-          '--run_in_parallel=<(RUN_IN_PARALLEL)',
-          '--target_platform=<(TARGET_PLATFORM)',
-          '--match_stdout_txt=<(MATCH_STDOUT_TXT)',
+      },
+    }],
+    ['OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/run_chromium_analysis.exe',
         ],
       },
     }],
-  ]
+  ],
+  'variables': {
+    'command': [
+      '../../../bin/run_chromium_analysis',
+      '-logtostderr',
+      '--start_range=<(START_RANGE)',
+      '--num=<(NUM)',
+      '--pageset_type=<(PAGESET_TYPE)',
+      '--chromium_build=<(CHROMIUM_BUILD)',
+      '--run_id=<(RUN_ID)',
+      '--benchmark_name=<(BENCHMARK)',
+      '--benchmark_extra_args=<(BENCHMARK_ARGS)',
+      '--browser_extra_args=<(BROWSER_EXTRA_ARGS)',
+      '--run_in_parallel=<(RUN_IN_PARALLEL)',
+      '--target_platform=<(TARGET_PLATFORM)',
+      '--match_stdout_txt=<(MATCH_STDOUT_TXT)',
+    ]
+  }
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -90,11 +91,11 @@ func runChromiumPerf() error {
 	}
 
 	tmpDir, err := ioutil.TempDir("", "patches")
-	remotePatchesDir := filepath.Join(util.ChromiumPerfRunsDir, *runID)
+	remotePatchesDir := path.Join(util.ChromiumPerfRunsStorageDir, *runID)
 
 	// Download the custom webpages for this run from Google storage.
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
+	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), path.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
 		return fmt.Errorf("Could not download %s: %s", customWebpagesName, err)
 	}
 	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
@@ -119,8 +120,12 @@ func runChromiumPerf() error {
 		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
 	}
 
-	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, util.BINARY_CHROME)
-	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, util.BINARY_CHROME)
+	chromiumBinaryName := util.BINARY_CHROME
+	if *targetPlatform == util.PLATFORM_WINDOWS {
+		chromiumBinaryName = util.BINARY_CHROME_WINDOWS
+	}
+	chromiumBinaryNoPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildNoPatch, chromiumBinaryName)
+	chromiumBinaryWithPatch := filepath.Join(util.ChromiumBuildsDir, *chromiumBuildWithPatch, chromiumBinaryName)
 
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
@@ -152,7 +157,7 @@ func runChromiumPerf() error {
 	skutil.RemoveAll(localOutputDirNoPatch)
 	skutil.MkdirAll(localOutputDirNoPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirNoPatch)
-	remoteDirNoPatch := filepath.Join(util.BenchmarkRunsDir, runIDNoPatch)
+	remoteDirNoPatch := path.Join(util.BenchmarkRunsStorageDir, runIDNoPatch)
 
 	// Establish withpatch output paths.
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
@@ -160,7 +165,7 @@ func runChromiumPerf() error {
 	skutil.RemoveAll(localOutputDirWithPatch)
 	skutil.MkdirAll(localOutputDirWithPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirWithPatch)
-	remoteDirWithPatch := filepath.Join(util.BenchmarkRunsDir, runIDWithPatch)
+	remoteDirWithPatch := path.Join(util.BenchmarkRunsStorageDir, runIDWithPatch)
 
 	// Construct path to the ct_run_benchmark python script.
 	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
