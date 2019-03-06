@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/cacher"
+	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/syncer"
@@ -139,8 +140,9 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
 	assert.NoError(t, err)
 	chr := cacher.New(s, taskCfgCache, isolateClient, isolateCache)
-
-	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, window, projectRepoMapping, rm, taskCfgCache, chr, g)
+	jCache, err := cache.NewJobCache(d, window, cache.GitRepoGetRevisionTimestamp(rm))
+	assert.NoError(t, err)
+	integrator, err := NewTryJobIntegrator(API_URL_TESTING, BUCKET_TESTING, "fake-server", mock.Client(), d, jCache, projectRepoMapping, rm, taskCfgCache, chr, g)
 	assert.NoError(t, err)
 
 	return ctx, integrator, gb, mock, func() {

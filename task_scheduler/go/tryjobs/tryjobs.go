@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
-	"go.skia.org/infra/task_scheduler/go/window"
 )
 
 /*
@@ -71,7 +70,6 @@ const (
 type TryJobIntegrator struct {
 	bb                 *buildbucket_api.Service
 	bucket             string
-	cacheMtx           sync.Mutex
 	chr                *cacher.Cacher
 	db                 db.JobDB
 	gerrit             gerrit.GerritInterface
@@ -80,24 +78,15 @@ type TryJobIntegrator struct {
 	projectRepoMapping map[string]string
 	rm                 repograph.Map
 	taskCfgCache       *task_cfg_cache.TaskCfgCache
-	tjCache            *tryJobCache
 }
 
 // NewTryJobIntegrator returns a TryJobIntegrator instance.
-func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, w *window.Window, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *task_cfg_cache.TaskCfgCache, chr *cacher.Cacher, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
+func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB, jCache cache.JobCache, projectRepoMapping map[string]string, rm repograph.Map, taskCfgCache *task_cfg_cache.TaskCfgCache, chr *cacher.Cacher, gerrit gerrit.GerritInterface) (*TryJobIntegrator, error) {
 	bb, err := buildbucket_api.New(c)
 	if err != nil {
 		return nil, err
 	}
 	bb.BasePath = apiUrl
-	jCache, err := cache.NewJobCache(d, w, cache.GitRepoGetRevisionTimestamp(rm))
-	if err != nil {
-		return nil, err
-	}
-	tjCache, err := newTryJobCache(d, w)
-	if err != nil {
-		return nil, err
-	}
 	gerrit.TurnOnAuthenticatedGets()
 	rv := &TryJobIntegrator{
 		bb:                 bb,
@@ -110,7 +99,6 @@ func NewTryJobIntegrator(apiUrl, bucket, host string, c *http.Client, d db.JobDB
 		projectRepoMapping: projectRepoMapping,
 		rm:                 rm,
 		taskCfgCache:       taskCfgCache,
-		tjCache:            tjCache,
 	}
 	return rv, nil
 }
@@ -130,24 +118,26 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 	})
 }
 
-// updateCaches updates both internal caches.
-func (t *TryJobIntegrator) updateCaches() error {
-	t.cacheMtx.Lock()
-	defer t.cacheMtx.Unlock()
-	if err := t.tjCache.Update(); err != nil {
-		return err
+// getActiveTryJobs returns the active (not yet marked as finished in
+// Buildbucket) tryjobs.
+func (t *TryJobIntegrator) getActiveTryJobs() ([]*types.Job, error) {
+	if err := t.jCache.Update(); err != nil {
+		return nil, err
 	}
-	return t.jCache.Update()
+	jobs := t.jCache.GetAllCachedJobs()
+	rv := []*types.Job{}
+	for _, job := range jobs {
+		if job.BuildbucketLeaseKey != 0 {
+			rv = append(rv, job)
+		}
+	}
+	return rv, nil
 }
 
 // updateJobs sends updates to Buildbucket for all active try Jobs.
 func (t *TryJobIntegrator) updateJobs(now time.Time) error {
 	// Get all Jobs associated with in-progress Buildbucket builds.
-	if err := t.updateCaches(); err != nil {
-		return err
-	}
-
-	jobs, err := t.tjCache.GetActiveTryJobs()
+	jobs, err := t.getActiveTryJobs()
 	if err != nil {
 		return err
 	}
@@ -423,7 +413,7 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 }
 
 func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
-	if err := t.updateCaches(); err != nil {
+	if err := t.jCache.Update(); err != nil {
 		return err
 	}
 
