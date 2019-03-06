@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8395c573_90c04543",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-06T17:26:16Z",
+      "side": 1,
+      "message": "This error gets lost to the user. Use golang.org/x/sync/errgroup to make sure each upload succeeds.",
+      "range": {
+        "startLine": 376,
+        "startChar": 4,
+        "endLine": 376,
+        "endChar": 21
+      },
+      "revId": "cd1a9805af6543e57c713a11b9f80629dcbe96b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
