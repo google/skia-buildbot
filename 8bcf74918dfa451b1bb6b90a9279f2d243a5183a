@@ -46,6 +46,30 @@
       "revId": "8bcf74918dfa451b1bb6b90a9279f2d243a5183a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b5ebce3_aed497ec",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2019-03-06T15:48:16Z",
+      "side": 1,
+      "message": "SGTM.",
+      "parentUuid": "95bc10f7_9ff8f338",
+      "range": {
+        "startLine": 356,
+        "startChar": 12,
+        "endLine": 356,
+        "endChar": 18
+      },
+      "revId": "8bcf74918dfa451b1bb6b90a9279f2d243a5183a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
