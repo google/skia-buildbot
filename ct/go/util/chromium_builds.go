@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -69,6 +70,7 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
 		LogStdout: true,
 		LogStderr: true,
+		Env:       os.Environ(),
 	}
 	if _, err := exec.RunCommand(ctx, syncCommand); err != nil {
 		return fmt.Errorf("There was an error checking out chromium %s: %s", chromiumHash, err)
@@ -88,15 +90,22 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 		return fmt.Errorf("Could not chdir to %s: %s", ChromiumSrcDir, err)
 	}
 	// Make sure depot_tools is first in PATH.
-	env := os.Environ()
-	env = append(env, fmt.Sprintf("PATH=%s:$PATH", DepotToolsDir))
+	os.Setenv("PATH", DepotToolsDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 	// Run "gn gen out/${TELEMETRY_ISOLATES_OUT_DIR}"
-	if err := ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "gn"), []string{"gen", TELEMETRY_ISOLATES_OUT_DIR}, env, GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
+	if err := ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "gn"), []string{"gen", TELEMETRY_ISOLATES_OUT_DIR}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "tools/mb/mb.py isolate ${TELEMETRY_ISOLATES_OUT_DIR} ${TELEMETRY_ISOLATES_TARGET}"
-	args := []string{"isolate", TELEMETRY_ISOLATES_OUT_DIR, TELEMETRY_ISOLATES_TARGET}
-	if err := ExecuteCmd(ctx, filepath.Join("tools", "mb", "mb.py"), args, env, NINJA_TIMEOUT, nil, nil); err != nil {
+	mbArgs := []string{filepath.Join("tools", "mb", "mb.py"), "isolate", TELEMETRY_ISOLATES_OUT_DIR, TELEMETRY_ISOLATES_TARGET}
+	mbCommand := &exec.Command{
+		Name:      "python",
+		Args:      mbArgs,
+		Timeout:   NINJA_TIMEOUT,
+		LogStdout: true,
+		LogStderr: true,
+		Env:       os.Environ(),
+	}
+	if _, err := exec.RunCommand(ctx, mbCommand); err != nil {
 		return fmt.Errorf("Error while running mb.py isolate: %s", err)
 	}
 
@@ -118,9 +127,9 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
 	// Determine which fetch target to use.
 	var fetchTarget string
-	if targetPlatform == "Android" {
+	if targetPlatform == PLATFORM_ANDROID {
 		fetchTarget = "android"
-	} else if targetPlatform == "Linux" {
+	} else if targetPlatform == PLATFORM_LINUX || targetPlatform == PLATFORM_WINDOWS {
 		fetchTarget = "chromium"
 	} else {
 		return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
@@ -162,6 +171,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		Timeout:   SYNC_SKIA_IN_CHROME_TIMEOUT,
 		LogStdout: true,
 		LogStderr: true,
+		Env:       os.Environ(),
 	}
 	if _, err = exec.RunCommand(ctx, syncCommand); err != nil {
 		sklog.Warning("There was an error. Deleting base directory and trying again.")
@@ -199,7 +209,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	if err != nil {
 		return "", "", fmt.Errorf("Could not create GCS object: %s", err)
 	}
-	if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), filepath.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
+	if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), path.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
 		return "", "", fmt.Errorf("There was an error uploading the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
 	}
 
@@ -216,7 +226,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		}
 		// Upload to Google Storage.
 		googleStorageDirName = fmt.Sprintf("try-%s-nopatch", ChromiumBuildDir(chromiumHash, skiaHash, runID))
-		if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), filepath.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
+		if err := uploadChromiumBuild(filepath.Join(chromiumBuildDir, "src", "out", "Release"), path.Join(CHROMIUM_BUILDS_DIR_NAME, googleStorageDirName), targetPlatform, gs); err != nil {
 			return "", "", fmt.Errorf("There was an error uploaded the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
 		}
 	}
