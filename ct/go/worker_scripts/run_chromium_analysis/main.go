@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -89,11 +90,11 @@ func runChromiumAnalysis() error {
 	}
 
 	tmpDir, err := ioutil.TempDir("", "patches")
-	remotePatchesDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
+	remotePatchesDir := path.Join(util.ChromiumAnalysisRunsStorageDir, *runID)
 
 	// Download the custom webpages for this run from Google storage.
 	customWebpagesName := *runID + ".custom_webpages.csv"
-	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), filepath.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
+	if _, err := util.DownloadPatch(filepath.Join(tmpDir, customWebpagesName), path.Join(remotePatchesDir, customWebpagesName), gs); err != nil {
 		return fmt.Errorf("Could not download %s: %s", customWebpagesName, err)
 	}
 	customWebpages, err := util.GetCustomPages(filepath.Join(tmpDir, customWebpagesName))
@@ -110,8 +111,11 @@ func runChromiumAnalysis() error {
 	}
 	// Delete the chromium build to save space when we are done.
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
-
-	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
+	chromiumBinary := util.BINARY_CHROME
+	if *targetPlatform == util.PLATFORM_WINDOWS {
+		chromiumBinary = util.BINARY_CHROME_WINDOWS
+	}
+	chromiumBinaryPath := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, chromiumBinary)
 
 	var pathToPagesets string
 	if len(customWebpages) > 0 {
@@ -142,7 +146,7 @@ func runChromiumAnalysis() error {
 	skutil.RemoveAll(localOutputDir)
 	skutil.MkdirAll(localOutputDir, 0700)
 	defer skutil.RemoveAll(localOutputDir)
-	remoteDir := filepath.Join(util.BenchmarkRunsDir, *runID)
+	remoteDir := path.Join(util.BenchmarkRunsStorageDir, *runID)
 
 	// Construct path to CT's python scripts.
 	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local, false /* runOnMaster */)
@@ -198,7 +202,7 @@ func runChromiumAnalysis() error {
 
 				mutex.RLock()
 				for i := 0; ; i++ {
-					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
+					output, err := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinaryPath, *runID, *browserExtraArgs, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, 1, !*worker_common.Local)
 					if err == nil {
 						timeoutTracker.Reset()
 						// If *matchStdoutText is specified then add the number of times the text shows up in stdout
