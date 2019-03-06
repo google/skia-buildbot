@@ -165,7 +165,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, err
 	}
 
-	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, w, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
+	tryjobs, err := tryjobs.NewTryJobIntegrator(buildbucketApiUrl, trybotBucket, host, c, d, jCache, projectRepoMapping, repos, taskCfgCache, chr, gerrit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
@@ -506,9 +506,7 @@ func (s *TaskScheduler) CancelJob(id string) (*types.Job, error) {
 		return nil, fmt.Errorf("Job %s is already finished with status %s", id, j.Status)
 	}
 	j.Status = types.JOB_STATUS_CANCELED
-	if err := s.jobFinished(j); err != nil {
-		return nil, err
-	}
+	s.jobFinished(j)
 	if err := s.db.PutJob(j); err != nil {
 		return nil, err
 	}
@@ -1804,12 +1802,8 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 }
 
 // jobFinished marks the Job as finished.
-func (s *TaskScheduler) jobFinished(j *types.Job) error {
-	if !j.Done() {
-		return fmt.Errorf("jobFinished called on Job with status %q", j.Status)
-	}
+func (s *TaskScheduler) jobFinished(j *types.Job) {
 	j.Finished = time.Now()
-	return nil
 }
 
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
@@ -1849,9 +1843,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 			j.Tasks = summaries
 			j.Status = j.DeriveStatus()
 			if j.Done() {
-				if err := s.jobFinished(j); err != nil {
-					return err
-				}
+				s.jobFinished(j)
 			}
 			modifiedJobs = append(modifiedJobs, j)
 		}

@@ -409,9 +409,9 @@ func (c *taskCache) reset() error {
 
 // See documentation for TaskCache interface.
 func (c *taskCache) Update() error {
-	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
+	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	if err != nil {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
@@ -437,6 +437,9 @@ func NewTaskCache(d db.TaskReader, timeWindow *window.Window) (TaskCache, error)
 }
 
 type JobCache interface {
+	// GetAllCachedJobs returns every job in the cache.
+	GetAllCachedJobs() []*types.Job
+
 	// GetJob returns the job with the given ID, or an error if no such job exists.
 	GetJob(string) (*types.Job, error)
 
@@ -481,6 +484,18 @@ type jobCache struct {
 // expiration.
 func (c *jobCache) getJobTimestamp(job *types.Job) time.Time {
 	return job.Created
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) GetAllCachedJobs() []*types.Job {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	rv := make([]*types.Job, 0, len(c.jobs))
+	for _, j := range c.jobs {
+		rv = append(rv, j.Copy())
+	}
+	sort.Sort(types.JobSlice(rv))
+	return rv
 }
 
 // See documentation for JobCache interface.
@@ -684,9 +699,9 @@ func (c *jobCache) reset() error {
 
 // See documentation for JobCache interface.
 func (c *jobCache) Update() error {
-	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
+	newJobs, err := c.db.GetModifiedJobs(c.queryId)
 	if err != nil {
 		sklog.Warningf("Connection to db lost; re-initializing cache from scratch.")
 		if err := c.reset(); err != nil {
