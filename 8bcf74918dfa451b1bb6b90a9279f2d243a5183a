@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b30560cf_309c6286",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2019-03-06T15:42:12Z",
+      "side": 1,
+      "message": "Now that we have embedded font support, I wonder if we should relax this filter.  Maybe upload all files in the archive except *.json?",
+      "range": {
+        "startLine": 356,
+        "startChar": 12,
+        "endLine": 356,
+        "endChar": 18
+      },
+      "revId": "8bcf74918dfa451b1bb6b90a9279f2d243a5183a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
