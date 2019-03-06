@@ -97,6 +97,10 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 	numFailures := 0
 	lastSuccessRev := ""
 	for _, roll := range recent {
+		if roll.Succeeded() {
+			lastSuccessRev = roll.RollingTo
+			break
+		}
 		if lastStatus != nil && lastStatus.LastRoll != nil && lastStatus.LastRoll.Issue == roll.Issue {
 			numFailures += lastStatus.AutoRollMiniStatus.NumFailedRolls
 			lastSuccessRev = lastStatus.LastRollRev
@@ -104,9 +108,6 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		}
 		if roll.Failed() {
 			numFailures++
-		} else if roll.Succeeded() {
-			lastSuccessRev = roll.RollingTo
-			break
 		}
 	}
 
