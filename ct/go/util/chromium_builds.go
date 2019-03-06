@@ -90,7 +90,9 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 		return fmt.Errorf("Could not chdir to %s: %s", ChromiumSrcDir, err)
 	}
 	// Make sure depot_tools is first in PATH.
-	os.Setenv("PATH", DepotToolsDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	if err := os.Setenv("PATH", DepotToolsDir+string(os.PathListSeparator)+os.Getenv("PATH")); err != nil {
+		return fmt.Errorf("Could not set PATH env var: %s", err)
+	}
 	// Run "gn gen out/${TELEMETRY_ISOLATES_OUT_DIR}"
 	if err := ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "gn"), []string{"gen", TELEMETRY_ISOLATES_OUT_DIR}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)

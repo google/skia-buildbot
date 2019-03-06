@@ -29,7 +29,7 @@ func Init(ctx context.Context) {
 	} else {
 		if runtime.GOOS == "windows" {
 			// Set SystemRoot because of https://bugs.python.org/issue1384175#msg248951
-			os.Setenv("SystemRoot", "C:\\Windows")
+			skutil.LogErr(os.Setenv("SystemRoot", "C:\\Windows"))
 			util.DepotToolsDir = `C:\\Users\chrome-bot\depot_tools`
 		}
 
