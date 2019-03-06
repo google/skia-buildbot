@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9828eb4e_1c28d6b1",
+        "filename": "go/gce/ct/ct_vm.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-06T15:52:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef4392c0_a27aa7c6",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 4
+      },
+      "revId": "563a83ae6b8939a132e88ae3625ffa4c055743c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f98432f0_18df3229",
         "filename": "go/gce/ct/instance_types/instance_types.go",
         "patchSetId": 1
