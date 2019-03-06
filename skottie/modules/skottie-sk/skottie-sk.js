@@ -350,7 +350,9 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     Promise.all(toLoad).then((externalAssets) => {
       const assets = {};
       for (const asset of externalAssets) {
-        assets[asset.name] = asset.bytes;
+        if (asset) {
+          assets[asset.name] = asset.bytes;
+        }
       }
       this._state.assets = assets;
       this.render();
@@ -371,6 +373,11 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         // to just get the full font as a .ttf file.
         promises.push(fetch(`${GOOGLE_WEB_FONTS_HOST}/${font.fName}.ttf`)
           .then((resp) => {
+            // fetch does not reject on 404
+            if (!resp.ok) {
+              console.error(`Could not load webfont ${font.fName}: status ${resp.status}`)
+              return null;
+            }
             return resp.arrayBuffer().then((buffer) => {
               return {
                 'name': font.fName,
@@ -379,6 +386,25 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
             });
           }));
       }
+      // Look for the fonts in the assets directory with a .ttf extension
+      if (font.fName) {
+        promises.push(fetch(`${this._assetsPath}/${this._hash}/${font.fName}.ttf`)
+          .then((resp) => {
+            // fetch does not reject on 404
+            if (!resp.ok) {
+              console.error(`Could not load ${font.fName}.ttf: status ${resp.status}`)
+              return null;
+            }
+            return resp.arrayBuffer().then((buffer) => {
+              return {
+                'name': font.fName,
+                'bytes': buffer
+              };
+            });
+          })
+        );
+      }
+
     }
     return promises;
   }
@@ -390,6 +416,11 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       if (asset.p) {
         promises.push(fetch(`${this._assetsPath}/${this._hash}/${asset.p}`)
           .then((resp) => {
+            // fetch does not reject on 404
+            if (!resp.ok) {
+              console.error(`Could not load ${asset.p}: status ${resp.status}`)
+              return null;
+            }
             return resp.arrayBuffer().then((buffer) => {
               return {
                 'name': asset.p,

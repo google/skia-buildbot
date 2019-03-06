@@ -160,7 +160,8 @@ func (srv *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
 	path := strings.Join([]string{hash, "assets", name}, "/")
 	reader, err := srv.bucket.Object(path).NewReader(r.Context())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Can't load file from GCS")
+		sklog.Warningf("Can't load file from GCS: %s", err)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if _, err = io.Copy(w, reader); err != nil {
@@ -350,6 +351,8 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 		return skerr.Fmt("Could not upload lottie.json state: %s", err)
 	}
 
+	sklog.Infof("prefix is currently %s", prefix)
+
 	// Look for images in a dedicated subfolder
 	prefix += "images/"
 	for _, f := range zr.File {
@@ -396,7 +399,7 @@ func (srv *Server) writeZipFileToGCS(f *zip.File, dest, encoding string, ctx con
 	return nil
 }
 
-var topJSONFile = regexp.MustCompile(`^(?P<prefix>.+?)(?P<name>[^/]+\.json)$`)
+var topJSONFile = regexp.MustCompile(`^(?P<prefix>.*?)(?P<name>[^/]+\.json)$`)
 var validFileName = regexp.MustCompile(`^[A-Za-z0-9\._\-]+$`)
 
 func (srv *Server) uploadAssetsZip(lottieHash, b64Zip string, ctx context.Context) error {
