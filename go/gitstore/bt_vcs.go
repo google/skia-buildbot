@@ -80,7 +80,7 @@ func (b *btVCS) From(start time.Time) []string {
 
 	// Add a millisecond because we only want commits after the startTime. Timestamps in git are
 	// only at second level granularity.
-	found := b.timeRange(start.Add(time.Millisecond), MaxTime)
+	found := b.timeRange(start.Add(time.Millisecond), vcsinfo.MaxTime)
 	ret := make([]string, len(found))
 	for i, c := range found {
 		ret[i] = c.Hash
