@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58a9a784_30ff8ad1",
+        "filename": "go/swarming/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-06T21:29:00Z",
+      "side": 1,
+      "message": "unused?",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 63
+      },
+      "revId": "b8c3f68fc178a70888bb4b5f626320953def1956",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "359649b2_6668afe6",
+        "filename": "go/swarming/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-06T21:29:00Z",
+      "side": 1,
+      "message": "Will you manually delete the existing subscription, or should we use a different subscription ID?",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 8
+      },
+      "revId": "b8c3f68fc178a70888bb4b5f626320953def1956",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
