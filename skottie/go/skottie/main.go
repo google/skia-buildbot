@@ -139,7 +139,8 @@ func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	path := strings.Join([]string{hash, "lottie.json"}, "/")
 	reader, err := srv.bucket.Object(path).NewReader(r.Context())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Can't load file from GCS")
+		sklog.Warningf("Can't load JSON file %s from GCS: %s", path, err)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if _, err = io.Copy(w, reader); err != nil {
@@ -160,7 +161,8 @@ func (srv *Server) assetsHandler(w http.ResponseWriter, r *http.Request) {
 	path := strings.Join([]string{hash, "assets", name}, "/")
 	reader, err := srv.bucket.Object(path).NewReader(r.Context())
 	if err != nil {
-		httputils.ReportError(w, r, err, "Can't load file from GCS")
+		sklog.Warningf("Can't load asset %s from GCS: %s", path, err)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	if _, err = io.Copy(w, reader); err != nil {
@@ -396,7 +398,7 @@ func (srv *Server) writeZipFileToGCS(f *zip.File, dest, encoding string, ctx con
 	return nil
 }
 
-var topJSONFile = regexp.MustCompile(`^(?P<prefix>.+?)(?P<name>[^/]+\.json)$`)
+var topJSONFile = regexp.MustCompile(`^(?P<prefix>.*?)(?P<name>[^/]+\.json)$`)
 var validFileName = regexp.MustCompile(`^[A-Za-z0-9\._\-]+$`)
 
 func (srv *Server) uploadAssetsZip(lottieHash, b64Zip string, ctx context.Context) error {
