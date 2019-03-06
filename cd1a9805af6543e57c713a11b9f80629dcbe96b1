@@ -22,6 +22,30 @@
       "revId": "cd1a9805af6543e57c713a11b9f80629dcbe96b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0484c01_110357c1",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-06T17:53:56Z",
+      "side": 1,
+      "message": "Ah right, that\u0027s what it\u0027s called.  Done.",
+      "parentUuid": "8395c573_90c04543",
+      "range": {
+        "startLine": 376,
+        "startChar": 4,
+        "endLine": 376,
+        "endChar": 21
+      },
+      "revId": "cd1a9805af6543e57c713a11b9f80629dcbe96b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
