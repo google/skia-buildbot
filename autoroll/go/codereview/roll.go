@@ -191,6 +191,7 @@ func (r *gerritRoll) RetryDryRun(ctx context.Context) error {
 
 // See documentation for state_machine.RollCLImpl interface.
 func (r *gerritRoll) Update(ctx context.Context) error {
+	alreadyFinished := r.IsFinished()
 	ci, issue, err := r.retrieveRoll(ctx, r.issue.Issue)
 	if err != nil {
 		return err
@@ -203,7 +204,7 @@ func (r *gerritRoll) Update(ctx context.Context) error {
 	if err := r.recent.Update(ctx, r.issue); err != nil {
 		return err
 	}
-	if r.IsFinished() && r.finishedCallback != nil {
+	if r.IsFinished() && !alreadyFinished && r.finishedCallback != nil {
 		return r.finishedCallback(ctx, r)
 	}
 	return nil
