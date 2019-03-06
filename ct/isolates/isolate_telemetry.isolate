@@ -12,15 +12,24 @@
         'files': [
           '../../../bin/isolate_telemetry',
         ],
-        'command': [
-          '../../../bin/isolate_telemetry',
-          '-logtostderr',
-          '--run_id=<(RUN_ID)',
-          '--chromium_hash=<(CHROMIUM_HASH)',
-          '--patches=<(PATCHES)',
-          '--out=${ISOLATED_OUTDIR}',
+      },
+    }],
+    ['OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/isolate_telemetry.exe',
         ],
       },
     }],
-  ]
+  ],
+  'variables': {
+    'command': [
+      '../../../bin/isolate_telemetry',
+      '-logtostderr',
+      '--run_id=<(RUN_ID)',
+      '--chromium_hash=<(CHROMIUM_HASH)',
+      '--patches=<(PATCHES)',
+      '--out=${ISOLATED_OUTDIR}',
+    ]
+  }
 }
