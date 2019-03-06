@@ -19,6 +19,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
@@ -299,7 +300,6 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 		return err
 	}
 
-	prefix := ""
 	var jsonFile *zip.File
 
 	// Example zip contents from lottiefiles.com looks like:
@@ -308,19 +308,15 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 	// Dogrun/images/
 	// Dogrun/images/img_0.png
 	// ...
-	// We need to identify the "prefix", if any ("Dogrun/" in the example)
-	// and ignore that for all other files.
-	// We seek out the json file and then assume there is a [prefix]images/
-	// directory with the assets we need.
+	// We seek out the json file and then upload every other file as an
+	// asset, throwing away any directory structure:
+	// Dogrun/images/img_0.png -> /assets/img_0.png
 
 	for _, f := range zr.File {
 		if match := topJSONFile.FindStringSubmatch(f.Name); match != nil {
 			// match 1 is prefix, match 2 is filename
-			prefix = match[1]
 			jsonFile = f
 			break
-		} else {
-			sklog.Infof(f.Name)
 		}
 	}
 	if jsonFile == nil {
@@ -352,31 +348,37 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 		return skerr.Fmt("Could not upload lottie.json state: %s", err)
 	}
 
-	// Look for images in a dedicated subfolder
-	prefix += "images/"
+	var wg sync.WaitGroup
+	// Upload everything else as an asset
 	for _, f := range zr.File {
 		if f != nil {
-			if !strings.HasPrefix(f.Name, prefix) {
-				sklog.Infof("Not uploading %q, because it's not an asset", f.Name)
-				continue
-			}
-			strippedName := strings.TrimPrefix(f.Name, prefix)
+			pieces := strings.Split(f.Name, "/")
+			strippedName := pieces[len(pieces)-1]
 			if len(strippedName) < 1 {
 				// Ignore directory listing
+				continue
+			}
+			if strings.HasSuffix(strippedName, ".json") {
+				// We already uploaded this
 				continue
 			}
 			if !validFileName.MatchString(strippedName) {
 				sklog.Infof("Ignoring potentially maliciously-named file %q", f.Name)
 				continue
 			}
-			dest := strings.Join([]string{hash, "assets", strippedName}, "/")
-			sklog.Infof("Uploading %s from zip file to %s", strippedName, dest)
-			// TODO(kjlubick): Upload in parallel
-			if err := srv.writeZipFileToGCS(f, dest, "application/octet-stream", ctx); err != nil {
-				return skerr.Fmt("Failed while uploading asset %s to %s: %s", f.Name, dest, err)
-			}
+
+			go func(f *zip.File) {
+				wg.Add(1)
+				defer wg.Done()
+				dest := strings.Join([]string{hash, "assets", strippedName}, "/")
+				sklog.Infof("Uploading %s from zip file to %s", strippedName, dest)
+				if err := srv.writeZipFileToGCS(f, dest, "application/octet-stream", ctx); err != nil {
+					sklog.Errorf("Failed while uploading asset %s to %s: %s", f.Name, dest, err)
+				}
+			}(f)
 		}
 	}
+	wg.Wait()
 	return nil
 }
 
