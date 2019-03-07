@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ff30964_c20cb05a",
+        "filename": "ct/res/imp/chromium-analysis-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T15:52:28Z",
+      "side": 1,
+      "message": "😷",
+      "range": {
+        "startLine": 356,
+        "startChar": 70,
+        "endLine": 357,
+        "endChar": 29
+      },
+      "revId": "23ed7e5d05c1c5f0d1d49a9de659124f49fa0e6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
