@@ -97,7 +97,7 @@ def Sync(revisions=None, force=False, delete_unversioned_trees=False,
         # In case HEAD is detached...
         shell_utils.run([GIT, 'checkout', 'master'])
         # Always fetch, in case we're unmanaged.
-        shell_utils.run([GIT, 'fetch'])
+        shell_utils.run_retry([GIT, 'fetch'], attempts=5)
         # This updates us to origin/master even if master has diverged.
         shell_utils.run([GIT, 'reset', '--hard', 'origin/master'])
 
