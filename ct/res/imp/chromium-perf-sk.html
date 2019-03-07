@@ -88,7 +88,7 @@
       <tr>
         <td>Target Platform</td>
         <td>
-          <iron-selector attr-for-selected="id" id="target_platform" selected="Linux" class="medium-field">
+          <iron-selector attr-for-selected="id" id="target_platform" selected="Linux" class="long-field">
             <template is="dom-repeat" items="{{platforms}}">
               <div id="{{item}}">{{getPlatformDesc(item)}}</div>
             </template>
@@ -283,10 +283,6 @@
          type: Array,
          observer: 'pageSetsChanged',
        },
-       defaultLinuxBrowserArgs: {
-         type: String,
-         value: "",
-       },
        chromiumClDescription: String,
        skiaClDescription: String,
        v8ClDescription: String,
@@ -357,14 +353,10 @@
      },
 
      platformChanged: function() {
-       if (this.$.target_platform.selected == "Linux") {
+       if (this.$.target_platform.selected == "Linux" || this.$.target_platform.selected == "Windows") {
          this.$.page_sets.selected = "10k";
-         this.$.browser_args_nopatch.value = this.defaultLinuxBrowserArgs;
-         this.$.browser_args_withpatch.value = this.defaultLinuxBrowserArgs;
        } else {
          this.$.page_sets.selected = "Mobile10k";
-         this.$.browser_args_nopatch.value = "";
-         this.$.browser_args_withpatch.value = "";
        }
      },
 

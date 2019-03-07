@@ -88,7 +88,7 @@
       <tr>
         <td>Target Platform</td>
         <td>
-          <iron-selector attr-for-selected="id" id="target_platform" selected="Linux" class="medium-field">
+          <iron-selector attr-for-selected="id" id="target_platform" selected="Linux" class="long-field">
             <template is="dom-repeat" items="{{platforms}}">
               <div id="{{item}}">{{getPlatformDesc(item, platformsToDesc)}}</div>
             </template>
@@ -149,7 +149,7 @@
       <tr>
         <td>Browser Arguments</td>
         <td>
-          <paper-input value="{{defaultLinuxBrowserArgs}}" id="browser_args" class="long-field"></paper-input>
+          <paper-input value="" id="browser_args" class="long-field"></paper-input>
         </td>
       </tr>
 
@@ -295,10 +295,6 @@
          type: Array,
          observer: 'pageSetsChanged',
        },
-       defaultLinuxBrowserArgs: {
-         type: String,
-         value: "",
-       },
        chromiumClDescription: String,
        skiaClDescription: String,
        v8ClDescription: String,
@@ -351,12 +347,20 @@
          // Cannot run on GCE instances if Android is selected.
          this.$.run_on_gce.selected = "run_on_gce_False";
          this.$.run_on_gce_True.hidden = "True";
+         this.$.run_on_gce_False.hidden = "";
 
          // Cannot run in parallel if Android is selected.
          this.$.run_in_parallel.selected = "run_in_parallel_False";
          this.$.run_in_parallel_True.hidden = "True";
+       } else if (this.$.target_platform.selected == "Windows") {
+         // Cannot run on bare-metal machines if Windows is selected. One day
+         // this will change.
+         this.$.run_on_gce_True.hidden = "";
+         this.$.run_on_gce_False.hidden = "True";
+         this.$.run_on_gce.selected = "run_on_gce_True";
        } else {
          this.$.run_on_gce_True.hidden = "";
+         this.$.run_on_gce_False.hidden = "";
          this.$.run_on_gce.selected = "run_on_gce_True";
 
          this.$.run_in_parallel_True.hidden = "";
