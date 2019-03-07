@@ -315,7 +315,11 @@ func applyPatch(ctx context.Context, skiaCheckout *git.Checkout, issue, patchset
 	//                |
 	//                +-> Last two digits of Issue ID.
 	issuePostfix := issue % 100
-	if err := skiaCheckout.FetchRefFromRepo(ctx, SKIA_REPO_URL, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset)); err != nil {
+	// Fetch Ref with retries incase GoB is having problems.
+	fetchRefFunc := func() error {
+		return skiaCheckout.FetchRefFromRepo(ctx, SKIA_REPO_URL, fmt.Sprintf("refs/changes/%02d/%d/%d", issuePostfix, issue, patchset))
+	}
+	if err := backoff.Retry(fetchRefFunc, backOffClient); err != nil {
 		return fmt.Errorf("Failed to fetch ref in %s: %s", skiaCheckout.Dir(), err)
 	}
 	if _, err := skiaCheckout.Git(ctx, "reset", "--hard", "FETCH_HEAD"); err != nil {
