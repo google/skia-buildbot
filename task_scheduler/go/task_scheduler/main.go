@@ -516,7 +516,6 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	sklog.AddLogsRedirect(r)
-	swarming.RegisterPubSubServer(ts, r)
 
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	sklog.Infof("Ready to serve on %s", serverURL)
@@ -652,9 +651,6 @@ func main() {
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
-	if err := swarming.InitPubSub(serverURL, *pubsubTopicName, *pubsubSubscriberName); err != nil {
-		sklog.Fatal(err)
-	}
 	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
@@ -662,6 +658,9 @@ func main() {
 	cleanup.AtExit(func() {
 		util.LogErr(ts.Close())
 	})
+	if err := swarming.InitPubSub(*pubsubTopicName, *pubsubSubscriberName, ts.HandleSwarmingPubSub); err != nil {
+		sklog.Fatal(err)
+	}
 
 	sklog.Infof("Created task scheduler. Starting loop.")
 	ts.Start(ctx, !*disableTryjobs, func() {})
