@@ -1,0 +1,147 @@
+@import url(~elements-sk/colors.css);
+
+particles-sk {
+  display: block;
+
+  header {
+    background: var(--blue);
+    color: var(--white);
+    padding: 0.5em;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  header > * {
+    display: inline-block;
+  }
+
+  header h2 {
+    margin: 0;
+  }
+
+  main {
+    padding: 1em;
+  }
+
+  header span {
+    padding: 0.3em;
+  }
+
+  header span a {
+    color: var(--white);
+  }
+
+  spinner-sk[active] {
+    display: inline-block;
+  }
+
+  figure {
+    display: flex;
+    flex-flow: column;
+    position: relative;
+  }
+
+  figure canvas,
+  figure div {
+    border: solid var(--light-gray) 1px;
+    margin: 0 auto;
+  }
+
+  .wasm_loading {
+    position: absolute;
+    text-align: center;
+    left: 0;
+    right: 0;
+    top: 20px;
+    bottom: 0;
+    border: none;
+  }
+
+  .wasm_loading > div {
+    border: none;
+  }
+
+  figcaption {
+    align-self: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin: 0.6em;
+  }
+
+  button.edit-config {
+    display: block;
+  }
+
+  button {
+    text-transform: initial;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    font-size: 120%;
+    font-weight: bold;
+  }
+
+  .loading span {
+    margin-left: 0.5em;
+  }
+
+  .figures {
+    display: flex;
+    flex-flow: row wrap;
+  }
+
+  .download,
+  .download a {
+    display: inline-block;
+    color: var(--blue);
+  }
+
+  .download a {
+    margin-left: 0.6em;
+  }
+
+  #embed {
+    padding: 1em;
+    border: solid var(--light-gray) 1px;
+    margin: 1em;
+    background: var(--dark-white);
+  }
+
+  footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  footer div {
+    padding: 1em;
+  }
+
+  .controls > * {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .scrub {
+    display: block;
+    margin: 8px;
+
+    input {
+      width: 20em;
+    }
+  }
+}
+
+#json_editor button {
+  /* Prevent clashes with element-sk/buttons.css */
+  min-width: initial;
+  transition: initial;
+  box-shadow: initial;
+}
