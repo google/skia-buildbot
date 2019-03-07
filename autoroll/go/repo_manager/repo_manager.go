@@ -412,6 +412,7 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 	}
 
 	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
+		sklog.Errorf("parent repo exists.")
 		if err := r.cleanParentWithRemote(ctx, remote); err != nil {
 			return err
 		}
@@ -422,6 +423,8 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 		if _, err := exec.RunCwd(ctx, r.parentDir, "git", "reset", "--hard", fmt.Sprintf("%s/%s", remote, r.parentBranch)); err != nil {
 			return err
 		}
+	} else {
+		sklog.Errorf("parent repo does not exist.")
 	}
 
 	args := []string{r.gclient, "config"}
