@@ -112,12 +112,6 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
   constructor() {
     super();
 
-    this._config = {
-      width:    this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
-      height:   this.hasAttribute('height') ? this.getAttribute('height') : 256,
-      controls: (new URL(document.location)).searchParams.has('controls'),
-    };
-
     this._engine = {
       kit:       null, // CanvasKit instance
       context:   null, // CK context.
@@ -157,6 +151,11 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
   }
 
   connectedCallback() {
+    this._config = {
+      width:    this.hasAttribute('width')  ? this.getAttribute('width')  : 256,
+      height:   this.hasAttribute('height') ? this.getAttribute('height') : 256,
+      controls: (new URL(document.location)).searchParams.has('controls'),
+    };
     this._render();
   }
 
@@ -234,7 +233,7 @@ window.customElements.define('skottie-player-sk', class extends HTMLElement {
 
     this._engine.animation = this._engine.kit.MakeManagedAnimation(
                                           JSON.stringify(lottieJSON), assets);
-    if (!this._engine.surface) {
+    if (!this._engine.animation) {
       throw new Error('Could not parse Lottie JSON.');
     }
 
