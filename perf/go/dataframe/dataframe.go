@@ -144,6 +144,7 @@ func merge(a, b []*ColumnHeader) ([]*ColumnHeader, map[int]int, map[int]int) {
 				aMap[i] = len(ret)
 				ret = append(ret, a[i])
 			}
+			break
 		}
 		if a[pA].Offset < b[pB].Offset {
 			aMap[pA] = len(ret)
