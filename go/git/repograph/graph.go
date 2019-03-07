@@ -243,9 +243,6 @@ func (r *Graph) UpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongC
 }
 
 func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-
 	// Update the local copy.
 	sklog.Infof("Updating repograph.Graph...")
 	if err := r.repo.Update(ctx); err != nil {
@@ -264,6 +261,8 @@ func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.L
 	if returnNewCommits {
 		newCommits = []*vcsinfo.LongCommit{}
 	}
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
 	sklog.Infof("  Loading commits...")
 	for _, b := range branches {
 		// Shortcut: If we already have the head of this branch, don't
