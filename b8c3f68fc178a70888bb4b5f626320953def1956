@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "860a7a8b_4efaa253",
+        "filename": "go/swarming/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-07T12:42:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "58a9a784_30ff8ad1",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 63
+      },
+      "revId": "b8c3f68fc178a70888bb4b5f626320953def1956",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "359649b2_6668afe6",
         "filename": "go/swarming/pubsub.go",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-06T21:29:00Z",
       "side": 1,
       "message": "Will you manually delete the existing subscription, or should we use a different subscription ID?",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 8
+      },
+      "revId": "b8c3f68fc178a70888bb4b5f626320953def1956",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efa3cb4f_e562ff06",
+        "filename": "go/swarming/pubsub.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-07T12:42:02Z",
+      "side": 1,
+      "message": "I was thinking I\u0027d just delete the push config.  I don\u0027t think it matters much since we just have one subscription per scheduler.  These are all in the skia-buildbots project so we\u0027ll eventually want to move them to skia-public.",
+      "parentUuid": "359649b2_6668afe6",
       "range": {
         "startLine": 48,
         "startChar": 1,
