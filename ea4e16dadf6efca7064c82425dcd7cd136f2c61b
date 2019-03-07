@@ -1,0 +1,308 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de716711_aaddc213",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "(not related to your CL) Need to rlock c.repo.graphMtx.",
+      "range": {
+        "startLine": 47,
+        "startChar": 18,
+        "endLine": 47,
+        "endChar": 36
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62be3a45_31a0f679",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: maybe mention f should not call any method of Graph or Commit.",
+      "range": {
+        "startLine": 58,
+        "startChar": 47,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f8af98f_1d4e8fbc",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: might be useful to add this as an AllCommits method (plus topo sort).\n\nE.g. in tests, instead of repo.RevList(\"master\"), repo.Get(\"master\").AllCommits().",
+      "range": {
+        "startLine": 61,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b404940_3e0ce4d6",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "(not related to your CL) Need to rlock c.repo.graphMtx.",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b045d9b_8245195c",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: this doc needs the same changes as done for Commit.Recurse above.",
+      "range": {
+        "startLine": 396,
+        "startChar": 34,
+        "endLine": 406,
+        "endChar": 5
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3803fc6e_4c39ea7f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: \"git help rev-list\" says for --topo-order, \"avoid showing commits on multiple lines of history intermixed.\" This does not do that.",
+      "range": {
+        "startLine": 425,
+        "startChar": 46,
+        "endLine": 425,
+        "endChar": 58
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b392219_3ee461bb",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: Can we just simplify this to only handle \"^a\", \"b\"? I think that would handle every use of RevList that\u0027s not handled by AllCommits.",
+      "range": {
+        "startLine": 426,
+        "startChar": 58,
+        "endLine": 427,
+        "endChar": 54
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cb6c343_148b20d7",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "Copy/pasto?",
+      "range": {
+        "startLine": 428,
+        "startChar": 16,
+        "endLine": 428,
+        "endChar": 27
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f3ec962_e6953ac1",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: It seems that the only callers that specify true for firstParent don\u0027t really care if it\u0027s true or false. Could we just simplify and remove it?",
+      "range": {
+        "startLine": 430,
+        "startChar": 24,
+        "endLine": 430,
+        "endChar": 40
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71525434_206e0a1b",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "Missing r.graphMtx.RLock()",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b71eb92d_fdd9e6b6",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: Maybe remove, since it\u0027s used in only one place.",
+      "range": {
+        "startLine": 489,
+        "startChar": 16,
+        "endLine": 489,
+        "endChar": 29
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5644e35_b1205a3d",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "nit: will probably be much faster to do \"aCommit :\u003d r.Get(a)\" and compare \"c \u003d\u003d aCommit\".",
+      "range": {
+        "startLine": 538,
+        "startChar": 5,
+        "endLine": 538,
+        "endChar": 16
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3c16b11_86bf0c6b",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "Haven\u0027t reviewed yet.",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23152adc_e8baef65",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-07T23:27:30Z",
+      "side": 1,
+      "message": "This doesn\u0027t work, does it?",
+      "range": {
+        "startLine": 357,
+        "startChar": 41,
+        "endLine": 357,
+        "endChar": 47
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
