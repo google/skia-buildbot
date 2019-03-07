@@ -991,12 +991,12 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	})
 
 	var firstCommit *repograph.Commit
-	err = repo.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
+	err = repo.RecurseAllBranches(func(c *repograph.Commit) error {
 		ts, err := grt("a.git", c.Hash)
 		assert.NoError(t, err)
 		assert.True(t, c.Timestamp.Equal(ts))
 		firstCommit = c
-		return true, nil
+		return nil
 	})
 	assert.NoError(t, err)
 
