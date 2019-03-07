@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1aef01ed_a029bcf7",
+        "filename": "particles/README.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-07T16:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69362635_0f412f37",
+      "revId": "de2235b03384192adcbad4123389277d11ddbb79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "187c7438_7a89c3b4",
         "filename": "particles/modules/particles-player-sk/particles-player-sk.js",
         "patchSetId": 3
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "9d4d2b87_8be37858",
+        "filename": "particles/modules/particles-player-sk/particles-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-07T16:58:48Z",
+      "side": 1,
+      "message": "The caller should have the .catch, just like skottie does.",
+      "parentUuid": "187c7438_7a89c3b4",
+      "range": {
+        "startLine": 107,
+        "startChar": 6,
+        "endLine": 107,
+        "endChar": 7
+      },
+      "revId": "de2235b03384192adcbad4123389277d11ddbb79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22159830_de5c200c",
         "filename": "particles/modules/particles-sk/particles-sk.js",
         "patchSetId": 3
@@ -62,6 +104,30 @@
       "revId": "de2235b03384192adcbad4123389277d11ddbb79",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cda9f80a_8e8fb208",
+        "filename": "particles/modules/particles-sk/particles-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-07T16:58:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22159830_de5c200c",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 1
+      },
+      "revId": "de2235b03384192adcbad4123389277d11ddbb79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
