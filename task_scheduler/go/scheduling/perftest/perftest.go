@@ -265,10 +265,13 @@ func main() {
 	repo, err := repograph.NewGraph(ctx, repoName, workdir)
 	assertNoError(err)
 	assertNoError(repo.Update(ctx))
-	head, err := repo.Repo().RevParse(ctx, "HEAD")
-	assertNoError(err)
+	headCommit := repo.Get("master")
+	if headCommit == nil {
+		sklog.Fatal("Could not find HEAD of master.")
+	}
+	head := headCommit.Hash
 
-	commits, err := repo.Repo().RevList(ctx, head)
+	commits, err := repo.Get(head).AllCommits()
 	assertNoError(err)
 	assertDeepEqual([]string{head}, commits)
 
@@ -351,7 +354,7 @@ func main() {
 
 	// Add more commits to the repo.
 	makeDummyCommits(ctx, repoDir, 200)
-	commits, err = repo.Repo().RevList(ctx, fmt.Sprintf("%s..HEAD", head))
+	commits, err = repo.RevList(head, "master")
 	assertNoError(err)
 
 	// Start the profiler.
