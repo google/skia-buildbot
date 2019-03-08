@@ -1,5 +1,5 @@
 /**
- * @module /skottie-config-sk
+ * @module skottie-config-sk
  * @description <h2><code>skottie-config-sk</code></h2>
  *
  * <p>
@@ -13,9 +13,8 @@
  *   {
  *     filename: 'foo.json',
  *     lottie: {},
- *     width: 256,
- *     height: 256,
- *     fps: 30,
+ *     assetsZip: 'data:application/zip;base64,...'
+ *     assetsFileName: 'assets.zip'
  *   }
  * <pre>
  *
