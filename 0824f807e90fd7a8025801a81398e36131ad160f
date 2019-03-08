@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2476800c_0976b3a7",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-08T14:01:26Z",
+      "side": 1,
+      "message": "Do we have to do this in all places we do gclient sync? the commit said \"If we already have the correct commit, it is not necessary to fetch\"",
+      "revId": "0824f807e90fd7a8025801a81398e36131ad160f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
