@@ -220,7 +220,7 @@ func updateCheckoutsInParallel(ctx context.Context, checkouts []string) error {
 }
 
 func runInit(ctx context.Context, checkoutPath, initRepo string, isMirror bool) error {
-	initCmd := []string{repoToolPath, "init", "-u", initRepo, "-g", "all,-notdefault,-darwin", "-b", "master"}
+	initCmd := []string{repoToolPath, "init", "-u", initRepo, "-b", "master"}
 	if isMirror {
 		initCmd = append(initCmd, "--mirror")
 	}
