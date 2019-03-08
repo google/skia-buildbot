@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/cacher"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
-	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -112,7 +111,7 @@ func (t *TryJobIntegrator) Start(ctx context.Context) {
 		}
 	})
 	go util.RepeatCtx(POLL_INTERVAL, ctx, func() {
-		if err := t.Poll(ctx, time.Now()); err != nil {
+		if err := t.Poll(ctx); err != nil {
 			sklog.Errorf("Failed to poll for new try jobs: %s", err)
 		}
 	})
@@ -323,8 +322,8 @@ func (t *TryJobIntegrator) remoteCancelBuild(id int64, msg string) error {
 	return nil
 }
 
-func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error) {
-	expiration := now.Add(LEASE_DURATION_INITIAL).Unix() * 1000000
+func (t *TryJobIntegrator) tryLeaseBuild(id int64) (int64, error) {
+	expiration := time.Now().Add(LEASE_DURATION_INITIAL).Unix() * 1000000
 	sklog.Infof("Attempting to lease build %d", id)
 	resp, err := t.bb.Lease(id, &buildbucket_api.ApiLeaseRequestBodyMessage{
 		LeaseExpirationTs: expiration,
@@ -338,21 +337,21 @@ func (t *TryJobIntegrator) tryLeaseBuild(id int64, now time.Time) (int64, error)
 	return resp.Build.LeaseKey, nil
 }
 
-func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_api.ApiCommonBuildMessage, now time.Time) (*types.Job, error) {
+func (t *TryJobIntegrator) insertNewJob(ctx context.Context, b *buildbucket_api.ApiCommonBuildMessage) error {
 	// Parse the build parameters.
 	var params buildbucket.Parameters
 	if err := json.NewDecoder(strings.NewReader(b.ParametersJson)).Decode(&params); err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid parameters_json: %s;\n\n%s", err, b.ParametersJson))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid parameters_json: %s;\n\n%s", err, b.ParametersJson))
 	}
 
 	// Obtain and validate the RepoState.
 	topRepoUrl, topRepoGraph, patchRepoUrl, err := t.getRepo(&params.Properties)
 	if err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Unable to find repo: %s", err))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Unable to find repo: %s", err))
 	}
 	revision, err := t.getRevision(topRepoGraph, params.Properties.Revision, int64(params.Properties.GerritIssue))
 	if err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid revision: %s", err))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid revision: %s", err))
 	}
 	server := params.Properties.Gerrit
 	issue := params.Properties.GerritIssue
@@ -361,7 +360,7 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 		psSplit := strings.Split(patchset, "/")
 		patchset = psSplit[len(psSplit)-1]
 	} else {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid patch storage: %s", params.Properties.PatchStorage))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid patch storage: %s", params.Properties.PatchStorage))
 	}
 	rs := types.RepoState{
 		Patch: types.Patch{
@@ -374,16 +373,16 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 		Revision: revision,
 	}
 	if !rs.Valid() || !rs.IsTryJob() {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid RepoState: %s", rs))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Invalid RepoState: %s", rs))
 	}
 
 	// Create a Job.
 	if _, err := t.chr.GetOrCacheRepoState(ctx, rs); err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to obtain JobSpec: %s; \n\n%v", err, params))
 	}
 	j, err := t.taskCfgCache.MakeJob(ctx, rs, params.BuilderName)
 	if err != nil {
-		return nil, t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to create Job from JobSpec: %s; \n\n%v", err, params))
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to create Job from JobSpec: %s; \n\n%v", err, params))
 	}
 
 	// Determine if this is a manual retry of a previously-run try job. If
@@ -391,28 +390,44 @@ func (t *TryJobIntegrator) getJobToSchedule(ctx context.Context, b *buildbucket_
 	// of its tasks.
 	prevJobs, err := t.jCache.GetJobsByRepoState(j.Name, j.RepoState)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(prevJobs) > 0 {
 		j.IsForce = true
 	}
 
 	// Attempt to lease the build.
-	leaseKey, err := t.tryLeaseBuild(b.Id, now)
+	leaseKey, err := t.tryLeaseBuild(b.Id)
 	if err != nil {
 		// TODO(borenet): Buildbot cancels the build in this case.
 		// Should we do that too?
-		return nil, err
+		return err
 	}
 
-	// Update and return the Job.
+	// Update the job and insert into the DB.
 	j.BuildbucketBuildId = b.Id
 	j.BuildbucketLeaseKey = leaseKey
+	if err := t.db.PutJob(j); err != nil {
+		return t.remoteCancelBuild(b.Id, fmt.Sprintf("Failed to insert Job into the DB: %s", err))
+	}
 
-	return j, nil
+	// Since Jobs may consist of multiple Tasks, we consider them to be
+	// "started" as soon as we've picked them up.
+	// TODO(borenet): Sending "started" notifications after inserting the
+	// new Jobs into the database puts us at risk of never sending the
+	// notification if the process is interrupted. However, we need to
+	// include the Job ID with the notification, so we have to insert the
+	// Job into the DB first.
+	if err := t.jobStarted(j); err != nil {
+		if cancelErr := t.localCancelJobs([]*types.Job{j}); cancelErr != nil {
+			return fmt.Errorf("Failed to send job-started notification with: %s\nAnd failed to cancel the job with: %s", err, cancelErr)
+		}
+		return fmt.Errorf("Failed to send job-started notification with: %s", err)
+	}
+	return nil
 }
 
-func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
+func (t *TryJobIntegrator) Poll(ctx context.Context) error {
 	if err := t.jCache.Update(); err != nil {
 		return err
 	}
@@ -421,7 +436,6 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 	// TODO(borenet): Buildbot maintains a maximum lease count. Should we do
 	// that too?
 	cursor := ""
-	jobs := []*types.Job{}
 	errs := []error{}
 	var mtx sync.Mutex
 	for {
@@ -440,13 +454,10 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 			wg.Add(1)
 			go func(b *buildbucket_api.ApiCommonBuildMessage) {
 				defer wg.Done()
-				j, err := t.getJobToSchedule(ctx, b, now)
-				mtx.Lock()
-				defer mtx.Unlock()
-				if err != nil {
+				if err := t.insertNewJob(ctx, b); err != nil {
+					mtx.Lock()
 					errs = append(errs, err)
-				} else if j != nil {
-					jobs = append(jobs, j)
+					mtx.Unlock()
 				}
 			}(b)
 		}
@@ -454,40 +465,6 @@ func (t *TryJobIntegrator) Poll(ctx context.Context, now time.Time) error {
 		cursor = resp.NextCursor
 		if cursor == "" {
 			break
-		}
-	}
-
-	// Insert Jobs into the database.
-	insertedJobs := make([]*types.Job, 0, len(jobs))
-	if len(jobs) > 0 {
-		if err := util.ChunkIter(len(jobs), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
-			if err := t.db.PutJobs(jobs[i:j]); err != nil {
-				return err
-			}
-			insertedJobs = append(insertedJobs, jobs[i:j]...)
-			return nil
-		}); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
-	// Since Jobs may consist of multiple Tasks, we consider them to be
-	// "started" as soon as we've picked them up.
-	// TODO(borenet): Sending "started" notifications after inserting the
-	// new Jobs into the database puts us at risk of never sending the
-	// notification if the process is interrupted. However, we need to
-	// include the Job ID with the notification, so we have to insert the
-	// Job into the DB first.
-	cancelJobs := []*types.Job{}
-	for _, j := range insertedJobs {
-		if err := t.jobStarted(j); err != nil {
-			errs = append(errs, err)
-			cancelJobs = append(cancelJobs, j)
-		}
-	}
-	if len(cancelJobs) > 0 {
-		if err := t.localCancelJobs(cancelJobs); err != nil {
-			errs = append(errs, err)
 		}
 	}
 

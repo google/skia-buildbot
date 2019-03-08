@@ -273,8 +273,8 @@ func MockCancelBuild(mock *mockhttpclient.URLMock, id int64, msg string, err err
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/cancel?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, now time.Time, err error) {
-	req := []byte(fmt.Sprintf("{\"lease_expiration_ts\":\"%d\"}\n", now.Add(LEASE_DURATION_INITIAL).Unix()*1000000))
+func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, err error) {
+	req := mockhttpclient.DONT_CARE_REQUEST
 	respStr := fmt.Sprintf("{\"build\": {\"lease_key\": \"%d\"}}", 987654321)
 	if err != nil {
 		respStr = fmt.Sprintf("{\"error\": {\"message\": \"%s\"}}", err)
@@ -283,7 +283,7 @@ func MockTryLeaseBuild(mock *mockhttpclient.URLMock, id int64, now time.Time, er
 	mock.MockOnce(fmt.Sprintf("%sbuilds/%d/lease?alt=json&prettyPrint=false", API_URL_TESTING, id), mockhttpclient.MockPostDialogue("application/json", req, resp))
 }
 
-func MockJobStarted(mock *mockhttpclient.URLMock, id int64, now time.Time, err error) {
+func MockJobStarted(mock *mockhttpclient.URLMock, id int64, err error) {
 	// We have to use this because we don't know what the Job ID is going to
 	// be until after it's inserted into the DB.
 	req := mockhttpclient.DONT_CARE_REQUEST

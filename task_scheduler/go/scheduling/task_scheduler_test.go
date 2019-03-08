@@ -2412,9 +2412,9 @@ func TestTrybots(t *testing.T) {
 	}
 	b.ParametersJson = testutils.MarshalJSON(t, tryjobs.Params(t, tcc_testutils.TestTaskName, "skia", rs.Revision, rs.Server, rs.Issue, rs.Patchset))
 	tryjobs.MockPeek(mock, []*buildbucket_api.ApiCommonBuildMessage{b}, now, "", "", nil)
-	tryjobs.MockTryLeaseBuild(mock, b.Id, now, nil)
-	tryjobs.MockJobStarted(mock, b.Id, now, nil)
-	assert.NoError(t, s.tryjobs.Poll(ctx, now))
+	tryjobs.MockTryLeaseBuild(mock, b.Id, nil)
+	tryjobs.MockJobStarted(mock, b.Id, nil)
+	assert.NoError(t, s.tryjobs.Poll(ctx))
 	assert.True(t, mock.Empty())
 
 	// Ensure that we added a Job.

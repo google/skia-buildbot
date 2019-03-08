@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -205,16 +206,15 @@ func TestTryLeaseBuild(t *testing.T) {
 	defer cleanup()
 
 	id := int64(12345)
-	now := time.Now()
-	MockTryLeaseBuild(mock, id, now, nil)
-	k, err := trybots.tryLeaseBuild(id, now)
+	MockTryLeaseBuild(mock, id, nil)
+	k, err := trybots.tryLeaseBuild(id)
 	assert.NoError(t, err)
 	assert.NotEqual(t, k, 0)
 	assert.True(t, mock.Empty())
 
 	expect := fmt.Errorf("Can't lease this!")
-	MockTryLeaseBuild(mock, id, now, expect)
-	_, err = trybots.tryLeaseBuild(id, now)
+	MockTryLeaseBuild(mock, id, expect)
+	_, err = trybots.tryLeaseBuild(id)
 	assert.Contains(t, err.Error(), expect.Error())
 	assert.True(t, mock.Empty())
 }
@@ -224,16 +224,15 @@ func TestJobStarted(t *testing.T) {
 	defer cleanup()
 
 	j := tryjob(gb.RepoUrl())
-	now := time.Now()
 
 	// Success
-	MockJobStarted(mock, j.BuildbucketBuildId, now, nil)
+	MockJobStarted(mock, j.BuildbucketBuildId, nil)
 	assert.NoError(t, trybots.jobStarted(j))
 	assert.True(t, mock.Empty())
 
 	// Failure
 	err := fmt.Errorf("fail")
-	MockJobStarted(mock, j.BuildbucketBuildId, now, err)
+	MockJobStarted(mock, j.BuildbucketBuildId, err)
 	assert.EqualError(t, trybots.jobStarted(j), err.Error())
 	assert.True(t, mock.Empty())
 }
@@ -287,27 +286,46 @@ func TestJobFinished(t *testing.T) {
 	assert.True(t, mock.Empty())
 }
 
-func TestGetJobToSchedule(t *testing.T) {
+type addedJobs map[string]*types.Job
+
+func (aj addedJobs) getAddedJob(t *testing.T, d db.JobReader) *types.Job {
+	allJobs, err := d.GetJobsFromDateRange(time.Time{}, time.Now())
+	assert.NoError(t, err)
+	for _, job := range allJobs {
+		if _, ok := aj[job.Id]; !ok {
+			aj[job.Id] = job
+			return job
+		}
+	}
+	return nil
+}
+
+func TestInsertNewJob(t *testing.T) {
 	ctx, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	now := time.Now()
 
+	aj := addedJobs(map[string]*types.Job{})
+
 	// Normal job, Gerrit patch.
 	b1 := Build(t, now)
-	MockTryLeaseBuild(mock, b1.Id, now, nil)
-	result, err := trybots.getJobToSchedule(ctx, b1, now)
+	MockTryLeaseBuild(mock, b1.Id, nil)
+	MockJobStarted(mock, b1.Id, nil)
+	err := trybots.insertNewJob(ctx, b1)
 	assert.NoError(t, err)
 	assert.True(t, mock.Empty())
+	result := aj.getAddedJob(t, trybots.db)
 	assert.Equal(t, result.BuildbucketBuildId, b1.Id)
 	assert.Equal(t, result.BuildbucketLeaseKey, b1.LeaseKey)
 	assert.True(t, result.Valid())
 
 	// Failed to lease build.
 	expectErr := fmt.Errorf("Can't lease this!")
-	MockTryLeaseBuild(mock, b1.Id, now, expectErr)
-	result, err = trybots.getJobToSchedule(ctx, b1, now)
+	MockTryLeaseBuild(mock, b1.Id, expectErr)
+	err = trybots.insertNewJob(ctx, b1)
 	assert.Contains(t, err.Error(), expectErr.Error())
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -315,8 +333,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	b2 := Build(t, now)
 	b2.ParametersJson = "dklsadfklas"
 	MockCancelBuild(mock, b2.Id, "Invalid parameters_json: invalid character 'd' looking for beginning of value;\\\\n\\\\ndklsadfklas", nil)
-	result, err = trybots.getJobToSchedule(ctx, b2, now)
+	err = trybots.insertNewJob(ctx, b2)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -324,8 +343,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	b3 := Build(t, now)
 	b3.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", "bogus-repo", "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b3.Id, "Unable to find repo: Unknown patch project \\\\\\\"bogus-repo\\\\\\\"", nil)
-	result, err = trybots.getJobToSchedule(ctx, b3, now)
+	err = trybots.insertNewJob(ctx, b3)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -333,8 +353,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	b4 := Build(t, now)
 	b4.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "abz", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b4.Id, "Invalid revision: Unknown revision abz", nil)
-	result, err = trybots.getJobToSchedule(ctx, b4, now)
+	err = trybots.insertNewJob(ctx, b4)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -344,8 +365,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	p.Properties.PatchStorage = "???"
 	b6.ParametersJson = testutils.MarshalJSON(t, p)
 	MockCancelBuild(mock, b6.Id, "Invalid patch storage: ???", nil)
-	result, err = trybots.getJobToSchedule(ctx, b6, now)
+	err = trybots.insertNewJob(ctx, b6)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -353,8 +375,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	b7 := Build(t, now)
 	b7.ParametersJson = testutils.MarshalJSON(t, Params(t, "fake-job", patchProject, "bad-revision", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b7.Id, "Invalid revision: Unknown revision bad-revision", nil)
-	result, err = trybots.getJobToSchedule(ctx, b7, now)
+	err = trybots.insertNewJob(ctx, b7)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -362,8 +385,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	b8 := Build(t, now)
 	b8.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	MockCancelBuild(mock, b8.Id, "Failed to create Job from JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master } \\\\u003cnil\\\\u003e}", nil)
-	result, err = trybots.getJobToSchedule(ctx, b8, now)
+	err = trybots.insertNewJob(ctx, b8)
 	assert.NoError(t, err) // We don't report errors for bad data from buildbucket.
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 
@@ -372,8 +396,9 @@ func TestGetJobToSchedule(t *testing.T) {
 	b9.ParametersJson = testutils.MarshalJSON(t, Params(t, "bogus-job", patchProject, "master", gerritPatch.Server, gerritPatch.Issue, gerritPatch.Patchset))
 	expect := fmt.Errorf("no cancel!")
 	MockCancelBuild(mock, b9.Id, "Failed to create Job from JobSpec: No such job: bogus-job; \\\\n\\\\n{bogus-job [] {0  https://skia-review.googlesource.com/ 2112 3  skia gerrit  master } \\\\u003cnil\\\\u003e}", expect)
-	result, err = trybots.getJobToSchedule(ctx, b9, now)
+	err = trybots.insertNewJob(ctx, b9)
 	assert.EqualError(t, err, expect.Error())
+	result = aj.getAddedJob(t, trybots.db)
 	assert.Nil(t, result)
 	assert.True(t, mock.Empty())
 }
@@ -385,10 +410,13 @@ func TestRetry(t *testing.T) {
 	now := time.Now()
 
 	// Insert one try job.
+	aj := addedJobs(map[string]*types.Job{})
 	b1 := Build(t, now)
-	MockTryLeaseBuild(mock, b1.Id, now, nil)
-	j1, err := trybots.getJobToSchedule(ctx, b1, now)
+	MockTryLeaseBuild(mock, b1.Id, nil)
+	MockJobStarted(mock, b1.Id, nil)
+	err := trybots.insertNewJob(ctx, b1)
 	assert.NoError(t, err)
+	j1 := aj.getAddedJob(t, trybots.db)
 	assert.True(t, mock.Empty())
 	assert.Equal(t, j1.BuildbucketBuildId, b1.Id)
 	assert.Equal(t, j1.BuildbucketLeaseKey, b1.LeaseKey)
@@ -399,10 +427,12 @@ func TestRetry(t *testing.T) {
 
 	// Obtain a second try job, ensure that it gets IsForce = true.
 	b2 := Build(t, now)
-	MockTryLeaseBuild(mock, b2.Id, now, nil)
-	j2, err := trybots.getJobToSchedule(ctx, b2, now)
+	MockTryLeaseBuild(mock, b2.Id, nil)
+	MockJobStarted(mock, b2.Id, nil)
+	err = trybots.insertNewJob(ctx, b2)
 	assert.NoError(t, err)
 	assert.True(t, mock.Empty())
+	j2 := aj.getAddedJob(t, trybots.db)
 	assert.Equal(t, j2.BuildbucketBuildId, b2.Id)
 	assert.Equal(t, j2.BuildbucketLeaseKey, b2.LeaseKey)
 	assert.True(t, j2.Valid())
@@ -444,14 +474,14 @@ func TestPoll(t *testing.T) {
 	mockBuilds := func(builds []*buildbucket_api.ApiCommonBuildMessage) []*buildbucket_api.ApiCommonBuildMessage {
 		MockPeek(mock, builds, now, "", "", nil)
 		for _, b := range builds {
-			MockTryLeaseBuild(mock, b.Id, now, nil)
-			MockJobStarted(mock, b.Id, now, nil)
+			MockTryLeaseBuild(mock, b.Id, nil)
+			MockJobStarted(mock, b.Id, nil)
 		}
 		return builds
 	}
 
 	check := func(builds []*buildbucket_api.ApiCommonBuildMessage) {
-		assert.Nil(t, trybots.Poll(ctx, now))
+		assert.Nil(t, trybots.Poll(ctx))
 		assert.True(t, mock.Empty())
 		assertAdded(builds)
 	}
@@ -467,12 +497,12 @@ func TestPoll(t *testing.T) {
 	MockPeek(mock, builds[:PEEK_MAX_BUILDS], now, "", "cursor1", nil)
 	MockPeek(mock, builds[PEEK_MAX_BUILDS:], now, "cursor1", "", nil)
 	for _, b := range builds {
-		MockTryLeaseBuild(mock, b.Id, now, nil)
-		MockJobStarted(mock, b.Id, now, nil)
+		MockTryLeaseBuild(mock, b.Id, nil)
+		MockJobStarted(mock, b.Id, nil)
 	}
 	check(builds)
 
-	// Multiple new builds, fail getJobToSchedule, ensure successful builds
+	// Multiple new builds, fail insertNewJob, ensure successful builds
 	// are inserted.
 	builds = makeBuilds(5)
 	failIdx := 2
@@ -481,8 +511,8 @@ func TestPoll(t *testing.T) {
 	MockPeek(mock, builds, now, "", "", nil)
 	builds = append(builds[:failIdx], builds[failIdx+1:]...)
 	for _, b := range builds {
-		MockTryLeaseBuild(mock, b.Id, now, nil)
-		MockJobStarted(mock, b.Id, now, nil)
+		MockTryLeaseBuild(mock, b.Id, nil)
+		MockJobStarted(mock, b.Id, nil)
 	}
 	MockCancelBuild(mock, failBuild.Id, "Invalid parameters_json: invalid character '?' looking for beginning of value;\\\\n\\\\n???", nil)
 	check(builds)
@@ -494,12 +524,12 @@ func TestPoll(t *testing.T) {
 	MockPeek(mock, builds, now, "", "", nil)
 	builds = append(builds[:failIdx], builds[failIdx+1:]...)
 	for _, b := range builds {
-		MockTryLeaseBuild(mock, b.Id, now, nil)
-		MockJobStarted(mock, b.Id, now, nil)
+		MockTryLeaseBuild(mock, b.Id, nil)
+		MockJobStarted(mock, b.Id, nil)
 	}
-	MockTryLeaseBuild(mock, failBuild.Id, now, nil)
-	MockJobStarted(mock, failBuild.Id, now, fmt.Errorf("Failed to start build."))
-	assert.EqualError(t, trybots.Poll(ctx, now), "Got errors loading builds from Buildbucket: [Failed to start build.]")
+	MockTryLeaseBuild(mock, failBuild.Id, nil)
+	MockJobStarted(mock, failBuild.Id, fmt.Errorf("Failed to start build."))
+	assert.EqualError(t, trybots.Poll(ctx), "Got errors loading builds from Buildbucket: [Failed to send job-started notification with: Failed to start build.]")
 	assert.True(t, mock.Empty())
 	assertAdded(builds)
 
@@ -511,10 +541,10 @@ func TestPoll(t *testing.T) {
 	MockPeek(mock, builds[PEEK_MAX_BUILDS:], now, "cursor1", "", err)
 	builds = builds[:PEEK_MAX_BUILDS]
 	for _, b := range builds {
-		MockTryLeaseBuild(mock, b.Id, now, nil)
-		MockJobStarted(mock, b.Id, now, nil)
+		MockTryLeaseBuild(mock, b.Id, nil)
+		MockJobStarted(mock, b.Id, nil)
 	}
-	assert.EqualError(t, trybots.Poll(ctx, now), "Got errors loading builds from Buildbucket: [Failed peek]")
+	assert.EqualError(t, trybots.Poll(ctx), "Got errors loading builds from Buildbucket: [Failed peek]")
 	assert.True(t, mock.Empty())
 	assertAdded(builds)
 }
