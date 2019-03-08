@@ -27,7 +27,7 @@ The mirror sync failed. This will likely cause all checkouts to also fail when
 syncing from the mirror. Fix this by logging into android-compile on skia-corp
 and running:
 * cd /mnt/pd0/checkouts/mirror/
-* repo init -u https://googleplex-android.googlesource.com/a/platform/manifest -g "all,-notdefault,-darwin" -b master --mirror
+* repo init -u https://googleplex-android.googlesource.com/a/platform/manifest -b master --mirror
 * repo sync -c -j100 --optimized-fetch --prune -f
 
 
