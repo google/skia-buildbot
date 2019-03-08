@@ -423,6 +423,11 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemote(ctx context.Contex
 			return err
 		}
 	}
+	if _, err := os.Stat(path.Join(r.childDir, ".git")); err == nil {
+		if _, err := exec.RunCwd(ctx, r.childDir, "git", "fetch"); err != nil {
+			return err
+		}
+	}
 
 	args := []string{r.gclient, "config"}
 	if r.gclientSpec != "" {
