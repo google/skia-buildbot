@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1e8a2998_4dfb633f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "So, when we Update a Graph, we only ever add to it.  Even in the case where we change history, or reset a branch to some other commit, the graph itself doesn\u0027t change.  By changing Commit to store pointers to its parents, we can get rid of the locking in a lot of cases.",
+      "parentUuid": "de716711_aaddc213",
+      "range": {
+        "startLine": 47,
+        "startChar": 18,
+        "endLine": 47,
+        "endChar": 36
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "62be3a45_31a0f679",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-07T23:27:30Z",
       "side": 1,
       "message": "nit: maybe mention f should not call any method of Graph or Commit.",
+      "range": {
+        "startLine": 58,
+        "startChar": 47,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f3e24d5b_997b2611",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "I don\u0027t think this is necessary now that Recurse does not hold a lock.",
+      "parentUuid": "62be3a45_31a0f679",
       "range": {
         "startLine": 58,
         "startChar": 47,
@@ -88,6 +136,24 @@
     },
     {
       "key": {
+        "uuid": "608f5671_fa01a452",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "I don\u0027t think this is necessary now that Recurse does not hold a lock.",
+      "parentUuid": "1b404940_3e0ce4d6",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3b045d9b_8245195c",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -111,6 +177,30 @@
     },
     {
       "key": {
+        "uuid": "e9e8ea46_bf43710a",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b045d9b_8245195c",
+      "range": {
+        "startLine": 396,
+        "startChar": 34,
+        "endLine": 406,
+        "endChar": 5
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3803fc6e_4c39ea7f",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -122,6 +212,30 @@
       "writtenOn": "2019-03-07T23:27:30Z",
       "side": 1,
       "message": "nit: \"git help rev-list\" says for --topo-order, \"avoid showing commits on multiple lines of history intermixed.\" This does not do that.",
+      "range": {
+        "startLine": 425,
+        "startChar": 46,
+        "endLine": 425,
+        "endChar": 58
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19e51ab6_5aa68cc5",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Off the top of my head, I don\u0027t even know how to check for that, to verify that we\u0027d get it right.",
+      "parentUuid": "3803fc6e_4c39ea7f",
       "range": {
         "startLine": 425,
         "startChar": 46,
@@ -157,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "fbcf56ee_c7dbc286",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Yeah, we could. I don\u0027t think it makes the algorithm any simpler, although it probably makes more sense from the caller\u0027s perspective (writing \"^\"+commitA is awkward).",
+      "parentUuid": "1b392219_3ee461bb",
+      "range": {
+        "startLine": 426,
+        "startChar": 58,
+        "endLine": 427,
+        "endChar": 54
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2cb6c343_148b20d7",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -177,6 +315,30 @@
       "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fad89ad6_511a2d8c",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2cb6c343_148b20d7",
+      "range": {
+        "startLine": 428,
+        "startChar": 16,
+        "endLine": 428,
+        "endChar": 27
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "fb038c39_685f2e4e",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2f3ec962_e6953ac1",
+      "range": {
+        "startLine": 430,
+        "startChar": 24,
+        "endLine": 430,
+        "endChar": 40
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "71525434_206e0a1b",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -217,6 +403,24 @@
       "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7e78489_62227e4f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "71525434_206e0a1b",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -243,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "5c676f4a_6d1c50d4",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 489,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b71eb92d_fdd9e6b6",
+      "range": {
+        "startLine": 489,
+        "startChar": 16,
+        "endLine": 489,
+        "endChar": 29
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5644e35_b1205a3d",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -263,6 +491,30 @@
       "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d824b408_626c621f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 538,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5644e35_b1205a3d",
+      "range": {
+        "startLine": 538,
+        "startChar": 5,
+        "endLine": 538,
+        "endChar": 16
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -318,6 +570,24 @@
     },
     {
       "key": {
+        "uuid": "8092b482_60485050",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 624,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Whoops. Done.",
+      "parentUuid": "115a3cde_8879690d",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "23152adc_e8baef65",
         "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
         "patchSetId": 2
@@ -338,6 +608,30 @@
       "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d72c885_f55e7684",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T19:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "23152adc_e8baef65",
+      "range": {
+        "startLine": 357,
+        "startChar": 41,
+        "endLine": 357,
+        "endChar": 47
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
