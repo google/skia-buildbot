@@ -17,7 +17,7 @@ import (
 
 const (
 	MIN_CT_INSTANCE_NUM = 1
-	MAX_CT_INSTANCE_NUM = 500
+	MAX_CT_INSTANCE_NUM = 550
 )
 
 // Interface useful for mocking.

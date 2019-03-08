@@ -132,8 +132,9 @@ func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 }
 
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
-	// Perf tasks should always run on bare-metal machines.
-	return false
+	// Perf tasks should normally always run on bare-metal machines but we
+	// also have Windows GCE instances now.
+	return task.RunOnGCE
 }
 
 func (task DatastoreTask) GetDatastoreKind() ds.Kind {
