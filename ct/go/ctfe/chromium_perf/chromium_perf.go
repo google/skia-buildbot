@@ -45,6 +45,7 @@ type DatastoreTask struct {
 
 	Benchmark            string
 	Platform             string
+	RunOnGCE             bool
 	PageSets             string
 	IsTestPageSet        bool
 	RepeatRuns           int64
@@ -79,6 +80,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
 	taskVars.Benchmark = task.Benchmark
 	taskVars.Platform = task.Platform
+	taskVars.RunOnGCE = task.RunOnGCE
 	taskVars.PageSets = task.PageSets
 	taskVars.RepeatRuns = strconv.FormatInt(task.RepeatRuns, 10)
 	taskVars.RunInParallel = strconv.FormatBool(task.RunInParallel)
@@ -132,8 +134,9 @@ func (task DatastoreTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 }
 
 func (task DatastoreTask) RunsOnGCEWorkers() bool {
-	// Perf tasks should always run on bare-metal machines.
-	return false
+	// Perf tasks should normally always run on bare-metal machines but we
+	// also have Windows GCE instances now.
+	return task.RunOnGCE
 }
 
 func (task DatastoreTask) GetDatastoreKind() ds.Kind {
@@ -173,6 +176,7 @@ type AddTaskVars struct {
 
 	Benchmark            string   `json:"benchmark"`
 	Platform             string   `json:"platform"`
+	RunOnGCE             bool     `json:"run_on_gce"`
 	PageSets             string   `json:"page_sets"`
 	CustomWebpages       string   `json:"custom_webpages"`
 	RepeatRuns           string   `json:"repeat_runs"`
@@ -248,6 +252,7 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	t := &DatastoreTask{
 		Benchmark:            task.Benchmark,
 		Platform:             task.Platform,
+		RunOnGCE:             task.RunOnGCE,
 		PageSets:             task.PageSets,
 		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
 		BenchmarkArgs:        task.BenchmarkArgs,
