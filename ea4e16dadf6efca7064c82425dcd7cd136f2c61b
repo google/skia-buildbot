@@ -248,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "35ef669b_9881df0a",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T20:17:15Z",
+      "side": 1,
+      "message": "Okay, I believe I\u0027ve fixed TopologicalSort not to mingle different lines of history.  PTAL.",
+      "parentUuid": "19e51ab6_5aa68cc5",
+      "range": {
+        "startLine": 425,
+        "startChar": 46,
+        "endLine": 425,
+        "endChar": 58
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1b392219_3ee461bb",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
