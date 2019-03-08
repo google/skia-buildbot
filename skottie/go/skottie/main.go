@@ -7,7 +7,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -52,13 +51,10 @@ var (
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	skottieTool  = flag.String("skottie_tool", "", "[deprecated/unused]Absolute path to the skottie_tool executable.")
-	versionFile  = flag.String("version_file", "[deprecated/unused]/etc/skia-prod/VERSION", "The full path of the Skia VERSION file.")
 )
 
 var (
-	invalidRequestErr = errors.New("")
-	canUploadZips     = false
+	canUploadZips = false
 )
 
 // Server is the state of the server.
@@ -109,7 +105,6 @@ func (srv *Server) loadTemplates() {
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "index.html"),
 		filepath.Join(*resourcesDir, "drive.html"),
-		filepath.Join(*resourcesDir, "tos.html"),
 		filepath.Join(*resourcesDir, "embed.html"),
 	))
 }
@@ -484,7 +479,6 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/drive", srv.templateHandler("drive.html"))
-	r.HandleFunc("/tos", srv.templateHandler("tos.html"))
 	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
 	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html"))
 	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html"))
