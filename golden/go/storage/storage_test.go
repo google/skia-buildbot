@@ -2,14 +2,20 @@ package storage
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/baseline"
+	"go.skia.org/infra/golden/go/serialize"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -19,6 +25,15 @@ const (
 
 	// TEST_BASELINE_GS_PATH is the root path of all baseline file in GCS.
 	TEST_BASELINE_GS_PATH = "skia-infra-testdata/hash_files/testing-baselines"
+
+	// Directory with testdata.
+	TEST_DATA_DIR = "./testdata"
+
+	// Local file location of the test data.
+	TEST_DATA_PATH = TEST_DATA_DIR + "/10-test-sample-4bytes.tile"
+
+	// Folder in the testdata bucket. See go/testutils for details.
+	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
 )
 
 var (
@@ -176,4 +191,94 @@ func initGSClient(t *testing.T) (*GStorageClient, *GSClientOptions) {
 	gsClient, err := NewGStorageClient(nil, opt)
 	assert.NoError(t, err)
 	return gsClient, opt
+}
+
+func TestCondenseTile(t *testing.T) {
+	testutils.LargeTest(t)
+
+	bucket, storagePath, outputPath := gcs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH
+
+	err := gcs.DownloadTestDataFile(t, bucket, storagePath, outputPath)
+	assert.NoError(t, err, "Unable to download testdata.")
+	sample := loadSample(t, outputPath)
+	tile := sample.Tile
+
+	// Clear out half the commits and
+	empty := map[int]bool{}
+	tileLen := len(tile.Commits)
+	for len(empty) < tileLen/2 {
+		// Make sure the first commit is not empty.
+		candidate := (rand.Int() + 1) % tileLen
+		if empty[candidate] {
+			continue
+		}
+		empty[candidate] = true
+	}
+
+	// Iterate over the tile and set the chosen commits to empty.
+	for _, trace := range tile.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		for idx := range empty {
+			gTrace.Values[idx] = types.MISSING_DIGEST
+		}
+	}
+
+	storages := Storage{
+		TraceDB: mockTraceDB{tile},
+	}
+
+	firstTile, firstCommitSum, err := storages.getNewCondensedTile(nil)
+	assert.NoError(t, err)
+
+	// cpxTile := types.NewComplexTile(tile, tile, commitSummary)
+	// secondTile, secondCommitSum, err := storages.getNewCondensedTil(cpxTile)
+	// assert.Equal(t, tile, secondTile)
+	// assert.Equal(t, commitSummary, secondCommitSum)
+
+	// allCommits := commitSummary.AllCommits()
+	// assert.NotNil(t, allCommits)
+}
+
+type mockTDB struct {
+	tile *tiling.Tile
+}
+
+func (m *mockTDB) List(begin, end time.Time) ([]*tracedb.CommitID, error)                 { return nil, nil }
+func (m *mockTDB) Close() error                                                           { return nil }
+func (m *mockTDB) Add(commitID *tracedb.CommitID, values map[string]*tracedb.Entry) error { return nil }
+func (m *mockTDB) TileFromCommits(commitIDs []*tracedb.CommitID) (*tiling.Tile, []string, error) {
+	comMap := make(map[string]int, len(commitIDs))
+	for idx, commitID := range commitIDs {
+		targetIdx := -1
+		for idx, commit := range m.tile.Commits {
+			if commit.Hash == commitID.ID {
+				targetIdx = idx
+				break
+			}
+		}
+		if targetIdx < 0 {
+			return nil, nil, skerr.Fmt("Hash %s not found in test tile", commitID.ID)
+		}
+		comMap[commitID.ID] = targetIdx
+	}
+
+	ret := tiling.NewTile()
+	ret.Commits = ret.Commits[:0]
+	for _, commitID := range commitIDs {
+		ret.Commits
+
+		for traceID, trace := range m.tile.Traces {
+		}
+	}
+
+	return nil, nil, nil
+}
+
+func loadSample(t assert.TestingT, fileName string) *serialize.Sample {
+	file, err := os.Open(fileName)
+	assert.NoError(t, err)
+
+	sample, err := serialize.DeserializeSample(file)
+	assert.NoError(t, err)
+	return sample
 }

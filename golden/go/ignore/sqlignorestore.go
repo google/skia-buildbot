@@ -14,23 +14,23 @@ import (
 )
 
 type SQLIgnoreStore struct {
-	vdb          *database.VersionedDB
-	mutex        sync.Mutex
-	revision     int64
-	tileStream   <-chan *types.TilePair
-	lastTilePair *types.TilePair
-	expStore     expstorage.ExpectationsStore
+	vdb           *database.VersionedDB
+	mutex         sync.Mutex
+	revision      int64
+	cpxTileStream <-chan *types.ComplexTile
+	lastCpxTile   *types.ComplexTile
+	expStore      expstorage.ExpectationsStore
 }
 
 // NewSQLIgnoreStore creates a new SQL based IgnoreStore.
 //   vdb - database to connect to.
 //   expStore - expectations store needed to count the untriaged digests per rule.
 //   tileStream - continuously provides an updated copy of the current tile.
-func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *types.TilePair) IgnoreStore {
+func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *types.ComplexTile) IgnoreStore {
 	ret := &SQLIgnoreStore{
-		vdb:        vdb,
-		tileStream: tileStream,
-		expStore:   expStore,
+		vdb:           vdb,
+		cpxTileStream: tileStream,
+		expStore:      expStore,
 	}
 
 	return ret
@@ -100,7 +100,7 @@ func (m *SQLIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 	}
 
 	if addCounts {
-		m.lastTilePair, err = addIgnoreCounts(result, m, m.lastTilePair, m.expStore, m.tileStream)
+		m.lastCpxTile, err = addIgnoreCounts(result, m, m.lastCpxTile, m.expStore, m.cpxTileStream)
 		if err != nil {
 			sklog.Errorf("Unable to add counts to ignore list result: %s", err)
 		}
@@ -173,7 +173,7 @@ func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
 // easily test against live (vs synthetic) data.
 
 // addIgnoreCounts adds counts for the current tile to the given list of rules.
-func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastTilePair *types.TilePair, expStore expstorage.ExpectationsStore, tileStream <-chan *types.TilePair) (*types.TilePair, error) {
+func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastCpxTile *types.ComplexTile, expStore expstorage.ExpectationsStore, tileStream <-chan *types.ComplexTile) (*types.ComplexTile, error) {
 	if (expStore == nil) || (tileStream == nil) {
 		return nil, fmt.Errorf("Either expStore or tileStream is nil. Cannot count ignores.")
 	}
@@ -189,13 +189,13 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastTilePair 
 	}
 
 	// Get the next tile.
-	var tilePair *types.TilePair = nil
+	var cpxTile *types.ComplexTile = nil
 	select {
-	case tilePair = <-tileStream:
+	case cpxTile = <-tileStream:
 	default:
-		tilePair = lastTilePair
+		cpxTile = lastCpxTile
 	}
-	if tilePair == nil {
+	if cpxTile == nil {
 		return nil, fmt.Errorf("No tile available to count ignores")
 	}
 
@@ -203,7 +203,8 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastTilePair 
 	// matchingDigests[rule.ID]map[digest]bool
 	matchingDigests := make(map[int64]map[string]bool, len(rules))
 	rulesByDigest := map[string]map[int64]bool{}
-	for _, trace := range tilePair.TileWithIgnores.Traces {
+	tileWithIgnores := cpxTile.GetTile(true)
+	for _, trace := range tileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
 			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
@@ -238,5 +239,5 @@ func addIgnoreCounts(rules []*IgnoreRule, ignoreStore IgnoreStore, lastTilePair 
 			}
 		}
 	}
-	return tilePair, nil
+	return cpxTile, nil
 }
