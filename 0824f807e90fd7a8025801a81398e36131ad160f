@@ -16,6 +16,24 @@
       "revId": "0824f807e90fd7a8025801a81398e36131ad160f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c66e5aef_c3ca0f90",
+        "filename": "autoroll/go/repo_manager/repo_manager.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-08T14:03:12Z",
+      "side": 1,
+      "message": "Right, in this case we were relying on \"gclient sync\" to perform a fetch in the child repo so that we could determine whether there were new commits to roll.  If all you care about is syncing to the revision specified in DEPS of the parent repo, no change is necessary.",
+      "parentUuid": "2476800c_0976b3a7",
+      "revId": "0824f807e90fd7a8025801a81398e36131ad160f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
