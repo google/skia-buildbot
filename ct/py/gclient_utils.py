@@ -19,8 +19,8 @@ GCLIENT_FILE = '.gclient'
 
 
 def _RunCmd(cmd):
-  """ Run a "gclient ..." command. """
-  return shell_utils.run([GCLIENT_PY] + cmd)
+  """ Run a "gclient ..." command with retries. """
+  return shell_utils.run_retry([GCLIENT_PY] + cmd, attempts=3)
 
 
 def GClient():
