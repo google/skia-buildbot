@@ -80,7 +80,7 @@ func (task DatastoreTask) GetPopulatedAddTaskVars() (task_common.AddTaskVars, er
 	taskVars.RepeatAfterDays = strconv.FormatInt(task.RepeatAfterDays, 10)
 	taskVars.Benchmark = task.Benchmark
 	taskVars.Platform = task.Platform
-	taskVars.RunOnGCE = task.RunOnGCE
+	taskVars.RunOnGCE = strconv.FormatBool(task.RunOnGCE)
 	taskVars.PageSets = task.PageSets
 	taskVars.RepeatRuns = strconv.FormatInt(task.RepeatRuns, 10)
 	taskVars.RunInParallel = strconv.FormatBool(task.RunInParallel)
@@ -176,7 +176,7 @@ type AddTaskVars struct {
 
 	Benchmark            string   `json:"benchmark"`
 	Platform             string   `json:"platform"`
-	RunOnGCE             bool     `json:"run_on_gce"`
+	RunOnGCE             string   `json:"run_on_gce"`
 	PageSets             string   `json:"page_sets"`
 	CustomWebpages       string   `json:"custom_webpages"`
 	RepeatRuns           string   `json:"repeat_runs"`
@@ -252,7 +252,6 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 	t := &DatastoreTask{
 		Benchmark:            task.Benchmark,
 		Platform:             task.Platform,
-		RunOnGCE:             task.RunOnGCE,
 		PageSets:             task.PageSets,
 		IsTestPageSet:        task.PageSets == ctutil.PAGESET_TYPE_DUMMY_1k,
 		BenchmarkArgs:        task.BenchmarkArgs,
@@ -270,6 +269,11 @@ func (task *AddTaskVars) GetPopulatedDatastoreTask(ctx context.Context) (task_co
 		BenchmarkPatchGSPath: benchmarkPatchGSPath,
 		V8PatchGSPath:        v8PatchGSPath,
 	}
+	runOnGCE, err := strconv.ParseBool(task.RunOnGCE)
+	if err != nil {
+		return nil, fmt.Errorf("%s is not bool: %s", task.RunOnGCE, err)
+	}
+	t.RunOnGCE = runOnGCE
 	runInParallel, err := strconv.ParseBool(task.RunInParallel)
 	if err != nil {
 		return nil, fmt.Errorf("%s is not bool: %s", task.RunInParallel, err)
