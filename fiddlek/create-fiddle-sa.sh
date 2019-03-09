@@ -15,6 +15,9 @@ gcloud iam service-accounts create "${SA_NAME}" --display-name="Read-write acces
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
+# TODO
+# gcloud projects add-iam-policy-binding    skia-public --member serviceAccount:skia-fiddle@skia-public.iam.gserviceaccount.com --role roles/cloudtrace.agent
+
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
 
 cd -
