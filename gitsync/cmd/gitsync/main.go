@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/common"
@@ -70,7 +71,9 @@ func main() {
 			if err != nil {
 				sklog.Fatalf("Error getting normalized URL for %q:  %s", repoURL, err)
 			}
+			repoDir = strings.Replace(repoDir, "/", "_", -1)
 			repoDir = filepath.Join(useWorkDir, repoDir)
+			sklog.Infof("Checking out %s into %s", repoURL, repoDir)
 
 			watcher, err := NewRepoWatcher(ctx, config, repoURL, repoDir)
 			if err != nil {
