@@ -820,7 +820,7 @@ func encBranchPointer(hash string, index int) []byte {
 // containing a head and index.
 func decBranchPointer(encPointer []byte) (*BranchPointer, error) {
 	parts := bytes.SplitN(encPointer, []byte(":"), 2)
-	if len(parts) != 2 && len(parts[1]) != 8 {
+	if len(parts) != 2 || len(parts[1]) != 8 {
 		return nil, skerr.Fmt("Received wrong branch pointer. Expected format <commit>:<big_endian_64_bit>")
 	}
 	return &BranchPointer{
