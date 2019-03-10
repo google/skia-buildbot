@@ -18,7 +18,11 @@ import (
 	"sync"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/plugin/ochttp/propagation/b3"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -334,6 +338,17 @@ func main() {
 		sklog.Fatalf("The --checkout flag is required.")
 	}
 
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		BundleDelayThreshold: time.Second / 10,
+		BundleCountThreshold: 10})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	_, span := trace.StartSpan(context.Background(), "main")
+	defer span.End()
+
 	b, err := ioutil.ReadFile(filepath.Join(*checkout, "VERSION"))
 	if err != nil {
 		sklog.Fatalf("Failed to read Skia version: %s", err)
@@ -341,12 +356,18 @@ func main() {
 	version = strings.TrimSpace(string(b))
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", mainHandler)
-	r.HandleFunc("/run", runHandler)
+	r.HandleFunc("/", ochttp.WithRouteTag(mainHandler, "/"))
+	r.HandleFunc("/run", ochttp.WithRouteTag(runHandler, "/run"))
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.Healthz(r)
 	sklog.Infoln("Ready to serve.")
+
+	h = &ochttp.Handler{
+		Handler:     h,
+		Propagation: &b3.HTTPFormat{},
+	}
+
 	srv := &http.Server{
 		Handler:      h,
 		Addr:         *port,
