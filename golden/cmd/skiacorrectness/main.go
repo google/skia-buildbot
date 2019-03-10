@@ -344,16 +344,18 @@ func main() {
 			// This uses MySQL to manage expecations for the master branch.
 			expStore = expstorage.NewSQLExpectationStore(vdb)
 		}
+		expStore = expstorage.NewCachingExpectationStore(expStore, evt)
 
 		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 		}
+		tryjobMonitor := tryjobs.NewTryjobMonitor(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
 
 		// Extract the site URL
 		storages := &storage.Storage{
 			DiffStore:            diffStore,
-			ExpectationsStore:    expstorage.NewCachingExpectationStore(expStore, evt),
+			ExpectationsStore:    expStore,
 			IssueExpStoreFactory: issueExpStoreFactory,
 			TraceDB:              db,
 			MasterTileBuilder:    masterTileBuilder,
@@ -361,7 +363,7 @@ func main() {
 			NCommits:             *nCommits,
 			EventBus:             evt,
 			TryjobStore:          tryjobStore,
-			TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, *siteURL, evt, *authoritative),
+			TryjobMonitor:        tryjobMonitor,
 			GerritAPI:            gerritAPI,
 			GStorageClient:       gsClient,
 			Git:                  git,

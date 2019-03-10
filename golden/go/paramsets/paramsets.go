@@ -45,10 +45,10 @@ func New() *ParamSummary {
 }
 
 // Calculate sets the values the ParamSummary based on the given tile.
-func (s *ParamSummary) Calculate(tilePair *types.TilePair, tallies *tally.Tallies, talliesWithIgnores *tally.Tallies) {
+func (s *ParamSummary) Calculate(cpxTile *types.ComplexTile, tallies *tally.Tallies, talliesWithIgnores *tally.Tallies) {
 	defer timer.New("paramsets").Stop()
-	s.byTrace = byTraceForTile(tilePair.Tile, tallies.ByTrace())
-	s.byTraceIncludeIgnored = byTraceForTile(tilePair.TileWithIgnores, talliesWithIgnores.ByTrace())
+	s.byTrace = byTraceForTile(cpxTile.GetTile(false), tallies.ByTrace())
+	s.byTraceIncludeIgnored = byTraceForTile(cpxTile.GetTile(true), talliesWithIgnores.ByTrace())
 }
 
 // Get returns the paramset for the given digest. If 'include' is true
