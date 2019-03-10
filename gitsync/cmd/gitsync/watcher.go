@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"time"
 
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/metrics2"
@@ -31,6 +32,11 @@ type RepoWatcher struct {
 // NewRepoWatcher creates a GitStore with the provided information and checks out the git repo
 // at repoURL into repoDir. It's Start(...) function will watch a repo in the background.
 func NewRepoWatcher(ctx context.Context, conf *gitstore.BTConfig, repoURL, repoDir string) (*RepoWatcher, error) {
+	repoDir, err := fileutil.EnsureDirExists(repoDir)
+	if err != nil {
+		return nil, err
+	}
+
 	gitStore, err := gitstore.NewBTGitStore(ctx, conf, repoURL)
 	if err != nil {
 		return nil, skerr.Fmt("Error instantiating git store: %s", err)
@@ -96,7 +102,7 @@ func (r *RepoWatcher) updateFn() error {
 
 	// Find the hashes all all commits that need to be added to the GitStore. This
 	// considers all branches in the repo and whether they are already in the GitStore.
-	var hashes []string
+	hashes := util.StringSet{}
 	for _, newBranch := range branches {
 		// revListStr is an argument to repo.RevList below and controls how many commits we
 		// retrieve. By default we retrieve all commits in the branch, but may restrict that if
@@ -104,7 +110,7 @@ func (r *RepoWatcher) updateFn() error {
 		revListStr := newBranch.Head
 
 		// See if we have the branch in the repo already.
-		foundBranch, ok := currBranches[newBranch.Head]
+		foundBranch, ok := currBranches[newBranch.Name]
 		if ok {
 			// If the branch hasn't changed we  are done.
 			if foundBranch.Head == newBranch.Head {
@@ -128,14 +134,15 @@ func (r *RepoWatcher) updateFn() error {
 		if err != nil {
 			return skerr.Fmt("Error retrieving hashes with the argument %q: %s", revListStr, err)
 		}
-		hashes = append(hashes, foundHashes...)
+		hashes.AddLists(foundHashes)
 	}
+	sklog.Infof("Repo @ %s: Found %d unique hashes in %d branches.", r.repoURL, len(hashes), len(branches))
 
 	// Iterate over the LongCommits that correspond to batches.
 	ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
 
-	commitsCh, err := r.iterateLongCommits(ctx, hashes, batchSize)
+	commitsCh, err := r.iterateLongCommits(ctx, hashes.Keys(), batchSize)
 	if err != nil {
 		return skerr.Fmt("Error iterating over new commits: %s", err)
 	}
@@ -154,6 +161,7 @@ func (r *RepoWatcher) updateFn() error {
 	if err := r.gitStore.PutBranches(ctx, branchMap); err != nil {
 		return skerr.Fmt("Error calling PutBranches on GitStore: %s", err)
 	}
+	sklog.Infof("Repo @ %s: Branches updated successfully.", r.repoURL)
 	return nil
 }
 

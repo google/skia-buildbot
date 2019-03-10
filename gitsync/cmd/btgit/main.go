@@ -18,6 +18,8 @@ func main() {
 	var (
 		btInstanceID = flag.String("bt_instance", "production", "Big Table instance")
 		btTableID    = flag.String("bt_table", "git-repos", "BigTable table ID")
+		listBranches = flag.Bool("list", false, "List all branches and quit")
+		listRepos    = flag.Bool("list_repos", false, "List all repositories quit")
 		loadGraph    = flag.Bool("load_graph", false, "Load the entire commit graph. For performance check only.")
 		projectID    = flag.String("project", "skia-public", "ID of the GCP project")
 		branch       = flag.String("branch", "", "Name of the branch to list. Empty means all commits across all branches.")
@@ -49,12 +51,27 @@ func main() {
 	}
 	sklog.Infof("Got all repo info: %d", len(allRepoInfos))
 
+	if *listRepos {
+		for _, repo := range allRepoInfos {
+			sklog.Infof("Repo: %s ", repo.RepoURL)
+			if *verbose {
+				logBranches("    ", repo.Branches)
+			}
+		}
+		return
+	}
+
 	// Make sure our repoURL exists.
 	repoInfo, ok := allRepoInfos[normURL]
 	if !ok {
 		sklog.Fatalf("Repo %s could not found in BigTable", normURL)
 	}
 	sklog.Infof("Found repo for %s", repoInfo.RepoURL)
+
+	if *listBranches {
+		logBranches("", repoInfo.Branches)
+		return
+	}
 
 	// Make sure the target branch exists
 	foundBranch, ok := repoInfo.Branches[*branch]
@@ -116,5 +133,11 @@ func main() {
 		if *verbose {
 			sklog.Infof("%s %40s %v %s", c.Hash, c.Author, c.Timestamp, c.Subject)
 		}
+	}
+}
+
+func logBranches(indent string, branches map[string]*gitstore.BranchPointer) {
+	for branchName, branch := range branches {
+		sklog.Infof("Branch %s @ %s with index %d", branchName, branch.Head, branch.Index)
 	}
 }

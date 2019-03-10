@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/common"
@@ -22,12 +23,12 @@ import (
 func main() {
 	// Define the flags and parse them.
 	var (
-		btInstanceID    = flag.String("bt-instance", "production", "Big Table instance")
-		btTableID       = flag.String("bt-table", "git-repos", "BigTable table ID")
+		btInstanceID    = flag.String("bt_instance", "production", "Big Table instance")
+		btTableID       = flag.String("bt_table", "git-repos", "BigTable table ID")
 		workDir         = flag.String("workdir", "", "Working directory where repos are cached. Use the same directory between calls to speed up checkout time.")
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 		projectID       = flag.String("project", "skia-public", "ID of the GCP project")
-		repoURLs        = common.NewMultiStringFlag("repo-url", []string{}, "Repo url")
+		repoURLs        = common.NewMultiStringFlag("repo_url", []string{}, "Repo url")
 		runInit         = flag.Bool("init", false, "Initialize the BigTable instance and quit. This should be run with a different different user who has admin rights.")
 		refreshInterval = flag.Duration("refresh", 10*time.Minute, "Interval in which to poll git and refresh the GitStore.")
 	)
@@ -70,7 +71,9 @@ func main() {
 			if err != nil {
 				sklog.Fatalf("Error getting normalized URL for %q:  %s", repoURL, err)
 			}
+			repoDir = strings.Replace(repoDir, "/", "_", -1)
 			repoDir = filepath.Join(useWorkDir, repoDir)
+			sklog.Infof("Checking out %s into %s", repoURL, repoDir)
 
 			watcher, err := NewRepoWatcher(ctx, config, repoURL, repoDir)
 			if err != nil {
