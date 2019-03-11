@@ -8,14 +8,17 @@ import (
 	"path"
 	"sort"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // gitSetup initializes a Git repo in a temporary directory with some commits.
@@ -34,7 +37,7 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := NewGraph(ctx, g.Dir(), tmp)
+	repo, err := NewLocalGraph(ctx, g.Dir(), tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repo.Update(ctx))
 
@@ -108,7 +111,7 @@ func TestGraph(t *testing.T) {
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
-	repo2, err := NewGraph(ctx, g.Dir(), tmp2)
+	repo2, err := NewLocalGraph(ctx, g.Dir(), tmp2)
 	assert.NoError(t, err)
 	assert.NoError(t, repo2.Update(ctx))
 	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
@@ -129,7 +132,7 @@ func TestSerialize(t *testing.T) {
 	ctx, g, repo, _, cleanup := gitSetup(t)
 	defer cleanup()
 
-	repo2, err := NewGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
+	repo2, err := NewLocalGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
 	assert.NoError(t, repo2.Update(ctx))
 
@@ -495,7 +498,7 @@ func TestRevList(t *testing.T) {
 	assert.NoError(t, err)
 	d2 := path.Join(tmpDir, "2")
 	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
-	g, err := NewGraph(ctx, gb.Dir(), d2)
+	g, err := NewLocalGraph(ctx, gb.Dir(), d2)
 	assert.NoError(t, err)
 	assert.NoError(t, g.Update(ctx))
 
@@ -560,7 +563,7 @@ func TestTopoSort(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
-	g, err := NewGraph(ctx, gb.Dir(), tmpDir)
+	g, err := NewLocalGraph(ctx, gb.Dir(), tmpDir)
 	assert.NoError(t, err)
 	assert.NoError(t, g.Update(ctx))
 
@@ -605,7 +608,7 @@ func TestIsAncestor(t *testing.T) {
 	assert.NoError(t, err)
 	d2 := path.Join(tmpDir, "2")
 	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
-	g, err := NewGraph(ctx, gb.Dir(), d2)
+	g, err := NewLocalGraph(ctx, gb.Dir(), d2)
 	assert.NoError(t, err)
 	assert.NoError(t, g.Update(ctx))
 
@@ -658,4 +661,70 @@ func TestIsAncestor(t *testing.T) {
 	check(commits[4], commits[2], false)
 	check(commits[4], commits[3], false)
 	check(commits[4], commits[4], true)
+}
+
+func TestGitStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	// Push commits into BT.
+	btConf := &gitstore.BTConfig{
+		ProjectID:  "fake-project",
+		InstanceID: "fake-instance",
+		TableID:    "repograph-gitstore",
+		Shards:     32,
+	}
+	assert.NoError(t, gitstore.InitBT(btConf))
+	gs, err := gitstore.NewBTGitStore(ctx, btConf, gb.RepoUrl())
+	assert.NoError(t, err)
+	repo := git.GitDir(gb.Dir())
+	details := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		d, err := repo.Details(ctx, c)
+		assert.NoError(t, err)
+		details = append(details, d)
+	}
+	assert.NoError(t, gs.Put(ctx, details))
+	branches, err := repo.Branches(ctx)
+	assert.NoError(t, err)
+	putBranches := make(map[string]string, len(branches))
+	for _, branch := range branches {
+		putBranches[branch.Name] = branch.Head
+	}
+	assert.NoError(t, gs.PutBranches(ctx, putBranches))
+
+	// Wait for BigTable to be up to date.
+	btWait := func() {
+		expect, err := repo.Branches(ctx)
+		assert.NoError(t, err)
+		for {
+			time.Sleep(10 * time.Millisecond)
+			actual, err := gs.GetBranches(ctx)
+			assert.NoError(t, err)
+			allMatch := true
+			for _, expectBranch := range expect {
+				actualBranch, ok := actual[expectBranch.Name]
+				if !ok || actualBranch.Head != expectBranch.Head {
+					allMatch = false
+					break
+				}
+			}
+			if allMatch {
+				break
+			}
+		}
+	}
+	btWait()
+
+	// create the graph.
+	g, err := NewBigTableGraph(ctx, gs)
+	assert.NoError(t, err)
+	for _, hash := range commits {
+		c := g.Get(hash)
+		assert.NotNil(t, c)
+	}
 }
