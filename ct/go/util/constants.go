@@ -327,7 +327,7 @@ var (
 	SupportedPlatformsToDesc = map[string]string{
 		PLATFORM_LINUX:   "Linux (Ubuntu14.04 machines)",
 		PLATFORM_ANDROID: "Android (N5X devices)",
-		PLATFORM_WINDOWS: "Windows (2016 DataCenter Server cloud instances) EXPERIMENTAL",
+		PLATFORM_WINDOWS: "Windows (2016 DataCenter Server cloud instances)",
 	}
 
 	TaskPrioritiesToDesc = map[int]string{
