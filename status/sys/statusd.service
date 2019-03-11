@@ -10,7 +10,6 @@ ExecStart=/usr/local/bin/status \
     --bigtable_instance=production \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
-    --use_metadata=true \
     --host=status.skia.org \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \

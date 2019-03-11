@@ -10,7 +10,6 @@ ExecStart=/usr/local/bin/status \
     --bigtable_instance=staging \
     --logtostderr \
     --workdir=/mnt/pd0/status_workdir \
-    --use_metadata=true \
     --host=status-staging.skia.org \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \
