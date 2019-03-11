@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b17b638b_05a6b7d3",
+        "filename": "particles/modules/particles-sk/particles-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T14:57:45Z",
+      "side": 1,
+      "message": "Break out as common function for here and above.",
+      "range": {
+        "startLine": 378,
+        "startChar": 12,
+        "endLine": 383,
+        "endChar": 5
+      },
+      "revId": "6478c9569ac9bec44e9b8b955992663eff01d946",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
