@@ -23,6 +23,53 @@
       "revId": "c168e5be45c5f1a07e14f5a8ceed5b62c861b161",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df9e8bb9_b55d7f77",
+        "filename": "particles/go/particles/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T15:52:35Z",
+      "side": 1,
+      "message": "No, we aren\u0027t doing crypto here, that msg isn\u0027t useful.",
+      "parentUuid": "5e3d1c7f_e5cd7e54",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 1
+      },
+      "revId": "c168e5be45c5f1a07e14f5a8ceed5b62c861b161",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7db3472b_66f9eecf",
+        "filename": "particles/modules/particles-sk/particles-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T15:52:35Z",
+      "side": 1,
+      "message": "this._recoverFromError.bind(this) \n\n or (preferred)\n\nmsg \u003d\u003e this._recoverFromError(msg)",
+      "range": {
+        "startLine": 277,
+        "startChar": 15,
+        "endLine": 277,
+        "endChar": 37
+      },
+      "revId": "c168e5be45c5f1a07e14f5a8ceed5b62c861b161",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
