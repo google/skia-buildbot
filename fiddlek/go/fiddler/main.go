@@ -14,11 +14,15 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -72,7 +76,9 @@ func getState() types.State {
 	return currentState
 }
 
-func serializeOutput(w io.Writer, res *types.Result) {
+func serializeOutput(ctx context.Context, w io.Writer, res *types.Result) {
+	ctx, span := trace.StartSpan(ctx, "serializeOutput")
+	defer span.End()
 	w = limitwriter.New(w, types.MAX_JSON_SIZE)
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		sklog.Errorf("Failed to encode: %s", err)
@@ -91,8 +97,19 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func build(ctx context.Context, cwd string, args ...string) (string, error) {
+	ctx, span := trace.StartSpan(ctx, "build")
+	defer span.End()
+	return exec.RunCwd(ctx, cwd, args...)
+}
+
 func runHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	ctx, span := trace.StartSpan(r.Context(), "fiddler")
+	defer span.End()
+	span.Annotate([]trace.Attribute{
+		trace.Int64Attribute("num cores", int64(runtime.NumCPU())),
+	}, "fiddler")
+
 	defer util.Close(r.Body)
 	if setStateStart() != nil {
 		http.Error(w, "Currently running a fiddle.", http.StatusTooManyRequests)
@@ -111,25 +128,30 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Invalid JSON Request: %s", err)
-		serializeOutput(w, res)
+		serializeOutput(ctx, w, res)
 		return
 	}
 
 	// Compile draw.cpp into 'fiddle'.
 	if err := ioutil.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
-		serializeOutput(w, res)
+		serializeOutput(ctx, w, res)
 		return
 	}
 
 	setState(types.COMPILING)
 
 	// TODO(jcgregorio) Put a timeout here.
-	buildResults, err := exec.RunCwd(ctx, *checkout, filepath.Join(*fiddleRoot, "depot_tools", "ninja"), "-C", "out/Static")
+	buildResults, err := build(ctx, *checkout, filepath.Join(*fiddleRoot, "depot_tools", "ninja"), "-C", "out/Static")
+	buildLogs := strings.Split(buildResults, "\n")
+	sklog.Info("BuildLog")
+	for _, s := range buildLogs {
+		sklog.Info(s)
+	}
 	if err != nil {
 		res.Compile.Errors = err.Error()
 		res.Compile.Output = buildResults
-		serializeOutput(w, res)
+		serializeOutput(ctx, w, res)
 		return
 	}
 
@@ -137,7 +159,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	if request.Options.Duration == 0 {
 		oneStep(ctx, *checkout, res, 0.0, request.Options.Duration)
-		serializeOutput(w, res)
+		serializeOutput(ctx, w, res)
 	} else {
 
 		var g errgroup.Group
@@ -154,7 +176,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		defer util.RemoveAll(tmpDir)
 		if err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to create tmp dir for storing animation PNGs: %s", err)
-			serializeOutput(w, res)
+			serializeOutput(ctx, w, res)
 			return
 		}
 
@@ -212,20 +234,20 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		// Wait for all the work to be done.
 		if err := g.Wait(); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
-			serializeOutput(w, res)
+			serializeOutput(ctx, w, res)
 			return
 		}
 		// Run ffmpeg for CPU and GPU.
 		if err := createWebm(ctx, "CPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
-			serializeOutput(w, res)
+			serializeOutput(ctx, w, res)
 			return
 		}
 		res.Execute.Output.AnimatedRaster = encodeWebm("CPU", tmpDir, res)
 
 		if err := createWebm(ctx, "GPU", tmpDir); err != nil {
 			res.Execute.Errors = fmt.Sprintf("Failed to encode video: %s", err)
-			serializeOutput(w, res)
+			serializeOutput(ctx, w, res)
 			return
 		}
 		res.Execute.Output.AnimatedGpu = encodeWebm("GPU", tmpDir, res)
@@ -233,7 +255,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		res.Execute.Output.Gpu = ""
 		res.Execute.Output.GLInfo = glinfo
 
-		serializeOutput(w, res)
+		serializeOutput(ctx, w, res)
 	}
 }
 
@@ -249,6 +271,9 @@ func encodeWebm(prefix, tmpDir string, res *types.Result) string {
 
 // createWebm runs ffmpeg over the images in the given dir.
 func createWebm(ctx context.Context, prefix, tmpDir string) error {
+	ctx, span := trace.StartSpan(ctx, "createWebm-"+prefix)
+	defer span.End()
+
 	// ffmpeg -r $FPS -pattern_type glob -i '*.png' -c:v libvpx-vp9 -lossless 1 output.webm
 	name := "ffmpeg"
 	args := []string{
@@ -287,6 +312,9 @@ func extractPNG(b64 string, res *types.Result, i int, prefix string, tmpDir stri
 }
 
 func oneStep(ctx context.Context, checkout string, res *types.Result, frame float64, duration float64) {
+	ctx, span := trace.StartSpan(ctx, "oneStep")
+	defer span.End()
+
 	name := path.Join("/usr/local/bin/fiddle_secwrap")
 
 	args := []string{path.Join(checkout, "out", "Static", "fiddle")}
@@ -334,6 +362,19 @@ func main() {
 		sklog.Fatalf("The --checkout flag is required.")
 	}
 
+	if !*local {
+		exporter, err := stackdriver.NewExporter(stackdriver.Options{
+			BundleDelayThreshold: time.Second / 10,
+			BundleCountThreshold: 10})
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		trace.RegisterExporter(exporter)
+		trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+		_, span := trace.StartSpan(context.Background(), "main")
+		defer span.End()
+	}
+
 	b, err := ioutil.ReadFile(filepath.Join(*checkout, "VERSION"))
 	if err != nil {
 		sklog.Fatalf("Failed to read Skia version: %s", err)
@@ -342,11 +383,12 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
-	r.HandleFunc("/run", runHandler)
+	r.Handle("/run", &ochttp.Handler{Handler: http.HandlerFunc(runHandler)}) // Just wrap the /run handler for tracing.
 
 	h := httputils.LoggingGzipRequestResponse(r)
 	h = httputils.Healthz(r)
 	sklog.Infoln("Ready to serve.")
+
 	srv := &http.Server{
 		Handler:      h,
 		Addr:         *port,

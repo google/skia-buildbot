@@ -4,6 +4,7 @@ package runner
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/fiddlek/go/linenumbers"
 	"go.skia.org/infra/fiddlek/go/types"
 	"go.skia.org/infra/go/httputils"
@@ -203,8 +206,12 @@ func (r *Runner) ValidateOptions(opts *types.Options) error {
 	return nil
 }
 
-func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
-	client := httputils.NewTimeoutClient()
+func (r *Runner) singleRun(ctx context.Context, url string, body io.Reader) (*types.Result, error) {
+	ctx, span := trace.StartSpan(ctx, "run.singleRun")
+	defer span.End()
+
+	//	client := httputils.NewTimeoutClient()
+	client := &http.Client{Transport: &ochttp.Transport{}}
 	var output bytes.Buffer
 
 	req, err := http.NewRequest("POST", url, body)
@@ -212,6 +219,8 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		sklog.Errorf("Failed to create POST request: %s", err)
 		return nil, failedToSendErr
 	}
+	req = req.WithContext(ctx)
+
 	// Pods come and go, so don't keep the connection alive.
 	req.Close = true
 	resp, err := client.Do(req)
@@ -220,6 +229,10 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 		return nil, failedToSendErr
 	}
 	defer util.Close(resp.Body)
+	span.Annotate([]trace.Attribute{
+		trace.Int64Attribute("status code", int64(resp.StatusCode)),
+	}, "fiddler response")
+
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return nil, alreadyRunningFiddleErr
 	}
@@ -248,7 +261,10 @@ func (r *Runner) singleRun(url string, body io.Reader) (*types.Result, error) {
 // Run executes fiddle_run and then parses the JSON output into types.Results.
 //
 //    local - Boolean, true if we are running locally.
-func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error) {
+func (r *Runner) Run(ctx context.Context, local bool, req *types.FiddleContext) (*types.Result, error) {
+	ctx, span := trace.StartSpan(ctx, "run.Run")
+	defer span.End()
+
 	if len(req.Code) > types.MAX_CODE_SIZE {
 		return nil, fmt.Errorf("Code size is too large.")
 	}
@@ -265,7 +281,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 	// If not local then use the k8s api to pick an open fiddler pod to send
 	// the request to. Send a GET / to each one until you find an idle instance.
 	if local {
-		return r.singleRun(LOCALRUN_URL, bytes.NewReader(b))
+		return r.singleRun(ctx, LOCALRUN_URL, bytes.NewReader(b))
 	} else {
 		// Try to run the fiddle on an open pod. If all pods are busy then
 		// wait a bit and try again.
@@ -275,7 +291,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				rootURL := fmt.Sprintf("http://%s:8000", p)
 				sklog.Infof("%q Trying: %q", req.Hash, rootURL)
 				// Run the fiddle in the open pod.
-				ret, err := r.singleRun(rootURL+"/run", bytes.NewReader(b))
+				ret, err := r.singleRun(ctx, rootURL+"/run", bytes.NewReader(b))
 				if err == alreadyRunningFiddleErr || err == failedToSendErr {
 					sklog.Warningf("%q Couldn't run on pod: %s", req.Hash, err)
 					continue
@@ -284,7 +300,7 @@ func (r *Runner) Run(local bool, req *types.FiddleContext) (*types.Result, error
 				}
 			}
 			// Let the pods run and see of any new ones open up.
-			time.Sleep((1 << uint64(tries)) * time.Second)
+			time.Sleep((1 << uint64(tries)) * time.Millisecond)
 		}
 		runExhaustion.Inc(1)
 		return nil, fmt.Errorf("%q Failed to find an available server to run the fiddle.", req.Hash)
