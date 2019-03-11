@@ -62,7 +62,7 @@ wasm_libs_fixed: package-lock.json
 	rm -rf build
 	mkdir -p build/canvaskit
 	cp node_modules/canvaskit-wasm/bin/* build/canvaskit
-	echo "export const SKIA_VERSION = '0.4.1';" > build/version.js
+	echo "export const SKIA_VERSION = '0.5.0';" > build/version.js
 
 .PHONY: serve watch app release release_tot wasm_libs_fixed wasm_libs_tot get_latest_skia push
 
