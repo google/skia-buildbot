@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -132,7 +133,7 @@ func TestRun(t *testing.T) {
 	assert.NoError(t, err)
 	LOCALRUN_URL = ts.URL
 	req := &types.FiddleContext{}
-	res, err := r.Run(true, req)
+	res, err := r.Run(context.Background(), true, req)
 	assert.NoError(t, err)
 	assert.Equal(t, "Compile Failed.", res.Errors)
 }
