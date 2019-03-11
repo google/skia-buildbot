@@ -449,6 +449,14 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
     this._playing = !this._playing;
   }
 
+  _recoverFromError(msg) {
+      errorMessage(msg);
+      console.error(msg);
+      window.history.pushState(null, '', '/');
+      this._ui = DIALOG_MODE;
+      this.render();
+  }
+
   _reflectFromURL() {
     // Check URL.
     let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
@@ -477,13 +485,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         this._ui = LOADED_MODE;
         this._loadAssetsAndRender();
         this._rewind();
-      }).catch((msg) => {
-        console.error(msg);
-        errorMessage(msg);
-        window.history.pushState(null, '', '/');
-        this._ui = DIALOG_MODE;
-        this.render();
-      });
+      }).catch((msg) => this._recoverFromError(msg));
     });
   }
 
@@ -684,12 +686,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         this._rewind();
       }
       this.render();
-    }).catch(msg => {
-      errorMessage(msg);
-      window.history.pushState(null, '', '/');
-      this._ui = DIALOG_MODE;
-      this.render();
-    });
+    }).catch((msg) => this._recoverFromError(msg));
 
     if (!this._state.assetsZip) {
       this._ui = LOADED_MODE;
