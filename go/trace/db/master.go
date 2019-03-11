@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/serialize"
 )
 
@@ -40,8 +40,8 @@ type masterTileBuilder struct {
 	// tileSize is the number of commits that should be in the default Tile.
 	tileSize int
 
-	// git is the Git repo the commits come from.
-	git *gitinfo.GitInfo
+	// vcs is an interface to the Git repo where commits come from.
+	vcs vcsinfo.VCS
 
 	// evt is the eventbus where we announce the availability of new tiles.
 	evt eventbus.EventBus
@@ -54,12 +54,12 @@ type masterTileBuilder struct {
 // traceserver running at the given address. The tiles contain the last
 // 'tileSize' commits and are built from Traces of the type that traceBuilder
 // returns.
-func NewMasterTileBuilder(ctx context.Context, db DB, git *gitinfo.GitInfo, tileSize int, evt eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
+func NewMasterTileBuilder(ctx context.Context, db DB, vcs vcsinfo.VCS, tileSize int, evt eventbus.EventBus, cachePath string) (MasterTileBuilder, error) {
 	ret := &masterTileBuilder{
 		tileSize:  tileSize,
 		tile:      nil,
 		db:        db,
-		git:       git,
+		vcs:       vcs,
 		evt:       evt,
 		cachePath: cachePath,
 	}
@@ -110,16 +110,16 @@ func NewMasterTileBuilder(ctx context.Context, db DB, git *gitinfo.GitInfo, tile
 // periodically by the Builder to keep the tile fresh.
 func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 	// Build CommitIDs for the last INITIAL_TILE_SIZE commits to the repo.
-	if err := t.git.Update(ctx, true, false); err != nil {
+	if err := t.vcs.Update(ctx, true, false); err != nil {
 		sklog.Errorf("Failed to update Git repo: %s", err)
 	}
-	hashes := t.git.LastN(ctx, t.tileSize)
-	commitIDs := make([]*CommitID, 0, len(hashes))
-	for _, h := range hashes {
+	indexCommits := t.vcs.LastNIndex(t.tileSize)
+	commitIDs := make([]*CommitID, 0, len(indexCommits))
+	for _, ic := range indexCommits {
 		commitIDs = append(commitIDs, &CommitID{
-			ID:        h,
+			ID:        ic.Hash,
 			Source:    "master",
-			Timestamp: t.git.Timestamp(h).Unix(),
+			Timestamp: ic.Timestamp.Unix(),
 		})
 	}
 
@@ -131,7 +131,7 @@ func (t *masterTileBuilder) LoadTile(ctx context.Context) error {
 
 	// Now populate the author for each commit.
 	for _, c := range tile.Commits {
-		details, err := t.git.Details(ctx, c.Hash, true)
+		details, err := t.vcs.Details(ctx, c.Hash, false)
 		if err != nil {
 			return fmt.Errorf("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
 		}
