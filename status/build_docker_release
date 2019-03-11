@@ -17,7 +17,6 @@ ${INSTALL} --mode=644 -T ./res/vul/elements.html      ${ROOT}/usr/local/share/st
 ${INSTALL} --mode=644 -T ./templates/header.html      ${ROOT}/usr/local/share/status/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/commits.html     ${ROOT}/usr/local/share/status/templates/commits.html
 ${INSTALL} --mode=644 -T ./templates/capacity.html    ${ROOT}/usr/local/share/status/templates/capacity.html
-${INSTALL} --mode=644 -T ../infra/config/recipes.cfg  ${ROOT}/usr/local/share/status/recipes.cfg
 }
 
 source ../bash/docker_build.sh

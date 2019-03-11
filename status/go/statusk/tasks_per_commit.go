@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"path"
 	"sync"
 	"time"
 
@@ -27,17 +25,7 @@ type tasksPerCommitCache struct {
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
-func newTasksPerCommitCache(ctx context.Context, workdir, recipesCfgFile string, repos repograph.Map, period time.Duration, btProject, btInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
-	wd := path.Join(workdir, "tasksPerCommitCache")
-	if _, err := os.Stat(wd); err != nil {
-		if os.IsNotExist(err) {
-			if err := os.Mkdir(wd, os.ModePerm); err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
-		}
-	}
+func newTasksPerCommitCache(ctx context.Context, repos repograph.Map, period time.Duration, btProject, btInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, ts)
 	if err != nil {
 		return nil, err

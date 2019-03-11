@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"fmt"
 	"sync"
 	"time"
 
@@ -109,11 +110,11 @@ func newPublisher(c *pubsub.Client, topic string) (*publisher, error) {
 	t := c.Topic(topic)
 	exists, err := t.Exists(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to check for topic %q existence: %s", topic, err)
 	}
 	if !exists {
 		if _, err := c.CreateTopic(context.Background(), topic); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to create topic: %s", err)
 		}
 	}
 	p := &publisher{
@@ -356,7 +357,7 @@ func (s *subscriber) start() (context.CancelFunc, error) {
 	}()
 	err := <-errCh
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create subscription: %s", err)
 	}
 	return func() {
 		cancelFn()

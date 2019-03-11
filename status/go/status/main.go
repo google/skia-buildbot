@@ -100,7 +100,6 @@ var (
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
 	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 
@@ -705,9 +704,6 @@ func main() {
 	skiaversion.MustLogVersion()
 
 	Init()
-	if *testing {
-		*useMetadata = false
-	}
 	serverURL := "https://" + *host
 	if *testing {
 		serverURL = "http://" + *host + *port
@@ -732,7 +728,7 @@ func main() {
 	label := *host
 	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to initialize pubsub: %s", err)
 	}
 	taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
 	if err != nil {
@@ -759,7 +755,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *repoUrls, 14*24*time.Hour, *btProject, *btInstance, ts)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, repos, 14*24*time.Hour, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
