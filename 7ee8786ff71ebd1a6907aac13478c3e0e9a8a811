@@ -45,6 +45,54 @@
       "revId": "7ee8786ff71ebd1a6907aac13478c3e0e9a8a811",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e997735_c6c3ec6f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-11T13:28:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e713028e_bf13676c",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 37
+      },
+      "revId": "7ee8786ff71ebd1a6907aac13478c3e0e9a8a811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "48891edb_96fcc03f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-11T13:28:22Z",
+      "side": 1,
+      "message": "We care about the skew between the JS file and the WASM file (which is a result of the bindings and libskia.a). The two have a mutual dependence, one cannot update one without the other.  (speculation follows): when I hit compile, the compiler may decide to store data differently, thus even if something very small changes in libskia.a, the memory layout of the whole WASM file is different enough that it won\u0027t work with a previous JS file, even if the bindings didn\u0027t change.",
+      "parentUuid": "d58b384a_3a4f60f3",
+      "range": {
+        "startLine": 9,
+        "startChar": 46,
+        "endLine": 9,
+        "endChar": 65
+      },
+      "revId": "7ee8786ff71ebd1a6907aac13478c3e0e9a8a811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
