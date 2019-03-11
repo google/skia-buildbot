@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"path"
 	"sync"
 	"time"
 
@@ -27,21 +25,7 @@ type tasksPerCommitCache struct {
 }
 
 // newTasksPerCommitCache returns a tasksPerCommitCache instance.
-func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []string, period time.Duration, btProject, btInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
-	wd := path.Join(workdir, "tasksPerCommitCache")
-	if _, err := os.Stat(wd); err != nil {
-		if os.IsNotExist(err) {
-			if err := os.Mkdir(wd, os.ModePerm); err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
-		}
-	}
-	repos, err := repograph.NewMap(ctx, repoUrls, wd)
-	if err != nil {
-		return nil, err
-	}
+func newTasksPerCommitCache(ctx context.Context, repos repograph.Map, period time.Duration, btProject, btInstance string, ts oauth2.TokenSource) (*tasksPerCommitCache, error) {
 	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, ts)
 	if err != nil {
 		return nil, err
@@ -101,9 +85,6 @@ func (c *tasksPerCommitCache) Get(ctx context.Context, rs types.RepoState) (int,
 
 // update pulls down new commits and evicts old entries from the cache.
 func (c *tasksPerCommitCache) update(ctx context.Context) error {
-	if err := c.repos.Update(ctx); err != nil {
-		return err
-	}
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	start := time.Now().Add(-c.period)

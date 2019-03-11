@@ -22,6 +22,7 @@ import (
 	"unicode"
 
 	"cloud.google.com/go/bigtable"
+	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -101,14 +102,12 @@ var (
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	recipesCfgFile              = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	chromeInfraAuthJWT          = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	useMetadata                 = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
 	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 
@@ -692,16 +691,13 @@ func main() {
 	skiaversion.MustLogVersion()
 
 	Init()
-	if *testing {
-		*useMetadata = false
-	}
 	serverURL := "https://" + *host
 	if *testing {
 		serverURL = "http://" + *host + *port
 	}
 	ctx := context.Background()
 
-	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(*testing, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, bigtable.Scope, pubsub.AUTH_SCOPE, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -725,7 +721,7 @@ func main() {
 	label := *host
 	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
 	if err != nil {
-		sklog.Fatal(err)
+		sklog.Fatalf("Failed to initialize pubsub: %s", err)
 	}
 	taskDb, err = firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
 	if err != nil {
@@ -753,7 +749,7 @@ func main() {
 		sklog.Fatalf("Failed to create repos dir: %s", err)
 	}
 	if *repoUrls == nil {
-		*repoUrls = common.PUBLIC_REPOS
+		sklog.Fatal("At least one --repo is required.")
 	}
 	repos, err = repograph.NewMap(ctx, *repoUrls, reposDir)
 	if err != nil {
@@ -765,7 +761,7 @@ func main() {
 	sklog.Info("Checkout complete")
 
 	// Cache for buildProgressHandler.
-	tasksPerCommit, err = newTasksPerCommitCache(ctx, *workdir, *recipesCfgFile, repos, 14*24*time.Hour, *btProject, *btInstance, ts)
+	tasksPerCommit, err = newTasksPerCommitCache(ctx, repos, 14*24*time.Hour, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
 	}
@@ -839,11 +835,12 @@ func main() {
 	})
 
 	// Create the TaskDriver DB.
-	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, *btInstance, ts)
+	taskDriverBtInstance := "staging" // Task Drivers aren't in prod yet.
+	taskDriverDb, err = bigtable_db.NewBigTableDB(ctx, *btProject, taskDriverBtInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, *btInstance, ts)
+	taskDriverLogs, err = logs.NewLogsManager(ctx, *btProject, taskDriverBtInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
