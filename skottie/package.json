@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "@webcomponents/custom-elements": "^1.2.1",
-    "canvaskit-wasm": "0.4.1",
+    "canvaskit-wasm": "0.5.0",
     "common-sk": "~3.1.0",
     "elements-sk": "~2.7.0",
     "infra-sk": "^0.8.1",
