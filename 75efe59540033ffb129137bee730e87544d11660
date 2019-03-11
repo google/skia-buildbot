@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91f5b7ad_9693b9d9",
+        "filename": "jsfiddle/go/jsfiddle/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T14:45:59Z",
+      "side": 1,
+      "message": "Use https://golang.org/pkg/mime/#AddExtensionType instead.",
+      "revId": "75efe59540033ffb129137bee730e87544d11660",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
