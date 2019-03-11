@@ -1,0 +1,18 @@
+#!/bin/bash
+# The base Debian image that includes the skia user and group setup.
+set -x -e
+
+APPNAME=doxygen
+
+# Keep in sync with the version of Debian we are depending on, i.e.
+# make this match the tag in basedebian/Dockerfile.
+TAG=testing-slim
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose"
+${INSTALL}     --mode=644 -T doxygen/Dockerfile ${ROOT}/Dockerfile
+}
+
+source ../bash/docker_build.sh
