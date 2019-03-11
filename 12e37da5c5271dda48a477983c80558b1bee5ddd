@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6af90da_9f1bca1f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "nit: update doc",
+      "range": {
+        "startLine": 441,
+        "startChar": 0,
+        "endLine": 444,
+        "endChar": 30
+      },
+      "revId": "12e37da5c5271dda48a477983c80558b1bee5ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c63249c5_258df864",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 526,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "nit: It might be clearer to write this with a local helper function \"followBranch\".",
+      "revId": "12e37da5c5271dda48a477983c80558b1bee5ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4381cfe_0bc61254",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "nit: \"for len(children[c]) \u003d\u003d 0 {\"",
+      "range": {
+        "startLine": 526,
+        "startChar": 0,
+        "endLine": 529,
+        "endChar": 30
+      },
+      "revId": "12e37da5c5271dda48a477983c80558b1bee5ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c422fa4_16f4b5c4",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "This should be p, right?",
+      "range": {
+        "startLine": 539,
+        "startChar": 36,
+        "endLine": 539,
+        "endChar": 37
+      },
+      "revId": "12e37da5c5271dda48a477983c80558b1bee5ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "960f5100_cee08c85",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "nit: use loop labels to continue with outer loop",
+      "range": {
+        "startLine": 541,
+        "startChar": 7,
+        "endLine": 542,
+        "endChar": 12
+      },
+      "revId": "12e37da5c5271dda48a477983c80558b1bee5ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74d916c2_3ef4fef1",
+        "filename": "task_scheduler/go/blacklist/blacklist.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "wrong format",
+      "range": {
+        "startLine": 157,
+        "startChar": 30,
+        "endLine": 157,
+        "endChar": 34
+      },
+      "revId": "12e37da5c5271dda48a477983c80558b1bee5ddd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

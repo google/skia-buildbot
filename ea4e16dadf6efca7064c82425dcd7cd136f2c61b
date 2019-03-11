@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "27f9bc36_e2b21c46",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f3e24d5b_997b2611",
+      "range": {
+        "startLine": 58,
+        "startChar": 47,
+        "endLine": 58,
+        "endChar": 48
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f8af98f_1d4e8fbc",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -116,6 +140,30 @@
       "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fadf691c_c3bc14c0",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0f8af98f_1d4e8fbc",
+      "range": {
+        "startLine": 61,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 5
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +199,24 @@
       "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bd56c7e_e4341385",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "608f5671_fa01a452",
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +338,30 @@
     },
     {
       "key": {
+        "uuid": "26e63a46_5b380dae",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "nit: would be nice to add a test that would exercise this.",
+      "parentUuid": "35ef669b_9881df0a",
+      "range": {
+        "startLine": 425,
+        "startChar": 46,
+        "endLine": 425,
+        "endChar": 58
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1b392219_3ee461bb",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -307,6 +397,30 @@
       "side": 1,
       "message": "Yeah, we could. I don\u0027t think it makes the algorithm any simpler, although it probably makes more sense from the caller\u0027s perspective (writing \"^\"+commitA is awkward).",
       "parentUuid": "1b392219_3ee461bb",
+      "range": {
+        "startLine": 426,
+        "startChar": 58,
+        "endLine": 427,
+        "endChar": 54
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d8c835c0_05defc55",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-11T20:13:29Z",
+      "side": 1,
+      "message": "That\u0027s true, but mostly I was just worried about weird edge cases and test coverage. I can understand \"from-to\" much better (or at least I think I do...).",
+      "parentUuid": "fbcf56ee_c7dbc286",
       "range": {
         "startLine": 426,
         "startChar": 58,
