@@ -1878,13 +1878,12 @@ func TestSchedulerStealingFrom(t *testing.T) {
 
 	// Add some commits.
 	makeDummyCommits(ctx, gb, 10)
-	assert.NoError(t, s.repos[gb.RepoUrl()].Repo().Update(ctx))
-	commits, err := s.repos[gb.RepoUrl()].Repo().RevList(ctx, "HEAD")
+	assert.NoError(t, s.repos[gb.RepoUrl()].Update(ctx))
+	commits, err := s.repos[gb.RepoUrl()].Get("master").AllCommits()
 	assert.NoError(t, err)
 
 	// Run one task. Ensure that it's at tip-of-tree.
-	head, err := s.repos[gb.RepoUrl()].Repo().RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	head := s.repos[gb.RepoUrl()].Get("master").Hash
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.updateRepos(ctx))
 	assert.NoError(t, s.MainLoop(ctx))
@@ -2071,8 +2070,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	assert.Equal(t, 0, len(s.queue))
-	head, err := s.repos[gb.RepoUrl()].Repo().RevParse(ctx, "HEAD")
-	assert.NoError(t, err)
+	head := s.repos[gb.RepoUrl()].Get("master").Hash
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), []string{head})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[head]))
@@ -2081,8 +2079,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	// Add some commits to the repo.
 	gb.CheckoutBranch(ctx, "master")
 	makeDummyCommits(ctx, gb, 8)
-	assert.NoError(t, s.repos[gb.RepoUrl()].Repo().Update(ctx))
-	commits, err := s.repos[gb.RepoUrl()].Repo().RevList(ctx, fmt.Sprintf("%s..HEAD", head))
+	assert.NoError(t, s.repos[gb.RepoUrl()].Update(ctx))
+	commits, err := s.repos[gb.RepoUrl()].RevList(head, "master")
 	assert.Nil(t, err)
 	assert.Equal(t, 8, len(commits))
 	assert.NoError(t, s.updateRepos(ctx)) // Most tests want this.
@@ -2866,7 +2864,7 @@ func setupAddTasksTest(t *testing.T) (context.Context, *git_testutils.GitBuilder
 	// Add some commits to test blamelist calculation.
 	makeDummyCommits(ctx, gb, 7)
 	assert.NoError(t, s.updateRepos(ctx))
-	hashes, err := s.repos[gb.RepoUrl()].Repo().RevList(ctx, "HEAD")
+	hashes, err := s.repos[gb.RepoUrl()].Get("master").AllCommits()
 	assert.NoError(t, err)
 
 	return ctx, gb, hashes, d, s, func() {
