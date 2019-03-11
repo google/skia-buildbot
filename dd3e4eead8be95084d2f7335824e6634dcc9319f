@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "86edf83e_5137d710",
+        "filename": "particles/build_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T14:50:10Z",
+      "side": 1,
+      "message": "There is a way to do this in a single line, see:\n\nhttps://github.com/google/skia-buildbot/blob/master/jsdoc/build_docker_release#L26",
+      "revId": "dd3e4eead8be95084d2f7335824e6634dcc9319f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d2388b9_909ae378",
+        "filename": "particles/create-particles-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T14:50:10Z",
+      "side": 1,
+      "message": "Add line that adds r/w access to the particles bucket.",
+      "revId": "dd3e4eead8be95084d2f7335824e6634dcc9319f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
