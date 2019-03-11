@@ -99,7 +99,7 @@ type cacheEntry struct {
 
 // CommitIDLookup allows getting CommitDetails from CommitIDs.
 type CommitIDLookup struct {
-	git *gitinfo.GitInfo
+	vcs vcsinfo.VCS
 
 	// mutex protects access to cache.
 	mutex sync.Mutex
@@ -116,7 +116,7 @@ type CommitIDLookup struct {
 //
 // index is the index of the last commit id, or -1 if we don't know which
 // commit id we are on.
-func parseLogLine(ctx context.Context, s string, index *int, git *gitinfo.GitInfo) (*cacheEntry, error) {
+func parseLogLine(ctx context.Context, s string, index *int, vcs vcsinfo.VCS) (*cacheEntry, error) {
 	parts := strings.SplitN(s, " ", 4)
 	if len(parts) != 4 {
 		return nil, fmt.Errorf("Failed to parse parts of %q: %#v", s, parts)
@@ -130,7 +130,7 @@ func parseLogLine(ctx context.Context, s string, index *int, git *gitinfo.GitInf
 		return nil, fmt.Errorf("Can't parse timestamp %q: %s", ts, err)
 	}
 	if *index == -1 {
-		*index, err = git.IndexOf(ctx, hash)
+		*index, err = vcs.IndexOf(ctx, hash)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get index of %q: %s", hash, err)
 		}
@@ -151,9 +151,11 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 	defer timer.New("cid.warmCache time").Stop()
 	now := time.Now()
 
+	// TODO(jcgregorio) Remove entire cache once we switch to a BigTable backed vcsinfo.
+
 	// Extract ts, hash, author email, and subject from the git log.
 	since := now.Add(-365 * 24 * time.Hour).Format("2006-01-02")
-	log, err := c.git.LogArgs(ctx, "--since="+since, "--format=format:%ct %H %ae %s")
+	log, err := c.vcs.(*gitinfo.GitInfo).LogArgs(ctx, "--since="+since, "--format=format:%ct %H %ae %s")
 	if err != nil {
 		sklog.Errorf("Could not get log for --since=%q: %s", since, err)
 		return
@@ -164,7 +166,7 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 	var index int = -1
 	// Parse.
 	for _, s := range lines {
-		entry, err := parseLogLine(ctx, s, &index, c.git)
+		entry, err := parseLogLine(ctx, s, &index, c.vcs)
 		if err != nil {
 			sklog.Errorf("Failed to parse git log line %q: %s", s, err)
 			return
@@ -173,9 +175,9 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 	}
 }
 
-func New(ctx context.Context, git *gitinfo.GitInfo, gitRepoURL string) *CommitIDLookup {
+func New(ctx context.Context, vcs vcsinfo.VCS, gitRepoURL string) *CommitIDLookup {
 	cidl := &CommitIDLookup{
-		git:        git,
+		vcs:        vcs,
 		cache:      map[int]*cacheEntry{},
 		gitRepoURL: gitRepoURL,
 	}
@@ -202,7 +204,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 					Timestamp: entry.ts,
 				}
 			} else {
-				lc, err := c.git.ByIndex(ctx, cid.Offset)
+				lc, err := c.vcs.ByIndex(ctx, cid.Offset)
 				if err != nil {
 					return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
 				}

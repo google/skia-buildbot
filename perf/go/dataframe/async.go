@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/shortcut2"
 	"go.skia.org/infra/perf/go/types"
@@ -83,9 +84,9 @@ type FrameRequestProcess struct {
 	// request is read-only, it should not be modified.
 	request *FrameRequest
 
-	// git is for Git info. The value of the 'git' variable should not be
-	//   changed, but git is Go routine safe.
-	git *gitinfo.GitInfo
+	// vcs is for Git info. The value of the 'vcs' variable should not be
+	//   changed, but vcs is Go routine safe.
+	vcs vcsinfo.VCS
 
 	// dfBuilder builds DataFrame's.
 	dfBuilder DataFrameBuilder
@@ -106,7 +107,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		numKeys = 1
 	}
 	ret := &FrameRequestProcess{
-		git:           fr.git,
+		vcs:           fr.vcs,
 		request:       req,
 		lastUpdate:    time.Now(),
 		state:         PROCESS_RUNNING,
@@ -124,7 +125,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 type RunningFrameRequests struct {
 	mutex sync.Mutex
 
-	git *gitinfo.GitInfo
+	vcs vcsinfo.VCS
 
 	dfBuilder DataFrameBuilder
 
@@ -133,9 +134,9 @@ type RunningFrameRequests struct {
 	inProcess map[string]*FrameRequestProcess
 }
 
-func NewRunningFrameRequests(git *gitinfo.GitInfo, dfBuilder DataFrameBuilder) *RunningFrameRequests {
+func NewRunningFrameRequests(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder) *RunningFrameRequests {
 	fr := &RunningFrameRequests{
-		git:       git,
+		vcs:       vcs,
 		dfBuilder: dfBuilder,
 
 		inProcess: map[string]*FrameRequestProcess{},
@@ -290,10 +291,10 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 	}
 
 	if len(df.Header) == 0 {
-		df = NewHeaderOnly(p.git, begin, end, true)
+		df = NewHeaderOnly(p.vcs, begin, end, true)
 	}
 
-	resp, err := ResponseFromDataFrame(context.Background(), df, p.git, true, p.request.TZ)
+	resp, err := ResponseFromDataFrame(context.Background(), df, p.vcs, true, p.request.TZ)
 	if err != nil {
 		p.reportError(err, "Failed to get ticks or skps.")
 		return
@@ -307,11 +308,13 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 // getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
 // the times that the given file changed in git between the given 'begin' and
 // 'end' hashes (inclusive).
-func getCommitTimesForFile(ctx context.Context, begin, end string, filename string, git *gitinfo.GitInfo) []int64 {
+func getCommitTimesForFile(ctx context.Context, begin, end string, filename string, vcs vcsinfo.VCS) []int64 {
 	ret := []int64{}
 
+	// TODO(jcgregorio): Replace with calls to Gerrit API, only used by the Skia instance of perf.
+
 	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := git.LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
+	log, err := vcs.(*gitinfo.GitInfo).LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
 	if err != nil {
 		sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
 		return ret
@@ -330,23 +333,23 @@ func getCommitTimesForFile(ctx context.Context, begin, end string, filename stri
 
 // getSkps returns the indices where the SKPs have been updated given
 // the ColumnHeaders.
-func getSkps(ctx context.Context, headers []*ColumnHeader, git *gitinfo.GitInfo) ([]int, error) {
+func getSkps(ctx context.Context, headers []*ColumnHeader, vcs vcsinfo.VCS) ([]int, error) {
 	// We have Offsets, which need to be converted to git hashes.
-	ci, err := git.ByIndex(ctx, int(headers[0].Offset))
+	ci, err := vcs.ByIndex(ctx, int(headers[0].Offset))
 	if err != nil {
 		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[0].Offset, err)
 	}
 	begin := ci.Hash
-	ci, err = git.ByIndex(ctx, int(headers[len(headers)-1].Offset))
+	ci, err = vcs.ByIndex(ctx, int(headers[len(headers)-1].Offset))
 	if err != nil {
 		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[len(headers)-1].Offset, err)
 	}
 	end := ci.Hash
 
 	// Now query for all the changes to the skp version over the given range of commits.
-	ts := getCommitTimesForFile(ctx, begin, end, "infra/bots/assets/skp/VERSION", git)
+	ts := getCommitTimesForFile(ctx, begin, end, "infra/bots/assets/skp/VERSION", vcs)
 	// Add in the changes to the old skp version over the given range of commits.
-	ts = append(ts, getCommitTimesForFile(ctx, begin, end, "SKP_VERSION", git)...)
+	ts = append(ts, getCommitTimesForFile(ctx, begin, end, "SKP_VERSION", vcs)...)
 
 	// Sort because they are in reverse order.
 	sort.Sort(util.Int64Slice(ts))
@@ -377,7 +380,7 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, git *gitinfo.GitInfo)
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git *gitinfo.GitInfo, truncate bool, tz string) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *DataFrame, vcs vcsinfo.VCS, truncate bool, tz string) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
@@ -389,7 +392,7 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, git *gitinfo.GitI
 	ticks := human.FlotTickMarks(ts, tz)
 
 	// Determine where SKP changes occurred.
-	skps, err := getSkps(ctx, df.Header, git)
+	skps, err := getSkps(ctx, df.Header, vcs)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load skps: %s", err)
 	}
