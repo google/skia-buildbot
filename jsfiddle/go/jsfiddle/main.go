@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -42,10 +43,29 @@ func htmlHandler(page []byte) func(w http.ResponseWriter, r *http.Request) {
 			loadPages()
 		}
 		w.Header().Set("Content-Type", "text/html")
+		// Set the HTML to expire at the same time as the JS and WASM, otherwise the HTML
+		// (and by extension, the JS with its cachbuster hash) might outlive the WASM
+		// and then the two will skew
+		w.Header().Set("Cache-Control", "max-age=60")
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(page); err != nil {
 			httputils.ReportError(w, r, err, "Server could not load page")
 		}
+	}
+}
+
+func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(*resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Use a shorter cache live to limit the risk of canvaskit.js (in indexbundle.js)
+		// from drifting away from the version of canvaskit.wasm. Ideally, canvaskit
+		// will roll at ToT (~35 commits per day), so living for a minute should
+		// reduce the risk of JS/WASM being out of sync.
+		w.Header().Add("Cache-Control", "max-age=60")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		p := r.URL.Path
+		r.URL.Path = strings.TrimPrefix(p, "/res")
+		fileServer.ServeHTTP(w, r)
 	}
 }
 
@@ -91,21 +111,6 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(cr); err != nil {
 		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
-	}
-}
-
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", "max-age=300")
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		p := r.URL.Path
-		r.URL.Path = strings.TrimPrefix(p, "/res")
-		if strings.HasSuffix(p, "wasm") {
-			// WASM won't do a streaming-compile if the mime-type isn't set
-			w.Header().Set("Content-Type", "application/wasm")
-		}
-		fileServer.ServeHTTP(w, r)
 	}
 }
 
@@ -180,6 +185,11 @@ func main() {
 	fiddleStore, err = store.New(*local)
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
+	}
+
+	// Need to set the mime-type for wasm files so streaming compile works.
+	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
+		sklog.Fatal(err)
 	}
 
 	r := mux.NewRouter()

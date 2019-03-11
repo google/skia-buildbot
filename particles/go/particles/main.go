@@ -64,7 +64,7 @@ func New() (*Server, error) {
 
 	// Need to set the mime-type for wasm files so streaming compile works.
 	if err := mime.AddExtensionType(".wasm", "application/wasm"); err != nil {
-		sklog.Fatal(err)
+		return nil, err
 	}
 
 	ts, err := auth.NewDefaultTokenSource(*local, storage.ScopeFullControl)
@@ -99,9 +99,14 @@ func (srv *Server) loadTemplates() {
 		filepath.Join(*resourcesDir, "index.html"),
 	))
 }
+
 func (srv *Server) templateHandler(filename string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
+		// Set the HTML to expire at the same time as the JS and WASM, otherwise the HTML
+		// (and by extension, the JS with its cachbuster hash) might outlive the WASM
+		// and then the two will skew
+		w.Header().Set("Cache-Control", "max-age=60")
 		if *local {
 			srv.loadTemplates()
 		}
@@ -110,6 +115,19 @@ func (srv *Server) templateHandler(filename string) func(http.ResponseWriter, *h
 		}
 	}
 }
+
+func resourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Use a shorter cache live to limit the risk of canvaskit.js (in indexbundle.js)
+		// from drifting away from the version of canvaskit.wasm. Ideally, the skottie
+		// will roll at ToT (~35 commits per day), so living for a minute should
+		// reduce the risk of JS/WASM being out of sync.
+		w.Header().Add("Cache-Control", "max-age=60")
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
 func (srv *Server) jsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -240,7 +258,7 @@ func main() {
 	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
 	r.HandleFunc("/_/upload", srv.uploadHandler).Methods("POST")
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(httputils.MakeResourceHandler(*resourcesDir))))).Methods("GET")
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.HandlerFunc(httputils.CorsHandler(resourceHandler(*resourcesDir))))).Methods("GET")
 
 	// TODO(jcgregorio) Implement CSRF.
 	h := httputils.LoggingGzipRequestResponse(r)
