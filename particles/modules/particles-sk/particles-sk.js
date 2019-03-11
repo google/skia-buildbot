@@ -8,6 +8,7 @@
  *
  */
 import '../particles-player-sk'
+import '../particles-config-sk'
 import 'elements-sk/checkbox-sk'
 import 'elements-sk/error-toast-sk'
 import 'elements-sk/styles/buttons'
@@ -17,9 +18,6 @@ import { errorMessage } from 'elements-sk/errorMessage'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { stateReflector } from 'common-sk/modules/stateReflector'
-
-// FIXME(kjlubick): remove this placeholder
-import { spiral } from './test_data.js'
 
 const JSONEditor = require('jsoneditor/dist/jsoneditor-minimalist.js');
 
@@ -32,7 +30,7 @@ const LOADED_MODE = 3;
 const SCRUBBER_RANGE = 1000;
 
 const displayDialog = (ele) => html`
-<div> TODO config / dialog </div>
+<particles-config-sk .state=${ele._state} .width=${ele._width} .height=${ele._height}></particles-config-sk>
 `;
 
 const particlesPlayer = (ele) => html`
@@ -53,7 +51,15 @@ const jsonEditor = (ele) => {
 </section>`;
 }
 
+const gallery = (ele) => html`
+Check out these examples ==>
+<a href="/a879da270cf25c70600810cb42ed78ff">spiral</a>
+<a href="/1afc7fa7bc923aad06f538982ddf5ba8">swirl</a>
+<a href="/7c132e60cc25fd6893998bd797eafb65">text</a>
+`;
+
 const displayLoaded = (ele) => html`
+${gallery(ele)}
 <button class=edit-config @click=${ ele._startEdit}>
   ${ele._state.filename} ${ele._width}x${ele._height} ...
 </button>
@@ -237,26 +243,39 @@ window.customElements.define('particles-sk', class extends HTMLElement {
     this._playing = !this._playing;
   }
 
+  _recoverFromError(msg) {
+      errorMessage(msg);
+      console.error(msg);
+      window.history.pushState(null, '', '/');
+      this._ui = DIALOG_MODE;
+      this.render();
+  }
+
   _reflectFromURL() {
     // Check URL.
     let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
     if (!match) {
       // Make this the hash of the particles file you want to play on startup.
-      this._hash = '1112d01d28a776d777cebcd0632da15b'; // spiral.json
+      this._hash = 'a879da270cf25c70600810cb42ed78ff'; // spiral.json
     } else {
       this._hash = match[1];
     }
     this._ui = LOADING_MODE;
     this.render();
-    // TODO(kjlubick) Actually make a fetch request
-    this._state.json = spiral;
-    this._state.filename = 'spiral.json';
-    this._ui = LOADED_MODE;
-    this.render();
-    this._initializePlayer();
-    // Force start playing
-    this._playing = false;
-    this._playpause();
+    // Run this on the next micro-task to allow mocks to be set up if needed.
+    setTimeout(() => {
+      fetch(`/_/j/${this._hash}`, {
+        credentials: 'include',
+      }).then(jsonOrThrow).then(json => {
+        this._state = json;
+        this._ui = LOADED_MODE;
+        this.render();
+        this._initializePlayer();
+        // Force start playing
+        this._playing = false;
+        this._playpause();
+      }).catch((msg) => this._recoverFromError(msg));
+    });
   }
 
   render() {
@@ -344,7 +363,21 @@ window.customElements.define('particles-sk', class extends HTMLElement {
     this._editor = null;
     // Clean up the old animation and other wasm objects
     this.render();
-    console.log('should upload JSON')
+     fetch('/_/upload', {
+      credentials: 'include',
+      body: JSON.stringify(this._state),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+    }).then(jsonOrThrow).then((json) => {
+      // Should return with the hash
+      this._ui = LOADED_MODE;
+      this._hash = json.hash;
+      window.history.pushState(null, '', '/' + this._hash);
+      this._stateChanged();
+      this.render();
+    }).catch((msg) => this._recoverFromError(msg));
 
     this._ui = LOADED_MODE;
     // Start drawing right away, no need to wait for
