@@ -110,7 +110,7 @@ func setup(t testutils.TestingT) (context.Context, *TryJobIntegrator, *git_testu
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	rm, err := repograph.NewMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
+	rm, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl(), gb2.RepoUrl()}, tmpDir)
 	assert.NoError(t, err)
 	assert.NoError(t, rm.Update(ctx))
 

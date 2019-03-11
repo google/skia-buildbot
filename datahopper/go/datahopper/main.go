@@ -117,7 +117,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	// TODO(borenet): We should include all (public and private) repos.
-	repos, err := repograph.NewMap(ctx, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA, common.REPO_LOTTIE_CI}, reposDir)
+	repos, err := repograph.NewLocalMap(ctx, []string{common.REPO_SKIA, common.REPO_SKIA_INFRA, common.REPO_LOTTIE_CI}, reposDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}

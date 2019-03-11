@@ -38,7 +38,7 @@ func newTasksPerCommitCache(ctx context.Context, workdir string, repoUrls []stri
 			return nil, fmt.Errorf("There is a problem with the workdir: %s", err)
 		}
 	}
-	repos, err := repograph.NewMap(ctx, repoUrls, wd)
+	repos, err := repograph.NewLocalMap(ctx, repoUrls, wd)
 	if err != nil {
 		return nil, err
 	}

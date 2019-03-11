@@ -755,7 +755,7 @@ func main() {
 	if *repoUrls == nil {
 		*repoUrls = common.PUBLIC_REPOS
 	}
-	repos, err = repograph.NewMap(ctx, *repoUrls, reposDir)
+	repos, err = repograph.NewLocalMap(ctx, *repoUrls, reposDir)
 	if err != nil {
 		sklog.Fatalf("Failed to create repo map: %s", err)
 	}
