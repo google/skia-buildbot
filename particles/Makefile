@@ -6,6 +6,14 @@ release: wasm_libs_tot
 	npx webpack --mode=production
 	./build_release
 
+release_ci: release_ci_fixed
+	echo "using a fixed canvaskit"
+
+release_ci_fixed: app wasm_libs_fixed
+	npx webpack --mode=production
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
+	./build_release
+
 serve: app
 	npx webpack-dev-server --mode=development --watch --watch-poll 100
 
@@ -35,7 +43,11 @@ wasm_libs_fixed: package-lock.json
 	rm -rf build
 	mkdir -p build/canvaskit
 	cp node_modules/canvaskit-wasm/bin/* build/canvaskit
-	echo "export const SKIA_VERSION = '0.4.2';" > build/version.js
+	echo "export const SKIA_VERSION = '0.5.0';" > build/version.js
 
-.PHONY: serve watch app release wasm_libs_fixed wasm_libs_tot get_latest_skia push
+push: release skia-public
+	pushk particles
 
+.PHONY: serve watch app release release_ci wasm_libs_fixed wasm_libs_tot get_latest_skia push
+
+include ../make/clusters.mk
