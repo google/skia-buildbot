@@ -16,7 +16,11 @@
     "repoOwner": "flutter",
     "repoName": "engine",
     "checksNum": 4,
-    "checksWaitFor": []
+    "checksWaitFor": [
+      "windows-build",
+      "linux-build",
+      "mac-build"
+    ]
   },
   "githubDEPSRepoManager": {
     "childBranch": "master",
