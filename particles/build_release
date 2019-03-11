@@ -1,5 +1,5 @@
 #!/bin/bash
-APPNAME=skottie
+APPNAME=particles
 
 set -x -e
 
