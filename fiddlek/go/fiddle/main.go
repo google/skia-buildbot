@@ -15,8 +15,11 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/fiddlek/go/named"
 	"go.skia.org/infra/fiddlek/go/runner"
 	"go.skia.org/infra/fiddlek/go/source"
@@ -319,6 +322,9 @@ func sourceHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, span := trace.StartSpan(context.Background(), "fiddleRunHandler")
+	defer span.End()
+
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Add("Access-Control-Allow-Methods", "POST, GET")
@@ -337,7 +343,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err, msg := runImpl(context.Background(), req)
+	resp, err, msg := runImpl(ctx, req)
 	if err != nil {
 		httputils.ReportError(w, r, err, msg)
 		return
@@ -352,6 +358,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, error, string) {
+	ctx, span := trace.StartSpan(ctx, "runImpl")
+	defer span.End()
+
 	resp := &types.RunResults{
 		CompileErrors: []types.CompileError{},
 		FiddleHash:    "",
@@ -387,7 +396,7 @@ func runImpl(ctx context.Context, req *types.FiddleContext) (*types.RunResults, 
 	}
 	req.Hash = fiddleHash
 
-	res, err := run.Run(*local, req)
+	res, err := run.Run(ctx, *local, req)
 	if err != nil {
 		return resp, fmt.Errorf("Failed to run the fiddle: %s", err), "Failed to run the fiddle."
 	}
@@ -493,8 +502,19 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
+
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		BundleDelayThreshold: time.Second / 10,
+		BundleCountThreshold: 10})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	_, span := trace.StartSpan(context.Background(), "main")
+	defer span.End()
+
 	loadTemplates()
-	var err error
 	fiddleStore, err = store.New(*local)
 	if err != nil {
 		sklog.Fatalf("Failed to connect to store: %s", err)
