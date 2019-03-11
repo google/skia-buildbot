@@ -480,8 +480,8 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/drive", srv.templateHandler("drive.html"))
 	r.HandleFunc("/google99d1f93c6755806b.html", srv.verificationHandler)
-	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html"))
-	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html"))
+	r.HandleFunc("/{hash:[0-9A-Za-z]*}", srv.templateHandler("index.html")).Methods("GET")
+	r.HandleFunc("/e/{hash:[0-9A-Za-z]*}", srv.templateHandler("embed.html")).Methods("GET")
 
 	r.HandleFunc("/_/j/{hash:[0-9A-Za-z]+}", srv.jsonHandler).Methods("GET")
 	r.HandleFunc(`/_/a/{hash:[0-9A-Za-z]+}/{name:[A-Za-z0-9\._\-]+}`, srv.assetsHandler).Methods("GET")

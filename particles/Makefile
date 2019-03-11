@@ -2,6 +2,7 @@ default: app
 	npx webpack --mode=development
 
 release: wasm_libs_tot
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
 	npx webpack --mode=production
 	./build_release
 
@@ -14,6 +15,9 @@ watch: app
 package-lock.json: package.json
 	npm install
 	touch package-lock.json
+
+app: package-lock.json
+	go install ./go/particles
 
 get_latest_skia:
 	docker pull gcr.io/skia-public/skia-wasm-release:prod
