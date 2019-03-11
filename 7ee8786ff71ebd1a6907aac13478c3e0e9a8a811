@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d58b384a_3a4f60f3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2019-03-11T13:15:35Z",
+      "side": 1,
+      "message": "Is it correct to say we only care about the JS-vs-WASM-bindings skew, and not JS-vs-WASM-Skia (99% of the payload)?\n\nI\u0027m not sure how to express this with deployment rules, but it seems rolling out new WASMs should be safe as long as they don\u0027t contains any changes in bindings.",
+      "range": {
+        "startLine": 9,
+        "startChar": 46,
+        "endLine": 9,
+        "endChar": 65
+      },
+      "revId": "7ee8786ff71ebd1a6907aac13478c3e0e9a8a811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e713028e_bf13676c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2019-03-11T13:15:35Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 9,
+        "startChar": 31,
+        "endLine": 9,
+        "endChar": 37
+      },
+      "revId": "7ee8786ff71ebd1a6907aac13478c3e0e9a8a811",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
