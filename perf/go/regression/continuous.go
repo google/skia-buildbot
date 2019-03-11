@@ -7,11 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -39,7 +39,7 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	git            *gitinfo.GitInfo
+	vcs            vcsinfo.VCS
 	cidl           *cid.CommitIDLookup
 	store          *Store
 	numCommits     int // Number of recent commits to do clustering over.
@@ -58,9 +58,9 @@ type Continuous struct {
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, paramsProvider ParamsetProvider, dfBuilder dataframe.DataFrameBuilder) *Continuous {
+func NewContinuous(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, provider ConfigProvider, store *Store, numCommits int, radius int, notifier *notify.Notifier, paramsProvider ParamsetProvider, dfBuilder dataframe.DataFrameBuilder) *Continuous {
 	return &Continuous{
-		git:            git,
+		vcs:            vcs,
 		cidl:           cidl,
 		store:          store,
 		numCommits:     numCommits,
@@ -220,7 +220,7 @@ func (c *Continuous) Run(ctx context.Context) {
 			if cfg.Radius == 0 {
 				cfg.Radius = c.radius
 			}
-			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Time{}, c.git, c.cidl, c.dfBuilder, c.setCurrentStep)
+			RegressionsForAlert(ctx, cfg, c.paramsProvider(), clusterResponseProcessor, c.numCommits, time.Time{}, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()

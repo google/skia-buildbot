@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
@@ -75,7 +76,7 @@ var (
 var (
 	activityHandlerPath = regexp.MustCompile(`/activitylog/([0-9]*)$`)
 
-	git *gitinfo.GitInfo = nil
+	vcs vcsinfo.VCS
 
 	cidl *cid.CommitIDLookup = nil
 )
@@ -262,7 +263,7 @@ func Init() {
 	*gitRepoUrl = btConfig.GitUrl
 
 	sklog.Info("About to clone repo.")
-	git, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
+	vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -273,13 +274,13 @@ func Init() {
 	if err != nil {
 		sklog.Fatalf("Failed to open trace store: %s", err)
 	}
-	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(git, traceStore)
+	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, git, *gitRepoUrl)
+	cidl = cid.New(ctx, vcs, *gitRepoUrl)
 
 	sklog.Info("About to build dataframe refresher.")
-	freshDataFrame, err = dataframe.NewRefresher(git, dfBuilder, 15*time.Minute, *numTilesRefresher)
+	freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
 	if err != nil {
 		sklog.Fatalf("Failed to build the dataframe Refresher: %s", err)
 	}
@@ -299,19 +300,19 @@ func Init() {
 		notifier = notify.New(notify.NoEmail{}, *subdomain)
 	}
 
-	frameRequests = dataframe.NewRunningFrameRequests(git, dfBuilder)
-	clusterRequests = regression.NewRunningClusterRequests(git, cidl, float32(*interesting), dfBuilder)
+	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder)
+	clusterRequests = regression.NewRunningClusterRequests(vcs, cidl, float32(*interesting), dfBuilder)
 	regStore = regression.NewStore()
 	configProvider = newAlertsConfigProvider(clusterAlgo)
 	paramsProvider := newParamsetProvider(freshDataFrame)
-	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, git)
+	dryrunRequests = dryrun.New(cidl, dfBuilder, paramsProvider, vcs)
 
 	if *doClustering {
 		go func() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(time.Minute)
-				c := regression.NewContinuous(git, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
+				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
 			}
@@ -438,7 +439,7 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 			end = rr.End
 		}
 	}
-	df := dataframe.NewHeaderOnly(git, time.Unix(begin, 0), time.Unix(end, 0), false)
+	df := dataframe.NewHeaderOnly(vcs, time.Unix(begin, 0), time.Unix(end, 0), false)
 
 	found := false
 	cids := []*cid.CommitID{}
@@ -780,21 +781,18 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.Form
 	hash := mux.Vars(r)["hash"]
 	dest := mux.Vars(r)["dest"]
-	index, err := git.IndexOf(ctx, hash)
+	index, err := vcs.IndexOf(ctx, hash)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Could not look up git hash.")
 		return
 	}
-	last := git.LastN(ctx, 1)
+	last := vcs.LastNIndex(1)
 	if len(last) != 1 {
-		httputils.ReportError(w, r, fmt.Errorf("gitinfo.LastN(1) returned 0 hashes."), "Failed to find last hash.")
+		httputils.ReportError(w, r, fmt.Errorf("VCS.LastN(1) returned 0 hashes."), "Failed to find last hash.")
 		return
 	}
-	lastIndex, err := git.IndexOf(ctx, last[0])
-	if err != nil {
-		httputils.ReportError(w, r, err, "Could not look up last git hash.")
-		return
-	}
+	lastIndex := last[0].Index
+
 	delta := config.GOTO_RANGE
 	// If redirecting to the Triage page then always show just a single commit.
 	if dest == "t" {
@@ -1063,7 +1061,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	// Get a list of commits for the range.
 	var ids []*cid.CommitID
 	if rr.Subset == regression.ALL_SUBSET {
-		indexCommits := git.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
+		indexCommits := vcs.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
 		ids = make([]*cid.CommitID, 0, len(indexCommits))
 		for _, indexCommit := range indexCommits {
 			ids = append(ids, &cid.CommitID{
@@ -1265,7 +1263,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sklog.Infof("ShiftRequest: %#v", &sr)
-	commits := git.Range(time.Unix(sr.Begin, 0), time.Unix(sr.End, 0))
+	commits := vcs.Range(time.Unix(sr.Begin, 0), time.Unix(sr.End, 0))
 	if len(commits) == 0 {
 		httputils.ReportError(w, r, fmt.Errorf("No commits found in range."), "No commits found in range.")
 		return
@@ -1274,16 +1272,16 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	if sr.RequestType == dataframe.REQUEST_COMPACT {
 		numCommits -= sr.BeginOffset
 	}
-	beginCommit, err := git.ByIndex(ctx, commits[0].Index+sr.BeginOffset)
+	beginCommit, err := vcs.ByIndex(ctx, commits[0].Index+sr.BeginOffset)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Scrolled too far.")
 		return
 	}
 	var endCommitTs time.Time
-	endCommit, err := git.ByIndex(ctx, commits[len(commits)-1].Index+sr.EndOffset)
+	endCommit, err := vcs.ByIndex(ctx, commits[len(commits)-1].Index+sr.EndOffset)
 	if err != nil {
 		// We went too far, so just use the last index.
-		commits := git.LastNIndex(1)
+		commits := vcs.LastNIndex(1)
 		if len(commits) == 0 {
 			httputils.ReportError(w, r, err, "Scrolled too far.")
 			return

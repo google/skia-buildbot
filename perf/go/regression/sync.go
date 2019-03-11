@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 )
@@ -13,8 +13,8 @@ import (
 type ClusterResponseProcessor func([]*ClusterResponse)
 
 // Run takes a ClusterRequest and runs it to completion before returning the results.
-func Run(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) ([]*ClusterResponse, error) {
-	proc, err := newProcess(ctx, req, git, cidl, dfBuilder, clusterResponseProcessor)
+func Run(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) ([]*ClusterResponse, error) {
+	proc, err := newProcess(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start new clustering process: %s", err)
 	}

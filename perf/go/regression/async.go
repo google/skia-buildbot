@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
@@ -88,7 +88,7 @@ type ClusterResponse struct {
 type ClusterRequestProcess struct {
 	// These members are read-only, should not be modified.
 	request                  *ClusterRequest
-	git                      *gitinfo.GitInfo
+	vcs                      vcsinfo.VCS
 	iter                     DataFrameIterator
 	clusterResponseProcessor ClusterResponseProcessor
 
@@ -100,10 +100,10 @@ type ClusterRequestProcess struct {
 	message    string             // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
+func newProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
 	ret := &ClusterRequestProcess{
 		request:                  req,
-		git:                      git,
+		vcs:                      vcs,
 		clusterResponseProcessor: clusterResponseProcessor,
 		response:                 []*ClusterResponse{},
 		lastUpdate:               time.Now(),
@@ -112,7 +112,7 @@ func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, 
 	}
 	if req.Type == CLUSTERING_REQUEST_TYPE_SINGLE {
 		// TODO(jcgregorio) This is awkward and should go away in a future CL.
-		ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, git, req, dfBuilder)
+		ret.iter = NewSingleDataFrameIterator(ret.progress, cidl, vcs, req, dfBuilder)
 	} else {
 		// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
 		iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder)
@@ -125,8 +125,8 @@ func newProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, 
 	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
-	ret, err := newProcess(ctx, req, git, cidl, dfBuilder, clusterResponseProcessor)
+func newRunningProcess(ctx context.Context, req *ClusterRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, clusterResponseProcessor ClusterResponseProcessor) (*ClusterRequestProcess, error) {
+	ret, err := newProcess(ctx, req, vcs, cidl, dfBuilder, clusterResponseProcessor)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func newRunningProcess(ctx context.Context, req *ClusterRequest, git *gitinfo.Gi
 // Once a ClusterRequestProcess is complete the results will be kept in memory
 // for MAX_FINISHED_PROCESS_AGE before being deleted.
 type RunningClusterRequests struct {
-	git                *gitinfo.GitInfo
+	vcs                vcsinfo.VCS
 	cidl               *cid.CommitIDLookup
 	defaultInteresting float32 // The threshold to control if a cluster is considered interesting.
 	dfBuilder          dataframe.DataFrameBuilder
@@ -151,9 +151,9 @@ type RunningClusterRequests struct {
 }
 
 // NewRunningClusterRequests return a new RunningClusterRequests.
-func NewRunningClusterRequests(git *gitinfo.GitInfo, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder) *RunningClusterRequests {
+func NewRunningClusterRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder) *RunningClusterRequests {
 	fr := &RunningClusterRequests{
-		git:                git,
+		vcs:                vcs,
 		cidl:               cidl,
 		inProcess:          map[string]*ClusterRequestProcess{},
 		defaultInteresting: interesting,
@@ -203,7 +203,7 @@ func (fr *RunningClusterRequests) Add(ctx context.Context, req *ClusterRequest) 
 	}
 	clusterResponseProcessor := func(resps []*ClusterResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		proc, err := newRunningProcess(ctx, req, fr.git, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
+		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, clusterResponseProcessor)
 		if err != nil {
 			return "", err
 		}
@@ -386,7 +386,7 @@ func (p *ClusterRequestProcess) Run(ctx context.Context) {
 		}
 
 		df.TraceSet = types.TraceSet{}
-		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.git, false, p.request.TZ)
+		frame, err := dataframe.ResponseFromDataFrame(ctx, df, p.vcs, false, p.request.TZ)
 		if err != nil {
 			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 			return

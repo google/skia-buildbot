@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -65,18 +65,18 @@ type Running struct {
 type Requests struct {
 	cidl           *cid.CommitIDLookup
 	dfBuilder      dataframe.DataFrameBuilder
-	git            *gitinfo.GitInfo
+	vcs            vcsinfo.VCS
 	paramsProvider regression.ParamsetProvider // TODO build the paramset from dfBuilder.
 	mutex          sync.Mutex
 	inFlight       map[string]*Running
 }
 
-func New(cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider, git *gitinfo.GitInfo) *Requests {
+func New(cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, paramsProvider regression.ParamsetProvider, vcs vcsinfo.VCS) *Requests {
 	ret := &Requests{
 		cidl:           cidl,
 		dfBuilder:      dfBuilder,
 		paramsProvider: paramsProvider,
-		git:            git,
+		vcs:            vcs,
 		inFlight:       map[string]*Running{},
 	}
 	// Start a go routine to clean up old dry runs.
@@ -168,7 +168,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			end := time.Unix(int64(req.Domain.End), 0)
-			regression.RegressionsForAlert(ctx, &req.Config, d.paramsProvider(), cb, int(req.Domain.NumCommits), end, d.git, d.cidl, d.dfBuilder, nil)
+			regression.RegressionsForAlert(ctx, &req.Config, d.paramsProvider(), cb, int(req.Domain.NumCommits), end, d.vcs, d.cidl, d.dfBuilder, nil)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true

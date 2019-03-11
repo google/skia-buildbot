@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // Refresher keeps a fresh DataFrame.
@@ -19,7 +19,7 @@ type Refresher struct {
 	numTiles  int
 	period    time.Duration
 	dfBuilder DataFrameBuilder
-	git       *gitinfo.GitInfo
+	vcs       vcsinfo.VCS
 
 	mutex sync.Mutex // protects df.
 	df    *DataFrame
@@ -31,12 +31,12 @@ type Refresher struct {
 // A non-nil error will be returned if the initial DataFrame cannot be
 // populated. I.e. if NewRefresher returns w/o error than the caller
 // can be assured that Get() will return a non-nil DataFrame.
-func NewRefresher(git *gitinfo.GitInfo, dfBuilder DataFrameBuilder, period time.Duration, numTiles int) (*Refresher, error) {
+func NewRefresher(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, period time.Duration, numTiles int) (*Refresher, error) {
 	ret := &Refresher{
 		dfBuilder: dfBuilder,
 		period:    period,
 		numTiles:  numTiles,
-		git:       git,
+		vcs:       vcs,
 	}
 	if err := ret.oneStep(); err != nil {
 		return nil, fmt.Errorf("Failed to build the initial DataFrame: %s", err)
@@ -46,7 +46,7 @@ func NewRefresher(git *gitinfo.GitInfo, dfBuilder DataFrameBuilder, period time.
 }
 
 func (f *Refresher) oneStep() error {
-	if err := f.git.Update(context.Background(), true, false); err != nil {
+	if err := f.vcs.Update(context.Background(), true, false); err != nil {
 		return err
 	}
 	newDf, err := f.dfBuilder.NewKeysOnly(f.numTiles)
