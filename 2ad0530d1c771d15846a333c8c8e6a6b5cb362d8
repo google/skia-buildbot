@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44ae594d_b5e67bea",
+        "filename": "perf/go/cid/cid.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T14:53:17Z",
+      "side": 1,
+      "message": "Change to\n\n// TODO(jcgregorio) Remove entire cache once we switch to a BigTable backed vcsinfo.",
+      "revId": "2ad0530d1c771d15846a333c8c8e6a6b5cb362d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c14a204d_f6188ca4",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-11T14:53:17Z",
+      "side": 1,
+      "message": "// TODO(jcgregorio): Replace with calls to Gerrit API, only used by the Skia instance of perf.",
+      "revId": "2ad0530d1c771d15846a333c8c8e6a6b5cb362d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
