@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -59,13 +58,15 @@ func main() {
 
 	// Set up Git authentication if a service account email was set.
 	if !*local {
-		user, err := user.Current()
-		if err != nil {
-			sklog.Fatal(err)
-		}
+		// user, err := user.Current()
+		// if err != nil {
+		// 	sklog.Fatalf("Error retrieving current user: %s", err)
+		// }
+		// homeDir := os.Getenv("HOME")
 
 		// Use the gitcookie created by gitauth package if .gitcookies does not already exist.
-		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+		gitcookiesPath := "/tmp/gitcookies"
+		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
 		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
