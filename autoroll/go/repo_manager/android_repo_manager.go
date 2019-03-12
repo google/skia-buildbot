@@ -454,6 +454,17 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	if err := r.setTopic(change.Issue); err != nil {
 		return 0, err
 	}
+
+	// TODO(rmistry): This is a temporary hack for a few weeks to make sure
+	// that android-master-roll does not accidentally switch out of dry run mode.
+	if r.parentBranch == "master" && r.childBranch == "master" && r.childPath == "external/skia" {
+		if !dryRun {
+			sklog.Error("android-master-roll is not running in dry run mode!")
+			sklog.Error("Forcing it back to dry run mode!")
+			dryRun = true
+		}
+	}
+
 	// Set labels.
 	if err := r.setChangeLabels(change, dryRun); err != nil {
 		// Only throw exception here if parentBranch is master. This is
