@@ -5,13 +5,16 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -25,12 +28,13 @@ func main() {
 	var (
 		btInstanceID    = flag.String("bt_instance", "production", "Big Table instance")
 		btTableID       = flag.String("bt_table", "git-repos", "BigTable table ID")
-		workDir         = flag.String("workdir", "", "Working directory where repos are cached. Use the same directory between calls to speed up checkout time.")
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
+		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		projectID       = flag.String("project", "skia-public", "ID of the GCP project")
 		repoURLs        = common.NewMultiStringFlag("repo_url", []string{}, "Repo url")
 		runInit         = flag.Bool("init", false, "Initialize the BigTable instance and quit. This should be run with a different different user who has admin rights.")
 		refreshInterval = flag.Duration("refresh", 10*time.Minute, "Interval in which to poll git and refresh the GitStore.")
+		workDir         = flag.String("workdir", "", "Working directory where repos are cached. Use the same directory between calls to speed up checkout time.")
 	)
 	common.Init()
 
@@ -43,6 +47,29 @@ func main() {
 	// Make sure we have at least one repo configured.
 	if len(*repoURLs) == 0 {
 		sklog.Fatalf("At least one repository URL must be configured.")
+	}
+
+	// TODO(stephana): Pass the token source explicitly to the BigTable related functions below.
+
+	// Create token source.
+	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+	if err != nil {
+		sklog.Fatalf("Problem setting up default token source: %s", err)
+	}
+
+	// Set up Git authentication if a service account email was set.
+	if !*local {
+		user, err := user.Current()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+
+		// Use the gitcookie created by gitauth package if .gitcookies does not already exist.
+		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
+		sklog.Infof("Git authentication set up successfully.")
 	}
 
 	// Configure the bigtable instance.
