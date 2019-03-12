@@ -1,4 +1,5 @@
 KGO := CGO_ENABLED=0 GOOS=linux go build
+# KGO := GOOS=linux go build
 
 .PHONY: default
 default: gitsync btgit
