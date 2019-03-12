@@ -53,7 +53,7 @@ func setupRepo(t *testing.T, numCommits int) (string, *repograph.Graph, []string
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(ctx, gb.Dir(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repo.Update(ctx))
 	return gb.Dir(), repo, commits, func() {

@@ -611,7 +611,7 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("--repo is required.")
 	}
-	repos, err = repograph.NewMap(ctx, *repoUrls, wdAbs)
+	repos, err = repograph.NewLocalMap(ctx, *repoUrls, wdAbs)
 	if err != nil {
 		sklog.Fatal(err)
 	}
