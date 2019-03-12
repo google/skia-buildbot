@@ -410,6 +410,30 @@
     },
     {
       "key": {
+        "uuid": "09f5a312_a06d4be6",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-12T16:51:46Z",
+      "side": 1,
+      "message": "I think it just means creating a repo like the GitBuilder example repo with more commits on each branch. E.g.\n\n0 - 1 - 2 - 4 - 5 ---- 7 - 8\n      \\-- 3 ----- 6 -/\n\nThen verify that:\n - The result is topo. sorted\n - 0 and 1 are adjacent\n - 2, 4, and 5 are adjacent\n - 3 and 6 are adjacent\n - 7 and 8 are adjacent\n\nI think that\u0027s all that is implied by \"avoid showing commits on multiple lines of history intermixed.\"",
+      "parentUuid": "b898202c_4a3cd3c1",
+      "range": {
+        "startLine": 425,
+        "startChar": 46,
+        "endLine": 425,
+        "endChar": 58
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1b392219_3ee461bb",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
