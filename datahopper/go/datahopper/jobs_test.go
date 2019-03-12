@@ -465,7 +465,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 	check("0", c1age, c2age)
 
 	// Revert back to c1 (no Perf task) and check that Perf job disappears.
-	content, err := repo.Repo().GetFile(ctx, "infra/bots/tasks.json", c1)
+	content, err := repo.GetFile(ctx, "infra/bots/tasks.json", c1)
 	assert.NoError(t, err)
 	gb.Add(ctx, "infra/bots/tasks.json", content)
 	c3 := gb.CommitMsgAt(ctx, "c3", c1time.Add(10*time.Second)) // 5 seconds after c2

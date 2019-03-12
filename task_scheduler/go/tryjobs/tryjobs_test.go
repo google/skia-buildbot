@@ -144,7 +144,7 @@ func TestGetRepo(t *testing.T) {
 }
 
 func TestGetRevision(t *testing.T) {
-	ctx, trybots, _, mock, cleanup := setup(t)
+	_, trybots, _, mock, cleanup := setup(t)
 	defer cleanup()
 
 	// Get the (only) commit from the repo.
@@ -153,8 +153,7 @@ func TestGetRevision(t *testing.T) {
 	}
 	_, r, _, err := trybots.getRepo(props)
 	assert.NoError(t, err)
-	c, err := r.Repo().RevParse(ctx, "master")
-	assert.NoError(t, err)
+	c := r.Get("master").Hash
 
 	// Fake response from Gerrit.
 	ci := &gerrit.ChangeInfo{

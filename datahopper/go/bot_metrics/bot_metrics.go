@@ -263,10 +263,10 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 			}
 
 			// For each commit covered by the task, record the lag time.
-			if err := c.Recurse(func(commit *repograph.Commit) (bool, error) {
+			if err := c.Recurse(func(commit *repograph.Commit) error {
 				// Prevent us from tracing through the entire commit history.
 				if commit.Timestamp.Before(now.Add(-COMMIT_TASK_WINDOW)) {
-					return false, nil
+					return repograph.ErrStopRecursing
 				}
 
 				// Get the cached data for this commit.
@@ -292,7 +292,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 						})
 						if err == task_cfg_cache.ErrNoSuchEntry {
 							sklog.Warningf("TaskCfgCache has no entry for %s@%s.", repoUrl, commit.Hash)
-							return true, nil
+							return nil
 						} else if err != nil {
 							// Some old commits only have tasks without jobs. Skip them.
 							if strings.Contains(err.Error(), "is not reachable by any Job") {
@@ -300,9 +300,9 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 									Tasks: map[string]*specs.TaskSpec{},
 									Jobs:  map[string]*specs.JobSpec{},
 								}
-								return false, nil
+								return repograph.ErrStopRecursing
 							}
-							return false, err
+							return err
 						}
 						cfg = c
 						cfgs[commit] = cfg
@@ -320,7 +320,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 					}
 
 					if _, ok := cfg.Tasks[t.Name]; !ok {
-						return false, nil
+						return repograph.ErrStopRecursing
 					}
 				}
 
@@ -331,12 +331,12 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 				// one, record the lag time and keep recursing.
 				if best, ok := cData.Tasks[t.Name]; !ok || best > d {
 					cData.Tasks[t.Name] = d
-					return true, nil
+					return nil
 				}
 
 				// This commit was covered by a previous task,
 				// so all previous commits will also be covered.
-				return false, nil
+				return repograph.ErrStopRecursing
 			}); err != nil {
 				return err
 			}

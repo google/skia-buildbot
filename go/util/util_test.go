@@ -949,3 +949,14 @@ func TestSSliceCmp(t *testing.T) {
 	testGt([]string{"a", "b", "d"}, []string{"a", "b", "c", "d"})
 	testGt([]string{"a", "c", "b"}, []string{"a", "b", "c"})
 }
+
+func TestPowerSet(t *testing.T) {
+	testutils.SmallTest(t)
+	test := func(inp int, expect [][]int) {
+		deepequal.AssertDeepEqual(t, expect, PowerSet(inp))
+	}
+	test(0, [][]int{[]int{}})
+	test(1, [][]int{[]int{}, []int{0}})
+	test(2, [][]int{[]int{}, []int{0}, []int{1}, []int{0, 1}})
+	test(3, [][]int{[]int{}, []int{0}, []int{1}, []int{0, 1}, []int{2}, []int{0, 2}, []int{1, 2}, []int{0, 1, 2}})
+}

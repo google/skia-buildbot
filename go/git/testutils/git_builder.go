@@ -45,7 +45,8 @@ func GitInitWithDir(t testutils.TestingT, ctx context.Context, dir string) *GitB
 
 	g.run(ctx, "git", "init")
 	g.run(ctx, "git", "remote", "add", "origin", ".")
-
+	g.run(ctx, "git", "config", "--local", "user.name", "test")
+	g.run(ctx, "git", "config", "--local", "user.email", "test@google.com")
 	return g
 }
 

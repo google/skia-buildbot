@@ -174,18 +174,10 @@ func main() {
 		skiaGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "skia"})
 		infraGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "infra"})
 		for range time.Tick(5 * time.Minute) {
-			nSkia, err := repos[common.REPO_SKIA].Repo().NumCommits(ctx)
-			if err != nil {
-				sklog.Errorf("Failed to get number of commits for Skia: %s", err)
-			} else {
-				skiaGauge.Update(nSkia)
-			}
-			nInfra, err := repos[common.REPO_SKIA_INFRA].Repo().NumCommits(ctx)
-			if err != nil {
-				sklog.Errorf("Failed to get number of commits for Infra: %s", err)
-			} else {
-				infraGauge.Update(nInfra)
-			}
+			nSkia := repos[common.REPO_SKIA].Len()
+			skiaGauge.Update(int64(nSkia))
+			nInfra := repos[common.REPO_SKIA_INFRA].Len()
+			infraGauge.Update(int64(nInfra))
 		}
 	}()
 

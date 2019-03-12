@@ -4,12 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
+	"sort"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -97,7 +102,7 @@ func TestGraph(t *testing.T) {
 	assert.Equal(t, []*Commit{c4, c3}, c5.GetParents())
 	assert.Equal(t, []*Commit{c2}, c4.GetParents())
 	assert.Equal(t, []*Commit{c1}, c2.GetParents())
-	assert.Equal(t, []*Commit{}, c1.GetParents())
+	assert.Equal(t, []*Commit(nil), c1.GetParents())
 	assert.Equal(t, []*Commit{c2}, c3.GetParents())
 
 	// Ensure that we can start in an empty dir and check out from scratch properly.
@@ -111,8 +116,12 @@ func TestGraph(t *testing.T) {
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
 	// These will confuse AssertDeepEqual.
-	m1.repo = nil
-	m2.repo = nil
+	for _, c := range repo.commitsData {
+		c.repo = nil
+	}
+	for _, c := range repo2.commitsData {
+		c.repo = nil
+	}
 	deepequal.AssertDeepEqual(t, m1, m2)
 }
 
@@ -144,25 +153,29 @@ func TestRecurse(t *testing.T) {
 	head := repo.Get("master")
 	assert.NotNil(t, head)
 	gotCommits := map[*Commit]bool{}
-	assert.NoError(t, head.Recurse(func(c *Commit) (bool, error) {
+	assert.NoError(t, head.Recurse(func(c *Commit) error {
 		assert.False(t, gotCommits[c])
 		gotCommits[c] = true
-		return true, nil
+		return nil
 	}))
 	assert.Equal(t, len(commits), len(gotCommits))
 	for _, c := range commits {
 		assert.True(t, gotCommits[c])
 	}
+	// AllCommits is the same thing as the above.
+	allCommits, err := head.AllCommits()
+	assert.NoError(t, err)
+	assert.Equal(t, len(allCommits), len(gotCommits))
 
 	// Verify that we properly return early when the passed-in function
 	// return false.
 	gotCommits = map[*Commit]bool{}
-	assert.NoError(t, head.Recurse(func(c *Commit) (bool, error) {
+	assert.NoError(t, head.Recurse(func(c *Commit) error {
 		gotCommits[c] = true
 		if c == c3 || c == c4 {
-			return false, nil
+			return ErrStopRecursing
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.False(t, gotCommits[c2])
@@ -170,12 +183,12 @@ func TestRecurse(t *testing.T) {
 	// Verify that we properly exit immediately when the passed-in function
 	// returns an error.
 	gotCommits = map[*Commit]bool{}
-	assert.Error(t, head.Recurse(func(c *Commit) (bool, error) {
+	assert.Error(t, head.Recurse(func(c *Commit) error {
 		gotCommits[c] = true
 		if c == c4 {
-			return false, fmt.Errorf("STOP!")
+			return fmt.Errorf("STOP!")
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.False(t, gotCommits[c2])
@@ -196,10 +209,10 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	test := func() {
 		gotCommits := map[*Commit]bool{}
-		assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+		assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) error {
 			assert.False(t, gotCommits[c])
 			gotCommits[c] = true
-			return true, nil
+			return nil
 		}))
 		assert.Equal(t, len(commits), len(gotCommits))
 		for _, c := range commits {
@@ -229,27 +242,27 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	// Verify that we still stop recursion when requested.
 	gotCommits := map[*Commit]bool{}
-	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) error {
 		gotCommits[c] = true
 		if c == c3 || c == c4 {
-			return false, nil
+			return ErrStopRecursing
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.False(t, gotCommits[c2])
 
 	// Verify that we error out properly.
 	gotCommits = map[*Commit]bool{}
-	assert.Error(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+	assert.Error(t, repo.RecurseAllBranches(func(c *Commit) error {
 		gotCommits[c] = true
 		// Because of nondeterministic map iteration and the added
 		// branches, we have to halt way back at c2 in order to have
 		// a sane, deterministic test case.
 		if c == c2 {
-			return false, fmt.Errorf("STOP!")
+			return fmt.Errorf("STOP!")
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.True(t, gotCommits[c2])
@@ -346,9 +359,9 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, anc)
 
-	assert.NoError(t, c6.Recurse(func(c *Commit) (bool, error) {
+	assert.NoError(t, c6.Recurse(func(c *Commit) error {
 		assert.NotEqual(t, c, c3)
-		return true, nil
+		return nil
 	}))
 }
 
@@ -464,4 +477,366 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(newCommits))
 	assert.Equal(t, mergeCommit, newCommits[0].Hash)
+}
+
+func TestRevList(t *testing.T) {
+	testutils.MediumTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	d1 := path.Join(tmpDir, "1")
+	assert.NoError(t, os.Mkdir(d1, os.ModePerm))
+	co, err := git.NewCheckout(ctx, gb.Dir(), d1)
+	assert.NoError(t, err)
+	d2 := path.Join(tmpDir, "2")
+	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
+	g, err := NewGraph(ctx, gb.Dir(), d2)
+	assert.NoError(t, err)
+	assert.NoError(t, g.Update(ctx))
+
+	check := func(from, to string, expectOrig []string) {
+		expect := util.CopyStringSlice(expectOrig)
+		revs, err := co.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+		assert.NoError(t, err)
+		// Sanity check; assert that the commits returned from git are
+		// in reverse topological order.
+		assertHashesTopoSorted(t, g, revs)
+
+		// Topological sorting is not deterministic, so we can't compare
+		// the slices directly.
+		sort.Strings(expect)
+		sort.Strings(revs)
+		deepequal.AssertDeepEqual(t, expect, revs)
+
+		revs, err = g.RevList(from, to)
+		assert.NoError(t, err)
+		assertHashesTopoSorted(t, g, revs)
+		sort.Strings(revs)
+		deepequal.AssertDeepEqual(t, expect, revs)
+	}
+
+	check(commits[0], commits[4], commits[1:])
+	check(commits[1], commits[2], commits[2:3])
+	check(commits[1], commits[4], commits[2:5])
+	check(commits[2], commits[4], commits[3:5])
+	check(commits[3], commits[4], []string{commits[2], commits[4]})
+}
+
+// Assert that the given Commits are in reverse topological order.
+func assertTopoSorted(t *testing.T, commits []*Commit) {
+	// Collect all commits in a map so we can quickly check for their
+	// presence in the commits slice.
+	commitsMap := make(map[*Commit]bool, len(commits))
+	for _, c := range commits {
+		// Assert that each parent is not yet visited.
+		parents := c.GetParents()
+		for _, p := range parents {
+			assert.False(t, commitsMap[p])
+		}
+		commitsMap[c] = true
+	}
+
+	// Ensure that we don't mix lines of history. Practically this means,
+	// for each commit:
+	// - If it has one parent and its parent has one child,
+	//   they are adjacent in the sorted slice.
+	// - If it has multiple parents, it is adjacent to one of them.
+	// - If it has multiple children, it is adjacent to one of them.
+
+	// Create a mapping from commits to their children.
+	children := make(map[*Commit]map[*Commit]bool, len(commits))
+	for _, c := range commits {
+		for _, p := range c.parents {
+			// Don't include parents which aren't in the slice.
+			if !commitsMap[p] {
+				continue
+			}
+			subMap, ok := children[p]
+			if !ok {
+				subMap = map[*Commit]bool{}
+				children[p] = subMap
+			}
+			subMap[c] = true
+		}
+	}
+
+	// Verify that the above cases are true for each commit in the slice.
+	for idx, c := range commits {
+		sklog.Errorf("Check %d / %d", idx, len(commits))
+
+		// If the commit has one parent, and its parent has one child,
+		// they should be adjacent.
+		if len(c.parents) == 1 && len(children[c.parents[0]]) == 1 {
+			// Expect that we're not at the end of the commits slice
+			// since the parent should be listed after the current
+			// commit.
+			assert.True(t, len(commits) > idx+1)
+			assert.Equal(t, c.parents[0], commits[idx+1])
+		}
+
+		// If the commit has multiple parents, it should be adjacent to
+		// one of them.
+		if len(c.parents) > 1 {
+			expectParentAdjacent := false
+			parentIsAdjacent := false
+			for _, p := range c.parents {
+				// Only include parents which are in the slice.
+				if commitsMap[p] {
+					expectParentAdjacent = true
+					if len(commits) > idx+1 && commits[idx+1] == p {
+						parentIsAdjacent = true
+						break
+					}
+				}
+			}
+			assert.Equal(t, expectParentAdjacent, parentIsAdjacent)
+		}
+
+		// If the commit has multiple children, it should be adjacent
+		// to one of them.
+		if len(children[c]) > 1 {
+			assert.True(t, idx > 0)
+			childIsAdjacent := false
+			for child, _ := range children[c] {
+				if commits[idx-1] == child {
+					childIsAdjacent = true
+					break
+				}
+			}
+			assert.True(t, childIsAdjacent)
+		}
+	}
+}
+
+// Assert that the given commit hashses are in reverse topological order.
+func assertHashesTopoSorted(t *testing.T, repo *Graph, hashes []string) {
+	commits := make([]*Commit, 0, len(hashes))
+	for _, hash := range hashes {
+		commits = append(commits, repo.Get(hash))
+	}
+	assertTopoSorted(t, commits)
+}
+
+func TestTopoSort(t *testing.T) {
+	testutils.LargeTest(t)
+
+	ctx := context.Background()
+
+	check := func(commits []*Commit) {
+		sorted := TopologicalSort(commits)
+
+		// Ensure that all of the commits are in the resulting slice.
+		assert.Equal(t, len(commits), len(sorted))
+		found := make(map[*Commit]bool, len(commits))
+		for _, c := range sorted {
+			found[c] = true
+		}
+		for _, c := range commits {
+			assert.True(t, found[c])
+		}
+		assertTopoSorted(t, sorted)
+	}
+	checkGraph := func(g *Graph) {
+		sets := util.PowerSet(len(g.commitsData))
+		for _, set := range sets {
+			inp := make([]*Commit, 0, len(g.commitsData))
+			for _, idx := range set {
+				inp = append(inp, g.commitsData[idx])
+			}
+			check(inp)
+		}
+	}
+	checkGitBuilder := func(gb *git_testutils.GitBuilder, expect []string) {
+		tmpDir, err := ioutil.TempDir("", "")
+		assert.NoError(t, err)
+		defer testutils.RemoveAll(t, tmpDir)
+		g, err := NewGraph(ctx, gb.Dir(), tmpDir)
+		assert.NoError(t, err)
+		assert.NoError(t, g.Update(ctx))
+		checkGraph(g)
+
+		// Test stability by verifying that we get the expected ordering
+		// for the entire repo, multiple times.
+		for i := 0; i < 10; i++ {
+			sorted := CommitSlice(TopologicalSort(g.commitsData)).Hashes()
+			deepequal.AssertDeepEqual(t, expect, sorted)
+		}
+	}
+
+	// Test topological sorting using the default test repo.
+	{
+		gb := git_testutils.GitInit(t, ctx)
+		defer gb.Cleanup()
+		commits := git_testutils.GitSetup(ctx, gb)
+
+		// GitSetup doesn't wait between commits, which means that the
+		// timestamps might be equal. Adjust the expectations
+		// accordingly.
+		expect := []string{commits[4], commits[3], commits[2], commits[1], commits[0]}
+		tmpDir, err := ioutil.TempDir("", "")
+		assert.NoError(t, err)
+		defer testutils.RemoveAll(t, tmpDir)
+		g, err := NewGraph(ctx, gb.Dir(), tmpDir)
+		assert.NoError(t, err)
+		assert.NoError(t, g.Update(ctx))
+		c3 := g.Get(commits[3])
+		c2 := g.Get(commits[2])
+		if c3.Timestamp.Equal(c2.Timestamp) && c3.Hash < c2.Hash {
+			expect[1], expect[2] = expect[2], expect[1]
+		}
+		checkGitBuilder(gb, expect)
+	}
+
+	// Verify that we use the timestamp as a tie-breaker.
+	{
+		gb := git_testutils.GitInit(t, ctx)
+		defer gb.Cleanup()
+		gb.Add(ctx, "file0", "contents")
+		ts := time.Unix(1552403492, 0)
+		c0 := gb.CommitMsgAt(ctx, "Initial commit", ts)
+		assert.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
+		ts = ts.Add(2 * time.Second)
+		gb.Add(ctx, "file1", "contents")
+		c1 := gb.CommitMsgAt(ctx, "Child 1", ts)
+		gb.CreateBranchAtCommit(ctx, "otherbranch", c0)
+		ts = ts.Add(2 * time.Second)
+		gb.Add(ctx, "file2", "contents")
+		c2 := gb.CommitMsgAt(ctx, "Child 2", ts)
+		// c1 and c2 both have c0 as a parent. The topological ordering
+		// is ambiguous unless we use the timestamp as a tie-breaker, in
+		// which case c2 should always come before c1, since it is more
+		// recent.
+		checkGitBuilder(gb, []string{c2, c1, c0})
+	}
+
+	// Same as above, but the child commits have the same timestamp. Verify
+	// that we use the commit hash as a secondary tie-breaker.
+	{
+		gb := git_testutils.GitInit(t, ctx)
+		defer gb.Cleanup()
+		gb.Add(ctx, "file0", "contents")
+		ts := time.Unix(1552403492, 0)
+		c0 := gb.CommitMsgAt(ctx, "Initial commit", ts)
+		assert.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
+		ts = ts.Add(2 * time.Second)
+		gb.Add(ctx, "file1", "contents")
+		c1 := gb.CommitMsgAt(ctx, "Child 1", ts)
+		assert.Equal(t, c1, "dc24e5b042cdcf995a182815ef37f659e8ec20cc")
+		gb.CreateBranchAtCommit(ctx, "otherbranch", c0)
+		gb.Add(ctx, "file2", "contents")
+		c2 := gb.CommitMsgAt(ctx, "Child 2", ts)
+		assert.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
+		// c1 and c2 both have c0 as a parent, and they both have the
+		// same timestamp. The topological ordering is ambiguous even
+		// with the timestamp as a tie-breaker, so we have to use the
+		// commit hash.
+		checkGitBuilder(gb, []string{c1, c2, c0})
+	}
+
+	// Extend the above to ensure that, in the case of a merge, we follow
+	// the parent with the newer timestamp.
+	{
+		gb := git_testutils.GitInit(t, ctx)
+		defer gb.Cleanup()
+		gb.Add(ctx, "file0", "contents")
+		ts := time.Unix(1552403492, 0)
+		c0 := gb.CommitMsgAt(ctx, "Initial commit", ts)
+		assert.Equal(t, c0, "c48b90c8ccc70b4d2bd146e4f708c398f78e2dd6") // Hashes are deterministic.
+		ts = ts.Add(2 * time.Second)
+		gb.Add(ctx, "file1", "contents")
+		c1 := gb.CommitMsgAt(ctx, "Child 1", ts)
+		assert.Equal(t, c1, "dc24e5b042cdcf995a182815ef37f659e8ec20cc")
+		gb.CreateBranchAtCommit(ctx, "otherbranch", c0)
+		gb.Add(ctx, "file2", "contents")
+		c2 := gb.CommitMsgAt(ctx, "Child 2", ts)
+		assert.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
+		gb.CheckoutBranch(ctx, "master")
+		c3 := gb.CommitGen(ctx, "file1")
+		ts = ts.Add(10 * time.Second)
+		c4 := gb.CommitGenAt(ctx, "file1", ts)
+		gb.CheckoutBranch(ctx, "otherbranch")
+		c5 := gb.CommitGen(ctx, "file2")
+		c6 := gb.CommitGenAt(ctx, "file2", ts.Add(-time.Second))
+		gb.CheckoutBranch(ctx, "master")
+		c7 := gb.MergeBranch(ctx, "otherbranch")
+		checkGitBuilder(gb, []string{c7, c4, c3, c1, c6, c5, c2, c0})
+	}
+}
+
+func TestIsAncestor(t *testing.T) {
+	testutils.MediumTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	d1 := path.Join(tmpDir, "1")
+	assert.NoError(t, os.Mkdir(d1, os.ModePerm))
+	co, err := git.NewCheckout(ctx, gb.Dir(), d1)
+	assert.NoError(t, err)
+	d2 := path.Join(tmpDir, "2")
+	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
+	g, err := NewGraph(ctx, gb.Dir(), d2)
+	assert.NoError(t, err)
+	assert.NoError(t, g.Update(ctx))
+
+	sklog.Infof("4. %s", commits[4][:4])
+	sklog.Infof("    |    \\")
+	sklog.Infof("3. %s   |", commits[3][:4])
+	sklog.Infof("    |     |")
+	sklog.Infof("    | 2. %s", commits[2][:4])
+	sklog.Infof("    |     |")
+	sklog.Infof("    |    /")
+	sklog.Infof("1. %s", commits[1][:4])
+	sklog.Infof("    |")
+	sklog.Infof("0. %s", commits[0][:4])
+
+	check := func(a, b string, expect bool) {
+		// Compare against actual git.
+		got, err := co.IsAncestor(ctx, a, b)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, got)
+		got, err = g.IsAncestor(a, b)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, got)
+	}
+	check(commits[0], commits[0], true)
+	check(commits[0], commits[1], true)
+	check(commits[0], commits[2], true)
+	check(commits[0], commits[3], true)
+	check(commits[0], commits[4], true)
+
+	check(commits[1], commits[0], false)
+	check(commits[1], commits[1], true)
+	check(commits[1], commits[2], true)
+	check(commits[1], commits[3], true)
+	check(commits[1], commits[4], true)
+
+	check(commits[2], commits[0], false)
+	check(commits[2], commits[1], false)
+	check(commits[2], commits[2], true)
+	check(commits[2], commits[3], false)
+	check(commits[2], commits[4], true)
+
+	check(commits[3], commits[0], false)
+	check(commits[3], commits[1], false)
+	check(commits[3], commits[2], false)
+	check(commits[3], commits[3], true)
+	check(commits[3], commits[4], true)
+
+	check(commits[4], commits[0], false)
+	check(commits[4], commits[1], false)
+	check(commits[4], commits[2], false)
+	check(commits[4], commits[3], false)
+	check(commits[4], commits[4], true)
 }

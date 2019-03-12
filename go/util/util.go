@@ -1205,3 +1205,20 @@ func AskForConfirmation(format string, args ...interface{}) (bool, error) {
 		return AskForConfirmation(format, args...)
 	}
 }
+
+// PowerSet returns a slice of slices representing the power set of the indices
+// of a slice.
+func PowerSet(n int) [][]int {
+	if n == 0 {
+		return [][]int{[]int{}}
+	}
+	subs := PowerSet(n - 1)
+	addl := [][]int{}
+	for _, sub := range subs {
+		cpy := make([]int, len(sub)+1)
+		copy(cpy, sub)
+		cpy[len(cpy)-1] = n - 1
+		addl = append(addl, cpy)
+	}
+	return append(subs, addl...)
+}

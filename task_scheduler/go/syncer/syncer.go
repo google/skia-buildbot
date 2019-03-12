@@ -86,7 +86,7 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, botUpdate 
 				rvErr <- fmt.Errorf("Unknown repo: %s", rs.Repo)
 				return
 			}
-			gr, err = tempGitRepo(ctx, repo.Repo(), rs)
+			gr, err = tempGitRepo(ctx, repo, rs)
 		}
 		if err != nil {
 			rvErr <- err
@@ -197,7 +197,7 @@ func (s *Syncer) LazyTempGitRepo(rs types.RepoState, botUpdate bool) *LazyTempGi
 
 // tempGitRepo creates a git repository in a temporary directory, gets it into
 // the given RepoState, and returns its location.
-func tempGitRepo(ctx context.Context, repo *git.Repo, rs types.RepoState) (rv *git.TempCheckout, rvErr error) {
+func tempGitRepo(ctx context.Context, repo *repograph.Graph, rs types.RepoState) (rv *git.TempCheckout, rvErr error) {
 	defer metrics2.FuncTimer().Stop()
 
 	if rs.IsTryJob() {

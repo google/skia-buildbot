@@ -23,16 +23,11 @@ func MockSwarmingBotsForAllTasksForTesting(ctx context.Context, repos repograph.
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, repo := range repos {
-		branches, err := repo.Repo().Branches(ctx)
-		if err != nil {
-			sklog.Error(err)
-			continue
-		}
-		for _, branch := range branches {
+		for _, branch := range repo.BranchHeads() {
 			if branch.Name != "master" {
 				continue
 			}
-			contents, err := repo.Repo().GetFile(ctx, specs.TASKS_CFG_FILE, branch.Head)
+			contents, err := repo.GetFile(ctx, specs.TASKS_CFG_FILE, branch.Head)
 			if err != nil {
 				sklog.Error(err)
 				continue
