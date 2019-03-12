@@ -550,25 +550,25 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 	var stealFrom *types.Task
 
 	// Run the helper function to recurse on commit history.
-	if err := revision.Recurse(func(commit *repograph.Commit) (bool, error) {
+	if err := revision.Recurse(func(commit *repograph.Commit) error {
 		// Determine whether any task already includes this commit.
 		prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		// If the blamelist is too large, just use a single commit.
 		if len(commitsBuf) > MAX_BLAMELIST_COMMITS {
 			commitsBuf = append(commitsBuf[:0], revision)
 			//sklog.Warningf("Found too many commits for %s @ %s; using single-commit blamelist.", taskName, revision.Hash)
-			return false, ERR_BLAMELIST_DONE
+			return ERR_BLAMELIST_DONE
 		}
 
 		// If we're stealing commits from a previous task but the current
 		// commit is not in any task's blamelist, we must have scrolled past
 		// the beginning of the tasks. Just return.
 		if prev == nil && stealFrom != nil {
-			return false, nil
+			return repograph.ErrStopRecursing
 		}
 
 		// If a previous task already included this commit, we have to make a decision.
@@ -589,17 +589,17 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 					for _, c := range stealFrom.Commits {
 						ptr := repo.Get(c)
 						if ptr == nil {
-							return false, fmt.Errorf("No such commit: %q", c)
+							return fmt.Errorf("No such commit: %q", c)
 						}
 						commitsBuf = append(commitsBuf, ptr)
 					}
-					return false, ERR_BLAMELIST_DONE
+					return ERR_BLAMELIST_DONE
 				}
 			}
 			if stealFrom == nil || prev.Id != stealFrom.Id {
 				// If we've hit a commit belonging to a different task,
 				// we're done.
-				return false, nil
+				return repograph.ErrStopRecursing
 			}
 		}
 
@@ -613,11 +613,11 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 		}
 		if newTasks[rs][taskName] {
 			sklog.Infof("Task Spec %s was added in %s; stopping blamelist calculation.", taskName, commit.Hash)
-			return false, nil
+			return repograph.ErrStopRecursing
 		}
 
 		// Recurse on the commit's parents.
-		return true, nil
+		return nil
 
 	}); err != nil && err != ERR_BLAMELIST_DONE {
 		return nil, nil, err
@@ -1349,7 +1349,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 
 // recurseAllBranches runs the given func on every commit on all branches, with
 // some Task Scheduler-specific exceptions.
-func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, fn func(string, *repograph.Graph, *repograph.Commit) (bool, error)) error {
+func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
 	for repoUrl, r := range s.repos {
 		blacklistBranches := BRANCH_BLACKLIST[repoUrl]
 		blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
@@ -1359,22 +1359,22 @@ func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, fn func(string, 
 				blacklistCommits[c] = b
 			}
 		}
-		if err := r.RecurseAllBranches(func(c *repograph.Commit) (bool, error) {
+		if err := r.RecurseAllBranches(func(c *repograph.Commit) error {
 			if blacklistBranch, ok := blacklistCommits[c]; ok {
 				sklog.Infof("Skipping blacklisted branch %q", blacklistBranch)
-				return false, nil
+				return repograph.ErrStopRecursing
 			}
 			for head, blacklistBranch := range blacklistCommits {
-				isAncestor, err := r.Repo().IsAncestor(ctx, c.Hash, head.Hash)
+				isAncestor, err := r.IsAncestor(c.Hash, head.Hash)
 				if err != nil {
-					return false, err
+					return err
 				} else if isAncestor {
 					sklog.Infof("Skipping blacklisted branch %q (--is-ancestor)", blacklistBranch)
-					return false, nil
+					return repograph.ErrStopRecursing
 				}
 			}
 			if !s.window.TestCommit(repoUrl, c) {
-				return false, nil
+				return repograph.ErrStopRecursing
 			}
 			return fn(repoUrl, r, c)
 		}); err != nil {
@@ -1390,10 +1390,10 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 
 	// Find all new Jobs for all new commits.
 	newJobs := []*types.Job{}
-	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
+	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
 		// If this commit isn't in scheduling range, stop recursing.
 		if !s.window.TestCommit(repoUrl, c) {
-			return false, nil
+			return repograph.ErrStopRecursing
 		}
 
 		rs := types.RepoState{
@@ -1408,9 +1408,9 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 				// TODO(borenet): We should consider canceling the jobs
 				// (how?) since we can never fulfill them.
 				sklog.Errorf("Failed to obtain new jobs due to permanent error: %s", err)
-				return true, nil
+				return nil
 			}
-			return false, err
+			return err
 		}
 		alreadyScheduledAllJobs := true
 		for name, spec := range cfg.Jobs {
@@ -1419,9 +1419,9 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 				if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
 					shouldRun = true
 				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY {
-					isAncestor, err := r.Repo().IsAncestor(ctx, c.Hash, "master")
+					isAncestor, err := r.IsAncestor(c.Hash, "master")
 					if err != nil {
-						return false, err
+						return err
 					} else if isAncestor {
 						shouldRun = true
 					}
@@ -1430,7 +1430,7 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 			if shouldRun {
 				prevJobs, err := s.jCache.GetJobsByRepoState(name, rs)
 				if err != nil {
-					return false, err
+					return err
 				}
 				alreadyScheduled := false
 				for _, prev := range prevJobs {
@@ -1454,7 +1454,7 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 							sklog.Errorf("Got ErrNoSuchEntry after a successful call to GetOrCacheRepoState! Job %s; RepoState: %+v", name, rs)
 							continue
 						}
-						return false, err
+						return err
 					}
 					newJobs = append(newJobs, j)
 				}
@@ -1464,15 +1464,15 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 		// stop recursing, under the assumption that we've already
 		// scheduled all of the jobs for the ones before it.
 		if alreadyScheduledAllJobs {
-			return false, nil
+			return repograph.ErrStopRecursing
 		}
 		if c.Hash == "50537e46e4f0999df0a4707b227000cfa8c800ff" {
 			// Stop recursing here, since Jobs were added
 			// in this commit and previous commits won't be
 			// valid.
-			return false, nil
+			return repograph.ErrStopRecursing
 		}
-		return true, nil
+		return nil
 	}); err != nil {
 		return err
 	}
@@ -1489,12 +1489,12 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 	repoStates := []types.RepoState{}
-	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) (bool, error) {
+	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
 		repoStates = append(repoStates, types.RepoState{
 			Repo:     repoUrl,
 			Revision: c.Hash,
 		})
-		return true, nil
+		return nil
 	}); err != nil {
 		return err
 	}
