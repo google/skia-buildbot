@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4189c3f4_0c04ac61",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-12T18:19:18Z",
+      "side": 1,
+      "message": "Seems pretty confusing to sort in the opposite order of Less.",
+      "range": {
+        "startLine": 151,
+        "startChar": 50,
+        "endLine": 151,
+        "endChar": 65
+      },
+      "revId": "f3d09be8becd204cb80fd8aefdc6544741e0dec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7309af99_8df6167d",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-12T18:19:18Z",
+      "side": 1,
+      "message": "nit: this is the same as visited",
+      "range": {
+        "startLine": 543,
+        "startChar": 1,
+        "endLine": 548,
+        "endChar": 2
+      },
+      "revId": "f3d09be8becd204cb80fd8aefdc6544741e0dec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4ce9959_ce93ee9d",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 632,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-12T18:19:18Z",
+      "side": 1,
+      "message": "Is MediumTest still appropriate?",
+      "range": {
+        "startLine": 632,
+        "startChar": 11,
+        "endLine": 632,
+        "endChar": 21
+      },
+      "revId": "f3d09be8becd204cb80fd8aefdc6544741e0dec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4bbd0e7_219331bb",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 708,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-12T18:19:18Z",
+      "side": 1,
+      "message": "Should this be part of GitInit?",
+      "range": {
+        "startLine": 705,
+        "startChar": 0,
+        "endLine": 708,
+        "endChar": 24
+      },
+      "revId": "f3d09be8becd204cb80fd8aefdc6544741e0dec6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
