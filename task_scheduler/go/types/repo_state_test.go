@@ -64,7 +64,7 @@ func repoMapSetup(t *testing.T) (map[string][]string, repograph.Map, func()) {
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repoMap, err := repograph.NewMap(ctx, []string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
+	repoMap, err := repograph.NewLocalMap(ctx, []string{gb1.RepoUrl(), gb2.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repoMap.Update(ctx))
 
