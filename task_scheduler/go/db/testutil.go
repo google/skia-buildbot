@@ -1152,7 +1152,7 @@ func TestTaskDBGetTasksFromWindow(t testutils.TestingT, db TaskDB) {
 		}
 		tmp, err := ioutil.TempDir("", "")
 		assert.NoError(t, err)
-		repo, err := repograph.NewGraph(ctx, gb.Dir(), tmp)
+		repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), tmp)
 		assert.NoError(t, err)
 		assert.NoError(t, repo.Update(ctx))
 		curOffset += repoOffset
