@@ -14,6 +14,17 @@ release_ci_fixed: app wasm_libs_fixed
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/particles
 	./build_release
 
+release_ci_tot: app
+	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
+	rm -rf build
+	mkdir -p build/canvaskit
+	cp -r /OUT/* build
+	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
+	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
+	npx webpack --mode=production
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
+	./build_release
+
 serve: app
 	npx webpack-dev-server --mode=development --watch --watch-poll 100
 

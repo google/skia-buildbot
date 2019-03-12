@@ -108,8 +108,14 @@ const pick = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <h2>Particles</h2><span><a href='https://www.npmjs.com/package/canvaskit-wasm/v/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
+  <h2>Particles</h2>
+  <span>
+    <a href='https://skia.googlesource.com/skia/+/${SKIA_VERSION}'>
+      ${SKIA_VERSION.slice(0, 7)}
+    </a>
+  </span>
 </header>
+<main>
 <main>
   ${pick(ele)}
 </main>
