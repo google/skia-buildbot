@@ -126,13 +126,13 @@ the service account and create the secrets in GKE.
   under load.
 - Test on browsers that your users will be using, at least Chrome on desktop and
   ideally Chrome on Android.
-- Create an app.yaml in [skia-public-config](https://skia.googlesource.com/skia-public-config/+/master/)
+- Create an `app.yaml` in [skia-public-config](https://skia.googlesource.com/skia-public-config/+/master/)
 This controls how your app will be run in GKE. See
 [these docs](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/)
 for more on the schema. Commit this, then run `pushk appname` to make the configuration
 active.
 - Metrics are customarily made available at port 20000. To configure metrics scraping,
-  add the following to the app.yaml under spec -> template -> metadata:
+  add the following to the `app.yaml` under spec -> template -> metadata:
 
 ```yaml
 annotations:
@@ -145,7 +145,7 @@ to [prom.skia.org](https://prom.skia.org/) and require updating `prometheus/sys/
 - The metrics will be labeled `app=<foo>` where `foo` is the first argument to
   `common.InitWithMust`.
 - If you have secrets (like a service account), bind it to the deployment by adding
-the following to app.yaml:
+the following to `app.yaml`:
 
 ```yaml
 spec:
@@ -184,6 +184,14 @@ spec:
       secret:
         secretName: skia-org-legacy-login-secrets
 ```
+
+- It is possible to test your service/config without making it publicly visible.
+  - Deploy your `app.yaml` either with `pushk` or `kubectl apply -f app.yaml`
+  - Identify a pod name, `kubectl get pods | grep [my-app]` where my-app is the
+     name of the new service.
+  - Forward a local port (e.g. 8083) to a port on the pod (e.g. the HTTP port 8000):
+    `kubectl port-forward my-app-7bf542629-jujzm 8083:8000`
+  - Navigate a browser to <http://localhost:8083> to see your service.
 
 - Update [skia-ingress.yaml](https://skia.googlesource.com/skia-public-config/+/master/skia-ingress.yaml)
 with an entry for your app. Note that this is in the `skia-public-config` repo.
