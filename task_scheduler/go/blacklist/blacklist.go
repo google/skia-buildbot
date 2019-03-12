@@ -154,7 +154,7 @@ func NewCommitRangeRule(ctx context.Context, name, user, description string, tas
 	if !ok {
 		return nil, fmt.Errorf("Unknown repo %s", repoName)
 	}
-	commits, err := repo.Repo().RevList(ctx, fmt.Sprintf("%s..%s", startCommit, endCommit))
+	commits, err := repo.RevList(startCommit, endCommit)
 	if err != nil {
 		return nil, err
 	}

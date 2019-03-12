@@ -4,12 +4,16 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
+	"sort"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -97,7 +101,7 @@ func TestGraph(t *testing.T) {
 	assert.Equal(t, []*Commit{c4, c3}, c5.GetParents())
 	assert.Equal(t, []*Commit{c2}, c4.GetParents())
 	assert.Equal(t, []*Commit{c1}, c2.GetParents())
-	assert.Equal(t, []*Commit{}, c1.GetParents())
+	assert.Equal(t, []*Commit(nil), c1.GetParents())
 	assert.Equal(t, []*Commit{c2}, c3.GetParents())
 
 	// Ensure that we can start in an empty dir and check out from scratch properly.
@@ -111,8 +115,12 @@ func TestGraph(t *testing.T) {
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
 	// These will confuse AssertDeepEqual.
-	m1.repo = nil
-	m2.repo = nil
+	for _, c := range repo.commitsData {
+		c.repo = nil
+	}
+	for _, c := range repo2.commitsData {
+		c.repo = nil
+	}
 	deepequal.AssertDeepEqual(t, m1, m2)
 }
 
@@ -144,25 +152,29 @@ func TestRecurse(t *testing.T) {
 	head := repo.Get("master")
 	assert.NotNil(t, head)
 	gotCommits := map[*Commit]bool{}
-	assert.NoError(t, head.Recurse(func(c *Commit) (bool, error) {
+	assert.NoError(t, head.Recurse(func(c *Commit) error {
 		assert.False(t, gotCommits[c])
 		gotCommits[c] = true
-		return true, nil
+		return nil
 	}))
 	assert.Equal(t, len(commits), len(gotCommits))
 	for _, c := range commits {
 		assert.True(t, gotCommits[c])
 	}
+	// AllCommits is the same thing as the above.
+	allCommits, err := head.AllCommits()
+	assert.NoError(t, err)
+	assert.Equal(t, len(allCommits), len(gotCommits))
 
 	// Verify that we properly return early when the passed-in function
 	// return false.
 	gotCommits = map[*Commit]bool{}
-	assert.NoError(t, head.Recurse(func(c *Commit) (bool, error) {
+	assert.NoError(t, head.Recurse(func(c *Commit) error {
 		gotCommits[c] = true
 		if c == c3 || c == c4 {
-			return false, nil
+			return ErrStopRecursing
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.False(t, gotCommits[c2])
@@ -170,12 +182,12 @@ func TestRecurse(t *testing.T) {
 	// Verify that we properly exit immediately when the passed-in function
 	// returns an error.
 	gotCommits = map[*Commit]bool{}
-	assert.Error(t, head.Recurse(func(c *Commit) (bool, error) {
+	assert.Error(t, head.Recurse(func(c *Commit) error {
 		gotCommits[c] = true
 		if c == c4 {
-			return false, fmt.Errorf("STOP!")
+			return fmt.Errorf("STOP!")
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.False(t, gotCommits[c2])
@@ -196,10 +208,10 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	test := func() {
 		gotCommits := map[*Commit]bool{}
-		assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+		assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) error {
 			assert.False(t, gotCommits[c])
 			gotCommits[c] = true
-			return true, nil
+			return nil
 		}))
 		assert.Equal(t, len(commits), len(gotCommits))
 		for _, c := range commits {
@@ -229,27 +241,27 @@ func TestRecurseAllBranches(t *testing.T) {
 
 	// Verify that we still stop recursion when requested.
 	gotCommits := map[*Commit]bool{}
-	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) error {
 		gotCommits[c] = true
 		if c == c3 || c == c4 {
-			return false, nil
+			return ErrStopRecursing
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.False(t, gotCommits[c2])
 
 	// Verify that we error out properly.
 	gotCommits = map[*Commit]bool{}
-	assert.Error(t, repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+	assert.Error(t, repo.RecurseAllBranches(func(c *Commit) error {
 		gotCommits[c] = true
 		// Because of nondeterministic map iteration and the added
 		// branches, we have to halt way back at c2 in order to have
 		// a sane, deterministic test case.
 		if c == c2 {
-			return false, fmt.Errorf("STOP!")
+			return fmt.Errorf("STOP!")
 		}
-		return true, nil
+		return nil
 	}))
 	assert.False(t, gotCommits[c1])
 	assert.True(t, gotCommits[c2])
@@ -346,9 +358,9 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, anc)
 
-	assert.NoError(t, c6.Recurse(func(c *Commit) (bool, error) {
+	assert.NoError(t, c6.Recurse(func(c *Commit) error {
 		assert.NotEqual(t, c, c3)
-		return true, nil
+		return nil
 	}))
 }
 
@@ -464,4 +476,186 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(newCommits))
 	assert.Equal(t, mergeCommit, newCommits[0].Hash)
+}
+
+func TestRevList(t *testing.T) {
+	testutils.MediumTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	d1 := path.Join(tmpDir, "1")
+	assert.NoError(t, os.Mkdir(d1, os.ModePerm))
+	co, err := git.NewCheckout(ctx, gb.Dir(), d1)
+	assert.NoError(t, err)
+	d2 := path.Join(tmpDir, "2")
+	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
+	g, err := NewGraph(ctx, gb.Dir(), d2)
+	assert.NoError(t, err)
+	assert.NoError(t, g.Update(ctx))
+
+	check := func(from, to string, expectOrig []string) {
+		expect := util.CopyStringSlice(expectOrig)
+		revs, err := co.RevList(ctx, fmt.Sprintf("%s..%s", from, to))
+		assert.NoError(t, err)
+		// Sanity check; assert that the commits returned from git are
+		// in reverse topological order.
+		assertHashesTopoSorted(t, g, revs)
+
+		// Topological sorting is not deterministic, so we can't compare
+		// the slices directly.
+		sort.Strings(expect)
+		sort.Strings(revs)
+		deepequal.AssertDeepEqual(t, expect, revs)
+
+		revs, err = g.RevList(from, to)
+		assert.NoError(t, err)
+		assertHashesTopoSorted(t, g, revs)
+		sort.Strings(revs)
+		deepequal.AssertDeepEqual(t, expect, revs)
+	}
+
+	check(commits[0], commits[4], commits[1:])
+	check(commits[1], commits[2], commits[2:3])
+	check(commits[1], commits[4], commits[2:5])
+	check(commits[2], commits[4], commits[3:5])
+	check(commits[3], commits[4], []string{commits[2], commits[4]})
+}
+
+// Assert that the given Commits are in reverse topological order.
+func assertTopoSorted(t *testing.T, commits []*Commit) {
+	visited := make(map[*Commit]bool, len(commits))
+	for _, c := range commits {
+		// Assert that each parent is not yet visited.
+		parents := c.GetParents()
+		for _, p := range parents {
+			assert.False(t, visited[p])
+		}
+		visited[c] = true
+	}
+}
+
+// Assert that the given commit hashses are in reverse topological order.
+func assertHashesTopoSorted(t *testing.T, repo *Graph, hashes []string) {
+	commits := make([]*Commit, 0, len(hashes))
+	for _, hash := range hashes {
+		commits = append(commits, repo.Get(hash))
+	}
+	assertTopoSorted(t, commits)
+}
+
+func TestTopoSort(t *testing.T) {
+	testutils.MediumTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	g, err := NewGraph(ctx, gb.Dir(), tmpDir)
+	assert.NoError(t, err)
+	assert.NoError(t, g.Update(ctx))
+
+	check := func(commits []*Commit) {
+		sorted := TopologicalSort(commits)
+
+		// Ensure that all of the commits are in the resulting slice.
+		assert.Equal(t, len(commits), len(sorted))
+		found := make(map[*Commit]bool, len(commits))
+		for _, c := range sorted {
+			found[c] = true
+		}
+		for _, c := range commits {
+			assert.True(t, found[c])
+		}
+		assertTopoSorted(t, sorted)
+	}
+	sets := util.PowerSet(len(commits))
+	for _, set := range sets {
+		inp := make([]*Commit, 0, len(commits))
+		for _, idx := range set {
+			inp = append(inp, g.Get(commits[idx]))
+		}
+		check(inp)
+	}
+}
+
+func TestIsAncestor(t *testing.T) {
+	testutils.MediumTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	tmpDir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
+	d1 := path.Join(tmpDir, "1")
+	assert.NoError(t, os.Mkdir(d1, os.ModePerm))
+	co, err := git.NewCheckout(ctx, gb.Dir(), d1)
+	assert.NoError(t, err)
+	d2 := path.Join(tmpDir, "2")
+	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
+	g, err := NewGraph(ctx, gb.Dir(), d2)
+	assert.NoError(t, err)
+	assert.NoError(t, g.Update(ctx))
+
+	sklog.Infof("4. %s", commits[4][:4])
+	sklog.Infof("    |    \\")
+	sklog.Infof("3. %s   |", commits[3][:4])
+	sklog.Infof("    |     |")
+	sklog.Infof("    | 2. %s", commits[2][:4])
+	sklog.Infof("    |     |")
+	sklog.Infof("    |    /")
+	sklog.Infof("1. %s", commits[1][:4])
+	sklog.Infof("    |")
+	sklog.Infof("0. %s", commits[0][:4])
+
+	check := func(a, b string, expect bool) {
+		// Compare against actual git.
+		got, err := co.IsAncestor(ctx, a, b)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, got)
+		got, err = g.IsAncestor(a, b)
+		assert.NoError(t, err)
+		assert.Equal(t, expect, got)
+	}
+	check(commits[0], commits[0], true)
+	check(commits[0], commits[1], true)
+	check(commits[0], commits[2], true)
+	check(commits[0], commits[3], true)
+	check(commits[0], commits[4], true)
+
+	check(commits[1], commits[0], false)
+	check(commits[1], commits[1], true)
+	check(commits[1], commits[2], true)
+	check(commits[1], commits[3], true)
+	check(commits[1], commits[4], true)
+
+	check(commits[2], commits[0], false)
+	check(commits[2], commits[1], false)
+	check(commits[2], commits[2], true)
+	check(commits[2], commits[3], false)
+	check(commits[2], commits[4], true)
+
+	check(commits[3], commits[0], false)
+	check(commits[3], commits[1], false)
+	check(commits[3], commits[2], false)
+	check(commits[3], commits[3], true)
+	check(commits[3], commits[4], true)
+
+	check(commits[4], commits[0], false)
+	check(commits[4], commits[1], false)
+	check(commits[4], commits[2], false)
+	check(commits[4], commits[3], false)
+	check(commits[4], commits[4], true)
 }
