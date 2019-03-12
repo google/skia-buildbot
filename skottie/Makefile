@@ -11,8 +11,8 @@ release_tot: get_latest_skia wasm_libs_tot
 	npx webpack --mode=production
 	./build_release
 
-release_ci: release_ci_fixed
-	echo "using a fixed canvaskit"
+release_ci: release_ci_tot
+	echo "using canvaskit at tot"
 
 release_ci_tot: app
 	# Assumes the cloud builder environment mounts the wasm outputs to /OUT
