@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -59,13 +58,9 @@ func main() {
 
 	// Set up Git authentication if a service account email was set.
 	if !*local {
-		user, err := user.Current()
-		if err != nil {
-			sklog.Fatal(err)
-		}
-
-		// Use the gitcookie created by gitauth package if .gitcookies does not already exist.
-		gitcookiesPath := filepath.Join(user.HomeDir, ".gitcookies")
+		// Use the gitcookie created by the gitauth package.
+		gitcookiesPath := "/tmp/gitcookies"
+		sklog.Infof("Writing gitcookies to %s", gitcookiesPath)
 		if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
 			sklog.Fatalf("Failed to create git cookie updater: %s", err)
 		}
@@ -112,5 +107,6 @@ func main() {
 
 	// Set up the http handler to indicate ready-ness and start serving.
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	sklog.Infof("Listening on port: %s", *httpPort)
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }
