@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9567af1c_b81a2fdc",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-12T13:58:00Z",
+      "side": 1,
+      "message": "Typo?",
+      "range": {
+        "startLine": 460,
+        "startChar": 79,
+        "endLine": 460,
+        "endChar": 87
+      },
+      "revId": "e2897ccdaff93d4c9b24c328c0ed27b27e1e1fcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c9b1903e_405fbb1e",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 1
@@ -13,6 +36,24 @@
       "writtenOn": "2019-03-12T13:54:40Z",
       "side": 1,
       "message": "Is it better to return an error here instead?",
+      "revId": "e2897ccdaff93d4c9b24c328c0ed27b27e1e1fcb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f51601c0_11dfb069",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 464,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-12T13:58:00Z",
+      "side": 1,
+      "message": "Up to you.",
+      "parentUuid": "c9b1903e_405fbb1e",
       "revId": "e2897ccdaff93d4c9b24c328c0ed27b27e1e1fcb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
