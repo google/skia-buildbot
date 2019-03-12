@@ -362,6 +362,30 @@
     },
     {
       "key": {
+        "uuid": "b898202c_4a3cd3c1",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-12T12:06:16Z",
+      "side": 1,
+      "message": "Agreed, I\u0027ll be working on this.  I\u0027m still struggling with what \"lines of history\" means and how to programmatically verify that this is true.",
+      "parentUuid": "26e63a46_5b380dae",
+      "range": {
+        "startLine": 425,
+        "startChar": 46,
+        "endLine": 425,
+        "endChar": 58
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1b392219_3ee461bb",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -421,6 +445,30 @@
       "side": 1,
       "message": "That\u0027s true, but mostly I was just worried about weird edge cases and test coverage. I can understand \"from-to\" much better (or at least I think I do...).",
       "parentUuid": "fbcf56ee_c7dbc286",
+      "range": {
+        "startLine": 426,
+        "startChar": 58,
+        "endLine": 427,
+        "endChar": 54
+      },
+      "revId": "ea4e16dadf6efca7064c82425dcd7cd136f2c61b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "23fa2373_c581a716",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-12T12:06:16Z",
+      "side": 1,
+      "message": "I added more detail to the doc.  \"from-to\" is only simpler in the linear-history case; otherwise you *have* to think in terms of \"reachable from B but not A\" or things make no sense.  So callers need to be aware that in the common case this just means \"give me the commits between A and B\" but that branches and merges can cause it to include other sub-graphs.",
+      "parentUuid": "d8c835c0_05defc55",
       "range": {
         "startLine": 426,
         "startChar": 58,
