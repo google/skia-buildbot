@@ -7,6 +7,7 @@ package repograph
 import (
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"path"
@@ -27,55 +28,56 @@ const (
 	CACHE_FILE = "sk_gitrepo.gob"
 )
 
+var (
+	ErrStopRecursing = errors.New("Stop recursing")
+)
+
 // Commit represents a commit in a Git repo.
 type Commit struct {
 	*vcsinfo.LongCommit
 	ParentIndices []int
+	parents       []*Commit
 	repo          *Graph
 }
 
 // Parents returns the parents of this commit.
 func (c *Commit) GetParents() []*Commit {
-	rv := make([]*Commit, 0, len(c.ParentIndices))
-	for _, idx := range c.ParentIndices {
-		rv = append(rv, c.repo.commitsData[idx])
-	}
-	return rv
+	return c.parents
 }
 
 // Recurse runs the given function recursively over commit history, starting
 // at the given commit. The function accepts the current Commit as a parameter.
-// Returning false from the function indicates that recursion should stop for
-// the current branch, however, recursion will continue for any other branches
-// until they are similarly terminated. Returning an error causes recursion to
-// stop without properly terminating other branchces. The error will bubble to
-// the top and be returned. Here's an example of printing out the entire
-// ancestry of a given commit:
+// Returning ErrStopRecursing from the function indicates that recursion should
+// stop for the current branch, however, recursion will continue for any other
+// branches until they are similarly terminated. Returning any other error
+// causes recursion to stop without properly terminating other branches. The
+// error will bubble to the top and be returned. Here's an example of printing
+// out the entire ancestry of a given commit:
 //
-// commit.Recurse(func(c *Commit) (bool, error) {
+// commit.Recurse(func(c *Commit) error {
 // 	sklog.Info(c.Hash)
-// 	return true, nil
+// 	return nil
 // })
-func (c *Commit) Recurse(f func(*Commit) (bool, error)) error {
-	return c.recurse(f, make(map[*Commit]bool, len(c.repo.commitsData)))
+func (c *Commit) Recurse(f func(*Commit) error) error {
+	return c.recurse(f, make(map[*Commit]bool, c.repo.Len()))
 }
 
 // recurse is a helper function used by Recurse.
-func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool) error {
+func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr error) {
 	// For large repos, we may not have enough stack space to recurse
 	// through the whole commit history. Since most commits only have
 	// one parent, avoid recursion when possible.
 	for {
 		visited[c] = true
-		keepGoing, err := f(c)
-		if err != nil {
+		if err := f(c); err == ErrStopRecursing {
+			return nil
+		} else if err != nil {
 			return err
 		}
-		if !keepGoing {
+		if len(c.parents) == 0 {
 			return nil
-		}
-		if len(c.ParentIndices) == 1 {
-			p := c.repo.commitsData[c.ParentIndices[0]]
+		} else if len(c.parents) == 1 {
+			p := c.parents[0]
 			if visited[p] {
 				return nil
 			}
@@ -84,27 +86,43 @@ func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool
 			break
 		}
 	}
-	for _, parentIdx := range c.ParentIndices {
-		p := c.repo.commitsData[parentIdx]
-		if visited[p] {
-			continue
-		}
-		if err := p.recurse(f, visited); err != nil {
-			return err
+	if len(c.Parents) > 1 {
+		for _, p := range c.parents {
+			if visited[p] {
+				continue
+			}
+			if err := p.recurse(f, visited); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
+// AllCommits returns the hashes of all commits reachable from this Commit, in
+// reverse topological order.
+func (c *Commit) AllCommits() ([]string, error) {
+	commits := make(map[*Commit]bool, c.repo.Len())
+	if err := c.recurse(func(c *Commit) error {
+		return nil
+	}, commits); err != nil {
+		return nil, err
+	}
+
+	// Topologically sort the commits.
+	sorted := topologicalSortHelper(commits)
+	return CommitSlice(sorted).Hashes(), nil
+}
+
 // HasAncestor returns true iff the given commit is an ancestor of this commit.
 func (c *Commit) HasAncestor(other string) bool {
 	found := false
-	if err := c.Recurse(func(commit *Commit) (bool, error) {
+	if err := c.Recurse(func(commit *Commit) error {
 		if commit.Hash == other {
 			found = true
-			return false, nil
+			return ErrStopRecursing
 		}
-		return true, nil
+		return nil
 	}); err != nil {
 		// Our function doesn't return an error, so we shouldn't hit
 		// this case.
@@ -113,11 +131,25 @@ func (c *Commit) HasAncestor(other string) bool {
 	return found
 }
 
+// Less compares this Commit to the other Commit and returns true if it is
+// considered "less" than the other. This is used as a helper function in
+// sorting to ensure stability. Uses the timestamp as the primary sort function
+// and the hash as a tie breaker. Note that, because we sort in reverse
+// chronological order, this has the opposite meaning that it seems it should.
+func (c *Commit) Less(other *Commit) bool {
+	if c.Timestamp.Equal(other.Timestamp) {
+		// If the timestamps are equal, just use the commit hash as an
+		// arbitrary way of comparing the two.
+		return c.Hash > other.Hash
+	}
+	return c.Timestamp.After(other.Timestamp)
+}
+
 // Helpers for sorting.
 type CommitSlice []*Commit
 
 func (s CommitSlice) Len() int           { return len(s) }
-func (s CommitSlice) Less(a, b int) bool { return s[a].Timestamp.After(s[b].Timestamp) }
+func (s CommitSlice) Less(a, b int) bool { return s[a].Less(s[b]) }
 func (s CommitSlice) Swap(a, b int)      { s[a], s[b] = s[b], s[a] }
 
 // Hashes returns a slice of commit hashes corresponding to the commits in s.
@@ -134,8 +166,9 @@ type Graph struct {
 	branches    []*git.Branch
 	commits     map[string]int
 	commitsData []*Commit
-	mtx         sync.RWMutex
+	graphMtx    sync.RWMutex
 	repo        *git.Repo
+	repoMtx     sync.Mutex
 }
 
 // gobGraph is a utility struct used for serializing a Graph using gob.
@@ -166,6 +199,9 @@ func New(repo *git.Repo) (*Graph, error) {
 	}
 	for _, c := range rv.commitsData {
 		c.repo = rv
+		for _, parentIdx := range c.ParentIndices {
+			c.parents = append(c.parents, rv.commitsData[parentIdx])
+		}
 	}
 	return rv, nil
 }
@@ -182,27 +218,24 @@ func NewGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
 	return New(repo)
 }
 
-// Repo returns the underlying git.Repo object.
-func (r *Graph) Repo() *git.Repo {
-	return r.repo
-}
-
 // Len returns the number of commits in the repo.
 func (r *Graph) Len() int {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
 	return len(r.commitsData)
 }
 
+// addCommit adds the commit with the given hash to the Graph. Assumes that the
+// caller holds r.repoMtx and r.graphMtx.
 func (r *Graph) addCommit(ctx context.Context, hash string) error {
 	d, err := r.repo.Details(ctx, hash)
 	if err != nil {
 		return fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
 	}
 
-	var parents []int
+	var parentIndices []int
+	var parents []*Commit
 	if len(d.Parents) > 0 {
-		parentIndices := make([]int, 0, len(d.Parents))
 		for _, h := range d.Parents {
 			if h == "" {
 				continue
@@ -212,15 +245,14 @@ func (r *Graph) addCommit(ctx context.Context, hash string) error {
 				return fmt.Errorf("repograph.Graph: Could not find parent commit %q", h)
 			}
 			parentIndices = append(parentIndices, p)
-		}
-		if len(parentIndices) > 0 {
-			parents = parentIndices
+			parents = append(parents, r.commitsData[p])
 		}
 	}
 
 	c := &Commit{
 		LongCommit:    d,
-		ParentIndices: parents,
+		ParentIndices: parentIndices,
+		parents:       parents,
 		repo:          r,
 	}
 	r.commits[hash] = len(r.commitsData)
@@ -243,8 +275,8 @@ func (r *Graph) UpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongC
 }
 
 func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
+	r.repoMtx.Lock()
+	defer r.repoMtx.Unlock()
 
 	// Update the local copy.
 	sklog.Infof("Updating repograph.Graph...")
@@ -260,6 +292,8 @@ func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.L
 	}
 
 	// Load new commits from the repo.
+	r.graphMtx.Lock()
+	defer r.graphMtx.Unlock()
 	var newCommits []*vcsinfo.LongCommit
 	if returnNewCommits {
 		newCommits = []*vcsinfo.LongCommit{}
@@ -342,8 +376,8 @@ func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.L
 
 // Branches returns the list of known branches in the repo.
 func (r *Graph) Branches() []string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
 	rv := make([]string, 0, len(r.branches))
 	for _, b := range r.branches {
 		rv = append(rv, b.Name)
@@ -368,8 +402,8 @@ func (r *Graph) BranchHeads() []*gitinfo.GitBranch {
 // function does not understand complex ref types (eg. HEAD~3); only branch
 // names and full commit hashes are accepted.
 func (r *Graph) Get(ref string) *Commit {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
 	if c, ok := r.commits[ref]; ok {
 		return r.commitsData[c]
 	}
@@ -385,28 +419,27 @@ func (r *Graph) Get(ref string) *Commit {
 
 // RecurseAllBranches runs the given function recursively over the entire commit
 // history, starting at each of the known branch heads. The function accepts the
-// current Commit as a parameter. Returning false from the function indicates
-// that recursion should stop for the current branch, however, recursion will
-// continue for any other branches until they are similarly terminated.
-// Returning an error causes recursion to stop without properly terminating
-// other branchces. The error will bubble to the top and be returned. Here's an
-// example of printing out all of the commits in the repo:
+// current Commit as a parameter. Returning ErrStopRecursing from the function
+// indicates that recursion should stop for the current branch, however,
+// recursion will continue for any other branches until they are similarly
+// terminated. Returning any other error causes recursion to stop without
+// properly terminating other branches. The error will bubble to the top and be
+// returned. Here's an example of printing out all of the commits in the repo:
 //
 // repo.RecurseAllBranches(func(c *Commit) (bool, error) {
 //      sklog.Info(c.Hash)
 //      return true, nil
 // })
-func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	visited := make(map[*Commit]bool, len(r.commitsData))
-	for _, b := range r.branches {
-		c, ok := r.commits[b.Head]
-		if !ok {
-			return fmt.Errorf("Branch %s points to unknown commit %s", b.Name, b.Head)
+func (r *Graph) RecurseAllBranches(f func(*Commit) error) error {
+	branches := r.Branches()
+	visited := make(map[*Commit]bool, r.Len())
+	for _, b := range branches {
+		c := r.Get(b)
+		if c == nil {
+			return fmt.Errorf("Branch %s not found", b)
 		}
-		if _, ok := visited[r.commitsData[c]]; !ok {
-			if err := r.commitsData[c].recurse(f, visited); err != nil {
+		if _, ok := visited[c]; !ok {
+			if err := c.recurse(f, visited); err != nil {
 				return err
 			}
 		}
@@ -414,15 +447,165 @@ func (r *Graph) RecurseAllBranches(f func(*Commit) (bool, error)) error {
 	return nil
 }
 
+// RevList is the equivalent of "git rev-list --topo-order from..to".
+// Each argument is a commit hash or a branch name. The commits are returned
+// in reverse topological order. Per "git rev-list" docs, the returned commit
+// hashes consist of all commits reachable from "to" and not reachable from
+// "from". In the typical case of linear git history, this just means the
+// commits on the line after "from" up through "to", but with branches and
+// merges it's possible that there are entire sub-graphs which are reachable
+// from "to" but not "from".
+func (r *Graph) RevList(from, to string) ([]string, error) {
+	fromCommit := r.Get(from)
+	if fromCommit == nil {
+		return nil, fmt.Errorf("Unknown commit %q", from)
+	}
+	toCommit := r.Get(to)
+	if toCommit == nil {
+		return nil, fmt.Errorf("Unknown commit %q", to)
+	}
+	// Shortcut: if the commits are the same, return now.
+	if fromCommit == toCommit {
+		return []string{}, nil
+	}
+
+	// Find all of the excluded commits.
+	exclude := make(map[*Commit]bool, r.Len())
+	if err := fromCommit.recurse(func(c *Commit) error {
+		return nil
+	}, exclude); err != nil {
+		return nil, err
+	}
+
+	// Find the included commits.
+	include := make(map[*Commit]bool, r.Len())
+	if err := toCommit.recurse(func(c *Commit) error {
+		if exclude[c] {
+			return ErrStopRecursing
+		}
+		return nil
+	}, include); err != nil {
+		return nil, err
+	}
+
+	// include may contain some commits from the exclude map; remove them.
+	for c, _ := range include {
+		if exclude[c] {
+			delete(include, c)
+		}
+	}
+
+	// Topologically sort the commits.
+	sorted := topologicalSortHelper(include)
+	return CommitSlice(sorted).Hashes(), nil
+}
+
+// TopologicalSort returns a slice containing the given commits in reverse
+// topological order, ie. every commit is listed before any of its parents.
+func TopologicalSort(commits []*Commit) []*Commit {
+	commitsMap := make(map[*Commit]bool, len(commits))
+	for _, c := range commits {
+		commitsMap[c] = true
+	}
+	return topologicalSortHelper(commitsMap)
+}
+
+// Helper function for TopologicalSort; the caller provides the map, which is
+// modified by topologicalSortHelper.
+func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
+	// children maps each commit to those commits which have it as a parent.
+	children := make(map[*Commit]map[*Commit]bool, len(commits))
+	for c, _ := range commits {
+		for _, p := range c.parents {
+			if commits[p] {
+				subMap, ok := children[p]
+				if !ok {
+					subMap = map[*Commit]bool{}
+					children[p] = subMap
+				}
+				subMap[c] = true
+			}
+		}
+	}
+
+	// Sort the commits topologically.
+	rv := make([]*Commit, 0, len(commits))
+	followBranch := func(c *Commit) {
+		for len(children[c]) == 0 {
+			// Add this commit to rv.
+			rv = append(rv, c)
+			delete(commits, c)
+
+			// Remove this commit from its parents' children, so
+			// that they can be processed.
+			for _, p := range c.parents {
+				if commits[p] {
+					delete(children[p], c)
+				}
+			}
+
+			// Find a parent to process next.
+			var next *Commit
+			for _, p := range c.parents {
+				if commits[p] && len(children[p]) == 0 {
+					// We are ready to process this parent.
+					if next == nil || p.Less(next) {
+						next = p
+					}
+				}
+			}
+			if next != nil {
+				c = next
+			} else {
+				// None of this commit's parents are ready; we can't do
+				// any more.
+				return
+			}
+		}
+	}
+	for len(commits) > 0 {
+		var next *Commit
+		for commit, _ := range commits {
+			if len(children[commit]) == 0 {
+				// We are ready to process this commit.
+				if next == nil || commit.Less(next) {
+					next = commit
+				}
+			}
+		}
+		if next == nil {
+			sklog.Error("No commits are ready to process!")
+			// Return so that we don't loop forever.
+			return rv
+		}
+		followBranch(next)
+	}
+	return rv
+}
+
+// IsAncestor returns true iff A is an ancestor of B, where A and B are either
+// commit hashes or branch names.
+func (r *Graph) IsAncestor(a, b string) (bool, error) {
+	aCommit := r.Get(a)
+	if aCommit == nil {
+		return false, fmt.Errorf("No such commit %q", a)
+	}
+	bCommit := r.Get(b)
+	if bCommit == nil {
+		return false, fmt.Errorf("No such commit %q", b)
+	}
+	return bCommit.HasAncestor(aCommit.Hash), nil
+}
+
 // Return any commits at or after the given timestamp.
 func (r *Graph) GetCommitsNewerThan(ts time.Time) ([]*vcsinfo.LongCommit, error) {
 	commits := []*Commit{}
-	if err := r.RecurseAllBranches(func(c *Commit) (bool, error) {
+	if err := r.RecurseAllBranches(func(c *Commit) error {
 		if !c.Timestamp.Before(ts) {
 			commits = append(commits, c)
-			return true, nil
+			return nil
 		}
-		return false, nil
+		return ErrStopRecursing
 	}); err != nil {
 		return nil, err
 	}
@@ -460,6 +643,20 @@ func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 		n = len(commits)
 	}
 	return commits[:n], nil
+}
+
+// TempCheckout returns a git.TempCheckout of the underlying git.Repo.
+func (r *Graph) TempCheckout(ctx context.Context) (*git.TempCheckout, error) {
+	r.repoMtx.Lock()
+	defer r.repoMtx.Unlock()
+	return r.repo.TempCheckout(ctx)
+}
+
+// GetFile returns the contents of the given file at the given commit.
+func (r *Graph) GetFile(ctx context.Context, fileName, commit string) (string, error) {
+	r.repoMtx.Lock()
+	defer r.repoMtx.Unlock()
+	return r.repo.GetFile(ctx, fileName, commit)
 }
 
 // Map is a convenience type for dealing with multiple Graphs for different
