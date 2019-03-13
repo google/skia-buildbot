@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4bcab40b_4e51823a",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T18:51:04Z",
+      "side": 1,
+      "message": "nit: doc keys and values",
+      "revId": "f24a02cf7de5f22ab5a6a03db9ba810f8a747050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ef0bea0_3f62d843",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T18:51:04Z",
+      "side": 1,
+      "message": "Missing filtering on BRANCH_BLACKLIST. Could we share code with updateRepos?",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 24
+      },
+      "revId": "f24a02cf7de5f22ab5a6a03db9ba810f8a747050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c40771f5_e4bee696",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1603,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T18:51:04Z",
+      "side": 1,
+      "message": "nit: I think we need to split gatherNewJobs into one part that just freshens the TaskCfgCache and another that actually creates the jobs, and move the job-creating part to be in MainLoop (or at least after s.branchHeads is updated).\n\nIt\u0027s very unlikely that this will make any difference, but I think it\u0027s easier to reason about. The very unlikely case is when gatherNewJobs adds new Jobs with a RepoState at the new branch head, but updateAddedTaskSpecs uses the old branch head to generate the newTasks cache. This means that a newly-added TaskSpec at the new branch head would appear not to be new, possibly getting the wrong blamelist.\n\nWe might want to look at forced jobs also, to make sure the commit is not too new.",
+      "range": {
+        "startLine": 1601,
+        "startChar": 0,
+        "endLine": 1603,
+        "endChar": 2
+      },
+      "revId": "f24a02cf7de5f22ab5a6a03db9ba810f8a747050",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
