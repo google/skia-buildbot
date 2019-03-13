@@ -183,6 +183,6 @@ func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(
 		return err
 	}
 
-	sklog.Infof("File written to GS path %s", targetPath)
+	// sklog.Infof("File written to GS path %s", targetPath)
 	return nil
 }
