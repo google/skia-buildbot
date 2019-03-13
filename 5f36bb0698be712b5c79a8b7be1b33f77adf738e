@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "61f401f8_42904c8c",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T20:24:40Z",
+      "side": 1,
+      "message": "nit: New() doesn\u0027t exist anymore",
+      "range": {
+        "startLine": 172,
+        "startChar": 40,
+        "endLine": 172,
+        "endChar": 48
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4780b3a_f43abfb6",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T20:24:40Z",
+      "side": 1,
+      "message": "nit: maybe say \"from file\"",
+      "range": {
+        "startLine": 189,
+        "startChar": 24,
+        "endLine": 189,
+        "endChar": 35
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "249458bf_c6e1468a",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T20:24:40Z",
+      "side": 1,
+      "message": "nit: GitStore is an interface; in theory it could be something other than BigTable.",
+      "range": {
+        "startLine": 223,
+        "startChar": 8,
+        "endLine": 223,
+        "endChar": 16
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c4cdc39_181935f2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T20:24:40Z",
+      "side": 1,
+      "message": "nit: mentioned in chat: after a restart, this will lose any commits that aren\u0027t reachable from a branch head, whereas NewLocalGraph won\u0027t (unless you also delete the GobFile). This should be pretty rare, so it probably doesn\u0027t matter much, but it might be worth auditing what might happen in users of Graph.",
+      "range": {
+        "startLine": 225,
+        "startChar": 2,
+        "endLine": 226,
+        "endChar": 27
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4346bac_2418ac2e",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 695,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T20:24:40Z",
+      "side": 1,
+      "message": "nit: maybe say \"from file\"",
+      "range": {
+        "startLine": 695,
+        "startChar": 11,
+        "endLine": 695,
+        "endChar": 22
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0231d8bd_b33638ba",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 917,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-13T20:24:40Z",
+      "side": 1,
+      "message": "nit: As a sanity check, it might be nice to assert that c matches repo.Details.",
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
