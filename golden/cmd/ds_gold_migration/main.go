@@ -156,7 +156,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 		sklog.Infof("Migrated %d/%d records. %.2f ms average", changeRecCount, total, avgTime)
 	}
 
-	// Accumulate the expecations from what we have loaded from the SQL store.
+	// Accumulate the expectations from what we have loaded from the SQL store.
 	localExps := types.NewExpectations(nil)
 	for i := len(importChanges) - 1; i >= 0; i-- {
 		localExps.AddTestExp(importChanges[i])
@@ -201,7 +201,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 		sklog.Fatalf("Got more errors than expected. Testfailures: %d  Digest failures: %d", testFailures, digestFailures)
 	}
 
-	// Calculate the expectations from the changes we imported into the CloudExpecationsStore
+	// Calculate the expectations from the changes we imported into the CloudExpectationsStore
 	calcExps, err := cloudExpStore.CalcExpectations(importKeys)
 	if err != nil {
 		sklog.Fatalf("Error calculating expectations: %s", err)

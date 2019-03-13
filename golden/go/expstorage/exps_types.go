@@ -46,7 +46,7 @@ func evExpChange(changes types.TestExp, issueID int64, waitCh chan<- bool) *Even
 	}
 }
 
-// expectationsState stores the state of expecations for either master or a Gerrit issue.
+// expectationsState stores the state of expectations for either master or a Gerrit issue.
 type expectationsState struct {
 	ExpectationsBlob *datastore.Key // key of the blob that stores expectations
 }

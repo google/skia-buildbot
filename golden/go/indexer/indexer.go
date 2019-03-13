@@ -224,7 +224,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 		return err
 	}
 
-	// When the master expecations change, update the blamer and its dependents.
+	// When the master expectations change, update the blamer and its dependents.
 	expCh := make(chan types.TestExp)
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		// Schedule the list of test names to be recalculated.
@@ -235,7 +235,7 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	// new expectations to GCS.
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_TRYJOB_EXP_CHANGED, ixr.writeIssueBaseline)
 
-	// Keep building indices as tiles become available and expecations change.
+	// Keep building indices as tiles become available and expectations change.
 	go func() {
 		var tilePair *types.TilePair
 		for {

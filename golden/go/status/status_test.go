@@ -97,7 +97,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 			}
 		}
 
-		// Update the expecations and wait for the status to change.
+		// Update the expectations and wait for the status to change.
 		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 		newStatus := watcher.GetStatus()

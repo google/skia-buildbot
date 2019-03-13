@@ -29,8 +29,8 @@ const (
 // the nomenclature should either change to Expectations or make a it clearer that
 // baselines are synonymous to expectations.
 
-// Baseliner is a helper type that provides functions to write baselines (expecations) to
-// GCS and retrieve them. Other packages use it to continuously write expecations to GCS
+// Baseliner is a helper type that provides functions to write baselines (expectations) to
+// GCS and retrieve them. Other packages use it to continuously write expectations to GCS
 // as they become available.
 type Baseliner struct {
 	gStorageClient       *GStorageClient
@@ -139,7 +139,7 @@ func (b *Baseliner) PushIssueBaseline(issueID int64, tile *tiling.Tile, tallies 
 	issueExpStore := b.issueExpStoreFactory(issueID)
 	exp, err := issueExpStore.Get()
 	if err != nil {
-		return skerr.Fmt("Unable to get issue expecations: %s", err)
+		return skerr.Fmt("Unable to get issue expectations: %s", err)
 	}
 
 	tryjobs, tryjobResults, err := b.tryjobStore.GetTryjobs(issueID, nil, true, true)

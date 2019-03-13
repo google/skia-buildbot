@@ -57,7 +57,7 @@ type TryjobStore interface {
 	// written to the database unconditionally, updateFn is used as described above.
 	UpdateIssue(details *Issue, updateFn NewValueFn) error
 
-	// CommitIssueExp commits the expecations of the given issue. The writeFn
+	// CommitIssueExp commits the expectations of the given issue. The writeFn
 	// is expected to make the changes to the master baseline. An issue is
 	// marked as committed if the writeFn runs without error.
 	CommitIssueExp(issueID int64, writeFn func() error) error

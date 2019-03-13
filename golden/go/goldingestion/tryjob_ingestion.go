@@ -94,7 +94,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 	_, expStoreFactory, err := expstorage.NewCloudExpectationsStore(ds.DS, eventBus)
 	if err != nil {
-		return nil, sklog.FmtErrorf("Unable to create cloud expecations store: %s", err)
+		return nil, sklog.FmtErrorf("Unable to create cloud expectations store: %s", err)
 	}
 
 	// Create the cloud tryjob store.

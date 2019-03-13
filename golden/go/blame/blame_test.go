@@ -290,14 +290,14 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	waitForChange(blamer, blameLists)
 	blameLists, commits := blamer.GetAllBlameLists()
 
-	expecations, err := storages.ExpectationsStore.Get()
+	expectations, err := storages.ExpectationsStore.Get()
 	assert.NoError(t, err)
 
 	// Verify that the results are plausible.
 	forEachTestTraceDo(tile, func(testName string, values []string) {
 		for idx, digest := range values {
 			if digest != types.MISSING_DIGEST {
-				label := expecations.Classification(testName, digest)
+				label := expectations.Classification(testName, digest)
 				if label == types.UNTRIAGED {
 					bl := blameLists[testName][digest]
 					assert.NotNil(t, bl)

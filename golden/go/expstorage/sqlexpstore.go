@@ -406,7 +406,7 @@ func (s *SQLExpectationsStore) loadChangeEntry(changeID int64) (*TriageLogEntry,
 }
 
 // Wraps around an ExpectationsStore and caches the expectations using
-// MemExpecationsStore.
+// MemExpectationsStore.
 type CachingExpectationStore struct {
 	store    ExpectationsStore
 	cache    ExpectationsStore

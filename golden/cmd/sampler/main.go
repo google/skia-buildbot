@@ -235,7 +235,7 @@ func load(ctx context.Context, dsNamespace string) (*tiling.Tile, types.Expectat
 
 	expectations, err := expStore.Get()
 	if err != nil {
-		sklog.Fatalf("Unable to get expecations: %s", err)
+		sklog.Fatalf("Unable to get expectations: %s", err)
 	}
 	return masterTileBuilder.GetTile(), expectations, storages.IgnoreStore
 }
