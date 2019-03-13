@@ -45,7 +45,7 @@ type Storage struct {
 	GerritAPI            gerrit.GerritInterface
 	GStorageClient       *GStorageClient
 	Baseliner            *Baseliner
-	Git                  *gitinfo.GitInfo
+	VCS                  *gitinfo.GitInfo
 	WhiteListQuery       paramtools.ParamSet
 	IsAuthoritative      bool
 	SiteURL              string
