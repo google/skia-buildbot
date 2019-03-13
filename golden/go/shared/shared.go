@@ -15,10 +15,10 @@ import (
 // Define common routes used by multiple servers and goldctl
 const (
 	// BASELINE_ROUTE serves the expectations of the master branch
-	EXPECATIONS_ROUTE = "/json/expecations/commit/{commit_hash}"
+	EXPECTATIONS_ROUTE = "/json/expectations/commit/{commit_hash}"
 
 	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
-	EXPECATIONS_ISSUE_ROUTE = "/json/expecations/issue/{issue_id}"
+	EXPECTATIONS_ISSUE_ROUTE = "/json/expectations/issue/{issue_id}"
 )
 
 // Validation is a container to collect error messages during validation of a
