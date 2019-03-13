@@ -417,6 +417,37 @@ func (r *Graph) Get(ref string) *Commit {
 	return nil
 }
 
+// RecurseCommits runs the given function recursively over the given refs, which
+// can be either commit hashes or branch names. The function accepts the current
+// Commit as a parameter. Returning ErrStopRecursing from the function indicates
+// that recursion should stop for the current branch, however, recursion will
+// continue for any other branches until they are similarly terminated.
+// Returning any other error causes recursion to stop without properly
+// terminating other branches. The error will bubble to the top and be returned.
+// Here's an example of printing out all of the commits reachable from a given
+// set of commits:
+//
+// commits := []string{...}
+// err := repo.RecurseCommits(commits, func(c *Commit) error {
+//	sklog.Info(c.Hash)
+//	return nil
+// })
+func (r *Graph) RecurseCommits(commits []string, f func(*Commit) error) error {
+	visited := make(map[*Commit]bool, r.Len())
+	for _, hash := range commits {
+		c := r.Get(hash)
+		if c == nil {
+			return fmt.Errorf("Unknown commit %q", hash)
+		}
+		if !visited[c] {
+			if err := c.recurse(f, visited); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // RecurseAllBranches runs the given function recursively over the entire commit
 // history, starting at each of the known branch heads. The function accepts the
 // current Commit as a parameter. Returning ErrStopRecursing from the function
@@ -426,25 +457,12 @@ func (r *Graph) Get(ref string) *Commit {
 // properly terminating other branches. The error will bubble to the top and be
 // returned. Here's an example of printing out all of the commits in the repo:
 //
-// repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+// repo.RecurseAllBranches(func(c *Commit) error {
 //      sklog.Info(c.Hash)
-//      return true, nil
+//      return nil
 // })
 func (r *Graph) RecurseAllBranches(f func(*Commit) error) error {
-	branches := r.Branches()
-	visited := make(map[*Commit]bool, r.Len())
-	for _, b := range branches {
-		c := r.Get(b)
-		if c == nil {
-			return fmt.Errorf("Branch %s not found", b)
-		}
-		if _, ok := visited[c]; !ok {
-			if err := c.recurse(f, visited); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return r.RecurseCommits(r.Branches(), f)
 }
 
 // RevList is the equivalent of "git rev-list --topo-order from..to".
