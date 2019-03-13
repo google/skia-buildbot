@@ -7,13 +7,12 @@ import (
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/tryjobstore"
 	"go.skia.org/infra/golden/go/types"
-	"golang.org/x/sync/errgroup"
 )
 
 // md5SumEmptyExp is the MD5 sum of an empty expectation.
@@ -50,70 +49,84 @@ type CommitableBaseLine struct {
 // TODO(stephana): Add tests for GetBaselinePerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
-func GetBaselinesPerCommit(exps types.Expectations, tile *tiling.Tile) (map[string]*CommitableBaseLine, error) {
-	commits := tile.Commits
-	if len(tile.Commits) == 0 {
+func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) (map[string]*CommitableBaseLine, error) {
+	allCommits := cpxTile.AllCommits()
+	if len(allCommits) == 0 {
 		return map[string]*CommitableBaseLine{}, nil
 	}
 
-	perCommitBaselines := make([]*CommitableBaseLine, len(tile.Commits))
-	var egroup errgroup.Group
+	// Get the baselines for all commits for which we have data and that are not ignored.
+	denseTile := cpxTile.GetTile(false)
+	denseCommits := cpxTile.DataCommits()
+	denseBLs := make(map[string]types.TestExp, len(denseCommits))
 
-	for cIdx := range commits {
-		func(cIdx int) {
-			egroup.Go(func() error {
-				startCommitIdx := cIdx
-				masterBaseline := types.TestExp{}
-				filled := 0
-				for _, trace := range tile.Traces {
-					gTrace := trace.(*types.GoldenTrace)
-					testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
-					digest := types.MISSING_DIGEST
-					idx := util.MinInt(cIdx, gTrace.LastIndex())
-					for ; idx >= 0; idx-- {
-						digest = gTrace.Values[idx]
-						if digest != types.MISSING_DIGEST {
-							break
-						}
-					}
-
-					if digest != types.MISSING_DIGEST && exps.Classification(testName, digest) == types.POSITIVE {
-						masterBaseline.AddDigest(testName, digest, types.POSITIVE)
-					}
-
-					if idx == cIdx {
-						filled++
-					}
-					startCommitIdx = util.MaxInt(0, util.MinInt(startCommitIdx, idx))
-				}
-
-				md5Sum, err := util.MD5Sum(masterBaseline)
-				if err != nil {
-					return skerr.Fmt("Error calculating MD5 sum: %s", err)
-				}
-
-				perCommitBaselines[cIdx] = &CommitableBaseLine{
-					StartCommit: commits[startCommitIdx],
-					EndCommit:   commits[cIdx],
-					CommitDelta: cIdx - startCommitIdx,
-					Total:       len(tile.Traces),
-					Filled:      filled,
-					Baseline:    masterBaseline,
-					Issue:       0,
-					MD5:         md5Sum,
-				}
-				return nil
-			})
-		}(cIdx)
-	}
-	if err := egroup.Wait(); err != nil {
-		return nil, err
+	// Initialize the expectations for all data commits
+	for _, commit := range denseCommits {
+		denseBLs[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
 	}
 
-	ret := make(map[string]*CommitableBaseLine, len(commits))
-	for idx, bLine := range perCommitBaselines {
-		ret[commits[idx].Hash] = bLine
+	// keep track of results as we move across the tile. So if a digest is missing
+	// it will be replaced with result of a previous run.
+	currDigests := make(map[string]string, len(denseTile.Traces))
+
+	// Sweep the tile and calculate the baselines.
+	for traceID, trace := range denseTile.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+		for idx := 0; idx < len(denseCommits); idx++ {
+			digest := gTrace.Values[idx]
+			if digest == types.MISSING_DIGEST {
+				if prevDigest, ok := currDigests[traceID]; ok {
+					digest = prevDigest
+				}
+			} else {
+				currDigests[traceID] = digest
+			}
+
+			// If we have a digest either from this commit or its ancestors we add to the baseline.
+			if digest != types.MISSING_DIGEST {
+				// If this is positive then include it into baseline.
+				if cl := exps.Classification(testName, digest); cl == types.POSITIVE {
+					denseBLs[denseCommits[idx].Hash].AddDigest(testName, digest, cl)
+				}
+			}
+		}
 	}
+
+	// Iterate over all commits. If the tile is sparse we substitute the expectations with the
+	// expectations of the closest ancestor that has expecations.
+	ret := make(map[string]*CommitableBaseLine, len(allCommits))
+	var currBL *CommitableBaseLine = nil
+	for _, commit := range allCommits {
+		bl, ok := denseBLs[commit.Hash]
+		if ok {
+			md5Sum, err := util.MD5Sum(bl)
+			if err != nil {
+				return nil, skerr.Fmt("Error calculating MD5 sum: %s", err)
+			}
+
+			ret[commit.Hash] = &CommitableBaseLine{
+				StartCommit: commit,
+				EndCommit:   commit,
+				Total:       len(denseTile.Traces),
+				Filled:      len(bl),
+				Baseline:    bl,
+				MD5:         md5Sum,
+			}
+			currBL = ret[commit.Hash]
+		} else if currBL != nil {
+			// Make a copy of the baseline of the previous commit and update the commit information.
+			cpBL := *currBL
+			cpBL.StartCommit = commit
+			cpBL.EndCommit = commit
+			ret[commit.Hash] = &cpBL
+		} else {
+			// Reaching this point means the first in the dense tile does not align with the first
+			// commit of the sparse portion of the tile.
+			sklog.Errorf("Unable to get baseline for commit %s. It has not commits for immediate ancestors in tile.", commit.Hash)
+		}
+	}
+
 	return ret, nil
 }
 
@@ -130,18 +143,13 @@ func EmptyBaseline(startCommit, endCommit *tiling.Commit) *CommitableBaseLine {
 
 // GetBaselineForIssue returns the baseline for the given issue. This baseline
 // contains all triaged digests that are not in the master tile.
-func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit, talliesByTest map[string]tally.Tally) (*CommitableBaseLine, error) {
+func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobResults [][]*tryjobstore.TryjobResult, exp types.Expectations, commits []*tiling.Commit) (*CommitableBaseLine, error) {
 	var startCommit *tiling.Commit = commits[len(commits)-1]
 	var endCommit *tiling.Commit = commits[len(commits)-1]
 
 	baseLine := types.TestExp{}
 	for idx, tryjob := range tryjobs {
 		for _, result := range tryjobResults[idx] {
-			// Ignore all digests that appear in the master.
-			if _, ok := talliesByTest[result.TestName][result.Digest]; ok {
-				continue
-			}
-
 			if result.Digest != types.MISSING_DIGEST && exp.Classification(result.TestName, result.Digest) == types.POSITIVE {
 				baseLine.AddDigest(result.TestName, result.Digest, types.POSITIVE)
 			}
@@ -173,7 +181,7 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 }
 
 // CommitIssueBaseline commits the expectations for the given issue to the master baseline.
-func CommitIssueBaseline(issueID int64, user string, issueChanges types.TestExp, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
+func commitIssueBaseline(issueID int64, user string, issueChanges types.TestExp, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
 	if len(issueChanges) == 0 {
 		return nil
 	}

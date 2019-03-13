@@ -213,7 +213,7 @@ func main() {
 			sklog.Fatalf("Failed to authenticate service account: %s", err)
 		}
 		// TODO(dogben): Ok to add request/dial timeouts?
-		client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().Client()
+		client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithoutRetries().WithDialTimeout(10 * time.Second).Client()
 
 		// serviceName uniquely identifies this host and app and is used as ID for other services.
 		nodeName, err := gevent.GetNodeName(appName, *local)
@@ -344,16 +344,18 @@ func main() {
 			// This uses MySQL to manage expecations for the master branch.
 			expStore = expstorage.NewSQLExpectationStore(vdb)
 		}
+		expStore = expstorage.NewCachingExpectationStore(expStore, evt)
 
 		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 		}
+		tryjobMonitor := tryjobs.NewTryjobMonitor(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
 
 		// Extract the site URL
 		storages := &storage.Storage{
 			DiffStore:            diffStore,
-			ExpectationsStore:    expstorage.NewCachingExpectationStore(expStore, evt),
+			ExpectationsStore:    expStore,
 			IssueExpStoreFactory: issueExpStoreFactory,
 			TraceDB:              db,
 			MasterTileBuilder:    masterTileBuilder,
@@ -361,7 +363,7 @@ func main() {
 			NCommits:             *nCommits,
 			EventBus:             evt,
 			TryjobStore:          tryjobStore,
-			TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, *siteURL, evt, *authoritative),
+			TryjobMonitor:        tryjobMonitor,
 			GerritAPI:            gerritAPI,
 			GStorageClient:       gsClient,
 			Git:                  git,
@@ -404,15 +406,18 @@ func main() {
 		}
 
 		// Rebuild the index every two minutes.
+		sklog.Infof("Starting indexer")
 		ixr, err := indexer.New(storages, *indexInterval)
 		if err != nil {
 			sklog.Fatalf("Failed to create indexer: %s", err)
 		}
+		sklog.Infof("Indexer created.")
 
 		searchAPI, err := search.NewSearchAPI(storages, ixr)
 		if err != nil {
 			sklog.Fatalf("Failed to create instance of search API: %s", err)
 		}
+		sklog.Infof("Search API created")
 
 		issueTracker := issues.NewMonorailIssueTracker(client)
 
@@ -420,6 +425,7 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Failed to initialize status watcher: %s", err)
 		}
+		sklog.Infof("statusWatcher created")
 
 		handlers = web.WebHandlers{
 			Storages:      storages,
