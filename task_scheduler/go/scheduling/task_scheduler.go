@@ -91,7 +91,11 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl                  *blacklist.Blacklist
+	bl *blacklist.Blacklist
+
+	branchHeads    map[string]map[string]string
+	branchHeadsMtx sync.RWMutex
+
 	busyBots            *busyBots
 	cacher              *cacher.Cacher
 	candidateMetrics    map[string]metrics2.Int64Metric
@@ -129,10 +133,17 @@ type TaskScheduler struct {
 func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, btProject, btInstance string, ts oauth2.TokenSource) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
-	for _, r := range repos {
+	branchHeads := make(map[string]map[string]string, len(repos))
+	for repoUrl, r := range repos {
 		if err := r.Update(ctx); err != nil {
 			return nil, fmt.Errorf("Failed initial repo sync: %s", err)
 		}
+		bhs := r.BranchHeads()
+		subMap := make(map[string]string, len(bhs))
+		for _, bh := range bhs {
+			subMap[bh.Name] = bh.Head
+		}
+		branchHeads[repoUrl] = subMap
 	}
 	w, err := window.New(period, numCommits, repos)
 	if err != nil {
@@ -171,6 +182,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	}
 	s := &TaskScheduler{
 		bl:               bl,
+		branchHeads:      branchHeads,
 		busyBots:         newBusyBots(),
 		cacher:           chr,
 		candidateMetrics: map[string]metrics2.Int64Metric{},
@@ -1349,30 +1361,13 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 
 // recurseAllBranches runs the given func on every commit on all branches, with
 // some Task Scheduler-specific exceptions.
-func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
+func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, branchHeads map[string]map[string]string, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
 	for repoUrl, r := range s.repos {
-		blacklistBranches := BRANCH_BLACKLIST[repoUrl]
-		blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
-		for _, b := range blacklistBranches {
-			c := r.Get(b)
-			if c != nil {
-				blacklistCommits[c] = b
-			}
+		commits := make([]string, 0, len(branchHeads[repoUrl]))
+		for _, head := range branchHeads[repoUrl] {
+			commits = append(commits, head)
 		}
-		if err := r.RecurseAllBranches(func(c *repograph.Commit) error {
-			if blacklistBranch, ok := blacklistCommits[c]; ok {
-				sklog.Infof("Skipping blacklisted branch %q", blacklistBranch)
-				return repograph.ErrStopRecursing
-			}
-			for head, blacklistBranch := range blacklistCommits {
-				isAncestor, err := r.IsAncestor(c.Hash, head.Hash)
-				if err != nil {
-					return err
-				} else if isAncestor {
-					sklog.Infof("Skipping blacklisted branch %q (--is-ancestor)", blacklistBranch)
-					return repograph.ErrStopRecursing
-				}
-			}
+		if err := r.RecurseCommits(commits, func(c *repograph.Commit) error {
 			if !s.window.TestCommit(repoUrl, c) {
 				return repograph.ErrStopRecursing
 			}
@@ -1385,12 +1380,12 @@ func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, fn func(string, 
 }
 
 // gatherNewJobs finds and inserts Jobs for all new commits.
-func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
+func (s *TaskScheduler) gatherNewJobs(ctx context.Context, branchHeads map[string]map[string]string) error {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find all new Jobs for all new commits.
 	newJobs := []*types.Job{}
-	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
+	if err := s.RecurseAllBranches(ctx, branchHeads, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
 		// If this commit isn't in scheduling range, stop recursing.
 		if !s.window.TestCommit(repoUrl, c) {
 			return repograph.ErrStopRecursing
@@ -1489,7 +1484,12 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 	repoStates := []types.RepoState{}
-	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
+	// Get the current set of branch heads. It's okay not to copy because
+	// we never actually modify the map; the whole thing just gets replaced.
+	s.branchHeadsMtx.RLock()
+	branchHeads := s.branchHeads
+	s.branchHeadsMtx.RUnlock()
+	if err := s.RecurseAllBranches(ctx, branchHeads, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
 		repoStates = append(repoStates, types.RepoState{
 			Repo:     repoUrl,
 			Revision: c.Hash,
@@ -1577,15 +1577,34 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 // database.
 func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
-	for _, r := range s.repos {
+	branchHeads := make(map[string]map[string]string, len(s.repos))
+	for repoUrl, r := range s.repos {
 		if err := r.Update(ctx); err != nil {
 			return err
 		}
+		// Update the branches for this repo.
+		blacklistBranches := BRANCH_BLACKLIST[repoUrl]
+		bhs := r.BranchHeads()
+		subMap := make(map[string]string, len(bhs))
+		for _, bh := range bhs {
+			if util.In(bh.Name, blacklistBranches) {
+				sklog.Infof("Skipping blacklisted branch %q in repo %s", bh.Name, repoUrl)
+			} else {
+				subMap[bh.Name] = bh.Head
+			}
+		}
+		branchHeads[repoUrl] = subMap
 	}
 	if err := s.window.Update(); err != nil {
 		return err
 	}
-	return s.gatherNewJobs(ctx)
+	if err := s.gatherNewJobs(ctx, branchHeads); err != nil {
+		return err
+	}
+	s.branchHeadsMtx.Lock()
+	defer s.branchHeadsMtx.Unlock()
+	s.branchHeads = branchHeads
+	return nil
 }
 
 // QueueLen returns the length of the queue.
