@@ -1,0 +1,37 @@
+{
+  "childName": "chromiumos/infra/proto",
+  "contacts": [
+    "seanabraham@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "infra/infra",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "parentName": "infra",
+  "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
+  "rollerName": "cros-proto-infra-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "seanabraham+autoroll@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "infra/go/src/go.chromium.org/chromiumos/infra/proto",
+    "childRepo": "https://chromium.googlesource.com/chromiumos/infra/proto.git",
+    "includeBugs": true,
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "disk": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
