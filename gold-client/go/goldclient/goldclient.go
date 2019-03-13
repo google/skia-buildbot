@@ -533,14 +533,14 @@ func (r *resultState) loadKnownHashes() error {
 	return nil
 }
 
-// loadExpecations fetches the expectations from Gold to compare to tests.
+// loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations() error {
 	var urlPath string
 	if r.GoldResults.Issue > 0 {
 		issueID := strconv.FormatInt(r.GoldResults.Issue, 10)
-		urlPath = strings.Replace(shared.EXPECATIONS_ISSUE_ROUTE, "{issue_id}", issueID, 1)
+		urlPath = strings.Replace(shared.EXPECTATIONS_ISSUE_ROUTE, "{issue_id}", issueID, 1)
 	} else {
-		urlPath = strings.Replace(shared.EXPECATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
+		urlPath = strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 

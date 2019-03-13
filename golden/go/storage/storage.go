@@ -417,7 +417,7 @@ func (s *Storage) checkCommitableIssues(tile *tiling.Tile) {
 					issueExpStore := s.IssueExpStoreFactory(issueID)
 					issueExps, err := issueExpStore.Get()
 					if err != nil {
-						return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
+						return sklog.FmtErrorf("Unable to retrieve expectations for issue %d: %s", issueID, err)
 					}
 
 					if err := baseline.CommitIssueBaseline(issueID, longCommit.Author, issueExps.TestExp(), s.TryjobStore, s.ExpectationsStore); err != nil {

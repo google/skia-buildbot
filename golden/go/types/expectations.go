@@ -68,8 +68,8 @@ type Expectations interface {
 	Classification(test, digest string) Label
 }
 
-// NewExpectations returns an Expecations instance that wraps around an instance of TestExp.
-// If 'testExp' is not nil, then NewExpecations will take ownership of it and wrap around it.
+// NewExpectations returns an Expectations instance that wraps around an instance of TestExp.
+// If 'testExp' is not nil, then NewExpectations will take ownership of it and wrap around it.
 func NewExpectations(testExp TestExp) Expectations {
 	if testExp == nil {
 		testExp = TestExp{}

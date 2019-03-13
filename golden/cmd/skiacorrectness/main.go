@@ -341,7 +341,7 @@ func main() {
 				sklog.Fatal("Wrong DB version. Please updated to latest version.")
 			}
 
-			// This uses MySQL to manage expecations for the master branch.
+			// This uses MySQL to manage expectations for the master branch.
 			expStore = expstorage.NewSQLExpectationStore(vdb)
 		}
 
@@ -504,8 +504,8 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/tryjob/{id}"), handlers.JsonTryjobSummaryHandler).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
-	jsonRouter.HandleFunc(trim(shared.EXPECATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim(shared.EXPECATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.JsonRefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
