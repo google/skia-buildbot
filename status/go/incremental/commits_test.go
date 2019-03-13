@@ -43,7 +43,7 @@ func TestIncrementalCommits(t *testing.T) {
 	c0 := gb.CommitGen(ctx, "file1")
 	wd, cleanupWd := testutils.TempDir(t)
 	defer cleanupWd()
-	repo, err := repograph.NewGraph(ctx, gb.Dir(), wd)
+	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), wd)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
