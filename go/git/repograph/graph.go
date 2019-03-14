@@ -316,6 +316,7 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 		newCommits = []*vcsinfo.LongCommit{}
 	}
 	sklog.Infof("  Loading commits...")
+	needOrphanCheck := false
 	for _, b := range branches {
 		// Shortcut: If we already have the head of this branch, don't
 		// bother loading commits.
@@ -339,6 +340,8 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 						return nil, err
 					}
 					newBranch = false
+				} else {
+					needOrphanCheck = true
 				}
 				break
 			}
@@ -373,6 +376,38 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 			}
 		}
 	}
+
+	if needOrphanCheck {
+		sklog.Warningf("History change detected; checking for orphaned commits.")
+		visited := make(map[*Commit]bool, len(r.commitsData))
+		for _, branch := range branches {
+			if err := r.commitsData[r.commits[branch.Head]].recurse(func(c *Commit) error {
+				return nil
+			}, visited); err != nil {
+				return nil, err
+			}
+		}
+		orphaned := map[*Commit]bool{}
+		for _, c := range r.commitsData {
+			if !visited[c] {
+				orphaned[c] = true
+			}
+		}
+		if len(orphaned) > 0 {
+			sklog.Errorf("%d commits are now orphaned. Removing them from the Graph.", len(orphaned))
+			newCommitsData := make([]*Commit, 0, len(r.commitsData)-len(orphaned))
+			newCommitsMap := make(map[string]int, len(r.commitsData)-len(orphaned))
+			for _, c := range r.commitsData {
+				if !orphaned[c] {
+					newCommitsMap[c.Hash] = len(newCommitsData)
+					newCommitsData = append(newCommitsData, c)
+				}
+			}
+			r.commits = newCommitsMap
+			r.commitsData = newCommitsData
+		}
+	}
+
 	oldBranches := r.branches
 	r.branches = branches
 

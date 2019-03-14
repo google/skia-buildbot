@@ -365,6 +365,27 @@ func TestUpdateHistoryChanged(t *testing.T) {
 		assert.NotEqual(t, c, c3)
 		return nil
 	}))
+
+	// Create a new branch, add some commits. Reset the old branches to
+	// orphan some commits. Ensure that those are removed from the graph.
+	g.CreateBranchAtCommit(ctx, "new", commits[0].Hash)
+	c7 := g.CommitGen(ctx, "blah")
+	c8 := g.CommitGen(ctx, "blah")
+	g.CheckoutBranch(ctx, "master")
+	g.Reset(ctx, "--hard", c8)
+	assert.NoError(t, repo.Update(ctx))
+	assert.NotNil(t, repo.Get(c7))
+	assert.NotNil(t, repo.Get(c8))
+	master := repo.Get("master")
+	assert.NotNil(t, master)
+	assert.Equal(t, c8, master.Hash)
+	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) error {
+		assert.NotEqual(t, c.Hash, commits[2].Hash)
+		assert.NotEqual(t, c.Hash, commits[4].Hash)
+		return nil
+	}))
+	assert.Nil(t, repo.Get(commits[2].Hash)) // Should be orphaned now.
+	assert.Nil(t, repo.Get(commits[4].Hash)) // Should be orphaned now.
 }
 
 func TestUpdateAndReturnNewCommits(t *testing.T) {
@@ -570,8 +591,6 @@ func assertTopoSorted(t *testing.T, commits []*Commit) {
 
 	// Verify that the above cases are true for each commit in the slice.
 	for idx, c := range commits {
-		sklog.Errorf("Check %d / %d", idx, len(commits))
-
 		// If the commit has one parent, and its parent has one child,
 		// they should be adjacent.
 		if len(c.parents) == 1 && len(children[c.parents[0]]) == 1 {

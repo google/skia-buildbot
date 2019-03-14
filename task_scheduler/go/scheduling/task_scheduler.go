@@ -503,6 +503,21 @@ func (s *TaskScheduler) TriggerJob(ctx context.Context, repo, commit, jobName st
 	return j.Id, nil
 }
 
+// cancelJobs cancels the given Jobs if they are not already finished.
+func (s *TaskScheduler) cancelJobs(jobs []*types.Job) error {
+	for _, j := range jobs {
+		if j.Done() {
+			return fmt.Errorf("Job %s is already finished with status %s", j.Id, j.Status)
+		}
+		j.Status = types.JOB_STATUS_CANCELED
+		s.jobFinished(j)
+	}
+	if err := s.db.PutJobsInChunks(jobs); err != nil {
+		return err
+	}
+	return s.jCache.Update()
+}
+
 // CancelJob cancels the given Job if it is not already finished.
 func (s *TaskScheduler) CancelJob(id string) (*types.Job, error) {
 	// TODO(borenet): Prevent concurrent update of the Job.
@@ -510,15 +525,7 @@ func (s *TaskScheduler) CancelJob(id string) (*types.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	if j.Done() {
-		return nil, fmt.Errorf("Job %s is already finished with status %s", id, j.Status)
-	}
-	j.Status = types.JOB_STATUS_CANCELED
-	s.jobFinished(j)
-	if err := s.db.PutJob(j); err != nil {
-		return nil, err
-	}
-	return j, s.jCache.Update()
+	return j, s.cancelJobs([]*types.Job{j})
 }
 
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
@@ -636,11 +643,34 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
+	cancelJobs := []*types.Job{}
 	candidates := map[types.TaskKey]*taskCandidate{}
+	validCommits := map[string]map[string]bool{}
 	for _, j := range unfinishedJobs {
+		// Cancel jobs which have scrolled out of the window.
 		if !s.window.TestTime(j.Repo, j.Created) {
+			cancelJobs = append(cancelJobs, j)
 			continue
 		}
+
+		// If git history was changed, we need to drop jobs at orphaned
+		// commits.
+		sub, ok := validCommits[j.Repo]
+		if !ok {
+			sub = map[string]bool{}
+			validCommits[j.Repo] = sub
+		}
+		commitIsValid, ok := sub[j.Revision]
+		if !ok {
+			commitIsValid = s.repos[j.Repo].Get(j.Revision) != nil
+			sub[j.Revision] = commitIsValid
+		}
+		if !commitIsValid {
+			cancelJobs = append(cancelJobs, j)
+			continue
+		}
+
+		// Add task candidates for this job.
 		for tsName := range j.Dependencies {
 			key := j.MakeTaskKey(tsName)
 			c, ok := candidates[key]
@@ -667,6 +697,14 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 			c.Jobs[j] = struct{}{}
 		}
 	}
+
+	// Cancel any no-longer-valid jobs.
+	if len(cancelJobs) > 0 {
+		if err := s.cancelJobs(cancelJobs); err != nil {
+			return nil, err
+		}
+	}
+
 	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
 	return candidates, nil
 }
