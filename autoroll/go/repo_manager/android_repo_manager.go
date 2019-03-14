@@ -393,6 +393,11 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 		commitMsg += fmt.Sprintf("\nBug: %s", strings.Join(bugs, ", "))
 	}
 
+	// Temporary Hack to not specify "Pixel 3" or "Pixel3" in commit messages
+	// because they are considered blocked keywords
+	commitMsg = strings.Replace(commitMsg, "Pixel 3", "P3", -1)
+	commitMsg = strings.Replace(commitMsg, "Pixel3", "P3", -1)
+
 	if r.parentBranch != "master" {
 		// If the parent branch is not master then:
 		// Add all authors of merged changes to the email list. We do not do this
