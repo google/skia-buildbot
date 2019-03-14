@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b80837d8_eb2695a6",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T14:28:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "61f401f8_42904c8c",
+      "range": {
+        "startLine": 172,
+        "startChar": 40,
+        "endLine": 172,
+        "endChar": 48
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4780b3a_f43abfb6",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e4e62b6_8e061bce",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T14:28:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e4780b3a_f43abfb6",
+      "range": {
+        "startLine": 189,
+        "startChar": 24,
+        "endLine": 189,
+        "endChar": 35
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "312b0043_b6544155",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T14:28:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "249458bf_c6e1468a",
+      "range": {
+        "startLine": 223,
+        "startChar": 8,
+        "endLine": 223,
+        "endChar": 16
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c4cdc39_181935f2",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2019-03-13T20:24:40Z",
       "side": 1,
       "message": "nit: mentioned in chat: after a restart, this will lose any commits that aren\u0027t reachable from a branch head, whereas NewLocalGraph won\u0027t (unless you also delete the GobFile). This should be pretty rare, so it probably doesn\u0027t matter much, but it might be worth auditing what might happen in users of Graph.",
+      "range": {
+        "startLine": 225,
+        "startChar": 2,
+        "endLine": 226,
+        "endChar": 27
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f64dc4a_5ba7fd25",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T14:28:51Z",
+      "side": 1,
+      "message": "This has happened before but we didn\u0027t encounter any errors, probably because the orphaned commit(s) were still present in the Graph and in the git repos on disk.  I think in one respect we\u0027re actually in better shape than we were a few weeks ago, because now we insert the commits into the cache as soon as we see them and then we never need to actually sync to those commits again, whereas before we might run into errors when we tried to trigger tasks for those commits if they\u0027d been GC\u0027d from the local repos.  On the other hand, we could still run into problems when trying to compute blamelists for tasks at orphaned commits, since they will disappear from the Graph when the scheduler restarts.\n\nMaybe the right move is to (periodically? at each loop?) find and cancel jobs for orphaned commits. We\u0027d have to do two things: make Graph able to find and report orphaned commits (during Update? do we also remove them?), and have the scheduler scroll through all jobs and cancel them if the commit no longer exists.  I\u0027ll do this in a subsequent CL.",
+      "parentUuid": "3c4cdc39_181935f2",
       "range": {
         "startLine": 225,
         "startChar": 2,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "4253c5f6_1007b293",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 695,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T14:28:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4346bac_2418ac2e",
+      "range": {
+        "startLine": 695,
+        "startChar": 11,
+        "endLine": 695,
+        "endChar": 22
+      },
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0231d8bd_b33638ba",
         "filename": "go/git/repograph/graph_test.go",
         "patchSetId": 6
@@ -131,6 +251,24 @@
       "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1119aca7_8441560f",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 917,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T14:28:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0231d8bd_b33638ba",
+      "revId": "5f36bb0698be712b5c79a8b7be1b33f77adf738e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
