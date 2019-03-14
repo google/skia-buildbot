@@ -29,7 +29,7 @@ func TestTaskSpecs(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
@@ -95,7 +95,7 @@ func TestAddedTaskSpecs(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
@@ -229,7 +229,7 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
@@ -284,7 +284,7 @@ func TestTaskCfgCacheError(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
@@ -352,7 +352,7 @@ func TestTaskCfgCacheStorage(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 
