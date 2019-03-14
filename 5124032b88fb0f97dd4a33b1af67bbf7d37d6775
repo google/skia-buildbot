@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f8e7bbee_c8991f67",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T17:41:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83e73d76_d3f10ebf",
+      "range": {
+        "startLine": 575,
+        "startChar": 1,
+        "endLine": 575,
+        "endChar": 64
+      },
+      "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56e00227_55d5dd70",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2019-03-14T17:27:09Z",
       "side": 1,
       "message": "nit: It might be cleaner to combine all the \"if *kube\" blocks into a single block.",
+      "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3d6055e_f0b9c4b1",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T17:41:24Z",
+      "side": 1,
+      "message": "I got it down to three blocks: this one, the one which controls common.Init(), and the http handler wrapper.",
+      "parentUuid": "56e00227_55d5dd70",
       "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -62,6 +104,30 @@
       "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0399f44_9c8e0aa9",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 723,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-14T17:41:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b4f55060_4731d0bf",
+      "range": {
+        "startLine": 719,
+        "startChar": 0,
+        "endLine": 723,
+        "endChar": 2
+      },
+      "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
