@@ -120,7 +120,7 @@ func main() {
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
 		sklog.Fatal(err)
 	}
-	repos, err := repograph.NewMap(ctx, *repoUrls, reposDir)
+	repos, err := repograph.NewLocalMap(ctx, *repoUrls, reposDir)
 	if err != nil {
 		sklog.Fatal(err)
 	}

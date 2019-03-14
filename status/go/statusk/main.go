@@ -751,7 +751,7 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
-	repos, err = repograph.NewMap(ctx, *repoUrls, reposDir)
+	repos, err = repograph.NewLocalMap(ctx, *repoUrls, reposDir)
 	if err != nil {
 		sklog.Fatalf("Failed to create repo map: %s", err)
 	}

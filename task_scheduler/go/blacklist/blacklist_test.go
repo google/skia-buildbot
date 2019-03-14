@@ -265,7 +265,7 @@ func TestValidation(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 	assert.NoError(t, repos.Update(ctx))
@@ -399,7 +399,7 @@ func TestCommitRange(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := repograph.Map{}
-	repo, err := repograph.NewGraph(ctx, gb.RepoUrl(), tmp)
+	repo, err := repograph.NewLocalGraph(ctx, gb.RepoUrl(), tmp)
 	assert.NoError(t, err)
 	repos[gb.RepoUrl()] = repo
 	assert.NoError(t, repos.Update(ctx))

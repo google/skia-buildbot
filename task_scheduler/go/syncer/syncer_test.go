@@ -137,7 +137,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
 	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
@@ -173,7 +173,7 @@ func TestTempGitRepoErr(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
 	s := New(ctx, repos, depot_tools_testutils.GetDepotTools(t, ctx), tmp, DEFAULT_NUM_WORKERS)
@@ -210,7 +210,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 
 	botUpdateCount := 0

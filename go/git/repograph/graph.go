@@ -17,6 +17,7 @@ import (
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -167,8 +168,15 @@ type Graph struct {
 	commits     map[string]int
 	commitsData []*Commit
 	graphMtx    sync.RWMutex
-	repo        *git.Repo
-	repoMtx     sync.Mutex
+
+	// repo is only set if NewLocalGraph() is used.
+	repo    *git.Repo
+	repoMtx sync.Mutex
+
+	// gitstore is only set if NewGitStoreGraph() is used.
+	gitstore           gitstore.GitStore
+	gitstoreLastUpdate time.Time
+	gitstoreMtx        sync.Mutex
 }
 
 // gobGraph is a utility struct used for serializing a Graph using gob.
@@ -177,10 +185,15 @@ type gobGraph struct {
 	CommitsData []*Commit
 }
 
-// New returns a Graph instance which uses the given git.Graph. Obtains cached
-// data but does NOT update the Graph; the caller is responsible for doing so
-// before using the Graph if up-to-date data is required.
-func New(repo *git.Repo) (*Graph, error) {
+// NewLocalGraph returns a Graph instance, creating a git.Repo from the repoUrl
+// and workdir. May obtain cached data from a file in the git repo, but does NOT
+// update the Graph; the caller is responsible for doing so before using the
+// Graph if up-to-date data is required.
+func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
+	repo, err := git.NewRepo(ctx, repoUrl, workdir)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create git repo: %s", err)
+	}
 	rv := &Graph{
 		commits:     map[string]int{},
 		commitsData: []*Commit{},
@@ -206,16 +219,17 @@ func New(repo *git.Repo) (*Graph, error) {
 	return rv, nil
 }
 
-// NewGraph returns a Graph instance, creating a git.Repo from the repoUrl and
-// workdir. Obtains cached data but does NOT update the Graph; the caller is
-// responsible for doing so before using the Graph if up-to-date data is
-// required.
-func NewGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error) {
-	repo, err := git.NewRepo(ctx, repoUrl, workdir)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create git repo: %s", err)
+// NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
+func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
+	rv := &Graph{
+		commits:     map[string]int{},
+		commitsData: []*Commit{},
+		gitstore:    gs,
 	}
-	return New(repo)
+	if err := rv.Update(ctx); err != nil {
+		return nil, err
+	}
+	return rv, nil
 }
 
 // Len returns the number of commits in the repo.
@@ -227,12 +241,7 @@ func (r *Graph) Len() int {
 
 // addCommit adds the commit with the given hash to the Graph. Assumes that the
 // caller holds r.repoMtx and r.graphMtx.
-func (r *Graph) addCommit(ctx context.Context, hash string) error {
-	d, err := r.repo.Details(ctx, hash)
-	if err != nil {
-		return fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
-	}
-
+func (r *Graph) addCommit(ctx context.Context, d *vcsinfo.LongCommit) error {
 	var parentIndices []int
 	var parents []*Commit
 	if len(d.Parents) > 0 {
@@ -255,9 +264,17 @@ func (r *Graph) addCommit(ctx context.Context, hash string) error {
 		parents:       parents,
 		repo:          r,
 	}
-	r.commits[hash] = len(r.commitsData)
+	r.commits[d.Hash] = len(r.commitsData)
 	r.commitsData = append(r.commitsData, c)
 	return nil
+}
+
+// update the Graph.
+func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
+	if r.repo != nil {
+		return r.updateLocal(ctx, returnNewCommits)
+	}
+	return r.updateGitstore(ctx, returnNewCommits)
 }
 
 // Update syncs the local copy of the repo and loads new commits/branches into
@@ -274,7 +291,7 @@ func (r *Graph) UpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongC
 	return r.update(ctx, true)
 }
 
-func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
+func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -344,11 +361,15 @@ func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.L
 			if _, ok := r.commits[hash]; ok {
 				continue
 			}
-			if err := r.addCommit(ctx, hash); err != nil {
+			d, err := r.repo.Details(ctx, hash)
+			if err != nil {
+				return nil, fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
+			}
+			if err := r.addCommit(ctx, d); err != nil {
 				return nil, err
 			}
 			if returnNewCommits {
-				newCommits = append(newCommits, r.commitsData[r.commits[hash]].LongCommit)
+				newCommits = append(newCommits, d)
 			}
 		}
 	}
@@ -647,6 +668,9 @@ func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 
 // TempCheckout returns a git.TempCheckout of the underlying git.Repo.
 func (r *Graph) TempCheckout(ctx context.Context) (*git.TempCheckout, error) {
+	if r.repo == nil {
+		return nil, errors.New("Cannot create a TempCheckout from a non-local Graph.")
+	}
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 	return r.repo.TempCheckout(ctx)
@@ -654,6 +678,10 @@ func (r *Graph) TempCheckout(ctx context.Context) (*git.TempCheckout, error) {
 
 // GetFile returns the contents of the given file at the given commit.
 func (r *Graph) GetFile(ctx context.Context, fileName, commit string) (string, error) {
+	// TODO(borenet): We could use gitiles here...
+	if r.repo == nil {
+		return "", errors.New("Cannot retrieve files from a non-local Graph.")
+	}
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 	return r.repo.GetFile(ctx, fileName, commit)
@@ -663,17 +691,31 @@ func (r *Graph) GetFile(ctx context.Context, fileName, commit string) (string, e
 // repos. The keys are repository URLs.
 type Map map[string]*Graph
 
-// NewMap returns a Map instance with Graphs for the given repo URLs. Obtains
-// cached data but does NOT update the Map; the caller is responsible for
-// doing so before using the Map if up-to-date data is required.
-func NewMap(ctx context.Context, repos []string, workdir string) (Map, error) {
+// NewLocalMap returns a Map instance with Graphs for the given repo URLs.
+// May obtain cached data from a file in the git repo, but does NOT update the
+// Map; the caller is responsible for doing so before using the Map if
+// up-to-date data is required.
+func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, error) {
 	rv := make(map[string]*Graph, len(repos))
 	for _, r := range repos {
-		g, err := NewGraph(ctx, r, workdir)
+		g, err := NewLocalGraph(ctx, r, workdir)
 		if err != nil {
 			return nil, err
 		}
 		rv[r] = g
+	}
+	return rv, nil
+}
+
+// NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
+func NewGitStoreMap(ctx context.Context, repos map[string]gitstore.GitStore) (Map, error) {
+	rv := make(map[string]*Graph, len(repos))
+	for url, gs := range repos {
+		g, err := NewGitStoreGraph(ctx, gs)
+		if err != nil {
+			return nil, err
+		}
+		rv[url] = g
 	}
 	return rv, nil
 }

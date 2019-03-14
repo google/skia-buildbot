@@ -982,7 +982,7 @@ func TestGitRepoGetRevisionTimestamp(t *testing.T) {
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, workdir)
-	repo, err := repograph.NewGraph(ctx, g.Dir(), workdir)
+	repo, err := repograph.NewLocalGraph(ctx, g.Dir(), workdir)
 	assert.NoError(t, err)
 	assert.NoError(t, repo.Update(ctx))
 

@@ -262,7 +262,7 @@ func main() {
 	}
 
 	// Create the task scheduler.
-	repo, err := repograph.NewGraph(ctx, repoName, workdir)
+	repo, err := repograph.NewLocalGraph(ctx, repoName, workdir)
 	assertNoError(err)
 	assertNoError(repo.Update(ctx))
 	headCommit := repo.Get("master")

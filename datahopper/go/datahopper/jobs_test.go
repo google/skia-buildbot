@@ -349,7 +349,7 @@ func TestOverdueJobSpecMetrics(t *testing.T) {
 
 	d := memory.NewInMemoryDB(nil)
 	ctx, gb, _, _ := tcc_testutils.SetupTestRepo(t)
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, wd)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, wd)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]

@@ -28,7 +28,7 @@ func setup(t *testing.T) (context.Context, string, *IncrementalCache, repograph.
 	c0 := gb.CommitGen(ctx, "dummy")
 	workdir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
-	repo, err := repograph.NewGraph(ctx, gb.Dir(), workdir)
+	repo, err := repograph.NewLocalGraph(ctx, gb.Dir(), workdir)
 	assert.NoError(t, err)
 	repos := repograph.Map{
 		gb.RepoUrl(): repo,
