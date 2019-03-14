@@ -204,6 +204,7 @@ window.customElements.define('particles-player-sk', class extends HTMLElement {
     canvas.concat(itt);
     // Zoom to the middle of the animation
     canvas.translate(this._config.width/2, this._config.height/2);
+    this._zoomLevel = 1.0;
   }
 
   restartAnimation() {
