@@ -515,7 +515,7 @@ The main application element for the Skia Debugger.
 
         this.$.play.prePlayCallback(function() {
           if (!this.$.colorBreakPoint.disabled && this.$.colorBreakPoint.checked) {
-            sk.get("./break/" + this._targetItem + "/" + this.x + "/" + this.y).then(JSON.parse).then(function(json) {
+            DebugCanvas.setBreakpoint(this._targetItem, this.x, this.y).then(function(json) {
               if (json.endOp != -1) {
                 this.$.prevColor.textContent = json.startColor + " -> " + json.endColor;
                 var item = this._findItemFromIndex(json.endOp);
@@ -763,11 +763,11 @@ The main application element for the Skia Debugger.
       _refreshPage: function() {
         this.$.img.classList.remove("hidden");
         this._setCacheBreakingURL();
-        sk.get("./info").then(JSON.parse).then(function(json) {
+        DebugCanvas.getInfo().then(function(json) {
           this.skp_not_loaded = false;
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
-        sk.get("./cmd").then(JSON.parse).then(function(json) {
+        DebugCanvas.getCmd().then(function(json) {
           this._cmd = this._processCommands(json);
           if (this.$.fast.value) {
             this._fastFilter();
@@ -816,7 +816,7 @@ The main application element for the Skia Debugger.
         var op = this._filtered.commands[this._targetItem];
         var path = "img/" + index + "?";
         this.bitmap = op.details.bitmap ? (this._correctedOrigin() + op.details.bitmap.data) : "";
-        sk.get("./info/" + index).then(JSON.parse).then(function(json) {
+        DebugCanvas.getInfo(index).then(function(json) {
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
         this.$.img.src = this._correctedOrigin() + path + "?" + new Date().getTime();
