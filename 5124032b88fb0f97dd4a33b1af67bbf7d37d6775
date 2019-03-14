@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "83e73d76_d3f10ebf",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T17:27:09Z",
+      "side": 1,
+      "message": "nit: move into the block where it\u0027s used",
+      "range": {
+        "startLine": 575,
+        "startChar": 1,
+        "endLine": 575,
+        "endChar": 64
+      },
+      "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56e00227_55d5dd70",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T17:27:09Z",
+      "side": 1,
+      "message": "nit: It might be cleaner to combine all the \"if *kube\" blocks into a single block.",
+      "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4f55060_4731d0bf",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 723,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T17:27:09Z",
+      "side": 1,
+      "message": "This can be completely removed. webhook is no longer used in task scheduler.",
+      "range": {
+        "startLine": 719,
+        "startChar": 0,
+        "endLine": 723,
+        "endChar": 2
+      },
+      "revId": "5124032b88fb0f97dd4a33b1af67bbf7d37d6775",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
