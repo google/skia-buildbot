@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3ca36db_8ea93982",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T18:24:48Z",
+      "side": 1,
+      "message": "Also need to check for deleted branches, right?",
+      "range": {
+        "startLine": 319,
+        "startChar": 0,
+        "endLine": 319,
+        "endChar": 25
+      },
+      "revId": "75d91197bf24dd0363723ab9aa015c22114dd672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93351e6b_44549c41",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T18:24:48Z",
+      "side": 1,
+      "message": "nit: maybe comment \"Not using Get because graphMtx is locked.\"",
+      "range": {
+        "startLine": 384,
+        "startChar": 13,
+        "endLine": 384,
+        "endChar": 50
+      },
+      "revId": "75d91197bf24dd0363723ab9aa015c22114dd672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "851b0f21_2c425ba5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T18:24:48Z",
+      "side": 1,
+      "message": "nit: Would be nice to test the new behavior.",
+      "revId": "75d91197bf24dd0363723ab9aa015c22114dd672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e036303_93dc2591",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 648,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T18:24:48Z",
+      "side": 1,
+      "message": "Is there a reason we need to cache the result of \"s.repos[j.Repo].Get(j.Revision) !\u003d nil\"? I would expect that to be pretty fast.",
+      "range": {
+        "startLine": 648,
+        "startChar": 1,
+        "endLine": 648,
+        "endChar": 13
+      },
+      "revId": "75d91197bf24dd0363723ab9aa015c22114dd672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d17db94_e210169d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 654,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T18:24:48Z",
+      "side": 1,
+      "message": "For consistency, we should also cancel when the JobCache expires the job from the cache. Or just leave old jobs as forever \"started.\"",
+      "range": {
+        "startLine": 650,
+        "startChar": 0,
+        "endLine": 654,
+        "endChar": 3
+      },
+      "revId": "75d91197bf24dd0363723ab9aa015c22114dd672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad5a6a54_a91be53d",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T18:24:48Z",
+      "side": 1,
+      "message": "Very unimportant question: I wonder if we should just ignore these too, like we do for jobs outside of the window. E.g. if someone orphans some commits accidentally, and then fixes it so that those commits are no longer orphaned, the jobs will be canceled and never run.",
+      "range": {
+        "startLine": 701,
+        "startChar": 0,
+        "endLine": 706,
+        "endChar": 2
+      },
+      "revId": "75d91197bf24dd0363723ab9aa015c22114dd672",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
