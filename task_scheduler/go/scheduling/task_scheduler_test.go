@@ -200,7 +200,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
 	urlMock := mockhttpclient.NewURLMock()
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	projectRepoMapping := map[string]string{
@@ -1087,7 +1087,7 @@ func TestComputeBlamelist(t *testing.T) {
 
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, tmp)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	repo := repos[gb.RepoUrl()]
@@ -2036,7 +2036,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 	isolateClient, err := isolate.NewClient(workdir, isolate.ISOLATE_SERVER_URL_FAKE)
 	assert.NoError(t, err)
 	swarmingClient := swarming_testutils.NewTestClient()
-	repos, err := repograph.NewMap(ctx, []string{gb.RepoUrl()}, workdir)
+	repos, err := repograph.NewLocalMap(ctx, []string{gb.RepoUrl()}, workdir)
 	assert.NoError(t, err)
 	assert.NoError(t, repos.Update(ctx))
 	projectRepoMapping := map[string]string{
