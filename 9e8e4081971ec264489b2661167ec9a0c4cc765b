@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2d00c96b_95407271",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 922,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T17:09:06Z",
+      "side": 1,
+      "message": "Seems a bit odd. Maybe you meant to say \"c.LongCommit.Parents\" rather than \"c.Parents\"?",
+      "range": {
+        "startLine": 920,
+        "startChar": 3,
+        "endLine": 922,
+        "endChar": 4
+      },
+      "revId": "9e8e4081971ec264489b2661167ec9a0c4cc765b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
