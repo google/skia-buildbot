@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "12ddaf30_6c746081",
+        "filename": "particles/modules/particles-player-sk/particles-player-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-14T16:42:51Z",
+      "side": 1,
+      "message": "Just record the clientX and clientY and then update the canvas on a rAF. Save for zoom.",
+      "revId": "b570857ff5dc878ef9cff72821c62cf635b03d15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
