@@ -14,9 +14,11 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // gitSetup initializes a Git repo in a temporary directory with some commits.
@@ -35,7 +37,7 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 
-	repo, err := NewGraph(ctx, g.Dir(), tmp)
+	repo, err := NewLocalGraph(ctx, g.Dir(), tmp)
 	assert.NoError(t, err)
 	assert.NoError(t, repo.Update(ctx))
 
@@ -109,7 +111,7 @@ func TestGraph(t *testing.T) {
 	tmp2, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp2)
-	repo2, err := NewGraph(ctx, g.Dir(), tmp2)
+	repo2, err := NewLocalGraph(ctx, g.Dir(), tmp2)
 	assert.NoError(t, err)
 	assert.NoError(t, repo2.Update(ctx))
 	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
@@ -130,7 +132,7 @@ func TestSerialize(t *testing.T) {
 	ctx, g, repo, _, cleanup := gitSetup(t)
 	defer cleanup()
 
-	repo2, err := NewGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
+	repo2, err := NewLocalGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
 	assert.NoError(t, repo2.Update(ctx))
 
@@ -496,7 +498,7 @@ func TestRevList(t *testing.T) {
 	assert.NoError(t, err)
 	d2 := path.Join(tmpDir, "2")
 	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
-	g, err := NewGraph(ctx, gb.Dir(), d2)
+	g, err := NewLocalGraph(ctx, gb.Dir(), d2)
 	assert.NoError(t, err)
 	assert.NoError(t, g.Update(ctx))
 
@@ -656,7 +658,7 @@ func TestTopoSort(t *testing.T) {
 		tmpDir, err := ioutil.TempDir("", "")
 		assert.NoError(t, err)
 		defer testutils.RemoveAll(t, tmpDir)
-		g, err := NewGraph(ctx, gb.Dir(), tmpDir)
+		g, err := NewLocalGraph(ctx, gb.Dir(), tmpDir)
 		assert.NoError(t, err)
 		assert.NoError(t, g.Update(ctx))
 		checkGraph(g)
@@ -682,7 +684,7 @@ func TestTopoSort(t *testing.T) {
 		tmpDir, err := ioutil.TempDir("", "")
 		assert.NoError(t, err)
 		defer testutils.RemoveAll(t, tmpDir)
-		g, err := NewGraph(ctx, gb.Dir(), tmpDir)
+		g, err := NewLocalGraph(ctx, gb.Dir(), tmpDir)
 		assert.NoError(t, err)
 		assert.NoError(t, g.Update(ctx))
 		c3 := g.Get(commits[3])
@@ -786,7 +788,7 @@ func TestIsAncestor(t *testing.T) {
 	assert.NoError(t, err)
 	d2 := path.Join(tmpDir, "2")
 	assert.NoError(t, os.Mkdir(d2, os.ModePerm))
-	g, err := NewGraph(ctx, gb.Dir(), d2)
+	g, err := NewLocalGraph(ctx, gb.Dir(), d2)
 	assert.NoError(t, err)
 	assert.NoError(t, g.Update(ctx))
 
@@ -839,4 +841,114 @@ func TestIsAncestor(t *testing.T) {
 	check(commits[4], commits[2], false)
 	check(commits[4], commits[3], false)
 	check(commits[4], commits[4], true)
+}
+
+func TestGitStore(t *testing.T) {
+	testutils.LargeTest(t)
+
+	ctx := context.Background()
+	gb := git_testutils.GitInit(t, ctx)
+	defer gb.Cleanup()
+	commits := git_testutils.GitSetup(ctx, gb)
+
+	// Push commits into BT.
+	btConf := &gitstore.BTConfig{
+		ProjectID:  "fake-project",
+		InstanceID: "fake-instance",
+		TableID:    "repograph-gitstore",
+	}
+	assert.NoError(t, gitstore.InitBT(btConf))
+	gs, err := gitstore.NewBTGitStore(ctx, btConf, gb.RepoUrl())
+	assert.NoError(t, err)
+
+	repo := git.GitDir(gb.Dir())
+
+	// Wait for GitStore to be up to date.
+	btWait := func() {
+		expect, err := repo.Branches(ctx)
+		assert.NoError(t, err)
+		for {
+			time.Sleep(10 * time.Millisecond)
+			actual, err := gs.GetBranches(ctx)
+			assert.NoError(t, err)
+			allMatch := true
+			for _, expectBranch := range expect {
+				actualBranch, ok := actual[expectBranch.Name]
+				if !ok || actualBranch.Head != expectBranch.Head {
+					allMatch = false
+					break
+				}
+			}
+			if allMatch {
+				break
+			}
+		}
+	}
+
+	// Add the given commits to the GitStore.
+	addCommitsToGitStore := func(commits []string) {
+		details := make([]*vcsinfo.LongCommit, 0, len(commits))
+		for _, c := range commits {
+			d, err := repo.Details(ctx, c)
+			assert.NoError(t, err)
+			details = append(details, d)
+		}
+		assert.NoError(t, gs.Put(ctx, details))
+		branches, err := repo.Branches(ctx)
+		assert.NoError(t, err)
+		putBranches := make(map[string]string, len(branches))
+		for _, branch := range branches {
+			putBranches[branch.Name] = branch.Head
+		}
+		assert.NoError(t, gs.PutBranches(ctx, putBranches))
+		btWait()
+	}
+
+	addCommitsToGitStore(commits)
+
+	// Create the graph.
+	g, err := NewGitStoreGraph(ctx, gs)
+	assert.NoError(t, err)
+
+	check := func(commits []string) {
+		for _, hash := range commits {
+			c := g.Get(hash)
+			assert.NotNil(t, c)
+			d, err := repo.Details(ctx, hash)
+			assert.NoError(t, err)
+			d.Timestamp = d.Timestamp.UTC()
+			if len(d.Parents) == 0 && len(c.LongCommit.Parents) == 0 {
+				d.Parents = c.LongCommit.Parents
+			}
+			deepequal.AssertDeepEqual(t, d, c.LongCommit)
+		}
+	}
+	check(commits)
+
+	// Add some new commits.
+	c1 := gb.CommitGen(ctx, "file1")
+	c2 := gb.CommitGen(ctx, "file1")
+	gb.CreateBranchTrackBranch(ctx, "otherbranch", "master")
+	c3 := gb.CommitGen(ctx, "file2")
+	addCommitsToGitStore([]string{c1, c2, c3})
+	assert.NoError(t, g.Update(ctx))
+	check([]string{c1, c2, c3})
+	assert.Equal(t, c2, g.Get("master").Hash)
+	assert.Equal(t, c3, g.Get("otherbranch").Hash)
+
+	// Add a commit in the future. It shouldn't get included in the commits
+	// initially returned by GitStore.RangeByTime(). Ensure that we still
+	// end up with the new commit.
+	now := time.Now().Add(time.Second)
+	c4 := gb.CommitGenAt(ctx, "file2", now.Add(900*time.Hour))
+	addCommitsToGitStore([]string{c4})
+	indexCommits, err := gs.RangeByTime(ctx, now.Add(-30*time.Minute), now, gb.RepoUrl())
+	assert.NoError(t, err)
+	// Sanity check; ensure that the commit doesn't show up.
+	for _, c := range indexCommits {
+		assert.NotEqual(t, c4, c.Hash)
+	}
+	// Verify that the commit still shows up.
+	assert.NoError(t, g.Update(ctx))
+	check([]string{c4})
 }
