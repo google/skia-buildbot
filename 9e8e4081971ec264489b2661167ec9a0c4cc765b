@@ -46,6 +46,30 @@
       "revId": "9e8e4081971ec264489b2661167ec9a0c4cc765b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2db6c126_cad15629",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 922,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-14T19:13:50Z",
+      "side": 1,
+      "message": "Ah, sorry. I should have commented on a previous CL that it\u0027s not nice to have two fields that only differ in case (Commit.parents and Commit.Parents \u003d\u003d Commit.LongCommit.Parents).",
+      "parentUuid": "60b35075_e992366c",
+      "range": {
+        "startLine": 920,
+        "startChar": 3,
+        "endLine": 922,
+        "endChar": 4
+      },
+      "revId": "9e8e4081971ec264489b2661167ec9a0c4cc765b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
