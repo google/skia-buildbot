@@ -95,9 +95,9 @@ func (c *tasksPerCommitCache) update(ctx context.Context) error {
 		}
 		commit := repo.Get(rs.Revision)
 		if commit == nil {
-			return fmt.Errorf("No such commit: %s in repo %s", rs.Revision, rs.Repo)
-		}
-		if commit.Timestamp.Before(start) {
+			sklog.Errorf("Commit %s not found in repo %s; assuming that git history was modified and deleting related entries.", rs.Revision, rs.Repo)
+			delete(c.cached, rs)
+		} else if commit.Timestamp.Before(start) {
 			delete(c.cached, rs)
 		}
 	}
