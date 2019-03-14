@@ -14,6 +14,9 @@ import 'elements-sk/spinner-sk'
 
 const CanvasKitInit = require('../../build/canvaskit/canvaskit.js');
 
+const ZOOM_IN_FACTOR = 1.1; // 10%
+const ZOOM_OUT_FACTOR = 1/ZOOM_IN_FACTOR;
+
 // This element might be loaded from a different site, and that means we need
 // to be careful about how we construct the URL back to the canvas.wasm file.
 // Start by recording the script origin.
@@ -33,7 +36,10 @@ const loadingTemplate = (ele) => html`
 
 const runningTemplate = (ele) => html`
 <div class=container>
+  <!-- It would be more mobile friendly to use pointermove, but Safari doesn't support it-->
   <canvas id=player
+          @wheel=${ele._wheel}
+          @mousemove=${ele._drag}
           width=${ele._config.width * window.devicePixelRatio}
           height=${ele._config.height * window.devicePixelRatio}
           style='width: ${ele._config.width}px; height: ${ele._config.height}px;'>
@@ -60,6 +66,9 @@ window.customElements.define('particles-player-sk', class extends HTMLElement {
       lastTs:         0, // last time stamp we had a frame
     };
 
+
+    this._lastDrag = null;
+    this._zoomLevel = 1.0;
   }
 
   connectedCallback() {
@@ -70,6 +79,22 @@ window.customElements.define('particles-player-sk', class extends HTMLElement {
     };
 
     this.render();
+  }
+
+  _drag(e) {
+    if (!e.buttons || !e.shiftKey) { // ignore movements unless shift is held
+      this._lastDrag = null;
+      return;
+    }
+    if (this._lastDrag) {
+      const dx = e.clientX - this._lastDrag[0];
+      const dy = e.clientY - this._lastDrag[1];
+
+      const canvas = this._engine.canvas.translate(dx / this._zoomLevel,
+                                                   dy / this._zoomLevel);
+    }
+    this._lastDrag = [e.clientX, e.clientY];
+
   }
 
   _drawFrame() {
@@ -173,5 +198,29 @@ window.customElements.define('particles-player-sk', class extends HTMLElement {
   reset() {
     this._state.time = 0;
     this._state.lastTs = 0;
+  }
+
+  _wheel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let zoom = 0;
+    if (e.deltaY > 0) {
+      zoom = ZOOM_IN_FACTOR;
+    } else {
+      zoom = ZOOM_OUT_FACTOR;
+    }
+    this._zoomLevel *= zoom;
+    const ck = this._engine.kit;
+    const canvas = this._engine.canvas;
+
+    const tt = canvas.getTotalMatrix();
+    const itt = ck.SkMatrix.La(tt); // FIXME after https://skia-review.googlesource.com/c/skia/+/201225 lands
+    const pts = [e.clientX, e.clientY];
+    ck.SkMatrix.mapPoints(itt, pts); // Transform DOM pts into canvas space
+
+    let matr = ck.SkMatrix.scaled(zoom, zoom, pts[0], pts[1]);
+    canvas.concat(matr);
+
   }
 });
