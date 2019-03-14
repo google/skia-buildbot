@@ -20,6 +20,10 @@ all: task_scheduler validate_db
 task_scheduler: core_js elements_html skiaversion
 	go install -v ./go/task_scheduler
 
+.PHONY: task_scheduler_kube
+task_scheduler_kube: core_js elements_html skiaversion
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task_scheduler
+
 .PHONY: testgo
 testgo: skiaversion
 	go test ./go/... -v --small --medium
@@ -35,6 +39,14 @@ debug: clean_webtools debug_core_js debug_elements_html
 .PHONY: task_scheduler_debug
 task_scheduler_debug: debug skiaversion
 	go install -v ./go/task_scheduler
+
+.PHONY: release_kube
+release_kube: task_scheduler_kube
+	./build_docker_release
+
+.PHONY: push_kube
+push_kube: release_kube skia-public
+	pushk --message="$(MESSAGE)" task-scheduler
 
 .PHONY: push
 push: all

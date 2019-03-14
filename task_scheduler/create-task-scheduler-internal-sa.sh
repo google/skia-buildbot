@@ -9,10 +9,15 @@ source ../bash/ramdisk.sh
 
 # New service account we will create.
 SA_NAME="task-scheduler-internal"
+SA_EMAIL="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
 cd /tmp/ramdisk
 
 gcloud --project=${PROJECT_ID} iam service-accounts create "${SA_NAME}" --display-name="Service account for Skia Task Scheduler Internal"
+gcloud projects add-iam-policy-binding google.com:skia-buildbots --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
+gcloud projects add-iam-policy-binding skia-firestore --member serviceAccount:${SA_EMAIL} --role roles/datastore.user
+gcloud projects add-iam-policy-binding skia-corp --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
+gcloud projects add-iam-policy-binding skia-corp --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
