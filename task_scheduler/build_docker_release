@@ -1,0 +1,22 @@
+#!/bin/bash
+APPNAME=task-scheduler
+
+set -x -e
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+${INSTALL} --mode=644 -T Dockerfile                   ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/task_scheduler ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ../infra/config/recipes.cfg  ${ROOT}/usr/local/share/task-scheduler/recipes.cfg
+${INSTALL} --mode=644 -T ./res/img/fav.ico            ${ROOT}/usr/local/share/task-scheduler/res/img/fav.ico
+${INSTALL} --mode=644 -T ./res/js/core.js             ${ROOT}/usr/local/share/task-scheduler/res/js/core.js
+${INSTALL} --mode=644 -T ./res/vul/elements.html      ${ROOT}/usr/local/share/task-scheduler/res/vul/elements.html
+cp -r                    ./templates                  ${ROOT}/usr/local/share/task-scheduler/templates
+chmod 777 ${ROOT}/usr/local/share/task-scheduler/templates
+chmod 644 ${ROOT}/usr/local/share/task-scheduler/templates/*
+}
+
+source ../bash/docker_build.sh

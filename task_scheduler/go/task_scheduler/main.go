@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"os/user"
 	"path"
 	"path/filepath"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
@@ -43,6 +45,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -90,6 +93,7 @@ var (
 	disableTryjobs    = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
+	kube              = flag.Bool("kube", false, "Whether we're running in Kubernetes.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
 	// instance name. Once all schedulers are using Firestore for their
@@ -516,8 +520,11 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 
 	sklog.AddLogsRedirect(r)
-
-	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	h := httputils.LoggingGzipRequestResponse(r)
+	if *kube {
+		h = httputils.HealthzAndHTTPS(h)
+	}
+	http.Handle("/", h)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
@@ -525,11 +532,22 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 func main() {
 
 	// Global init.
-	common.InitWithMust(
-		APP_NAME,
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	// TODO(borenet): Temporary measure until all schedulers are running in
+	// kubernetes.
+	flag.Parse()
+	if *kube {
+		common.InitWithMust(
+			APP_NAME,
+			common.PrometheusOpt(promPort),
+			common.MetricsLoggingOpt(),
+		)
+	} else {
+		common.InitWithMust(
+			APP_NAME,
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
 	defer common.Defer()
 
 	reloadTemplates()
@@ -555,9 +573,17 @@ func main() {
 
 	// Authenticated HTTP client.
 	oauthCacheFile := path.Join(wdAbs, "google_storage_token.data")
-	tokenSource, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE, datastore.ScopeDatastore, bigtable.Scope)
-	if err != nil {
-		sklog.Fatal(err)
+	var tokenSource oauth2.TokenSource
+	if *kube {
+		tokenSource, err = auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
+		if err != nil {
+			sklog.Fatalf("Failed to create token source: %s", err)
+		}
+	} else {
+		tokenSource, err = auth.NewLegacyTokenSource(*local, oauthCacheFile, "", auth.SCOPE_READ_WRITE, pubsub.AUTH_SCOPE, datastore.ScopeDatastore, bigtable.Scope, swarming.AUTH_SCOPE)
+		if err != nil {
+			sklog.Fatalf("Failed to create token source: %s", err)
+		}
 	}
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).With2xxOnly().Client()
 
@@ -566,20 +592,35 @@ func main() {
 	if *local {
 		isolateServerUrl = isolate.ISOLATE_SERVER_URL_FAKE
 	}
-	isolateClient, err := isolate.NewClient(wdAbs, isolateServerUrl)
-	if err != nil {
-		sklog.Fatal(err)
+	var isolateClient *isolate.Client
+	if *kube {
+		isolateClient, err = isolate.NewClientWithServiceAccount(wdAbs, isolateServerUrl, os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	} else {
+		isolateClient, err = isolate.NewClient(wdAbs, isolateServerUrl)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 	}
 
 	// Gerrit API client.
-	user, err := user.Current()
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	gitcookiesPath := path.Join(user.HomeDir, ".gitcookies")
-	if !*local {
-		// The schedulers use the gitcookie created by gcompute-tools/git-cookie-authdaemon.
-		gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+	gitcookiesPath := "/tmp/.gitcookies"
+	if *kube {
+		if _, err := gitauth.New(tokenSource, gitcookiesPath, true, ""); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
+	} else {
+		user, err := user.Current()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		gitcookiesPath = path.Join(user.HomeDir, ".gitcookies")
+		if !*local {
+			// The schedulers use the gitcookie created by gcompute-tools/git-cookie-authdaemon.
+			gitcookiesPath = filepath.Join(user.HomeDir, ".git-credential-cache", "cookie")
+		}
 	}
 	gerrit, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, gitcookiesPath, nil)
 	if err != nil {
@@ -624,11 +665,7 @@ func main() {
 		go testutils.PeriodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
-		ts, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", swarming.AUTH_SCOPE)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		cfg := httputils.DefaultClientConfig().WithTokenSource(ts).WithDialTimeout(time.Minute).With2xxOnly()
+		cfg := httputils.DefaultClientConfig().WithTokenSource(tokenSource).WithDialTimeout(time.Minute).With2xxOnly()
 		cfg.RequestTimeout = time.Minute
 		swarm, err = swarming.NewApiClient(cfg.Client(), *swarmingServer)
 		if err != nil {
@@ -681,7 +718,7 @@ func main() {
 
 	if *local {
 		webhook.InitRequestSaltForTesting()
-	} else {
+	} else if !*kube {
 		webhook.MustInitRequestSaltFromMetadata(metadata.WEBHOOK_REQUEST_SALT)
 	}
 
