@@ -365,6 +365,50 @@ func TestUpdateHistoryChanged(t *testing.T) {
 		assert.NotEqual(t, c, c3)
 		return nil
 	}))
+
+	// Create a new branch, add some commits. Reset the old branches to
+	// orphan some commits. Ensure that those are removed from the graph.
+	g.CreateBranchAtCommit(ctx, "new", commits[0].Hash)
+	c7 := g.CommitGen(ctx, "blah")
+	c8 := g.CommitGen(ctx, "blah")
+	g.CheckoutBranch(ctx, "master")
+	g.Reset(ctx, "--hard", c8)
+	assert.NoError(t, repo.Update(ctx))
+	assert.NotNil(t, repo.Get(c7))
+	assert.NotNil(t, repo.Get(c8))
+	master := repo.Get("master")
+	assert.NotNil(t, master)
+	assert.Equal(t, c8, master.Hash)
+	assert.NoError(t, repo.RecurseAllBranches(func(c *Commit) error {
+		assert.NotEqual(t, c.Hash, commits[2].Hash)
+		assert.NotEqual(t, c.Hash, commits[4].Hash)
+		return nil
+	}))
+	assert.Nil(t, repo.Get(commits[2].Hash)) // Should be orphaned now.
+	assert.Nil(t, repo.Get(commits[4].Hash)) // Should be orphaned now.
+
+	// Delete branch2. Ensure that c6 disappears.
+	sklog.Error("Deleting branch2")
+	g.UpdateRef(ctx, "-d", "refs/heads/branch2")
+	assert.NoError(t, repo.Update(ctx))
+	assert.Nil(t, repo.Get("branch2"))
+	assert.Nil(t, repo.Get(c6hash))
+
+	// Rewind a branch. Make sure that we correctly handle this case.
+	sklog.Error("Rewinding master")
+	removed := []string{c7, c8}
+	for _, c := range removed {
+		assert.NotNil(t, repo.Get(c))
+	}
+	g.UpdateRef(ctx, "refs/heads/master", commits[0].Hash)
+	g.UpdateRef(ctx, "refs/heads/new", commits[0].Hash)
+	assert.NoError(t, repo.Update(ctx))
+	assert.NotNil(t, repo.Get("master"))
+	assert.NotNil(t, repo.Get(commits[0].Hash))
+	assert.Equal(t, commits[0].Hash, repo.Get(commits[0].Hash).Hash)
+	for _, c := range removed {
+		assert.Nil(t, repo.Get(c))
+	}
 }
 
 func TestUpdateAndReturnNewCommits(t *testing.T) {
@@ -570,8 +614,6 @@ func assertTopoSorted(t *testing.T, commits []*Commit) {
 
 	// Verify that the above cases are true for each commit in the slice.
 	for idx, c := range commits {
-		sklog.Errorf("Check %d / %d", idx, len(commits))
-
 		// If the commit has one parent, and its parent has one child,
 		// they should be adjacent.
 		if len(c.parents) == 1 && len(children[c.parents[0]]) == 1 {

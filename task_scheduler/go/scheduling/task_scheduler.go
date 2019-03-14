@@ -637,10 +637,29 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 
 	// Get the repo+commit+taskspecs for each job.
 	candidates := map[types.TaskKey]*taskCandidate{}
+	validCommits := map[string]map[string]bool{}
 	for _, j := range unfinishedJobs {
 		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
 		}
+
+		// If git history was changed, we should avoid running jobs at
+		// orphaned commits.
+		sub, ok := validCommits[j.Repo]
+		if !ok {
+			sub = map[string]bool{}
+			validCommits[j.Repo] = sub
+		}
+		commitIsValid, ok := sub[j.Revision]
+		if !ok {
+			commitIsValid = s.repos[j.Repo].Get(j.Revision) != nil
+			sub[j.Revision] = commitIsValid
+		}
+		if !commitIsValid {
+			continue
+		}
+
+		// Add task candidates for this job.
 		for tsName := range j.Dependencies {
 			key := j.MakeTaskKey(tsName)
 			c, ok := candidates[key]
