@@ -39,6 +39,10 @@ const particlesPlayer = (ele) => html`
 
 <figcaption>
   particles-wasm
+  <button @click=${ele._resetView}
+          title="Shift + Left click to pan, scroll wheel to zoom">
+    Reset Pan/Zoom
+  </button>
 </figcaption>`;
 
 const jsonEditor = (ele) => {
@@ -64,7 +68,7 @@ ${gallery(ele)}
   ${ele._state.filename} ${ele._width}x${ele._height} ...
 </button>
 <div class=controls>
-  <button @click=${ele._reset}>Reset</button>
+  <button @click=${ele._restartAnimation}>Restart</button>
   <button id=playpause @click=${ele._playpause}>Pause</button>
   <button ?hidden=${!ele._hasEdits} @click=${ele._applyEdits}>Apply Edits</button>
   <div class=download>
@@ -344,8 +348,12 @@ window.customElements.define('particles-sk', class extends HTMLElement {
     this._editorLoaded = true;
   }
 
-  _reset() {
-    this._particlesPlayer && this._particlesPlayer.reset();
+  _resetView() {
+    this._particlesPlayer && this._particlesPlayer.resetView();
+  }
+
+  _restartAnimation() {
+    this._particlesPlayer && this._particlesPlayer.restartAnimation();
   }
 
   _startEdit() {
