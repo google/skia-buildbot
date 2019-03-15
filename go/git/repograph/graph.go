@@ -316,33 +316,33 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 		newCommits = []*vcsinfo.LongCommit{}
 	}
 	sklog.Infof("  Loading commits...")
+	oldBranches := make(map[string]string, len(r.branches))
+	for _, branch := range r.branches {
+		oldBranches[branch.Name] = branch.Head
+	}
+	needOrphanCheck := false
 	for _, b := range branches {
-		// Shortcut: If we already have the head of this branch, don't
-		// bother loading commits.
-		if _, ok := r.commits[b.Head]; ok {
-			continue
-		}
-
 		// Load all commits on this branch.
 		// First, try to load only new commits on this branch.
 		var commits []string
 		newBranch := true
-		for _, old := range r.branches {
-			if old.Name == b.Name {
-				anc, err := r.repo.IsAncestor(ctx, old.Head, b.Head)
+		oldHead, ok := oldBranches[b.Name]
+		if ok {
+			anc, err := r.repo.IsAncestor(ctx, oldHead, b.Head)
+			if err != nil {
+				return nil, err
+			}
+			if anc {
+				commits, err = r.repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", oldHead, b.Head))
 				if err != nil {
 					return nil, err
 				}
-				if anc {
-					commits, err = r.repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", old.Head, b.Head))
-					if err != nil {
-						return nil, err
-					}
-					newBranch = false
-				}
-				break
+				newBranch = false
+			} else {
+				needOrphanCheck = true
 			}
 		}
+
 		// If this is a new branch, or if the old branch head is not
 		// reachable from the new (eg. if commit history was modified),
 		// load ALL commits reachable from the branch head.
@@ -373,7 +373,52 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 			}
 		}
 	}
-	oldBranches := r.branches
+	if !needOrphanCheck {
+		// Check to see whether any branches were deleted.
+		stillHere := make(map[string]bool, len(oldBranches))
+		for _, branch := range branches {
+			stillHere[branch.Name] = true
+		}
+		for branch, _ := range oldBranches {
+			if !stillHere[branch] {
+				needOrphanCheck = true
+				break
+			}
+		}
+	}
+	if needOrphanCheck {
+		sklog.Warningf("History change detected; checking for orphaned commits.")
+		visited := make(map[*Commit]bool, len(r.commitsData))
+		for _, branch := range branches {
+			// Not using Get() because graphMtx is locked.
+			if err := r.commitsData[r.commits[branch.Head]].recurse(func(c *Commit) error {
+				return nil
+			}, visited); err != nil {
+				return nil, err
+			}
+		}
+		orphaned := map[*Commit]bool{}
+		for _, c := range r.commitsData {
+			if !visited[c] {
+				orphaned[c] = true
+			}
+		}
+		if len(orphaned) > 0 {
+			sklog.Errorf("%d commits are now orphaned. Removing them from the Graph.", len(orphaned))
+			newCommitsData := make([]*Commit, 0, len(r.commitsData)-len(orphaned))
+			newCommitsMap := make(map[string]int, len(r.commitsData)-len(orphaned))
+			for _, c := range r.commitsData {
+				if !orphaned[c] {
+					newCommitsMap[c.Hash] = len(newCommitsData)
+					newCommitsData = append(newCommitsData, c)
+				}
+			}
+			r.commits = newCommitsMap
+			r.commitsData = newCommitsData
+		}
+	}
+
+	oldBranchHeads := r.branches
 	r.branches = branches
 
 	// Write to the cache file.
@@ -388,7 +433,7 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 		// If we fail to write the file but keep the new branch heads,
 		// we won't get consistent commit lists from update() on the
 		// next try vs after a server restart.
-		r.branches = oldBranches
+		r.branches = oldBranchHeads
 		return nil, err
 	}
 	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))

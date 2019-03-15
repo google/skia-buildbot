@@ -641,6 +641,14 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
 		}
+
+		// If git history was changed, we should avoid running jobs at
+		// orphaned commits.
+		if s.repos[j.Repo].Get(j.Revision) == nil {
+			continue
+		}
+
+		// Add task candidates for this job.
 		for tsName := range j.Dependencies {
 			key := j.MakeTaskKey(tsName)
 			c, ok := candidates[key]
