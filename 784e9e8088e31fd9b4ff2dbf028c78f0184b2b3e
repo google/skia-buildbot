@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "69291d14_993d3808",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 421,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-15T03:36:40Z",
+      "side": 1,
+      "message": "either typo or British",
+      "range": {
+        "startLine": 421,
+        "startChar": 10,
+        "endLine": 421,
+        "endChar": 11
+      },
+      "revId": "784e9e8088e31fd9b4ff2dbf028c78f0184b2b3e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
