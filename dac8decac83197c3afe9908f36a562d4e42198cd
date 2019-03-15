@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5630ec1_0c01afc8",
+        "filename": "go/atomic_miss_cache/atomic_miss_cache.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-15T04:00:10Z",
+      "side": 1,
+      "message": "nit: Need to document that this function assumes that if shouldDelete returns true now, it will return true for any future call for the given key (even if Value changes).\n\nI\u0027m pretty sure that\u0027s consistent with how we use this class, so it shouldn\u0027t be a problem for our use.\n\nThis caveat makes it clear that we\u0027re not handling the case where shouldDelete returns true, some other goroutine calls Set with a new Value for which shouldDelete returns false, then this function deletes the entry anyway based on the previous result of shouldDelete.",
+      "revId": "dac8decac83197c3afe9908f36a562d4e42198cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
