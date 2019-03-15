@@ -66,28 +66,17 @@ func (s *Syncer) Close() error {
 //
 // This method uses a worker pool; if all workers are busy, it will block until
 // one is free.
-func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, botUpdate bool, fn func(*git.TempCheckout) error) error {
+func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, fn func(*git.TempCheckout) error) error {
 	rvErr := make(chan error)
 	s.queue <- func(workerId int) {
-		var gr *git.TempCheckout
-		var err error
-		if botUpdate {
-			tmp, err2 := ioutil.TempDir("", "")
-			if err2 != nil {
-				rvErr <- err2
-				return
-			}
-			defer util.RemoveAll(tmp)
-			cacheDir := path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
-			gr, err = tempGitRepoBotUpdate(ctx, rs, s.depotToolsDir, cacheDir, tmp)
-		} else {
-			repo, ok := s.repos[rs.Repo]
-			if !ok {
-				rvErr <- fmt.Errorf("Unknown repo: %s", rs.Repo)
-				return
-			}
-			gr, err = tempGitRepo(ctx, repo, rs)
+		tmp, err2 := ioutil.TempDir("", "")
+		if err2 != nil {
+			rvErr <- err2
+			return
 		}
+		defer util.RemoveAll(tmp)
+		cacheDir := path.Join(s.workdir, "cache", fmt.Sprintf("%d", workerId))
+		gr, err := tempGitRepoBotUpdate(ctx, rs, s.depotToolsDir, cacheDir, tmp)
 		if err != nil {
 			rvErr <- err
 			return
@@ -104,9 +93,8 @@ func (s *Syncer) TempGitRepo(ctx context.Context, rs types.RepoState, botUpdate 
 // Done() or one of the Syncer's worker goroutines will become permanently
 // stuck.
 type LazyTempGitRepo struct {
-	rs        types.RepoState
-	botUpdate bool
-	s         *Syncer
+	rs types.RepoState
+	s  *Syncer
 
 	// mtx protects queue.
 	mtx   sync.Mutex
@@ -135,7 +123,7 @@ func (r *LazyTempGitRepo) Do(ctx context.Context, fn func(*git.TempCheckout) err
 		r.queue = make(chan func(*git.TempCheckout, error))
 		go func() {
 			// Sync the RepoState and run all of the queued funcs.
-			err := r.s.TempGitRepo(ctx, r.rs, r.botUpdate, func(co *git.TempCheckout) error {
+			err := r.s.TempGitRepo(ctx, r.rs, func(co *git.TempCheckout) error {
 				for fn := range r.queue {
 					fn(co, nil)
 				}
@@ -187,40 +175,11 @@ func (r *LazyTempGitRepo) Done() {
 // LazyTempGitRepo returns a LazyTempGitRepo instance. The caller must call
 // Done() exactly once on the LazyTempGitRepo, after all calls to Do(), in order
 // to free up the worker goroutine.
-func (s *Syncer) LazyTempGitRepo(rs types.RepoState, botUpdate bool) *LazyTempGitRepo {
+func (s *Syncer) LazyTempGitRepo(rs types.RepoState) *LazyTempGitRepo {
 	return &LazyTempGitRepo{
-		rs:        rs,
-		botUpdate: botUpdate,
-		s:         s,
+		rs: rs,
+		s:  s,
 	}
-}
-
-// tempGitRepo creates a git repository in a temporary directory, gets it into
-// the given RepoState, and returns its location.
-func tempGitRepo(ctx context.Context, repo *repograph.Graph, rs types.RepoState) (rv *git.TempCheckout, rvErr error) {
-	defer metrics2.FuncTimer().Stop()
-
-	if rs.IsTryJob() {
-		return nil, fmt.Errorf("tempGitRepo does not apply patches, and should not be called for try jobs.")
-	}
-
-	c, err := repo.TempCheckout(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if rvErr != nil {
-			c.Delete()
-		}
-	}()
-
-	// Check out the correct commit.
-	if _, err := c.Git(ctx, "checkout", rs.Revision); err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }
 
 // tempGitRepoBotUpdate creates a git repository in subdirectory of a temporary

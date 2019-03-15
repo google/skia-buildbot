@@ -41,7 +41,7 @@ func New(s *syncer.Syncer, tcc *task_cfg_cache.TaskCfgCache, isolateClient *isol
 // performing the sync to obtain and insert the value(s) into the cache(s) if
 // necessary.
 func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*specs.TasksCfg, error) {
-	ltgr := c.s.LazyTempGitRepo(rs, true)
+	ltgr := c.s.LazyTempGitRepo(rs)
 	defer ltgr.Done()
 
 	// Obtain the TasksCfg.

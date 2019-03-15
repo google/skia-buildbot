@@ -711,27 +711,6 @@ func (r *Graph) GetLastNCommits(n int) ([]*vcsinfo.LongCommit, error) {
 	return commits[:n], nil
 }
 
-// TempCheckout returns a git.TempCheckout of the underlying git.Repo.
-func (r *Graph) TempCheckout(ctx context.Context) (*git.TempCheckout, error) {
-	if r.repo == nil {
-		return nil, errors.New("Cannot create a TempCheckout from a non-local Graph.")
-	}
-	r.repoMtx.Lock()
-	defer r.repoMtx.Unlock()
-	return r.repo.TempCheckout(ctx)
-}
-
-// GetFile returns the contents of the given file at the given commit.
-func (r *Graph) GetFile(ctx context.Context, fileName, commit string) (string, error) {
-	// TODO(borenet): We could use gitiles here...
-	if r.repo == nil {
-		return "", errors.New("Cannot retrieve files from a non-local Graph.")
-	}
-	r.repoMtx.Lock()
-	defer r.repoMtx.Unlock()
-	return r.repo.GetFile(ctx, fileName, commit)
-}
-
 // Map is a convenience type for dealing with multiple Graphs for different
 // repos. The keys are repository URLs.
 type Map map[string]*Graph

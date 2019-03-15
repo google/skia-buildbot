@@ -7,7 +7,7 @@ import (
 	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -19,11 +19,16 @@ const (
 
 // MockSwarmingBotsForAllTasksForTesting returns a list containing one swarming
 // bot for each TaskSpec in the given repos, or nil on error.
-func MockSwarmingBotsForAllTasksForTesting(ctx context.Context, repos repograph.Map) []*swarming_api.SwarmingRpcsBotInfo {
+func MockSwarmingBotsForAllTasksForTesting(ctx context.Context, repos map[string]*git.Repo) []*swarming_api.SwarmingRpcsBotInfo {
 	botId := 0
 	rv := []*swarming_api.SwarmingRpcsBotInfo{}
 	for _, repo := range repos {
-		for _, branch := range repo.BranchHeads() {
+		branches, err := repo.Branches(ctx)
+		if err != nil {
+			sklog.Error(err)
+			continue
+		}
+		for _, branch := range branches {
 			if branch.Name != "master" {
 				continue
 			}
