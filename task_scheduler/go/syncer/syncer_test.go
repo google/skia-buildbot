@@ -152,7 +152,7 @@ func TestTempGitRepoParallel(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			assert.NoError(t, s.TempGitRepo(ctx, rs, true, func(g *git.TempCheckout) error {
+			assert.NoError(t, s.TempGitRepo(ctx, rs, func(g *git.TempCheckout) error {
 				return nil
 			}))
 		}()
@@ -189,7 +189,7 @@ func TestTempGitRepoErr(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	assert.Error(t, s.TempGitRepo(ctx, rs, true, func(c *git.TempCheckout) error {
+	assert.Error(t, s.TempGitRepo(ctx, rs, func(c *git.TempCheckout) error {
 		// This may fail with a nil pointer dereference due to a nil
 		// git.TempCheckout.
 		assert.FailNow(t, "We should not have gotten here.")
@@ -232,7 +232,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 		Repo:     gb.RepoUrl(),
 		Revision: c1,
 	}
-	ltgr := s.LazyTempGitRepo(rs1, true)
+	ltgr := s.LazyTempGitRepo(rs1)
 
 	// This isn't a great marker, but it indicates whether the goroutine
 	// with the TempGitRepo is running.
@@ -272,7 +272,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 			Server:   "fake.fake/fake",
 		},
 	}
-	ltgr = s.LazyTempGitRepo(rs2, true)
+	ltgr = s.LazyTempGitRepo(rs2)
 	notSyncError := errors.New("not a sync error")
 	syncErr := ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
@@ -292,7 +292,7 @@ func TestLazyTempGitRepo(t *testing.T) {
 
 	// Errors returned by passed-in funcs should be forwarded through to
 	// the caller.
-	ltgr = s.LazyTempGitRepo(rs1, true)
+	ltgr = s.LazyTempGitRepo(rs1)
 	err = ltgr.Do(ctx, func(co *git.TempCheckout) error {
 		return notSyncError
 	})

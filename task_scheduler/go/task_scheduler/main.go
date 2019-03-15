@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
@@ -646,8 +647,17 @@ func main() {
 	// Initialize Swarming client.
 	var swarm swarming.ApiClient
 	if *local {
+		wd := filepath.Join(wdAbs, "local_git_repos")
+		gitRepos := make(map[string]*git.Repo, len(repos))
+		for url, _ := range repos {
+			r, err := git.NewRepo(ctx, url, wd)
+			if err != nil {
+				sklog.Fatal(err)
+			}
+			gitRepos[url] = r
+		}
 		swarmTestClient := testutils.NewTestClient()
-		swarmTestClient.MockBots(testutils.MockSwarmingBotsForAllTasksForTesting(ctx, repos))
+		swarmTestClient.MockBots(testutils.MockSwarmingBotsForAllTasksForTesting(ctx, gitRepos))
 		go testutils.PeriodicallyUpdateMockTasksForTesting(swarmTestClient)
 		swarm = swarmTestClient
 	} else {
