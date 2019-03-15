@@ -56,6 +56,7 @@ var (
 		"skia-status-internal@skia-public.iam.gserviceaccount.com",
 		"status@skia-buildbots.google.com.iam.gserviceaccount.com",
 		"status-internal@skia-buildbots.google.com.iam.gserviceaccount.com",
+		"showy-dashboards@prod.google.com",
 	}
 
 	mainTemplate   *template.Template = nil
