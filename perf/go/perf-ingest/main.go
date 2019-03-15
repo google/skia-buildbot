@@ -14,6 +14,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -46,6 +47,13 @@ var (
 const (
 	// MAX_PARALLEL_RECEIVES is the number of Go routines we want to run. Determined experimentally.
 	MAX_PARALLEL_RECEIVES = 1
+)
+
+var (
+	// mutex protects hashCache.
+	mutex = sync.Mutex{}
+	// hashCache is a cache of results from calling vcs.IndexOf().
+	hashCache = map[string]int{}
 )
 
 var (
@@ -107,6 +115,21 @@ func getParamsAndValues(b *ingestcommon.BenchData) ([]paramtools.Params, []float
 	return params, values, ps
 }
 
+func indexFromCache(hash string) (int, bool) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	index, ok := hashCache[hash]
+	return index, ok
+}
+
+func indexToCache(hash string, index int) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	hashCache[hash] = index
+}
+
 // processSingleFile parses the contents of a single JSON file and writes the values into BigTable.
 func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs vcsinfo.VCS, name string, r io.Reader, timestamp time.Time) error {
 	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
@@ -116,16 +139,21 @@ func processSingleFile(ctx context.Context, store *btts.BigTableTraceStore, vcs 
 	}
 
 	params, values, paramset := getParamsAndValues(benchData)
-	index, err := vcs.IndexOf(ctx, benchData.Hash)
-	if err != nil {
-		if err := vcs.Update(context.Background(), true, false); err != nil {
-			return fmt.Errorf("Could not ingest, failed to pull: %s", err)
-		}
+	index, ok := indexFromCache(benchData.Hash)
+	if !ok {
+		var err error
 		index, err = vcs.IndexOf(ctx, benchData.Hash)
 		if err != nil {
-			sklog.Errorf("Could not ingest, hash not found even after pulling %q: %s", benchData.Hash, err)
-			return NonRecoverableError
+			if err := vcs.Update(context.Background(), true, false); err != nil {
+				return fmt.Errorf("Could not ingest, failed to pull: %s", err)
+			}
+			index, err = vcs.IndexOf(ctx, benchData.Hash)
+			if err != nil {
+				sklog.Errorf("Could not ingest, hash not found even after pulling %q: %s", benchData.Hash, err)
+				return NonRecoverableError
+			}
 		}
+		indexToCache(benchData.Hash, index)
 	}
 	tileKey := store.TileKey(int32(index))
 	ops, err := store.UpdateOrderedParamSet(tileKey, paramset)
