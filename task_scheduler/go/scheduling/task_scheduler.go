@@ -1573,10 +1573,6 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to schedule tasks: %s", err)
 	}
 
-	sklog.Infof("Task Scheduler cleaning up...")
-	if err := s.taskCfgCache.Cleanup(ctx, time.Now().Sub(s.window.EarliestStart())); err != nil {
-		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
-	}
 	sklog.Infof("Task Scheduler MainLoop finished.")
 	return nil
 }
@@ -1593,7 +1589,13 @@ func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	if err := s.window.Update(); err != nil {
 		return err
 	}
-	return s.gatherNewJobs(ctx)
+	if err := s.gatherNewJobs(ctx); err != nil {
+		return err
+	}
+	if err := s.taskCfgCache.Cleanup(ctx, time.Now().Sub(s.window.EarliestStart())); err != nil {
+		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
+	}
+	return nil
 }
 
 // QueueLen returns the length of the queue.
