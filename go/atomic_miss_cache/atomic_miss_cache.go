@@ -217,20 +217,43 @@ func (c *AtomicMissCache) Delete(ctx context.Context, key string) error {
 // Cleanup runs the given function over every cache entry. For a given entry, if
 // the function returns true, the entry is deleted. Also deletes the entry in
 // the backingCache, if it exists. shouldDelete should not call any methods on
-// the AtomicMissCache.
+// the AtomicMissCache. The cache does not stay locked throughout the Cleanup()
+// procedure, so shouldDelete should return true only if the entry should be
+// deleted despite being updated concurrently.
 func (c *AtomicMissCache) Cleanup(ctx context.Context, shouldDelete func(context.Context, string, Value) bool) error {
+	// Temporarily copy the cache, so that we don't have to have c.mtx
+	// locked while we lock each individual entry.
 	c.mtx.Lock()
-	defer c.mtx.Unlock()
+	cache := make(map[string]*cacheEntry, len(c.cache))
 	for key, entry := range c.cache {
+		cache[key] = entry
+	}
+	c.mtx.Unlock()
+
+	// Determine which entries need to be deleted.
+	delete := map[string]*cacheEntry{}
+	for key, entry := range cache {
 		entry.mtx.Lock()
 		if entry.val == nil || shouldDelete(ctx, key, entry.val) {
 			// If there is no Value for this entry, then it's left
 			// over from a previous incomplete Get or Set.
-			if err := c.deleteLocked(ctx, key); err != nil {
-				return err
-			}
+			delete[key] = entry
 		}
 		entry.mtx.Unlock()
+	}
+
+	// Delete the entries.
+	if len(delete) > 0 {
+		c.mtx.Lock()
+		defer c.mtx.Unlock()
+		for key, entry := range delete {
+			entry.mtx.Lock()
+			if err := c.deleteLocked(ctx, key); err != nil {
+				entry.mtx.Unlock()
+				return err
+			}
+			entry.mtx.Unlock()
+		}
 	}
 	return nil
 }
