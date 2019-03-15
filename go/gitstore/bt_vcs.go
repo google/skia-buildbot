@@ -133,9 +133,9 @@ func (b *btVCS) IndexOf(ctx context.Context, hash string) (int, error) {
 	b.mutex.RLock()
 	defer b.mutex.Unlock()
 
-	for _, c := range b.indexCommits {
-		if c.Hash == hash {
-			return c.Index, nil
+	for i := len(b.indexCommits) - 1; i >= 0; i-- {
+		if hash == b.indexCommits[i].Hash {
+			return b.indexCommits[i].Index, nil
 		}
 	}
 
