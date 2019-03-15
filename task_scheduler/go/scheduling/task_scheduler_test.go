@@ -413,6 +413,20 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	// filtered list of jobs, so we have to pretend it never existed.
 	delete(tc3.Jobs, j3)
 	test([]*types.Job{j1, j2}, allCandidates)
+
+	// Ensure that we don't generate candidates for jobs at nonexistent commits.
+	j4 := &types.Job{
+		Created:      now,
+		Id:           "job4id",
+		Name:         "j4",
+		Dependencies: map[string][]string{tcc_testutils.PerfTaskName: {tcc_testutils.BuildTaskName}, tcc_testutils.BuildTaskName: {}},
+		Priority:     0.6,
+		RepoState: types.RepoState{
+			Repo:     rs2.Repo,
+			Revision: "aaaaabbbbbcccccdddddeeeeefffff1111122222",
+		},
+	}
+	test([]*types.Job{j4}, map[types.TaskKey]*taskCandidate{})
 }
 
 func TestFilterTaskCandidates(t *testing.T) {
