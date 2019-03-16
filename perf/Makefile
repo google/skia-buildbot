@@ -10,8 +10,8 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: skiaperf web ingest_json_validator
-	go install -v ./go/perf-force-ingest
+build: web ingest_json_validator
+	go install -v ./go/...
 
 buildk: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
@@ -29,10 +29,6 @@ pushk: buildk skia-public
 
 .PHONY: perf-force-ingest
 	go install -v ./go/perf-force-ingest
-
-.PHONY: skiaperf
-skiaperf:
-	go install -v ./go/skiaperf
 
 ingest_json_validator:
 	go install -v ./go/ingest_json_validator
