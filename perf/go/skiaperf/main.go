@@ -263,7 +263,8 @@ func Init() {
 	*gitRepoUrl = btConfig.GitUrl
 
 	sklog.Info("About to clone repo.")
-	vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
+
+	vcs, err = gitinfo.CloneOrUpdate(ctx, btConfig.GitUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
