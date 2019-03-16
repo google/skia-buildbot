@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
@@ -138,6 +139,6 @@ func main() {
 
 func logBranches(indent string, branches map[string]*gitstore.BranchPointer) {
 	for branchName, branch := range branches {
-		sklog.Infof("Branch %s @ %s with index %d", branchName, branch.Head, branch.Index)
+		fmt.Printf("Branch %s @ %s with index %d\n", branchName, branch.Head, branch.Index)
 	}
 }
