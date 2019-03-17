@@ -157,6 +157,18 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	setState(types.RUNNING)
 
+	// Apoptosis.
+	_, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		select {
+		case <-time.Tick(*apoptosis):
+			sklog.Fatal("Exceeded total allowed runtime.")
+		case <-ctx.Done():
+			sklog.Info("Exited cleanly.")
+		}
+	}()
+
 	if request.Options.Duration == 0 {
 		oneStep(ctx, *checkout, res, 0.0, request.Options.Duration)
 		serializeOutput(ctx, w, res)

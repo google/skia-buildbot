@@ -329,30 +329,30 @@ func (r *Runner) randPodIPs() []string {
 	return ret
 }
 
-func singlePodVersion(client *http.Client, address string) (string, bool) {
+func singlePodVersion(client *http.Client, address string) (string, types.State, bool) {
 	rootURL := fmt.Sprintf("http://%s:8000", address)
 	req, err := http.NewRequest("GET", rootURL, nil)
 	if err != nil {
 		sklog.Infof("Failed to create request for fiddler status: %s", err)
-		return "", false
+		return "", types.ERROR, false
 	}
 	// Pods come and go, so don't keep the connection alive.
 	req.Close = true
 	resp, err := client.Do(req)
 	if err != nil {
 		sklog.Infof("Failed to request fiddler status: %s", err)
-		return "", false
+		return "", types.ERROR, false
 	}
 	defer util.Close(resp.Body)
 	var fiddlerResp types.FiddlerMainResponse
 	if err := json.NewDecoder(resp.Body).Decode(&fiddlerResp); err != nil {
 		sklog.Warningf("Failed to read status body: %s", err)
-		return "", false
+		return "", types.ERROR, false
 	}
 	if fiddlerResp.State == types.IDLE {
-		return fiddlerResp.Version, true
+		return fiddlerResp.Version, fiddlerResp.State, true
 	}
-	return "", false
+	return "", fiddlerResp.State, false
 }
 
 func (r *Runner) metricsSingleStep() {
@@ -361,10 +361,16 @@ func (r *Runner) metricsSingleStep() {
 	versions := map[string]int{}
 	ips := r.podIPs()
 	fastClient := httputils.NewFastTimeoutClient()
+	for _, st := range types.AllStates {
+		metrics2.GetCounter("fiddler_pod_state", map[string]string{"state": string(st)}).Reset()
+	}
 	for _, address := range ips {
-		if ver, ok := singlePodVersion(fastClient, address); ok {
+		if ver, st, ok := singlePodVersion(fastClient, address); ok {
 			idleCount += 1
 			versions[ver] += 1
+			metrics2.GetCounter("fiddler_pod_state", map[string]string{"state": string(st)}).Inc(1)
+		} else {
+			metrics2.GetCounter("fiddler_pod_state", map[string]string{"state": string(st)}).Inc(1)
 		}
 	}
 	// Report the version that appears the most. Usually there will only be one
