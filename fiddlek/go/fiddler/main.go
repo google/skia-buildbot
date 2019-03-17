@@ -132,6 +132,18 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Apoptosis.
+	_, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		select {
+		case <-time.Tick(*apoptosis):
+			sklog.Fatal("Exceeded total allowed runtime.")
+		case <-ctx.Done():
+			sklog.Info("Exited cleanly.")
+		}
+	}()
+
 	// Compile draw.cpp into 'fiddle'.
 	if err := ioutil.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
