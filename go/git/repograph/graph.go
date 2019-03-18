@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path"
 	"sort"
 	"sync"
@@ -37,11 +38,11 @@ type Commit struct {
 	*vcsinfo.LongCommit
 	parents []*Commit
 
-	// repoLen is the number of known commits at the time that this Commit
+	// RepoLen is the number of known commits at the time that this Commit
 	// was added to the graph. It is only used during Recurse as a rough
 	// estimate of the maximum number of commits which could be visited, to
 	// prevent excessive resizing of the visited map.
-	repoLen int
+	RepoLen int
 }
 
 // Parents returns the parents of this commit.
@@ -63,7 +64,7 @@ func (c *Commit) GetParents() []*Commit {
 // 	return nil
 // })
 func (c *Commit) Recurse(f func(*Commit) error) error {
-	return c.recurse(f, make(map[*Commit]bool, c.repoLen))
+	return c.recurse(f, make(map[*Commit]bool, c.RepoLen))
 }
 
 // recurse is a helper function used by Recurse.
@@ -106,7 +107,7 @@ func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr
 // AllCommits returns the hashes of all commits reachable from this Commit, in
 // reverse topological order.
 func (c *Commit) AllCommits() ([]string, error) {
-	commits := make(map[*Commit]bool, c.repoLen)
+	commits := make(map[*Commit]bool, c.RepoLen)
 	if err := c.recurse(func(c *Commit) error {
 		return nil
 	}, commits); err != nil {
@@ -167,10 +168,9 @@ func (s CommitSlice) Hashes() []string {
 
 // Graph represents an entire Git repo.
 type Graph struct {
-	branches    []*git.Branch
-	commits     map[string]int
-	commitsData []*Commit
-	graphMtx    sync.RWMutex
+	branches []*git.Branch
+	commits  map[string]*Commit
+	graphMtx sync.RWMutex
 
 	// repo is only set if NewLocalGraph() is used.
 	repo    *git.Repo
@@ -184,9 +184,8 @@ type Graph struct {
 
 // gobGraph is a utility struct used for serializing a Graph using gob.
 type gobGraph struct {
-	Branches    []*git.Branch
-	Commits     map[string]int
-	CommitsData []*Commit
+	Branches []*git.Branch
+	Commits  map[string]*Commit
 }
 
 // NewLocalGraph returns a Graph instance, creating a git.Repo from the repoUrl
@@ -199,14 +198,16 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 		return nil, fmt.Errorf("Failed to create git repo: %s", err)
 	}
 	rv := &Graph{
-		commits:     map[string]int{},
-		commitsData: []*Commit{},
-		repo:        repo,
+		commits: map[string]*Commit{},
+		repo:    repo,
 	}
 	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
 	var r gobGraph
 	if err := util.MaybeReadGobFile(cacheFile, &r); err != nil {
-		return nil, fmt.Errorf("Failed to read Graph cache file %s: %s", cacheFile, err)
+		sklog.Errorf("Failed to read Graph cache file %s; deleting the file and starting from scratch: %s", cacheFile, err)
+		if err2 := os.Remove(cacheFile); err != nil {
+			return nil, fmt.Errorf("Failed to read Graph cache file %s: %s\n...and failed to remove with: %s", cacheFile, err, err2)
+		}
 	}
 	if r.Branches != nil {
 		rv.branches = r.Branches
@@ -214,13 +215,9 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 	if r.Commits != nil {
 		rv.commits = r.Commits
 	}
-	if r.CommitsData != nil {
-		rv.commitsData = r.CommitsData
-	}
-	for idx, c := range rv.commitsData {
-		c.repoLen = idx + 1
+	for _, c := range rv.commits {
 		for _, parentHash := range c.Parents {
-			c.parents = append(c.parents, rv.commitsData[rv.commits[parentHash]])
+			c.parents = append(c.parents, rv.commits[parentHash])
 		}
 	}
 	return rv, nil
@@ -229,9 +226,8 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 // NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
 func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
 	rv := &Graph{
-		commits:     map[string]int{},
-		commitsData: []*Commit{},
-		gitstore:    gs,
+		commits:  map[string]*Commit{},
+		gitstore: gs,
 	}
 	if err := rv.Update(ctx); err != nil {
 		return nil, err
@@ -243,7 +239,7 @@ func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error)
 func (r *Graph) Len() int {
 	r.graphMtx.RLock()
 	defer r.graphMtx.RUnlock()
-	return len(r.commitsData)
+	return len(r.commits)
 }
 
 // addCommit adds the commit with the given hash to the Graph. Assumes that the
@@ -259,17 +255,16 @@ func (r *Graph) addCommit(d *vcsinfo.LongCommit) error {
 			if !ok {
 				return fmt.Errorf("repograph.Graph: Could not find parent commit %q", h)
 			}
-			parents = append(parents, r.commitsData[p])
+			parents = append(parents, p)
 		}
 	}
 
 	c := &Commit{
 		LongCommit: d,
 		parents:    parents,
-		repoLen:    len(r.commitsData) + 1,
+		RepoLen:    len(r.commits) + 1,
 	}
-	r.commits[d.Hash] = len(r.commitsData)
-	r.commitsData = append(r.commitsData, c)
+	r.commits[c.Hash] = c
 	return nil
 }
 
@@ -393,33 +388,30 @@ func updateFromRepo(ctx context.Context, repo *git.Repo, graph *Graph) ([]*vcsin
 	}
 	if needOrphanCheck {
 		sklog.Warningf("History change detected; checking for orphaned commits.")
-		visited := make(map[*Commit]bool, len(graph.commitsData))
+		visited := make(map[*Commit]bool, len(graph.commits))
 		for _, newBranchHead := range newBranchesMap {
 			// Not using Get() because graphMtx is locked.
-			if err := graph.commitsData[graph.commits[newBranchHead]].recurse(func(c *Commit) error {
+			if err := graph.commits[newBranchHead].recurse(func(c *Commit) error {
 				return nil
 			}, visited); err != nil {
 				return nil, err
 			}
 		}
 		orphaned := map[*Commit]bool{}
-		for _, c := range graph.commitsData {
+		for _, c := range graph.commits {
 			if !visited[c] {
 				orphaned[c] = true
 			}
 		}
 		if len(orphaned) > 0 {
 			sklog.Errorf("%d commits are now orphaned. Removing them from the Graph.", len(orphaned))
-			newCommitsData := make([]*Commit, 0, len(graph.commitsData)-len(orphaned))
-			newCommitsMap := make(map[string]int, len(graph.commitsData)-len(orphaned))
-			for _, c := range graph.commitsData {
+			newCommitsMap := make(map[string]*Commit, len(graph.commits)-len(orphaned))
+			for _, c := range graph.commits {
 				if !orphaned[c] {
-					newCommitsMap[c.Hash] = len(newCommitsData)
-					newCommitsData = append(newCommitsData, c)
+					newCommitsMap[c.Hash] = c
 				}
 			}
 			graph.commits = newCommitsMap
-			graph.commitsData = newCommitsData
 		}
 	}
 
@@ -433,9 +425,8 @@ func (r *Graph) writeCacheFile(repo *git.Repo) error {
 	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
 	return util.WithWriteFile(cacheFile, func(w io.Writer) error {
 		return gob.NewEncoder(w).Encode(gobGraph{
-			Branches:    r.branches,
-			Commits:     r.commits,
-			CommitsData: r.commitsData,
+			Branches: r.branches,
+			Commits:  r.commits,
 		})
 	})
 }
@@ -454,7 +445,6 @@ func (r *Graph) UpdateFromRepo(ctx context.Context, repo *git.Repo, returnNewCom
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
-	r.commitsData = newGraph.commitsData
 	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
 	return newCommits, nil
 }
@@ -488,12 +478,10 @@ func (r *Graph) BranchHeads() []*git.Branch {
 func (r *Graph) ShallowCopy() *Graph {
 	r.graphMtx.RLock()
 	defer r.graphMtx.RUnlock()
-	newCommits := make(map[string]int, len(r.commits))
+	newCommits := make(map[string]*Commit, len(r.commits))
 	for k, v := range r.commits {
 		newCommits[k] = v
 	}
-	newCommitsData := make([]*Commit, len(r.commitsData))
-	copy(newCommitsData, r.commitsData)
 	newBranches := make([]*git.Branch, 0, len(r.branches))
 	for _, branch := range r.branches {
 		newBranches = append(newBranches, &git.Branch{
@@ -502,9 +490,8 @@ func (r *Graph) ShallowCopy() *Graph {
 		})
 	}
 	return &Graph{
-		branches:    newBranches,
-		commits:     newCommits,
-		commitsData: newCommitsData,
+		branches: newBranches,
+		commits:  newCommits,
 	}
 }
 
@@ -515,12 +502,12 @@ func (r *Graph) Get(ref string) *Commit {
 	r.graphMtx.RLock()
 	defer r.graphMtx.RUnlock()
 	if c, ok := r.commits[ref]; ok {
-		return r.commitsData[c]
+		return c
 	}
 	for _, b := range r.branches {
 		if ref == b.Name {
 			if c, ok := r.commits[b.Head]; ok {
-				return r.commitsData[c]
+				return c
 			}
 		}
 	}
