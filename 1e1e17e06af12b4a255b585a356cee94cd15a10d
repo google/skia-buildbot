@@ -16,6 +16,24 @@
       "revId": "1e1e17e06af12b4a255b585a356cee94cd15a10d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c47d9a08_5c37b4ef",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-18T16:14:01Z",
+      "side": 1,
+      "message": "Eric and I talked about this offline. That\u0027s fine behavior for most of our apps, but for a cmd line app it was very confusing, I ran btgit and it produced no output at all.",
+      "parentUuid": "7d9b39d5_c739ac78",
+      "revId": "1e1e17e06af12b4a255b585a356cee94cd15a10d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
