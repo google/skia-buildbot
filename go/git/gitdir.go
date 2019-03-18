@@ -21,10 +21,10 @@ import (
 // Branch describes a Git branch.
 type Branch struct {
 	// The human-readable name of the branch.
-	Name string
+	Name string `json:"name"`
 
 	// The commit hash pointed to by this branch.
-	Head string
+	Head string `json:"head"`
 }
 
 // GitDir is a directory in which one may run Git commands.
@@ -103,7 +103,7 @@ func (g GitDir) Details(ctx context.Context, name string) (*vcsinfo.LongCommit, 
 		},
 		Parents:   parents,
 		Body:      strings.TrimRight(lines[5], "\n"),
-		Timestamp: time.Unix(ts, 0),
+		Timestamp: time.Unix(ts, 0).UTC(),
 	}, nil
 }
 

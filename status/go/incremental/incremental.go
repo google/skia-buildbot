@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -37,7 +37,7 @@ type Task struct {
 // is stored internally. When the client calls any variant of Get, any new
 // Updates are found and merged into a single Update object to return.
 type Update struct {
-	BranchHeads      []*gitinfo.GitBranch                 `json:"branch_heads,omitempty"`
+	BranchHeads      []*git.Branch                        `json:"branch_heads,omitempty"`
 	CommitComments   map[string][]*CommitComment          `json:"commit_comments,omitempty"`
 	Commits          []*vcsinfo.LongCommit                `json:"commits,omitempty"`
 	StartOver        *bool                                `json:"start_over,omitempty"`

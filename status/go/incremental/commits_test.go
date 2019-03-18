@@ -7,7 +7,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/window"
 )
 
-func assertBranches(t *testing.T, gb *git_testutils.GitBuilder, actual map[string][]*gitinfo.GitBranch, expect map[string]string) {
+func assertBranches(t *testing.T, gb *git_testutils.GitBuilder, actual map[string][]*git.Branch, expect map[string]string) {
 	actualBranches := make(map[string]string, len(actual[gb.RepoUrl()]))
 	for _, branch := range actual[gb.RepoUrl()] {
 		actualBranches[branch.Name] = branch.Head
