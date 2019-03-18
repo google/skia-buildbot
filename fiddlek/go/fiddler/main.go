@@ -132,6 +132,18 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Apoptosis.
+	_, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		select {
+		case <-time.Tick(*apoptosis):
+			sklog.Fatal("Exceeded total allowed runtime.")
+		case <-ctx.Done():
+			sklog.Info("Exited cleanly.")
+		}
+	}()
+
 	// Compile draw.cpp into 'fiddle'.
 	if err := ioutil.WriteFile(filepath.Join(*checkout, "tools", "fiddle", "draw.cpp"), []byte(request.Code), 0644); err != nil {
 		res.Execute.Errors = fmt.Sprintf("Failed to write draw.cpp: %s", err)
@@ -141,7 +153,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 
 	setState(types.COMPILING)
 
-	// TODO(jcgregorio) Put a timeout here.
 	buildResults, err := build(ctx, *checkout, filepath.Join(*fiddleRoot, "depot_tools", "ninja"), "-C", "out/Static")
 	buildLogs := strings.Split(buildResults, "\n")
 	sklog.Info("BuildLog")
@@ -330,7 +341,6 @@ func oneStep(ctx context.Context, checkout string, res *types.Result, frame floa
 		InheritEnv:  true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
-		Timeout:     30 * time.Second,
 	}
 	if err := exec.Run(ctx, runCmd); err != nil {
 		sklog.Errorf("Failed to run: %s", err)
