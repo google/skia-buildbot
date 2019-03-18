@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c864a000_04573056",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-18T18:31:20Z",
+      "side": 1,
+      "message": "How was this number determined?  How will I know if I can change it lower or higher?",
+      "revId": "7c3d8b7f749ed8d2c08129083f90b6ffad73c8b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
