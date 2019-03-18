@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "cfacc09e_699ff85f",
+        "filename": "go/git/repograph/gitstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "gitsync does insert the commits before the branch heads, but if BigTable is out of sync when we update the graph and a commit is missing we\u0027ll just fail Get() and try again on the next tick.",
+      "parentUuid": "03bb1edf_31881fb6",
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "26a3c2a7_5c1296f6",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -39,6 +57,30 @@
       "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ecc3635_08a748d2",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26a3c2a7_5c1296f6",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 12
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "72e11e22_808d9876",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Will do in a followup CL. We\u0027ll have to change the gob format, which will require a little care.",
+      "parentUuid": "f38590d6_090392fb",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 22
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "86c1d721_b2d86fb4",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -85,6 +151,30 @@
       "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5626763_6bcb0a77",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Added back to update().",
+      "parentUuid": "86c1d721_b2d86fb4",
+      "range": {
+        "startLine": 172,
+        "startChar": 1,
+        "endLine": 172,
+        "endChar": 8
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "da1dc420_059f30aa",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Removed \"r.repoMtx and \".",
+      "parentUuid": "7cd06c61_6c144942",
+      "range": {
+        "startLine": 244,
+        "startChar": 63,
+        "endLine": 245,
+        "endChar": 41
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "746df95d_f185e971",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -131,6 +245,30 @@
       "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d619b03_93b54a8f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "746df95d_f185e971",
+      "range": {
+        "startLine": 247,
+        "startChar": 1,
+        "endLine": 247,
+        "endChar": 24
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "97c2614f_114e0c28",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9b1954a_644d9e8f",
+      "range": {
+        "startLine": 278,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 20
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b35d86d7_787e1be5",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "b39ffc3e_26688f41",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b35d86d7_787e1be5",
+      "range": {
+        "startLine": 486,
+        "startChar": 14,
+        "endLine": 486,
+        "endChar": 15
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d59f4c47_6e0c688e",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -194,6 +380,24 @@
       "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53958e43_15dbf35b",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-18T18:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d59f4c47_6e0c688e",
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
