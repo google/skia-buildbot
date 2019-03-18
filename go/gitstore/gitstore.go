@@ -297,8 +297,6 @@ func (b *btGitStore) Get(ctx context.Context, hashes []string) ([]*vcsinfo.LongC
 						case colParents:
 							if len(col.Value) > 0 {
 								longCommit.Parents = strings.Split(string(col.Value), ":")
-							} else {
-								longCommit.Parents = []string{}
 							}
 						case colBody:
 							longCommit.Body = string(col.Value)

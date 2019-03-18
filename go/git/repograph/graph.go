@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -36,9 +35,13 @@ var (
 // Commit represents a commit in a Git repo.
 type Commit struct {
 	*vcsinfo.LongCommit
-	ParentIndices []int
-	parents       []*Commit
-	repo          *Graph
+	parents []*Commit
+
+	// repoLen is the number of known commits at the time that this Commit
+	// was added to the graph. It is only used during Recurse as a rough
+	// estimate of the maximum number of commits which could be visited, to
+	// prevent excessive resizing of the visited map.
+	repoLen int
 }
 
 // Parents returns the parents of this commit.
@@ -60,7 +63,7 @@ func (c *Commit) GetParents() []*Commit {
 // 	return nil
 // })
 func (c *Commit) Recurse(f func(*Commit) error) error {
-	return c.recurse(f, make(map[*Commit]bool, c.repo.Len()))
+	return c.recurse(f, make(map[*Commit]bool, c.repoLen))
 }
 
 // recurse is a helper function used by Recurse.
@@ -103,7 +106,7 @@ func (c *Commit) recurse(f func(*Commit) error, visited map[*Commit]bool) (rvErr
 // AllCommits returns the hashes of all commits reachable from this Commit, in
 // reverse topological order.
 func (c *Commit) AllCommits() ([]string, error) {
-	commits := make(map[*Commit]bool, c.repo.Len())
+	commits := make(map[*Commit]bool, c.repoLen)
 	if err := c.recurse(func(c *Commit) error {
 		return nil
 	}, commits); err != nil {
@@ -181,6 +184,7 @@ type Graph struct {
 
 // gobGraph is a utility struct used for serializing a Graph using gob.
 type gobGraph struct {
+	Branches    []*git.Branch
 	Commits     map[string]int
 	CommitsData []*Commit
 }
@@ -204,16 +208,19 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 	if err := util.MaybeReadGobFile(cacheFile, &r); err != nil {
 		return nil, fmt.Errorf("Failed to read Graph cache file %s: %s", cacheFile, err)
 	}
+	if r.Branches != nil {
+		rv.branches = r.Branches
+	}
 	if r.Commits != nil {
 		rv.commits = r.Commits
 	}
 	if r.CommitsData != nil {
 		rv.commitsData = r.CommitsData
 	}
-	for _, c := range rv.commitsData {
-		c.repo = rv
-		for _, parentIdx := range c.ParentIndices {
-			c.parents = append(c.parents, rv.commitsData[parentIdx])
+	for idx, c := range rv.commitsData {
+		c.repoLen = idx + 1
+		for _, parentHash := range c.Parents {
+			c.parents = append(c.parents, rv.commitsData[rv.commits[parentHash]])
 		}
 	}
 	return rv, nil
@@ -240,9 +247,8 @@ func (r *Graph) Len() int {
 }
 
 // addCommit adds the commit with the given hash to the Graph. Assumes that the
-// caller holds r.repoMtx and r.graphMtx.
-func (r *Graph) addCommit(ctx context.Context, d *vcsinfo.LongCommit) error {
-	var parentIndices []int
+// caller holds r.graphMtx.
+func (r *Graph) addCommit(d *vcsinfo.LongCommit) error {
 	var parents []*Commit
 	if len(d.Parents) > 0 {
 		for _, h := range d.Parents {
@@ -253,16 +259,14 @@ func (r *Graph) addCommit(ctx context.Context, d *vcsinfo.LongCommit) error {
 			if !ok {
 				return fmt.Errorf("repograph.Graph: Could not find parent commit %q", h)
 			}
-			parentIndices = append(parentIndices, p)
 			parents = append(parents, r.commitsData[p])
 		}
 	}
 
 	c := &Commit{
-		LongCommit:    d,
-		ParentIndices: parentIndices,
-		parents:       parents,
-		repo:          r,
+		LongCommit: d,
+		parents:    parents,
+		repoLen:    len(r.commitsData) + 1,
 	}
 	r.commits[d.Hash] = len(r.commitsData)
 	r.commitsData = append(r.commitsData, c)
@@ -272,9 +276,11 @@ func (r *Graph) addCommit(ctx context.Context, d *vcsinfo.LongCommit) error {
 // update the Graph.
 func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
 	if r.repo != nil {
-		return r.updateLocal(ctx, returnNewCommits)
+		r.repoMtx.Lock()
+		defer r.repoMtx.Unlock()
+		return r.UpdateFromRepo(ctx, r.repo, returnNewCommits)
 	}
-	return r.updateGitstore(ctx, returnNewCommits)
+	return r.UpdateFromGitStore(ctx, r.gitstore, returnNewCommits)
 }
 
 // Update syncs the local copy of the repo and loads new commits/branches into
@@ -291,49 +297,54 @@ func (r *Graph) UpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongC
 	return r.update(ctx, true)
 }
 
-func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
-	r.repoMtx.Lock()
-	defer r.repoMtx.Unlock()
-
+func updateFromRepo(ctx context.Context, repo *git.Repo, graph *Graph) ([]*vcsinfo.LongCommit, error) {
 	// Update the local copy.
 	sklog.Infof("Updating repograph.Graph...")
-	if err := r.repo.Update(ctx); err != nil {
+	if err := repo.Update(ctx); err != nil {
 		return nil, fmt.Errorf("Failed to update repograph.Graph: %s", err)
 	}
 
 	// Obtain the list of branches.
 	sklog.Info("  Getting branches...")
-	branches, err := r.repo.Branches(ctx)
+	newBranchesList, err := repo.Branches(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
 	}
+	newBranchesMap := make(map[string]string, len(newBranchesList))
+	for _, branch := range newBranchesList {
+		newBranchesMap[branch.Name] = branch.Head
+	}
+	graph.graphMtx.Lock()
+	defer graph.graphMtx.Unlock()
+	oldBranchesMap := make(map[string]string, len(graph.branches))
+	for _, branch := range graph.branches {
+		oldBranchesMap[branch.Name] = branch.Head
+	}
 
 	// Load new commits from the repo.
-	r.graphMtx.Lock()
-	defer r.graphMtx.Unlock()
 	var newCommits []*vcsinfo.LongCommit
-	if returnNewCommits {
-		newCommits = []*vcsinfo.LongCommit{}
-	}
 	sklog.Infof("  Loading commits...")
-	oldBranches := make(map[string]string, len(r.branches))
-	for _, branch := range r.branches {
-		oldBranches[branch.Name] = branch.Head
-	}
 	needOrphanCheck := false
-	for _, b := range branches {
+	for _, branch := range newBranchesList {
+		newHead := newBranchesMap[branch.Name]
+		oldHead := oldBranchesMap[branch.Name]
+
+		// Shortcut: if the branch is up-to-date, skip it.
+		if newHead == oldHead {
+			continue
+		}
+
 		// Load all commits on this branch.
 		// First, try to load only new commits on this branch.
 		var commits []string
 		newBranch := true
-		oldHead, ok := oldBranches[b.Name]
-		if ok {
-			anc, err := r.repo.IsAncestor(ctx, oldHead, b.Head)
+		if oldHead != "" {
+			anc, err := repo.IsAncestor(ctx, oldHead, newHead)
 			if err != nil {
 				return nil, err
 			}
 			if anc {
-				commits, err = r.repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", oldHead, b.Head))
+				commits, err = repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", oldHead, newHead))
 				if err != nil {
 					return nil, err
 				}
@@ -347,8 +358,8 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 		// reachable from the new (eg. if commit history was modified),
 		// load ALL commits reachable from the branch head.
 		if newBranch {
-			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", b.Name)
-			commits, err = r.repo.RevList(ctx, "--topo-order", b.Head)
+			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", branch.Name)
+			commits, err = repo.RevList(ctx, "--topo-order", newHead)
 			if err != nil {
 				return nil, fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
 			}
@@ -358,29 +369,23 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 			if hash == "" {
 				continue
 			}
-			if _, ok := r.commits[hash]; ok {
+			if _, ok := graph.commits[hash]; ok {
 				continue
 			}
-			d, err := r.repo.Details(ctx, hash)
+			d, err := repo.Details(ctx, hash)
 			if err != nil {
 				return nil, fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
 			}
-			if err := r.addCommit(ctx, d); err != nil {
+			if err := graph.addCommit(d); err != nil {
 				return nil, err
 			}
-			if returnNewCommits {
-				newCommits = append(newCommits, d)
-			}
+			newCommits = append(newCommits, d)
 		}
 	}
 	if !needOrphanCheck {
 		// Check to see whether any branches were deleted.
-		stillHere := make(map[string]bool, len(oldBranches))
-		for _, branch := range branches {
-			stillHere[branch.Name] = true
-		}
-		for branch, _ := range oldBranches {
-			if !stillHere[branch] {
+		for branch, _ := range oldBranchesMap {
+			if _, ok := newBranchesMap[branch]; !ok {
 				needOrphanCheck = true
 				break
 			}
@@ -388,54 +393,68 @@ func (r *Graph) updateLocal(ctx context.Context, returnNewCommits bool) ([]*vcsi
 	}
 	if needOrphanCheck {
 		sklog.Warningf("History change detected; checking for orphaned commits.")
-		visited := make(map[*Commit]bool, len(r.commitsData))
-		for _, branch := range branches {
+		visited := make(map[*Commit]bool, len(graph.commitsData))
+		for _, newBranchHead := range newBranchesMap {
 			// Not using Get() because graphMtx is locked.
-			if err := r.commitsData[r.commits[branch.Head]].recurse(func(c *Commit) error {
+			if err := graph.commitsData[graph.commits[newBranchHead]].recurse(func(c *Commit) error {
 				return nil
 			}, visited); err != nil {
 				return nil, err
 			}
 		}
 		orphaned := map[*Commit]bool{}
-		for _, c := range r.commitsData {
+		for _, c := range graph.commitsData {
 			if !visited[c] {
 				orphaned[c] = true
 			}
 		}
 		if len(orphaned) > 0 {
 			sklog.Errorf("%d commits are now orphaned. Removing them from the Graph.", len(orphaned))
-			newCommitsData := make([]*Commit, 0, len(r.commitsData)-len(orphaned))
-			newCommitsMap := make(map[string]int, len(r.commitsData)-len(orphaned))
-			for _, c := range r.commitsData {
+			newCommitsData := make([]*Commit, 0, len(graph.commitsData)-len(orphaned))
+			newCommitsMap := make(map[string]int, len(graph.commitsData)-len(orphaned))
+			for _, c := range graph.commitsData {
 				if !orphaned[c] {
 					newCommitsMap[c.Hash] = len(newCommitsData)
 					newCommitsData = append(newCommitsData, c)
 				}
 			}
-			r.commits = newCommitsMap
-			r.commitsData = newCommitsData
+			graph.commits = newCommitsMap
+			graph.commitsData = newCommitsData
 		}
 	}
 
-	oldBranchHeads := r.branches
-	r.branches = branches
+	graph.branches = newBranchesList
+	return newCommits, nil
+}
 
-	// Write to the cache file.
+// Write the Graph to the cache file in the given Repo.
+func (r *Graph) writeCacheFile(repo *git.Repo) error {
 	sklog.Infof("  Writing cache file...")
-	cacheFile := path.Join(r.repo.Dir(), CACHE_FILE)
-	if err := util.WithWriteFile(cacheFile, func(w io.Writer) error {
+	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
+	return util.WithWriteFile(cacheFile, func(w io.Writer) error {
 		return gob.NewEncoder(w).Encode(gobGraph{
+			Branches:    r.branches,
 			Commits:     r.commits,
 			CommitsData: r.commitsData,
 		})
-	}); err != nil {
-		// If we fail to write the file but keep the new branch heads,
-		// we won't get consistent commit lists from update() on the
-		// next try vs after a server restart.
-		r.branches = oldBranchHeads
+	})
+}
+
+// UpdateFromRepo updates the Graph from a local git.Repo.
+func (r *Graph) UpdateFromRepo(ctx context.Context, repo *git.Repo, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
+	newGraph := r.ShallowCopy()
+	newCommits, err := updateFromRepo(ctx, repo, newGraph)
+	if err != nil {
 		return nil, err
 	}
+	if err := newGraph.writeCacheFile(repo); err != nil {
+		return nil, fmt.Errorf("Failed to write cache file with: %s", err)
+	}
+	r.graphMtx.Lock()
+	defer r.graphMtx.Unlock()
+	r.branches = newGraph.branches
+	r.commits = newGraph.commits
+	r.commitsData = newGraph.commitsData
 	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
 	return newCommits, nil
 }
@@ -452,16 +471,41 @@ func (r *Graph) Branches() []string {
 }
 
 // BranchHeads returns the set of branch heads from the repo.
-func (r *Graph) BranchHeads() []*gitinfo.GitBranch {
+func (r *Graph) BranchHeads() []*git.Branch {
 	branches := r.Branches()
-	branchHeads := make([]*gitinfo.GitBranch, 0, len(branches))
+	branchHeads := make([]*git.Branch, 0, len(branches))
 	for _, b := range branches {
-		branchHeads = append(branchHeads, &gitinfo.GitBranch{
+		branchHeads = append(branchHeads, &git.Branch{
 			Name: b,
 			Head: r.Get(b).Hash,
 		})
 	}
 	return branchHeads
+}
+
+// ShallowCopy() returns a shallow copy of the Graph, ie. the pointers in the
+// old and new Graphs will remain equal for a given Commit.
+func (r *Graph) ShallowCopy() *Graph {
+	r.graphMtx.RLock()
+	defer r.graphMtx.RUnlock()
+	newCommits := make(map[string]int, len(r.commits))
+	for k, v := range r.commits {
+		newCommits[k] = v
+	}
+	newCommitsData := make([]*Commit, len(r.commitsData))
+	copy(newCommitsData, r.commitsData)
+	newBranches := make([]*git.Branch, 0, len(r.branches))
+	for _, branch := range r.branches {
+		newBranches = append(newBranches, &git.Branch{
+			Head: branch.Head,
+			Name: branch.Name,
+		})
+	}
+	return &Graph{
+		branches:    newBranches,
+		commits:     newCommits,
+		commitsData: newCommitsData,
+	}
 }
 
 // Get returns a Commit object for the given ref, if such a commit exists. This
@@ -483,6 +527,37 @@ func (r *Graph) Get(ref string) *Commit {
 	return nil
 }
 
+// RecurseCommits runs the given function recursively over the given refs, which
+// can be either commit hashes or branch names. The function accepts the current
+// Commit as a parameter. Returning ErrStopRecursing from the function indicates
+// that recursion should stop for the current branch, however, recursion will
+// continue for any other branches until they are similarly terminated.
+// Returning any other error causes recursion to stop without properly
+// terminating other branches. The error will bubble to the top and be returned.
+// Here's an example of printing out all of the commits reachable from a given
+// set of commits:
+//
+// commits := []string{...}
+// err := repo.RecurseCommits(commits, func(c *Commit) error {
+//	sklog.Info(c.Hash)
+//	return nil
+// })
+func (r *Graph) RecurseCommits(commits []string, f func(*Commit) error) error {
+	visited := make(map[*Commit]bool, r.Len())
+	for _, hash := range commits {
+		c := r.Get(hash)
+		if c == nil {
+			return fmt.Errorf("Unknown commit %q", hash)
+		}
+		if !visited[c] {
+			if err := c.recurse(f, visited); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // RecurseAllBranches runs the given function recursively over the entire commit
 // history, starting at each of the known branch heads. The function accepts the
 // current Commit as a parameter. Returning ErrStopRecursing from the function
@@ -492,25 +567,12 @@ func (r *Graph) Get(ref string) *Commit {
 // properly terminating other branches. The error will bubble to the top and be
 // returned. Here's an example of printing out all of the commits in the repo:
 //
-// repo.RecurseAllBranches(func(c *Commit) (bool, error) {
+// repo.RecurseAllBranches(func(c *Commit) error {
 //      sklog.Info(c.Hash)
-//      return true, nil
+//      return nil
 // })
 func (r *Graph) RecurseAllBranches(f func(*Commit) error) error {
-	branches := r.Branches()
-	visited := make(map[*Commit]bool, r.Len())
-	for _, b := range branches {
-		c := r.Get(b)
-		if c == nil {
-			return fmt.Errorf("Branch %s not found", b)
-		}
-		if _, ok := visited[c]; !ok {
-			if err := c.recurse(f, visited); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return r.RecurseCommits(r.Branches(), f)
 }
 
 // RevList is the equivalent of "git rev-list --topo-order from..to".

@@ -152,7 +152,7 @@ func (g *GitInfo) details(ctx context.Context, hash string, includeBranchInfo bo
 		}
 	}
 
-	parents := []string{}
+	var parents []string
 	if lines[1] != "" {
 		parents = strings.Split(lines[1], " ")
 	}
