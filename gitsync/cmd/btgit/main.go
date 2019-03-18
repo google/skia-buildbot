@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
@@ -53,7 +54,7 @@ func main() {
 
 	if *listRepos {
 		for _, repo := range allRepoInfos {
-			sklog.Infof("Repo: %s ", repo.RepoURL)
+			fmt.Printf("Repo: %s ", repo.RepoURL)
 			if *verbose {
 				logBranches("    ", repo.Branches)
 			}
@@ -131,13 +132,13 @@ func main() {
 			sklog.Fatalf("Programming error: Unable to retrieve long commit for hash %s", hashes[idx])
 		}
 		if *verbose {
-			sklog.Infof("%s %40s %v %s", c.Hash, c.Author, c.Timestamp, c.Subject)
+			fmt.Printf("%s %40s %v %s", c.Hash, c.Author, c.Timestamp, c.Subject)
 		}
 	}
 }
 
 func logBranches(indent string, branches map[string]*gitstore.BranchPointer) {
 	for branchName, branch := range branches {
-		sklog.Infof("Branch %s @ %s with index %d", branchName, branch.Head, branch.Index)
+		fmt.Printf("Branch %s @ %s with index %d\n", branchName, branch.Head, branch.Index)
 	}
 }
