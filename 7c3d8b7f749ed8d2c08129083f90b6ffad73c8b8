@@ -16,6 +16,24 @@
       "revId": "7c3d8b7f749ed8d2c08129083f90b6ffad73c8b8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d1bb4de_9c20183d",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-18T19:08:35Z",
+      "side": 1,
+      "message": "Empirically determined, we had instances with 500k go-routines and not problem (other than alert being triggered). \nThe current failure had ~4M go-routines, so 500k is a conservative number IMO, eventually you could make this configurable, but currently it will be reached very rarely.\nAdded comment.",
+      "parentUuid": "c864a000_04573056",
+      "revId": "7c3d8b7f749ed8d2c08129083f90b6ffad73c8b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
