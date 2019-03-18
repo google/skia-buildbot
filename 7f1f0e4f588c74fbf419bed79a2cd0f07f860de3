@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03bb1edf_31881fb6",
+        "filename": "go/git/repograph/gitstore_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "(I realize this is copy/pasted unchanged, but...)\n\nSeems like the branches could be up-to-date but the commits that the branches point to to be still missing, unless there\u0027s something in GitStore to account for that.\n\nOTOH, it seems like that could happen in production, and currently updateFromGitStore doesn\u0027t seem to handle that possibility.",
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26a3c2a7_5c1296f6",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "needs doc",
+      "range": {
+        "startLine": 39,
+        "startChar": 1,
+        "endLine": 39,
+        "endChar": 12
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f38590d6_090392fb",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: Since we no longer have ParentIndices, it would be nice (maybe in a followup CL) to merge commits and commitsData into a map[string]*Commit.",
+      "range": {
+        "startLine": 166,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 22
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86c1d721_b2d86fb4",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "no longer used, which seems wrong",
+      "range": {
+        "startLine": 172,
+        "startChar": 1,
+        "endLine": 172,
+        "endChar": 8
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cd06c61_6c144942",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: This assumption seems to be incorrect, at least for repoMtx. Should probably replace it with \"May not be called concurrently with any other methods (on the same Graph object).\"\n\nMaybe just to be extra clear, if/when you merge commits and commitsData, you could make this a function that that takes the commits map as an argument.",
+      "range": {
+        "startLine": 244,
+        "startChar": 63,
+        "endLine": 245,
+        "endChar": 41
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "746df95d_f185e971",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: unused",
+      "range": {
+        "startLine": 247,
+        "startChar": 1,
+        "endLine": 247,
+        "endChar": 24
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9b1954a_644d9e8f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: can be \"return r.UpdateFromGitStore(ctx, r.gitstore, returnNewCommits)\"",
+      "range": {
+        "startLine": 278,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 20
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b35d86d7_787e1be5",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 486,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: \"i.e. the pointers in the old and new Graphs will remain equal for a given Commit.\"",
+      "range": {
+        "startLine": 486,
+        "startChar": 14,
+        "endLine": 486,
+        "endChar": 15
+      },
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d59f4c47_6e0c688e",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: for consistency, newBranches",
+      "revId": "7f1f0e4f588c74fbf419bed79a2cd0f07f860de3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

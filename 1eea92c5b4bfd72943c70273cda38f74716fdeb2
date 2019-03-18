@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da8a6afc_2182dbed",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "nit: I\u0027ve forgotten the reason for moving to copy-on-update. Maybe mention here.",
+      "revId": "1eea92c5b4bfd72943c70273cda38f74716fdeb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "238d27b1_d9fe5b35",
+        "filename": "status/go/incremental/incremental.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-18T17:48:55Z",
+      "side": 1,
+      "message": "JSON for gitinfo.GitBranch is not the same as git.Branch (title case vs. lowercase fields).",
+      "revId": "1eea92c5b4bfd72943c70273cda38f74716fdeb2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
