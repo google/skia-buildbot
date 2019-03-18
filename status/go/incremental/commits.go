@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/vcsinfo"
@@ -16,8 +16,8 @@ import (
 // commitsCache is a struct used for tracking newly-landed commits.
 type commitsCache struct {
 	mtx sync.Mutex
-	// map[repo URL][branch name]*gitinfo.GitBranch
-	oldBranchHeads map[string]map[string]*gitinfo.GitBranch
+	// map[repo URL][branch name]*git.Branch
+	oldBranchHeads map[string]map[string]*git.Branch
 	repos          repograph.Map
 }
 
@@ -32,7 +32,7 @@ func newCommitsCache(repos repograph.Map) *commitsCache {
 // heads will be provided for a given repo only if there are new commits for
 // that repo, or if reset is true. The returned commits may be in any order and
 // are not sorted by timestamp.
-func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool, n int) (map[string][]*gitinfo.GitBranch, map[string][]*vcsinfo.LongCommit, error) {
+func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool, n int) (map[string][]*git.Branch, map[string][]*vcsinfo.LongCommit, error) {
 	defer metrics2.FuncTimer().Stop()
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -41,13 +41,13 @@ func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool,
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to update repos: %s", err)
 	}
-	updatedBranchHeads := make(map[string]map[string]*gitinfo.GitBranch, len(c.repos))
+	updatedBranchHeads := make(map[string]map[string]*git.Branch, len(c.repos))
 	rvCommits := make(map[string][]*vcsinfo.LongCommit, len(c.repos))
-	rvBranchHeads := make(map[string][]*gitinfo.GitBranch, len(c.repos))
+	rvBranchHeads := make(map[string][]*git.Branch, len(c.repos))
 	for repoUrl, repo := range c.repos {
 		// Update the branch heads for this repo.
 		bh := repo.BranchHeads()
-		bhMap := make(map[string]*gitinfo.GitBranch, len(bh))
+		bhMap := make(map[string]*git.Branch, len(bh))
 		for _, h := range bh {
 			bhMap[h.Name] = h
 		}
