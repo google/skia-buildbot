@@ -38,6 +38,10 @@ const (
 	// BYTES_PER_DIFF_METRIC is the estimated number of bytes per diff metric.
 	// Used to conservatively estimate the maximum number of items in the cache.
 	BYTES_PER_DIFF_METRIC = 100
+
+	// maxGoRoutines is the maximum number of Go-routines we allow in MemDiffStore.
+	// This was determined empirically: we had instances running with 500k go-routines without problems.
+	maxGoRoutines = 500000
 )
 
 // DiffStoreMapper is the interface to customize the specific behavior of MemDiffStore.
@@ -101,6 +105,9 @@ type MemDiffStore struct {
 
 	// mapper contains various functions for creating image IDs, paths and diff metrics.
 	mapper DiffStoreMapper
+
+	// maxGoRoutinesCh is a buffered channel that is used to limit the number of goroutines for diffing.
+	maxGoRoutinesCh chan bool
 }
 
 // NewMemDiffStore returns a new instance of MemDiffStore.
@@ -126,11 +133,12 @@ func NewMemDiffStore(client *http.Client, baseDir string, gsBucketNames []string
 	}
 
 	ret := &MemDiffStore{
-		baseDir:      baseDir,
-		localDiffDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
-		imgLoader:    imgLoader,
-		metricsStore: mStore,
-		mapper:       mapper,
+		baseDir:         baseDir,
+		localDiffDir:    fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFIMG_DIR_NAME))),
+		imgLoader:       imgLoader,
+		metricsStore:    mStore,
+		mapper:          mapper,
+		maxGoRoutinesCh: make(chan bool, maxGoRoutines),
 	}
 
 	if ret.diffMetricsCache, err = rtcache.New(ret.diffMetricsWorker, diffCacheCount, runtime.NumCPU()); err != nil {
@@ -169,8 +177,14 @@ func (d *MemDiffStore) WarmDiffs(priority int64, leftDigests []string, rightDige
 	sklog.Infof("Warming %d diffs", len(diffIDs))
 	d.wg.Add(len(diffIDs))
 	for _, id := range diffIDs {
+		d.maxGoRoutinesCh <- true
+
 		go func(id string) {
-			defer d.wg.Done()
+			defer func() {
+				d.wg.Done()
+				<-d.maxGoRoutinesCh
+			}()
+
 			if err := d.diffMetricsCache.Warm(priority, id); err != nil {
 				sklog.Errorf("Unable to warm diff %s. Got error: %s", id, err)
 			}
@@ -195,8 +209,13 @@ func (d *MemDiffStore) Get(priority int64, mainDigest string, rightDigests []str
 		// Don't compare the digest to itself.
 		if mainDigest != right {
 			wg.Add(1)
+			d.maxGoRoutinesCh <- true
+
 			go func(right string) {
-				defer wg.Done()
+				defer func() {
+					wg.Done()
+					<-d.maxGoRoutinesCh
+				}()
 				id := d.mapper.DiffID(mainDigest, right)
 				ret, err := d.diffMetricsCache.Get(priority, id)
 				if err != nil {
@@ -370,15 +389,24 @@ func (d *MemDiffStore) diffMetricsWorker(priority int64, id string) (interface{}
 // saveDiffInfoAsync saves the given diff information to disk asynchronously.
 func (d *MemDiffStore) saveDiffInfoAsync(diffID, leftDigest, rightDigest string, diffMetrics interface{}, imgBytes []byte) {
 	d.wg.Add(2)
+	d.maxGoRoutinesCh <- true
 	go func() {
-		defer d.wg.Done()
+		defer func() {
+			d.wg.Done()
+			<-d.maxGoRoutinesCh
+		}()
 		if err := d.metricsStore.saveDiffMetrics(diffID, diffMetrics); err != nil {
 			sklog.Errorf("Error saving diff metric: %s", err)
 		}
 	}()
 
+	d.maxGoRoutinesCh <- true
 	go func() {
-		defer d.wg.Done()
+		defer func() {
+			d.wg.Done()
+			<-d.maxGoRoutinesCh
+		}()
+
 		// Get the local file path using the mapper and save the diff image there.
 		localDiffPath := d.mapper.DiffPath(leftDigest, rightDigest)
 		if err := saveFilePath(filepath.Join(d.localDiffDir, localDiffPath), bytes.NewBuffer(imgBytes)); err != nil {
