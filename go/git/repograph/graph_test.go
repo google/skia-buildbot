@@ -14,12 +14,22 @@ import (
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
+
+type updater interface {
+	addCommits(...*vcsinfo.LongCommit)
+}
+
+// commonSetup performs common setup.
+func commonSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, func()) {
+	ctx := context.Background()
+	g := git_testutils.GitInit(t, ctx)
+	return ctx, g, g.Cleanup
+}
 
 // gitSetup initializes a Git repo in a temporary directory with some commits.
 // Returns the path of the temporary directory, the Graph object associated with
@@ -29,16 +39,11 @@ import (
 //
 // c1--c2------c4--c5--
 //       \-c3-----/
-func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, []*Commit, func()) {
-	ctx := context.Background()
-	g := git_testutils.GitInit(t, ctx)
-	g.CommitGen(ctx, "myfile.txt")
-
-	tmp, err := ioutil.TempDir("", "")
+func gitSetup(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, repo *Graph, ud updater) []*Commit {
+	c1hash := g.CommitGen(ctx, "myfile.txt")
+	c1details, err := git.GitDir(g.Dir()).Details(ctx, c1hash)
 	assert.NoError(t, err)
-
-	repo, err := NewLocalGraph(ctx, g.Dir(), tmp)
-	assert.NoError(t, err)
+	ud.addCommits(c1details)
 	assert.NoError(t, repo.Update(ctx))
 
 	c1 := repo.Get("master")
@@ -46,7 +51,10 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 	assert.Equal(t, 0, len(c1.GetParents()))
 	assert.False(t, util.TimeIsZero(c1.Timestamp))
 
-	g.CommitGen(ctx, "myfile.txt")
+	c2hash := g.CommitGen(ctx, "myfile.txt")
+	c2details, err := git.GitDir(g.Dir()).Details(ctx, c2hash)
+	assert.NoError(t, err)
+	ud.addCommits(c2details)
 	assert.NoError(t, repo.Update(ctx))
 	c2 := repo.Get("master")
 	assert.NotNil(t, c2)
@@ -57,7 +65,10 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 
 	// Create a second branch.
 	g.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
-	g.CommitGen(ctx, "anotherfile.txt")
+	c3hash := g.CommitGen(ctx, "anotherfile.txt")
+	c3details, err := git.GitDir(g.Dir()).Details(ctx, c3hash)
+	assert.NoError(t, err)
+	ud.addCommits(c3details)
 	assert.NoError(t, repo.Update(ctx))
 	c3 := repo.Get("branch2")
 	assert.NotNil(t, c3)
@@ -67,7 +78,10 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 
 	// Commit again to master.
 	g.CheckoutBranch(ctx, "master")
-	g.CommitGen(ctx, "myfile.txt")
+	c4hash := g.CommitGen(ctx, "myfile.txt")
+	c4details, err := git.GitDir(g.Dir()).Details(ctx, c4hash)
+	assert.NoError(t, err)
+	ud.addCommits(c4details)
 	assert.NoError(t, repo.Update(ctx))
 	assert.Equal(t, c3, repo.Get("branch2"))
 	c4 := repo.Get("master")
@@ -75,7 +89,10 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 	assert.False(t, util.TimeIsZero(c4.Timestamp))
 
 	// Merge branch1 into master.
-	g.MergeBranch(ctx, "branch2")
+	c5hash := g.MergeBranch(ctx, "branch2")
+	c5details, err := git.GitDir(g.Dir()).Details(ctx, c5hash)
+	assert.NoError(t, err)
+	ud.addCommits(c5details)
 	assert.NoError(t, repo.Update(ctx))
 	assert.Equal(t, []string{"branch2", "master"}, repo.Branches())
 	c5 := repo.Get("master")
@@ -83,16 +100,11 @@ func gitSetup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph,
 	assert.Equal(t, c3, repo.Get("branch2"))
 	assert.False(t, util.TimeIsZero(c5.Timestamp))
 
-	return ctx, g, repo, []*Commit{c1, c2, c3, c4, c5}, func() {
-		g.Cleanup()
-		testutils.RemoveAll(t, tmp)
-	}
+	return []*Commit{c1, c2, c3, c4, c5}
 }
 
-func TestGraph(t *testing.T) {
-	testutils.MediumTest(t)
-	ctx, g, repo, commits, cleanup := gitSetup(t)
-	defer cleanup()
+func testGraph(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, repo *Graph, ud updater) {
+	commits := gitSetup(t, ctx, g, repo, ud)
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -117,32 +129,23 @@ func TestGraph(t *testing.T) {
 	deepequal.AssertDeepEqual(t, repo.Branches(), repo2.Branches())
 	m1 := repo.Get("master")
 	m2 := repo2.Get("master")
-	// These will confuse AssertDeepEqual.
-	for _, c := range repo.commitsData {
-		c.repo = nil
-	}
-	for _, c := range repo2.commitsData {
-		c.repo = nil
-	}
 	deepequal.AssertDeepEqual(t, m1, m2)
 }
 
 func TestSerialize(t *testing.T) {
 	testutils.MediumTest(t)
-	ctx, g, repo, _, cleanup := gitSetup(t)
+	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
+	gitSetup(t, ctx, g, repo, ud)
 
+	assert.NoError(t, repo.writeCacheFile(repo.repo))
 	repo2, err := NewLocalGraph(ctx, g.Dir(), path.Dir(repo.repo.Dir()))
 	assert.NoError(t, err)
-	assert.NoError(t, repo2.Update(ctx))
-
 	deepequal.AssertDeepEqual(t, repo, repo2)
 }
 
-func TestRecurse(t *testing.T) {
-	testutils.LargeTest(t)
-	_, _, repo, commits, cleanup := gitSetup(t)
-	defer cleanup()
+func testRecurse(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, repo *Graph, ud updater) {
+	commits := gitSetup(t, ctx, g, repo, ud)
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -199,10 +202,8 @@ func TestRecurse(t *testing.T) {
 	assert.True(t, gotCommits[c5])
 }
 
-func TestRecurseAllBranches(t *testing.T) {
-	testutils.LargeTest(t)
-	ctx, g, repo, commits, cleanup := gitSetup(t)
-	defer cleanup()
+func testRecurseAllBranches(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, repo *Graph, ud updater) {
+	commits := gitSetup(t, ctx, g, repo, ud)
 
 	c1 := commits[0]
 	c2 := commits[1]
@@ -229,7 +230,10 @@ func TestRecurseAllBranches(t *testing.T) {
 	// The above used only one branch. Add a branch and ensure that we see
 	// its commits too.
 	g.CreateBranchTrackBranch(ctx, "mybranch", "origin/master")
-	g.CommitGen(ctx, "anotherfile.txt")
+	c5 := g.CommitGen(ctx, "anotherfile.txt")
+	c5details, err := git.GitDir(g.Dir()).Details(ctx, c5)
+	assert.NoError(t, err)
+	ud.addCommits(c5details)
 	assert.NoError(t, repo.Update(ctx))
 	c := repo.Get("mybranch")
 	assert.NotNil(t, c)
@@ -239,6 +243,7 @@ func TestRecurseAllBranches(t *testing.T) {
 	// Verify that we don't revisit a branch whose HEAD is an ancestor of
 	// a different branch HEAD.
 	g.CreateBranchAtCommit(ctx, "ancestorbranch", c3.Hash)
+	ud.addCommits()
 	assert.NoError(t, repo.Update(ctx))
 	test()
 
@@ -272,10 +277,12 @@ func TestRecurseAllBranches(t *testing.T) {
 
 func TestFindCommit(t *testing.T) {
 	testutils.LargeTest(t)
-	_, g1, repo1, commits1, cleanup1 := gitSetup(t)
+	ctx1, g1, repo1, ud1, cleanup1 := setupRepo(t)
 	defer cleanup1()
-	_, g2, repo2, commits2, cleanup2 := gitSetup(t)
+	commits1 := gitSetup(t, ctx1, g1, repo1, ud1)
+	ctx2, g2, repo2, ud2, cleanup2 := setupRepo(t)
 	defer cleanup2()
+	commits2 := gitSetup(t, ctx2, g2, repo2, ud2)
 
 	m := Map{
 		g1.Dir(): repo1,
@@ -335,10 +342,8 @@ func TestFindCommit(t *testing.T) {
 	}
 }
 
-func TestUpdateHistoryChanged(t *testing.T) {
-	testutils.LargeTest(t)
-	ctx, g, repo, commits, cleanup := gitSetup(t)
-	defer cleanup()
+func testUpdateHistoryChanged(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, repo *Graph, ud updater) {
+	commits := gitSetup(t, ctx, g, repo, ud)
 
 	// c3 is the one commit on branch2.
 	c3 := repo.Get("branch2")
@@ -350,14 +355,16 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	g.Reset(ctx, "--hard", commits[3].Hash) // c4 from setup()
 	f := "myfile"
 	c6hash := g.CommitGen(ctx, f)
-
+	c6details, err := git.GitDir(g.Dir()).Details(ctx, c6hash)
+	assert.NoError(t, err)
+	ud.addCommits(c6details)
 	assert.NoError(t, repo.Update(ctx))
 	c6 := repo.Get("branch2")
 	assert.NotNil(t, c6)
 	assert.Equal(t, c6hash, c6.Hash)
 
 	// Ensure that c3 is not reachable from c6.
-	anc, err := repo.repo.IsAncestor(ctx, c3.Hash, c6.Hash)
+	anc, err := repo.IsAncestor(c3.Hash, c6.Hash)
 	assert.NoError(t, err)
 	assert.False(t, anc)
 
@@ -373,6 +380,11 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	c8 := g.CommitGen(ctx, "blah")
 	g.CheckoutBranch(ctx, "master")
 	g.Reset(ctx, "--hard", c8)
+	c7details, err := git.GitDir(g.Dir()).Details(ctx, c7)
+	assert.NoError(t, err)
+	c8details, err := git.GitDir(g.Dir()).Details(ctx, c8)
+	assert.NoError(t, err)
+	ud.addCommits(c7details, c8details)
 	assert.NoError(t, repo.Update(ctx))
 	assert.NotNil(t, repo.Get(c7))
 	assert.NotNil(t, repo.Get(c8))
@@ -390,6 +402,7 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	// Delete branch2. Ensure that c6 disappears.
 	sklog.Error("Deleting branch2")
 	g.UpdateRef(ctx, "-d", "refs/heads/branch2")
+	ud.addCommits()
 	assert.NoError(t, repo.Update(ctx))
 	assert.Nil(t, repo.Get("branch2"))
 	assert.Nil(t, repo.Get(c6hash))
@@ -402,6 +415,7 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	}
 	g.UpdateRef(ctx, "refs/heads/master", commits[0].Hash)
 	g.UpdateRef(ctx, "refs/heads/new", commits[0].Hash)
+	ud.addCommits()
 	assert.NoError(t, repo.Update(ctx))
 	assert.NotNil(t, repo.Get("master"))
 	assert.NotNil(t, repo.Get(commits[0].Hash))
@@ -411,10 +425,8 @@ func TestUpdateHistoryChanged(t *testing.T) {
 	}
 }
 
-func TestUpdateAndReturnNewCommits(t *testing.T) {
-	testutils.LargeTest(t)
-	ctx, g, repo, _, cleanup := gitSetup(t)
-	defer cleanup()
+func testUpdateAndReturnNewCommits(t *testing.T, ctx context.Context, g *git_testutils.GitBuilder, repo *Graph, ud updater) {
+	gitSetup(t, ctx, g, repo, ud)
 
 	// The repo has commits, but gitSetup has already run Update(), so
 	// there's nothing new.
@@ -432,6 +444,11 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	f := "myfile"
 	new1 := g.CommitGen(ctx, f)
 	new2 := g.CommitGen(ctx, f)
+	new1details, err := git.GitDir(g.Dir()).Details(ctx, new1)
+	assert.NoError(t, err)
+	new2details, err := git.GitDir(g.Dir()).Details(ctx, new2)
+	assert.NoError(t, err)
+	ud.addCommits(new1details, new2details)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(newCommits))
@@ -446,6 +463,11 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	new1 = g.CommitGen(ctx, f)
 	g.CheckoutBranch(ctx, "branch2")
 	new2 = g.CommitGen(ctx, "file2")
+	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	assert.NoError(t, err)
+	new2details, err = git.GitDir(g.Dir()).Details(ctx, new2)
+	assert.NoError(t, err)
+	ud.addCommits(new1details, new2details)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(newCommits))
@@ -459,6 +481,7 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	// Add a new branch. Make sure that we don't get duplicate commits.
 	g.CheckoutBranch(ctx, "master")
 	g.CreateBranchTrackBranch(ctx, "branch3", "master")
+	ud.addCommits()
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(newCommits))
@@ -479,6 +502,9 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 
 	// Add a commit on the new branch.
 	new1 = g.CommitGen(ctx, f)
+	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	assert.NoError(t, err)
+	ud.addCommits(new1details)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(newCommits))
@@ -490,6 +516,9 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	// the branch head changed.
 	g.CheckoutBranch(ctx, "master")
 	mergeCommit := g.MergeBranch(ctx, "branch4")
+	mergeCommitDetails, err := git.GitDir(g.Dir()).Details(ctx, mergeCommit)
+	assert.NoError(t, err)
+	ud.addCommits(mergeCommitDetails)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(newCommits))
@@ -498,12 +527,16 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	// Create a new branch.
 	g.CheckoutBranch(ctx, "master")
 	g.CreateBranchTrackBranch(ctx, "branch5", "master")
+	ud.addCommits()
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(newCommits))
 
 	// Add a commit on the new branch.
 	new1 = g.CommitGen(ctx, f)
+	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	assert.NoError(t, err)
+	ud.addCommits(new1details)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(newCommits))
@@ -512,6 +545,9 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 	// Add a commit on the master branch.
 	g.CheckoutBranch(ctx, "master")
 	new1 = g.CommitGen(ctx, "file2")
+	new1details, err = git.GitDir(g.Dir()).Details(ctx, new1)
+	assert.NoError(t, err)
+	ud.addCommits(new1details)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(newCommits))
@@ -519,20 +555,17 @@ func TestUpdateAndReturnNewCommits(t *testing.T) {
 
 	// Merge "branch5" into master. This should result in a new commit.
 	mergeCommit = g.MergeBranch(ctx, "branch5")
+	mergeCommitDetails, err = git.GitDir(g.Dir()).Details(ctx, mergeCommit)
+	assert.NoError(t, err)
+	ud.addCommits(mergeCommitDetails)
 	newCommits, err = repo.UpdateAndReturnNewCommits(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(newCommits))
 	assert.Equal(t, mergeCommit, newCommits[0].Hash)
 }
 
-func TestRevList(t *testing.T) {
-	testutils.MediumTest(t)
-
-	ctx := context.Background()
-	gb := git_testutils.GitInit(t, ctx)
-	defer gb.Cleanup()
+func testRevList(t *testing.T, ctx context.Context, gb *git_testutils.GitBuilder, repo *Graph, ud updater) {
 	commits := git_testutils.GitSetup(ctx, gb)
-
 	tmpDir, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
@@ -883,114 +916,4 @@ func TestIsAncestor(t *testing.T) {
 	check(commits[4], commits[2], false)
 	check(commits[4], commits[3], false)
 	check(commits[4], commits[4], true)
-}
-
-func TestGitStore(t *testing.T) {
-	testutils.LargeTest(t)
-
-	ctx := context.Background()
-	gb := git_testutils.GitInit(t, ctx)
-	defer gb.Cleanup()
-	commits := git_testutils.GitSetup(ctx, gb)
-
-	// Push commits into BT.
-	btConf := &gitstore.BTConfig{
-		ProjectID:  "fake-project",
-		InstanceID: "fake-instance",
-		TableID:    "repograph-gitstore",
-	}
-	assert.NoError(t, gitstore.InitBT(btConf))
-	gs, err := gitstore.NewBTGitStore(ctx, btConf, gb.RepoUrl())
-	assert.NoError(t, err)
-
-	repo := git.GitDir(gb.Dir())
-
-	// Wait for GitStore to be up to date.
-	btWait := func() {
-		expect, err := repo.Branches(ctx)
-		assert.NoError(t, err)
-		for {
-			time.Sleep(10 * time.Millisecond)
-			actual, err := gs.GetBranches(ctx)
-			assert.NoError(t, err)
-			allMatch := true
-			for _, expectBranch := range expect {
-				actualBranch, ok := actual[expectBranch.Name]
-				if !ok || actualBranch.Head != expectBranch.Head {
-					allMatch = false
-					break
-				}
-			}
-			if allMatch {
-				break
-			}
-		}
-	}
-
-	// Add the given commits to the GitStore.
-	addCommitsToGitStore := func(commits []string) {
-		details := make([]*vcsinfo.LongCommit, 0, len(commits))
-		for _, c := range commits {
-			d, err := repo.Details(ctx, c)
-			assert.NoError(t, err)
-			details = append(details, d)
-		}
-		assert.NoError(t, gs.Put(ctx, details))
-		branches, err := repo.Branches(ctx)
-		assert.NoError(t, err)
-		putBranches := make(map[string]string, len(branches))
-		for _, branch := range branches {
-			putBranches[branch.Name] = branch.Head
-		}
-		assert.NoError(t, gs.PutBranches(ctx, putBranches))
-		btWait()
-	}
-
-	addCommitsToGitStore(commits)
-
-	// Create the graph.
-	g, err := NewGitStoreGraph(ctx, gs)
-	assert.NoError(t, err)
-
-	check := func(commits []string) {
-		for _, hash := range commits {
-			c := g.Get(hash)
-			assert.NotNil(t, c)
-			d, err := repo.Details(ctx, hash)
-			assert.NoError(t, err)
-			d.Timestamp = d.Timestamp.UTC()
-			if len(d.Parents) == 0 && len(c.LongCommit.Parents) == 0 {
-				d.Parents = c.LongCommit.Parents
-			}
-			deepequal.AssertDeepEqual(t, d, c.LongCommit)
-		}
-	}
-	check(commits)
-
-	// Add some new commits.
-	c1 := gb.CommitGen(ctx, "file1")
-	c2 := gb.CommitGen(ctx, "file1")
-	gb.CreateBranchTrackBranch(ctx, "otherbranch", "master")
-	c3 := gb.CommitGen(ctx, "file2")
-	addCommitsToGitStore([]string{c1, c2, c3})
-	assert.NoError(t, g.Update(ctx))
-	check([]string{c1, c2, c3})
-	assert.Equal(t, c2, g.Get("master").Hash)
-	assert.Equal(t, c3, g.Get("otherbranch").Hash)
-
-	// Add a commit in the future. It shouldn't get included in the commits
-	// initially returned by GitStore.RangeByTime(). Ensure that we still
-	// end up with the new commit.
-	now := time.Now().Add(time.Second)
-	c4 := gb.CommitGenAt(ctx, "file2", now.Add(900*time.Hour))
-	addCommitsToGitStore([]string{c4})
-	indexCommits, err := gs.RangeByTime(ctx, now.Add(-30*time.Minute), now, gb.RepoUrl())
-	assert.NoError(t, err)
-	// Sanity check; ensure that the commit doesn't show up.
-	for _, c := range indexCommits {
-		assert.NotEqual(t, c4, c.Hash)
-	}
-	// Verify that the commit still shows up.
-	assert.NoError(t, g.Update(ctx))
-	check([]string{c4})
 }

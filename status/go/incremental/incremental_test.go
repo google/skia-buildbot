@@ -8,7 +8,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -106,7 +106,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, taskDb.PutTask(t0))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the updated task.
-	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
+	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
 	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	assert.Equal(t, (*bool)(nil), u.StartOver)
@@ -129,7 +129,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, taskDb.PutTaskComment(&tc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskComment.
-	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
+	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
 	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	assert.Equal(t, (*bool)(nil), u.StartOver)
@@ -142,7 +142,7 @@ func TestIncrementalCache(t *testing.T) {
 	// Verify that both the task from the previous update AND the
 	// TaskComment appear if we request an earlier timestamp.
 	u, err = cache.Get(repoUrl, ts0, 100)
-	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
+	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
 	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	assert.Equal(t, (*bool)(nil), u.StartOver)
@@ -164,7 +164,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, taskDb.PutCommitComment(&cc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new CommitComment.
-	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
+	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
 	deepequal.AssertDeepEqual(t, cc, u.CommitComments[t0.Revision][0].CommitComment)
 	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	assert.Equal(t, (*bool)(nil), u.StartOver)
@@ -187,7 +187,7 @@ func TestIncrementalCache(t *testing.T) {
 	assert.NoError(t, taskDb.PutTaskSpecComment(&tsc))
 	u, ts = update(t, ctx, repoUrl, cache, ts)
 	// Expect a mostly-empty update with just the new TaskSpecComment.
-	assert.Equal(t, []*gitinfo.GitBranch(nil), u.BranchHeads)
+	assert.Equal(t, []*git.Branch(nil), u.BranchHeads)
 	assert.Equal(t, map[string][]*CommitComment(nil), u.CommitComments)
 	assert.Equal(t, []*vcsinfo.LongCommit(nil), u.Commits)
 	assert.Equal(t, (*bool)(nil), u.StartOver)
