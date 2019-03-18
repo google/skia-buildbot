@@ -1,10 +1,10 @@
 package storage
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	gstorage "cloud.google.com/go/storage"
@@ -126,9 +126,9 @@ func (g *GStorageClient) getBaselinePath(commitHash string, issueID int64) strin
 	return g.options.BaselineGSPath + "/" + outPath
 }
 
-// loadKnownDigests loads the digests that have previously been written
-// to GS via WriteKnownDigests. Used for testing.
-func (g *GStorageClient) loadKnownDigests() ([]string, error) {
+// LoadKnownDigests loads the digests that have previously been written
+// to GS via WriteKnownDigests.
+func (g *GStorageClient) LoadKnownDigests(w io.Writer) error {
 	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
 	ctx := context.Background()
@@ -137,21 +137,22 @@ func (g *GStorageClient) loadKnownDigests() ([]string, error) {
 	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
 	_, err := target.Attrs(ctx)
 	if err != nil {
-		return nil, err
+		// We simply assume an enty hashes file if the object was not found.
+		if err == gstorage.ErrObjectNotExist {
+			return nil
+		}
+		return err
 	}
 
+	// Copy the content to the output writer.
 	reader, err := target.NewReader(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer util.Close(reader)
 
-	scanner := bufio.NewScanner(reader)
-	ret := []string{}
-	for scanner.Scan() {
-		ret = append(ret, scanner.Text())
-	}
-	return ret, nil
+	_, err = io.Copy(w, reader)
+	return err
 }
 
 // removeGSPath removes the given file. Primarily used for testing.
@@ -183,6 +184,6 @@ func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(
 		return err
 	}
 
-	sklog.Infof("File written to GS path %s", targetPath)
+	// sklog.Infof("File written to GS path %s", targetPath)
 	return nil
 }

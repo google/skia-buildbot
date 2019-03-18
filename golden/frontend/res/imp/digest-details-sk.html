@@ -57,7 +57,6 @@
 <link rel="import" href="../common/imp/paramset.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<link rel="import" href="blame-sk.html">
 <link rel="import" href="dots-sk.html">
 <link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="purge-sk.html">
@@ -215,7 +214,7 @@
                   </div>
                 </div>
                 <div>
-                  <span hidden$="[[_hideDotsBlame(details)]]">
+                  <span hidden$="[[_hideDots(details)]]">
                     <svg width="10" height="10" viewBox="-1 -1 2 2">
                       <circle cx="0" cy="0" r="0.3" class="status0"></circle>
                     </svg>
@@ -268,17 +267,13 @@
           </div>
         </div>
 
-        <!-- dots, dot-legend and blame -->
-        <div class="vertical layout dotInfo" hidden$="[[_hideDotsBlame(details)]]">
+        <!-- dots, dot-legend -->
+        <div class="vertical layout dotInfo" hidden$="[[_hideDots(details)]]">
           <dots-sk id="dots"></dots-sk>
           <dot-legend-sk id="dotlegend"
                          test="{{details.test}}"
                          digests={{details.traces.digests}}>
           </dot-legend-sk>
-         <blame-sk id="blame"
-                   commits="{{commits}}"
-                   value="{{details.diff.blame}}">
-          </blame-sk>
         </div>
       </div>
 
@@ -366,7 +361,6 @@
         this.listen(this.$.dots, 'hover', '_hoverHandler');
         this.listen(this.$.dots, 'mouseleave', '_mouseLeaveHandler');
         this.listen(this.$.triageControls, 'change', '_triageChangeHandler');
-        this.listen(this.$.blame, 'hover-blame', '_blameHoverHandler');
       },
 
       triggerTriage: function (status) {
@@ -428,10 +422,6 @@
           this.$.paramsets.setHighlight(params);
       },
 
-      _blameHoverHandler: function(ev) {
-        this.$.dots.highlight(ev.detail.index, ev.detail.b);
-      },
-
       _mouseLeaveHandler: function() {
         this.$.paramsets.clearHighlight();
       },
@@ -456,7 +446,7 @@
             this._rightParamTitle = this._abbrev(this._right.digest);
             break;
           default:
-            console.log("Unknow mode set for digest-detail-sk element.");
+            console.log("Unknown mode set for digest-detail-sk element.");
             return
         }
 
@@ -472,7 +462,7 @@
         // Set the reference image returned by the server.
         var hasRef = this._setRefDiff();
         if (hasRef) {
-          // Get all the reference images that are availalble.
+          // Get all the reference images that are available.
           var refKeys = [];
           if (this.details.refDiffs) {
             for(var k in this.details.refDiffs) {
@@ -485,7 +475,7 @@
           this.set("_refKeys", refKeys);
         }
 
-        // Set the blame, dots, dotlegend
+        // Set the dots, dotlegend
         this.$.dots.setCommits(this.commits);
         this.$.dots.setValue(this.details.traces);
       },
@@ -616,7 +606,7 @@
         return mode != 'list';
       },
 
-      _hideDotsBlame: function(details) {
+      _hideDots: function(details) {
         return (!details || !details.traces || !details.traces.traces);
       },
 
