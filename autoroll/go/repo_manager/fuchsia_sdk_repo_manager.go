@@ -145,6 +145,12 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	}
 	lastRollRevLinuxStr := strings.TrimSpace(buf.String())
 
+	buf = bytes.NewBuffer([]byte{})
+	if err := parentRepo.ReadFileAtRef(rm.versionFileMac, baseCommit, buf); err != nil {
+		return "", "", 0, nil, err
+	}
+	lastRollRevMacStr := strings.TrimSpace(buf.String())
+
 	// Get the available object hashes. Note that not all of these are SDKs,
 	// so they don't necessarily represent versions we could feasibly roll.
 	availableVersions := []*fuchsiaSDKVersion{}
@@ -205,10 +211,14 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	rm.nextRollRevMac = nextRollRevMacStr
 
 	rm.versions = availableVersions
-	return lastRollRevLinuxStr, nextRollRevLinuxStr, commitsNotRolled, map[string]string{
-		rm.versionFileLinux: nextRollRevLinuxStr,
-		rm.versionFileMac:   nextRollRevMacStr,
-	}, nil
+	edits := map[string]string{}
+	if lastRollRevLinuxStr != nextRollRevLinuxStr {
+		edits[rm.versionFileLinux] = nextRollRevLinuxStr
+	}
+	if lastRollRevMacStr != nextRollRevMacStr {
+		edits[rm.versionFileMac] = nextRollRevMacStr
+	}
+	return lastRollRevLinuxStr, nextRollRevLinuxStr, commitsNotRolled, edits, nil
 }
 
 // See documentation for RepoManager interface.
