@@ -256,7 +256,7 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 		if command.Verbose != Silent {
 			sklog.Debugf("Waiting for command to exit after killing '%s'", DebugString(command))
 		}
-		<-done // allow goroutine to exit
+		done <- fmt.Errorf("Timed out.") // allow goroutine to exit
 		return fmt.Errorf("%s %f secs", TIMEOUT_ERROR_PREFIX, command.Timeout.Seconds())
 	case err := <-done:
 		if err != nil {
