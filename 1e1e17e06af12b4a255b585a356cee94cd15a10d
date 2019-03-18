@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d9b39d5_c739ac78",
+        "filename": "gitsync/cmd/btgit/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-18T16:12:17Z",
+      "side": 1,
+      "message": "Yeah, that\u0027s the problem with sklog.Infof, this also assumes that you set the --logtostderr flag, which I do basically all the time.",
+      "revId": "1e1e17e06af12b4a255b585a356cee94cd15a10d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
