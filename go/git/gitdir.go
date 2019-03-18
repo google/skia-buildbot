@@ -103,7 +103,7 @@ func (g GitDir) Details(ctx context.Context, name string) (*vcsinfo.LongCommit, 
 		},
 		Parents:   parents,
 		Body:      strings.TrimRight(lines[5], "\n"),
-		Timestamp: time.Unix(ts, 0),
+		Timestamp: time.Unix(ts, 0).UTC(),
 	}, nil
 }
 
