@@ -161,6 +161,11 @@ const (
 	WRITING   State = "writing"
 	COMPILING State = "compiling"
 	RUNNING   State = "running"
+	ERROR     State = "error"
+)
+
+var (
+	AllStates = []State{IDLE, WRITING, COMPILING, RUNNING, ERROR}
 )
 
 // FiddlerMainResponse is the JSON that fiddler responds with for a request to "/".
