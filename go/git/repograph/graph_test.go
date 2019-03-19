@@ -720,11 +720,15 @@ func TestTopoSort(t *testing.T) {
 		assertTopoSorted(t, sorted)
 	}
 	checkGraph := func(g *Graph) {
-		sets := util.PowerSet(len(g.commitsData))
+		commitsList := make([]*Commit, 0, len(g.commits))
+		for _, c := range g.commits {
+			commitsList = append(commitsList, c)
+		}
+		sets := util.PowerSet(len(commitsList))
 		for _, set := range sets {
-			inp := make([]*Commit, 0, len(g.commitsData))
+			inp := make([]*Commit, 0, len(commitsList))
 			for _, idx := range set {
-				inp = append(inp, g.commitsData[idx])
+				inp = append(inp, commitsList[idx])
 			}
 			check(inp)
 		}
@@ -741,7 +745,11 @@ func TestTopoSort(t *testing.T) {
 		// Test stability by verifying that we get the expected ordering
 		// for the entire repo, multiple times.
 		for i := 0; i < 10; i++ {
-			sorted := CommitSlice(TopologicalSort(g.commitsData)).Hashes()
+			commitsList := make([]*Commit, 0, len(g.commits))
+			for _, c := range g.commits {
+				commitsList = append(commitsList, c)
+			}
+			sorted := CommitSlice(TopologicalSort(commitsList)).Hashes()
 			deepequal.AssertDeepEqual(t, expect, sorted)
 		}
 	}

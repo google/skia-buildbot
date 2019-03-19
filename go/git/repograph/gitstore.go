@@ -146,33 +146,20 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 	}
 	if needOrphanCheck {
 		sklog.Warningf("History change detected; checking for orphaned commits.")
-		visited := make(map[*Commit]bool, len(graph.commitsData))
+		visited := make(map[*Commit]bool, len(graph.commits))
 		for _, newBranchHead := range newBranchesMap {
 			// Not using Get() because graphMtx is locked.
-			if err := graph.commitsData[graph.commits[newBranchHead]].recurse(func(c *Commit) error {
+			if err := graph.commits[newBranchHead].recurse(func(c *Commit) error {
 				return nil
 			}, visited); err != nil {
 				return nil, err
 			}
 		}
-		orphaned := map[*Commit]bool{}
-		for _, c := range graph.commitsData {
+		for hash, c := range graph.commits {
 			if !visited[c] {
-				orphaned[c] = true
+				sklog.Warningf("Commit %s is orphaned. Removing from the Graph.", hash)
+				delete(graph.commits, hash)
 			}
-		}
-		if len(orphaned) > 0 {
-			sklog.Errorf("%d commits are now orphaned. Removing them from the Graph.", len(orphaned))
-			newCommitsData := make([]*Commit, 0, len(graph.commitsData)-len(orphaned))
-			newCommitsMap := make(map[string]int, len(graph.commitsData)-len(orphaned))
-			for _, c := range graph.commitsData {
-				if !orphaned[c] {
-					newCommitsMap[c.Hash] = len(newCommitsData)
-					newCommitsData = append(newCommitsData, c)
-				}
-			}
-			graph.commits = newCommitsMap
-			graph.commitsData = newCommitsData
 		}
 	}
 
@@ -203,7 +190,6 @@ func (r *Graph) UpdateFromGitStore(ctx context.Context, gs gitstore.GitStore, re
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
-	r.commitsData = newGraph.commitsData
 	r.gitstoreLastUpdate = newGraph.gitstoreLastUpdate
 	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
 	return newCommits, nil
