@@ -22,6 +22,30 @@
       "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdd394b4_79875f83",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-19T13:21:52Z",
+      "side": 1,
+      "message": "Will change, but is this better than storing the absolute maximum as you suggested?  The tradeoff would be that the max would be O(len(parents)*len(commits)), ie. we could waste a lot of space, vs maybe having to resize the map once or twice.",
+      "parentUuid": "af14c821_e6ad7eae",
+      "range": {
+        "startLine": 42,
+        "startChar": 50,
+        "endLine": 44,
+        "endChar": 16
+      },
+      "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
