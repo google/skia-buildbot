@@ -21,7 +21,7 @@
     "childPath": "../src",
     "childRepo": "https://chromium.googlesource.com/chromium/src.git",
     "includeBugs": false,
-    "includeLog": true,
+    "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
   },
