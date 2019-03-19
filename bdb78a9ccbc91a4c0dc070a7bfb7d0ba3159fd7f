@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0d6688a8_86a96e97",
+        "filename": "go/git/repograph/gitstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-19T11:38:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7fd3ecc1_44b9e5ce",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 32
+      },
+      "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1e54a597_351e9dac",
         "filename": "go/git/repograph/graph.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-19T01:56:47Z",
       "side": 1,
       "message": "nit: If we\u0027re making this public and persisting it, IWBN to rename to AllCommitsLen and make it accurate by changing addCommit to sum parents\u0027 AllCommitsLen.",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 8
+      },
+      "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6a00630_828df692",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-19T11:38:31Z",
+      "side": 1,
+      "message": "I changed to HistoryLen, and made it the number of commits in the longest line of history starting with this commit.  That\u0027s not necessarily the maximum number of commits which could be visited, but it seems more meaningful than the sum of the parents plus one.  I\u0027ll change it if you disagree.",
+      "parentUuid": "1e54a597_351e9dac",
       "range": {
         "startLine": 45,
         "startChar": 1,
@@ -68,6 +116,30 @@
       "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "049a8de0_d9c5f46b",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-19T11:38:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47f501c7_ef11fbd0",
+      "range": {
+        "startLine": 400,
+        "startChar": 0,
+        "endLine": 415,
+        "endChar": 0
+      },
+      "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
