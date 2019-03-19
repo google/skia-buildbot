@@ -70,6 +70,30 @@
       "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e0d6b01_bfd4c987",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-19T14:01:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56a11732_5dfe8a6f",
+      "range": {
+        "startLine": 42,
+        "startChar": 50,
+        "endLine": 44,
+        "endChar": 16
+      },
+      "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
