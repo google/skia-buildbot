@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "af14c821_e6ad7eae",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-19T13:18:49Z",
+      "side": 1,
+      "message": "It\u0027s only the max for commits with a single line of history.",
+      "range": {
+        "startLine": 42,
+        "startChar": 50,
+        "endLine": 44,
+        "endChar": 16
+      },
+      "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
