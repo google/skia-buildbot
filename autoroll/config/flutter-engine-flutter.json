@@ -12,6 +12,9 @@
   "sheriff": [
     "https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"
   ],
+  "sheriffBackup": [
+    "liyuqian@google.com"
+  ],
   "github": {
     "repoOwner": "flutter",
     "repoName": "flutter",
