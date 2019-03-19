@@ -11,22 +11,28 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph, lastUpdate, now time.Time) ([]*vcsinfo.LongCommit, error) {
+type gitstoreUpdater struct {
+	gs         gitstore.GitStore
+	lastUpdate time.Time
+}
+
+func (g *gitstoreUpdater) Update(ctx context.Context, graph *Graph) error {
 	// Retrieve the new commits.
 	sklog.Info("Updating repograph.Graph...")
-	from := lastUpdate.Add(-10 * time.Minute)
+	from := g.lastUpdate.Add(-10 * time.Minute)
+	now := time.Now()
 	to := now.Add(time.Second)
-	indexCommits, err := gs.RangeByTime(ctx, from, to, "")
+	indexCommits, err := g.gs.RangeByTime(ctx, from, to, "")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	hashes := make([]string, 0, len(indexCommits))
 	for _, c := range indexCommits {
 		hashes = append(hashes, c.Hash)
 	}
-	commits, err := gs.Get(ctx, hashes)
+	commits, err := g.gs.Get(ctx, hashes)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	commitsMap := make(map[string]*vcsinfo.LongCommit, len(commits))
 	for _, c := range commits {
@@ -35,9 +41,9 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 
 	// Obtain the list of branches.
 	sklog.Info("  Getting branches...")
-	newBranches, err := gs.GetBranches(ctx)
+	newBranches, err := g.gs.GetBranches(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// Ignore the empty branch, which contains all commits.
 	delete(newBranches, "")
@@ -98,9 +104,9 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 			details, ok := commitsMap[c]
 			if !ok {
 				sklog.Warningf("Commit %q not found in results; performing explicit lookup.", c)
-				detailsList, err := gs.Get(ctx, []string{c})
+				detailsList, err := g.gs.Get(ctx, []string{c})
 				if err != nil {
-					return nil, err
+					return err
 				}
 				details = detailsList[0]
 				// Write the details back to commitsMap in case
@@ -130,7 +136,7 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 		commit := newCommits[i]
 		if _, ok := graph.commits[commit.Hash]; !ok {
 			if err := graph.addCommit(commit); err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
@@ -152,7 +158,7 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 			if err := graph.commits[newBranchHead].recurse(func(c *Commit) error {
 				return nil
 			}, visited); err != nil {
-				return nil, err
+				return err
 			}
 		}
 		for hash, c := range graph.commits {
@@ -164,7 +170,6 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 	}
 
 	// Update the rest of the Graph.
-	graph.gitstoreLastUpdate = now
 	graph.branches = make([]*git.Branch, 0, len(newBranchesMap))
 	for name, head := range newBranchesMap {
 		graph.branches = append(graph.branches, &git.Branch{
@@ -175,22 +180,5 @@ func updateFromGitStore(ctx context.Context, gs gitstore.GitStore, graph *Graph,
 	sort.Slice(graph.branches, func(i, j int) bool {
 		return graph.branches[i].Name < graph.branches[j].Name
 	})
-	return newCommits, nil
-}
-
-// UpdateFromGitStore updates the Graph from a GitStore.
-func (r *Graph) UpdateFromGitStore(ctx context.Context, gs gitstore.GitStore, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
-	now := time.Now()
-	newGraph := r.ShallowCopy()
-	newCommits, err := updateFromGitStore(ctx, gs, newGraph, newGraph.gitstoreLastUpdate, now)
-	if err != nil {
-		return nil, err
-	}
-	r.graphMtx.Lock()
-	defer r.graphMtx.Unlock()
-	r.branches = newGraph.branches
-	r.commits = newGraph.commits
-	r.gitstoreLastUpdate = newGraph.gitstoreLastUpdate
-	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
-	return newCommits, nil
+	return nil
 }
