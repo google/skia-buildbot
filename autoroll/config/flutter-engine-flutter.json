@@ -37,7 +37,9 @@
       "flutter/%s/android-javadoc.zip",
       "flutter/%s/dart-sdk-linux-x64.zip",
       "flutter/%s/dart-sdk-darwin-x64.zip",
-      "flutter/%s/dart-sdk-windows-x64.zip"
+      "flutter/%s/dart-sdk-windows-x64.zip",
+      "flutter/%s/ios-objcdoc.zip",
+      "flutter/%s/ios/artifacts.zip"
     ]
   },
   "kubernetes": {
