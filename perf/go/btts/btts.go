@@ -616,6 +616,10 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 				b.mutex.Unlock()
 				continue
 			}
+			if err != nil {
+				// Probably a timeout.
+				return nil, err
+			}
 		} else {
 			sklog.Infof("FIRST WRITE")
 			// Create an update that only works if the ops entry doesn't exist yet.
