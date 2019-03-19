@@ -46,6 +46,30 @@
       "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56a11732_5dfe8a6f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-19T13:29:48Z",
+      "side": 1,
+      "message": "You are correct that parents could share ancestors, so summing doesn\u0027t give the correct answer either.\n\nI don\u0027t think we can answer questions about what\u0027s best for performance without profiling on production. If it were me, lacking profiling info, I would have just removed this field and let the map resize itself.\n\nI\u0027m happy if you just make the doc accurate.",
+      "parentUuid": "fdd394b4_79875f83",
+      "range": {
+        "startLine": 42,
+        "startChar": 50,
+        "endLine": 44,
+        "endChar": 16
+      },
+      "revId": "6fc37f97a0d73a57fb95eda28edb8c802079eb00",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
