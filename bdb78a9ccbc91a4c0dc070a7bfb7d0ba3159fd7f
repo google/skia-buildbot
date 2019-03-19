@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7fd3ecc1_44b9e5ce",
+        "filename": "go/git/repograph/gitstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-19T01:56:47Z",
+      "side": 1,
+      "message": "nit:\n\t\tfor hash, c :\u003d range graph.commits {\n\t\t\tif !visited[c] {\n\t\t\t\tdelete(graph.commits, hash)\n\t\t\t}\n\t\t}",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 172,
+        "endChar": 32
+      },
+      "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e54a597_351e9dac",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-19T01:56:47Z",
+      "side": 1,
+      "message": "nit: If we\u0027re making this public and persisting it, IWBN to rename to AllCommitsLen and make it accurate by changing addCommit to sum parents\u0027 AllCommitsLen.",
+      "range": {
+        "startLine": 45,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 8
+      },
+      "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47f501c7_ef11fbd0",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-19T01:56:47Z",
+      "side": 1,
+      "message": "nit: see above",
+      "range": {
+        "startLine": 400,
+        "startChar": 0,
+        "endLine": 415,
+        "endChar": 0
+      },
+      "revId": "bdb78a9ccbc91a4c0dc070a7bfb7d0ba3159fd7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
