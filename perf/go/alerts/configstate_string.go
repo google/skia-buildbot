@@ -4,6 +4,15 @@ package alerts
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[ACTIVE-0]
+	_ = x[DELETED-1]
+	_ = x[EOL-2]
+}
+
 const _ConfigState_name = "ACTIVEDELETEDEOL"
 
 var _ConfigState_index = [...]uint8{0, 6, 13, 16}

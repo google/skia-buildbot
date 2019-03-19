@@ -4,6 +4,16 @@ package alerts
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[BOTH-0]
+	_ = x[UP-1]
+	_ = x[DOWN-2]
+	_ = x[DIRECTION_EOL-3]
+}
+
 const _Direction_name = "BOTHUPDOWNDIRECTION_EOL"
 
 var _Direction_index = [...]uint8{0, 4, 6, 10, 23}
