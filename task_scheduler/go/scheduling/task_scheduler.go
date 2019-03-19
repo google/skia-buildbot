@@ -110,20 +110,22 @@ type TaskScheduler struct {
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
-	pools            []string
-	pubsubTopic      string
-	queue            []*taskCandidate // protected by queueMtx.
-	queueMtx         sync.RWMutex
-	repos            repograph.Map
-	swarming         swarming.ApiClient
-	syncer           *syncer.Syncer
-	taskCfgCache     *task_cfg_cache.TaskCfgCache
-	tCache           cache.TaskCache
-	timeDecayAmt24Hr float64
-	triggeredCount   metrics2.Counter
-	tryjobs          *tryjobs.TryJobIntegrator
-	window           *window.Window
-	workdir          string
+	pools                 []string
+	pubsubCount           metrics2.Counter
+	pubsubTopic           string
+	queue                 []*taskCandidate // protected by queueMtx.
+	queueMtx              sync.RWMutex
+	repos                 repograph.Map
+	swarming              swarming.ApiClient
+	syncer                *syncer.Syncer
+	taskCfgCache          *task_cfg_cache.TaskCfgCache
+	tCache                cache.TaskCache
+	timeDecayAmt24Hr      float64
+	triggeredCount        metrics2.Counter
+	tryjobs               *tryjobs.TryJobIntegrator
+	updateUnfinishedCount metrics2.Counter
+	window                *window.Window
+	workdir               string
 }
 
 func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, btProject, btInstance string, ts oauth2.TokenSource) (*TaskScheduler, error) {
@@ -170,32 +172,34 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, fmt.Errorf("Failed to create TryJobIntegrator: %s", err)
 	}
 	s := &TaskScheduler{
-		bl:               bl,
-		busyBots:         newBusyBots(),
-		cacher:           chr,
-		candidateMetrics: map[string]metrics2.Int64Metric{},
-		db:               d,
-		depotToolsDir:    depotTools,
-		isolateCache:     isolateCache,
-		isolateClient:    isolateClient,
-		jCache:           jCache,
-		newTasks:         map[types.RepoState]util.StringSet{},
-		newTasksMtx:      sync.RWMutex{},
-		pendingInsert:    map[string]bool{},
-		pools:            pools,
-		pubsubTopic:      pubsubTopic,
-		queue:            []*taskCandidate{},
-		queueMtx:         sync.RWMutex{},
-		repos:            repos,
-		swarming:         swarmingClient,
-		syncer:           sc,
-		taskCfgCache:     taskCfgCache,
-		tCache:           tCache,
-		timeDecayAmt24Hr: timeDecayAmt24Hr,
-		triggeredCount:   metrics2.GetCounter("task_scheduler_triggered_count"),
-		tryjobs:          tryjobs,
-		window:           w,
-		workdir:          workdir,
+		bl:                    bl,
+		busyBots:              newBusyBots(),
+		cacher:                chr,
+		candidateMetrics:      map[string]metrics2.Int64Metric{},
+		db:                    d,
+		depotToolsDir:         depotTools,
+		isolateCache:          isolateCache,
+		isolateClient:         isolateClient,
+		jCache:                jCache,
+		newTasks:              map[types.RepoState]util.StringSet{},
+		newTasksMtx:           sync.RWMutex{},
+		pendingInsert:         map[string]bool{},
+		pools:                 pools,
+		pubsubCount:           metrics2.GetCounter("task_scheduler_pubsub_handler"),
+		pubsubTopic:           pubsubTopic,
+		queue:                 []*taskCandidate{},
+		queueMtx:              sync.RWMutex{},
+		repos:                 repos,
+		swarming:              swarmingClient,
+		syncer:                sc,
+		taskCfgCache:          taskCfgCache,
+		tCache:                tCache,
+		timeDecayAmt24Hr:      timeDecayAmt24Hr,
+		triggeredCount:        metrics2.GetCounter("task_scheduler_triggered_count"),
+		tryjobs:               tryjobs,
+		updateUnfinishedCount: metrics2.GetCounter("task_scheduler_update_unfinished_count"),
+		window:                w,
+		workdir:               workdir,
 	}
 	return s, nil
 }
@@ -1781,9 +1785,12 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
 				return
 			}
-			if err := db.UpdateDBFromSwarmingTask(s.db, swarmTask); err != nil {
+			modified, err := db.UpdateDBFromSwarmingTask(s.db, swarmTask)
+			if err != nil {
 				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
 				return
+			} else if modified {
+				s.updateUnfinishedCount.Inc(1)
 			}
 		}(i, t)
 	}
@@ -2039,6 +2046,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
+	s.pubsubCount.Inc(1)
 	if msg.UserData == "" {
 		// This message is invalid. ACK it to make it go away.
 		return true
@@ -2065,7 +2073,7 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 		return true
 	}
 	// Update the task in the DB.
-	if err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
+	if _, err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
 		// TODO(borenet): Some of these cases should never be hit, after all tasks
 		// start supplying the ID in msg.UserData. We should be able to remove the logic.
 		if err == db.ErrNotFound {

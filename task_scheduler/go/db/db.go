@@ -523,10 +523,10 @@ func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*type
 var errNotModified = errors.New("Task not modified")
 
 // UpdateDBFromSwarmingTask updates a task in db from data in s.
-func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult) error {
+func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult) (bool, error) {
 	id, err := swarming.GetTagValue(s, types.SWARMING_TAG_ID)
 	if err != nil {
-		return err
+		return false, err
 	}
 	_, err = UpdateTaskWithRetries(db, id, func(task *types.Task) error {
 		modified, err := task.UpdateFromSwarming(s)
@@ -539,8 +539,10 @@ func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult)
 		return nil
 	})
 	if err == errNotModified {
-		return nil
+		return false, nil
+	} else if err != nil {
+		return false, err
 	} else {
-		return err
+		return true, nil
 	}
 }
