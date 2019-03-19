@@ -89,6 +89,7 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, RepoManager, *mockhttpclien
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, parentMaster)
+	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_MAC, parentMaster)
 	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
@@ -138,6 +139,7 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	assert.NoError(t, err)
 	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_LINUX, parentMaster)
+	mockParent.MockReadFile(ctx, FUCHSIA_SDK_VERSION_FILE_PATH_MAC, parentMaster)
 	mockGSList(t, urlmock, FUCHSIA_SDK_GS_BUCKET, FUCHSIA_SDK_GS_PATH, map[string]string{
 		fuchsiaSDKRevPrev: fuchsiaSDKTimePrev,
 		fuchsiaSDKRevBase: fuchsiaSDKTimeBase,
