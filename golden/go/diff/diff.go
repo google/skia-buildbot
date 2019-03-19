@@ -161,25 +161,25 @@ type DiffStore interface {
 	PurgeDigests(digests []string, purgeGCS bool) error
 }
 
-// OpenNRGBA reads an NRGBA image from the given reader.
+// OpenNRGBA reads an NRGBA64 image from the given reader.
 // If the underlying image is not NRGBA it will be converted.
-func OpenNRGBA(reader io.Reader) (*image.NRGBA, error) {
+func OpenNRGBA64(reader io.Reader) (*image.NRGBA64, error) {
 	im, err := png.Decode(reader)
 	if err != nil {
 		return nil, err
 	}
-	return GetNRGBA(im), nil
+	return GetNRGBA64(im), nil
 }
 
 // OpenNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
-func OpenNRGBAFromFile(fileName string) (*image.NRGBA, error) {
+func OpenNRGBAFromFile(fileName string) (*image.NRGBA64, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
 	}
 	defer util.Close(f)
 
-	return OpenNRGBA(f)
+	return OpenNRGBA64(f)
 }
 
 // WritePNG is a utility function to write the given NRGBA image as a PNG to the
@@ -241,16 +241,16 @@ func diffColors(color1, color2 color.Color, maxRGBADiffs []int) color.Color {
 }
 
 // recode creates a new NRGBA image from the given image.
-func recode(img image.Image) *image.NRGBA {
-	ret := image.NewNRGBA(img.Bounds())
+func recode(img image.Image) *image.NRGBA64 {
+	ret := image.NewNRGBA64(img.Bounds())
 	draw.Draw(ret, img.Bounds(), img, image.Pt(0, 0), draw.Src)
 	return ret
 }
 
 // GetNRGBA converts the image to an *image.NRGBA in an efficient manner.
-func GetNRGBA(img image.Image) *image.NRGBA {
+func GetNRGBA64(img image.Image) *image.NRGBA64 {
 	switch t := img.(type) {
-	case *image.NRGBA:
+	case *image.NRGBA64:
 		return t
 	case *image.RGBA:
 		for i := 0; i < len(t.Pix); i += 4 {
@@ -261,7 +261,7 @@ func GetNRGBA(img image.Image) *image.NRGBA {
 		}
 		// If every alpha is 0xff then t.Pix is already in NRGBA format, simply
 		// share Pix between the RGBA and NRGBA structs.
-		return &image.NRGBA{
+		return &image.NRGBA64{
 			Pix:    t.Pix,
 			Stride: t.Stride,
 			Rect:   t.Rect,
@@ -297,8 +297,8 @@ func PixelDiff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	maxRGBADiffs := make([]int, 4)
 
 	// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
-	p1 := GetNRGBA(img1).Pix
-	p2 := GetNRGBA(img2).Pix
+	p1 := GetNRGBA64(img1).Pix
+	p2 := GetNRGBA64(img2).Pix
 	// Compare the bounds, if they are the same then use this fast path.
 	// We pun to uint64 to compare 2 pixels at a time, so we also require
 	// an even number of pixels here.  If that's a big deal, we can easily
