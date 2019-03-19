@@ -111,6 +111,7 @@ type TaskScheduler struct {
 	pendingInsertMtx sync.RWMutex
 
 	pools            []string
+	pubsubCount      metrics2.Counter
 	pubsubTopic      string
 	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
@@ -183,6 +184,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		newTasksMtx:      sync.RWMutex{},
 		pendingInsert:    map[string]bool{},
 		pools:            pools,
+		pubsubCount:      metrics2.GetCounter("task_scheduler_pubsub_handler"),
 		pubsubTopic:      pubsubTopic,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
@@ -2039,6 +2041,7 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
 func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
+	s.pubsubCount.Inc(1)
 	if msg.UserData == "" {
 		// This message is invalid. ACK it to make it go away.
 		return true
