@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "43c3b635_bd926a9b",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-20T19:44:56Z",
+      "side": 1,
+      "message": "the link gives me a 404",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "346db06fb5b47d803a5484c07c0e2da85112b4ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2c2d9b1_1a5866b9",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-20T19:44:56Z",
+      "side": 1,
+      "message": "It\u0027s tricky to have line numbers in these links because content can change. Could link to a revision which will not change but then documentation will be out of date. No good options but just an FYI.",
+      "revId": "346db06fb5b47d803a5484c07c0e2da85112b4ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
