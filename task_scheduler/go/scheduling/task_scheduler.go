@@ -1361,48 +1361,46 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 
 // recurseAllBranches runs the given func on every commit on all branches, with
 // some Task Scheduler-specific exceptions.
-func (s *TaskScheduler) RecurseAllBranches(ctx context.Context, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
-	for repoUrl, r := range s.repos {
-		blacklistBranches := BRANCH_BLACKLIST[repoUrl]
-		blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
-		for _, b := range blacklistBranches {
-			c := r.Get(b)
-			if c != nil {
-				blacklistCommits[c] = b
-			}
+func (s *TaskScheduler) recurseAllBranches(ctx context.Context, repoUrl string, repo *repograph.Graph, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
+	blacklistBranches := BRANCH_BLACKLIST[repoUrl]
+	blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
+	for _, b := range blacklistBranches {
+		c := repo.Get(b)
+		if c != nil {
+			blacklistCommits[c] = b
 		}
-		if err := r.RecurseAllBranches(func(c *repograph.Commit) error {
-			if blacklistBranch, ok := blacklistCommits[c]; ok {
-				sklog.Infof("Skipping blacklisted branch %q", blacklistBranch)
+	}
+	if err := repo.RecurseAllBranches(func(c *repograph.Commit) error {
+		if blacklistBranch, ok := blacklistCommits[c]; ok {
+			sklog.Infof("Skipping blacklisted branch %q", blacklistBranch)
+			return repograph.ErrStopRecursing
+		}
+		for head, blacklistBranch := range blacklistCommits {
+			isAncestor, err := repo.IsAncestor(c.Hash, head.Hash)
+			if err != nil {
+				return err
+			} else if isAncestor {
+				sklog.Infof("Skipping blacklisted branch %q (--is-ancestor)", blacklistBranch)
 				return repograph.ErrStopRecursing
 			}
-			for head, blacklistBranch := range blacklistCommits {
-				isAncestor, err := r.IsAncestor(c.Hash, head.Hash)
-				if err != nil {
-					return err
-				} else if isAncestor {
-					sklog.Infof("Skipping blacklisted branch %q (--is-ancestor)", blacklistBranch)
-					return repograph.ErrStopRecursing
-				}
-			}
-			if !s.window.TestCommit(repoUrl, c) {
-				return repograph.ErrStopRecursing
-			}
-			return fn(repoUrl, r, c)
-		}); err != nil {
-			return err
 		}
+		if !s.window.TestCommit(repoUrl, c) {
+			return repograph.ErrStopRecursing
+		}
+		return fn(repoUrl, repo, c)
+	}); err != nil {
+		return err
 	}
 	return nil
 }
 
-// gatherNewJobs finds and inserts Jobs for all new commits.
-func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
+// gatherNewJobs finds and returns Jobs for all new commits.
+func (s *TaskScheduler) gatherNewJobs(ctx context.Context, repoUrl string, repo *repograph.Graph) ([]*types.Job, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find all new Jobs for all new commits.
 	newJobs := []*types.Job{}
-	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
+	if err := s.recurseAllBranches(ctx, repoUrl, repo, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
 		// If this commit isn't in scheduling range, stop recursing.
 		if !s.window.TestCommit(repoUrl, c) {
 			return repograph.ErrStopRecursing
@@ -1486,14 +1484,9 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 		}
 		return nil
 	}); err != nil {
-		return err
+		return nil, err
 	}
-
-	if err := s.db.PutJobsInChunks(newJobs); err != nil {
-		return fmt.Errorf("Failed to insert new jobs into the DB: %s", err)
-	}
-
-	return s.jCache.Update()
+	return newJobs, nil
 }
 
 // updateAddedTaskSpecs updates the mapping of RepoStates to the new task specs
@@ -1501,14 +1494,16 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context) error {
 func (s *TaskScheduler) updateAddedTaskSpecs(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 	repoStates := []types.RepoState{}
-	if err := s.RecurseAllBranches(ctx, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
-		repoStates = append(repoStates, types.RepoState{
-			Repo:     repoUrl,
-			Revision: c.Hash,
-		})
-		return nil
-	}); err != nil {
-		return err
+	for repoUrl, repo := range s.repos {
+		if err := s.recurseAllBranches(ctx, repoUrl, repo, func(repoUrl string, r *repograph.Graph, c *repograph.Commit) error {
+			repoStates = append(repoStates, types.RepoState{
+				Repo:     repoUrl,
+				Revision: c.Hash,
+			})
+			return nil
+		}); err != nil {
+			return err
+		}
 	}
 	newTasks, err := s.taskCfgCache.GetAddedTaskSpecsForRepoStates(ctx, repoStates)
 	if err != nil {
@@ -1585,21 +1580,27 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 // database.
 func (s *TaskScheduler) updateRepos(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
-	for _, r := range s.repos {
-		if err := r.Update(ctx); err != nil {
+	var newJobs []*types.Job
+	if err := s.repos.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
+		newJobsForRepo, err := s.gatherNewJobs(ctx, repoUrl, g)
+		if err != nil {
 			return err
 		}
-	}
-	if err := s.window.Update(); err != nil {
+		newJobs = append(newJobs, newJobsForRepo...)
+		return nil
+	}); err != nil {
 		return err
 	}
-	if err := s.gatherNewJobs(ctx); err != nil {
+	if err := s.window.Update(); err != nil {
 		return err
 	}
 	if err := s.taskCfgCache.Cleanup(ctx, time.Now().Sub(s.window.EarliestStart())); err != nil {
 		return fmt.Errorf("Failed to Cleanup TaskCfgCache: %s", err)
 	}
-	return nil
+	if err := s.db.PutJobsInChunks(newJobs); err != nil {
+		return fmt.Errorf("Failed to insert new jobs into the DB: %s", err)
+	}
+	return s.jCache.Update()
 }
 
 // QueueLen returns the length of the queue.
