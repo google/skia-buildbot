@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e7e6672c_4416c476",
+        "filename": "go/git/repograph/gitstore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T04:30:38Z",
+      "side": 1,
+      "message": "Where is this updated?",
+      "revId": "b17a0e16dffea27898e15d43189715f254e4ffbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f25c3792_b72a4d14",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T04:30:38Z",
+      "side": 1,
+      "message": "nit: Not a fan of this. I would much prefer something like:\nfunc (r *Graph) UpdateWithCallback(ctx context.Context, f func(*Graph) error) error {\n  r.updateMtx.Lock()\n  defer r.updateMtx.Unlock()\n  newGraph :\u003d r.ShallowCopy()\n  if err :\u003d r.updater.Update(ctx, newGraph); err !\u003d nil {\n    return err\n  }\n  if err :\u003d f(newGraph); err !\u003d nil {\n    return err\n  }\n  r.branches \u003d other.branches\n  r.commits \u003d other.commits\n}\n\n(In order to use a method like this in TaskScheduler, it looks like we would either need to refactor to update each repo independently, or make this a method on Map rather than Graph.)",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 289,
+        "endChar": 1
+      },
+      "revId": "b17a0e16dffea27898e15d43189715f254e4ffbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
