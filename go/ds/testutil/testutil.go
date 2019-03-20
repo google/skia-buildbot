@@ -3,7 +3,6 @@ package testutil
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -11,10 +10,9 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/testutils"
 	"google.golang.org/api/iterator"
 )
-
-type CleanupFunc func()
 
 func cleanup(t assert.TestingT, kinds ...ds.Kind) {
 	for _, kind := range kinds {
@@ -37,8 +35,7 @@ func cleanup(t assert.TestingT, kinds ...ds.Kind) {
 // InitDatastore is a common utility function used in tests. It sets up the
 // datastore to connect to the emulator and also clears out all instances of
 // the given 'kinds' from the datastore.
-func InitDatastore(t assert.TestingT, kinds ...ds.Kind) CleanupFunc {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+func InitDatastore(t assert.TestingT, kinds ...ds.Kind) testutils.CleanupFunc {
 	emulatorHost := os.Getenv("DATASTORE_EMULATOR_HOST")
 	if emulatorHost == "" {
 		assert.Fail(t, `Running tests that require a running Cloud Datastore emulator.

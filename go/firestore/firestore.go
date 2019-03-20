@@ -8,12 +8,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -169,6 +171,42 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 	return c, nil
 }
 
+// emulatorAdminTokenSource is an oauth2.TokenSource that causes the Firestore emulator to treat a
+// firestore Client as an "admin" user.
+type emulatorAdminTokenSource struct{}
+
+func (emulatorAdminTokenSource) Token() (*oauth2.Token, error) {
+	// Based on
+	// https://github.com/firebase/firebase-js-sdk/blob/03a87c202f4c1e75ee8cd553d4ff9f85f1bdf9ff/packages/testing/src/api/index.ts#L101
+	return &oauth2.Token{
+		AccessToken: "admin",
+	}, nil
+}
+
+// NewClientForTesting sets up the Client to connect to the Firestore emulator.
+func NewClientForTesting(admin bool) (*Client, error) {
+	emulatorHost := os.Getenv("FIRESTORE_EMULATOR_HOST")
+	if emulatorHost == "" {
+		return nil, errors.New(`Running tests that require a running Cloud Firestore emulator.
+
+Run
+
+	"gcloud beta emulators firestore start --host-port=localhost:8894"
+
+and then run the "export" command it outputs.`)
+	}
+
+	project := "test-project"
+	app := "NewClientForTesting"
+	instance := fmt.Sprintf("test-%s", uuid.New())
+
+	var ts oauth2.TokenSource
+	if admin {
+		ts = emulatorAdminTokenSource{}
+	}
+	return NewClient(context.Background(), project, app, instance, ts)
+}
+
 // recordOp adds a transaction to the active transactions map. Returns
 // a func which should be deferred until the transaction is finished.
 func (c *Client) recordOp(opName, detail string) func() {
@@ -302,11 +340,11 @@ func (c *Client) withTimeoutAndRetries(attempts int, timeout time.Duration, fn f
 			if !retry {
 				return err
 			}
-		} else if err != nil {
+		} else if err != nil && err != context.DeadlineExceeded {
 			return err
 		}
 		wait := BACKOFF_WAIT * time.Duration(2^i)
-		sklog.Errorf("Encountered Firestore error; retrying in %s: %s;\n", wait, err)
+		sklog.Errorf("Encountered Firestore error; retrying in %s: %s", wait, err)
 		time.Sleep(wait)
 	}
 	// Note that we could collect the errors using multierror, but that
@@ -514,6 +552,7 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 			if err == iterator.Done {
 				break
 			} else if err != nil {
+				sklog.Errorf("recurseDocs 1 %s %s", ref.Path, err)
 				return err
 			}
 			c.CountReadRows(ref.Path, 1)
@@ -521,6 +560,7 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 		}
 		return nil
 	}); err != nil {
+		sklog.Errorf("recurseDocs 2 %s", err)
 		return err
 	}
 	for _, coll := range colls {
@@ -532,15 +572,18 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 				if err == iterator.Done {
 					break
 				} else if err != nil {
+					sklog.Errorf("recurseDocs 3 %s %s", coll.Path, err)
 					return err
 				}
 				c.CountReadRows(ref.Path, 1)
 				if err := c.recurseDocs(doc, attempts, timeout, fn); err != nil {
+					sklog.Errorf("recurseDocs 4 %s", err)
 					return err
 				}
 			}
 			return nil
 		}); err != nil {
+			sklog.Errorf("recurseDocs 5 %s", err)
 			return err
 		}
 	}
@@ -554,6 +597,7 @@ func (c *Client) recurseDocs(ref *firestore.DocumentRef, attempts int, timeout t
 func (c *Client) GetAllDescendantDocuments(ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
 	rv := []*firestore.DocumentRef{}
 	if err := c.RecurseDocs("GetAllDescendantDocuments", ref, attempts, timeout, func(doc *firestore.DocumentRef) error {
+		sklog.Errorf("GetAllDescendantDocuments %s", doc.Path)
 		// Don't include the passed-in doc.
 		if doc.Path != ref.Path {
 			rv = append(rv, doc)

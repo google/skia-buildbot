@@ -236,9 +236,11 @@ func RemoveAll(t TestingT, fp string) {
 	assert.NoError(t, os.RemoveAll(fp))
 }
 
+type CleanupFunc func()
+
 // TempDir is a wrapper for ioutil.TempDir. Returns the path to the directory and a cleanup
 // function to defer.
-func TempDir(t TestingT) (string, func()) {
+func TempDir(t TestingT) (string, CleanupFunc) {
 	d, err := ioutil.TempDir("", "testutils")
 	assert.NoError(t, err)
 	return d, func() {

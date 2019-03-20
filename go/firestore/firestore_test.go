@@ -3,13 +3,11 @@ package firestore
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 	"testing"
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
 	"google.golang.org/grpc/codes"
@@ -70,12 +68,8 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 }
 
 func setup(t *testing.T) (*Client, func()) {
-	testutils.ManualTest(t)
-
-	project := "skia-firestore"
-	app := "firestore_pkg_tests"
-	instance := fmt.Sprintf("test-%s", uuid.New())
-	c, err := NewClient(context.Background(), project, app, instance, nil)
+	testutils.LargeTest(t)
+	c, err := NewClientForTesting(true)
 	assert.NoError(t, err)
 	return c, func() {
 		assert.NoError(t, c.RecursiveDelete(c.ParentDoc, 5, 30*time.Second))
