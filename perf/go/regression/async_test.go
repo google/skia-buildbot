@@ -99,6 +99,9 @@ func (m *mockVcs) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, erro
 func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
+func (m *mockVcs) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
 func (m *mockVcs) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
 	return "", nil
 }

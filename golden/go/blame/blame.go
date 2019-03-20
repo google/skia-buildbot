@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// Blamer calculates blame lists by continously loading tiles
+// Blamer calculates blame lists by continuously loading tiles
 // and changed expectations.
 // It is not thread safe. The client of this package needs to make sure there
 // are no conflicts.
@@ -40,7 +40,7 @@ type BlameDistribution struct {
 	Old bool `json:"old"`
 }
 
-// WeightedBlame combines an authors name with a probabily that she
+// WeightedBlame combines an authors name with a probability that she
 // is on a blamelist this is aggregated over the digests of a test.
 type WeightedBlame struct {
 	Author string  `json:"author"`
@@ -147,8 +147,8 @@ func (b *Blamer) Calculate(tile *tiling.Tile) error {
 
 	defer timer.New("blame").Stop()
 
-	// Note: blameStart and blameEnd are continously updated to contain the
-	// smalles start and end index of the ranges for a testName/digest pair.
+	// Note: blameStart and blameEnd are continuously updated to contain the
+	// smallest start and end index of the ranges for a testName/digest pair.
 	blameStart := map[string]map[string]int{}
 	blameEnd := map[string]map[string]int{}
 

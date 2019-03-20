@@ -167,7 +167,7 @@ func (wh *WebHandlers) JsonByBlameHandler(w http.ResponseWriter, r *http.Request
 
 // allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
 func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.Tile, map[string]*summary.Summary, error) {
-	tile := idx.GetTile(true)
+	tile := idx.CpxTile().GetTile(true)
 
 	// Get a list of all untriaged images by test.
 	sum, err := idx.CalcSummaries([]string{}, query, false, true)
@@ -927,7 +927,7 @@ func (wh *WebHandlers) JsonTriageUndoHandler(w http.ResponseWriter, r *http.Requ
 
 // JsonParamsHandler returns the union of all parameters.
 func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request) {
-	tile := wh.Indexer.GetIndex().GetTile(true)
+	tile := wh.Indexer.GetIndex().CpxTile().GetTile(true)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
@@ -936,13 +936,13 @@ func (wh *WebHandlers) JsonParamsHandler(w http.ResponseWriter, r *http.Request)
 
 // JsonParamsHandler returns the most current commits.
 func (wh *WebHandlers) JsonCommitsHandler(w http.ResponseWriter, r *http.Request) {
-	tilePair, err := wh.Storages.GetLastTileTrimmed()
+	cpxTile, err := wh.Storages.GetLastTileTrimmed()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(tilePair.Tile.Commits); err != nil {
+	if err := json.NewEncoder(w).Encode(cpxTile.DataCommits()); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
@@ -974,6 +974,16 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 			sklog.Errorf("Failed to write or encode result: %s", err)
 			return
 		}
+	}
+}
+
+// TextKnownHashesProxy returns known hashes that have been written to GCS in the background
+// This is used by the bots to avoid transferring already known images.
+func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	if err := wh.Storages.GStorageClient.LoadKnownDigests(w); err != nil {
+		sklog.Errorf("Failed to copy the known hashes from GCS: %s", err)
+		return
 	}
 }
 

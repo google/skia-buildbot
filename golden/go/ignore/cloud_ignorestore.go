@@ -19,13 +19,13 @@ type cloudIgnoreStore struct {
 	client         *datastore.Client
 	recentKeysList *dsutil.RecentKeysList
 	revision       int64
-	lastTilePair   *types.TilePair
+	lastCpxTile    *types.ComplexTile
 	expStore       expstorage.ExpectationsStore
-	tileStream     <-chan *types.TilePair
+	cpxTileStream  <-chan *types.ComplexTile
 }
 
 // NewCloudIgnoreStore returns an IgnoreStore instance that is backed by Cloud Datastore.
-func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.ExpectationsStore, tileStream <-chan *types.TilePair) (IgnoreStore, error) {
+func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.ExpectationsStore, tileStream <-chan *types.ComplexTile) (IgnoreStore, error) {
 	if client == nil {
 		return nil, sklog.FmtErrorf("Received nil for datastore client.")
 	}
@@ -37,7 +37,7 @@ func NewCloudIgnoreStore(client *datastore.Client, expStore expstorage.Expectati
 		client:         client,
 		recentKeysList: dsutil.NewRecentKeysList(client, containerKey, dsutil.DefaultConsistencyDelta),
 		expStore:       expStore,
-		tileStream:     tileStream,
+		cpxTileStream:  tileStream,
 	}
 	return store, nil
 }
@@ -110,7 +110,7 @@ func (c *cloudIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 
 	if addCounts {
 		var err error
-		c.lastTilePair, err = addIgnoreCounts(ret, c, c.lastTilePair, c.expStore, c.tileStream)
+		c.lastCpxTile, err = addIgnoreCounts(ret, c, c.lastCpxTile, c.expStore, c.cpxTileStream)
 		if err != nil {
 			sklog.Errorf("Unable to add counts to ignore list result: %s", err)
 		}

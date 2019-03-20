@@ -125,6 +125,20 @@ func (g *GitInfo) Details(ctx context.Context, hash string, includeBranchInfo bo
 	return g.details(ctx, hash, includeBranchInfo)
 }
 
+// See the vcsinfo.VCS interface for details.
+func (g *GitInfo) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	var err error
+	ret := make([]*vcsinfo.LongCommit, len(hashes))
+	for idx, hash := range hashes {
+		if ret[idx], err = g.details(ctx, hash, includeBranchInfo); err != nil {
+			return nil, err
+		}
+	}
+	return ret, nil
+}
+
 // details returns more information than ShortCommit about a given commit.
 // See the vcsinfo.VCS interface for details.
 //

@@ -80,16 +80,131 @@ func (tc *TestClassification) DeepCopy() TestClassification {
 	return result
 }
 
-// TilePair contains two tiles of the underlying data.
-type TilePair struct {
-	// Tile is the current tile without ignored traces.
-	Tile *tiling.Tile
+// ComplexTile contains an enriched version of a tile loaded through the ingestion process.
+// It provides ways to handle sparse tiles, where many commits of the underlying raw tile
+// contain no data and therefore removed.
+// In either case (sparse or dense tile) it offers two versions of the tile.
+// one with all ignored traces and one without the ignored traces.
+// In addition it also contains the ignore rules and information about the larger "sparse" tile
+// if the tiles at hand were condensed from a larger tile.
+type ComplexTile struct {
+	// tile is the current tile without ignored traces.
+	tile *tiling.Tile
 
-	// TileWithIgnores is the current tile containing all available data.
-	TileWithIgnores *tiling.Tile
+	// tileWithIgnores is the current tile containing all available data.
+	tileWithIgnores *tiling.Tile
 
-	// IgnoreRules contains the rules used to created the TileWithIgnores.
-	IgnoreRules paramtools.ParamMatcher
+	// ignoreRules contains the rules used to created the TileWithIgnores.
+	ignoreRules paramtools.ParamMatcher
+
+	// irRev is the revision of the ignore rules.
+	irRevision int64
+
+	// sparseCommits are all the commits that were used condense the underlying tile.
+	sparseCommits []*tiling.Commit
+
+	// cards captures the cardinality of each commit in sparse tile, meaning how many data points
+	// each commit contains.
+	cards []int
+
+	// filled contains the number of commits that are non-empty.
+	filled int
+}
+
+func NewComplexTile(completeTile *tiling.Tile) *ComplexTile {
+	return &ComplexTile{
+		tile:            completeTile,
+		tileWithIgnores: completeTile,
+	}
+}
+
+// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
+// In other words this function assumes that original tile has been filtered by the ignore rules that
+// are being passed.
+func (c *ComplexTile) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) *ComplexTile {
+	c.tile = reducedTile
+	c.irRevision = irRev
+	c.ignoreRules = ignoreRules
+	return c
+}
+
+// SetSparse sets sparsity information about this tile.
+func (c *ComplexTile) SetSparse(sparseCommits []*tiling.Commit, cardinalities []int) *ComplexTile {
+	// Make sure we always have valid values sparce commits.
+	if len(sparseCommits) == 0 {
+		sparseCommits = c.tileWithIgnores.Commits
+	}
+
+	filled := len(c.tileWithIgnores.Commits)
+	if len(cardinalities) == 0 {
+		cardinalities = make([]int, len(sparseCommits))
+		for idx := range cardinalities {
+			cardinalities[idx] = len(c.tileWithIgnores.Traces)
+		}
+	} else {
+		for _, card := range cardinalities {
+			if card > 0 {
+				filled++
+			}
+		}
+	}
+
+	commitsLen := tiling.LastCommitIndex(sparseCommits) + 1
+	if commitsLen < len(sparseCommits) {
+		sparseCommits = sparseCommits[:commitsLen]
+		cardinalities = cardinalities[:commitsLen]
+	}
+	c.sparseCommits = sparseCommits
+	c.cards = cardinalities
+	c.filled = filled
+	return c
+}
+
+func (c *ComplexTile) FilledCommits() int {
+	return c.filled
+}
+
+// ensureSparseInfo is a helper function that fills in the sparsity information if it wasn't set.
+func (c *ComplexTile) ensureSparseInfo() {
+	if c != nil {
+		if c.sparseCommits == nil || c.cards == nil {
+			c.SetSparse(nil, nil)
+		}
+	}
+}
+
+// Same returns true if the given complex tile was derived from the same tile as the one
+// provided and if non of the other parameters changed, especially the ignore revision.
+func (c *ComplexTile) Same(completeTile *tiling.Tile, ignoreRev int64) bool {
+	return c != nil &&
+		c.tileWithIgnores != nil &&
+		c.tileWithIgnores == completeTile &&
+		c.tile != nil &&
+		c.irRevision == ignoreRev
+}
+
+// DataCommits returns all commits that contain data.
+func (c *ComplexTile) DataCommits() []*tiling.Commit {
+	return c.tileWithIgnores.Commits
+}
+
+// AllCommits returns all commits that were processed to get the data commits.
+// It's first commit should match the first commit returned when calling DataCommits.
+func (c *ComplexTile) AllCommits() []*tiling.Commit {
+	return c.sparseCommits
+}
+
+// GetTile returns a simple tile either with or without ignored traces depending on the argument.
+func (c *ComplexTile) GetTile(includeIgnores bool) *tiling.Tile {
+	if includeIgnores {
+		return c.tileWithIgnores
+	}
+	return c.tile
+}
+
+// IgnoreRules returns the ignore rules for this tile.
+func (c *ComplexTile) IgnoreRules() paramtools.ParamMatcher {
+	return c.ignoreRules
 }
 
 const (

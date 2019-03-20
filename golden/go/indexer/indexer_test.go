@@ -102,7 +102,7 @@ func TestIndexer(t *testing.T) {
 	wg.Add(1)
 
 	// Change the classifications and wait for the indexing to propagate.
-	changes := getChanges(t, idxOne.tilePair.Tile)
+	changes := getChanges(t, idxOne.cpxTile.GetTile(false))
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 	wg.Wait()
 
@@ -200,6 +200,6 @@ func setupStorages(t testutils.TestingT, ctx context.Context) (*storage.Storage,
 	tilePair, err := ret.GetLastTileTrimmed()
 	assert.NoError(t, err)
 
-	assert.True(t, len(tilePair.IgnoreRules) > 0)
+	assert.True(t, len(tilePair.IgnoreRules()) > 0)
 	return ret, expStore
 }

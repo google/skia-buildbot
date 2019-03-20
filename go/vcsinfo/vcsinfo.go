@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+var (
+	// Minimum time (the epoch)
+	MinTime = time.Unix(0, 0)
+
+	// MaxTime is the maximum time we consider. It's the equivalent of approximately November 2286.
+	MaxTime = time.Unix(9999999999, 0)
+)
+
 // IndexCommit is information about a commit that includes the offset from
 // the first commit in the repository. The first commit in the branch has Index 0.
 // Usually the indexing makes most sense the commits on a branch in first-parent order.
@@ -58,6 +66,9 @@ type VCS interface {
 	// Note: Retrieving the branch information can be expensive and should
 	// only be used if the membership in branches is really needed.
 	Details(ctx context.Context, hash string, includeBranchInfo bool) (*LongCommit, error)
+
+	// DetailsMulti returns multiple details at once, which is a lot faster for some implementations.
+	DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*LongCommit, error)
 
 	// LastNIndex returns the last N commits.
 	LastNIndex(N int) []*IndexCommit

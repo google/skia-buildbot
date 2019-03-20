@@ -80,7 +80,7 @@ func (b *btVCS) From(start time.Time) []string {
 
 	// Add a millisecond because we only want commits after the startTime. Timestamps in git are
 	// only at second level granularity.
-	found := b.timeRange(start.Add(time.Millisecond), MaxTime)
+	found := b.timeRange(start.Add(time.Millisecond), vcsinfo.MaxTime)
 	ret := make([]string, len(found))
 	for i, c := range found {
 		ret[i] = c.Hash
@@ -93,6 +93,15 @@ func (b *btVCS) Details(ctx context.Context, hash string, includeBranchInfo bool
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	return b.details(ctx, hash, includeBranchInfo)
+}
+
+// DetailsMulti implements the vcsinfo.VCS interface
+func (b *btVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
+	commits, err := b.gitStore.Get(ctx, hashes)
+	if err != nil {
+		return nil, err
+	}
+	return commits, nil
 }
 
 // TODO(stephan): includeBranchInfo currently does nothing. This needs to fixed for the few clients

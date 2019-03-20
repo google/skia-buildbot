@@ -137,6 +137,16 @@ func FindCommit(commits []*Commit, targetHash string) (int, *Commit) {
 	return -1, nil
 }
 
+// LastCommitIndex returns the index of the last valid Commit in the given slice of commits.
+func LastCommitIndex(commits []*Commit) int {
+	for i := len(commits) - 1; i > 0; i-- {
+		if commits[i].CommitTime != 0 {
+			return i
+		}
+	}
+	return 0
+}
+
 // Tile is a config.TILE_SIZE commit slice of data.
 //
 // The length of the Commits array is the same length as all of the Values
@@ -167,12 +177,7 @@ func NewTile() *Tile {
 
 // LastCommitIndex returns the index of the last valid Commit.
 func (t Tile) LastCommitIndex() int {
-	for i := len(t.Commits) - 1; i > 0; i-- {
-		if t.Commits[i].CommitTime != 0 {
-			return i
-		}
-	}
-	return 0
+	return LastCommitIndex(t.Commits)
 }
 
 // Returns the hashes of the first and last commits in the Tile.

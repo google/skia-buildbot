@@ -61,6 +61,10 @@ func (m MockVCSImpl) Details(ctx context.Context, hash string, getBranches bool)
 	return nil, fmt.Errorf("Unable to find commit")
 }
 
+func (m MockVCSImpl) DetailsMulti(ctx context.Context, hashes []string, getBranches bool) ([]*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
+
 func (m MockVCSImpl) ByIndex(ctx context.Context, N int) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }

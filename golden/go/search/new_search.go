@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
@@ -49,7 +48,6 @@ type SRDigest struct {
 	Traces     *Traces                  `json:"traces"`
 	ClosestRef string                   `json:"closestRef"`
 	RefDiffs   map[string]*SRDiffDigest `json:"refDiffs"`
-	Blame      *blame.BlameDistribution `json:"blame"`
 }
 
 // SRDiffDigest captures the diff information between
@@ -163,7 +161,7 @@ func (s *SearchAPI) Search(ctx context.Context, q *Query) (*NewSearchResponse, e
 		Digests: ret,
 		Offset:  offset,
 		Size:    len(displayRet),
-		Commits: idx.GetTile(false).Commits,
+		Commits: idx.CpxTile().GetTile(false).Commits,
 		Issue:   issue,
 	}
 	return searchRet, nil
@@ -220,7 +218,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 func (s *SearchAPI) GetDigestDetails(test, digest string) (*SRDigestDetails, error) {
 	ctx := context.Background()
 	idx := s.ixr.GetIndex()
-	tile := idx.GetTile(true)
+	tile := idx.CpxTile().GetTile(true)
 
 	exp, err := s.getExpectationsFromQuery(nil)
 	if err != nil {
@@ -568,7 +566,7 @@ func (s *SearchAPI) addParamsAndTraces(ctx context.Context, digestInfo []*SRDige
 	ctx, span := trace.StartSpan(ctx, "search/addParamsAndTraces")
 	defer span.End()
 
-	tile := idx.GetTile(false)
+	tile := idx.CpxTile().GetTile(false)
 	last := tile.LastCommitIndex()
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.
