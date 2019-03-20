@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "10be6fc1_24f18bd4",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 0,
+      "message": "nit: would be nice to keep the error context. (Several in this function.)",
+      "range": {
+        "startLine": 303,
+        "startChar": 14,
+        "endLine": 303,
+        "endChar": 69
+      },
+      "revId": "aa3a7f85cce3077c82a9ce79651cbc30f30fe799",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d1fe489_bcf5d046",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 435,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 0,
+      "message": "This was removed here and not added anywhere else. That\u0027s probably not a huge problem, but I\u0027m guessing this is an unintended change.",
+      "revId": "aa3a7f85cce3077c82a9ce79651cbc30f30fe799",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

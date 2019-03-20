@@ -1,0 +1,250 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8355902b_3c370970",
+        "filename": "go/git/gitdir.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: experienced golang programmers will recognize this, but I think it\u0027s still useful to document that this type exists so that []*Branch can be used with sort.Sort.",
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c9e1084_b719a635",
+        "filename": "go/git/repograph/gitstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: probably should just document that updater can not be used concurrently and get rid of the mutex. We already lock updateMtx in Graph.",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 24,
+        "endChar": 22
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60d6da14_6da04c1e",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: not sure if it\u0027s the doc or the naming, but this type is a little confusing.\n\n1. This type does not update a Graph. Graph.updateFrom uses this type to update itself.\n\n2. From the perspective of this package, this type is a \"Repo.\" However, that name is very overloaded, so maybe something like RepoData or RepoInfo or RepoImpl.\n\n3. Maybe add some doc to explain how the methods interact with each other. E.g. \"Branches returns the branch heads as of the last call to Update.\"\n\n4. Mention that methods may not be called concurrently. (This is already true for repoUpdater, and in another comment I mentioned that gitstoreUpdater.mtx can be removed.)",
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f5ac867_dfa8cd06",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: maybe put this function in the same file where gobGraph is defined. (or vice-versa)",
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b6f8997_dac71edb",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: probably not very important, but maybe also check if oldHead \u003d\u003d \"\", i.e. this is a new branch, so we don\u0027t need the orphan check.",
+      "range": {
+        "startLine": 345,
+        "startChar": 4,
+        "endLine": 345,
+        "endChar": 26
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6439f00d_4533f27f",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "If this commit has already been added (i.e. it\u0027s the parent of two other new commits), this check ensures we don\u0027t add it to the Graph twice. However, it also shouldn\u0027t be in the RV twice. We need to generate the first RV with commits that pass this check rather than using newCommits.\n\nnit: Would be nice to have a failing unit test before fixing this.",
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78e05ab8_47af1df1",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 420,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: I\u0027m not seeing the reason for this change. (Previously was \"graph.branches \u003d newBranchesList\")",
+      "range": {
+        "startLine": 412,
+        "startChar": 0,
+        "endLine": 420,
+        "endChar": 38
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6077db7d_0be6bb38",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 455,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "1. nit: maybe explicitly doc that these are in arbitrary order\n\n2. nit: would []*Commit be more useful? (Probably the answer is no, and it would be confusing, e.g. if a branch is accidentally deleted and then recreated, the *Commits that are removed will/should be different from the *Commits that are later added again for the same hashes.)",
+      "range": {
+        "startLine": 455,
+        "startChar": 65,
+        "endLine": 455,
+        "endChar": 109
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "423adeac_fbd99fde",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: maybe explicitly say it\u0027s ok for cb to call methods of r and the passed-in Graph (other than Update* methods).",
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1f5438e_ee7ba591",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: Is this enough context for cb to know what to do, or should we add repoUrl as an argument?",
+      "range": {
+        "startLine": 826,
+        "startChar": 49,
+        "endLine": 826,
+        "endChar": 55
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d38164a9_6bc4c0ee",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "+1 on naming -- this is much clearer.",
+      "range": {
+        "startLine": 24,
+        "startChar": 5,
+        "endLine": 24,
+        "endChar": 14
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "04abeb3e_809dcf9c",
+        "filename": "go/git/repograph/graph_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 978,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T17:35:24Z",
+      "side": 1,
+      "message": "nit: slightly cleaner:\n  var cleanup2Once sync.Once\n  defer cleanup2Once.Do(cleanup2)\n  ...\n  cleanup2Once.Do(cleanup2)",
+      "range": {
+        "startLine": 973,
+        "startChar": 0,
+        "endLine": 978,
+        "endChar": 4
+      },
+      "revId": "f490340a241b0b3abe54c4ad5bf52f219a70b909",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
