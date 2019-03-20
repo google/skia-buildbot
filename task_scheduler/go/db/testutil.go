@@ -1515,8 +1515,9 @@ func TestUpdateDBFromSwarmingTask(t testutils.TestingT, db TaskDB) {
 	}
 	s.BotId = "H"
 
-	_, err = UpdateDBFromSwarmingTask(db, s)
+	modified, err = UpdateDBFromSwarmingTask(db, s)
 	assert.NoError(t, err)
+	assert.True(t, modified)
 
 	updatedTask, err := db.GetTaskById(task.Id)
 	assert.NoError(t, err)
@@ -1543,13 +1544,18 @@ func TestUpdateDBFromSwarmingTask(t testutils.TestingT, db TaskDB) {
 		DbModified: updatedTask.DbModified,
 	})
 
+	modified, err = UpdateDBFromSwarmingTask(db, s)
+	assert.NoError(t, err)
+	assert.False(t, modified)
+
 	lastDbModified := updatedTask.DbModified
 
 	// Make an unrelated change; assert no change to Task.
 	s.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
 
-	_, err = UpdateDBFromSwarmingTask(db, s)
+	modified, err = UpdateDBFromSwarmingTask(db, s)
 	assert.NoError(t, err)
+	assert.False(t, modified)
 	updatedTask, err = db.GetTaskById(task.Id)
 	assert.NoError(t, err)
 	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))

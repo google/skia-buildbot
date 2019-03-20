@@ -197,7 +197,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		timeDecayAmt24Hr:      timeDecayAmt24Hr,
 		triggeredCount:        metrics2.GetCounter("task_scheduler_triggered_count"),
 		tryjobs:               tryjobs,
-		updateUnfinishedCount: metrics2.GetCounter("task_scheduler_update_unfinished_count"),
+		updateUnfinishedCount: metrics2.GetCounter("task_scheduler_update_unfinished_tasks_count"),
 		window:                w,
 		workdir:               workdir,
 	}
