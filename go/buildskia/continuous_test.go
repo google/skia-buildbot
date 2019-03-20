@@ -95,6 +95,9 @@ func (m *mockVcs) Details(ctx context.Context, hash string, includeBranchInfo bo
 		return nil, fmt.Errorf("Not found")
 	}
 }
+func (m *mockVcs) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
 
 func TestDecimate(t *testing.T) {
 	testutils.SmallTest(t)

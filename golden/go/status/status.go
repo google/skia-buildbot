@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
@@ -29,8 +28,13 @@ type GUIStatus struct {
 	// Indicates whether current HEAD is ok.
 	OK bool `json:"ok"`
 
+	FirstCommit *tiling.Commit `json:"firstCommit"`
+
 	// Last commit currently know.
 	LastCommit *tiling.Commit `json:"lastCommit"`
+
+	TotalCommits  int `json:"totalCommits"`
+	FilledCommits int `json:"filledCommits"`
 
 	// Status per corpus.
 	CorpStatus []*GUICorpusStatus `json:"corpStatus"`
@@ -40,7 +44,7 @@ type GUICorpusStatus struct {
 	// Name of the corpus.
 	Name string `json:"name"`
 
-	// Indicats whether this status is ok.
+	// Indicates whether this status is ok.
 	OK bool `json:"ok"`
 
 	// Earliest commit hash considered HEAD (is not always the last commit).
@@ -99,17 +103,22 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 }
 
 func (s *StatusWatcher) calcAndWatchStatus() error {
+	sklog.Infof("Starting status watcher")
 	expChanges := make(chan types.TestExp)
 	s.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.(*expstorage.EventExpectationChange).TestChanges
 	})
 
 	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
+	sklog.Infof("Got tile stream for status watcher")
 
-	lastTilePair := <-tileStream
-	if err := s.calcStatus(lastTilePair.Tile); err != nil {
+	lastCpxTile := <-tileStream
+	sklog.Infof("Received first tile for status watcher")
+
+	if err := s.calcStatus(lastCpxTile); err != nil {
 		return err
 	}
+	sklog.Infof("Calculated first status")
 
 	liveness := metrics2.NewLiveness("gold_status_monitoring")
 
@@ -117,37 +126,36 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		for {
 			select {
 			case <-tileStream:
-				tilePair, err := s.storages.GetLastTileTrimmed()
+				cpxTile, err := s.storages.GetLastTileTrimmed()
 				if err != nil {
 					sklog.Errorf("Error retrieving tile: %s", err)
 					continue
 				}
 
-				if err := s.calcStatus(tilePair.Tile); err != nil {
+				if err := s.calcStatus(cpxTile); err != nil {
 					sklog.Errorf("Error calculating status: %s", err)
 				} else {
-					lastTilePair = tilePair
+					lastCpxTile = cpxTile
 					liveness.Reset()
 				}
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
-				if err := s.calcStatus(lastTilePair.Tile); err != nil {
+				if err := s.calcStatus(lastCpxTile); err != nil {
 					sklog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
 				liveness.Reset()
 			}
 		}
 	}()
+	sklog.Infof("Done starting status watcher")
 
 	return nil
 }
 
-func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
+func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 	defer timer.New("Calc status timer:").Stop()
 
-	minCommitId := map[string]int{}
 	okByCorpus := map[string]bool{}
-
 	expectations, err := s.storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
@@ -157,8 +165,9 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 	byCorpus := map[string]map[types.Label]map[string]bool{}
 
 	// Iterate over the current traces
-	tileLen := tile.LastCommitIndex() + 1
-	for _, trace := range tile.Traces {
+	dataTile := cpxTile.GetTile(false)
+	tileLen := dataTile.LastCommitIndex() + 1
+	for _, trace := range dataTile.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 
 		idx := tileLen - 1
@@ -174,7 +183,6 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 		// If this corpus doesn't exist yet, we initialize it.
 		corpus := gTrace.Params()[types.CORPUS_FIELD]
 		if _, ok := byCorpus[corpus]; !ok {
-			minCommitId[corpus] = tileLen
 			okByCorpus[corpus] = true
 			byCorpus[corpus] = map[types.Label]map[string]bool{
 				types.POSITIVE:  {},
@@ -196,18 +204,17 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		status := expectations.Classification(testName, digest)
 
-		digestInfo, err := s.storages.GetOrUpdateDigestInfo(testName, digest, tile.Commits[idx])
+		digestInfo, err := s.storages.GetOrUpdateDigestInfo(testName, digest, dataTile.Commits[idx])
 		if err != nil {
 			return err
 		}
 
 		okByCorpus[corpus] = okByCorpus[corpus] && ((status == types.POSITIVE) ||
 			((status == types.NEGATIVE) && (len(digestInfo.IssueIDs) > 0)))
-		minCommitId[corpus] = util.MinInt(idx, minCommitId[corpus])
 		byCorpus[corpus][status][testName+digest] = true
 	}
 
-	commits := tile.Commits[:tileLen]
+	// commits := tile.Commits[:tileLen]
 	overallOk := true
 	allUntriagedCount := 0
 	allPositiveCount := 0
@@ -221,7 +228,6 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 		corpStatus = append(corpStatus, &GUICorpusStatus{
 			Name:           corpus,
 			OK:             okByCorpus[corpus],
-			MinCommitHash:  commits[minCommitId[corpus]].Hash,
 			UntriagedCount: untriagedCount,
 			NegativeCount:  negativeCount,
 		})
@@ -240,12 +246,17 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 
 	sort.Sort(CorpusStatusSorter(corpStatus))
 
-	// Swap out the current tile.
+	allCommits := cpxTile.AllCommits()
 	result := &GUIStatus{
-		OK:         overallOk,
-		LastCommit: commits[tileLen-1],
-		CorpStatus: corpStatus,
+		OK:            overallOk,
+		FirstCommit:   allCommits[0],
+		LastCommit:    allCommits[len(allCommits)-1],
+		TotalCommits:  len(allCommits),
+		FilledCommits: cpxTile.FilledCommits(),
+		CorpStatus:    corpStatus,
 	}
+
+	// Swap out the current tile.
 	s.mutex.Lock()
 	s.current = result
 	s.mutex.Unlock()

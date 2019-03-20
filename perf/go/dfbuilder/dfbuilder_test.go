@@ -340,6 +340,9 @@ func (m *mockVCS) From(start time.Time) []string {
 func (m *mockVCS) Details(ctx context.Context, hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	return nil, nil
 }
+func (m *mockVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
+	return nil, nil
+}
 func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) {
 	for i, c := range m.ret {
 		if c.Hash == hash {
