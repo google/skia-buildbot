@@ -35,8 +35,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skexec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -55,6 +55,8 @@ var (
 		common.REPO_SKIA_INFRA: {},
 		common.REPO_SKIA:       {},
 	}
+
+	exec = skexec.NewExec()
 )
 
 // issueJson is a struct which matches the format of the JSON output of

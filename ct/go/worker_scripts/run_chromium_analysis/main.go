@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -230,7 +229,7 @@ func runChromiumAnalysis() error {
 
 						}
 						break
-					} else if exec.IsTimeout(err) {
+					} else if err == context.DeadlineExceeded {
 						timeoutTracker.Increment()
 					}
 					if i >= retryNum {
