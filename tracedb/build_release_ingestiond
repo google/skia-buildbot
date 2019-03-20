@@ -3,7 +3,7 @@
 # Builds and uploads debian packages for various ingestion services.
 set -x -e
 
-ALL_IDS="skia pdfium chromevr stage"
+ALL_IDS="skia pdfium chromevr"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."

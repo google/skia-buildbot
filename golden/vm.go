@@ -80,12 +80,6 @@ func ChromeVR() *gce.Instance {
 	return vm
 }
 
-func Stage() *gce.Instance {
-	vm := GoldBase("skia-gold-stage", "35.202.197.94")
-	vm.Metadata["auth_white_list"] = "google.com"
-	return vm
-}
-
 func Public() *gce.Instance {
 	vm := GoldBase("skia-gold-public", "35.188.34.16")
 	vm.Metadata["auth_white_list"] = `google.com
@@ -106,20 +100,12 @@ func DiffServerProd() *gce.Instance {
 	return DiffServerBase("skia-diffserver-prod")
 }
 
-func DiffServerStage() *gce.Instance {
-	vm := DiffServerBase("skia-diffserver-stage")
-	vm.DataDisks[0].Type = gce.DISK_TYPE_PERSISTENT_STANDARD
-	return vm
-}
-
 func main() {
 	server.Main(gce.ZONE_DEFAULT, map[string]*gce.Instance{
-		"prod":             Prod(),
-		"public":           Public(),
-		"pdfium":           Pdfium(),
-		"chromevr":         ChromeVR(),
-		"stage":            Stage(),
-		"diffserver_prod":  DiffServerProd(),
-		"diffserver_stage": DiffServerStage(),
+		"prod":            Prod(),
+		"public":          Public(),
+		"pdfium":          Pdfium(),
+		"chromevr":        ChromeVR(),
+		"diffserver_prod": DiffServerProd(),
 	})
 }
