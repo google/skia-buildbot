@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "58d567b6_3314e0a3",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T19:31:03Z",
+      "side": 1,
+      "message": "Either I\u0027m missing something or this isn\u0027t called anywhere.",
+      "revId": "9416e3110dde7ac4b481e239aef98a75c4dbf8eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "839e2d3b_974f3f87",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T19:31:03Z",
+      "side": 1,
+      "message": "We need to continue regardless of needOrphanCheck.",
+      "revId": "9416e3110dde7ac4b481e239aef98a75c4dbf8eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
