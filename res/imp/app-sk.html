@@ -28,6 +28,8 @@ Properties:
   force_narrow - Whether or not to force the paper-drawer-panel into narrow
       mode.
 
+  logs_uri - If set, add a link to logs before version.
+
   narrow - Whether or not the paper-drawer-panel is currently in narrow mode.
 
   no_drawer - If true, no drawer panel is displayed at all.
@@ -97,10 +99,15 @@ Events:
       <template is="dom-if" if="{{no_drawer}}">
         <div main id="mainContent" class="layout vertical">
           <content select="*"></content>
-          <template is="dom-if" if="{{_showVersion(no_version)}}">
+          <template is="dom-if" if="{{_debugFooter(logs_uri, no_version)}}">
             <div class="layout horizontal">
               <div class="flex"></div>
-              <version-sk></version-sk>
+              <template is="dom-if" if="{{_showLogs(logs_uri)}}">
+                <a href="[[logs_uri]]">logs</a>
+              </template>
+              <template is="dom-if" if="{{_showVersion(no_version)}}">
+                <version-sk></version-sk>
+              </template>
             </div>
           </template>
         </div>
@@ -108,9 +115,14 @@ Events:
       <paper-drawer-panel id="drawerPanel" drawer-width="{{drawer_width}}" responsive-width="{{responsive_width}}" force-narrow$="{{force_narrow}}" narrow="{{narrow}}" hidden$="{{no_drawer}}">
         <div drawer id="drawer" class="vertical layout">
           <content id="navContent" select="[navigation], nav, [drawer], drawer"></content>
-          <template is="dom-if" if="{{_showVersion(no_version)}}">
+          <template is="dom-if" if="{{_debugFooter(logs_uri, no_version)}}">
             <div class="flex"></div>
-            <version-sk></version-sk>
+            <template is="dom-if" if="{{_showLogs(logs_uri)}}">
+              <a href="[[logs_uri]]">server logs</a>
+            </template>
+            <template is="dom-if" if="{{_showVersion(no_version)}}">
+              <version-sk></version-sk>
+            </template>
           </template>
         </div>
         <div main id="mainContent" class="layout vertical">
@@ -158,6 +170,10 @@ Events:
           type: Object,
           notify: true,
         },
+        logs_uri: {
+          type: String,
+          value: "",
+        },
         narrow: {
           type: Boolean,
           notify: true,
@@ -189,6 +205,14 @@ Events:
           return false;
         }
         return narrow;
+      },
+
+      _debugFooter: function(logs_uri, no_version) {
+        return _showLogs(logs_uri) || _showVersion(no_version);
+      },
+
+      _showLogs: function(logs_uri) {
+        return logs_uri != "";
       },
 
       _showVersion: function(no_version) {
