@@ -27,6 +27,13 @@ type Branch struct {
 	Head string `json:"head"`
 }
 
+// BranchList is a slice of Branch objects which implements sort.Interface.
+type BranchList []*Branch
+
+func (bl BranchList) Len() int           { return len(bl) }
+func (bl BranchList) Less(a, b int) bool { return bl[a].Name < bl[b].Name }
+func (bl BranchList) Swap(a, b int)      { bl[a], bl[b] = bl[b], bl[a] }
+
 // GitDir is a directory in which one may run Git commands.
 type GitDir string
 
