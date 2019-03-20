@@ -213,7 +213,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, nil)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.AssertCloses(t, s)
@@ -667,7 +667,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: tryjobRs,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, &taskCandidateScoringDiagnostics{}))
 	// Try job candidates have a specific score and no blamelist.
 	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
@@ -680,7 +680,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: tryjobRs,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, &taskCandidateScoringDiagnostics{}))
 	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
 
@@ -703,7 +703,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			ForcedJobId: forcedJob.Id,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, &taskCandidateScoringDiagnostics{}))
 	assert.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.5, c.Score, scoreDelta)
 	assert.Equal(t, 2, len(c.Commits))
 
@@ -721,7 +721,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: rs2,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, &taskCandidateScoringDiagnostics{}))
 	assert.True(t, c.Score > 0)
 	assert.Equal(t, 2, len(c.Commits))
 
@@ -737,7 +737,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: rs2,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, &taskCandidateScoringDiagnostics{}))
 	assert.Equal(t, 0, len(c.Commits))
 }
 
@@ -1402,7 +1402,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.jCache.Update())
 
 	// Regenerate the task queue.
-	queue, err := s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err := s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(queue)) // Two Build tasks.
 
@@ -1442,7 +1442,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
@@ -1479,7 +1479,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(queue))
 	testSort()
@@ -1512,7 +1512,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
@@ -2065,7 +2065,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, nil)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
