@@ -6,33 +6,39 @@ import (
 
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
 )
 
 // TryjobMonitor offers a higher level api to handle tryjob-related tasks on top
 // of the tryjobstore package.
 type TryjobMonitor struct {
-	gerritAPI          gerrit.GerritInterface
-	tryjobStore        tryjobstore.TryjobStore
-	siteURL            string
-	eventBus           eventbus.EventBus
-	writeGerritMonitor *util.CondMonitor
-	isAuthoritative    bool
+	expStore             expstorage.ExpectationsStore
+	issueExpStoreFactory expstorage.IssueExpStoreFactory
+	gerritAPI            gerrit.GerritInterface
+	tryjobStore          tryjobstore.TryjobStore
+	siteURL              string
+	eventBus             eventbus.EventBus
+	writeGerritMonitor   *util.CondMonitor
+	isAuthoritative      bool
 }
 
 // NewTryjobMonitor creates a new instance of TryjobMonitor.
 // siteURL is URL under which the current site it served. It is used to
 // generate URLs that are written to Gerrit CLs.
-func NewTryjobMonitor(tryjobStore tryjobstore.TryjobStore, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus, isAuthoritative bool) *TryjobMonitor {
+func NewTryjobMonitor(tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore, iesFactory expstorage.IssueExpStoreFactory, gerritAPI gerrit.GerritInterface, siteURL string, eventBus eventbus.EventBus, isAuthoritative bool) *TryjobMonitor {
 	ret := &TryjobMonitor{
-		tryjobStore:        tryjobStore,
-		gerritAPI:          gerritAPI,
-		siteURL:            strings.TrimRight(siteURL, "/"),
-		eventBus:           eventBus,
-		writeGerritMonitor: util.NewCondMonitor(1),
-		isAuthoritative:    isAuthoritative,
+		expStore:             expStore,
+		issueExpStoreFactory: iesFactory,
+		tryjobStore:          tryjobStore,
+		gerritAPI:            gerritAPI,
+		siteURL:              strings.TrimRight(siteURL, "/"),
+		eventBus:             eventBus,
+		writeGerritMonitor:   util.NewCondMonitor(1),
+		isAuthoritative:      isAuthoritative,
 	}
 
 	// Subscribe to events that a tryjob has been updated.
@@ -42,6 +48,27 @@ func NewTryjobMonitor(tryjobStore tryjobstore.TryjobStore, gerritAPI gerrit.Gerr
 
 // ForceRefresh forces a refresh of given Gerrit issue.
 func (t *TryjobMonitor) ForceRefresh(issueID int64) error {
+	// Load the issue from the database
+	issue, err := t.tryjobStore.GetIssue(issueID, false)
+	if err != nil {
+		return sklog.FmtErrorf("Error loading issue %d: %s", issueID, err)
+	}
+
+	if !issue.Committed {
+		// Check if the issue has been merged and find the commit if necessary.
+		changeInfo, err := t.gerritAPI.GetIssueProperties(issueID)
+		if err != nil {
+			return skerr.Fmt("Error retrieving Gerrit issue %d: %s", issueID, err)
+		}
+
+		if changeInfo.Status == gerrit.CHANGE_STATUS_MERGED {
+			if err := t.CommitIssueBaseline(issueID, issue.Owner); err != nil {
+				return err
+			}
+			sklog.Infof("Issue %d expecations have been added to master expecations.", issueID)
+		}
+	}
+
 	// TODO(stephan): This should also sync with the Gerrit issue and update
 	// anything that might need to be updated for a Gerrit CL.
 	return t.WriteGoldLinkToGerrit(issueID)
@@ -89,6 +116,36 @@ func (t *TryjobMonitor) WriteGoldLinkToGerrit(issueID int64) error {
 		issue.CommentAdded = true
 		return issue
 	})
+}
+
+// CommitIssueBaseline commits the expectations for the given issue to the master baseline.
+func (t *TryjobMonitor) CommitIssueBaseline(issueID int64, user string) error {
+	// Get the issue expecations.
+	issueExpStore := t.issueExpStoreFactory(issueID)
+	issueExps, err := issueExpStore.Get()
+	if err != nil {
+		return sklog.FmtErrorf("Unable to retrieve expecations for issue %d: %s", issueID, err)
+	}
+
+	issueChanges := issueExps.TestExp()
+	if len(issueChanges) == 0 {
+		return nil
+	}
+
+	if user == "" {
+		user = "syntheticUser"
+	}
+
+	syntheticUser := fmt.Sprintf("%s:%d", user, issueID)
+
+	commitFn := func() error {
+		if err := t.expStore.AddChange(issueChanges, syntheticUser); err != nil {
+			return skerr.Fmt("Unable to add expectations for issue %d: %s", issueID, err)
+		}
+		return nil
+	}
+
+	return t.tryjobStore.CommitIssueExp(issueID, commitFn)
 }
 
 // getGerritMsg returns the message that should be added as a comment to the Gerrit CL.

@@ -19,6 +19,13 @@ const (
 
 	// BASELINE_ISSUE_ROUTE serves the baseline for the Gerrit CL identified by 'id'
 	EXPECTATIONS_ISSUE_ROUTE = "/json/expectations/issue/{issue_id}"
+
+	// KNOWN_HASHES_ROUTE serves the list of known hashes.
+	KNOWN_HASHES_ROUTE = "/json/hashes"
+
+	// TODO(stephana): Remove LEGACY_KNOWN_HASHES_ROUTE everywhere.
+	// LEGACY_KNOWN_HASHES_ROUTE is the old rout to serve the list of known hashes.
+	LEGACY_KNOWN_HASHES_ROUTE = "/_/hashes"
 )
 
 // Validation is a container to collect error messages during validation of a

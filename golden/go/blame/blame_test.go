@@ -81,13 +81,13 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 		EventBus:          eventBus,
 	}
 	blamer := New(storages)
-	tilePair, err := storages.GetLastTileTrimmed()
+	cpxTile, err := storages.GetLastTileTrimmed()
 	assert.NoError(t, err)
-	err = blamer.Calculate(tilePair.Tile)
+	err = blamer.Calculate(cpxTile.GetTile(false))
 	assert.NoError(t, err)
 
 	storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-		if err := blamer.Calculate(tilePair.Tile); err != nil {
+		if err := blamer.Calculate(cpxTile.GetTile(false)); err != nil {
 			assert.Fail(t, "Async calculate failed")
 		}
 	})
@@ -206,13 +206,13 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	}
 
 	blamer := New(storages)
-	tilePair, err := storages.GetLastTileTrimmed()
+	cpxTile, err := storages.GetLastTileTrimmed()
 	assert.NoError(t, err)
-	err = blamer.Calculate(tilePair.Tile)
+	err = blamer.Calculate(cpxTile.GetTile(false))
 	assert.NoError(t, err)
 
 	storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-		if err := blamer.Calculate(tilePair.Tile); err != nil {
+		if err := blamer.Calculate(cpxTile.GetTile(false)); err != nil {
 			assert.Fail(t, "Async calculate failed")
 		}
 	})

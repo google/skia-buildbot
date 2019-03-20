@@ -29,20 +29,23 @@ type AddFn func(test, digest, traceID string, trace *types.GoldenTrace, acceptRe
 // tested against the query) and calls addFn to add a digest and its trace.
 // acceptFn == nil equals unconditional acceptance.
 func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *indexer.SearchIndex) error {
-	tile := idx.GetTile(query.IncludeIgnores)
+	cpxTile := idx.CpxTile()
+	selectedTile := cpxTile.GetTile(query.IncludeIgnores)
+
+	// tile := idx.cpxTile.GetTile(query.IncludeIgnores)
 
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) { return true, nil }
 	}
 
 	traceTally := idx.TalliesByTrace(query.IncludeIgnores)
-	lastTraceIdx, traceView, err := getTraceViewFn(tile, query.FCommitBegin, query.FCommitEnd)
+	lastTraceIdx, traceView, err := getTraceViewFn(selectedTile, query.FCommitBegin, query.FCommitEnd)
 	if err != nil {
 		return err
 	}
 
 	// Iterate through the tile.
-	for id, trace := range tile.Traces {
+	for id, trace := range selectedTile.Traces {
 		// Check if the query matches.
 		if tiling.Matches(trace, query.Query) {
 			fullTr := trace.(*types.GoldenTrace)
@@ -68,8 +71,8 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 				// Fix blamer to make this easier.
 				if query.BlameGroupID != "" {
 					if cl == types.UNTRIAGED {
-						b := idx.GetBlame(test, digest, tile.Commits)
-						if query.BlameGroupID != blameGroupID(b, tile.Commits) {
+						b := idx.GetBlame(test, digest, selectedTile.Commits)
+						if query.BlameGroupID != blameGroupID(b, selectedTile.Commits) {
 							continue
 						}
 					} else {
