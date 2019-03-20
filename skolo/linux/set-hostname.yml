@@ -1,0 +1,15 @@
+---
+# debian9-preseed.cfg sets a temporary hostname. Reset it based on inventory.
+- hosts: all
+  tasks:
+    - name: Set hostname by alias in inventory
+      hostname:
+        name: "{{ inventory_hostname_short }}"
+    - name: Set hostname in /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        regexp: "^127.0.1.1"
+        # Example: "127.0.1.1       jumphost-win-02.win-02.skolo.skia.org   jumphost-win-02"
+        line: "127.0.1.1       {{ inventory_hostname }}   {{ inventory_hostname_short }}"
+        state: present
+      become: yes

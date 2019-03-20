@@ -1,0 +1,29 @@
+---
+# Install and set up unattended-upgrades
+- hosts: all
+  tasks:
+    - name: Install unattended-upgrades
+      become: yes
+      apt:
+        package: unattended-upgrades
+        state: latest
+        cache_valid_time: 3600
+    - name: Configure periodic apt tasks
+      become: yes
+      copy:
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+    # TODO(dogben): This is not a good config for bots. See
+    # go/gce/swarming/base-image/setup-script.sh.
+    - name: Configure unattended upgrades
+      become: yes
+      copy:
+        content: |
+          Unattended-Upgrade::Origins-Pattern {
+                "o=*";
+          };
+          Unattended-Upgrade::Remove-Unused-Dependencies "true";
+          Unattended-Upgrade::Automatic-Reboot "true";
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades

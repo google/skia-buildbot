@@ -1,0 +1,20 @@
+---
+# Install and set up collectd
+- hosts: all
+  tasks:
+    - name: Install collectd
+      become: yes
+      apt:
+        package: collectd
+        state: latest
+        cache_valid_time: 3600
+    - name: Configure collectd
+      become: yes
+      copy:
+        src: ../common/collectd.conf
+        dest: /etc/collectd/collectd.conf
+    - name: Restart collectd
+      service:
+        name: collectd
+        state: restarted
+        enabled: yes
