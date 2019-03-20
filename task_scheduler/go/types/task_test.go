@@ -494,6 +494,18 @@ func TestValidateTask(t *testing.T) {
 		"barnDoor": "open",
 	}
 
+	// Verify success.
+	err := tmpl.Validate()
+	assert.NoError(t, err)
+	assert.True(t, tmpl.Valid())
+	{
+		task := tmpl.Copy()
+		task.MaxAttempts = 0
+		err := tmpl.Validate()
+		assert.NoError(t, err)
+		assert.True(t, tmpl.Valid())
+	}
+	// Test invalid cases.
 	{
 		task := tmpl.Copy()
 		task.Name = ""
@@ -523,10 +535,29 @@ func TestValidateTask(t *testing.T) {
 		}
 		test(task, "Invalid property value")
 	}
-	// Verify success.
-	err := tmpl.Validate()
-	assert.NoError(t, err)
-	assert.True(t, tmpl.Valid())
+	{
+		task := tmpl.Copy()
+		task.MaxAttempts = 0
+		task.Attempt = 1
+		test(task, "Task MaxAttempts is not initialized")
+	}
+	{
+		task := tmpl.Copy()
+		task.MaxAttempts = 0
+		task.Attempt = 1
+		test(task, "Task MaxAttempts is not initialized")
+	}
+	{
+		task := tmpl.Copy()
+		task.Attempt = 2
+		test(task, "Task Attempt 2 not less than MaxAttempts")
+	}
+	{
+		task := tmpl.Copy()
+		task.MaxAttempts = -1
+		task.Attempt = -5
+		test(task, "Task Attempt is negative")
+	}
 }
 
 // Test that sort.Sort(TaskSlice(...)) works correctly.

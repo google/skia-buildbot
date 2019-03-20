@@ -21,6 +21,7 @@ func MakeTestTask(ts time.Time, commits []string) *Task {
 		},
 		Commits:        commits,
 		SwarmingTaskId: "swarmid",
+		MaxAttempts:    DEFAULT_MAX_TASK_ATTEMPTS,
 	}
 }
 

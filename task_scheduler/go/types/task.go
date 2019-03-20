@@ -388,6 +388,17 @@ func (task *Task) Validate() error {
 			return fmt.Errorf("Invalid property value -- must be valid UTF8 or base64-encoded: %q", value)
 		}
 	}
+	// There may be old tasks where MaxAttempts is not initialized.
+	if task.MaxAttempts == 0 {
+		if task.Attempt != 0 {
+			return fmt.Errorf("Task MaxAttempts is not initialized but Attempt is initialized to %d. %+v", task.Attempt, task)
+		}
+	} else if task.Attempt >= task.MaxAttempts {
+		return fmt.Errorf("Task Attempt %d not less than MaxAttempts %d. %+v", task.Attempt, task.MaxAttempts, task)
+	}
+	if task.Attempt < 0 {
+		return fmt.Errorf("Task Attempt is negative!! %+v", task)
+	}
 	return nil
 }
 
