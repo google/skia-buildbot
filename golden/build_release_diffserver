@@ -3,7 +3,7 @@
 set -x -e
 
 # Packages the skia_diff_server.
-ALL_IDS="prod stage"
+ALL_IDS="prod"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."

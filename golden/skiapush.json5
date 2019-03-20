@@ -20,23 +20,10 @@
         "diffserver-prod",
       ],
     },
-    "skia-diffserver-stage": {
-      "AppNames": [
-        "pulld",
-        "diffserver-stage",
-      ],
-    },
     "skia-gold-pdfium": {
       "AppNames": [
         "pulld",
         "skiacorrectness-pdfium",
-        "git-cookie-authdaemon",
-      ],
-    },
-    "skia-gold-stage": {
-      "AppNames": [
-        "pulld",
-        "skiacorrectness-stage",
         "git-cookie-authdaemon",
       ],
     },
@@ -60,7 +47,6 @@
         "skia-gold-ingestion",
         "pdfium-gold-ingestion",
         "chromevr-gold-ingestion",
-        "stage-gold-ingestion",
       ],
     },
   },

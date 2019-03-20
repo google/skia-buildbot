@@ -2,7 +2,7 @@
 
 set -x -e
 
-ALL_IDS="prod public pdfium chromevr stage"
+ALL_IDS="prod public pdfium chromevr"
 print_usage() {
     echo "Usage: $0 MESSAGE INSTANCE_ID"
     echo "     MESSAGE     is the message to be included in the release package."
