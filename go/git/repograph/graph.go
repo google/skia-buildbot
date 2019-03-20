@@ -6,11 +6,8 @@ package repograph
 
 import (
 	"context"
-	"encoding/gob"
 	"errors"
 	"fmt"
-	"io"
-	"os"
 	"path"
 	"sort"
 	"sync"
@@ -19,14 +16,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-)
-
-const (
-	// Name of the file we store inside the Git checkout to speed up the
-	// initial Update().
-	CACHE_FILE = "sk_gitrepo.gob"
 )
 
 var (
@@ -166,26 +156,32 @@ func (s CommitSlice) Hashes() []string {
 	return rv
 }
 
+// RepoImpl provides methods for interacting with a git repo, agnostic of how the
+// repo is actually accessed. It is used when updating a Graph. It should not be
+// used concurrently.
+type RepoImpl interface {
+	// Update the local view of the repo.
+	Update(context.Context) error
+
+	// Return the given commits.
+	Get(context.Context, []string) ([]*vcsinfo.LongCommit, error)
+
+	// Return the branch heads, as of the last call to Update().
+	Branches(context.Context) ([]*git.Branch, error)
+
+	// UpdateCallback is a function which is called after the Graph is
+	// updated but before the changes are committed.
+	UpdateCallback(context.Context, *Graph) error
+}
+
 // Graph represents an entire Git repo.
 type Graph struct {
 	branches []*git.Branch
 	commits  map[string]*Commit
 	graphMtx sync.RWMutex
 
-	// repo is only set if NewLocalGraph() is used.
-	repo    *git.Repo
-	repoMtx sync.Mutex
-
-	// gitstore is only set if NewGitStoreGraph() is used.
-	gitstore           gitstore.GitStore
-	gitstoreLastUpdate time.Time
-	gitstoreMtx        sync.Mutex
-}
-
-// gobGraph is a utility struct used for serializing a Graph using gob.
-type gobGraph struct {
-	Branches []*git.Branch
-	Commits  map[string]*Commit
+	updateMtx sync.Mutex
+	repoImpl  RepoImpl
 }
 
 // NewLocalGraph returns a Graph instance, creating a git.Repo from the repoUrl
@@ -198,36 +194,27 @@ func NewLocalGraph(ctx context.Context, repoUrl, workdir string) (*Graph, error)
 		return nil, fmt.Errorf("Failed to create git repo: %s", err)
 	}
 	rv := &Graph{
-		commits: map[string]*Commit{},
-		repo:    repo,
+		commits:  map[string]*Commit{},
+		repoImpl: &localRepoImpl{repo},
 	}
-	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
-	var r gobGraph
-	if err := util.MaybeReadGobFile(cacheFile, &r); err != nil {
-		sklog.Errorf("Failed to read Graph cache file %s; deleting the file and starting from scratch: %s", cacheFile, err)
-		if err2 := os.Remove(cacheFile); err != nil {
-			return nil, fmt.Errorf("Failed to read Graph cache file %s: %s\n...and failed to remove with: %s", cacheFile, err, err2)
-		}
-	}
-	if r.Branches != nil {
-		rv.branches = r.Branches
-	}
-	if r.Commits != nil {
-		rv.commits = r.Commits
-	}
-	for _, c := range rv.commits {
-		for _, parentHash := range c.Parents {
-			c.parents = append(c.parents, rv.commits[parentHash])
-		}
+	if err := initFromFile(rv, path.Join(repo.Dir(), CACHE_FILE)); err != nil {
+		return nil, err
 	}
 	return rv, nil
 }
 
 // NewGitStoreGraph returns a Graph instance which is backed by a GitStore.
 func NewGitStoreGraph(ctx context.Context, gs gitstore.GitStore) (*Graph, error) {
+	return NewWithRepoImpl(ctx, &gitstoreRepoImpl{
+		gs: gs,
+	})
+}
+
+// NewWithRepoImpl returns a Graph instance which uses the given RepoImpl.
+func NewWithRepoImpl(ctx context.Context, ri RepoImpl) (*Graph, error) {
 	rv := &Graph{
 		commits:  map[string]*Commit{},
-		gitstore: gs,
+		repoImpl: ri,
 	}
 	if err := rv.Update(ctx); err != nil {
 		return nil, err
@@ -242,13 +229,13 @@ func (r *Graph) Len() int {
 	return len(r.commits)
 }
 
-// addCommit adds the commit with the given hash to the Graph. Assumes that the
-// caller holds r.graphMtx.
-func (r *Graph) addCommit(d *vcsinfo.LongCommit) error {
+// addCommit adds the given commit to the Graph. Requires that the commit's
+// parents are already in the Graph. Assumes that the caller holds r.graphMtx.
+func (r *Graph) addCommit(lc *vcsinfo.LongCommit) error {
 	maxParentHistoryLen := 0
 	var parents []*Commit
-	if len(d.Parents) > 0 {
-		for _, h := range d.Parents {
+	if len(lc.Parents) > 0 {
+		for _, h := range lc.Parents {
 			if h == "" {
 				continue
 			}
@@ -264,7 +251,7 @@ func (r *Graph) addCommit(d *vcsinfo.LongCommit) error {
 	}
 
 	c := &Commit{
-		LongCommit: d,
+		LongCommit: lc,
 		parents:    parents,
 		HistoryLen: maxParentHistoryLen + 1,
 	}
@@ -272,55 +259,34 @@ func (r *Graph) addCommit(d *vcsinfo.LongCommit) error {
 	return nil
 }
 
-// update the Graph.
-func (r *Graph) update(ctx context.Context, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
-	if r.repo != nil {
-		r.repoMtx.Lock()
-		defer r.repoMtx.Unlock()
-		return r.UpdateFromRepo(ctx, r.repo, returnNewCommits)
-	}
-	return r.UpdateFromGitStore(ctx, r.gitstore, returnNewCommits)
-}
-
-// Update syncs the local copy of the repo and loads new commits/branches into
-// the Graph object.
-func (r *Graph) Update(ctx context.Context) error {
-	_, err := r.update(ctx, false)
-	return err
-}
-
-// UpdateAndReturnNewCommits syncs the local copy of the repo and loads new
-// commits/branches into the Graph object. Returns a slice of any new commits,
-// in no particular order.
-func (r *Graph) UpdateAndReturnNewCommits(ctx context.Context) ([]*vcsinfo.LongCommit, error) {
-	return r.update(ctx, true)
-}
-
-func updateFromRepo(ctx context.Context, repo *git.Repo, graph *Graph) ([]*vcsinfo.LongCommit, error) {
-	// Update the local copy.
-	sklog.Infof("Updating repograph.Graph...")
-	if err := repo.Update(ctx); err != nil {
-		return nil, fmt.Errorf("Failed to update repograph.Graph: %s", err)
+// updateFrom updates the Graph using the given RepoImpl and returns the lists of
+// new and deleted commits, or any error which occurred.
+func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
+	// Retrieve the new commits.
+	sklog.Info("Updating repograph.Graph...")
+	if err := ri.Update(ctx); err != nil {
+		return nil, nil, fmt.Errorf("Failed RepoImpl.Update(): %s", err)
 	}
 
 	// Obtain the list of branches.
 	sklog.Info("  Getting branches...")
-	newBranchesList, err := repo.Branches(ctx)
+	newBranchesList, err := ri.Branches(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get branches for repograph.Graph: %s", err)
+		return nil, nil, fmt.Errorf("Failed to obtain branch list from RepoImpl: %s", err)
 	}
 	newBranchesMap := make(map[string]string, len(newBranchesList))
 	for _, branch := range newBranchesList {
 		newBranchesMap[branch.Name] = branch.Head
 	}
-	graph.graphMtx.Lock()
-	defer graph.graphMtx.Unlock()
-	oldBranchesMap := make(map[string]string, len(graph.branches))
-	for _, branch := range graph.branches {
+	sort.Sort(git.BranchList(newBranchesList))
+	r.graphMtx.Lock()
+	defer r.graphMtx.Unlock()
+	oldBranchesMap := make(map[string]string, len(r.branches))
+	for _, branch := range r.branches {
 		oldBranchesMap[branch.Name] = branch.Head
 	}
 
-	// Load new commits from the repo.
+	// Load new commits.
 	var newCommits []*vcsinfo.LongCommit
 	sklog.Infof("  Loading commits...")
 	needOrphanCheck := false
@@ -333,54 +299,69 @@ func updateFromRepo(ctx context.Context, repo *git.Repo, graph *Graph) ([]*vcsin
 			continue
 		}
 
-		// Load all commits on this branch.
-		// First, try to load only new commits on this branch.
-		var commits []string
-		newBranch := true
-		if oldHead != "" {
-			anc, err := repo.IsAncestor(ctx, oldHead, newHead)
-			if err != nil {
-				return nil, err
+		// Trace back in time from the new branch head until we find the
+		// old branch head, any other commit we already have, or a
+		// commit with no parents.
+		toProcess := map[string]bool{newHead: true}
+		for len(toProcess) > 0 {
+			// Choose a commit to process.
+			var c string
+			for commit, _ := range toProcess {
+				c = commit
+				break
 			}
-			if anc {
-				commits, err = repo.RevList(ctx, "--topo-order", fmt.Sprintf("%s..%s", oldHead, newHead))
-				if err != nil {
-					return nil, err
+			delete(toProcess, c)
+
+			// If we've seen this commit before, we're done.
+			if c == oldHead {
+				continue
+			}
+			if _, ok := r.commits[c]; ok {
+				if oldHead != "" {
+					// If we found a previously-known commit before
+					// we found the old branch head, then history
+					// has changed and we need to run the orphan
+					// check.
+					needOrphanCheck = true
 				}
-				newBranch = false
-			} else {
+				continue
+			}
+
+			// We haven't seen this commit before; add it to newCommits.
+			details, err := ri.Get(ctx, []string{c})
+			if err != nil {
+				return nil, nil, fmt.Errorf("Failed to Get commit details from RepoImpl: %s", err)
+			}
+			newCommits = append(newCommits, details[0])
+
+			// Add the commit's parent(s) to the toProcess map.
+			for _, p := range details[0].Parents {
+				toProcess[p] = true
+			}
+			if len(details[0].Parents) == 0 && oldHead != "" {
+				// If we found a commit with no parents and this
+				// is not a new branch, then we've discovered a
+				// completely new line of history and need to
+				// check whether the commits on the old line are
+				// now orphaned.
 				needOrphanCheck = true
 			}
 		}
+	}
 
-		// If this is a new branch, or if the old branch head is not
-		// reachable from the new (eg. if commit history was modified),
-		// load ALL commits reachable from the branch head.
-		if newBranch {
-			sklog.Infof("  Branch %s is new or its history has changed; loading all commits.", branch.Name)
-			commits, err = repo.RevList(ctx, "--topo-order", newHead)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to 'git rev-list' for repograph.Graph: %s", err)
+	// Add newCommits in reverse order to ensure that all parents are added
+	// before their children.
+	addedCommits := make([]*vcsinfo.LongCommit, 0, len(newCommits))
+	for i := len(newCommits) - 1; i >= 0; i-- {
+		commit := newCommits[i]
+		if _, ok := r.commits[commit.Hash]; !ok {
+			if err := r.addCommit(commit); err != nil {
+				return nil, nil, fmt.Errorf("Failed to add commit: %s", err)
 			}
-		}
-		for i := len(commits) - 1; i >= 0; i-- {
-			hash := commits[i]
-			if hash == "" {
-				continue
-			}
-			if _, ok := graph.commits[hash]; ok {
-				continue
-			}
-			d, err := repo.Details(ctx, hash)
-			if err != nil {
-				return nil, fmt.Errorf("repograph.Graph: Failed to obtain Git commit details: %s", err)
-			}
-			if err := graph.addCommit(d); err != nil {
-				return nil, err
-			}
-			newCommits = append(newCommits, d)
+			addedCommits = append(addedCommits, commit)
 		}
 	}
+
 	if !needOrphanCheck {
 		// Check to see whether any branches were deleted.
 		for branch, _ := range oldBranchesMap {
@@ -390,57 +371,76 @@ func updateFromRepo(ctx context.Context, repo *git.Repo, graph *Graph) ([]*vcsin
 			}
 		}
 	}
+	var removedCommits []*vcsinfo.LongCommit
 	if needOrphanCheck {
 		sklog.Warningf("History change detected; checking for orphaned commits.")
-		visited := make(map[*Commit]bool, len(graph.commits))
+		visited := make(map[*Commit]bool, len(r.commits))
 		for _, newBranchHead := range newBranchesMap {
 			// Not using Get() because graphMtx is locked.
-			if err := graph.commits[newBranchHead].recurse(func(c *Commit) error {
+			if err := r.commits[newBranchHead].recurse(func(c *Commit) error {
 				return nil
 			}, visited); err != nil {
-				return nil, err
+				return nil, nil, fmt.Errorf("Failed to trace commit history during orphan check: %s", err)
 			}
 		}
-		for hash, c := range graph.commits {
+		for hash, c := range r.commits {
 			if !visited[c] {
 				sklog.Warningf("Commit %s is orphaned. Removing from the Graph.", hash)
-				delete(graph.commits, hash)
+				delete(r.commits, hash)
+				removedCommits = append(removedCommits, c.LongCommit)
 			}
 		}
 	}
 
-	graph.branches = newBranchesList
-	return newCommits, nil
+	// Update the rest of the Graph.
+	r.branches = newBranchesList
+	return addedCommits, removedCommits, nil
 }
 
-// Write the Graph to the cache file in the given Repo.
-func (r *Graph) writeCacheFile(repo *git.Repo) error {
-	sklog.Infof("  Writing cache file...")
-	cacheFile := path.Join(repo.Dir(), CACHE_FILE)
-	return util.WithWriteFile(cacheFile, func(w io.Writer) error {
-		return gob.NewEncoder(w).Encode(gobGraph{
-			Branches: r.branches,
-			Commits:  r.commits,
-		})
-	})
-}
-
-// UpdateFromRepo updates the Graph from a local git.Repo.
-func (r *Graph) UpdateFromRepo(ctx context.Context, repo *git.Repo, returnNewCommits bool) ([]*vcsinfo.LongCommit, error) {
-	newGraph := r.ShallowCopy()
-	newCommits, err := updateFromRepo(ctx, repo, newGraph)
+// update the Graph, returning any added and removed commits, and run the given
+// callback function on the Graph before the changes are committed. If the
+// callback returns an error, the changes are not committed.
+func (r *Graph) update(ctx context.Context, cb func(*Graph) error) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
+	r.updateMtx.Lock()
+	defer r.updateMtx.Unlock()
+	newGraph := r.shallowCopy()
+	added, removed, err := newGraph.updateFrom(ctx, r.repoImpl)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if err := newGraph.writeCacheFile(repo); err != nil {
-		return nil, fmt.Errorf("Failed to write cache file with: %s", err)
+	if cb != nil {
+		if err := cb(newGraph); err != nil {
+			return nil, nil, err
+		}
+	}
+	if err := r.repoImpl.UpdateCallback(ctx, newGraph); err != nil {
+		return nil, nil, err
 	}
 	r.graphMtx.Lock()
 	defer r.graphMtx.Unlock()
 	r.branches = newGraph.branches
 	r.commits = newGraph.commits
-	sklog.Infof("  Done. Graph has %d commits.", len(r.commits))
-	return newCommits, nil
+	return added, removed, nil
+}
+
+// Update the Graph.
+func (r *Graph) Update(ctx context.Context) error {
+	_, _, err := r.update(ctx, nil)
+	return err
+}
+
+// UpdateAndReturnCommitDiffs updates the Graph and returns the added and
+// removed commits, in arbitrary order.
+func (r *Graph) UpdateAndReturnCommitDiffs(ctx context.Context) ([]*vcsinfo.LongCommit, []*vcsinfo.LongCommit, error) {
+	return r.update(ctx, nil)
+}
+
+// UpdateWithCallback updates the Graph and runs the given function before the
+// changes are committed. If the function returns an error, the changes are not
+// committed. The function is allowed to call non-Update methods of the Graph.
+func (r *Graph) UpdateWithCallback(ctx context.Context, cb func(*Graph) error) error {
+	_, _, err := r.update(ctx, cb)
+	return err
 }
 
 // Branches returns the list of known branches in the repo.
@@ -467,9 +467,9 @@ func (r *Graph) BranchHeads() []*git.Branch {
 	return branchHeads
 }
 
-// ShallowCopy() returns a shallow copy of the Graph, ie. the pointers in the
+// shallowCopy() returns a shallow copy of the Graph, ie. the pointers in the
 // old and new Graphs will remain equal for a given Commit.
-func (r *Graph) ShallowCopy() *Graph {
+func (r *Graph) shallowCopy() *Graph {
 	r.graphMtx.RLock()
 	defer r.graphMtx.RUnlock()
 	newCommits := make(map[string]*Commit, len(r.commits))
@@ -787,30 +787,62 @@ func NewGitStoreMap(ctx context.Context, repos map[string]gitstore.GitStore) (Ma
 	return rv, nil
 }
 
-// Update updates all Graphs in the Map.
+// update the Graphs in the Map, returning any added and removed commits, and
+// run the given callback function on the Graphs before the changes are
+// committed. If the callback returns an error for any Graph, the changes are
+// not committed.
+func (m Map) update(ctx context.Context, cb func(string, *Graph) error) (map[string][]*vcsinfo.LongCommit, map[string][]*vcsinfo.LongCommit, error) {
+	added := make(map[string][]*vcsinfo.LongCommit, len(m))
+	removed := make(map[string][]*vcsinfo.LongCommit, len(m))
+	newGraphs := make(map[string]*Graph, len(m))
+	for repoUrl, r := range m {
+		r.updateMtx.Lock()
+		defer r.updateMtx.Unlock()
+		newGraph := r.shallowCopy()
+		a, r, err := newGraph.updateFrom(ctx, r.repoImpl)
+		if err != nil {
+			return nil, nil, err
+		}
+		added[repoUrl] = a
+		removed[repoUrl] = r
+		newGraphs[repoUrl] = newGraph
+		if cb != nil {
+			if err := cb(repoUrl, newGraph); err != nil {
+				return nil, nil, err
+			}
+		}
+	}
+	for repoUrl, r := range m {
+		r.graphMtx.Lock()
+		defer r.graphMtx.Unlock()
+		newGraph := newGraphs[repoUrl]
+		r.branches = newGraph.branches
+		r.commits = newGraph.commits
+	}
+	return added, removed, nil
+}
+
+// Update all Graphs in the Map.
 func (m Map) Update(ctx context.Context) error {
-	_, err := m.update(ctx, false)
+	_, _, err := m.update(ctx, nil)
 	return err
 }
 
-// UpdateAndReturnNewCommits updates all Graphs in the Map. Returns a map of
-// repo URLs to slices of new commits in each of the repos.
-func (m Map) UpdateAndReturnNewCommits(ctx context.Context) (map[string][]*vcsinfo.LongCommit, error) {
-	return m.update(ctx, true)
+// UpdateAndReturnCommitDiffs updates all Graphs in the Map. Returns maps of
+// repo URLs to slices of added commits, repo URLs to slices of removed commits,
+// or any error which was encountered. If any Graph failed to update, no changes
+// are committed.
+func (m Map) UpdateAndReturnCommitDiffs(ctx context.Context) (map[string][]*vcsinfo.LongCommit, map[string][]*vcsinfo.LongCommit, error) {
+	return m.update(ctx, nil)
 }
 
-// Update updates all Graphs in the Map. Returns a map of repo URLs to slices of
-// new commits in each of the repos.
-func (m Map) update(ctx context.Context, returnNewCommits bool) (map[string][]*vcsinfo.LongCommit, error) {
-	newCommits := make(map[string][]*vcsinfo.LongCommit, len(m))
-	for repoUrl, g := range m {
-		commits, err := g.update(ctx, returnNewCommits)
-		if err != nil {
-			return nil, err
-		}
-		newCommits[repoUrl] = commits
-	}
-	return newCommits, nil
+// UpdateWithCallback updates the Graphs in the Map and runs the given function
+// on each Graph before the changes are committed. If the function returns an
+// error for any Graph, no changes are committed. The function is allowed to
+// call non-Update methods of the Graph.
+func (m Map) UpdateWithCallback(ctx context.Context, cb func(string, *Graph) error) error {
+	_, _, err := m.update(ctx, cb)
+	return err
 }
 
 // FindCommit returns the Commit object, repo URL, and Graph object for the
