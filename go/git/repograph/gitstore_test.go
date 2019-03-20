@@ -16,21 +16,21 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-type gitstoreUpdater struct {
+type gitstoreRefresher struct {
 	gs   gitstore.GitStore
 	repo git.GitDir
 	t    *testing.T
 }
 
-func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.GitBuilder) updater {
-	return &gitstoreUpdater{
+func newGitstoreUpdater(t *testing.T, gs gitstore.GitStore, gb *git_testutils.GitBuilder) refresher {
+	return &gitstoreRefresher{
 		gs:   gs,
 		repo: git.GitDir(gb.Dir()),
 		t:    t,
 	}
 }
 
-func (u *gitstoreUpdater) addCommits(commits ...*vcsinfo.LongCommit) {
+func (u *gitstoreRefresher) refresh(commits ...*vcsinfo.LongCommit) {
 	ctx := context.Background()
 	// Add the commits.
 	assert.NoError(u.t, u.gs.Put(ctx, commits))
@@ -63,7 +63,7 @@ func (u *gitstoreUpdater) addCommits(commits ...*vcsinfo.LongCommit) {
 }
 
 // setupGitStore performs common setup for GitStore based Graphs.
-func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, updater, func()) {
+func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, refresher, func()) {
 	ctx, g, cleanup := commonSetup(t)
 
 	btConf := &gitstore.BTConfig{
@@ -77,7 +77,6 @@ func setupGitStore(t *testing.T) (context.Context, *git_testutils.GitBuilder, *G
 	ud := newGitstoreUpdater(t, gs, g)
 	repo, err := NewGitStoreGraph(ctx, gs)
 	assert.NoError(t, err)
-	assert.Nil(t, repo.repo)
 	return ctx, g, repo, ud, cleanup
 }
 
@@ -112,11 +111,11 @@ func TestUpdateHistoryChangedGitStore(t *testing.T) {
 	testUpdateHistoryChanged(t, ctx, g, repo, ud)
 }*/
 
-func TestUpdateAndReturnNewCommitsGitStore(t *testing.T) {
+func TestUpdateAndReturnCommitDiffsGitStore(t *testing.T) {
 	testutils.LargeTest(t)
 	ctx, g, repo, ud, cleanup := setupGitStore(t)
 	defer cleanup()
-	testUpdateAndReturnNewCommits(t, ctx, g, repo, ud)
+	testUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListGitStore(t *testing.T) {

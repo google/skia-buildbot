@@ -37,7 +37,7 @@ func (c *commitsCache) Update(ctx context.Context, w *window.Window, reset bool,
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 
-	newCommitsAllRepos, err := c.repos.UpdateAndReturnNewCommits(ctx)
+	newCommitsAllRepos, _, err := c.repos.UpdateAndReturnCommitDiffs(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to update commitsCache; failed to update repos: %s", err)
 	}

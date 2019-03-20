@@ -11,13 +11,13 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-type repoUpdater struct{}
+type repoRefresher struct{}
 
 // No-op, since the repo held by Graph is updated by the Graph during Update.
-func (u *repoUpdater) addCommits(...*vcsinfo.LongCommit) {}
+func (u *repoRefresher) refresh(...*vcsinfo.LongCommit) {}
 
 // setupRepo performs common setup for git.Repo based Graphs.
-func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, updater, func()) {
+func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph, refresher, func()) {
 	ctx, g, cleanup := commonSetup(t)
 
 	tmp, err := ioutil.TempDir("", "")
@@ -26,7 +26,7 @@ func setupRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, *Graph
 	repo, err := NewLocalGraph(ctx, g.Dir(), tmp)
 	assert.NoError(t, err)
 
-	return ctx, g, repo, &repoUpdater{}, func() {
+	return ctx, g, repo, &repoRefresher{}, func() {
 		testutils.RemoveAll(t, tmp)
 		cleanup()
 	}
@@ -60,11 +60,11 @@ func TestUpdateHistoryChangedRepo(t *testing.T) {
 	testUpdateHistoryChanged(t, ctx, g, repo, ud)
 }
 
-func TestUpdateAndReturnNewCommitsRepo(t *testing.T) {
+func TestUpdateAndReturnCommitDiffsRepo(t *testing.T) {
 	testutils.MediumTest(t)
 	ctx, g, repo, ud, cleanup := setupRepo(t)
 	defer cleanup()
-	testUpdateAndReturnNewCommits(t, ctx, g, repo, ud)
+	testUpdateAndReturnCommitDiffs(t, ctx, g, repo, ud)
 }
 
 func TestRevListRepo(t *testing.T) {
