@@ -62,7 +62,7 @@ var (
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
 	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
-	workdir        = flag.String("workdir", ".", "Working directory.")
+	workdir        = flag.String("workdir", common.DefaultWorkdir(), "Working directory.")
 )
 
 func main() {

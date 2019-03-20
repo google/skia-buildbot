@@ -6,6 +6,8 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"os/user"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -187,4 +189,23 @@ func (m *MultiString) Set(value string) error {
 // gets duplicated, so this prevents duplication.
 func (m *MultiString) Reset() {
 	*m = nil
+}
+
+// DefaultWorkdir returns "~/skiabot". If an error occurs, returns "/tmp".
+func DefaultWorkdir() string {
+	usr, err := user.Current()
+	if err != nil {
+		sklog.Errorf("Unable to determine current user: %s", err)
+		return os.TempDir()
+	}
+	if usr.HomeDir == "" {
+		sklog.Errorf("Unable to locate user home dir for %s", usr.Username)
+		return os.TempDir()
+	}
+	homedir, err := filepath.Abs(usr.HomeDir)
+	if err != nil {
+		sklog.Errorf("Invalid user home dir for %s: %s", usr.Username, err)
+		return os.TempDir()
+	}
+	return filepath.Join(homedir, "skiabot")
 }
