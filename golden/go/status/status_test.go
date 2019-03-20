@@ -79,12 +79,12 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		storages.DigestStore.(*MockDigestStore).issueIDs = nil
 
 		assert.False(t, corpStatus.OK)
-		tilePair, err := storages.GetLastTileTrimmed()
+		cpxTile, err := storages.GetLastTileTrimmed()
 		assert.NoError(t, err)
 
 		changes := types.TestExp{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
-		for _, trace := range tilePair.Tile.Traces {
+		for _, trace := range cpxTile.GetTile(false).Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
 				gTrace := trace.(*types.GoldenTrace)
 				testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]

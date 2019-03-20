@@ -26,6 +26,8 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gevent"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
@@ -35,6 +37,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -66,49 +69,51 @@ const (
 	WHITELIST_ALL = "all"
 )
 
-// Command line flags.
-var (
-	appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
-	authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
-	authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-	cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
-	clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
-	cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
-	defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
-	defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
-	diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
-	diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
-	dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
-	eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
-	forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
-	gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
-	hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
-	baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
-	imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
-	internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
-	local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
-	promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", WHITELIST_ALL))
-	redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
-	siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-	storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
-	gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-	serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
-	showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
-	sparseInput         = flag.Bool("sparse", false, "Sparse input expected. Filter out 'empty' commits.")
-	traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
-)
-
 func main() {
+	// Command line flags.
+	var (
+		appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
+		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
+		authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
+		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
+		cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+		defaultCorpus       = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
+		defaultMatchFields  = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
+		diffServerGRPCAddr  = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
+		diffServerImageAddr = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
+		dsNamespace         = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+		eventTopic          = flag.String("event_topic", "", "The pubsub topic to use for distributed events.")
+		forceLogin          = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
+		gsBucketNames       = flag.String("gs_buckets", "skia-infra-gm,chromium-skia-gm", "Comma-separated list of google storage bucket that hold uploaded images.")
+		hashesGSPath        = flag.String("hashes_gs_path", "", "GS path, where the known hashes file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		baselineGSPath      = flag.String("baseline_gs_path", "", "GS path, where the baseline file should be stored. If empty no file will be written. Format: <bucket>/<path>.")
+		imageDir            = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+		indexInterval       = flag.Duration("idx_interval", 5*time.Minute, "Interval at which the indexer calculates the search index.")
+		internalPort        = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
+		local               = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+		memProfile          = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+		nCommits            = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+		noCloudLog          = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally and in K8s.")
+		port                = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+		projectID           = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
+		promPort            = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		pubWhiteList        = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", WHITELIST_ALL))
+		redirectURL         = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
+		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
+		storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
+		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+		gitRepoURL          = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+		serviceAccountFile  = flag.String("service_account_file", "", "Credentials file for service account.")
+		showBotProgress     = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
+		sparseInput         = flag.Bool("sparse", false, "Sparse input expected. Filter out 'empty' commits.")
+		traceservice        = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+	)
+
 	var err error
 
 	// Needed to use TimeSortableKey(...) which relies on an RNG. See docs there.
@@ -134,6 +139,7 @@ func main() {
 	}
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
+	skiaversion.MustLogVersion()
 
 	// TODO(stephana): Running the setup process in the a parallel go-routine is an ugly hack and
 	// should be removed as soon as the setup process is fast enough to complete within 10 seconds.
@@ -201,7 +207,7 @@ func main() {
 		if *local {
 			useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 		}
-		authWhiteList := metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, login.DEFAULT_DOMAIN_WHITELIST)
+		authWhiteList := metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, *authWhiteList)
 		if err := login.Init(useRedirectURL, authWhiteList, *clientSecretFile); err != nil {
 			sklog.Fatalf("Failed to initialize the login system: %s", err)
 		}
@@ -254,9 +260,24 @@ func main() {
 			sklog.Fatal(err)
 		}
 
-		git, err := gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
+		var vcs vcsinfo.VCS
+		if *gitBTInstanceID != "" && *gitBTTableID != "" {
+			btConf := &gitstore.BTConfig{
+				ProjectID:  *projectID,
+				InstanceID: *gitBTInstanceID,
+				TableID:    *gitBTTableID,
+			}
+			gitStore, err := gitstore.NewBTGitStore(ctx, btConf, *gitRepoURL)
+			if err != nil {
+				sklog.Fatalf("Error instantiating gitstore: %s", err)
+			}
+			gitilesRepo := gitiles.NewRepo("", "", nil)
+			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo)
+		} else {
+			vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
+		}
 		if err != nil {
-			sklog.Fatal(err)
+			sklog.Fatalf("Error creating VCS instance: %s", err)
 		}
 
 		// Set up the event bus which can either be in-process or distributed
@@ -295,7 +316,7 @@ func main() {
 			sklog.Fatalf("Failed to connect to tracedb: %s", err)
 		}
 
-		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, git, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
+		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
 		if err != nil {
 			sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 		}
@@ -344,16 +365,18 @@ func main() {
 			// This uses MySQL to manage expectations for the master branch.
 			expStore = expstorage.NewSQLExpectationStore(vdb)
 		}
+		expStore = expstorage.NewCachingExpectationStore(expStore, evt)
 
 		tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, issueExpStoreFactory, evt)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate tryjob store: %s", err)
 		}
+		tryjobMonitor := tryjobs.NewTryjobMonitor(tryjobStore, expStore, issueExpStoreFactory, gerritAPI, *siteURL, evt, *authoritative)
 
 		// Extract the site URL
 		storages := &storage.Storage{
 			DiffStore:            diffStore,
-			ExpectationsStore:    expstorage.NewCachingExpectationStore(expStore, evt),
+			ExpectationsStore:    expStore,
 			IssueExpStoreFactory: issueExpStoreFactory,
 			TraceDB:              db,
 			MasterTileBuilder:    masterTileBuilder,
@@ -361,10 +384,10 @@ func main() {
 			NCommits:             *nCommits,
 			EventBus:             evt,
 			TryjobStore:          tryjobStore,
-			TryjobMonitor:        tryjobs.NewTryjobMonitor(tryjobStore, gerritAPI, *siteURL, evt, *authoritative),
+			TryjobMonitor:        tryjobMonitor,
 			GerritAPI:            gerritAPI,
 			GStorageClient:       gsClient,
-			Git:                  git,
+			VCS:                  vcs,
 			IsAuthoritative:      *authoritative,
 			SiteURL:              *siteURL,
 			IsSparseTile:         *sparseInput,
@@ -404,15 +427,18 @@ func main() {
 		}
 
 		// Rebuild the index every two minutes.
+		sklog.Infof("Starting indexer")
 		ixr, err := indexer.New(storages, *indexInterval)
 		if err != nil {
 			sklog.Fatalf("Failed to create indexer: %s", err)
 		}
+		sklog.Infof("Indexer created.")
 
 		searchAPI, err := search.NewSearchAPI(storages, ixr)
 		if err != nil {
 			sklog.Fatalf("Failed to create instance of search API: %s", err)
 		}
+		sklog.Infof("Search API created")
 
 		issueTracker := issues.NewMonorailIssueTracker(client)
 
@@ -420,6 +446,7 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Failed to initialize status watcher: %s", err)
 		}
+		sklog.Infof("statusWatcher created")
 
 		handlers = web.WebHandlers{
 			Storages:      storages,
@@ -472,7 +499,7 @@ func main() {
 	// TODO(stephana): remove "/_/hashes" in favor of "/json/hashes" once all clients have switched.
 
 	// /_/hashes is used by the bots to find hashes it does not need to upload.
-	router.HandleFunc("/_/hashes", handlers.TextAllHashesHandler).Methods("GET")
+	router.HandleFunc(shared.LEGACY_KNOWN_HASHES_ROUTE, handlers.TextKnownHashesProxy).Methods("GET")
 	router.HandleFunc("/json/version", skiaversion.JsonHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
@@ -483,7 +510,7 @@ func main() {
 	jsonRouter := router.PathPrefix("/json").Subrouter()
 	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
 
-	jsonRouter.HandleFunc(trim("/json/hashes"), handlers.TextAllHashesHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim(shared.KNOWN_HASHES_ROUTE), handlers.TextKnownHashesProxy).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.JsonByBlameHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/list"), handlers.JsonListTestsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.JsonParamsHandler).Methods("GET")
@@ -506,6 +533,11 @@ func main() {
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
+
+	// REMOVE: This is just for old versions
+	jsonRouter.HandleFunc(trim("/json/expecations/commit/{commit_hash}"), handlers.JsonBaselineHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/expecations/issue/{issue_id}"), handlers.JsonBaselineHandler).Methods("GET")
+
 	jsonRouter.HandleFunc(trim("/json/refresh/{id}"), handlers.JsonRefreshIssue).Methods("GET")
 
 	// Only expose these endpoints if login is enforced across the app or this an open site.
