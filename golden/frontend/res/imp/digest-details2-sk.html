@@ -58,7 +58,6 @@
 <link rel="import" href="../common/imp/paramset.html">
 <link rel="import" href="../common/imp/triage-sk.html">
 
-<link rel="import" href="blame-sk.html">
 <link rel="import" href="dots-sk.html">
 <link rel="import" href="dot-legend-sk.html">
 <link rel="import" href="purge-sk.html">
@@ -270,10 +269,6 @@
         test="{{details.test}}"
         digests={{details.traces.digests}}>
       </dot-legend-sk>
-      <blame-sk id="blame"
-        commits="{{commits}}"
-        value="{{details.diff.blame}}">
-      </blame-sk>
     </div>
   </template>
   <script>
@@ -356,7 +351,6 @@
         this.listen(this.$.dots, 'hover', '_hoverHandler');
         this.listen(this.$.dots, 'mouseleave', '_mouseLeaveHandler');
         this.listen(this.$.triageControls, 'change', '_triageChangeHandler');
-        this.listen(this.$.blame, 'hover-blame', '_blameHoverHandler');
 
         this.rotateIDs = ["leftCheckbox", "rightCheckbox", "diffCheckbox"];
 
@@ -432,10 +426,6 @@
             }
           }
           this.$.paramsets.setHighlight(params);
-      },
-
-      _blameHoverHandler: function(ev) {
-        this.$.dots.highlight(ev.detail.index, ev.detail.b);
       },
 
       _mouseLeaveHandler: function() {
