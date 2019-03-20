@@ -3,7 +3,13 @@
 {
   "childName": "Catapult",
   "contacts": [
-    "sullivan@google.com"
+    "chrome-speed-operations@google.com",
+    "crouleau@chromium.org",
+    "perezju@chromium.org",
+    "simonhatch@chromium.org",
+    "dberris@chromium.org",
+    "sullivan@chromium.org",
+    "jbudorick@chromium.org"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -16,6 +22,7 @@
   "rollerName": "catapult-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
+    // TODO(crbug.com/942335): Switch this to a rotation if possible.
     "sullivan@chromium.org"
   ],
   "noCheckoutDEPSRepoManager": {
@@ -44,7 +51,7 @@
   "maxRollFrequency": "0m",
   "notifiers": [
     {
-      "filter": "warning",
+      "filter": "error",
       "email": {
         "emails": [
           "chrome-speed-operations@google.com"
