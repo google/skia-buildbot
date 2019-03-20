@@ -39,6 +39,48 @@
       "revId": "346db06fb5b47d803a5484c07c0e2da85112b4ad",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d38cfd2_11edcd9a",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-20T20:01:40Z",
+      "side": 1,
+      "message": "Agreed. I had originally linked to a specific commit but I figured I\u0027d rather have this link point to the wrong line at the correct revision than have it point to an outdated revision at the correct line.",
+      "parentUuid": "a2c2d9b1_1a5866b9",
+      "revId": "346db06fb5b47d803a5484c07c0e2da85112b4ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b0024bfc_c981b663",
+        "filename": "autoroll/config/afdo-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-20T20:01:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43c3b635_bd926a9b",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 6
+      },
+      "revId": "346db06fb5b47d803a5484c07c0e2da85112b4ad",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
