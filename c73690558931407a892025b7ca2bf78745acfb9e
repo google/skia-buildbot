@@ -121,6 +121,30 @@
     },
     {
       "key": {
+        "uuid": "21761c0e_856b1da5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1589,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T20:34:16Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/buildbot/+/202422",
+      "parentUuid": "6d5ad02e_02599556",
+      "range": {
+        "startLine": 1578,
+        "startChar": 0,
+        "endLine": 1589,
+        "endChar": 3
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "61f07c8e_886793db",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 4
@@ -252,6 +276,30 @@
       "side": 1,
       "message": "SGTM. In either case we\u0027ll want to determine what circumstances produce higher/lower/equivalent scores and document them.",
       "parentUuid": "c88bc3d7_b8887af6",
+      "range": {
+        "startLine": 1597,
+        "startChar": 52,
+        "endLine": 1597,
+        "endChar": 104
+      },
+      "revId": "c73690558931407a892025b7ca2bf78745acfb9e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1809651f_4a2aa150",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1597,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-20T20:34:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45b29231_8d50384b",
       "range": {
         "startLine": 1597,
         "startChar": 52,
