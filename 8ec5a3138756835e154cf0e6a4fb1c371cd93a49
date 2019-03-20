@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ebefd188_4eb18f50",
+        "filename": "task_scheduler/go/db/testutil.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1518,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-20T16:43:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "108a172e_c4ef2168",
+      "range": {
+        "startLine": 1518,
+        "startChar": 1,
+        "endLine": 1518,
+        "endChar": 2
+      },
+      "revId": "8ec5a3138756835e154cf0e6a4fb1c371cd93a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99a0ce06_353eebd6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "8ec5a3138756835e154cf0e6a4fb1c371cd93a49",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79e4b97e_27aa0b0e",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-20T16:43:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99a0ce06_353eebd6",
+      "range": {
+        "startLine": 200,
+        "startChar": 61,
+        "endLine": 200,
+        "endChar": 78
+      },
+      "revId": "8ec5a3138756835e154cf0e6a4fb1c371cd93a49",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
