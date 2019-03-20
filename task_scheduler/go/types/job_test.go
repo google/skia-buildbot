@@ -206,3 +206,29 @@ func TestJobDeriveStatus(t *testing.T) {
 	t3.Status = TASK_STATUS_SUCCESS
 	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_SUCCESS)
 }
+
+func TestJobDeriveStatusTryJob(t *testing.T) {
+	testutils.SmallTest(t)
+	// Test that tryjobs do not have retries.
+	j1 := &Job{
+		Dependencies: map[string][]string{"test": {"build"}, "build": {}},
+		Name:         "j1",
+		RepoState: RepoState{
+			Patch: Patch{
+				Issue:    "12345",
+				Patchset: "1",
+				Server:   "my-server",
+			},
+			Repo:     "my-repo",
+			Revision: "my-revision",
+		},
+	}
+	// Add a failed task for the job with multiple attempts.
+	t1 := &TaskSummary{
+		Status:      TASK_STATUS_FAILURE,
+		MaxAttempts: 2,
+	}
+	j1.Tasks = map[string][]*TaskSummary{"build": {t1}}
+	// Expect the try job to be failed, ignoring the retries.
+	assert.Equal(t, j1.DeriveStatus(), JOB_STATUS_FAILURE)
+}

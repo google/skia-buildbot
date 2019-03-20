@@ -262,6 +262,10 @@ func (j *Job) DeriveStatus() JobStatus {
 		if maxAttempts == 0 {
 			maxAttempts = DEFAULT_MAX_TASK_ATTEMPTS
 		}
+		if j.IsTryJob() {
+			// See discussion in skia:7621.
+			maxAttempts = 1
+		}
 		canRetry := len(tasks) < maxAttempts
 		bestStatus := JOB_STATUS_MISHAP
 		for _, t := range tasks {
