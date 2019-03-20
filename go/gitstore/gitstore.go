@@ -68,13 +68,6 @@ const (
 )
 
 var (
-	// Minimum time (the epoch)
-	MinTime = time.Unix(0, 0)
-
-	// MaxTime is the maximum time for which functions like After(...) still work.
-	// See:	https://stackoverflow.com/questions/25065055/what-is-the-maximum-time-time-in-go/32620397#32620397
-	MaxTime = time.Unix(1<<63-62135596801, 999999999)
-
 	// Default number of shards used, if not shards provided in BTConfig.
 	DefaultShards = 32
 )
@@ -252,7 +245,7 @@ func (b *btGitStore) Put(ctx context.Context, commits []*vcsinfo.LongCommit) err
 	}
 
 	// Retrieve the commits in time chronological order and set the index.
-	indexCommits, err := b.RangeByTime(ctx, MinTime, MaxTime, branch)
+	indexCommits, err := b.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, branch)
 	if err != err {
 		return skerr.Fmt("Error retrieving commits in order: %s", err)
 	}
