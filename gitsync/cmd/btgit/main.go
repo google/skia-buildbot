@@ -54,7 +54,7 @@ func main() {
 
 	if *listRepos {
 		for _, repo := range allRepoInfos {
-			fmt.Printf("Repo: %s ", repo.RepoURL)
+			fmt.Printf("Repo: %s \n", repo.RepoURL)
 			if *verbose {
 				logBranches("    ", repo.Branches)
 			}
@@ -132,7 +132,7 @@ func main() {
 			sklog.Fatalf("Programming error: Unable to retrieve long commit for hash %s", hashes[idx])
 		}
 		if *verbose {
-			fmt.Printf("%s %40s %v %s", c.Hash, c.Author, c.Timestamp, c.Subject)
+			fmt.Printf("%s %40s %v %s\n", c.Hash, c.Author, c.Timestamp, c.Subject)
 		}
 	}
 }
