@@ -775,14 +775,18 @@ func NewLocalMap(ctx context.Context, repos []string, workdir string) (Map, erro
 }
 
 // NewGitStoreMap returns a Map instance with Graphs for the given GitStores.
-func NewGitStoreMap(ctx context.Context, repos map[string]gitstore.GitStore) (Map, error) {
-	rv := make(map[string]*Graph, len(repos))
-	for url, gs := range repos {
-		g, err := NewGitStoreGraph(ctx, gs)
+func NewBTGitStoreMap(ctx context.Context, repoUrls []string, btConf *gitstore.BTConfig) (Map, error) {
+	rv := make(map[string]*Graph, len(repoUrls))
+	for _, repoUrl := range repoUrls {
+		gs, err := gitstore.NewBTGitStore(ctx, btConf, repoUrl)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to create GitStore for %s: %s", repoUrl, err)
 		}
-		rv[url] = g
+		graph, err := NewGitStoreGraph(ctx, gs)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create Graph from GitStore for %s: %s", repoUrl, err)
+		}
+		rv[repoUrl] = graph
 	}
 	return rv, nil
 }

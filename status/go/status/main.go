@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -92,6 +93,7 @@ var (
 	btProject                   = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	capacityRecalculateInterval = flag.Duration("capacity_recalculate_interval", 10*time.Minute, "How often to re-calculate capacity statistics.")
 	firestoreInstance           = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable               = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -745,11 +747,13 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
-	repos, err = repograph.NewLocalMap(ctx, *repoUrls, reposDir)
-	if err != nil {
-		sklog.Fatalf("Failed to create repo map: %s", err)
+	btConf := &gitstore.BTConfig{
+		ProjectID:  *btProject,
+		InstanceID: *btInstance,
+		TableID:    *gitstoreTable,
 	}
-	if err := repos.Update(ctx); err != nil {
+	repos, err = repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	if err != nil {
 		sklog.Fatal(err)
 	}
 	sklog.Info("Checkout complete")

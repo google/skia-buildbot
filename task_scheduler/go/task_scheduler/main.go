@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
@@ -91,6 +92,7 @@ var (
 	dbPort            = flag.String("db_port", ":8008", "HTTP service port for the database RPC server (e.g., ':8008')")
 	disableTryjobs    = flag.Bool("disable_try_jobs", false, "If set, no try jobs will be picked up.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	kube              = flag.Bool("kube", false, "Whether we're running in Kubernetes.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
@@ -645,7 +647,12 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("--repo is required.")
 	}
-	repos, err = repograph.NewLocalMap(ctx, *repoUrls, wdAbs)
+	btConf := &gitstore.BTConfig{
+		ProjectID:  *btProject,
+		InstanceID: *btInstance,
+		TableID:    *gitstoreTable,
+	}
+	repos, err = repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}
