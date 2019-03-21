@@ -604,7 +604,7 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 
 			if err := b.getTable().Apply(tctx, tileKey.OpsRowName(), condUpdate, bigtable.GetCondMutationResult(&condTrue)); err != nil {
 				sklog.Warningf("Failed to apply: %s", err)
-				continue
+				return nil, err
 			}
 
 			// If !condTrue then we need to try again,
@@ -615,10 +615,6 @@ func (b *BigTableTraceStore) UpdateOrderedParamSet(tileKey TileKey, p paramtools
 				delete(b.opsCache, tileKey.OpsRowName())
 				b.mutex.Unlock()
 				continue
-			}
-			if err != nil {
-				// Probably a timeout.
-				return nil, err
 			}
 		} else {
 			sklog.Infof("FIRST WRITE")
