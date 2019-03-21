@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -535,12 +534,9 @@ func (r *resultState) loadKnownHashes() error {
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations() error {
-	var urlPath string
+	urlPath := strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
 	if r.GoldResults.Issue > 0 {
-		issueID := strconv.FormatInt(r.GoldResults.Issue, 10)
-		urlPath = strings.Replace(shared.EXPECTATIONS_ISSUE_ROUTE, "{issue_id}", issueID, 1)
-	} else {
-		urlPath = strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
+		urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.GoldResults.Issue)
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
