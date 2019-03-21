@@ -1,0 +1,82 @@
+# ##############################################
+#
+# Traceserver
+#
+# ##############################################
+kind: Service
+apiVersion: v1
+metadata:
+  name: gold-{{.INSTANCE_ID}}-traceservice
+  labels:
+    app: gold-{{.INSTANCE_ID}}
+spec:
+  ports:
+    - name: grpc
+      port: 9090
+    - name: http-ready
+      port: 9091
+    - name: prometheus
+      port: 20000
+  selector:
+    app: gold-{{.INSTANCE_ID}}-traceserver
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gold-{{.INSTANCE_ID}}-traceserver
+spec:
+  selector:
+    matchLabels:
+      app: gold-{{.INSTANCE_ID}}-traceserver # Label selector that determines which Pods belong to the StatefulSet
+                                   # Must match spec: template: metadata: labels
+  serviceName: "gold-{{.INSTANCE_ID}}-traceserver"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: gold-{{.INSTANCE_ID}}-traceserver  # Pod template's label selector
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: gold-{{.INSTANCE_ID}}-traceserver
+          image: {{.TRACESERVER_IMAGE}}
+          args:
+            - "--db_file=/mnt/traceserver/traces.db"
+            - "--http_port=:9091"
+            - "--logtostderr"
+            - "--no_cloud_log"
+            - "--port=:9090"
+            - "--prom_port=:20000"
+          ports:
+            - containerPort: 9090
+            - containerPort: 9091
+            - containerPort: 20000
+          volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-traceserver-storage-volume
+              mountPath: /mnt/traceserver
+          resources:
+            limits:
+              memory: "{{.TRACESERVER_MEMORY}}"
+              cpu: "{{.TRACESERVER_CPU}}"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 9091
+            initialDelaySeconds: 30
+            periodSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: gold-{{.INSTANCE_ID}}-traceserver-storage-volume
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 20Gi
