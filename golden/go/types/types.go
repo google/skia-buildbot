@@ -97,7 +97,7 @@ type ComplexTile struct {
 	// ignoreRules contains the rules used to created the TileWithIgnores.
 	ignoreRules paramtools.ParamMatcher
 
-	// irRev is the revision of the ignore rules.
+	// irRevision is the (monotonically increasing) revision of the ignore rules.
 	irRevision int64
 
 	// sparseCommits are all the commits that were used condense the underlying tile.
@@ -105,7 +105,7 @@ type ComplexTile struct {
 
 	// cards captures the cardinality of each commit in sparse tile, meaning how many data points
 	// each commit contains.
-	cards []int
+	cardinalities []int
 
 	// filled contains the number of commits that are non-empty.
 	filled int
@@ -119,8 +119,8 @@ func NewComplexTile(completeTile *tiling.Tile) *ComplexTile {
 }
 
 // SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
-// In other words this function assumes that original tile has been filtered by the ignore rules that
-// are being passed.
+// In other words this function assumes that original tile has been filtered by the
+// ignore rules that are being passed.
 func (c *ComplexTile) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher, irRev int64) *ComplexTile {
 	c.tile = reducedTile
 	c.irRevision = irRev
@@ -155,7 +155,7 @@ func (c *ComplexTile) SetSparse(sparseCommits []*tiling.Commit, cardinalities []
 		cardinalities = cardinalities[:commitsLen]
 	}
 	c.sparseCommits = sparseCommits
-	c.cards = cardinalities
+	c.cardinalities = cardinalities
 	c.filled = filled
 	return c
 }
@@ -167,15 +167,15 @@ func (c *ComplexTile) FilledCommits() int {
 // ensureSparseInfo is a helper function that fills in the sparsity information if it wasn't set.
 func (c *ComplexTile) ensureSparseInfo() {
 	if c != nil {
-		if c.sparseCommits == nil || c.cards == nil {
+		if c.sparseCommits == nil || c.cardinalities == nil {
 			c.SetSparse(nil, nil)
 		}
 	}
 }
 
-// Same returns true if the given complex tile was derived from the same tile as the one
-// provided and if non of the other parameters changed, especially the ignore revision.
-func (c *ComplexTile) Same(completeTile *tiling.Tile, ignoreRev int64) bool {
+// FromSame returns true if the given complex tile was derived from the same tile as the one
+// provided and if none of the other parameters changed, especially the ignore revision.
+func (c *ComplexTile) FromSame(completeTile *tiling.Tile, ignoreRev int64) bool {
 	return c != nil &&
 		c.tileWithIgnores != nil &&
 		c.tileWithIgnores == completeTile &&

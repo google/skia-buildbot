@@ -28,6 +28,14 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	// maxNSparseCommits is the maximum number of commits we are considering when condensing a
+	// sparse tile into a dense tile by removing commits that contain no data.
+	// This should be changed or made a config option when we consider going back more commits makes
+	// sense.
+	maxNSparseCommits = 3000
+)
+
 // Storage is a container struct for the various storage objects we are using.
 // It is intended to reduce parameter lists as we pass around storage objects.
 type Storage struct {
@@ -56,15 +64,10 @@ type Storage struct {
 	// 0 or smaller all commits in the last tile will be considered.
 	NCommits int
 
-	// Internal variables used to cache trimmed tiles.
+	// Internal variables used to cache tiles.
 	lastCpxTile   *types.ComplexTile
 	lastTimeStamp time.Time
-
-	// lastTrimmedTile        *tiling.Tile
-	// lastTrimmedIgnoredTile *tiling.Tile
-	// lastIgnoreRev          int64
-	// lastIgnoreRules        paramtools.ParamMatcher
-	mutex sync.Mutex
+	mutex         sync.Mutex
 }
 
 // TODO(stephana): Baseliner will eventually factored into the baseline package and
@@ -169,7 +172,8 @@ func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	// If the tile was updated within a certain time window just return it without calculating it again.
+	// If the tile was updated within a certain time window just return it without
+	// calculating it again.
 	if s.lastCpxTile != nil && (time.Now().Sub(s.lastTimeStamp) > tileCacheTime) {
 		return s.lastCpxTile, nil
 	}
@@ -200,7 +204,7 @@ func (s *Storage) GetLastTileTrimmed() (*types.ComplexTile, error) {
 	// Get the ignore revision and check if the tile has changed at all.
 	// Note: This only applies to tiles that are not sparse.
 	currentIgnoreRev := s.IgnoreStore.Revision()
-	if s.lastCpxTile.Same(rawTile, currentIgnoreRev) {
+	if s.lastCpxTile.FromSame(rawTile, currentIgnoreRev) {
 		return s.lastCpxTile, nil
 	}
 
@@ -347,8 +351,6 @@ func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile *types.Compl
 		}
 		prevIdxCommits = idxCommits
 
-		sklog.Infof("Proc idx commits: %d", len(idxCommits))
-
 		// Build a candidate Tile from the found commits
 		sparseCommitIDs = getCommitIDs(idxCommits)
 		sparseTile, _, err := s.TraceDB.TileFromCommits(sparseCommitIDs)
@@ -375,10 +377,11 @@ func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile *types.Compl
 			}
 		}
 
-		// double the number of commits we consider for the target tile.
+		// double the number of commits we consider for the target tile to reach our goal fast.
+		// If we are above a maximum number of commits don't go any further and just use what we have.
 		lastNCommits *= 2
-		if lastNCommits > 5000 && len(targetHashes) > 0 {
-			sklog.Infof("lastNCommits: %d  %d", lastNCommits, len(targetHashes))
+		if lastNCommits > maxNSparseCommits && len(targetHashes) > 0 {
+			sklog.Infof("Reached limit of %d commits to consider in sparse tile. Using %d commits.", maxNSparseCommits, len(targetHashes))
 			break
 		}
 	}
@@ -434,7 +437,6 @@ func (s *Storage) getCondensedTile(ctx context.Context, lastCpxTile *types.Compl
 		}
 	}
 
-	// sklog.Infof("Found %d sparse commits and %d dense commits with starting hashes", len(sparseCommits), len(denseTile.Commits))
 	if len(sparseCommits) > 0 && len(denseTile.Commits) > 0 {
 		sklog.Infof("Found %d sparse commits and %d dense commits with starting hashes: %s == %s", len(sparseCommits), len(denseTile.Commits), denseTile.Commits[0].Hash, sparseCommits[0].Hash)
 	}
@@ -462,7 +464,6 @@ func (s *Storage) checkCommitableIssues(cpxTile *types.ComplexTile) {
 	go func() {
 		var egroup errgroup.Group
 
-		// for _, commit := range cpxTile.AllCommits() range tile.Commits[:tile.LastCommitIndex()+1] {
 		for _, commit := range cpxTile.AllCommits() {
 			func(commit *tiling.Commit) {
 				egroup.Go(func() error {

@@ -80,7 +80,6 @@ func (idx *SearchIndex) CpxTile() *types.ComplexTile {
 // GetIgnoreMatcher returns a matcher for the ignore rules that were used to
 // build the tile with ignores.
 func (idx *SearchIndex) GetIgnoreMatcher() paramtools.ParamMatcher {
-	// return idx.tilePair.IgnoreRules
 	return idx.cpxTile.IgnoreRules()
 }
 
