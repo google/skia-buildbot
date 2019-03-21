@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ddaca670_8147c45b",
+        "filename": "gitsync/create-skia-gitsync-internal-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T19:59:13Z",
+      "side": 1,
+      "message": "super nit: spaces between these commands and shorter lines (continued with \u0027\\\u0027) \nwould make them easier to read.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 115
+      },
+      "revId": "d74d081e1003dd9513e7c6bc9fad140a316b4bf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
