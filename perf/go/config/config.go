@@ -28,12 +28,14 @@ type PerfBigTableConfig struct {
 	Topic    string
 	GitUrl   string
 	Shards   int32
+	Sources  []string // List of gs: locations.
 }
 
 const (
-	NANO    = "nano"
-	ANDROID = "android"
-	CT      = "ct"
+	NANO         = "nano"
+	ANDROID      = "android"
+	ANDROID_PROD = "android-prod"
+	CT           = "ct"
 )
 
 var (
@@ -46,6 +48,7 @@ var (
 			Topic:    "perf-ingestion-skia-production",
 			GitUrl:   "https://skia.googlesource.com/skia",
 			Shards:   8,
+			Sources:  []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
 		},
 		ANDROID: &PerfBigTableConfig{
 			TileSize: 256,
@@ -55,6 +58,17 @@ var (
 			Topic:    "perf-ingestion-android",
 			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
 			Shards:   8,
+			Sources:  []string{"gs://skia-perf/android-master-ingest"},
+		},
+		ANDROID_PROD: &PerfBigTableConfig{
+			TileSize: 8192,
+			Project:  "skia-public",
+			Instance: "production",
+			Table:    "perf-android",
+			Topic:    "perf-ingestion-android-production",
+			GitUrl:   "https://skia.googlesource.com/perf-buildid/android-master",
+			Shards:   8,
+			Sources:  []string{"gs://skia-perf/android-master-ingest"},
 		},
 		CT: &PerfBigTableConfig{
 			TileSize: 256,
@@ -64,6 +78,7 @@ var (
 			Topic:    "perf-ingestion-ct",
 			GitUrl:   "https://skia.googlesource.com/perf-ct",
 			Shards:   8,
+			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
 		},
 	}
 )

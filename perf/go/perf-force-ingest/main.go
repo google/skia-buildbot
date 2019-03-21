@@ -29,7 +29,6 @@ var (
 	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	start      = flag.String("start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
 	end        = flag.String("end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
-	prefix     = flag.String("prefix", "gs://skia-perf/nano-json-v1", "The bucket and root directory to scan for files.")
 	dryrun     = flag.Bool("dry_run", false, "Just display the list of files to send.")
 )
 
@@ -75,36 +74,38 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	u, err := url.Parse(*prefix)
-	if err != nil {
-		sklog.Fatalf("Failed to parse the --prefix flag: %s", err)
-	}
-
-	dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime.Unix(), endTime.Unix())
-	for _, dir := range dirs {
-		sklog.Infof("Directory: %q", dir)
-		err := gcs.AllFilesInDir(gcsClient, u.Host, dir, func(item *storage.ObjectAttrs) {
-			// The PubSub event data is a JSON serialized storage.ObjectAttrs object.
-			// See https://cloud.google.com/storage/docs/pubsub-notifications#payload
-			sklog.Infof("File: %q", item.Name)
-			b, err := json.Marshal(storage.ObjectAttrs{
-				Name:   item.Name,
-				Bucket: u.Host,
-			})
-			if err != nil {
-				sklog.Errorf("Failed to serialize event: %s", err)
-			}
-			if *dryrun {
-				fmt.Println(item.Name, item.Bucket)
-				return
-			}
-			topic.Publish(ctx, &pubsub.Message{
-				Data: b,
-			})
-		})
+	for _, prefix := range cfg.Sources {
+		u, err := url.Parse(prefix)
 		if err != nil {
+			sklog.Fatalf("Failed to parse the prefix: %s", err)
+		}
+
+		dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime.Unix(), endTime.Unix())
+		for _, dir := range dirs {
+			sklog.Infof("Directory: %q", dir)
+			err := gcs.AllFilesInDir(gcsClient, u.Host, dir, func(item *storage.ObjectAttrs) {
+				// The PubSub event data is a JSON serialized storage.ObjectAttrs object.
+				// See https://cloud.google.com/storage/docs/pubsub-notifications#payload
+				sklog.Infof("File: %q", item.Name)
+				b, err := json.Marshal(storage.ObjectAttrs{
+					Name:   item.Name,
+					Bucket: u.Host,
+				})
+				if err != nil {
+					sklog.Errorf("Failed to serialize event: %s", err)
+				}
+				if *dryrun {
+					fmt.Println(item.Name, item.Bucket)
+					return
+				}
+				topic.Publish(ctx, &pubsub.Message{
+					Data: b,
+				})
+			})
 			if err != nil {
-				sklog.Errorf("Failed while walking GCS files: %s", err)
+				if err != nil {
+					sklog.Errorf("Failed while walking GCS files: %s", err)
+				}
 			}
 		}
 	}
