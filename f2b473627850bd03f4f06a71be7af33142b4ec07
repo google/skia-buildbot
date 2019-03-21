@@ -22,6 +22,30 @@
       "revId": "f2b473627850bd03f4f06a71be7af33142b4ec07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da4bf8bf_adee78da",
+        "filename": "status/go/status/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 762,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-21T19:25:18Z",
+      "side": 1,
+      "message": "Done, also added the table ID as a flag and updated statusk.",
+      "parentUuid": "851003bb_224dd6b2",
+      "range": {
+        "startLine": 749,
+        "startChar": 0,
+        "endLine": 762,
+        "endChar": 54
+      },
+      "revId": "f2b473627850bd03f4f06a71be7af33142b4ec07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
