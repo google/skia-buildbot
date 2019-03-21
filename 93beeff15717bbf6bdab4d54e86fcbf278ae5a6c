@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4995bc8b_85d5348b",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-21T19:40:05Z",
+      "side": 1,
+      "message": "nit: add \"BT\" to the name",
+      "range": {
+        "startLine": 778,
+        "startChar": 5,
+        "endLine": 778,
+        "endChar": 19
+      },
+      "revId": "93beeff15717bbf6bdab4d54e86fcbf278ae5a6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6cc4fad_7a8526f8",
+        "filename": "go/git/repograph/graph.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 783,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-21T19:40:05Z",
+      "side": 1,
+      "message": "nit: include repoUrl in error context; x2",
+      "range": {
+        "startLine": 783,
+        "startChar": 28,
+        "endLine": 783,
+        "endChar": 35
+      },
+      "revId": "93beeff15717bbf6bdab4d54e86fcbf278ae5a6c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
