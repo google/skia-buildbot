@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ca1f381d_44c38805",
+        "filename": "go/git/gitinfo/gitinfo.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90a80cbb_06f36486",
+      "range": {
+        "startLine": 132,
+        "startChar": 5,
+        "endLine": 132,
+        "endChar": 8
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fde1c251_db2465e9",
         "filename": "go/tiling/tiling.go",
         "patchSetId": 29
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-21T12:57:19Z",
       "side": 1,
       "message": "Why are some commits invalid?  Is having a Commit Time of 0 the best/only way to know this?",
+      "range": {
+        "startLine": 143,
+        "startChar": 26,
+        "endLine": 143,
+        "endChar": 31
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38bed50a_ec691e10",
+        "filename": "go/tiling/tiling.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Agreed, this is not the best approach. It stems from the fact that when creating a new tile it will allocate \"empty\" commits upfront. Using 0 is fine though, because it\u0027s a very strong indicator that the commit was initialized with the nil values each member.",
+      "parentUuid": "fde1c251_db2465e9",
       "range": {
         "startLine": 143,
         "startChar": 26,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "b4eda6c1_52cc714d",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done\nAdded comment. \nIt is intended to be used as a value for range queries to get everything after a specified start time.",
+      "parentUuid": "3da12d1e_437e1c65",
+      "range": {
+        "startLine": 12,
+        "startChar": 45,
+        "endLine": 12,
+        "endChar": 96
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c704b80_d5285c63",
         "filename": "go/vcsinfo/vcsinfo.go",
         "patchSetId": 29
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1aafc10a_dccedb8f",
+        "filename": "go/vcsinfo/vcsinfo.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c704b80_d5285c63",
+      "range": {
+        "startLine": 70,
+        "startChar": 83,
+        "endLine": 70,
+        "endChar": 98
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b2670870_40383e39",
         "filename": "golden/cmd/baseline_server/main.go",
         "patchSetId": 29
@@ -105,6 +201,30 @@
       "writtenOn": "2019-03-21T12:57:19Z",
       "side": 1,
       "message": "This should go after the flag definitions - here and other files.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 13
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cb4c779_4c62f97a",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "If you feel strongly about this I am happy to move it, but I disagree.\nHere is why: Global variables are bad (there are exception where they are \nnecessary/more efficient). Any flag value used by a function called from main \nshould be passed as an argument. Also by having the flags outside the main function \nwe get no failure from the compiler when we don\u0027t use a flag, when they are inside \nmain function we get failure.",
+      "parentUuid": "b2670870_40383e39",
       "range": {
         "startLine": 34,
         "startChar": 0,
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "8d1b6f74_f844b0c3",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Yes, that\u0027s a legacy thing, we disable cloud logging in all K8s service IIRC. \nLogs are written to stdout and K8s picks them up automagically.",
+      "parentUuid": "efab27f3_b422be20",
+      "range": {
+        "startLine": 59,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 36
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "fa816290_ea763d02",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 29
@@ -154,6 +298,24 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adcd3b00_36977cef",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa816290_ea763d02",
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "a250a3e4_dc3aa9ed",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "440f613f_9ae5bbdb",
+      "range": {
+        "startLine": 537,
+        "startChar": 4,
+        "endLine": 537,
+        "endChar": 10
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "18b0d7b1_9482f16e",
         "filename": "golden/go/baseline/baseline.go",
         "patchSetId": 29
@@ -200,6 +386,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d64de94_111d7355",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done\ndenseBaseLines, corrected.",
+      "parentUuid": "18b0d7b1_9482f16e",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 9
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "6b1250ed_98311cbe",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Yes, I added a comment to that effect. It\u0027s really just a safety to detect that something went very wrong.",
+      "parentUuid": "183830d4_3086a1c3",
+      "range": {
+        "startLine": 125,
+        "startChar": 26,
+        "endLine": 125,
+        "endChar": 47
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c48d22c5_52d09814",
         "filename": "golden/go/baseline/baseline.go",
         "patchSetId": 29
@@ -246,6 +480,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3ad3130_0ad5a95f",
+        "filename": "golden/go/baseline/baseline.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c48d22c5_52d09814",
+      "range": {
+        "startLine": 183,
+        "startChar": 3,
+        "endLine": 183,
+        "endChar": 22
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "61435f74_de563052",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0d74d60_fd7647bb",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 35
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f9cecb5_7c319e34",
         "filename": "golden/go/search/common.go",
         "patchSetId": 29
@@ -292,6 +574,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc26892c_bad76c28",
+        "filename": "golden/go/search/common.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f9cecb5_7c319e34",
+      "range": {
+        "startLine": 35,
+        "startChar": 4,
+        "endLine": 35,
+        "endChar": 21
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -318,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "de7b6ebf_75478e10",
+        "filename": "golden/go/shared/shared.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done\nAdded comment that they should be remove when we have verified that they are not being used by any client.",
+      "parentUuid": "15bbb3e1_1a5746b1",
+      "range": {
+        "startLine": 26,
+        "startChar": 53,
+        "endLine": 26,
+        "endChar": 64
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dd41e173_e679b64a",
         "filename": "golden/go/status/status.go",
         "patchSetId": 29
@@ -338,6 +668,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "974fc8ff_a4539087",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dd41e173_e679b64a",
+      "range": {
+        "startLine": 217,
+        "startChar": 2,
+        "endLine": 217,
+        "endChar": 19
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -364,6 +718,30 @@
     },
     {
       "key": {
+        "uuid": "2fd2f71d_025477e9",
+        "filename": "golden/go/storage/gsclient.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5e451279_b973444c",
+      "range": {
+        "startLine": 131,
+        "startChar": 42,
+        "endLine": 131,
+        "endChar": 54
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c8c46e1f_05026f06",
         "filename": "golden/go/storage/gsclient.go",
         "patchSetId": 29
@@ -384,6 +762,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dedd1cd1_c5903811",
+        "filename": "golden/go/storage/gsclient.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8c46e1f_05026f06",
+      "range": {
+        "startLine": 187,
+        "startChar": 2,
+        "endLine": 187,
+        "endChar": 16
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -410,6 +812,30 @@
     },
     {
       "key": {
+        "uuid": "1880ba11_a463cd3a",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4404548_47a620b9",
+      "range": {
+        "startLine": 63,
+        "startChar": 4,
+        "endLine": 66,
+        "endChar": 15
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1ab1e6f6_a62fb832",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 29
@@ -430,6 +856,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f531c3b4_94198546",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1ab1e6f6_a62fb832",
+      "range": {
+        "startLine": 172,
+        "startChar": 79,
+        "endLine": 172,
+        "endChar": 93
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -456,6 +906,30 @@
     },
     {
       "key": {
+        "uuid": "7f0267da_22298a85",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done\nRemoved superfluous comment.",
+      "parentUuid": "7be62742_55ede8ca",
+      "range": {
+        "startLine": 350,
+        "startChar": 15,
+        "endLine": 350,
+        "endChar": 19
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0210945f_1bf14198",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 29
@@ -476,6 +950,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1efb6f7_f619bafa",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "We want to reach the set of commits to consider quickly, because loading commits is currently very expensive and it\u0027s better to have fewer round trips. It\u0027s also limited by maximum number of commits we consider below.",
+      "parentUuid": "0210945f_1bf14198",
+      "range": {
+        "startLine": 378,
+        "startChar": 5,
+        "endLine": 378,
+        "endChar": 66
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -502,6 +1000,30 @@
     },
     {
       "key": {
+        "uuid": "6fd60f7b_85702095",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "619396f3_3360f866",
+      "range": {
+        "startLine": 380,
+        "startChar": 20,
+        "endLine": 380,
+        "endChar": 24
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e767970d_b10355dd",
         "filename": "golden/go/storage/storage.go",
         "patchSetId": 29
@@ -522,6 +1044,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a6743d6_1296ceb5",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 437,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e767970d_b10355dd",
+      "range": {
+        "startLine": 437,
+        "startChar": 1,
+        "endLine": 437,
+        "endChar": 108
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -548,6 +1094,30 @@
     },
     {
       "key": {
+        "uuid": "938d47a6_2733d2c3",
+        "filename": "golden/go/storage/storage.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d38c4a58_2e2d74a6",
+      "range": {
+        "startLine": 465,
+        "startChar": 2,
+        "endLine": 465,
+        "endChar": 14
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd50ed44_c7c382ec",
         "filename": "golden/go/storage/storage_test.go",
         "patchSetId": 29
@@ -568,6 +1138,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82ca9e3e_5554bf80",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done\nSet a seed to create the same \"random\" sequence every time.",
+      "parentUuid": "cd50ed44_c7c382ec",
+      "range": {
+        "startLine": 251,
+        "startChar": 8,
+        "endLine": 251,
+        "endChar": 18
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -594,6 +1188,30 @@
     },
     {
       "key": {
+        "uuid": "43b7c511_687e7b4c",
+        "filename": "golden/go/storage/storage_test.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done\nRemoved.",
+      "parentUuid": "8ad308d9_ad287986",
+      "range": {
+        "startLine": 373,
+        "startChar": 2,
+        "endLine": 373,
+        "endChar": 9
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1237bb63_3fa536e2",
         "filename": "golden/go/tryjobs/tryjobs.go",
         "patchSetId": 29
@@ -617,6 +1235,30 @@
     },
     {
       "key": {
+        "uuid": "ab790c9d_b953f18a",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "When a commit lands this will add the expectations, that were set for the CL that was used to create the commit, to the expecations of the master. It needs a user for that, in the unlikely case that no user was provided we set a fake user indicating that this was done by the system vs an actual person. I am not happy with the value, very open to suggestions !:-)",
+      "parentUuid": "1237bb63_3fa536e2",
+      "range": {
+        "startLine": 136,
+        "startChar": 9,
+        "endLine": 136,
+        "endChar": 24
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dff10f24_6c1d2eee",
         "filename": "golden/go/tryjobs/tryjobs.go",
         "patchSetId": 29
@@ -628,6 +1270,30 @@
       "writtenOn": "2019-03-21T12:57:19Z",
       "side": 1,
       "message": "combinedUser?  userIssue?",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 14
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce20b9f4_d2e47544",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "This is to indicate that the expectations were copied over from the issue that lead to a commit being added to Git.",
+      "parentUuid": "dff10f24_6c1d2eee",
       "range": {
         "startLine": 139,
         "startChar": 1,
@@ -686,6 +1352,54 @@
     },
     {
       "key": {
+        "uuid": "f357f516_9a6ce5c4",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "619a609c_c7da6888",
+      "range": {
+        "startLine": 100,
+        "startChar": 4,
+        "endLine": 100,
+        "endChar": 9
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50c7cc44_cf1f0c9d",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9af0c03_61db6423",
+      "range": {
+        "startLine": 100,
+        "startChar": 17,
+        "endLine": 100,
+        "endChar": 25
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a635f9a6_89155ba8",
         "filename": "golden/go/types/types.go",
         "patchSetId": 29
@@ -706,6 +1420,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "430e6de9_56563939",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a635f9a6_89155ba8",
+      "range": {
+        "startLine": 108,
+        "startChar": 1,
+        "endLine": 108,
+        "endChar": 6
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -732,6 +1470,30 @@
     },
     {
       "key": {
+        "uuid": "ab218996_838307ac",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10e8cbfe_fca517a7",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 101
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "743e85ea_cf5766cc",
         "filename": "golden/go/types/types.go",
         "patchSetId": 29
@@ -752,6 +1514,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4345daa_4314f490",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "743e85ea_cf5766cc",
+      "range": {
+        "startLine": 177,
+        "startChar": 19,
+        "endLine": 177,
+        "endChar": 22
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -778,6 +1564,30 @@
     },
     {
       "key": {
+        "uuid": "f70cec58_20c086df",
+        "filename": "golden/go/types/types.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4359bc59_9934f323",
+      "range": {
+        "startLine": 178,
+        "startChar": 22,
+        "endLine": 178,
+        "endChar": 26
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "748711e2_9a816f57",
         "filename": "golden/go/web/web.go",
         "patchSetId": 29
@@ -798,6 +1608,30 @@
       "revId": "474373a8ee223c21b71843db981b509dbac871fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f71a8bd_284bb101",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 981,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-21T18:22:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "748711e2_9a816f57",
+      "range": {
+        "startLine": 981,
+        "startChar": 3,
+        "endLine": 981,
+        "endChar": 71
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
