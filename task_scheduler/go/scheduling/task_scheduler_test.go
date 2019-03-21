@@ -107,6 +107,7 @@ func makeTask(name, repo, revision string) *types.Task {
 			},
 			Name: name,
 		},
+		MaxAttempts:    types.DEFAULT_MAX_TASK_ATTEMPTS,
 		SwarmingTaskId: "swarmid",
 	}
 }
@@ -741,6 +742,90 @@ func TestProcessTaskCandidate(t *testing.T) {
 	assert.Equal(t, 0, len(c.Commits))
 }
 
+func TestRegularJobRetryScoring(t *testing.T) {
+	ctx, gb, d, _, s, _, cleanup := setup(t)
+	defer cleanup()
+
+	rs1 := getRS1(t, ctx, gb)
+	rs2 := getRS2(t, ctx, gb)
+
+	cache := newCacheWrapper(s.tCache)
+	now := time.Now()
+	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+
+	j1 := &types.Job{
+		Id:        "regularJobId1",
+		Created:   now.Add(-1 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: rs1,
+	}
+	j2 := &types.Job{
+		Id:        "regularJobId2",
+		Created:   now.Add(-1 * time.Hour),
+		Name:      "job",
+		Priority:  0.5,
+		RepoState: rs2,
+	}
+	// Candidates at rs1 and rs2
+	c1 := &taskCandidate{
+		Jobs: jobSet(j1),
+		TaskKey: types.TaskKey{
+			RepoState: rs1,
+		},
+	}
+	c2 := &taskCandidate{
+		Jobs: jobSet(j2),
+		TaskKey: types.TaskKey{
+			RepoState: rs2,
+		},
+	}
+	// Regular task at HEAD with 2 commits has score 3.5 scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	assert.InDelta(t, 3.5*0.5, c2.Score, scoreDelta)
+	assert.Equal(t, 2, len(c2.Commits))
+	// Regular task at HEAD^ (no backfill) with 1 commit has score 2 scaled by
+	// priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	assert.InDelta(t, 2*0.5, c1.Score, scoreDelta)
+	assert.Equal(t, 1, len(c1.Commits))
+
+	// Add a task at rs2 that failed.
+	t2 := makeTask(c2.Name, c2.Repo, c2.Revision)
+	t2.Status = types.TASK_STATUS_FAILURE
+	t2.Commits = util.CopyStringSlice(c2.Commits)
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, s.tCache.Update())
+
+	// Update Attempt and RetryOf before calling processTaskCandidate.
+	c2.Attempt = 1
+	c2.RetryOf = t2.Id
+
+	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 0.75
+	// scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	assert.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
+	assert.Equal(t, 2, len(c2.Commits))
+	// Regular task at rs1 (backfilling failed task) with 1 commit has score 1.25
+	// scaled by priority 0.5.
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	assert.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
+	assert.Equal(t, 1, len(c1.Commits))
+
+	// Actually, the task at rs2 had a mishap.
+	t2.Status = types.TASK_STATUS_MISHAP
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, s.tCache.Update())
+
+	// Scores should be same as for FAILURE.
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	assert.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
+	assert.Equal(t, 2, len(c2.Commits))
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	assert.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
+	assert.Equal(t, 1, len(c1.Commits))
+}
+
 func TestProcessTaskCandidates(t *testing.T) {
 	ctx, gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
@@ -769,10 +854,10 @@ func TestProcessTaskCandidates(t *testing.T) {
 				assert.InDelta(t, 2.0*0.5, c.Score, scoreDelta)
 				assert.Equal(t, 1, len(c.Commits))
 			} else if c.Name == tcc_testutils.BuildTaskName {
-				// Already covered by the forced job, but we don't steal scores. There
-				// are two jobs that depend on the Build task, so priority is 1-0.5^2.
-				assert.InDelta(t, 3.5*0.75, c.Score, scoreDelta)
-				assert.Equal(t, 2, len(c.Commits))
+				// Already covered by the forced job, so zero score.
+				assert.InDelta(t, 0, c.Score, scoreDelta)
+				// Scores below the BuildTask at rs1, so it has a blamelist of 1 commit.
+				assert.Equal(t, 1, len(c.Commits))
 			} else {
 				assert.InDelta(t, 3.5*0.5, c.Score, scoreDelta)
 				assert.Equal(t, 2, len(c.Commits))
@@ -2560,7 +2645,7 @@ func TestGetTasksForJob(t *testing.T) {
 		deepequal.AssertDeepEqual(t, expect[j.Id], tasksByName)
 	}
 
-	// Mark the task successful.
+	// Mark the task as failed.
 	t1.Status = types.TASK_STATUS_FAILURE
 	t1.Finished = time.Now()
 	assert.NoError(t, d.PutTasks([]*types.Task{t1}))
@@ -2574,18 +2659,30 @@ func TestGetTasksForJob(t *testing.T) {
 	}
 
 	// Cycle. Ensure that we schedule a retry of t1.
+	// Need two bots, since the retry will score lower than the Build task at c1.
+	bot2 := makeBot("bot2", linuxTaskDims)
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	assert.NoError(t, s.MainLoop(ctx))
 	assert.NoError(t, s.tCache.Update())
 	tasks, err = s.tCache.UnfinishedTasks()
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(tasks))
-	t2 := tasks[0]
+	assert.Equal(t, 2, len(tasks))
+	var t2, t3 *types.Task
+	for _, task := range tasks {
+		if task.TaskKey == t1.TaskKey {
+			t2 = task
+		} else {
+			t3 = task
+		}
+	}
 	assert.NotNil(t, t2)
 	assert.Equal(t, t1.Id, t2.RetryOf)
 
 	// Verify that both the original t1 and its retry show up.
 	t1, err = s.tCache.GetTask(t1.Id) // t1 was updated.
 	assert.NoError(t, err)
+	expect[j1.Id][tcc_testutils.BuildTaskName] = []*types.Task{t3}
+	expect[j2.Id][tcc_testutils.BuildTaskName] = []*types.Task{t3}
 	expect[j3.Id][tcc_testutils.BuildTaskName] = []*types.Task{t1, t2}
 	expect[j4.Id][tcc_testutils.BuildTaskName] = []*types.Task{t1, t2}
 	expect[j5.Id][tcc_testutils.BuildTaskName] = []*types.Task{t1, t2}
@@ -2599,7 +2696,10 @@ func TestGetTasksForJob(t *testing.T) {
 	t2.Status = types.TASK_STATUS_SUCCESS
 	t2.Finished = time.Now()
 	t2.IsolatedOutput = "abc"
-	assert.NoError(t, d.PutTask(t2))
+	// The Build at c1 failed.
+	t3.Status = types.TASK_STATUS_FAILURE
+	t3.Finished = time.Now()
+	assert.NoError(t, d.PutTasks([]*types.Task{t2, t3}))
 	assert.NoError(t, s.tCache.Update())
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
 	assert.NoError(t, s.MainLoop(ctx))
