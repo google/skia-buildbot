@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -745,12 +746,22 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
-	repos, err = repograph.NewLocalMap(ctx, *repoUrls, reposDir)
-	if err != nil {
-		sklog.Fatalf("Failed to create repo map: %s", err)
+	btConf := &gitstore.BTConfig{
+		ProjectID:  *btProject,
+		InstanceID: *btInstance,
+		TableID:    "git-repos",
 	}
-	if err := repos.Update(ctx); err != nil {
-		sklog.Fatal(err)
+	gitstores := make(map[string]gitstore.GitStore, len(*repoUrls))
+	for _, repoUrl := range *repoUrls {
+		gs, err := gitstore.NewBTGitStore(ctx, btConf, repoUrl)
+		if err != nil {
+			sklog.Fatalf("Failed to create GitStore: %s", err)
+		}
+		gitstores[repoUrl] = gs
+	}
+	repos, err = repograph.NewGitStoreMap(ctx, gitstores)
+	if err != nil {
+		sklog.Fatalf("Failed to create repographs: %s", err)
 	}
 	sklog.Info("Checkout complete")
 
