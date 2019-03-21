@@ -20,7 +20,9 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	storage "cloud.google.com/go/storage"
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
@@ -216,6 +218,18 @@ func newAlertsConfigProvider(clusterAlgo types.ClusterAlgo) regression.ConfigPro
 
 func Init() {
 	rand.Seed(time.Now().UnixNano())
+
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		BundleDelayThreshold: time.Second / 10,
+		BundleCountThreshold: 10})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	_, span := trace.StartSpan(context.Background(), "main")
+	defer span.End()
+
 	ctx := context.Background()
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
@@ -508,8 +522,10 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx, span := trace.StartSpan(context.Background(), "frameStartRequest")
+	defer span.End()
 	resp := FrameStartResponse{
-		ID: frameRequests.Add(r.Context(), fr),
+		ID: frameRequests.Add(ctx, fr),
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -1171,7 +1187,7 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	name := ""
 	index := int32(dr.CID.Offset)
 	tileKey := traceStore.TileKey(index)
-	ops, err := traceStore.GetOrderedParamSet(tileKey)
+	ops, err := traceStore.GetOrderedParamSet(r.Context(), tileKey)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to find details")
 		return
