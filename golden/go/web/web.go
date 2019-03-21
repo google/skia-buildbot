@@ -1023,6 +1023,9 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 	commitHash := ""
 	issueID := int64(0)
 	var err error
+
+	// TODO(stephana): The codepath for using issue_id as segment of the request path is
+	// deprecated and should be removed with the route that defines it (see shared.go).
 	if issueIDStr, ok := mux.Vars(r)["issue_id"]; ok {
 		issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 		if err != nil {
@@ -1030,12 +1033,20 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 	} else {
-		// Since this was not called for an issue, we need to extract a Git hash.
+		// Get the commit hash and extract an issue id if it was provided as a query parameter.
 		var ok bool
 		if commitHash, ok = mux.Vars(r)["commit_hash"]; !ok {
 			msg := "No commit hash provided to fetch expectations"
 			httputils.ReportError(w, r, skerr.Fmt(msg), msg)
 			return
+		}
+
+		if issueIDStr := r.URL.Query().Get("issue"); issueIDStr != "" {
+			issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
+			if err != nil {
+				httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
+				return
+			}
 		}
 	}
 
