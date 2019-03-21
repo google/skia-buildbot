@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/common"
@@ -51,6 +51,16 @@ const (
 	// When retrying a try job task that has failed, prioritize the retry
 	// lower than tryjob tasks that haven't run yet.
 	CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER = 0.75
+
+	// When bisecting or retrying a task that failed or had a mishap, add a bonus
+	// to the raw score.
+	//
+	// A value of 0.75 means that a retry scores higher than a bisecting a
+	// successful task with a blamelist of 2 commits, but lower than testing new
+	// commits or bisecting successful tasks with blamelist of 3 or
+	// more. Bisecting a failure with a blamelist of 2 commits scores the same as
+	// bisecting a successful task with a blamelist of 4 commits.
+	CANDIDATE_SCORE_FAILURE_OR_MISHAP_BONUS = 0.75
 
 	// MAX_BLAMELIST_COMMITS is the maximum number of commits which are
 	// allowed in a task blamelist before we stop tracing commit history.
@@ -855,17 +865,17 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	// The score for a candidate is based on the "testedness" increase
 	// provided by running the task.
 	stoleFromCommits := 0
+	stoleFromStatus := types.TASK_STATUS_SUCCESS
 	if stealingFrom != nil {
-		// Treat retries as if they're new; don't use stealingFrom.Commits.
-		if c.RetryOf != "" {
-			if stealingFrom.Id != c.RetryOf && stealingFrom.ForcedJobId == "" {
-				sklog.Errorf("Candidate %v is a retry of %s but is stealing commits from %s!", c.TaskKey, c.RetryOf, stealingFrom.Id)
-			}
-		} else if stealingFrom.ForcedJobId == c.ForcedJobId {
-			stoleFromCommits = len(stealingFrom.Commits)
-		}
+		stoleFromCommits = len(stealingFrom.Commits)
+		stoleFromStatus = stealingFrom.Status
 	}
 	score := testednessIncrease(len(c.Commits), stoleFromCommits)
+
+	// Add a bonus when retrying or backfilling failures and mishaps.
+	if stoleFromStatus == types.TASK_STATUS_FAILURE || stoleFromStatus == types.TASK_STATUS_MISHAP {
+		score += CANDIDATE_SCORE_FAILURE_OR_MISHAP_BONUS
+	}
 
 	// Scale the score by other factors, eg. time decay.
 	decay, err := s.timeDecayForCommit(now, revision)
