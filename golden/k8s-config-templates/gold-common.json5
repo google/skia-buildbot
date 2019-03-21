@@ -1,5 +1,5 @@
 {
-    "TRACESERVER_IMAGE_URL": "gcr.io/skia-public/gold-traceserver:2018-08-16T19_11_41Z-stephana-94afa14-clean",
-    "INGESTION_IMAGE_URL":   "gcr.io/skia-public/gold-ingestion:2018-08-16T19_12_39Z-stephana-94afa14-clean",
-    "CORRECTNESS_IMAGE_URL": "gcr.io/skia-public/gold-skiacorrectness:2018-08-16T19_24_14Z-stephana-94afa14-clean"
+    "TRACESERVER_IMAGE": "gcr.io/skia-public/gold-traceserver:2019-03-12T19_34_06Z-stephana-97a161a-dirty",
+    "INGESTION_IMAGE":   "gcr.io/skia-public/gold-ingestion:2019-03-12T19_38_43Z-stephana-97a161a-dirty",
+    "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2019-03-12T19_59_37Z-stephana-d6fbb22-dirty"
 }
