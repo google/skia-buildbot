@@ -46,6 +46,30 @@
       "revId": "f41c496b06a748f1108dda017fd30e6e84d3fb62",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "44147cbe_fd395d51",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-21T15:28:20Z",
+      "side": 1,
+      "message": ":)  It wasn\u0027t really necessary to change. I too find it unexpected that \"assert\" is not fatal.",
+      "parentUuid": "6a2926f3_9001f7c3",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 7
+      },
+      "revId": "f41c496b06a748f1108dda017fd30e6e84d3fb62",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
