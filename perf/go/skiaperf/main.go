@@ -28,15 +28,12 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/paramreducer"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -86,7 +83,7 @@ var (
 // flags
 var (
 	algo                  = flag.String("algo", "kmeans", "The algorithm to use for detecting regressions (kmeans|stepfit).")
-	configFilename        = flag.String("config_filename", "default.json5", "Configuration file in TOML format.")
+	bigTableConfig        = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
 	commitRangeURL        = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	dataFrameSize         = flag.Int("dataframe_size", dataframe.DEFAULT_NUM_COMMITS, "The number of commits to include in the default dataframe.")
 	defaultSparse         = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
@@ -97,7 +94,6 @@ var (
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	emailTokenCacheFile   = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
 	gitRepoDir            = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoUrl            = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "URL of the repo.")
 	interesting           = flag.Float64("interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
 	internalOnly          = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
 	keyOrder              = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
@@ -110,13 +106,10 @@ var (
 	port                  = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	projectName           = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 	promPort              = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	ptraceStoreDir        = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	radius                = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	stepUpOnly            = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
 	subdomain             = flag.String("subdomain", "perf", "The public subdomain of the server, i.e. 'perf' for perf.skia.org.")
-	kubernetes            = flag.Bool("kubernetes", false, "If true then we are running on kubernetes.")
-	bigTableConfig        = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
 )
 
 var (
@@ -274,10 +267,10 @@ func Init() {
 	if btConfig, ok = config.PERF_BIGTABLE_CONFIGS[*bigTableConfig]; !ok {
 		sklog.Fatalf("Not a valid BigTable config: %q", *bigTableConfig)
 	}
-	*gitRepoUrl = btConfig.GitUrl
 
 	sklog.Info("About to clone repo.")
-	vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoUrl, *gitRepoDir, false)
+
+	vcs, err = gitinfo.CloneOrUpdate(ctx, btConfig.GitUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -291,7 +284,7 @@ func Init() {
 	dfBuilder = dfbuilder.NewDataFrameBuilderFromBTTS(vcs, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, vcs, *gitRepoUrl)
+	cidl = cid.New(ctx, vcs, btConfig.GitUrl)
 
 	sklog.Info("About to build dataframe refresher.")
 	freshDataFrame, err = dataframe.NewRefresher(vcs, dfBuilder, 15*time.Minute, *numTilesRefresher)
@@ -1445,37 +1438,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
-	}
-}
-
-func initIngestion(ctx context.Context) {
-	// Initialize oauth client and start the ingesters.
-	ts, err := auth.NewDefaultJWTServiceAccountTokenSource(storage.ScopeReadWrite)
-	if err != nil {
-		sklog.Fatalf("Failed to auth: %s", err)
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-
-	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
-	if err != nil {
-		sklog.Fatalf("Failed to create a Google Storage API client: %s", err)
-	}
-
-	// Start the ingesters.
-	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
-	if err != nil {
-		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
-	}
-
-	eb := eventbus.New()
-	ingesters, err := ingestion.IngestersFromConfig(ctx, config, client, eb, nil)
-	if err != nil {
-		sklog.Fatalf("Unable to instantiate ingesters: %s", err)
-	}
-	for _, oneIngester := range ingesters {
-		if err := oneIngester.Start(ctx); err != nil {
-			sklog.Fatalf("Unable to start ingester: %s", err)
-		}
 	}
 }
 
