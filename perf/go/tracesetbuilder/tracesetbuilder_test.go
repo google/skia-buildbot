@@ -1,6 +1,7 @@
 package tracesetbuilder
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -60,7 +61,7 @@ func TestBuilder(t *testing.T) {
 	builder := New(5)
 	builder.Add(ops1, traceMap1, encodedTraces1)
 	builder.Add(ops2, traceMap2, encodedTraces2)
-	traceSet, ops := builder.Build()
+	traceSet, ops := builder.Build(context.Background())
 	assert.Len(t, traceSet, 3)
 	assert.Len(t, ops, 2)
 	assert.Equal(t, traceSet[",arch=x86,name=foo,"], types.Trace{1.0, 2.0, e, 3.3, 4.4})
@@ -79,7 +80,7 @@ func TestBuilderEmpty(t *testing.T) {
 	testutils.SmallTest(t)
 
 	builder := New(5)
-	traceSet, ops := builder.Build()
+	traceSet, ops := builder.Build(context.Background())
 	assert.Len(t, traceSet, 0)
 	assert.Len(t, ops, 0)
 }

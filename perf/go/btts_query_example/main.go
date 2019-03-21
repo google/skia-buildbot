@@ -41,7 +41,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	tileKey = tileKey.PrevTile()
-	op, err := store.GetOrderedParamSet(tileKey)
+	op, err := store.GetOrderedParamSet(context.Background(), tileKey)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func main() {
 	// Time a Query.
 	sklog.Infof("Regex: %s", r)
 	sklog.Infof("Loading all the data.")
-	results, err := store.QueryTraces(tileKey, r)
+	results, err := store.QueryTraces(context.Background(), tileKey, r)
 	if err != nil {
 		sklog.Fatal(err)
 	}

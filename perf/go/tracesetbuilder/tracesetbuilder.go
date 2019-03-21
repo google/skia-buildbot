@@ -1,9 +1,11 @@
 package tracesetbuilder
 
 import (
+	"context"
 	"hash/crc32"
 	"sync"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
@@ -158,7 +160,10 @@ func (t *TraceSetBuilder) Add(ops *paramtools.OrderedParamSet, traceMap map[int3
 // Build will also shut down the worker pools.
 //
 // Don't call Build until Add() has been called for every tile to be added.
-func (t *TraceSetBuilder) Build() (types.TraceSet, paramtools.ParamSet) {
+func (t *TraceSetBuilder) Build(ctx context.Context) (types.TraceSet, paramtools.ParamSet) {
+	ctx, span := trace.StartSpan(ctx, "TraceSetBuilder.Build")
+	defer span.End()
+
 	defer timer.New("TraceSetBuilder.Build").Stop()
 	t.wg.Wait()
 	defer timer.New("TraceSetBuilder.Build-after-wait").Stop()
