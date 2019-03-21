@@ -142,6 +142,7 @@ func TestWritingBaselines(t *testing.T) {
 	*combined = *masterBaseline
 	combined.Baseline = masterBaseline.Baseline.DeepCopy()
 	combined.Baseline.Update(issueBaseline.Baseline)
+	combined.Issue = issueBaseline.Issue
 
 	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, issueID, 0)
 	assert.NoError(t, err)
@@ -182,9 +183,14 @@ func TestBaselineRobustness(t *testing.T) {
 		GStorageClient: gsClient,
 		Baseliner:      baseLiner,
 	}
+	expBaseline := &baseline.CommitableBaseLine{}
+	*expBaseline = *masterBaseline
+	expBaseline.Baseline = masterBaseline.Baseline.DeepCopy()
+	expBaseline.Issue = 5344
+
 	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0)
 	assert.NoError(t, err)
-	assert.Equal(t, masterBaseline, foundBaseline)
+	assert.Equal(t, expBaseline, foundBaseline)
 }
 
 func initGSClient(t *testing.T) (*GStorageClient, *GSClientOptions) {
