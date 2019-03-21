@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "98d8d303_fa415912",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-21T18:32:14Z",
+      "side": 1,
+      "message": "Ok.  This was different to how we\u0027ve done it in other apps, but you make good points.",
+      "parentUuid": "8cb4c779_4c62f97a",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 13
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "efab27f3_b422be20",
         "filename": "golden/cmd/baseline_server/main.go",
         "patchSetId": 29
@@ -1259,6 +1283,30 @@
     },
     {
       "key": {
+        "uuid": "7141735d_6a9a9bab",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-21T18:32:14Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ab790c9d_b953f18a",
+      "range": {
+        "startLine": 136,
+        "startChar": 9,
+        "endLine": 136,
+        "endChar": 24
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dff10f24_6c1d2eee",
         "filename": "golden/go/tryjobs/tryjobs.go",
         "patchSetId": 29
@@ -1294,6 +1342,30 @@
       "side": 1,
       "message": "This is to indicate that the expectations were copied over from the issue that lead to a commit being added to Git.",
       "parentUuid": "dff10f24_6c1d2eee",
+      "range": {
+        "startLine": 139,
+        "startChar": 1,
+        "endLine": 139,
+        "endChar": 14
+      },
+      "revId": "474373a8ee223c21b71843db981b509dbac871fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8372b088_603347be",
+        "filename": "golden/go/tryjobs/tryjobs.go",
+        "patchSetId": 29
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-21T18:32:14Z",
+      "side": 1,
+      "message": "I was suggesting different variable names.  sythenticUser doesn\u0027t invoke the right meaning to me",
+      "parentUuid": "ce20b9f4_d2e47544",
       "range": {
         "startLine": 139,
         "startChar": 1,
