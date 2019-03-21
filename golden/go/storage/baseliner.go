@@ -220,6 +220,7 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 
 	if isIssue {
 		masterBaseline.Baseline.Update(issueBaseline.Baseline)
+		masterBaseline.Issue = issueID
 	}
 	return masterBaseline, nil
 }
