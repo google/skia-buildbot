@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -263,7 +264,10 @@ func (b *BigTableTraceStore) getOPS(tileKey TileKey) (*OpsCacheEntry, bool, erro
 }
 
 // GetOrderedParamSet returns the OPS for the given tile.
-func (b *BigTableTraceStore) GetOrderedParamSet(tileKey TileKey) (*paramtools.OrderedParamSet, error) {
+func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileKey TileKey) (*paramtools.OrderedParamSet, error) {
+	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.GetOrderedParamSet")
+	defer span.End()
+
 	sklog.Infof("OPS for %d", tileKey.Offset())
 	entry, _, err := b.getOPS(tileKey)
 	if err != nil {
@@ -334,7 +338,7 @@ func (b *BigTableTraceStore) WriteTraces(index int32, values map[string]float32,
 // Note that the keys are the structured keys, ReadTraces will convert them into OPS encoded keys.
 func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[string][]float32, error) {
 	// First encode all the keys by the OrderedParamSet of the given tile.
-	ops, err := b.GetOrderedParamSet(tileKey)
+	ops, err := b.GetOrderedParamSet(context.TODO(), tileKey)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -380,13 +384,16 @@ func (b *BigTableTraceStore) ReadTraces(tileKey TileKey, keys []string) (map[str
 
 // QueryTraces returns a map of encoded keys to a slice of floats for all
 // traces that match the given query.
-func (b *BigTableTraceStore) QueryTraces(tileKey TileKey, q *regexp.Regexp) (map[string][]float32, error) {
+func (b *BigTableTraceStore) QueryTraces(ctx context.Context, tileKey TileKey, q *regexp.Regexp) (map[string][]float32, error) {
+	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
+	defer span.End()
+
 	defer timer.New("btts_query_traces").Stop()
 	defer metrics2.FuncTimer().Stop()
 	var mutex sync.Mutex
 	ret := map[string][]float32{}
 	var g errgroup.Group
-	tctx, cancel := context.WithTimeout(context.Background(), TIMEOUT)
+	tctx, cancel := context.WithTimeout(ctx, TIMEOUT)
 	defer cancel()
 	// Spawn one Go routine for each shard.
 	for i := int32(0); i < b.shards; i++ {

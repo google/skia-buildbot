@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
@@ -78,6 +79,9 @@ func lastNCommits(vcs vcsinfo.VCS, n int) ([]*dataframe.ColumnHeader, []int32, i
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
 func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex int32) ([]*dataframe.ColumnHeader, []int32, int, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder fromIndexRange")
+	defer span.End()
+
 	headers := []*dataframe.ColumnHeader{}
 	indices := []int32{}
 	for i := beginIndex; i <= endIndex; i++ {
@@ -136,7 +140,10 @@ func buildTileMapOffsetToIndex(indices []int32, store *btts.BigTableTraceStore) 
 // new builds a DataFrame for the given columns and populates it with traces that match the given query.
 //
 // The progress callback is triggered once for every tile.
-func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
+func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []int32, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.new")
+	defer span.End()
+
 	// TODO tickle progress as each Go routine completes.
 	defer timer.New("dfbuilder_new").Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
@@ -165,7 +172,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 		g.Go(func() error {
 			defer timer.New("dfbuilder_by_tile").Stop()
 			// Get the OPS, which we need to encode the query, and decode the traceids of the results.
-			ops, err := b.store.GetOrderedParamSet(tileKey)
+			ops, err := b.store.GetOrderedParamSet(ctx, tileKey)
 			if err != nil {
 				return err
 			}
@@ -185,7 +192,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 				return nil
 			}
 			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTraces(tileKey, r)
+			traces, err := b.store.QueryTraces(ctx, tileKey, r)
 			if err != nil {
 				return err
 			}
@@ -199,7 +206,7 @@ func (b *builder) new(colHeaders []*dataframe.ColumnHeader, indices []int32, q *
 	if err := g.Wait(); err != nil {
 		return nil, fmt.Errorf("Failed while querying: %s", err)
 	}
-	traceSet, paramSet := traceSetBuilder.Build()
+	traceSet, paramSet := traceSetBuilder.Build(ctx)
 	paramSet.Normalize()
 	d := &dataframe.DataFrame{
 		TraceSet: traceSet,
@@ -222,13 +229,13 @@ func (b *builder) NewN(progress types.Progress, n int) (*dataframe.DataFrame, er
 	if err != nil {
 		return nil, err
 	}
-	return b.new(colHeaders, indices, q, progress, skip)
+	return b.new(context.TODO(), colHeaders, indices, q, progress, skip)
 }
 
 // See DataFrameBuilder.
 func (b *builder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
 	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, downsample)
-	return b.new(colHeaders, indices, q, progress, skip)
+	return b.new(context.TODO(), colHeaders, indices, q, progress, skip)
 }
 
 // See DataFrameBuilder.
@@ -309,13 +316,16 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 		})
 		indices = append(indices, int32(d.Offset))
 	}
-	return b.new(colHeaders, indices, q, progress, 0)
+	return b.new(ctx, colHeaders, indices, q, progress, 0)
 }
 
 // findIndexForTime finds the index of the closest commit <= 'end'.
 //
 // Pass in zero time, i.e. time.Time{} to indicate to just get the most recent commit.
 func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.findIndexForTime")
+	defer span.End()
+
 	var err error
 	endIndex := 0
 
@@ -345,6 +355,9 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (int32, e
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromQuery")
+	defer span.End()
+
 	sklog.Infof("Querying to: %v", end)
 
 	ret := dataframe.NewEmpty()
@@ -369,7 +382,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		if err != nil {
 			return nil, fmt.Errorf("Failed building index range: %s", err)
 		}
-		df, err := b.new(headers, indices, q, nil, skip)
+		df, err := b.new(ctx, headers, indices, q, nil, skip)
 		if err != nil {
 			return nil, fmt.Errorf("Failed while querying: %s", err)
 		}
@@ -530,7 +543,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 }
 
 func (b *builder) tracelessStep(tileKey btts.TileKey, keys *util.StringSet, ps *paramtools.ParamSet) {
-	ops, err := b.store.GetOrderedParamSet(tileKey)
+	ops, err := b.store.GetOrderedParamSet(context.TODO(), tileKey)
 	if err != nil {
 		return
 	}

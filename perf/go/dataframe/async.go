@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
@@ -247,6 +248,9 @@ func (p *FrameRequestProcess) Status() (ProcessState, string, float32, error) {
 // Run does the work in a FrameRequestProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
 func (p *FrameRequestProcess) Run(ctx context.Context) {
+	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.Run")
+	defer span.End()
+
 	begin := time.Unix(int64(p.request.Begin), 0)
 	end := time.Unix(int64(p.request.End), 0)
 
@@ -255,7 +259,7 @@ func (p *FrameRequestProcess) Run(ctx context.Context) {
 
 	// Queries.
 	for _, q := range p.request.Queries {
-		newDF, err := p.doSearch(q, begin, end)
+		newDF, err := p.doSearch(ctx, q, begin, end)
 		if err != nil {
 			p.reportError(err, "Failed to complete query.")
 			return
@@ -424,7 +428,10 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, vcs vcsinfo.VCS, 
 
 // doSearch applies the given query and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*DataFrame, error) {
+func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, begin, end time.Time) (*DataFrame, error) {
+	ctx, span := trace.StartSpan(ctx, "FrameRequestProcess.doSearch")
+	defer span.End()
+
 	urlValues, err := url.ParseQuery(queryStr)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse query: %s", err)
@@ -436,7 +443,7 @@ func (p *FrameRequestProcess) doSearch(queryStr string, begin, end time.Time) (*
 	if p.request.RequestType == REQUEST_TIME_RANGE {
 		return p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
 	} else {
-		return p.dfBuilder.NewNFromQuery(context.Background(), end, q, p.request.NumCommits, p.progress)
+		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
 	}
 }
 
