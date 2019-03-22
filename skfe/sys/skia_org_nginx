@@ -1396,6 +1396,8 @@ server {
 
     ssl on;
 
+    client_max_body_size 20M;
+
     access_log /var/log/nginx/skottie.access.log;
     error_log /var/log/nginx/skottie.error.log error;
 
@@ -1415,6 +1417,8 @@ server {
     server_name skottie-internal.skia.org;
 
     ssl on;
+
+    client_max_body_size 200M;
 
     access_log /var/log/nginx/skottie-internal.access.log;
     error_log /var/log/nginx/skottie-internal.error.log error;
