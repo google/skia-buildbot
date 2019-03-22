@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/baseline"
 	"go.skia.org/infra/golden/go/diff"
@@ -219,6 +220,10 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	imgBytes, imgHash, err := loadAndHashImage(imgFileName)
 	if err != nil {
 		return false, err
+	}
+	sklog.Infof("Given image with hash %s for test %s", imgHash, name)
+	for expectHash, expectLabel := range c.resultState.Expectations[name] {
+		sklog.Infof("Expectation for test: %s (%s)", expectHash, expectLabel.String())
 	}
 
 	var egroup errgroup.Group
