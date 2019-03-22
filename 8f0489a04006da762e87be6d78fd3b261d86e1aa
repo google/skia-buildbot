@@ -16,6 +16,24 @@
       "revId": "8f0489a04006da762e87be6d78fd3b261d86e1aa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "001810ce_5f6956ad",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-22T15:03:37Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f49ec492_4551f41a",
+      "revId": "8f0489a04006da762e87be6d78fd3b261d86e1aa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
