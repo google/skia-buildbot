@@ -301,7 +301,7 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, dimsByTask, err := ts.GetJob(context.TODO(), id)
+	job, dimsByTask, err := ts.GetJob(r.Context(), id)
 	if err != nil {
 		if err == db.ErrNotFound {
 			http.Error(w, "Unknown Job", 404)
