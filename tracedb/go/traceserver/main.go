@@ -78,6 +78,7 @@ func main() {
 	}
 
 	// Set up the http handler to indicate ready-ness and start serving.
-	http.HandleFunc("/ready", httputils.ReadyHandleFunc)
+	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	sklog.Infof("Serving port http://%s", *httpPort)
 	log.Fatal(http.ListenAndServe(*httpPort, nil))
 }

@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gold-{{.INSTANCE_ID}}-baselineserver
+  name: gold-{{.INSTANCE_ID}}-baselineserver
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: gold-{{.INSTANCE_ID}}-baselineserver
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gold-{{.INSTANCE_ID}}-baselineserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gold-{{.INSTANCE_ID}}-baselineserver
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: gold-{{.INSTANCE_ID}}-baselineserver
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: gold-{{.INSTANCE_ID}}-baselineserver
+          image: gcr.io/skia-public/gold-baseline-server:2019-03-21T20_02_53Z-stephana-8a35e3d-clean
+          args:
+            - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
+            - "--ds_namespace=gold-{{.INSTANCE_ID}}"
+            - "--git_bt_instance=production"
+            - "--git_bt_table=git-repos"
+            - "--git_repo_url={{.GITREPO_URL}}"
+            - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
+            - "--logtostderr"
+            - "--no_cloud_log"
+            - "--port=:8000"
+            - "--project_id=skia-public"
+            - "--prom_port=:20000"
+            - "--service_account_file=/etc/gold-config/service-account.json"
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 20000
+              name: prom
+          volumeMounts:
+            - name: gold-service-account-secrets
+              mountPath: /etc/gold-config/
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/gold-config/service-account.json
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 3
+      volumes:
+        - name: gold-service-account-secrets
+          secret:
+            secretName: gold-service-account-secrets
