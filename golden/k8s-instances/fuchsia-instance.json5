@@ -1,0 +1,29 @@
+{
+    // Skiacorrectness (Gold) settings
+    "GERRIT_URL":              "https://fuchsia-review.googlesource.com",
+    "GITREPO_URL":             "https://fuchsia.googlesource.com/fuchsia",
+    "N_COMMITS":               100,
+
+    // Traceserver settings
+    "TRACESERVER_MEMORY":      "500Mi",
+    "TRACESERVER_CPU":         "500m",
+
+    // Main ingester settings
+    "ING_RUN_EVERY":           "5m",
+    "ING_N_COMMITS":           75,
+    "ING_MIN_DAYS":            20,
+
+    // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
+    // tryjobs will be configured.
+    "ING_TRY_ENABLED":         true,
+    "ING_TRY_RUN_EVERY":       "5m",
+    "ING_TRY_MIN_DAYS":        20,
+    "ING_TRY_BUILDBUCKET_URL": "https://cr-buildbucket.appspot.com/api/buildbucket/v1/",
+    "ING_TRY_BUILDBUCKET":     "chromium/try",
+    "ING_TRY_BB_INTERVAL":     "10s",
+    "ING_TRY_BB_WINDOW":       "5h",
+    "ING_TRY_BUILDER_REGEX":   "linux_optional_gpu_tests_rel",
+
+    "SKCORR_TITLE":          "Fuchsia Gold",
+    "SKCORR_DEFAULT_CORPUS": "fuchsia",
+}
