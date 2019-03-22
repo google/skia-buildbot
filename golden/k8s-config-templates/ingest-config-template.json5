@@ -1,0 +1,50 @@
+{
+  GitRepoDir: "/data/repo",
+  GitRepoURL: "{{.GITREPO_URL}}",
+  EventTopic: "gold-{{.INSTANCE_ID}}-eventbus",
+
+  Ingesters: {
+    // Chrome GPU Gold ingester
+    gold: {
+      RunEvery: "5m",
+      NCommits: 75,
+      MinDays: 20,
+      StatusDir: "/data/ingest_status",
+      MetricName: "gold-{{.INSTANCE_ID}}-ingestion",
+      Sources: [
+        {
+          Bucket: "skia-gold-{{.INSTANCE_ID}}",
+          Dir: "dm-json-v1"
+        }
+      ],
+      ExtraParams: {
+        TraceService: "gold-{{.INSTANCE_ID}}-traceservice:9090"
+      }
+    {{if .ING_TRY_ENABLED}}
+    },
+
+    // Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
+    "gold-tryjob": {
+      RunEvery: "5m",
+      MinDays: 120,
+      StatusDir: "/data/tryjobs/ingest_status",
+      MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob",
+      Sources: [
+        {
+          Bucket: "skia-gold-{{.INSTANCE_ID}}",
+          Dir: "trybot/dm-json-v1"
+        },
+      ],
+      ExtraParams: {
+        GerritCodeReviewURL: "{{.GERRIT_URL}}",
+        BuildBucketURL: "{{.ING_TRY_BUILDBUCKET_URL}}",
+        BuildBucketName: "{{.ING_TRY_BUILDBUCKET}}",
+        BuildBucketPollInterval: "{{.ING_TRY_BB_INTERVAL}}",
+        BuildBucketTimeWindow: "{{.ING_TRY_BB_WINDOW}}",
+        BuilderRegEx: "{{.ING_TRY_BUILDER_REGEX}}",
+        ServiceAccountFile: "/etc/gold-config/buildbot-service-account.json"
+      }
+    {{end}}
+    }
+ }
+}
