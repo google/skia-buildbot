@@ -222,46 +222,6 @@ server {
     return 301 https://public-gold.skia.org$request_uri;
 }
 
-#####   gold-stage.skia.org   ###########################
-server {
-    listen      443;
-    server_name gold-stage.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/gold-stage.access.log combined_proxy;
-    error_log /var/log/nginx/gold-stage.error.log error;
-
-    client_max_body_size 100M;
-
-    location /_/hashes {
-      proxy_pass https://storage.googleapis.com/skia-infra-gm/hash_files/gold-prod-hashes.txt;
-    }
-
-    # Serve images directly from the diff server.
-    location /img/ {
-      proxy_pass http://skia-diffserver-stage:8001;
-      proxy_set_header Host $host;
-    }
-
-    # TODO(stephana): Resolve accessing Gold from Gerrit with authentication and
-    # remove this rewrite rule. Right now this for testing only.
-    location /json/tryjobs/ {
-        proxy_pass http://skia-gold-stage:19000;
-        proxy_set_header Host $host;
-    }
-
-    location / {
-        proxy_pass http://skia-gold-stage:8001;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name gold-stage.skia.org;
-    return 301 https://gold-stage.skia.org$request_uri;
-}
-
 #####   pdfium-gold.skia.org   #####################
 server {
     listen      443;
