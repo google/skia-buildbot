@@ -30,7 +30,7 @@ const (
 //
 // Returns ErrorInactiveExample is the example is ifdef'd out. Other errors
 // indicate a failure to parse the code or options.
-func parseCpp(body string) (*types.FiddleContext, error) {
+func ParseCpp(body string) (*types.FiddleContext, error) {
 	if body[:3] == "#if" {
 		return nil, ErrorInactiveExample
 	}

@@ -101,10 +101,10 @@ void draw(SkCanvas* canvas) {
 func TestParse(t *testing.T) {
 	testutils.SmallTest(t)
 
-	fc, err := parseCpp(good_sample)
+	fc, err := ParseCpp(good_sample)
 	assert.NoError(t, err)
 
-	fc, err = parseCpp(short_sample)
+	fc, err = ParseCpp(short_sample)
 	assert.NoError(t, err)
 	assert.Equal(t, "void draw(SkCanvas* canvas) {\n}", fc.Code)
 	assert.Equal(t, 256, fc.Options.Width)
@@ -112,20 +112,20 @@ func TestParse(t *testing.T) {
 	assert.Equal(t, 1, fc.Options.Source)
 	assert.False(t, fc.Options.TextOnly)
 
-	fc, err = parseCpp(missing_end_sample)
+	fc, err = ParseCpp(missing_end_sample)
 	assert.Error(t, err)
 
-	fc, err = parseCpp(inactive_sample)
+	fc, err = ParseCpp(inactive_sample)
 	assert.Equal(t, err, ErrorInactiveExample)
 	assert.Nil(t, fc)
 
-	fc, err = parseCpp(missing_reg_sample)
+	fc, err = ParseCpp(missing_reg_sample)
 	assert.Error(t, err)
 
-	fc, err = parseCpp(bad_macro)
+	fc, err = ParseCpp(bad_macro)
 	assert.Error(t, err)
 
-	fc, err = parseCpp(textonly_sample)
+	fc, err = ParseCpp(textonly_sample)
 	assert.NoError(t, err)
 	assert.Equal(t, "void draw(SkCanvas* canvas) {\n}", fc.Code)
 	assert.Equal(t, 256, fc.Options.Width)
