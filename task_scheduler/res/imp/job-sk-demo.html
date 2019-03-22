@@ -39,6 +39,38 @@
       "repo": "https://skia.googlesource.com/skia.git",
       "revision": "9883def4f8661f8eec4ccbae2e34d7fcb14bf65d",
       "status": "SUCCESS",
+      "taskDimensions": {
+        "Build-Debian9-EMCC-wasm-Release-CanvasKit": [
+          "cpu:x86-64-Haswell_GCE",
+          "gpu:none",
+          "machine_type:n1-standard-16",
+          "os:Debian-9.8",
+          "pool:Skia",
+          "docker_installed:true"
+        ],
+        "Housekeeper-PerCommit-BundleRecipes": [
+          "cpu:x86-64-Haswell_GCE",
+          "gpu:none",
+          "machine_type:n1-highmem-2",
+          "os:Debian-9.8",
+          "pool:Skia"
+        ],
+        "Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          "cpu:x86-64-Haswell_GCE",
+          "gpu:none",
+          "machine_type:n1-standard-16",
+          "os:Debian-9.8",
+          "pool:Skia",
+          "docker_installed:true"
+        ],
+        "Upload-Test-Debian9-EMCC-GCE-GPU-AVX2-wasm-Release-All-CanvasKit": [
+          "cpu:x86-64-Haswell_GCE",
+          "gpu:none",
+          "machine_type:n1-highmem-2",
+          "os:Debian-9.8",
+          "pool:Skia"
+        ]
+      },
       "tasks": {
         "Build-Debian9-EMCC-wasm-Release-CanvasKit": [
           {
@@ -109,6 +141,14 @@
         "repo": "https://skia.googlesource.com/skia.git",
         "revision": "6ca48820407244bbdeb8f9e0ed7d76dd94270460",
         "status": "",
+        "taskDimensions": {
+          "A": ["pool:Skia"],
+          "B": ["pool:Skia"],
+          "C": ["pool:Skia"],
+          "D": ["pool:Skia"],
+          "E": ["pool:Skia"],
+          "F": ["pool:Skia"]
+        },
         "tasks": {
           "A": [{
             "id": "A1",
