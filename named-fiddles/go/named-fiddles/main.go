@@ -9,8 +9,10 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/99designs/goodies/http/secure_headers/csp"
@@ -31,6 +33,7 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/named-fiddles/go/parse"
 )
 
 // flags
@@ -57,6 +60,9 @@ type Server struct {
 	liveness    metrics2.Liveness    // liveness of the continuous validation process.
 	errorsInRun metrics2.Counter     // errorsInRun is the number of errors in a single validation run.
 	numInvalid  metrics2.Int64Metric // numInvalid is the number of fiddles that are currently invalid.
+
+	livenessExamples   metrics2.Liveness    // liveness of the naming the Skia examples.
+	numInvalidExamples metrics2.Int64Metric // numInvalidExamples is the number of examples that are currently invalid.
 }
 
 func New() (*Server, error) {
@@ -102,9 +108,13 @@ func New() (*Server, error) {
 		liveness:    metrics2.NewLiveness("named_fiddles_check"),
 		errorsInRun: metrics2.GetCounter("named_fiddles_errors_in_run", nil),
 		numInvalid:  metrics2.GetInt64Metric("named_fiddles_total_invalid"),
+
+		livenessExamples:   metrics2.NewLiveness("named_fiddles_examples"),
+		numInvalidExamples: metrics2.GetInt64Metric("named_fiddles_examples_total_invalid"),
 	}
 	srv.loadTemplates()
 	go srv.checkValid()
+	go srv.nameExamples()
 	return srv, nil
 }
 
@@ -179,6 +189,61 @@ func (srv *Server) checkValid() {
 	srv.step()
 	for _ = range time.Tick(time.Minute) {
 		srv.step()
+	}
+}
+
+// exampleStep is a single run through naming all the examples.
+func (srv *Server) exampleStep() {
+	sklog.Info("Starting exampleStep")
+	if err := srv.repo.Update(context.Background(), true, false); err != nil {
+		sklog.Errorf("Failed to sync git repo.")
+		return
+	}
+
+	var numInvalid int64
+	// Get a list of all examples.
+	dir := filepath.Join(*repoDir, "docs", "examples")
+	err := filepath.Walk(dir+"/", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("Failed to open %q: %s", path, err)
+		}
+		if info.IsDir() {
+			return nil
+		}
+		name := filepath.Base(info.Name())
+		if !strings.HasSuffix(name, ".cpp") {
+			return nil
+		}
+		name = name[0 : len(name)-4]
+		b, err := ioutil.ReadFile(filepath.Join(dir, info.Name()))
+		fc, err := parse.ParseCpp(string(b))
+		if err == parse.ErrorInactiveExample {
+			sklog.Infof("Inactive sample: %q", info.Name())
+			return nil
+		} else if err != nil {
+			sklog.Infof("Invalid sample: %q", info.Name())
+			numInvalid += 1
+			return nil
+		}
+		// Now run it.
+		sklog.Infof("About to run: %s", fc.Name)
+
+		return nil
+	})
+	if err != nil {
+		sklog.Errorf("Error walking the path %q: %v\n", dir, err)
+		return
+	}
+
+	srv.numInvalidExamples.Update(numInvalid)
+	srv.livenessExamples.Reset()
+}
+
+// nameExamples runs each Skia example and gives it a name.
+func (srv *Server) nameExamples() {
+	srv.exampleStep()
+	for _ = range time.Tick(time.Minute) {
+		srv.exampleStep()
 	}
 }
 
