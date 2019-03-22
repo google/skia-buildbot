@@ -299,7 +299,7 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := ts.GetJob(id)
+	job, dimsByTask, err := ts.GetJob(context.TODO(), id)
 	if err != nil {
 		if err == db.ErrNotFound {
 			http.Error(w, "Unknown Job", 404)
@@ -308,7 +308,13 @@ func jsonJobHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Error retrieving Job.")
 		return
 	}
-	if err := json.NewEncoder(w).Encode(job); err != nil {
+	if err := json.NewEncoder(w).Encode(struct {
+		*types.Job
+		TaskDimensions map[string][]string `json:"taskDimensions"`
+	}{
+		Job:            job,
+		TaskDimensions: dimsByTask,
+	}); err != nil {
 		httputils.ReportError(w, r, err, "Failed to encode response.")
 		return
 	}

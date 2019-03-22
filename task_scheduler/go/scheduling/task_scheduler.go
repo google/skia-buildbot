@@ -1898,9 +1898,26 @@ func (s *TaskScheduler) getTasksForJob(j *types.Job) (map[string][]*types.Task, 
 	return tasks, nil
 }
 
-// GetJob returns the given Job.
-func (s *TaskScheduler) GetJob(id string) (*types.Job, error) {
-	return s.jCache.GetJobMaybeExpired(id)
+// GetJob returns the given Job, plus the dimensions for the task specs which
+// are part of the Job, keyed by name.
+func (s *TaskScheduler) GetJob(ctx context.Context, id string) (*types.Job, map[string][]string, error) {
+	job, err := s.jCache.GetJobMaybeExpired(id)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to retrieve Job: %s", err)
+	}
+	cfg, err := s.taskCfgCache.Get(ctx, job.RepoState)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to retrieve Tasks cfg: %s", err)
+	}
+	taskSpecs := make(map[string][]string, len(job.Dependencies))
+	for taskName, _ := range job.Dependencies {
+		taskSpec, ok := cfg.Tasks[taskName]
+		if !ok {
+			return nil, nil, fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", job.Id, job.Name, taskName, job.RepoState)
+		}
+		taskSpecs[taskName] = taskSpec.Dimensions
+	}
+	return job, taskSpecs, nil
 }
 
 // GetTask returns the given Task.
