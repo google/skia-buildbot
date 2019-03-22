@@ -66,6 +66,21 @@
         "_draw(jobs.*, task.*)",
       ],
 
+      _computeBotsLink: function(dims) {
+        var link = "https://" + this.swarmingServer + "/botlist";
+        if (dims) {
+          for (var i = 0; i < dims.length; i++) {
+            if (i == 0) {
+              link += "?";
+            } else {
+              link += "&";
+            }
+            link += "f=" + encodeURIComponent(dims[i]);
+          }
+        }
+        return link;
+      },
+
       _computeTaskLink: function(task) {
         var swarmingLink = "https://" + this.swarmingServer + "/task?id=" + task.swarmingTaskId;
         return "https://task-driver.skia.org/td/" + task.id + "?ifNotFound=" + encodeURIComponent(swarmingLink);
@@ -74,6 +89,7 @@
       _draw: function() {
         var graph = {};
         var taskData = {};
+        var taskDims = {};
         for (var i = 0; i < this.jobs.length; i++) {
           var job = this.jobs[i];
           for (var taskName in job.dependencies) {
@@ -84,6 +100,11 @@
               }
             }
             graph[taskName] = deps;
+          }
+          for (var taskName in job.taskDimensions) {
+            if (!taskDims[taskName]) {
+              taskDims[taskName] = job.taskDimensions[taskName];
+            }
           }
           if (job.tasks) {
             for (var taskName in job.tasks) {
@@ -166,6 +187,11 @@
           }
         }
 
+        var botLinkFontSize = 11;
+        var botLinkMarginX = 10;
+        var botLinkMarginY = 4;
+        var botLinkHeight = botLinkFontSize + 2*botLinkMarginY;
+        var botLinkText = "view swarming bots";
         var fontFamily = "Arial";
         var fontSize = 12;
         var taskSpecMarginX = 20;
@@ -179,18 +205,21 @@
         var textOffsetX = textMarginX;
         var textOffsetY = fontSize + textMarginY;
         var textHeight = fontSize + 2 * textMarginY;
-        var taskSpecHeight = textHeight + taskHeight + taskMarginY;
+        var botLinkOffsetY = textOffsetY + botLinkFontSize + botLinkMarginY;
+        var taskSpecHeight = textHeight + botLinkHeight + taskHeight + taskMarginY;
 
         // Compute the task spec block width for each column.
         var maxTextWidth = 0;
         var canvas = document.createElement("canvas");
         var ctx = canvas.getContext("2d");
+        ctx.font = botLinkFontSize + "px " + fontFamily;
+        var botLinkTextWidth = ctx.measureText(botLinkText).width + 2 * botLinkMarginX;
         ctx.font = fontSize + "px " + fontFamily;
         var taskSpecWidth = [];
         for (var col = 0; col < cols.length; col++) {
           // Get the minimum width of a task spec block needed to fit the entire
           // task spec name.
-          var maxWidth = 0;
+          var maxWidth = botLinkTextWidth;
           for (var i = 0; i < cols[col].length; i++) {
             var oldFont = ctx.font;
             var text = cols[col][i].name;
@@ -237,7 +266,7 @@
             byName[taskSpec.name] = entry;
 
             var taskX = curX + taskMarginX;
-            var taskY = curY + textHeight;
+            var taskY = curY + textHeight + botLinkHeight;
             for (var j = 0; j < taskSpec.tasks.length; j++) {
               var task = taskSpec.tasks[j];
               tasks.push({
@@ -329,6 +358,36 @@
           .attr("font-weight", function(data) { return data.name == this.task.name ? "bold" : "normal"; }.bind(this))
           .text(function(data) { return data.name; });
         taskSpecTexts.exit().remove();
+
+        // Draw links to Swarming bot lists.
+        var botLinks = svg.selectAll("a.bots")
+            .data(taskSpecs, function(data) { return data.name; });
+        botLinks.enter()
+          .append("a")
+            .attr("class", "bots")
+            .attr("target", "_blank")
+            .append("svg:text")
+               .attr("class", "bots")
+               .attr("font-family", fontFamily)
+               .attr("font-size", botLinkFontSize)
+               .attr("style", styleToString({"text-decoration": "underline"}));
+        botLinks
+            .attr("href", function(data) {
+              var dims = taskDims[data.name];
+              return this._computeBotsLink(dims);
+            }.bind(this));
+        botLinks.exit().remove()
+        var botTexts = svg.selectAll("text.bots")
+            .data(taskSpecs, function(data) { return data.name; });
+        botTexts
+            .attr("x", function(data) { return data.x + textOffsetX; })
+            .attr("y", function(data) { return data.y + botLinkOffsetY; })
+            .text(botLinkText)
+            .attr("href", function(data) {
+              var dims = taskDims[data.name];
+              return this._computeBotsLink(dims);
+            }.bind(this));
+        botTexts.exit().remove();
 
         // Draw tasks.
         var taskLinks = svg.selectAll("a.task").data(tasks, function(data) { return data.task.id; });
