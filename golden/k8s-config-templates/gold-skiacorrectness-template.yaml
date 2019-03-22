@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gold-{{.INSTANCE_ID}}-skiacorrectness
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: gold-{{.INSTANCE_ID}}-skiacorrectness
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gold-{{.INSTANCE_ID}}-skiacorrectness
+spec:
+  serviceName: "gold-{{.INSTANCE_ID}}-skiacorrectness"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gold-{{.INSTANCE_ID}}-skiacorrectness
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: gold-{{.INSTANCE_ID}}-skiacorrectness
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: gold-{{.INSTANCE_ID}}-skiacorrectness
+          image: {{.SKIACORRECTNESS_IMAGE}}
+          args:
+            - "--logtostderr=true"
+            - "--app_title={{.SKCORR_TITLE}}"
+            - "--baseline_gs_path=skia-gold-{{.INSTANCE_ID}}/baselines"
+            - "--cache_size=0"
+            - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
+            - "--ds_namespace=gold-{{.INSTANCE_ID}}"
+            - "--event_topic=gold-{{.INSTANCE_ID}}-eventbus"
+            - "--force_login=false"
+            - "--gerrit_url={{.GERRIT_URL}}"
+            - "--git_bt_instance=production"
+            - "--git_bt_table=git-repos"
+            - "--git_repo_dir=/data/ci-repo"
+            - "--git_repo_url={{.GITREPO_URL}}"
+            - "--gs_buckets=skia-gold-{{.INSTANCE_ID}}"
+            - "--hashes_gs_path=skia-gold-{{.INSTANCE_ID}}/hash_files/gold-{{.INSTANCE_ID}}-hashes.txt"
+            - "--image_dir=/data/imagediffs"
+            - "--n_commits={{.N_COMMITS}}"
+            - "--no_cloud_log=true"
+            - "--port=:8000"
+            - "--project_id=skia-public"
+            - "--prom_port=:20000"
+            - "--public_whitelist=all"
+            - "--redirect_url=https://skia.org/oauth2callback/"
+            - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
+            - "--service_account_file=/etc/gold-config/service-account.json"
+            - "--site_url=https://{{.INSTANCE_ID}}-gold.skia.org"
+            - "--show_bot_progress=false"
+            - "--sparse={{.SPARSE}}"
+            - "--storage_dir=/data/data-store"
+            - "--trace_service=gold-{{.INSTANCE_ID}}-traceservice:9090"
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 20000
+              name: prom
+          volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-skiacorrectness-storage-volume
+              mountPath: /data
+            - name: gold-service-account-secrets
+              mountPath: /etc/gold-config/
+            - name: skia-org-legacy-login-secrets
+              mountPath: /etc/skia.org/
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/gold-config/service-account.json
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: gold-service-account-secrets
+          secret:
+            secretName: gold-service-account-secrets
+        - name: skia-org-legacy-login-secrets
+          secret:
+            secretName: skia-org-legacy-login-secrets
+
+  volumeClaimTemplates:
+    - metadata:
+        name: gold-{{.INSTANCE_ID}}-skiacorrectness-storage-volume
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Gi
