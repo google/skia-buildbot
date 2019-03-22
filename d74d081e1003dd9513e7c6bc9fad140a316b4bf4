@@ -22,6 +22,30 @@
       "revId": "d74d081e1003dd9513e7c6bc9fad140a316b4bf4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97bf09f4_ef3e3ba2",
+        "filename": "gitsync/create-skia-gitsync-internal-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-22T18:40:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ddaca670_8147c45b",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 115
+      },
+      "revId": "d74d081e1003dd9513e7c6bc9fad140a316b4bf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
