@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -23,6 +24,8 @@ import (
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -39,6 +42,8 @@ var (
 	period             = flag.Duration("period", time.Hour, "How often to check if the named fiddles are valid.")
 	port               = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	repoURL            = flag.String("repo_url", "https://skia.googlesource.com/skia", "Repo url")
+	repoDir            = flag.String("repo_dir", "/tmp/skia_named_fiddles", "Directory the repo is checked out into.")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
@@ -47,6 +52,7 @@ type Server struct {
 	store     *store.Store
 	templates *template.Template
 	salt      []byte // Salt for csrf cookies.
+	repo      *gitinfo.GitInfo
 
 	liveness    metrics2.Liveness    // liveness of the continuous validation process.
 	errorsInRun metrics2.Counter     // errorsInRun is the number of errors in a single validation run.
@@ -71,9 +77,27 @@ func New() (*Server, error) {
 		}
 	}
 
+	if !*local {
+		ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT)
+		if err != nil {
+			sklog.Fatalf("Failed authentication: %s", err)
+		}
+		// Use the gitcookie created by the gitauth package.
+		if _, err := gitauth.New(ts, "/tmp/gitcookies", true, ""); err != nil {
+			sklog.Fatalf("Failed to create git cookie updater: %s", err)
+		}
+		sklog.Infof("Git authentication set up successfully.")
+	}
+
+	repo, err := gitinfo.CloneOrUpdate(context.Background(), *repoURL, *repoDir, false)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create git repo: %s", err)
+	}
+
 	srv := &Server{
 		store: st,
 		salt:  salt,
+		repo:  repo,
 
 		liveness:    metrics2.NewLiveness("named_fiddles_check"),
 		errorsInRun: metrics2.GetCounter("named_fiddles_errors_in_run", nil),
