@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "048454dc_8143effa",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1908,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-22T18:18:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9107e519_91be01fa",
+      "range": {
+        "startLine": 1908,
+        "startChar": 40,
+        "endLine": 1908,
+        "endChar": 50
+      },
+      "revId": "3f8e25a852021383e76cff1faed6595a22507f1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed4cebeb_f7bd01d5",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-22T17:05:59Z",
       "side": 1,
       "message": "!i",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 22
+      },
+      "revId": "3f8e25a852021383e76cff1faed6595a22507f1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "35c1cab9_2f197cf9",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-22T18:18:23Z",
+      "side": 1,
+      "message": "I really prefer to compare against zero if that\u0027s my actual intent.  IMO saving the 4 characters is not worth having to jump through the mental hoop of, \"oh yeah, javascript lets you implicitly convert anything to a bool\".",
+      "parentUuid": "ed4cebeb_f7bd01d5",
       "range": {
         "startLine": 73,
         "startChar": 16,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "06a63e56_2470d709",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-22T18:18:23Z",
+      "side": 1,
+      "message": "Not really. It just prevents us from overwriting the value potentially many times.",
+      "parentUuid": "5b396c55_8bd9ed3e",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 105,
+        "endChar": 38
+      },
+      "revId": "3f8e25a852021383e76cff1faed6595a22507f1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "53e738d5_5770f48d",
         "filename": "task_scheduler/res/imp/task-graph-sk.html",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "3f8e25a852021383e76cff1faed6595a22507f1f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f82833a3_e6cb36d3",
+        "filename": "task_scheduler/res/imp/task-graph-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-22T18:18:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53e738d5_5770f48d",
+      "range": {
+        "startLine": 363,
+        "startChar": 46,
+        "endLine": 363,
+        "endChar": 51
+      },
+      "revId": "3f8e25a852021383e76cff1faed6595a22507f1f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
