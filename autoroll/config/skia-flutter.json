@@ -19,9 +19,7 @@
     "repoName": "engine",
     "checksNum": 4,
     "checksWaitFor": [
-      "windows-build",
-      "linux-build",
-      "mac-build"
+      "luci"
     ]
   },
   "githubDEPSRepoManager": {
