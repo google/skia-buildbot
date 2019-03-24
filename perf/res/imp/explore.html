@@ -170,6 +170,8 @@
         <paper-checkbox on-click=_zeroChanged checked="{{state.show_zero}}" title="Toggle the presence of the zero line.">Zero</paper-checkbox>
         <paper-checkbox on-click=_autoRefreshChanged checked="{{state.auto_refresh}}" title="Auto-refresh the data displayed in the graph.">Auto-Refresh</paper-checkbox>
         <button on-click="_normalize" title="Apply norm() to all the traces.">Normalize</button>
+        <button on-click="_csv" title="Download all displayed data as a CSV file.">CSV</button>
+        <a href="" target=_blank download id=csv_download></a>
       </div>
 
       <div id=tabs class="flex">
@@ -276,6 +278,10 @@
       _refreshId: {
         type: Number,
         value: -1,
+      },
+      _csvBlob: {
+        type: Object,
+        value: null,
       }
     },
 
@@ -717,18 +723,18 @@
     // Returns the Promise that's creating the shortcut, or undefined if
     // there isn't a shortcut to create.
     _reShortCut: function(keys) {
-        if (keys.length == 0) {
-          this.state.keys = "";
-          this.state.queries = [];
-          return undefined
-        }
-        var state = {
-          keys: keys,
-        };
-        return sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-          this.state.keys = json.id;
-          this.state.queries = [];
-        }.bind(this));
+      if (keys.length == 0) {
+        this.state.keys = "";
+        this.state.queries = [];
+        return undefined
+      }
+      var state = {
+        keys: keys,
+      };
+      return sk.post('/_/keys/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+        this.state.keys = json.id;
+        this.state.queries = [];
+      }.bind(this));
     },
 
     // Create a shortcut for all of the traces currently being displayed.
@@ -929,6 +935,35 @@
           }.bind(this)).catch(this._catch.bind(this));
         }
       }.bind(this)).catch(this._catch.bind(this));
+    },
+
+    // Download all the displayed data as a CSV file.
+    _csv: function() {
+      if (this._csvBlob) {
+        URL.revokeObjectURL(this._csvBlob);
+        this._csvBlob = null;
+      }
+      let csv = [];
+      let line = ['id'];
+      this._dataframe.header.forEach((_,i) => {
+        // TODO(jcgregorio) Look up the git hash and use that as the header.
+        line.push(i);
+      });
+      csv.push(line.join(','));
+      for (let traceId in this._dataframe.traceset) {
+        line = [`"${traceId}"`];
+        this._dataframe.traceset[traceId].forEach((f) => {
+          if (f !== 1e32) {
+            line.push(f);
+          } else {
+            line.push('');
+          }
+        });
+        csv.push(line.join(','));
+      }
+      this._csvBlob = new Blob([csv.join('\n')], {type: 'text/csv'});
+      this.$.csv_download.href = URL.createObjectURL(this._csvBlob);
+      this.$.csv_download.click();
     },
 
     _isZero: function(n) {
