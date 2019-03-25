@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c4e01d28_3f1b5921",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-25T14:35:34Z",
+      "side": 1,
+      "message": "download\u003d\"output.csv\" might suggest the downloaded file to be output.csv, depending on the browser.",
+      "range": {
+        "startLine": 174,
+        "startChar": 33,
+        "endLine": 174,
+        "endChar": 41
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "661f4bdb_c7fc68b7",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 953,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-25T14:35:34Z",
+      "side": 1,
+      "message": "nit: const",
+      "range": {
+        "startLine": 953,
+        "startChar": 11,
+        "endLine": 953,
+        "endChar": 14
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "326d1352_cc162297",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 956,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-25T14:35:34Z",
+      "side": 1,
+      "message": "What\u0027s this special number?  Maybe move to a named const?",
+      "range": {
+        "startLine": 956,
+        "startChar": 20,
+        "endLine": 956,
+        "endChar": 24
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e1ff56f_d93f527f",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 959,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-25T14:35:34Z",
+      "side": 1,
+      "message": "isn\u0027t this a no-op?",
+      "range": {
+        "startLine": 959,
+        "startChar": 22,
+        "endLine": 959,
+        "endChar": 24
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
