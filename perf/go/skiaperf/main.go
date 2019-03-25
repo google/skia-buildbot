@@ -110,6 +110,7 @@ var (
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	stepUpOnly            = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
 	subdomain             = flag.String("subdomain", "perf", "The public subdomain of the server, i.e. 'perf' for perf.skia.org.")
+	tracing               = flag.Bool("tracing", false, "If true then send traces to stackdriver.")
 )
 
 var (
@@ -212,6 +213,10 @@ func newAlertsConfigProvider(clusterAlgo types.ClusterAlgo) regression.ConfigPro
 func Init() {
 	rand.Seed(time.Now().UnixNano())
 
+	sampler := trace.NeverSample()
+	if *tracing {
+		sampler = trace.AlwaysSample()
+	}
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
 		BundleDelayThreshold: time.Second / 10,
 		BundleCountThreshold: 10})
@@ -219,7 +224,7 @@ func Init() {
 		sklog.Fatal(err)
 	}
 	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	trace.ApplyConfig(trace.Config{DefaultSampler: sampler})
 	_, span := trace.StartSpan(context.Background(), "main")
 	defer span.End()
 
