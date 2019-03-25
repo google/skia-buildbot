@@ -125,6 +125,10 @@
 
     #buttons {
       grid-area: buttons;
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 11px;
+      align-content: flex-start;
     }
 
     #tabs {
@@ -153,15 +157,15 @@
         </div>
       </div>
 
-      <div class="layout vertical" id=buttons>
+      <div id=buttons>
         <button on-click="_removeHighlighted" title="Remove all the highlighted traces.">Remove Highlighted</button>
         <button on-click="_removeAll" title="Remove all the traces.">Remove All</button>
         <button on-click="_highlightedOnly" title="Remove all but the highlighted traces.">Highlighted Only</button>
         <button on-click="_clearHighlights" title="Remove highlights from all traces.">Clear Highlights</button>
         <button on-click="_resetAxes" title="Reset back to the original zoom level.">Reset Axes</button>
+        <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
         <button on-click="_shiftBoth" title="Expand the display [[_numShift]] commits in
           both directions.">&lt;&lt; +[[_numShift]] &gt;&gt;</button>
-        <button on-click="_shiftLeft" title="Move 10 commits in the past.">&lt;&lt; [[_numShift]]</button>
         <button on-click="_shiftRight" title="Move 10 commits in the future.">[[_numShift]] &gt;&gt;</button>
         <div>
           <button on-click="_zoomToRange" id=zoom_range disabled title="Fit the time range to the current zoom window.">Zoom Range</button>
