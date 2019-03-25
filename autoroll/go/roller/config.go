@@ -186,6 +186,8 @@ type AutoRollerConfig struct {
 	MaxRollFrequency string `json:"maxRollFrequency,omitempty"`
 	// Any extra notification systems to be used for this roller.
 	Notifiers []*notifier.Config `json:"notifiers,omitempty"`
+	// Time window in which the roller is allowed to upload roll CLs.
+	TimeWindow string `json:"timeWindow,omitempty"`
 	// Throttling configuration to prevent uploading too many CLs within
 	// too short a time period.
 	SafetyThrottle *ThrottleConfig `json:"safetyThrottle,omitempty"`
