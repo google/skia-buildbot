@@ -884,6 +884,9 @@ server {
     listen 80;
     server_name skbug.com;
 
+    # Remove since we don't have a cert for skbug.com.
+    add_header Strict-Transport-Security "";
+
     access_log /var/log/nginx/sk-bug.access.log;
     error_log /var/log/nginx/sk-bug.error.log error;
 
