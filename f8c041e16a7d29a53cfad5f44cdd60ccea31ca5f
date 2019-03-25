@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "08acfe2a_e0c29375",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-25T19:38:28Z",
+      "side": 1,
+      "message": "I\u0027m totally open to other ideas for formats for specifying time ranges.  I tried to be pretty general, but a lot of it is probably unnecessary, eg. we\u0027ll probably never need seconds (and maybe not minutes), and it seems unlikely that we need multiple windows in the same day, although I did that so that we could support running between eg. 10pm and 2am, by specifying 22:00:00-23:59:59 and 00:00:00-02:00:00.  Another awkwardness is the validation which limits hours to 0-23 and minutes/seconds to 0-59; that could result in some rollers exiting the roll window if they happen to cycle during that one missing second in the example above.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
