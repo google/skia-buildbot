@@ -36,6 +36,7 @@ const (
 	ANDROID      = "android"
 	ANDROID_PROD = "android-prod"
 	CT           = "ct"
+	CT_PROD      = "ct-prod"
 )
 
 var (
@@ -76,6 +77,16 @@ var (
 			Instance: "perf-bt",
 			Table:    "ct",
 			Topic:    "perf-ingestion-ct",
+			GitUrl:   "https://skia.googlesource.com/perf-ct",
+			Shards:   8,
+			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
+		},
+		CT_PROD: &PerfBigTableConfig{
+			TileSize: 256,
+			Project:  "skia-public",
+			Instance: "production",
+			Table:    "perf-ct",
+			Topic:    "perf-ingestion-ct-production",
 			GitUrl:   "https://skia.googlesource.com/perf-ct",
 			Shards:   8,
 			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
