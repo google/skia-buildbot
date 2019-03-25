@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "47b2da2c_f9dba2c6",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-25T14:54:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c4e01d28_3f1b5921",
+      "range": {
+        "startLine": 174,
+        "startChar": 33,
+        "endLine": 174,
+        "endChar": 41
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "661f4bdb_c7fc68b7",
         "filename": "perf/res/imp/explore.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cda93a5f_34cba3da",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 953,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-25T14:54:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "661f4bdb_c7fc68b7",
+      "range": {
+        "startLine": 953,
+        "startChar": 11,
+        "endLine": 953,
+        "endChar": 14
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9bd09db3_aaf82954",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 956,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-25T14:54:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "326d1352_cc162297",
+      "range": {
+        "startLine": 956,
+        "startChar": 20,
+        "endLine": 956,
+        "endChar": 24
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e1ff56f_d93f527f",
         "filename": "perf/res/imp/explore.html",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2019-03-25T14:35:34Z",
       "side": 1,
       "message": "isn\u0027t this a no-op?",
+      "range": {
+        "startLine": 959,
+        "startChar": 22,
+        "endLine": 959,
+        "endChar": 24
+      },
+      "revId": "37b88f16ef03b60fe8e8c4e5e9f30ae04dee50b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12d71aa1_67c08509",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 959,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-03-25T14:54:24Z",
+      "side": 1,
+      "message": "No, since we do a join.(\u0027,\u0027) on line.",
+      "parentUuid": "0e1ff56f_d93f527f",
       "range": {
         "startLine": 959,
         "startChar": 22,
