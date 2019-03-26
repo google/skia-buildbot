@@ -48,7 +48,7 @@ const (
 	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
 	// sparse data set, we'll request data in chunks of this many commits per
 	// point we are looking for.
-	SPARSE_BLOCK_SEARCH_MULT = 200
+	SPARSE_BLOCK_SEARCH_MULT = 2000
 
 	CLUSTERING_REQUEST_TYPE_SINGLE ClusterRequestType = 0 // Do clustering at a single commit.
 	CLUSTERING_REQUEST_TYPE_LAST_N ClusterRequestType = 1 // Do clustering over a range of dense commits.

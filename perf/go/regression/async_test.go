@@ -148,7 +148,7 @@ func TestCalcCidsSparse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "master-001997", cids[0].ID())
 	assert.Equal(t, "master-002004", cids[6].ID())
-	assert.Equal(t, []int{2000, 2001, 1400}, begins)
+	assert.Equal(t, []int{2000, 2001, -4000}, begins)
 	assert.Equal(t, []int{2001, 2005, 2000}, ends)
 }
 
