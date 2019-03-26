@@ -19,7 +19,7 @@
     "repoName": "engine",
     "checksNum": 4,
     "checksWaitFor": [
-      "luci"
+      "luci-engine"
     ]
   },
   "githubDEPSRepoManager": {
