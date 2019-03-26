@@ -187,7 +187,9 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 		"--local-trace-path", fmt.Sprintf("file://%s", downloadedTrace),
 		"--cloud-trace-link", cloudTraceLink,
 		"--metric-name", *metricName,
-		"--browser", "system", // No browser is brought up but unfortunately this is needed by the framework.
+		// Next 2 args are an unfortunate hack made due to skbug.com/8918
+		"--browser", "exact",
+		"--browser-executable", "/bin/sh",
 		"--output-dir", filepath.Join(outputPath, getTraceName(downloadedTrace)),
 	}
 	// Calculate what timeout should be used when executing run_benchmark.
