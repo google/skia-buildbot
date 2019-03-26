@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "34b09635_6c0e11f0",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "nit: \"abbr: \u0027{{ $labels.app }}\u0027\"",
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cb62405_be6ef019",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "no PROD.md link",
+      "range": {
+        "startLine": 152,
+        "startChar": 125,
+        "endLine": 152,
+        "endChar": 135
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cba0519_2f8a0c9f",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "console.cloud.google.com, x3 in this file",
+      "range": {
+        "startLine": 152,
+        "startChar": 149,
+        "endLine": 152,
+        "endChar": 173
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ebdced8_06196e48",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "$labels.app, x10 in this file",
+      "range": {
+        "startLine": 152,
+        "startChar": 54,
+        "endLine": 152,
+        "endChar": 70
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a142c098_583eb11c",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "nit: log link would be nice",
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "253d3220_4edfa279",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "Wrong section.",
+      "range": {
+        "startLine": 174,
+        "startChar": 188,
+        "endLine": 174,
+        "endChar": 205
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2615f82f_44b6d0c0",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "nit: \"Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_metrics_liveness\"",
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "681aba49_50889037",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-26T20:38:44Z",
+      "side": 1,
+      "message": "Maybe double-check that this doesn\u0027t conflict with a k8s label.",
+      "range": {
+        "startLine": 226,
+        "startChar": 24,
+        "endLine": 226,
+        "endChar": 32
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
