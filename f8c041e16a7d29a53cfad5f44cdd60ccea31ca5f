@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "fd667ed2_a1519efc",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-26T19:04:16Z",
+      "side": 1,
+      "message": "If c.TimeWindow \u003d\u003d \"\" then r.timeWindow could be nil ?",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "08acfe2a_e0c29375",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -22,6 +39,87 @@
       "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd6df3c6_4d5de7f7",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-26T19:04:16Z",
+      "side": 1,
+      "message": "Minutes might be nice to have for people who want to do stuff like 5:30-10:30 or something. Should definitely never need seconds though, we probably cannot guarantee that level of accuracy either. Could simplify things a little by removing support.\n\nAlso removing support for Day1-Day5 ranges would also simplify things but upto you.",
+      "parentUuid": "08acfe2a_e0c29375",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "465f48cb_e8bd0ef3",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-26T19:04:16Z",
+      "side": 1,
+      "message": "Might be useful to document examples of what this looks like.",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b998948f_2d065f5e",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-26T19:04:16Z",
+      "side": 1,
+      "message": "You can use time.Format to get abbreviated days.\nt.Format(\"Mon\") will give you \"Sat\", \"Sun\" etc. I think they are all 3 letters which will also be intuitive.",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 7
+      },
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de4a2aed_dc749cc1",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-26T19:04:16Z",
+      "side": 1,
+      "message": "I personally would not have bothered supporting this and only supported * and explicit days like Mon,Tue,Wed but since you already did it...",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
