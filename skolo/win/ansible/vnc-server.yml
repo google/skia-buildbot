@@ -8,18 +8,11 @@
       state: directory
   - name: Copy the TightVNC MSI to the host
     win_copy:
-      src: "{{ win_package_src }}/tightvnc-2.8.8-gpl-setup-64bit.msi"
+      src: "{{ win_package_src }}/tightvnc-2.8.11-gpl-setup-64bit.msi"
       dest: c:\Temp\tightvnc.msi
   - name: Install TightVNC
     win_package:
       path: c:\Temp\tightvnc.msi
-      # See docs for win_package here:
-      # http://docs.ansible.com/ansible/latest/win_package_module.html
-      # Unfortunately, the only way I have found to get this product_id is to install the software
-      # and dig through the registry. And even then it might not work (see
-      # nvidia-graphics-driver.yml). Hopefully future versions of win_package will make this better
-      # (or just make the product_id optional).
-      product_id: '{DEE0B752-52D8-4615-9BEE-1EDA46628960}'
       # https://www.tightvnc.com/doc/win/TightVNC_2.7_for_Windows_Installing_from_MSI_Packages.pdf
       arguments: SET_PASSWORD=1 VALUE_OF_PASSWORD={{ ansible_password }}
       state: present
