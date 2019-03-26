@@ -65,9 +65,8 @@
     },
 
     ready: function() {
-      this._img = $$$('img', this);
+      this._img = $$$('canvas', this);
       this._imageLoadedBound = this._imageLoaded.bind(this);
-      this._img.addEventListener('load', this._imageLoadedBound );
       this.addEventListener('dom-change', this._imageLoadedBound);
       this.addEventListener('dom-change', this._domChanged.bind(this));
       this._resizing = false;
@@ -85,6 +84,11 @@
         this._imageLoaded();
       }.bind(this));
       this._imageLoaded();
+    },
+
+    changeActiveImg(element) {
+      this._img = element;
+      this.dispatchEvent(new CustomEvent('canvas-layers-updated', { bubbles: true }));
     },
 
     _domChanged: function() {
