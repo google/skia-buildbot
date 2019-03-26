@@ -75,7 +75,30 @@ func GetSkiaCQTryBots() ([]string, error) {
 
 // GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBots.
 func GetSkiaInfraCQTryBots() ([]string, error) {
-	return getCQTryBots(common.REPO_SKIA, MASTER_REF)
+	return getCQTryBots(common.REPO_SKIA_INFRA, MASTER_REF)
+}
+
+// MatchConfigGroup returns the ConfigGroup, ConfigGroup_Gerrit, and
+// ConfigGroup_Gerrit_Project which match the given full ref name, or nil if
+// there is no matching ConfigGroup.
+func MatchConfigGroup(cqCfg *Config, ref string) (*ConfigGroup, *ConfigGroup_Gerrit, *ConfigGroup_Gerrit_Project, error) {
+	for _, configGroup := range cqCfg.GetConfigGroups() {
+		for _, g := range configGroup.GetGerrit() {
+			for _, p := range g.GetProjects() {
+				for _, r := range p.GetRefRegexp() {
+					m, err := regexp.MatchString(r, ref)
+					if err != nil {
+						return nil, nil, nil, fmt.Errorf("Error when compiling %s: %s", r, err)
+					}
+					if m {
+						// Found the ref we were looking for.
+						return configGroup, g, p, nil
+					}
+				}
+			}
+		}
+	}
+	return nil, nil, nil, nil
 }
 
 // getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
@@ -89,40 +112,27 @@ func getCQTryBots(repo, ref string) ([]string, error) {
 		return nil, err
 	}
 	tryJobs := []string{}
-
-ConfigGroupLoop:
-	for _, configGroup := range cqCfg.GetConfigGroups() {
-		for _, g := range configGroup.GetGerrit() {
-			for _, p := range g.GetProjects() {
-				for _, r := range p.GetRefRegexp() {
-
-					m, err := regexp.MatchString(r, MASTER_REF)
-					if err != nil {
-						return nil, fmt.Errorf("Error when compiling %s: %s", r, err)
-					}
-					if m {
-						// Found the ref we were looking for.
-						for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
-							if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
-								// Exclude experimental builders, unless running for all CLs.
-								continue
-							}
-							if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {
-								// Exclude presubmit bots because they could fail or be delayed
-								// due to factors such as owners approval and other project
-								// specific checks.
-								continue
-							}
-							// Strip out the bucket and use only the builder name.
-							// Eg: chromium/try/mac_chromium_compile_dbg_ng -> mac_chromium_compile_dbg_ng
-							builderName := filepath.Base(builder.GetName())
-							tryJobs = append(tryJobs, builderName)
-						}
-						// Break out of all the loops.
-						break ConfigGroupLoop
-					}
-				}
+	configGroup, _, _, err := MatchConfigGroup(&cqCfg, ref)
+	if err != nil {
+		return nil, err
+	}
+	if configGroup != nil {
+		// Found the ref we were looking for.
+		for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
+			if builder.GetExperimentPercentage() > 0 && builder.GetExperimentPercentage() < 100 {
+				// Exclude experimental builders, unless running for all CLs.
+				continue
 			}
+			if util.ContainsAny(builder.GetName(), PRESUBMIT_BOTS) {
+				// Exclude presubmit bots because they could fail or be delayed
+				// due to factors such as owners approval and other project
+				// specific checks.
+				continue
+			}
+			// Strip out the bucket and use only the builder name.
+			// Eg: chromium/try/mac_chromium_compile_dbg_ng -> mac_chromium_compile_dbg_ng
+			builderName := filepath.Base(builder.GetName())
+			tryJobs = append(tryJobs, builderName)
 		}
 	}
 
