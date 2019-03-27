@@ -39,5 +39,6 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "24h"
+  "maxRollFrequency": "12h",
+  "timeWindow": "M-F 04:00-08:00"
 }
