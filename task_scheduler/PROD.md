@@ -237,3 +237,11 @@ expected time in Kubernetes. If they have not, look into why. If they have,
 check the Task Scheduler logs to verify that the scheduler received the pubsub
 message and if so determine why it did not create the job.
 
+
+update_repos_failed
+-------------------
+
+The scheduler has failed to update its git repos for too long. Check the logs
+and determine what is going on. If the git servers are down or having problems,
+make sure that the team is aware by filing a bug or pinging IRC:
+http://go/gob-oncall

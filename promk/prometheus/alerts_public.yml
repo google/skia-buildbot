@@ -326,3 +326,13 @@ groups:
       severity: critical
     annotations:
       description: 'backup-to-gcs has failed to back up the Grafana db in the last 24 hours. Check the logs.'
+
+# Skia Status
+  - alert: StatusLatency
+    expr: avg_over_time(prober{probename="skiastatus_json",type="latency"}[10m])/1024  > 10
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      description: 'The JSON endpoint at https://status.skia.org/json/skia/commits/ took more than 10s to respond.'
