@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b32dc464_d5811c35",
+        "filename": "autoroll/config/chromium-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T17:51:12Z",
+      "side": 1,
+      "message": "How does this work with max roll frequency?\ni.e what would have happened if you left 24h ?",
+      "revId": "87ef3c23ff0fb8b5c2bb24b3ed8d9104a6c3c0b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
