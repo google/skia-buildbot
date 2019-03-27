@@ -220,6 +220,10 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
+	for expectHash, expectLabel := range c.resultState.Expectations[name] {
+		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
+	}
 
 	var egroup errgroup.Group
 	// Check against known hashes and upload if needed.
