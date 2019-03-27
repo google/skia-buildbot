@@ -46,10 +46,11 @@ const (
 	CHANGE_STATUS_NEW       = "NEW"
 
 	// Gerrit labels.
-	CODEREVIEW_LABEL            = "Code-Review"
-	CODEREVIEW_LABEL_DISAPPROVE = -1
-	CODEREVIEW_LABEL_NONE       = 0
-	CODEREVIEW_LABEL_APPROVE    = 1
+	CODEREVIEW_LABEL              = "Code-Review"
+	CODEREVIEW_LABEL_DISAPPROVE   = -1
+	CODEREVIEW_LABEL_NONE         = 0
+	CODEREVIEW_LABEL_APPROVE      = 1
+	CODEREVIEW_LABEL_SELF_APPROVE = 2 // Used by ANGLE, not Chromium or Skia.
 
 	// Chromium specific labels.
 	COMMITQUEUE_LABEL         = "Commit-Queue"
