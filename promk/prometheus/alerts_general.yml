@@ -140,3 +140,141 @@ groups:
       description: 'Autoroll on {{ $labels.app }} has failed to obtain the current sheriff for more than 2 hours. Please verify that the sheriff endpoint is working and that the rotation schedule is not empty.
       https://console.cloud.google.com/logs/viewer?organizationId=433637338589&project={{ $labels.location }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}
       '
+
+# Skia Status
+  - alert: StatusIncrementalCacheUpdate
+    expr: liveness_last_successful_incremental_cache_update_s > 5*60
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'IncrementalCache UpdateLoop on {{ $labels.app }} has failed to update data for more than 5 minutes. Playbook: https://skia.googlesource.com/buildbot/%2B/master/status/PROD.md#incremental_cache_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.location }}&organizationId=433637338589&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}'
+
+# Task Scheduler
+
+  - alert: TaskSchedulerLiveness
+    expr: liveness_last_successful_task_scheduling_s/60 > 10
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to schedule for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#scheduling_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.location }}&organizationId=433637338589&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}'
+
+  - alert: TaskSchedulerUpdateReposLiveness
+    expr: liveness_last_successful_repo_update_s/60 > 10
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update repos and insert new jobs for the last 10 minutes. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#update_repos_failed Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.location }}&organizationId=433637338589&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}'
+
+  - alert: TaskSchedulerLatency
+    expr: prober{type="latency",probename="task_scheduler"} > 300
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.probename }}'
+      description: 'The endpoint for {{ $labels.probename }} took more than 300ms to respond. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.location }}&organizationId=433637338589&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}'
+
+  - alert: TaskSchedulerErrorRate
+    expr: rate(num_log_lines{level="ERROR",log_source="task_scheduler"}[2m]) > 0.05
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'The error rate for task_scheduler on {{ $labels.app }} is too high. https://console.cloud.google.com/logs/viewer?project={{ $labels.location }}&organizationId=433637338589&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}'
+
+
+  - alert: TaskSchedulerTooManyCandidates
+    expr: task_candidate_count > 1500
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'There are too many task candidates for dimensions: {{ $labels.dimensions }} https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#too_many_candidates'
+
+  - alert: OverdueMetricsLiveness
+    expr: liveness_last_successful_overdue_metrics_update_s/60 > 10
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: '{{ $labels.app }} has failed to update overdue_job_specs_s for the last 10 minutes. Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_metrics_liveness Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.location }}&organizationId=433637338589&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.location }}%2Flogs%2F{{ $labels.app }}'
+
+# These jobs have tasks with an expiration of 4 hours, and we allow 2 attempts, so they should
+# normally finish within 8 hours.
+  - alert: OverdueJobSpec
+    expr: overdue_job_specs_s{job_trigger=~"|master",job_name!~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 8
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: '{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+
+# These jobs have tasks with an expiration of 9 hours, and we allow 2 attempts, so they should
+# normally finish within 18 hours.
+  - alert: OverdueJobSpecLong
+    expr: overdue_job_specs_s{job_trigger=~"|master",job_name=~".*(Valgrind|MSAN|-x86-).*"}/60/60 > 18
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: '{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+
+  - alert: OverdueJobSpecNightly
+    expr: overdue_job_specs_s{job_trigger="nightly"}/60/60 > 28
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: '{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+
+  - alert: OverdueJobSpecWeekly
+    expr: overdue_job_specs_s{job_trigger="weekly"}/60/60 > 7*24+4
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: '{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+
+  - alert: LatestJobAgeNightly
+    expr: latest_job_age_s{job_trigger="nightly"}/60/60 > 25
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: '{{ $labels.job_name }} has not been triggered in the last 25 hours (nightly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
+
+  - alert: LatestJobAgeWeekly
+    expr: latest_job_age_s{job_trigger="weekly"}/60/60 > 7*24+1
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.job_name }}'
+      description: '{{ $labels.job_name }} has not been triggered in the last week + 1 hour (weekly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
