@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "74f6f68b_945c09ce",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34b09635_6c0e11f0",
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1cb62405_be6ef019",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -88,6 +106,78 @@
     },
     {
       "key": {
+        "uuid": "62b47c97_fb4f84b6",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done. Also, added status/PROD.md :P",
+      "parentUuid": "1cb62405_be6ef019",
+      "range": {
+        "startLine": 152,
+        "startChar": 125,
+        "endLine": 152,
+        "endChar": 135
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "00838e5e_79ab0627",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3cba0519_2f8a0c9f",
+      "range": {
+        "startLine": 152,
+        "startChar": 149,
+        "endLine": 152,
+        "endChar": 173
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4b6829c6_66aefb6b",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7ebdced8_06196e48",
+      "range": {
+        "startLine": 152,
+        "startChar": 54,
+        "endLine": 152,
+        "endChar": 70
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a142c098_583eb11c",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -102,6 +192,24 @@
       "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4803a1ff_fb763603",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a142c098_583eb11c",
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "c93c2940_2089554f",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "253d3220_4edfa279",
+      "range": {
+        "startLine": 174,
+        "startChar": 188,
+        "endLine": 174,
+        "endChar": 205
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2615f82f_44b6d0c0",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -142,6 +274,24 @@
       "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22bf74e9_8bc4e62d",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 215,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2615f82f_44b6d0c0",
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -165,6 +315,30 @@
       "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78379bd5_541995f8",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:07:08Z",
+      "side": 1,
+      "message": "There\u0027s a \"job\", which is apparently always, \"kubernetes-pods\".  I don\u0027t see a \"job_name\".",
+      "parentUuid": "681aba49_50889037",
+      "range": {
+        "startLine": 226,
+        "startChar": 24,
+        "endLine": 226,
+        "endChar": 32
+      },
+      "revId": "a5b4b2d380120f36a9b9ddc1b19a143f18f8c585",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
