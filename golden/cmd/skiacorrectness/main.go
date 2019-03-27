@@ -267,7 +267,13 @@ func main() {
 				InstanceID: *gitBTInstanceID,
 				TableID:    *gitBTTableID,
 			}
-			gitStore, err := gitstore.NewBTGitStore(ctx, btConf, *gitRepoURL)
+
+			useRepoURL := *gitRepoURL
+			if foundRepoURL, ok := gitstore.RepoURLFromID(*gitRepoURL); ok {
+				useRepoURL = foundRepoURL
+			}
+
+			gitStore, err := gitstore.NewBTGitStore(ctx, btConf, useRepoURL)
 			if err != nil {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}
