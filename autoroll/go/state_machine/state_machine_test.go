@@ -174,6 +174,8 @@ type TestAutoRollerImpl struct {
 	safetyThrottle  *Throttler
 	successThrottle *Throttler
 	updateError     error
+
+	rollWindowOpen bool
 }
 
 // Return a TestAutoRollerImpl instance.
@@ -191,6 +193,7 @@ func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSC
 		rolledPast:      map[string]bool{},
 		safetyThrottle:  safetyThrottle,
 		successThrottle: successThrottle,
+		rollWindowOpen:  true,
 	}
 }
 
@@ -297,6 +300,11 @@ func (r *TestAutoRollerImpl) SafetyThrottle() *Throttler {
 // many times within a time period.
 func (r *TestAutoRollerImpl) SuccessThrottle() *Throttler {
 	return r.successThrottle
+}
+
+// Return true if we're allowed to upload rolls.
+func (r *TestAutoRollerImpl) InRollWindow(time.Time) bool {
+	return r.rollWindowOpen
 }
 
 // Assert that the StateMachine is in the given state.
@@ -452,6 +460,13 @@ func TestNormal(t *testing.T) {
 	// We don't reopen the CL and go back to throttled state in this case.
 	r.SetMode(ctx, modes.MODE_RUNNING)
 	checkNextState(t, sm, S_NORMAL_IDLE)
+
+	// Close the roll window.
+	r.rollWindowOpen = false
+	checkNextState(t, sm, S_NORMAL_WAIT_FOR_WINDOW)
+	checkNextState(t, sm, S_NORMAL_WAIT_FOR_WINDOW)
+	r.rollWindowOpen = true
+	checkNextState(t, sm, S_NORMAL_IDLE)
 }
 
 func TestDryRun(t *testing.T) {
@@ -567,6 +582,13 @@ func TestDryRun(t *testing.T) {
 	// We don't reopen the CL and go back to throttled state in this case.
 	r.SetMode(ctx, modes.MODE_DRY_RUN)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
+
+	// Close the roll window. In dry run mode we ignore the window.
+	r.rollWindowOpen = false
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	r.rollWindowOpen = true
+	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 }
 
 func TestNormalToDryRun(t *testing.T) {
