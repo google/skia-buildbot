@@ -57,7 +57,7 @@ type FuzzerInfo struct {
 var fuzzers = map[string]FuzzerInfo{
 	"android_codec": {
 		PrettyName:          "Android Codec",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "android_codec", "--bytes"},
@@ -129,7 +129,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"image_decode": {
 		PrettyName:          "General Image Decode",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "image_decode", "--bytes"},
@@ -137,7 +137,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"image_decode_incremental": {
 		PrettyName:          "Incremental Image Decode",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "scroggo",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "image_decode_incremental", "--bytes"},
@@ -145,7 +145,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"image_filter_deserialize": {
 		PrettyName:          "FilterFuzz Stub",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "reed",
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "filter_fuzz", "--bytes"},
@@ -186,14 +186,6 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullCanvas", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
-	},
-	"null_gl_canvas": {
-		PrettyName:          "Canvas to null gl canvas backend",
-		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "robertphillips",
-		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullGLCanvas", "--bytes"},
-		GenerationArgs:      []string{"-m", "5000", "-t", "500+"},
 	},
 	"path_deserialize": {
 		PrettyName:          "SkPath deserialize",
