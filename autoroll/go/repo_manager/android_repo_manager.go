@@ -384,13 +384,12 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 		}
 
 	}
-	// Create a single bug line and append it to the commit message.
+	// Create a separate bug line for each bug and append it to the commit
+	// message. See skbug.com/8920.
 	if len(bugMap) > 0 {
-		bugs := []string{}
 		for b := range bugMap {
-			bugs = append(bugs, b)
+			commitMsg += fmt.Sprintf("\nBug: %s", b)
 		}
-		commitMsg += fmt.Sprintf("\nBug: %s", strings.Join(bugs, ", "))
 	}
 
 	if r.parentBranch != "master" {
