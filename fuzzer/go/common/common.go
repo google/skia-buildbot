@@ -187,14 +187,6 @@ var fuzzers = map[string]FuzzerInfo{
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullCanvas", "--bytes"},
 		GenerationArgs:      defaultGenerationArgs,
 	},
-	"null_gl_canvas": {
-		PrettyName:          "Canvas to null gl canvas backend",
-		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "robertphillips",
-		ExtraBugLabels:      nil,
-		ArgsAfterExecutable: []string{"--type", "api", "--name", "NullGLCanvas", "--bytes"},
-		GenerationArgs:      []string{"-m", "5000", "-t", "500+"},
-	},
 	"path_deserialize": {
 		PrettyName:          "SkPath deserialize",
 		Status:              STABLE_FUZZER,
