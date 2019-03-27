@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "665e9adf_c662751a",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T15:41:58Z",
+      "side": 1,
+      "message": "Nit: I might rather do the same as before, sort the bug numbers, and then add them on separate lines. That\u0027ll make test cases consistent and make weirdos like me happier when reading the commit message.",
+      "range": {
+        "startLine": 390,
+        "startChar": 0,
+        "endLine": 392,
+        "endChar": 3
+      },
+      "revId": "fcf325e1d36a23c74a7a1bc77922a0f5c4715c67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
