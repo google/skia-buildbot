@@ -26,7 +26,7 @@
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "./third_party/SPIRV-Tools/src",
+    "childPath": "./third_party/spirv-tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
     "includeBugs": false,
     "includeLog": false,
