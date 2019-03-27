@@ -16,6 +16,24 @@
       "revId": "87ef3c23ff0fb8b5c2bb24b3ed8d9104a6c3c0b0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b7016c8_0b244a92",
+        "filename": "autoroll/config/chromium-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T17:58:10Z",
+      "side": 1,
+      "message": "I\u0027m guessing:\n- Upload roll at midnight.\n- Roll lands at 12:30 or so.\n- Next night the window opens at midnight but we\u0027re still success-throttled, so we upload a new roll at 12:30.\n- Repeat until we have to skip a night because we got throttled past the end of the window.\n\nThe other aspect of this is that the we don\u0027t prevent uploading multiple rolls within the window, so if we really do want a single nightly roll, then we have to have a maxRollFrequency which is longer than the window but not by so much that it causes us to drift around.",
+      "parentUuid": "b32dc464_d5811c35",
+      "revId": "87ef3c23ff0fb8b5c2bb24b3ed8d9104a6c3c0b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
