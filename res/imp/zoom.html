@@ -29,7 +29,9 @@
         updating the zoomed view after an image load.
 
   Methods:
-    getImageData() - Returns the image data of the image wrapped by this zoom-sk element.
+
+    drawZoom() - to be called if the source img/canvas in the zoomed region has changed,
+                 or the x,y location has changed.
 
     getPixelColor(x,y) - Returns the color of the pixel as an array in RGBA format.
 
@@ -38,10 +40,6 @@
 <link rel="import" href="/res/imp/bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <dom-module id="zoom-sk">
   <style type="text/css" media="screen">
-    #copy {
-      display: none;
-    }
-
     #zoom {
       margin: 0;
       padding: 0;
@@ -54,7 +52,6 @@
   </style>
   <template>
     <canvas id=zoom width=10 height=10></canvas>
-    <canvas id=copy width=10 height=10></canvas>
   </template>
   <script>
     Polymer({
@@ -82,44 +79,44 @@
           type: Number,
           value: 0,
           reflectToAttribute: true,
-          observer: "_drawZoom",
+          observer: "drawZoom",
         },
         y: {
           type: Number,
           value: 0,
           reflectToAttribute: true,
-          observer: "_drawZoom",
+          observer: "drawZoom",
         },
         pixels: {
           type: Number,
           value: 10,
           reflectToAttribute: true,
-          observer: "_pixelResize",
         },
+        allow_draw: {
+          type: Boolean,
+          value: false,
+        }
       },
 
       ready: function () {
-        // Grab the img we are zooming from.
-        this._img = $$$('#' + this.source, this._findParent());
-        this._img.addEventListener('load', function() {
-          this._onIronResize();
-          this._cloneImage();
-          this.dispatchEvent(new CustomEvent('zoom-loaded', { bubbles: true }));
-        }.bind(this));
-        this._cloneImage();
+        // Grab the thing we are zooming from.
+        this._source = $$$('#' + this.source, this._findParent());
 
         // The canvas context we are drawing the zoomed pixels on.
         this.ctx = this.$.zoom.getContext('2d');
+        if (this._source.width == 0 || this._source.height == 0) {
+          return;
+        }
       },
 
-      getImageData: function() {
-        var c = this.$.copy;
-        return c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      changeActiveSource(element) {
+        this._source = element;
       },
 
-      getPixelColor: function(x,y) {
-        return this.$.copy.getContext('2d').getImageData(x, y, 1, 1).data;
-      },
+      // Why is this part of the zoom element?
+      // getPixelColor: function(x,y) {
+      //   return this._source.getContext('2d').getImageData(x, y, 1, 1).data;
+      // },
 
       _findParent: function() {
         var p = this.parentNode;
@@ -130,46 +127,50 @@
       },
 
       _onIronResize: function() {
-        this.$.zoom.width = this.parentElement.clientWidth;
-        this.$.zoom.height = this.parentElement.clientWidth;
-        this._pixelResize();
+         this.pixelSize = 13;
+         w = this.pixels * this.pixelSize + 1;
+         this.$.zoom.width = w;
+         this.$.zoom.height = w;
+         this.$.zoom.parentElement.width = w;
+         this.$.zoom.parentElement.height = w;
+         this.drawZoom();
       },
 
-      _pixelResize: function() {
-        this.pixelSize = Math.floor(this.$.zoom.width/this.pixels);
-        this._drawZoom();
-      },
+      drawZoom: function () {
+        if (!this.allow_draw) { return; }
+        if (!this.ctx) { return; }
 
-
-      _cloneImage: function() {
-        this.$.copy.width = this._img.naturalWidth;
-        this.$.copy.height = this._img.naturalHeight;
-        this.$.copy.getContext('2d').drawImage(this._img, 0, 0, this._img.naturalWidth, this._img.naturalHeight);
-        this._drawZoom();
-      },
-
-      _drawZoom: function () {
-        if (!this.ctx) {
-          return
-        }
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         var dx = this.pixelSize;
         var dy = this.pixelSize;
         this.ctx.lineWidth =  1;
         this.ctx.strokeStyle = '#000';
         // Draw out each pixel as a rect on the target canvas, as this works around FireFox doing a blur as it copies from one canvas to another.
-        var colors = this.$.copy.getContext('2d').getImageData(this.x - this.pixels/ 2, this.y - this.pixels / 2, this.pixels, this.pixels).data;
-        for (var x = 0; x < this.pixels; x++) {
-          for (var y = 0; y < this.pixels; y++) {
-            var offset = (y * this.pixels + x) * 4;
+
+        s = this.pixels;
+        hs = Math.floor(s / 2);
+        var colors;
+        var flip = false; // pixel buffer from webgl is upside down
+        if (sourceCtx = this._source.getContext('2d')) {
+          colors = sourceCtx.getImageData(this.x-hs, this.y-hs, s, s).data;
+        } else if ((sourceCtx = this._source.getContext('webgl2')) || (sourceCtx = this._source.getContext('webgl'))) {
+          colors = new Uint8Array(s*s*4);
+          sourceCtx.readPixels(this.x-s/2, (sourceCtx.drawingBufferHeight-this.y)-s/2, s, s,
+            sourceCtx.RGBA, sourceCtx.UNSIGNED_BYTE, colors);
+          flip = true;
+        }
+        for (var x = 0; x < s; x++) {
+          for (var y = 0; y < s; y++) {
+            var offset = (y * s + x) * 4;
+            if (flip) { var offset = ((s-1-y) * s + x) * 4; }
             // Offset into the colors array.
             var colorRGB = sk.colorRGB(colors, offset, true);
             var colorRGBStyle = sk.colorRGB(colors, offset, false);
             this.set("ctx.fillStyle", colorRGBStyle);
-            this.ctx.fillRect(x * dx, y * dy, dx - 1, dy - 1);
+            this.ctx.fillRect(x * dx + 1, y * dy + 1, dx - 1, dy - 1);
             // Box one selected pixel with its rgba values.
-            if (x == this.pixels / 2 && y == this.pixels / 2) {
-              this.ctx.strokeRect(x * dx - 0.5, y * dy - 0.5, dx, dy);
+            if (x == hs && y == hs) {
+              this.ctx.strokeRect(x * dx + 0.5, y * dy + 0.5, dx, dy);
               var detail = {
                 x: this.x,
                 y: this.y,

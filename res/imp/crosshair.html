@@ -45,14 +45,12 @@
         x: {
           type: Number,
           value: 0,
-          observer: '_xChanged',
           reflectToAttribute: true,
           notify: true
         },
         y: {
           type: Number,
           value: 0,
-          observer: '_yChanged',
           reflectToAttribute: true,
           notify: true
         },
@@ -102,26 +100,23 @@
           x: 0,
           y: 0,
         };
-        this._drawCrosshairBound = this._drawCrosshair.bind(this);
+
+        this._xyChangedBound = this.XorYchanged.bind(this);
         this._moveEventHandlerBound = this._moveEventHandler.bind(this);
         this._clickEventHandlerBound = this._clickEventHandler.bind(this);
-        this._moveAnimationFrameBound = this._moveAnimationFrame.bind(this);
       },
 
-      _xChanged: function (newValue, oldValue) {
-        if (this._img && oldValue != newValue) {
-          this.thumb.x = this._img.width * (this.x / this._img.naturalWidth);
-          this._drawCrosshair();
-          this._event();
-        }
-      },
+      // to be called if the x or y attribute was changed. (to avoid it being called twice if registered with polymer)
+      XorYchanged() {
+        str = window.getComputedStyle(this._img, null).width;
+        visibleWidth = parseFloat(str.substring(0, str.length-2)); // remove the 'px' suffix
+        str = window.getComputedStyle(this._img, null).height;
+        visibleHeight = parseFloat(str.substring(0, str.length-2)); // remove the 'px' suffix
 
-      _yChanged: function (newValue, oldValue) {
-        if (this._img && oldValue != newValue) {
-          this.thumb.y = this._img.height * (this.y / this._img.naturalHeight);
-          this._drawCrosshair();
-          this._event();
-        }
+        this.thumb.x = visibleWidth * (this.x / this._img.width);
+        this.thumb.y = visibleHeight * (this.y / this._img.height);
+        this._drawCrosshair();
+        this._event();
       },
 
       _layerChanged: function() {
@@ -152,7 +147,7 @@
           this._unregisterAllCallbacks();
         }
         this._canvas = layer.canvas(this.name);
-        this._img = layer.img();
+        this._img = layer.subject();
         if (this._canvas) {
           this._registerCallbacks();
           this._ctx = this._canvas.getContext('2d');
@@ -163,14 +158,13 @@
         if (!this._canvas) {
           return;
         }
-        this._canvas.addEventListener('canvas-update', this._drawCrosshairBound);
+        this._canvas.addEventListener('canvas-update', this._xyChangedBound);
         if (this.update_on === "click") {
           this._canvas.addEventListener('click', this._clickEventHandlerBound);
           this._canvas.removeEventListener('mousemove', this._moveEventHandlerBound);
         } else if (this.update_on === "move")  {
           this._canvas.addEventListener('mousemove', this._moveEventHandlerBound);
           this._canvas.removeEventListener('click', this._clickEventHandlerBound);
-          window.requestAnimationFrame(this._moveAnimationFrameBound);
         } else {
           this._canvas.removeEventListener('mousemove', this._moveEventHandlerBound);
           this._canvas.removeEventListener('click', this._clickEventHandlerBound);
@@ -180,29 +174,22 @@
       _unregisterAllCallbacks: function() {
         this._canvas.removeEventListener('mousemove', this._moveEventHandlerBound);
         this._canvas.removeEventListener('click', this._clickEventHandlerBound);
-        this._canvas.removeEventListener('canvas-update', this._drawCrosshairBound);
+        this._canvas.removeEventListener('canvas-update', this._xyChangedBound);
       },
 
       _moveEventHandler: function (e) {
-        // Only record the values, don't do any work here.
-        // The actual updating takes place in the RaF _moveAnimationFrame.
         this._move.x = e.clientX;
         this._move.y = e.clientY;
-      },
 
-      _clickEventHandler: function (e) {
-        this._moveCrosshair(e.clientX, e.clientY);
-      },
-
-      _moveAnimationFrame: function() {
         if (this._lastMove.x != this._move.x || this._lastMove.y != this._move.y) {
           this._moveCrosshair(this._move.x, this._move.y);
           this._lastMove.x = this._move.x;
           this._lastMove.y = this._move.y;
         }
-        if (this.update_on === "move") {
-          window.requestAnimationFrame(this._moveAnimationFrameBound);
-        }
+      },
+
+      _clickEventHandler: function (e) {
+        this._moveCrosshair(e.clientX, e.clientY);
       },
 
       _moveCrosshair: function (clientX, clientY) {
@@ -213,8 +200,17 @@
         this.thumb.x = clientX - p.x;
         this.thumb.y = clientY - p.y;
         this._drawCrosshair();
-        this.x = Math.floor(this.thumb.x / this._img.width * this._img.naturalWidth);
-        this.y = Math.floor(this.thumb.y / this._img.height * this._img.naturalHeight);
+        // Find an equivalent of actual width and height for canvas.
+        // for image, width is the visible widht on the screen and naturalWidth is the native resolution
+        // of the image. for canvas, width is it's native resolution but it's actual width on the
+        // screen is determined by CSS computed values
+        str = window.getComputedStyle(this._img, null).width;
+        visibleWidth = parseFloat(str.substring(0, str.length-2)); // remove the 'px' suffix
+        str = window.getComputedStyle(this._img, null).height;
+        visibleHeight = parseFloat(str.substring(0, str.length-2)); // remove the 'px' suffix
+        // scale crosshair position to wasm canvas coordinates.
+        this.x = Math.floor(this.thumb.x / visibleWidth * this._img.width);
+        this.y = Math.floor(this.thumb.y / visibleHeight * this._img.height);
         this._event();
       },
 
