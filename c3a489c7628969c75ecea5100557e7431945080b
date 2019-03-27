@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d804dc39_cd9f54ca",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T16:45:20Z",
+      "side": 1,
+      "message": "The actual examples that this points to is at the bottom of go/time_window/time_window.go\nEasiest thing might be to just move the Parse function to the top so that the examples and syntax is quickly visible. Or could move the examples from Parse doc to the top of time_window.go.",
+      "range": {
+        "startLine": 189,
+        "startChar": 68,
+        "endLine": 190,
+        "endChar": 51
+      },
+      "revId": "c3a489c7628969c75ecea5100557e7431945080b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14f80be1_fdc8d939",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T16:45:20Z",
+      "side": 1,
+      "message": "no longer supported + a few times after this",
+      "range": {
+        "startLine": 202,
+        "startChar": 28,
+        "endLine": 202,
+        "endChar": 31
+      },
+      "revId": "c3a489c7628969c75ecea5100557e7431945080b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
