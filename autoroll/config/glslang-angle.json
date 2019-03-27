@@ -3,7 +3,6 @@
 {
   "childName": "glslang",
   "contacts": [
-    "dsinclair@google.com",
     "geofflang@chromium.org",
     "jmadill@chromium.org",
     "syoussefi@chromium.org",
@@ -11,26 +10,28 @@
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
-    "project": "chromium/src",
-    "config": "chromium"
+    "project": "angle/angle",
+    "config": "angle"
   },
   "isInternal": false,
-  "parentName": "Chromium",
-  "parentWaterfall": "https://build.chromium.org",
-  "rollerName": "glslang-chromium-autoroll",
-  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "parentName": "ANGLE",
+  "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
+  "rollerName": "glslang-angle-autoroll",
+  "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "dsinclair@google.com",
     "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
+  ],
+  "sheriffBackup": [
+    "ynovikov@chromium.org"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
-    "childPath": "src/third_party/glslang/src",
+    "childPath": "./third_party/glslang/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
     "includeBugs": false,
-    "includeLog": true,
+    "includeLog": false,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },
   "kubernetes": {
     "cpu": "1",

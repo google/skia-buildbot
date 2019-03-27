@@ -14,6 +14,9 @@ const (
 	// Android and related projects.
 	GERRIT_CONFIG_ANDROID = "android"
 
+	// GERRIT_CONFIG_ANGLE is a Gerrit server configuration used by ANGLE.
+	GERRIT_CONFIG_ANGLE = "angle"
+
 	// GERIT_CONFIG_CHROMIUM is a Gerrit server configuration used by
 	// Chromium and related projects.
 	GERRIT_CONFIG_CHROMIUM = "chromium"
@@ -35,6 +38,18 @@ var (
 				gerrit.CODEREVIEW_LABEL:      "2",
 				gerrit.PRESUBMIT_READY_LABEL: "1",
 				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_NONE,
+			},
+		},
+		GERRIT_CONFIG_ANGLE: map[bool]map[string]interface{}{
+			// Normal mode.
+			false: map[string]interface{}{
+				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_SELF_APPROVE,
+				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
+			},
+			// Dry run mode.
+			true: map[string]interface{}{
+				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_SELF_APPROVE,
+				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
 			},
 		},
 		GERRIT_CONFIG_CHROMIUM: map[bool]map[string]interface{}{
@@ -83,8 +98,8 @@ func (c *GerritConfig) Validate() error {
 	if c.Project == "" {
 		return errors.New("Project is required.")
 	}
-	if c.Config != GERRIT_CONFIG_ANDROID && c.Config != GERRIT_CONFIG_CHROMIUM {
-		return fmt.Errorf("Config must be one of: [%s, %s]", GERRIT_CONFIG_ANDROID, GERRIT_CONFIG_CHROMIUM)
+	if c.Config != GERRIT_CONFIG_ANDROID && c.Config != GERRIT_CONFIG_ANGLE && c.Config != GERRIT_CONFIG_CHROMIUM {
+		return fmt.Errorf("Config must be one of: [%s, %s, %s]", GERRIT_CONFIG_ANDROID, GERRIT_CONFIG_ANGLE, GERRIT_CONFIG_CHROMIUM)
 	}
 	return nil
 }
