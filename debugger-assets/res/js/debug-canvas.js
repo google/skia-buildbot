@@ -55,16 +55,6 @@ var DebugCanvas = {
     return sk.post("./clipAlpha/" + alpha);
   },
 
-  // setTextBounds sets if text bounds are displayed.
-  //
-  // b is a boolean.
-  //
-  // Return a promise that resolves when the change is complete.
-  setTextBounds: function(b) {
-    var checked = b ? 1 : 0;
-    return sk.post("./textBounds/" + checked);
-  },
-
   // toggleOp turns the op at index off or on based on the boolean 'b'.
   //
   // Returns a promise that resolved when the change is complete.

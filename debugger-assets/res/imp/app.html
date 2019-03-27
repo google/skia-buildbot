@@ -115,7 +115,6 @@ The main application element for the Skia Debugger.
     }
 
     dbg-info-sk,
-    #textBounds,
     #clip {
       margin-left: 3em;
       margin-bottom: 1em;
@@ -202,6 +201,10 @@ The main application element for the Skia Debugger.
 
     canvas-layers-sk  {
       border: solid lightgray 1px;
+      background-position: 0px 0px, 10px 10px;
+      background-size: 20px 20px;
+      background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+                        linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
     }
 
     paper-icon-button.resizer
@@ -233,9 +236,13 @@ The main application element for the Skia Debugger.
     }
 
     zoom-sk {
-      display: block;
+      display: inline-block;
       margin-top: 1em;
       box-shadow: 5px 5px 18px grey;
+    }
+
+    #keyboardshortcuts {
+      margin-top: 1em;
     }
 
     #img.bottom {
@@ -290,7 +297,7 @@ The main application element for the Skia Debugger.
       <div class="layout horizontal" hidden="[[ skp_not_loaded ]]">
         <div id=left class$="layout vertical flex-{{ _leftRatio }}">
           <div class="layout horizontal end-justified">
-            <paper-icon-button class=resizer on-change=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
+            <paper-icon-button class=resizer on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
           </div>
           <div class="layout horizontal">
             <paper-input id="fast" on-change="_fastFilter" label="Filter
@@ -334,7 +341,7 @@ The main application element for the Skia Debugger.
         <div id=right class$="layout vertical flex-2">
           <div class="layout horizontal">
             <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
-            <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuOpBounds)}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
+            <paper-checkbox disabled="{{!_gpuChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuOpBounds)}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
           </div>
           <details-sk>
             <summary-sk>
@@ -350,9 +357,8 @@ The main application element for the Skia Debugger.
             <summary-sk>
               Bounds and Matrix
             </summary-sk>
-            <paper-checkbox id=clip on-tap="_clipHandler">Show Clip</paper-checkbox>
-            <paper-checkbox id=textBounds on-tap="_textBoundsHandler">Show Text Bounds</paper-checkbox>
-            <dbg-info-sk info="{{ info }}"></dbg-info-sk>
+            <paper-checkbox id=clip on-change="_clipHandler">Show Clip</paper-checkbox>
+            <dbg-info-sk info="[[ info ]]"></dbg-info-sk>
           </details-sk>
           <details-sk id=gpuOpBoundsLegend class=hidden>
             <summary-sk>
@@ -369,22 +375,23 @@ The main application element for the Skia Debugger.
               Histogram
             </summary-sk>
             <table>
-              <template is="dom-repeat" items="{{histogram}}">
-                <tr><td class=countCol>{{item.count}}</td><td>{{item.name}}</td></tr>
+              <template is="dom-repeat" items="[[histogram}}">
+                <tr><td class=countCol>[[item.count]]</td><td>[[item.name]]</td></tr>
               </template>
-              <tr><td class=countCol>{{_filtered.commands.length}}</td><td><b>Total</b></td></tr>
+              <tr><td class=countCol>[[_filtered.commands.length]]</td><td><b>Total</b></td></tr>
             </table>
           </details-sk>
           <dl>
             <dt>Postion</dt>
-            <dd>({{ x }}, {{ y }})</dd>
+            <dd>([[ x ]], [[ y ]])</dd>
             <dt>Color</dt>
-            <dd>{{ rgb }}</dd>
-            <dd>{{ hex }}</dd>
+            <dd>[[ rgb ]]</dd>
+            <dd>[[ hex ]]</dd>
           </dl>
           <div>
             <paper-checkbox disabled id=colorBreakPoint on-tap="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
           </div>
+          <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
           <details-sk id=keyboardshortcuts class=hidden>
             <summary-sk>
               Keyboard shortcuts
@@ -397,7 +404,6 @@ The main application element for the Skia Debugger.
               <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
             </table>
           </details-sk>
-          <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
         </div>
       </div>
       <error-toast-sk></error-toast-sk>
@@ -567,7 +573,7 @@ The main application element for the Skia Debugger.
       _resizeImage: function(e) {
         var ele = sk.findParent(e.target, "PAPER-ICON-BUTTON");
         if (!ele) {
-          return
+          return;
         }
         this.$.img.classList.remove("natural", "fit", "right", "bottom");
         this.$.img.classList.add(ele.dataset.style);
@@ -637,10 +643,6 @@ The main application element for the Skia Debugger.
 
       _gpuChecked: function(mode) {
         return mode == "gpu";
-      },
-
-      _gpuNotChecked: function(mode) {
-        return !this._gpuChecked(mode);
       },
 
       _isTrue: function(b) {
@@ -794,12 +796,6 @@ The main application element for the Skia Debugger.
 
       _clipHandler: function() {
         DebugCanvas.setClip(this.$.clip.checked).then(function() {
-          this._setCacheBreakingURL();
-        }.bind(this)).catch(sk.errorMessage);
-      },
-
-      _textBoundsHandler: function() {
-        DebugCanvas.setTextBounds(this.$.textBounds.checked).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },
