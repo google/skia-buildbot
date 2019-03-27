@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/autoroll/go/state_machine"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
+	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/chatbot"
@@ -57,9 +58,11 @@ type AutoRoller struct {
 	liveness        metrics2.Liveness
 	modeHistory     *modes.ModeHistory
 	notifier        *arb_notifier.AutoRollNotifier
+	notifierConfigs []*notifier.Config
 	parentName      string
 	recent          *recent_rolls.RecentRolls
 	rm              repo_manager.RepoManager
+	rollIntoAndroid bool
 	roller          string
 	runningMtx      sync.Mutex
 	safetyThrottle  *state_machine.Throttler
@@ -71,8 +74,7 @@ type AutoRoller struct {
 	statusMtx       sync.RWMutex
 	strategyHistory *strategy.StrategyHistory
 	successThrottle *state_machine.Throttler
-	rollIntoAndroid bool
-	notifierConfigs []*notifier.Config
+	timeWindow      *time_window.TimeWindow
 }
 
 // NewAutoRoller returns an AutoRoller instance.
@@ -182,6 +184,14 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create status cache: %s", err)
 	}
+	sklog.Info("Creating TimeWindow.")
+	var tw *time_window.TimeWindow
+	if c.TimeWindow != "" {
+		tw, err = time_window.Parse(c.TimeWindow)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create TimeWindow: %s", err)
+		}
+	}
 	arb := &AutoRoller{
 		cfg:             c,
 		codereview:      cr,
@@ -192,6 +202,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
 		modeHistory:     mh,
 		notifier:        n,
+		notifierConfigs: c.Notifiers,
 		recent:          recent,
 		rm:              rm,
 		roller:          rollerName,
@@ -202,7 +213,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		status:          statusCache,
 		strategyHistory: sh,
 		successThrottle: successThrottle,
-		notifierConfigs: c.Notifiers,
+		timeWindow:      tw,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -383,6 +394,11 @@ func (r *AutoRoller) GetCurrentRev() string {
 // See documentation for state_machine.AutoRollerImpl interface.
 func (r *AutoRoller) GetNextRollRev() string {
 	return r.rm.NextRollRev()
+}
+
+// See documentation for state_machine.AutoRollerImpl interface.
+func (r *AutoRoller) InRollWindow(t time.Time) bool {
+	return r.timeWindow.Test(t)
 }
 
 // See documentation for state_machine.AutoRollerImpl interface.
