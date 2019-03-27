@@ -102,6 +102,30 @@
     },
     {
       "key": {
+        "uuid": "385c4d8e_9c750294",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T14:42:48Z",
+      "side": 1,
+      "message": "Removed support for seconds.  It\u0027s much more readable.  Also added support for wrap-around times; if the end time is before the start time, it\u0027s assumed to mean the next day, ie. in the above example 22:00-02:00 is valid and means that the window starts at 22:00 on the given day and ends at 02:00 on the NEXT day.  Also removed support for multiple windows within the same day, since the main use case should now be covered by the wraparound.",
+      "parentUuid": "cd6df3c6_4d5de7f7",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 19
+      },
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "465f48cb_e8bd0ef3",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -149,6 +173,24 @@
       "side": 1,
       "message": "Might want to link it in the config somewhere like that recent bug for config documentation for users who want to make changes themselves.",
       "parentUuid": "6cd84649_d648a067",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7955fb5d_d717a3a6",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T14:42:48Z",
+      "side": 1,
+      "message": "Added a note to the doc on the Config struct which points to this package.",
+      "parentUuid": "48ef36cb_277fe717",
       "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -293,6 +335,24 @@
       "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74b92d04_8789ff9e",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T14:42:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c04c3c0a_586aaa27",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
