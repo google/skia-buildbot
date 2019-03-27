@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "12c39109_d7c2570f",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T12:36:35Z",
+      "side": 1,
+      "message": "Yep, that\u0027s intentional.  A nil TimeWindow always returns true for Test(t).",
+      "parentUuid": "fd667ed2_a1519efc",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "08acfe2a_e0c29375",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -83,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "6cd84649_d648a067",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T12:36:35Z",
+      "side": 1,
+      "message": "I think I\u0027ve done that in the doc for Parse.  If that\u0027s insufficient, let me know.",
+      "parentUuid": "465f48cb_e8bd0ef3",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b998948f_2d065f5e",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -106,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "0bb12fd0_b24cb689",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T12:36:35Z",
+      "side": 1,
+      "message": "Yeah, I didn\u0027t like the 3-letter abbreviations because that would make the whole expression a lot longer.  If you prefer, I\u0027ll change to use them.",
+      "parentUuid": "b998948f_2d065f5e",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 7
+      },
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "de4a2aed_dc749cc1",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -117,6 +177,24 @@
       "writtenOn": "2019-03-26T19:04:16Z",
       "side": 1,
       "message": "I personally would not have bothered supporting this and only supported * and explicit days like Mon,Tue,Wed but since you already did it...",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a55e4b3_b2f6f579",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-27T12:36:35Z",
+      "side": 1,
+      "message": "Shrug. It was easy enough to do, and IMO \"M-F\" (or \"Mon-Fri\") is much easier to read than \"M,Tu,W,Th,F\" (or \"Mon,Tue,Wed,Thu,Fri\").",
+      "parentUuid": "de4a2aed_dc749cc1",
       "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
