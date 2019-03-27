@@ -22,6 +22,30 @@
       "revId": "fcf325e1d36a23c74a7a1bc77922a0f5c4715c67",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60b6ba0e_54952ced",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T16:29:52Z",
+      "side": 1,
+      "message": "I am probably missing something, where was it sorting it before? oh maybe you mean that it should sort them. Done.",
+      "parentUuid": "665e9adf_c662751a",
+      "range": {
+        "startLine": 390,
+        "startChar": 0,
+        "endLine": 392,
+        "endChar": 3
+      },
+      "revId": "fcf325e1d36a23c74a7a1bc77922a0f5c4715c67",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
