@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a1417c9_87aabea8",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-27T15:42:17Z",
+      "side": 1,
+      "message": "This is absolutely correct, the problem is with sklog, which has a lot of (transitive)\ndependencies. I have avoided it in goldctl because of that.\n\nInstead of sklog.Infof(\"...\") use fmt.Printf(\"... \\n\") for now. \n(Note: Printf needs a trailing \"\\n\" which is implicit in sklog.Infof(...))\nI will go over the logging approach soon and fix this then.",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 227,
+        "endChar": 2
+      },
+      "revId": "7ebf7be454e66eda2defb61a31dfe9ca9f5043a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
