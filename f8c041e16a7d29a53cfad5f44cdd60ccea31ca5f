@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "c975f6ab_b812c111",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T13:19:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "12c39109_d7c2570f",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "08acfe2a_e0c29375",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -119,6 +137,24 @@
     },
     {
       "key": {
+        "uuid": "48ef36cb_277fe717",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T13:19:42Z",
+      "side": 1,
+      "message": "Might want to link it in the config somewhere like that recent bug for config documentation for users who want to make changes themselves.",
+      "parentUuid": "6cd84649_d648a067",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b998948f_2d065f5e",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -166,6 +202,30 @@
     },
     {
       "key": {
+        "uuid": "5a2852fa_031b7009",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T13:19:42Z",
+      "side": 1,
+      "message": "I prefer the 3 letters but you will be writing majority of these configs so lets leave what you have but let\u0027s make sure examples are easily accessible from the config.",
+      "parentUuid": "0bb12fd0_b24cb689",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 7
+      },
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de4a2aed_dc749cc1",
         "filename": "autoroll/go/time_window/time_window.go",
         "patchSetId": 1
@@ -198,6 +258,41 @@
       "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "51e68b77_e04212d4",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T13:19:42Z",
+      "side": 1,
+      "message": "That\u0027s fine, I meant for less code and complexity.",
+      "parentUuid": "5a55e4b3_b2f6f579",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c04c3c0a_586aaa27",
+        "filename": "autoroll/go/time_window/time_window.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-03-27T13:19:42Z",
+      "side": 1,
+      "message": "Add example with \";\" ?",
+      "revId": "f8c041e16a7d29a53cfad5f44cdd60ccea31ca5f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
