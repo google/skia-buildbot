@@ -5,11 +5,11 @@ default: gitsync btgit
 
 .PHONY: gitsync
 gitsync:
-	go install ./cmd/gitsync/...
+	go install ./go/gitsync/...
 
 .PHONY: btgit
 btgit:
-	go install ./cmd/btgit/...
+	go install ./go/btgit/...
 
 .PHONY: build_release
  build_release: build-static-gitsync
@@ -19,4 +19,4 @@ btgit:
 build-static-gitsync:
 	mkdir -p ./build
 	rm -f ./build/gitsync_k8s
-	$(KGO) -o ./build/gitsync_k8s -a ./cmd/gitsync/...
+	$(KGO) -o ./build/gitsync_k8s -a ./go/gitsync/...

@@ -30,12 +30,18 @@ func main() {
 		httpPort        = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
 		local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 		projectID       = flag.String("project", "skia-public", "ID of the GCP project")
+		promPort        = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 		repoURLs        = common.NewMultiStringFlag("repo_url", []string{}, "Repo url")
 		runInit         = flag.Bool("init", false, "Initialize the BigTable instance and quit. This should be run with a different different user who has admin rights.")
 		refreshInterval = flag.Duration("refresh", 10*time.Minute, "Interval in which to poll git and refresh the GitStore.")
 		workDir         = flag.String("workdir", "", "Working directory where repos are cached. Use the same directory between calls to speed up checkout time.")
 	)
-	common.Init()
+	common.InitWithMust(
+		"gitsync",
+		common.PrometheusOpt(promPort),
+		common.MetricsLoggingOpt(),
+	)
+	defer common.Defer()
 
 	// Make sure we have a data directory and it exists or can be created.
 	if *workDir == "" {
