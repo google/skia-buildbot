@@ -115,7 +115,15 @@ work, so we just prefix every rule with plot-simple-sk.
 <link rel="stylesheet" href="plot-simple.css">
 
 <dom-module id="plot-simple-sk">
+  <style type="text/css" media="screen">
+    div {
+      position: relative;
+    }
+  </style>
   <template>
+    <div>
+      <canvas id=chart width$="{{width}}" height$="{{height}}"></canvas>
+    </div>
     <svg id="svg" width$="{{width}}" height$="{{height}}"
       class$="{{noCrosshair(nocrosshair)}}">
       <defs>
@@ -209,10 +217,63 @@ work, so we just prefix every rule with plot-simple-sk.
         this._initialSetup();
         this.resetAxes();
         this._plot();
+
+        this._chart = new Chart(this.$.chart, {
+          type: 'line',
+          data: {
+            datasets: [],
+          },
+          options: {
+            responsive: true,
+            animation: {
+              duration: 0, // general animation time
+            },
+            hover: {
+              animationDuration: 0, // duration of animations when hovering an item
+            },
+            responsiveAnimationDuration: 0, // animation duration after a resize
+            maintainAspectRatio: false,
+            elements: {
+              line: {
+                tension: 0 // disables bezier curves
+              }
+            },
+            scales: {
+              xAxes: [{
+                type: 'linear',
+                position: 'bottom'
+              }]
+            },
+            hover: {
+              intersect: false,
+              mode: 'nearest',
+              animationDuration: 0,
+            }
+          },
+        });
       },
 
       // lines is a map to the line data.
       addLines: function(lines) {
+        Object.keys(lines).forEach(function(id) {
+          let data = lines[id].map((arr) => {
+              return {
+                x: arr[0],
+                y: arr[1],
+              }
+            });
+          console.log(data);
+          this._chart.data.datasets.push({
+            label: id,
+            data: data,
+            fill: false,
+            borderColor: colors[(sk.hashString(id) % 8) + 1],
+            borderWidth: 1,
+          });
+        }.bind(this));
+        this._chart.update();
+
+
         Object.keys(lines).forEach(function(id) {
           var line = lines[id];
           line._id = id;
