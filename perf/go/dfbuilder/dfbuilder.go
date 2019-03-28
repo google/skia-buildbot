@@ -30,7 +30,7 @@ const (
 
 	// NEW_N_MAX_SEARCH is the minimum number of queries to perform that returned
 	// no data before giving up.
-	NEW_N_MAX_SEARCH = 4
+	NEW_N_MAX_SEARCH = 5
 )
 
 // builder implements DataFrameBuilder using btts.
@@ -387,23 +387,24 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 			return nil, fmt.Errorf("Failed while querying: %s", err)
 		}
 
-		// If there are no matches then we might be done.
-		if len(df.TraceSet) == 0 {
-			numStepsNoData += 1
-		}
-		if numStepsNoData > NEW_N_MAX_SEARCH {
-			sklog.Infof("Failed querying: %s", q)
-			break
-		}
-
+		nonMissing := 0
 		// Total up the number of data points we have for each commit.
 		counts := make([]int, len(df.Header))
 		for _, tr := range df.TraceSet {
 			for i, x := range tr {
 				if x != vec32.MISSING_DATA_SENTINEL {
 					counts[i] += 1
+					nonMissing += 1
 				}
 			}
+		}
+		// If there are no matches then we might be done.
+		if nonMissing == 0 {
+			numStepsNoData += 1
+		}
+		if numStepsNoData > NEW_N_MAX_SEARCH {
+			sklog.Infof("Failed querying: %s", q)
+			break
 		}
 
 		ret.ParamSet.AddParamSet(df.ParamSet)
@@ -462,7 +463,14 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
 	defer timer.New("NewNFromKeys").Stop()
 
-	begin := end.Add(-NEW_N_FROM_KEY_STEP)
+	endIndex, err := b.findIndexForTime(ctx, end)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find end index: %s", err)
+	}
+	beginIndex := endIndex - (b.tileSize - 1)
+	if beginIndex < 0 {
+		beginIndex = 0
+	}
 
 	ret := dataframe.NewEmpty()
 	var total int32 // total number of commits we've added to ret so far.
@@ -470,28 +478,59 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	numStepsNoData := 0
 
 	for total < n {
-		// TODO(jcgregorio) Convert NewFromKeysAndRange to take indices, not times.
-		df, err := b.NewFromKeysAndRange(keys, begin, end, false, nil)
+		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
 		if err != nil {
-			return nil, fmt.Errorf("Failed while querying: %s", err)
+			return nil, fmt.Errorf("Failed building index range: %s", err)
 		}
 
-		// If there are no matches then we might be done.
-		if len(df.TraceSet) == 0 {
-			numStepsNoData += 1
-		}
-		if numStepsNoData > NEW_N_MAX_SEARCH {
-			break
-		}
+		// Determine which tiles we are querying over, and how each tile maps into our results.
+		mapper := buildTileMapOffsetToIndex(indices, b.store)
 
+		traceSet := types.TraceSet{}
+		for tileKey, traceMap := range mapper {
+			// Read the traces for the given keys.
+			traces, err := b.store.ReadTraces(tileKey, keys)
+			if err != nil {
+				return nil, err
+			}
+			// For each trace, convert the encodedKey to a structured key
+			// and copy the trace values into their final destination.
+			for key, tileTrace := range traces {
+				trace, ok := traceSet[key]
+				if !ok {
+					trace = types.NewTrace(len(indices))
+				}
+				for srcIndex, dstIndex := range traceMap {
+					trace[dstIndex] = tileTrace[srcIndex]
+				}
+				traceSet[key] = trace
+			}
+		}
+		df := &dataframe.DataFrame{
+			TraceSet: traceSet,
+			Header:   headers,
+			ParamSet: paramtools.ParamSet{},
+			Skip:     skip,
+		}
+		df.BuildParamSet()
+
+		nonMissing := 0
 		// Total up the number of data points we have for each commit.
 		counts := make([]int, len(df.Header))
 		for _, tr := range df.TraceSet {
 			for i, x := range tr {
 				if x != vec32.MISSING_DATA_SENTINEL {
 					counts[i] += 1
+					nonMissing += 1
 				}
 			}
+		}
+		// If there are no matches then we might be done.
+		if nonMissing == 0 {
+			numStepsNoData += 1
+		}
+		if numStepsNoData > NEW_N_MAX_SEARCH {
+			break
 		}
 
 		ret.ParamSet.AddParamSet(df.ParamSet)
@@ -527,9 +566,15 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		}
 		steps += 1
 
-		// Step back another day.
-		end = begin.Add(-time.Millisecond) // Since our ranges are half open, i.e. they always include 'begin'.
-		begin = end.Add(-NEW_N_FROM_KEY_STEP)
+		endIndex -= b.tileSize
+		beginIndex -= b.tileSize
+		if endIndex < 0 {
+			break
+		}
+		if beginIndex < 0 {
+			beginIndex = 0
+		}
+
 	}
 
 	if total < n {
