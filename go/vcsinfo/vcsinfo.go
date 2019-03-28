@@ -10,6 +10,8 @@ var (
 	MinTime = time.Unix(0, 0)
 
 	// MaxTime is the maximum time we consider. It's the equivalent of approximately November 2286.
+	// It is intended to be used as a value for range queries to get everything
+	// after a specified start time.
 	MaxTime = time.Unix(9999999999, 0)
 )
 
@@ -67,7 +69,8 @@ type VCS interface {
 	// only be used if the membership in branches is really needed.
 	Details(ctx context.Context, hash string, includeBranchInfo bool) (*LongCommit, error)
 
-	// DetailsMulti returns multiple details at once, which is a lot faster for some implementations.
+	// DetailsMulti returns multiple details at once, which is a lot faster for some implementations,
+	// e.g. the implementation based on BigTable where we can avoid multiple roundtrips to the database.
 	DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*LongCommit, error)
 
 	// LastNIndex returns the last N commits.

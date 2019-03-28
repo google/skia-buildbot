@@ -127,7 +127,8 @@ func (g *GStorageClient) getBaselinePath(commitHash string, issueID int64) strin
 }
 
 // LoadKnownDigests loads the digests that have previously been written
-// to GS via WriteKnownDigests.
+// to GS via WriteKnownDigests. The digests should be copied to the
+// provided writer 'w'.
 func (g *GStorageClient) LoadKnownDigests(w io.Writer) error {
 	bucketName, storagePath := gcs.SplitGSPath(g.options.HashesGSPath)
 
@@ -137,7 +138,7 @@ func (g *GStorageClient) LoadKnownDigests(w io.Writer) error {
 	// If the item doesn't exist this will return gstorage.ErrObjectNotExist
 	_, err := target.Attrs(ctx)
 	if err != nil {
-		// We simply assume an enty hashes file if the object was not found.
+		// We simply assume an empty hashes file if the object was not found.
 		if err == gstorage.ErrObjectNotExist {
 			return nil
 		}
@@ -184,6 +185,5 @@ func (g *GStorageClient) writeToPath(targetPath, contentType string, wrtFn func(
 		return err
 	}
 
-	// sklog.Infof("File written to GS path %s", targetPath)
 	return nil
 }

@@ -129,9 +129,9 @@ func (g *GitInfo) Details(ctx context.Context, hash string, includeBranchInfo bo
 func (g *GitInfo) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	var err error
 	ret := make([]*vcsinfo.LongCommit, len(hashes))
 	for idx, hash := range hashes {
+		var err error
 		if ret[idx], err = g.details(ctx, hash, includeBranchInfo); err != nil {
 			return nil, err
 		}

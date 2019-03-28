@@ -23,7 +23,8 @@ const (
 	// KNOWN_HASHES_ROUTE serves the list of known hashes.
 	KNOWN_HASHES_ROUTE = "/json/hashes"
 
-	// TODO(stephana): Remove LEGACY_KNOWN_HASHES_ROUTE everywhere.
+	// TODO(stephana): Remove LEGACY_KNOWN_HASHES_ROUTE everywhere once we are sure they are not
+	// used by any client.
 	// LEGACY_KNOWN_HASHES_ROUTE is the old rout to serve the list of known hashes.
 	LEGACY_KNOWN_HASHES_ROUTE = "/_/hashes"
 )

@@ -32,8 +32,6 @@ func iterTile(query *Query, addFn AddFn, acceptFn AcceptFn, exp ExpSlice, idx *i
 	cpxTile := idx.CpxTile()
 	selectedTile := cpxTile.GetTile(query.IncludeIgnores)
 
-	// tile := idx.cpxTile.GetTile(query.IncludeIgnores)
-
 	if acceptFn == nil {
 		acceptFn = func(params paramtools.Params, digests []string) (bool, interface{}) { return true, nil }
 	}

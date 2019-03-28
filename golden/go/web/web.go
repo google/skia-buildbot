@@ -978,7 +978,8 @@ func (wh *WebHandlers) TextAllHashesHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // TextKnownHashesProxy returns known hashes that have been written to GCS in the background
-// This is used by the bots to avoid transferring already known images.
+// Each line contains a single digest for an image. Bots will then only upload images which
+// have a hash not found on this list, avoiding significant amounts of unnecessary uploads.
 func (wh *WebHandlers) TextKnownHashesProxy(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	if err := wh.Storages.GStorageClient.LoadKnownDigests(w); err != nil {

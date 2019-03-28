@@ -58,11 +58,11 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) 
 	// Get the baselines for all commits for which we have data and that are not ignored.
 	denseTile := cpxTile.GetTile(false)
 	denseCommits := cpxTile.DataCommits()
-	denseBLs := make(map[string]types.TestExp, len(denseCommits))
+	denseBaseLines := make(map[string]types.TestExp, len(denseCommits))
 
 	// Initialize the expectations for all data commits
 	for _, commit := range denseCommits {
-		denseBLs[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
+		denseBaseLines[commit.Hash] = make(types.TestExp, len(denseTile.Traces))
 	}
 
 	// keep track of results as we move across the tile. So if a digest is missing
@@ -87,7 +87,7 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) 
 			if digest != types.MISSING_DIGEST {
 				// If this is positive then include it into baseline.
 				if cl := exps.Classification(testName, digest); cl == types.POSITIVE {
-					denseBLs[denseCommits[idx].Hash].AddDigest(testName, digest, cl)
+					denseBaseLines[denseCommits[idx].Hash].AddDigest(testName, digest, cl)
 				}
 			}
 		}
@@ -98,7 +98,7 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) 
 	ret := make(map[string]*CommitableBaseLine, len(allCommits))
 	var currBL *CommitableBaseLine = nil
 	for _, commit := range allCommits {
-		bl, ok := denseBLs[commit.Hash]
+		bl, ok := denseBaseLines[commit.Hash]
 		if ok {
 			md5Sum, err := util.MD5Sum(bl)
 			if err != nil {
@@ -122,7 +122,8 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) 
 			ret[commit.Hash] = &cpBL
 		} else {
 			// Reaching this point means the first in the dense tile does not align with the first
-			// commit of the sparse portion of the tile.
+			// commit of the sparse portion of the tile. This a sanity test and should only happen
+			// in the presence of a programming error or data corruption.
 			sklog.Errorf("Unable to get baseline for commit %s. It has not commits for immediate ancestors in tile.", commit.Hash)
 		}
 	}
@@ -180,7 +181,7 @@ func GetBaselineForIssue(issueID int64, tryjobs []*tryjobstore.Tryjob, tryjobRes
 	return ret, nil
 }
 
-// CommitIssueBaseline commits the expectations for the given issue to the master baseline.
+// commitIssueBaseline commits the expectations for the given issue to the master baseline.
 func commitIssueBaseline(issueID int64, user string, issueChanges types.TestExp, tryjobStore tryjobstore.TryjobStore, expStore expstorage.ExpectationsStore) error {
 	if len(issueChanges) == 0 {
 		return nil
