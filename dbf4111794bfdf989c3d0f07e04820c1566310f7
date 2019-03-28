@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f120653_a709e437",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-28T17:06:17Z",
+      "side": 1,
+      "message": "Not sure if this is a good idea, but I guess we can see how it goes and adjust if necessary.\n\nSpecifically:\n\n1. No one is watching the tree during these times, so if a roll breaks things, it will take several hours before the Sheriff sees the breakage.\n\n2. If the roll fails (and it\u0027s not a flaky failure), one of two things will happen:\n  a. If there are new commits to the child, the roll will be closed and won\u0027t be retried until the next day. AFAICT, there\u0027s no way for the Sheriff to retry after a fix is committed, so if the fix doesn\u0027t work, the following night\u0027s roll will contain 2+ days of commits in one roll. Also, not clear if the sheriff will notice when the roll only fails once, so it may take 2+ days to get a fix.\n  b. Otherwise, the roller will keep +2ing and retrying the failure, even though no one is around to notice that things are failing.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 61
+      },
+      "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a9de07d_00518c4e",
+        "filename": "autoroll/config/angle-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-28T17:06:17Z",
+      "side": 1,
+      "message": "This combo basically means \"once nightly at 4 UTC\", right?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 33
+      },
+      "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66081017_6b1d8bc8",
+        "filename": "autoroll/config/glslang-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-03-28T17:06:17Z",
+      "side": 1,
+      "message": "typo: does this parse?\n\nx3",
+      "range": {
+        "startLine": 45,
+        "startChar": 27,
+        "endLine": 45,
+        "endChar": 28
+      },
+      "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
