@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/util"
@@ -290,6 +291,12 @@ func (c *AutoRollerConfig) Validate() error {
 
 	// Verify that the notifier configs are valid.
 	_, err := arb_notifier.New(context.Background(), "fake", "fake", "fake", nil, nil, c.Notifiers)
+	if err != nil {
+		return err
+	}
+
+	// Verify that the TimeWindow is valid.
+	_, err = time_window.Parse(c.TimeWindow)
 	return err
 }
 

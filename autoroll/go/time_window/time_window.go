@@ -39,6 +39,10 @@ var (
 //   Wrap around to next day:           M-F 22:00-02:00
 //
 func Parse(s string) (*TimeWindow, error) {
+	if s == "" {
+		// A nil TimeWindow always returns true from Test().
+		return nil, nil
+	}
 	dayWindows := []*dayWindow{}
 	split := strings.Split(strings.TrimSpace(s), ";")
 	for _, s := range split {
