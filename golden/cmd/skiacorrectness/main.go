@@ -1,3 +1,4 @@
+// skiacorrectness implements the process that exposes a RESTful API used by the JS frontend.
 package main
 
 import (
@@ -534,7 +535,8 @@ func main() {
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim(shared.EXPECTATIONS_ISSUE_ROUTE), handlers.JsonBaselineHandler).Methods("GET")
 
-	// REMOVE: This is just for old versions
+	// TODO(stephana): Remove this these endpoints (that contain spelling errors) until the already
+	// fixed version of goldctl has been pushed to CPID.
 	jsonRouter.HandleFunc(trim("/json/expecations/commit/{commit_hash}"), handlers.JsonBaselineHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/expecations/issue/{issue_id}"), handlers.JsonBaselineHandler).Methods("GET")
 

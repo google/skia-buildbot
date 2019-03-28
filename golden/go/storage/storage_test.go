@@ -42,6 +42,10 @@ const (
 	TEST_DATA_STORAGE_PATH = "gold-testdata/10-test-sample-4bytes.tile"
 )
 
+func init() {
+	rand.Seed(42)
+}
+
 var (
 	issueID = int64(5678)
 
@@ -376,13 +380,11 @@ type mockVCS struct {
 func newMockVCS(commits []*tiling.Commit) vcsinfo.VCS {
 	ret := make([]*vcsinfo.IndexCommit, len(commits))
 	startIdx := 20
-	// startTime := time.Now().Add(-time.Hour * 24 * 7).UTC()
 	for idx, commit := range commits {
 		ret[idx] = &vcsinfo.IndexCommit{
 			Index:     startIdx + idx,
 			Hash:      commit.Hash,
 			Timestamp: time.Unix(commit.CommitTime, 0),
-			//  startTime.Add(2 * time.Second * time.Duration(idx+1)),
 		}
 	}
 	return &mockVCS{

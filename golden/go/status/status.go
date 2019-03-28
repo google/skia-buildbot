@@ -214,7 +214,6 @@ func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 		byCorpus[corpus][status][testName+digest] = true
 	}
 
-	// commits := tile.Commits[:tileLen]
 	overallOk := true
 	allUntriagedCount := 0
 	allPositiveCount := 0
