@@ -317,8 +317,12 @@ func getCommitTimesForFile(ctx context.Context, begin, end string, filename stri
 
 	// TODO(jcgregorio): Replace with calls to Gerrit API, only used by the Skia instance of perf.
 
+	g, ok := vcs.(*gitinfo.GitInfo)
+	if !ok {
+		return ret
+	}
 	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := vcs.(*gitinfo.GitInfo).LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
+	log, err := g.LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
 	if err != nil {
 		sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
 		return ret

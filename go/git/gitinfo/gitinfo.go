@@ -346,6 +346,17 @@ func (g *GitInfo) LastN(ctx context.Context, N int) []string {
 	}
 }
 
+// This is a temporary performance enhancement for Perf.
+// It will be removed once Perf moves to gitstore.
+func (g *GitInfo) TimestampAtIndex(N int) (time.Time, error) {
+	if N < 0 || N >= len(g.hashes) {
+		return time.Time{}, fmt.Errorf("Hash index not found: %d", N)
+	}
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	return g.timestamps[g.hashes[N]], nil
+}
+
 // Timestamp returns the timestamp for the given hash.
 func (g *GitInfo) Timestamp(hash string) time.Time {
 	g.mutex.Lock()
