@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "572983df_54bbb14d",
+        "filename": "gitsync/go/gitsync/config.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-28T16:17:01Z",
+      "side": 1,
+      "message": "Nit: document fields.",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "9439191e60e32c4750c246a12d7783fb48e8e08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce58cd8e_5205b447",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-28T16:17:01Z",
+      "side": 1,
+      "message": "Nit: left in for debugging?",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 72
+      },
+      "revId": "9439191e60e32c4750c246a12d7783fb48e8e08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
