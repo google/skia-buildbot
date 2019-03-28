@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "962ba283_8741ecba",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-28T19:08:25Z",
+      "side": 1,
+      "message": "I can revert all of the Skia changes if you\u0027d prefer.  This was specifically requested by the ANGLE team.\n\nTo be clear, we won\u0027t upload a new CL during the day, but if there are new commits while we\u0027re still in the window, we will upload CLs.  I deliberately excluded skcms since I figured we wanted those commits to roll ASAP.  I didn\u0027t think we were super worried about a day or two delay for Swiftshader or ANGLE, but I could be wrong.  Personally, I thought there were an excess of rolls from those two rollers throughout the day, so it seemed better to condense to a single nightly roll.  As you say, a failing roll will continue to fail until the sheriff arrives.  That seems like desirable behavior, compared to failing once and then being silent all day.",
+      "parentUuid": "2f120653_a709e437",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 61
+      },
+      "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a9de07d_00518c4e",
         "filename": "autoroll/config/angle-skia.json",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2019-03-28T17:06:17Z",
       "side": 1,
       "message": "This combo basically means \"once nightly at 4 UTC\", right?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 33
+      },
+      "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "348689ef_2333d6aa",
+        "filename": "autoroll/config/angle-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-28T19:08:25Z",
+      "side": 1,
+      "message": "The maxRollFrequency prevents us from landing more than one roll within the timeWindow.  We\u0027ll still upload (or retry) multiple attempts when things fail.",
+      "parentUuid": "8a9de07d_00518c4e",
       "range": {
         "startLine": 50,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f5a6fbb_70d6fdc4",
+        "filename": "autoroll/config/glslang-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-28T19:08:25Z",
+      "side": 1,
+      "message": "Forgot to add a check to the config validation. Done and fixed these.",
+      "parentUuid": "66081017_6b1d8bc8",
+      "range": {
+        "startLine": 45,
+        "startChar": 27,
+        "endLine": 45,
+        "endChar": 28
+      },
+      "revId": "dbf4111794bfdf989c3d0f07e04820c1566310f7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
