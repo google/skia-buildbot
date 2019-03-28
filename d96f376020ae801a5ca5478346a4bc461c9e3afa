@@ -848,6 +848,30 @@
     },
     {
       "key": {
+        "uuid": "f0ed9d8a_b68e5430",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-28T18:23:44Z",
+      "side": 1,
+      "message": "I\u0027ll allow it in this case, but don\u0027t quote me on that for JS readability.",
+      "parentUuid": "4ed9f887_cfd61c3b",
+      "range": {
+        "startLine": 178,
+        "startChar": 19,
+        "endLine": 178,
+        "endChar": 60
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "37578d30_9b92bf51",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -892,6 +916,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c408c9c6_f2058874",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-03-28T18:23:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "144f2e7c_ba85278a",
+      "range": {
+        "startLine": 183,
+        "startChar": 31,
+        "endLine": 183,
+        "endChar": 41
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
