@@ -22,6 +22,30 @@
       "revId": "eac08b38dbe7b227b98286b4b43da6cde87956cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2aca109f_d9a9f474",
+        "filename": "go/cq/cmd/check-cq/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-03-28T16:45:15Z",
+      "side": 1,
+      "message": "Yes, that\u0027d be possible.  I wanted this to work in a local repo, so that a human could run it to validate changes created by new-branch-cq, but for reading all of the refs we don\u0027t need the local repo.",
+      "parentUuid": "bf68e3ef_baddf766",
+      "range": {
+        "startLine": 34,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 23
+      },
+      "revId": "eac08b38dbe7b227b98286b4b43da6cde87956cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
