@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "13a05548_a9dbd272",
+        "filename": "res/imp/crosshair.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13a2858e_f340c947",
+      "range": {
+        "startLine": 126,
+        "startChar": 33,
+        "endLine": 126,
+        "endChar": 34
+      },
+      "revId": "4046db427b811097f66a098336fbdec26c3012d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c1995a6_492a7190",
         "filename": "res/imp/crosshair.html",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "4046db427b811097f66a098336fbdec26c3012d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7dd1cdf_35b7e434",
+        "filename": "res/imp/crosshair.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7c1995a6_492a7190",
+      "range": {
+        "startLine": 220,
+        "startChar": 82,
+        "endLine": 220,
+        "endChar": 88
+      },
+      "revId": "4046db427b811097f66a098336fbdec26c3012d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "27e12294_eba161f2",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:51:15Z",
+      "side": 1,
+      "message": "readPixels origin is at the bottom left. HTML canvas origin is at the top left.\nAlso copied below in the comment inside the webgl block.",
+      "parentUuid": "60d3fcd3_07331d2b",
+      "range": {
+        "startLine": 175,
+        "startChar": 56,
+        "endLine": 175,
+        "endChar": 67
+      },
+      "revId": "4046db427b811097f66a098336fbdec26c3012d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cca24ee5_1a7a0c10",
         "filename": "res/imp/zoom.html",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "4046db427b811097f66a098336fbdec26c3012d4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38139ebd_d2e48a08",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:51:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cca24ee5_1a7a0c10",
+      "range": {
+        "startLine": 179,
+        "startChar": 91,
+        "endLine": 179,
+        "endChar": 97
+      },
+      "revId": "4046db427b811097f66a098336fbdec26c3012d4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
