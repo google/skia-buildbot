@@ -51,7 +51,7 @@ func assetCfg() *AssetRepoManagerConfig {
 	}
 }
 
-func setupAsset(t *testing.T) (context.Context, RepoManager, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, *vcsinfo.LongCommit, func()) {
+func setupAsset(t *testing.T) (context.Context, RepoManager, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, *vcsinfo.LongCommit, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	cfg := assetCfg()
@@ -132,13 +132,13 @@ func setupAsset(t *testing.T) (context.Context, RepoManager, *gitiles_testutils.
 		parent.Cleanup()
 	}
 
-	return ctx, rm, mockParent, parent, mockChild, child, lastUpload, cleanup
+	return ctx, rm, mockParent, parent, mockChild, child, lastUpload, urlmock, cleanup
 }
 
 func TestAssetRepoManager(t *testing.T) {
 	testutils.LargeTest(t)
 
-	ctx, rm, mockParent, parent, mockChild, child, lastUpload, cleanup := setupAsset(t)
+	ctx, rm, mockParent, parent, mockChild, child, lastUpload, urlmock, cleanup := setupAsset(t)
 	defer cleanup()
 
 	assert.Equal(t, assetVersionBase, rm.LastRollRev())
@@ -174,6 +174,21 @@ func TestAssetRepoManager(t *testing.T) {
 	assert.Equal(t, 1, rm.CommitsNotRolled())
 
 	// Upload a CL.
+	ci := gerrit.ChangeInfo{
+		ChangeId: "12345",
+		Id:       "12345",
+		Issue:    12345,
+		Revisions: map[string]*gerrit.Revision{
+			"ps1": &gerrit.Revision{
+				ID:     "ps1",
+				Number: 1,
+			},
+		},
+	}
+	respBody, err := json.Marshal(ci)
+	assert.NoError(t, err)
+	respBody = append([]byte(")]}'\n"), respBody...)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/12345/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)

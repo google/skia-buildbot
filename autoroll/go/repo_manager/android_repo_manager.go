@@ -483,6 +483,16 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 		}
 	}
 
+	// Mark the change as ready for review, if necessary.
+	if change.WorkInProgress {
+		if err := r.g.SetReadyForReview(change); err != nil {
+			if err2 := r.g.Abandon(change, "Failed to set ready for review."); err2 != nil {
+				return 0, fmt.Errorf("Failed to set ready for review with: %s\nand failed to abandon with: %s", err, err2)
+			}
+			return 0, fmt.Errorf("Failed to set ready for review: %s", err)
+		}
+	}
+
 	return change.Issue, nil
 }
 

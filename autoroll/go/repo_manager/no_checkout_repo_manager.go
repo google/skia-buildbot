@@ -117,6 +117,16 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 		return 0, err
 	}
 
+	// Mark the change as ready for review, if necessary.
+	if ci.WorkInProgress {
+		if err := rm.g.SetReadyForReview(ci); err != nil {
+			if err2 := rm.g.Abandon(ci, "Failed to set ready for review."); err2 != nil {
+				return 0, fmt.Errorf("Failed to set ready for review with: %s\nand failed to abandon with: %s", err, err2)
+			}
+			return 0, fmt.Errorf("Failed to set ready for review: %s", err)
+		}
+	}
+
 	// Set the CQ bit as appropriate.
 	if err = rm.g.SetReview(ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?

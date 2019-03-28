@@ -321,6 +321,21 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 	if err := json.NewDecoder(f).Decode(&issue); err != nil {
 		return 0, err
 	}
+
+	// Mark the change as ready for review, if necessary.
+	change, err := rm.g.GetIssueProperties(issue.Issue)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to retrieve change details: %s", err)
+	}
+	if change.WorkInProgress {
+		if err := rm.g.SetReadyForReview(change); err != nil {
+			if err2 := rm.g.Abandon(change, "Failed to set ready for review."); err2 != nil {
+				return 0, fmt.Errorf("Failed to set ready for review with: %s\nand failed to abandon with: %s", err, err2)
+			}
+			return 0, fmt.Errorf("Failed to set ready for review: %s", err)
+		}
+	}
+
 	return issue.Issue, nil
 }
 
