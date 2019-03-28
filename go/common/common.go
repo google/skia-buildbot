@@ -170,6 +170,13 @@ func NewMultiStringFlag(name string, preloadedValues []string, usage string) *Mu
 	return &m
 }
 
+// MultiStringFlagVar defines a MultiString flag with the specified name, preloadedValues, and usage string.
+// The argument target points to a MultiString variable in which to store the values of the flag.
+func MultiStringFlagVar(target *[]string, name string, preloadedValues []string, usage string) {
+	*target = append([]string{}, preloadedValues...)
+	flag.Var((*MultiString)(target), name, usage)
+}
+
 // String() returns the current value of MultiString, as a comma seperated list
 func (m *MultiString) String() string {
 	return strings.Join(*m, ",")
