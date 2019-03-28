@@ -246,6 +246,11 @@ func TestParseDuration(t *testing.T) {
 			d:      52 * 7 * 24 * time.Hour,
 			hasErr: false,
 		},
+		{
+			s:      "1m",
+			d:      time.Minute,
+			hasErr: false,
+		},
 	}
 
 	for _, tc := range testCases {
