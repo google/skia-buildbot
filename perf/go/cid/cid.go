@@ -155,7 +155,11 @@ func (c *CommitIDLookup) warmCache(ctx context.Context) {
 
 	// Extract ts, hash, author email, and subject from the git log.
 	since := now.Add(-365 * 24 * time.Hour).Format("2006-01-02")
-	log, err := c.vcs.(*gitinfo.GitInfo).LogArgs(ctx, "--since="+since, "--format=format:%ct %H %ae %s")
+	g, ok := c.vcs.(*gitinfo.GitInfo)
+	if !ok {
+		return
+	}
+	log, err := g.LogArgs(ctx, "--since="+since, "--format=format:%ct %H %ae %s")
 	if err != nil {
 		sklog.Errorf("Could not get log for --since=%q: %s", since, err)
 		return

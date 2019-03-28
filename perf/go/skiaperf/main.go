@@ -275,6 +275,22 @@ func Init() {
 
 	sklog.Info("About to clone repo.")
 
+	/*
+		gitstoreConfig := &gitstore.BTConfig{
+			ProjectID:  btConfig.Project,
+			InstanceID: btConfig.Instance,
+			TableID:    "git-repos",
+		}
+
+		gs, err := gitstore.NewBTGitStore(ctx, gitstoreConfig, btConfig.GitUrl)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		vcs, err := gitstore.NewVCS(gs, "master", nil)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	*/
 	vcs, err = gitinfo.CloneOrUpdate(ctx, btConfig.GitUrl, *gitRepoDir, false)
 	if err != nil {
 		sklog.Fatal(err)
