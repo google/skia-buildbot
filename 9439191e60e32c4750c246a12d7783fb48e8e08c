@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f4c278ca_4e33599a",
+        "filename": "gitsync/go/gitsync/config.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-28T18:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "572983df_54bbb14d",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 27
+      },
+      "revId": "9439191e60e32c4750c246a12d7783fb48e8e08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce58cd8e_5205b447",
         "filename": "gitsync/go/gitsync/main.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "9439191e60e32c4750c246a12d7783fb48e8e08c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "247a2abc_1105dd4a",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-03-28T18:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ce58cd8e_5205b447",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 72
+      },
+      "revId": "9439191e60e32c4750c246a12d7783fb48e8e08c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
