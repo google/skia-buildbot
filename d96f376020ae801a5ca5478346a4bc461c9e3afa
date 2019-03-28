@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "89218d6b_84fe9315",
+        "filename": "res/imp/canvas-layers.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39d4e1e1_63e7421b",
+      "range": {
+        "startLine": 12,
+        "startChar": 64,
+        "endLine": 12,
+        "endChar": 68
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c55a63ea_551a1c44",
         "filename": "res/imp/canvas-layers.html",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c40d3ef9_329234f4",
+        "filename": "res/imp/canvas-layers.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c55a63ea_551a1c44",
+      "range": {
+        "startLine": 105,
+        "startChar": 6,
+        "endLine": 105,
+        "endChar": 86
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f1b86a07_15bd078c",
+        "filename": "res/imp/canvas-layers.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e7991e27_b5b90a2f",
+      "range": {
+        "startLine": 120,
+        "startChar": 14,
+        "endLine": 120,
+        "endChar": 16
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8585dbba_79985df9",
         "filename": "res/imp/crosshair.html",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1137ef8_603809e3",
+        "filename": "res/imp/crosshair.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8585dbba_79985df9",
+      "range": {
+        "startLine": 111,
+        "startChar": 6,
+        "endLine": 111,
+        "endChar": 17
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "dcce895a_c8bcfa75",
+        "filename": "res/imp/crosshair.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5328ee82_a0510848",
+      "range": {
+        "startLine": 123,
+        "startChar": 28,
+        "endLine": 123,
+        "endChar": 37
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2f3107f9_e762251a",
         "filename": "res/imp/crosshair.html",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71f65518_7f315efa",
+        "filename": "res/imp/crosshair.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "element.style.height seems to be not always set. I think this is because the fit buttons use maxHeight and other techniques to size the element.",
+      "parentUuid": "2f3107f9_e762251a",
+      "range": {
+        "startLine": 131,
+        "startChar": 14,
+        "endLine": 131,
+        "endChar": 18
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "9687250c_74fe4a32",
+        "filename": "res/imp/crosshair.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e69daf3_a63664de",
+      "range": {
+        "startLine": 134,
+        "startChar": 39,
+        "endLine": 134,
+        "endChar": 71
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13e846fb_71a41bc2",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -183,6 +351,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d26d06b7_bc0e7b08",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13e846fb_71a41bc2",
+      "range": {
+        "startLine": 34,
+        "startChar": 63,
+        "endLine": 34,
+        "endChar": 76
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "a8916a87_ecec3a34",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4efd75f_c088e49b",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 39,
+        "endChar": 12
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c2467362_0859da16",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -229,6 +445,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5bbaab80_da35ce66",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2467362_0859da16",
+      "range": {
+        "startLine": 41,
+        "startChar": 23,
+        "endLine": 41,
+        "endChar": 33
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "f2bd2deb_0c17afa1",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9714fec0_e0c9e021",
+      "range": {
+        "startLine": 106,
+        "startChar": 10,
+        "endLine": 106,
+        "endChar": 20
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "971ff695_aaf69311",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -275,6 +539,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2f87e5a9_97e072ec",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "971ff695_aaf69311",
+      "range": {
+        "startLine": 115,
+        "startChar": 20,
+        "endLine": 115,
+        "endChar": 25
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +612,54 @@
     },
     {
       "key": {
+        "uuid": "e64cc176_57afce44",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f718a81e_ef95a4d2",
+      "range": {
+        "startLine": 123,
+        "startChar": 41,
+        "endLine": 123,
+        "endChar": 43
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9429deed_43c6a7a0",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e6219d09_dd6c146b",
+      "range": {
+        "startLine": 123,
+        "startChar": 34,
+        "endLine": 123,
+        "endChar": 36
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b639cf4_5484a2aa",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -344,6 +680,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37220853_b1796e3d",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9b639cf4_5484a2aa",
+      "range": {
+        "startLine": 142,
+        "startChar": 26,
+        "endLine": 142,
+        "endChar": 28
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -370,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "2b0f0393_cdfaa3e1",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "197d1858_69ec156d",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 10
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f39f95f_57a25d96",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "9a8726a2_467fc208",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8f39f95f_57a25d96",
+      "range": {
+        "startLine": 172,
+        "startChar": 8,
+        "endLine": 172,
+        "endChar": 9
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "638f4798_39a9dfbc",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -404,6 +812,30 @@
       "writtenOn": "2019-03-28T13:08:22Z",
       "side": 1,
       "message": "I don\u0027t believe this is idiomatic - please don\u0027t assign variables in an if expression",
+      "range": {
+        "startLine": 178,
+        "startChar": 19,
+        "endLine": 178,
+        "endChar": 60
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ed9f887_cfd61c3b",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "The style guide doesn\u0027t mention this or assignment chaining, but MDN says it will work.\nhttps://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators#Assignment_2\n```The assignment operation evaluates to the assigned value```",
+      "parentUuid": "638f4798_39a9dfbc",
       "range": {
         "startLine": 178,
         "startChar": 19,
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "144f2e7c_ba85278a",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Do these comments clear it up?",
+      "parentUuid": "37578d30_9b92bf51",
+      "range": {
+        "startLine": 183,
+        "startChar": 31,
+        "endLine": 183,
+        "endChar": 41
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "1177ff37_3507e732",
         "filename": "res/imp/zoom.html",
         "patchSetId": 5
@@ -453,6 +909,24 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8dcefa48_d6790b4f",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "that was to handle the buffer from webgl being vertically flipped. looking for row (s-1-y instead of y)",
+      "parentUuid": "1177ff37_3507e732",
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -476,6 +950,30 @@
       "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39a35186_8cadb872",
+        "filename": "res/imp/zoom.html",
+        "patchSetId": 5
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-03-28T18:08:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "103afff7_68798a92",
+      "range": {
+        "startLine": 197,
+        "startChar": 29,
+        "endLine": 197,
+        "endChar": 31
+      },
+      "revId": "d96f376020ae801a5ca5478346a4bc461c9e3afa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
