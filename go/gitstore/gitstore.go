@@ -202,6 +202,26 @@ func AllRepos(ctx context.Context, conf *BTConfig) (map[string]*RepoInfo, error)
 	return ret, nil
 }
 
+// RepoURLFromID retrieves the URL of a repository from its corresponding numeric ID
+func RepoURLFromID(ctx context.Context, conf *BTConfig, repoIDStr string) (string, bool) {
+	id, err := strconv.ParseInt(repoIDStr, 10, 64)
+	if err != nil {
+		return "", false
+	}
+
+	repoInfos, err := AllRepos(ctx, conf)
+	if err != nil {
+		return "", false
+	}
+
+	for repoURL, info := range repoInfos {
+		if info.ID == id {
+			return repoURL, false
+		}
+	}
+	return "", false
+}
+
 // NewBTGitStore returns an instance of GitStore that uses BigTable as its backend storage.
 // The given repoURL serves to identify the repository. Internally it is stored normalized
 // via a call to git.NormalizeURL.

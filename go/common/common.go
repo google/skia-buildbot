@@ -170,6 +170,11 @@ func NewMultiStringFlag(name string, preloadedValues []string, usage string) *Mu
 	return &m
 }
 
+func MultiStringFlagVar(target *[]string, name string, preloadedValues []string, usage string) {
+	*target = append([]string{}, preloadedValues...)
+	flag.Var((*MultiString)(target), name, usage)
+}
+
 // String() returns the current value of MultiString, as a comma seperated list
 func (m *MultiString) String() string {
 	return strings.Join(*m, ",")

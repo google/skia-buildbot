@@ -248,3 +248,21 @@ func Duration(duration time.Duration) string {
 	}
 	return strings.Join(ret, " ")
 }
+
+// JSONDuration is a type that implements the json.Unmarshal interface and can be used
+// to parse human readable durations from configuration files.
+type JSONDuration time.Duration
+
+func (d *JSONDuration) String() string {
+	return strings.TrimSpace(Duration(time.Duration(*d)))
+}
+
+func (d *JSONDuration) UnmarshalJSON(durBytes []byte) error {
+	durStr := strings.Trim(string(durBytes), "\"")
+	duration, err := ParseDuration(string(durStr))
+	if err != nil {
+		return err
+	}
+	*d = JSONDuration(duration)
+	return nil
+}
