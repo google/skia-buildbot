@@ -7,12 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -145,12 +147,13 @@ func (idx *SearchIndex) GetBlame(test, digest string, commits []*tiling.Commit) 
 // different components of an index and creates a processing pipeline on top
 // of it.
 type Indexer struct {
-	storages       *storage.Storage
-	pipeline       *pdag.Node
-	indexTestsNode *pdag.Node
-	lastIndex      *SearchIndex
-	testNames      []string
-	mutex          sync.RWMutex
+	storages          *storage.Storage
+	pipeline          *pdag.Node
+	indexTestsNode    *pdag.Node
+	writeBaselineNode *pdag.Node
+	lastIndex         *SearchIndex
+	testNames         []string
+	mutex             sync.RWMutex
 }
 
 // New returns a new Indexer instance. It synchronously indexes the initiallly
@@ -170,9 +173,9 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 
 	blamerNode := indexTestsNode.Child(calcBlame)
 
-	// write baselines whenever a new tile is processed or when the expectations
-	// change.
-	pdag.NewNode(writeMasterBaseline, indexTestsNode)
+	// write baselines whenever a new tile is processed, new commits become available or
+	// when the expectations change.
+	writeBaselineNode := pdag.NewNode(writeMasterBaseline, indexTestsNode)
 
 	// Add the blamer and tallies
 	tallyNode := root.Child(calcTallies)
@@ -195,6 +198,7 @@ func New(storages *storage.Storage, interval time.Duration) (*Indexer, error) {
 
 	ret.pipeline = root
 	ret.indexTestsNode = indexTestsNode
+	ret.writeBaselineNode = writeBaselineNode
 
 	// Process the first tile and start the indexing process.
 	return ret, ret.start(interval)
@@ -211,7 +215,7 @@ func (ixr *Indexer) GetIndex() *SearchIndex {
 }
 
 // start builds the initial index and starts the background
-// process to continously build indices.
+// process to continuously build indices.
 func (ixr *Indexer) start(interval time.Duration) error {
 	// Build the first index synchronously.
 	tileStream := ixr.storages.GetTileStreamNow(interval)
@@ -230,11 +234,19 @@ func (ixr *Indexer) start(interval time.Duration) error {
 	// new expectations to GCS.
 	ixr.storages.EventBus.SubscribeAsync(expstorage.EV_TRYJOB_EXP_CHANGED, ixr.writeIssueBaseline)
 
-	// Keep building indices as tiles become available and expectations change.
+	// When new commits have become available trigger writing the baselines
+	commitCh := make(chan []*vcsinfo.IndexCommit)
+	ixr.storages.EventBus.SubscribeAsync(gitstore.EV_NEW_GIT_COMMIT, func(e interface{}) {
+		commitCh <- e.([]*vcsinfo.IndexCommit)
+	})
+
+	// Keep building indices for different types of events. This is the central
+	// event loop of the indexer.
 	go func() {
 		var cpxTile *types.ComplexTile
 		for {
 			testChanges := []types.TestExp{}
+			newCommits := []*vcsinfo.IndexCommit{}
 
 			// See if there is a tile or changed tests.
 			cpxTile = nil
@@ -242,9 +254,12 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			// Catch a new tile.
 			case cpxTile = <-tileStream:
 
-			// Catch any test changes.
+				// Catch any test changes.
 			case tn := <-expCh:
 				testChanges = append(testChanges, tn)
+
+				// Catch changes in the commits.
+			case newCommits = <-commitCh:
 			}
 
 			// Drain all the tests that might have changed in the meantime.
@@ -267,6 +282,8 @@ func (ixr *Indexer) start(interval time.Duration) error {
 			} else if len(testChanges) > 0 {
 				// Only index the tests that have changed.
 				ixr.indexTests(testChanges)
+			} else {
+				ixr.writeBaselines(newCommits)
 			}
 		}
 	}()
@@ -281,6 +298,13 @@ func (ixr *Indexer) indexTilePair(cpxTile *types.ComplexTile) error {
 	return ixr.pipeline.Trigger(newSearchIndex(ixr.storages, cpxTile))
 }
 
+func (ixr *Indexer) writeBaselines(newCommits []*vcsinfo.IndexCommit) {
+	idx := ixr.cloneLastIndex()
+	if err := ixr.writeBaselineNode.Trigger(idx); err != nil {
+		sklog.Errorf("Error writing baselines: %s", err)
+	}
+}
+
 // indexTest creates an updated index by indexing the given list of expectation changes.
 func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 	// Get all the testnames
@@ -292,8 +316,30 @@ func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 	}
 
 	defer timer.New("indexTests").Stop()
+	// lastIdx := ixr.GetIndex()
+	// newIdx := &SearchIndex{
+	// 	cpxTile:              lastIdx.cpxTile,
+	// 	tallies:              lastIdx.tallies,            // stay the same even if tests change.
+	// 	talliesWithIgnores:   lastIdx.talliesWithIgnores, // stay the same even if tests change.
+	// 	summaries:            lastIdx.summaries.Clone(),
+	// 	summariesWithIgnores: lastIdx.summariesWithIgnores.Clone(),
+	// 	paramsetSummary:      lastIdx.paramsetSummary,
+	// 	blamer:               blame.New(ixr.storages),
+	// 	warmer:               warmer.New(ixr.storages),
+	// 	testNames:            testNames.Keys(),
+	// 	storages:             lastIdx.storages,
+	// }
+
+	newIdx := ixr.cloneLastIndex()
+	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
+		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
+	}
+}
+
+// cloneLastIndex returns a copy of the most recent index.
+func (ixr *Indexer) cloneLastIndex() *SearchIndex {
 	lastIdx := ixr.GetIndex()
-	newIdx := &SearchIndex{
+	return &SearchIndex{
 		cpxTile:              lastIdx.cpxTile,
 		tallies:              lastIdx.tallies,            // stay the same even if tests change.
 		talliesWithIgnores:   lastIdx.talliesWithIgnores, // stay the same even if tests change.
@@ -302,12 +348,7 @@ func (ixr *Indexer) indexTests(testChanges []types.TestExp) {
 		paramsetSummary:      lastIdx.paramsetSummary,
 		blamer:               blame.New(ixr.storages),
 		warmer:               warmer.New(ixr.storages),
-		testNames:            testNames.Keys(),
 		storages:             lastIdx.storages,
-	}
-
-	if err := ixr.indexTestsNode.Trigger(newIdx); err != nil {
-		sklog.Errorf("Error indexing tests: %v \n\n Got error: %s", testNames, err)
 	}
 }
 
