@@ -8,9 +8,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
@@ -27,6 +29,7 @@ const (
 	DATE_FORMAT_TZ    = "Mon Jan 02 15:04:05 2006 -0700"
 	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
 	LOG_URL           = "%s/+log/%s..%s?format=JSON"
+	REFS_URL          = "%s/+refs%%2Fheads?format=JSON"
 )
 
 // Repo is an object used for interacting with a single Git repo using Gitiles.
@@ -68,6 +71,23 @@ func (r *Repo) get(url string) (*http.Response, error) {
 		return nil, fmt.Errorf("Request got status %q", resp.Status)
 	}
 	return resp, nil
+}
+
+// getJson executes a GET request to the given URL, reads the response and
+// unmarshals it to the given destination.
+func (r *Repo) getJson(url string, dest interface{}) error {
+	resp, err := r.get(url)
+	if err != nil {
+		return err
+	}
+	defer util.Close(resp.Body)
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Failed to read response: %s", err)
+	}
+	// Remove the first line.
+	b = b[4:]
+	return json.Unmarshal(b, dest)
 }
 
 // ReadFileAtRef reads the given file at the given ref.
@@ -159,19 +179,8 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 
 // GetCommit returns a vcsinfo.LongCommit for the given commit.
 func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
-	resp, err := r.get(fmt.Sprintf(COMMIT_URL, r.URL, ref))
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(resp.Body)
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to read response: %s", err)
-	}
-	// Remove the first line.
-	b = b[4:]
 	var c Commit
-	if err := json.Unmarshal(b, &c); err != nil {
+	if err := r.getJson(fmt.Sprintf(COMMIT_URL, r.URL, ref), &c); err != nil {
 		return nil, err
 	}
 	return commitToLongCommit(&c)
@@ -182,20 +191,9 @@ func (r *Repo) GetCommit(ref string) (*vcsinfo.LongCommit, error) {
 func (r *Repo) Log(from, to string) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
 	for {
-		resp, err := r.get(fmt.Sprintf(LOG_URL, r.URL, from, to))
-		if err != nil {
-			return nil, err
-		}
-		defer util.Close(resp.Body)
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to read response: %s", err)
-		}
-		// Remove the first line.
-		b = b[4:]
 		var l Log
-		if err := json.Unmarshal(b, &l); err != nil {
-			return nil, fmt.Errorf("Failed to decode response: %s", err)
+		if err := r.getJson(fmt.Sprintf(LOG_URL, r.URL, from, to), &l); err != nil {
+			return nil, err
 		}
 		// Convert to vcsinfo.LongCommit.
 		for _, c := range l.Log {
@@ -273,5 +271,24 @@ func (r *Repo) LogLinear(from, to string) ([]*vcsinfo.LongCommit, error) {
 			rv = append(rv, commit)
 		}
 	}
+	return rv, nil
+}
+
+// Branches returns the list of branches in the repo.
+func (r *Repo) Branches() ([]*git.Branch, error) {
+	branchMap := map[string]struct {
+		Value string `json:"value"`
+	}{}
+	if err := r.getJson(fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
+		return nil, err
+	}
+	rv := make([]*git.Branch, 0, len(branchMap))
+	for branch, v := range branchMap {
+		rv = append(rv, &git.Branch{
+			Name: branch,
+			Head: v.Value,
+		})
+	}
+	sort.Sort(git.BranchList(rv))
 	return rv, nil
 }
