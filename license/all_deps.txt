@@ -43,6 +43,7 @@ github.com/flynn/json5
 github.com/godbus/dbus
 github.com/golang/glog
 github.com/golang/groupcache/lru
+github.com/golang/mock/gomock
 github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/protoc-gen-go/descriptor
