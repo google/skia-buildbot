@@ -136,6 +136,18 @@ func MockGetError(responseStatus string, responseCode int) MockDialogue {
 	}
 }
 
+func MockGetWithRequestDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "GET",
+		requestType:    requestType,
+		requestPayload: requestBody,
+
+		responseStatus:  "OK",
+		responseCode:    http.StatusOK,
+		responsePayload: responseBody,
+	}
+}
+
 func MockPostDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
 	return MockDialogue{
 		requestMethod:  "POST",

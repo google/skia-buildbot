@@ -6,7 +6,6 @@ package autoroll
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -390,20 +389,11 @@ type TryResult struct {
 	Url      string    `json:"url"`
 }
 
-// TryResultFromBuildbucket returns a new TryResult based on a buildbucket.Build.
+// TryResultFromBuildbucket returns a new TryResult based on a buildbucketpb.Build.
 func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
-	var params struct {
-		Builder    string `json:"builder_name"`
-		Properties struct {
-			Category string `json:"category"`
-		} `json:"properties"`
-	}
-	if err := json.Unmarshal([]byte(b.ParametersJson), &params); err != nil {
-		return nil, err
-	}
 	return &TryResult{
-		Builder:  params.Builder,
-		Category: params.Properties.Category,
+		Builder:  b.Parameters.BuilderName,
+		Category: b.Parameters.Properties.Category,
 		Created:  time.Time(b.Created),
 		Result:   b.Result,
 		Status:   b.Status,

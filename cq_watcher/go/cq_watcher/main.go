@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"time"
@@ -59,7 +60,7 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 		cqMetric.Update(int64(len(changes)))
 
 		for _, change := range changes {
-			if err := cqClient.ReportCQStats(change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(context.TODO(), change.Issue); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
@@ -100,7 +101,7 @@ func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) 
 			if gerrit.ContainsAny(change.Issue, previousPollChanges) {
 				continue
 			}
-			if err := cqClient.ReportCQStats(change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(context.TODO(), change.Issue); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}

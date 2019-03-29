@@ -20,6 +20,7 @@ const (
 // MockGerrit is a GerritInterface implementation which mocks out requests to
 // the server.
 type MockGerrit struct {
+	bb        *buildbucket.MockClient
 	Gerrit    *gerrit.Gerrit
 	Mock      *mockhttpclient.URLMock
 	isAndroid bool
@@ -34,7 +35,10 @@ func NewGerrit(t testutils.TestingT, workdir string, isAndroid bool) *MockGerrit
 	mock := mockhttpclient.NewURLMock()
 	g, err := gerrit.NewGerrit(FAKE_GERRIT_URL, gitcookies, mock.Client())
 	assert.NoError(t, err)
+	bb := buildbucket.NewMockClient(t)
+	g.BuildbucketClient = bb.Client
 	return &MockGerrit{
+		bb:        bb,
 		Gerrit:    g,
 		Mock:      mock,
 		isAndroid: isAndroid,
@@ -62,14 +66,7 @@ func (g *MockGerrit) MockGetIssueProperties(ci *gerrit.ChangeInfo) {
 }
 
 func (g *MockGerrit) MockGetTrybotResults(ci *gerrit.ChangeInfo, patchset int, results []*buildbucket.Build) {
-	url := fmt.Sprintf("https://cr-buildbucket.appspot.com/api/buildbucket/v1/search?tag=buildset%%3Apatch%%2Fgerrit%%2Ffake-skia-review.googlesource.com%%2F%d%%2F%d", ci.Issue, patchset)
-	serialized, err := json.Marshal(struct {
-		Builds []*buildbucket.Build
-	}{
-		Builds: results,
-	})
-	assert.NoError(g.t, err)
-	g.Mock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
+	g.bb.MockGetTrybotsForCL(ci.Issue, int64(patchset), g.Gerrit.Url(ci.Issue), results, nil)
 }
 
 func (g *MockGerrit) MakePostRequest(ci *gerrit.ChangeInfo, msg string, labels map[string]int) (string, []byte) {
