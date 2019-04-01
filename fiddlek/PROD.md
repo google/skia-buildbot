@@ -1,7 +1,7 @@
 Fiddle Production Manual
 ========================
 
-First make sure you are familar with the design of fiddle by reading the
+First make sure you are familiar with the design of fiddle by reading the
 [DESIGN](./DESIGN.md) doc.
 
 Alerts
