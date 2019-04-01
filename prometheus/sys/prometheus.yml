@@ -33,10 +33,6 @@ scrape_configs:
     static_configs:
       - targets: ['skia-diffserver-prod:20000']
 
-  - job_name: 'diffserver-stage'
-    static_configs:
-      - targets: ['skia-diffserver-stage:20000']
-
   - job_name: 'skiacorrectness-pdfium'
     static_configs:
       - targets: ['skia-gold-pdfium:20001']
@@ -44,10 +40,6 @@ scrape_configs:
   - job_name: 'skiacorrectness-prod'
     static_configs:
       - targets: ['skia-gold-prod:20001']
-
-  - job_name: 'skiacorrectness-stage'
-    static_configs:
-      - targets: ['skia-gold-stage:20001']
 
   - job_name: 'skiacorrectness-public'
     static_configs:
@@ -127,7 +119,6 @@ scrape_configs:
       - targets: ['skia-ct-pixel-diff:11000']
       - targets: ['skia-datahopper2:11000']
       - targets: ['skia-diffserver-prod:11000']
-      - targets: ['skia-diffserver-stage:11000']
       - targets: ['skia-gold-pdfium:11000']
       - targets: ['skia-gold-prod:11000']
       - targets: ['skia-monitoring:11000']
