@@ -91,7 +91,7 @@ func validateJobs(d db.JobReader, chunks []*timeChunk) ([]string, error) {
 	invalidIds := []string{}
 	for _, chunk := range chunks {
 		sklog.Infof("Validating jobs in %s - %s", chunk.start, chunk.end)
-		jobs, err := d.GetJobsFromDateRange(chunk.start, chunk.end)
+		jobs, err := d.GetJobsFromDateRange(chunk.start, chunk.end, "")
 		if err != nil {
 			return nil, err
 		}

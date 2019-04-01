@@ -34,8 +34,11 @@ const (
 	// Maximum documents in a transaction.
 	MAX_TRANSACTION_DOCS = firestore.MAX_TRANSACTION_DOCS
 
-	// Datastore key for a Task or Job's Created field.
+	// Firestore key for a Task or Job's Created field.
 	KEY_CREATED = "Created"
+
+	// Firestore key for a Task or Job's Repo field.
+	KEY_REPO = "Repo"
 
 	// Estimated entry density, used for setting the initial size of results
 	// collection data structures.
@@ -103,7 +106,7 @@ func estResultSize(chunkSize time.Duration) int {
 //    will be provided as the first argument to this function so that the caller
 //    can distinguish results from different goroutines, thus avoiding the need
 //    for a mutex.
-func (d *firestoreDB) dateRangeHelper(name string, coll *fs.CollectionRef, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
+func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
 	// Adjust start and end times for Firestore resolution.
 	start = fixTimestamp(start)
 	end = fixTimestamp(end.Add(firestore.TS_RESOLUTION - time.Nanosecond))
@@ -115,7 +118,7 @@ func (d *firestoreDB) dateRangeHelper(name string, coll *fs.CollectionRef, start
 	// Create the slice of queries to run in parallel.
 	queries := []fs.Query{}
 	if err := util.IterTimeChunks(start, end, chunkSize, func(start, end time.Time) error {
-		q := coll.Where(KEY_CREATED, ">=", start).Where(KEY_CREATED, "<", end).OrderBy(KEY_CREATED, fs.Asc)
+		q := baseQuery.Where(KEY_CREATED, ">=", start).Where(KEY_CREATED, "<", end).OrderBy(KEY_CREATED, fs.Asc)
 		queries = append(queries, q)
 		return nil
 	}); err != nil {
