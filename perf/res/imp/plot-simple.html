@@ -115,7 +115,15 @@ work, so we just prefix every rule with plot-simple-sk.
 <link rel="stylesheet" href="plot-simple.css">
 
 <dom-module id="plot-simple-sk">
+  <style type="text/css" media="screen">
+    div {
+      position: relative;
+    }
+  </style>
   <template>
+    <div>
+      <canvas id=chart width$="{{width}}" height$="{{height}}"></canvas>
+    </div>
     <svg id="svg" width$="{{width}}" height$="{{height}}"
       class$="{{noCrosshair(nocrosshair)}}">
       <defs>
@@ -209,10 +217,90 @@ work, so we just prefix every rule with plot-simple-sk.
         this._initialSetup();
         this.resetAxes();
         this._plot();
+
+        this._chart = new Chart(this.$.chart, {
+          type: 'line',
+          data: {
+            datasets: [],
+          },
+          options: {
+            responsive: true,
+            animation: {
+              duration: 0, // general animation time
+            },
+            hover: {
+              animationDuration: 0, // duration of animations when hovering an item
+            },
+            responsiveAnimationDuration: 0, // animation duration after a resize
+            maintainAspectRatio: false,
+            elements: {
+              line: {
+                tension: 0 // disables bezier curves
+              }
+            },
+            scales: {
+              xAxes: [{
+                type: 'linear',
+                position: 'bottom'
+              }]
+            },
+            tooltips: {
+              intersect: false,
+              mode: 'nearest',
+              animationDuration: 0,
+              callbacks: {
+                label: function(tooltipItem, data) {
+                  var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                  console.log({
+                    id: label,
+                    value: tooltipItem.value,
+                    index: tooltipItem.index,
+                    pt: [tooltipItem.index, tooltipItem.value],
+                  });
+                  return label;
+                }
+              },
+            },
+            scales: {
+              xAxes: [{
+                type: 'time',
+                time: {
+                  round: 'second',
+                  source: 'labels',
+                },
+                distribution: 'series'
+              }]
+            },
+            legend: {
+              display: false,
+            },
+            /*
+            onHover: (e) => console.log('Hover', e),
+            onClick: (e) => console.log('Click', e),
+            */
+          },
+        });
       },
 
       // lines is a map to the line data.
-      addLines: function(lines) {
+      addLines: function(lines, labels) {
+        if (labels) {
+          this._chart.data.labels = labels;
+        }
+        Object.keys(lines).forEach(function(id) {
+          let data = lines[id].map(arr => arr[1]);
+          console.log(data);
+          this._chart.data.datasets.push({
+            label: id,
+            data: data,
+            fill: false,
+            borderColor: colors[(sk.hashString(id) % 8) + 1],
+            borderWidth: 1,
+          });
+        }.bind(this));
+        this._chart.update();
+
+
         Object.keys(lines).forEach(function(id) {
           var line = lines[id];
           line._id = id;
@@ -240,6 +328,9 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       removeAll: function() {
+        this._chart.data.datasets = [];
+        this._chart.update();
+
         this._lineData = [];
         this._plot();
       },
