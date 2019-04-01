@@ -2,25 +2,56 @@
 package buildbucket
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	fmt "fmt"
 	"net/http"
 	"net/url"
+	"strconv"
+	"time"
 
-	"go.skia.org/infra/go/jsonutils"
-	"go.skia.org/infra/go/util"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.chromium.org/luci/grpc/prpc"
+	"go.skia.org/infra/go/sklog"
+	"google.golang.org/genproto/protobuf/field_mask"
 )
 
 const (
-	apiUrl = "https://cr-buildbucket.appspot.com/api/buildbucket/v1"
+	BUILD_URL_TMPL = "https://%s/build/%d"
+	apiUrl         = "cr-buildbucket.appspot.com"
 )
 
 var (
 	DEFAULT_SCOPES = []string{
 		"https://www.googleapis.com/auth/userinfo.email",
 		"https://www.googleapis.com/auth/userinfo.profile",
+	}
+
+	// getBuildFields is a FieldMask which indicates which fields we want
+	// returned from a GetBuild request.
+	getBuildFields = &field_mask.FieldMask{
+		Paths: []string{
+			"id",
+			"builder",
+			"created_by",
+			"create_time",
+			"start_time",
+			"end_time",
+			"status",
+			"input.properties",
+		},
+	}
+
+	// searchBuildsFields is a FieldMask which indicates which fields we
+	// want returned from a SearchBuilds request.
+	searchBuildsFields = &field_mask.FieldMask{
+		Paths: func(buildFields []string) []string {
+			rv := make([]string, 0, len(buildFields))
+			for _, f := range buildFields {
+				rv = append(rv, fmt.Sprintf("builds.*.%s", f))
+			}
+			return rv
+		}(getBuildFields.Paths),
 	}
 )
 
@@ -38,214 +69,149 @@ const (
 	RESULT_SUCCESS  = "SUCCESS"
 )
 
-type Author struct {
-	Email string `json:"email"`
-}
-
-type Change struct {
-	Author     *Author `json:"author"`
-	Repository string  `json:"repo_url"`
-	Revision   string  `json:"revision"`
-}
-
-type Error struct {
-	Message string `json:"message"`
-	Reason  string `json:"reason"`
-}
-
+// Properties contains extra properties set when a Build is requested, as a
+// blob of JSON data. These are set by the CQ or "git cl try" when requesting
+// try jobs.
 type Properties struct {
-	AttemptStartTs float64          `json:"attempt_start_ts,omitempty"`
-	Category       string           `json:"category,omitempty"`
-	Gerrit         string           `json:"patch_gerrit_url,omitempty"`
-	GerritIssue    jsonutils.Number `json:"patch_issue,omitempty"`
-	GerritPatchset string           `json:"patch_ref,omitempty"`
-	Master         string           `json:"master,omitempty"`
-	PatchProject   string           `json:"patch_project,omitempty"`
-	PatchStorage   string           `json:"patch_storage,omitempty"`
-	Reason         string           `json:"reason,omitempty"`
-	Revision       string           `json:"revision,omitempty"`
-	TryJobRepo     string           `json:"try_job_repo,omitempty"`
+	Category       string `json:"category"`
+	Gerrit         string `json:"patch_gerrit_url"`
+	GerritIssue    int64  `json:"patch_issue"`
+	GerritPatchset string `json:"patch_ref"`
+	PatchProject   string `json:"patch_project"`
+	PatchStorage   string `json:"patch_storage"`
+	Reason         string `json:"reason"`
+	Revision       string `json:"revision"`
+	TryJobRepo     string `json:"try_job_repo"`
 }
 
+// Parameters provide extra information about a Build.
 type Parameters struct {
 	BuilderName string     `json:"builder_name"`
-	Changes     []*Change  `json:"changes"`
 	Properties  Properties `json:"properties"`
-	Swarming    *swarming  `json:"swarming,omitempty"`
-}
-
-type swarming struct {
-	OverrideBuilderCfg swarmingOverrides `json:"override_builder_cfg"`
-}
-
-type swarmingOverrides struct {
-	Dimensions []string `json:"dimensions"`
-}
-
-type buildBucketRequest struct {
-	Bucket         string `json:"bucket"`
-	ParametersJSON string `json:"parameters_json"`
-}
-
-type buildBucketResponse struct {
-	Build *Build `json:"build"`
-	Error *Error `json:"error"`
-	Kind  string `json:"kind"`
-	Etag  string `json:"etag"`
 }
 
 // Build is a struct containing information about a build in BuildBucket.
 type Build struct {
-	Bucket            string         `json:"bucket"`
-	Completed         jsonutils.Time `json:"completed_ts"`
-	CreatedBy         string         `json:"created_by"`
-	Created           jsonutils.Time `json:"created_ts"`
-	FailureReason     string         `json:"failure_reason"`
-	Id                string         `json:"id"`
-	Url               string         `json:"url"`
-	ParametersJson    string         `json:"parameters_json"`
-	Parameters        *Parameters    `json:"-"`
-	Result            string         `json:"result"`
-	ResultDetailsJson string         `json:"result_details_json"`
-	Status            string         `json:"status"`
-	StatusChanged     jsonutils.Time `json:"status_changed_ts"`
-	Updated           jsonutils.Time `json:"updated_ts"`
-	UtcNow            jsonutils.Time `json:"utcnow_ts"`
+	Bucket     string      `json:"bucket"`
+	Completed  time.Time   `json:"completed_ts"`
+	CreatedBy  string      `json:"created_by"`
+	Created    time.Time   `json:"created_ts"`
+	Id         string      `json:"id"`
+	Url        string      `json:"url"`
+	Parameters *Parameters `json:"parameters"`
+	Result     string      `json:"result"`
+	Status     string      `json:"status"`
 }
 
 // Client is used for interacting with the BuildBucket API.
 type Client struct {
-	*http.Client
+	bc   buildbucketpb.BuildsClient
+	host string
 }
 
 // NewClient returns an authenticated Client instance.
 func NewClient(c *http.Client) *Client {
-	return &Client{c}
+	host := apiUrl
+	return &Client{
+		bc: buildbucketpb.NewBuildsPRPCClient(&prpc.Client{
+			C:    c,
+			Host: host,
+		}),
+		host: host,
+	}
 }
 
-// RequestBuild adds a request for the given build. The swarmingBotId parameter
-// may be the empty string, in which case the build may run on any bot.
-func (c *Client) RequestBuild(builder, master, commit, repo, author, swarmingBotId string) (*Build, error) {
-	p := Parameters{
-		BuilderName: builder,
-		Changes: []*Change{
-			{
-				Author: &Author{
-					Email: author,
-				},
-				Repository: repo,
-				Revision:   commit,
+func (c *Client) convertBuild(b *buildbucketpb.Build) *Build {
+	bytes, err := json.MarshalIndent(b, "", "  ")
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	sklog.Info(string(bytes))
+	status := ""
+	result := ""
+	switch b.Status {
+	case buildbucketpb.Status_STATUS_UNSPECIFIED:
+		// ???
+	case buildbucketpb.Status_SCHEDULED:
+		status = STATUS_SCHEDULED
+	case buildbucketpb.Status_STARTED:
+		status = STATUS_STARTED
+	case buildbucketpb.Status_SUCCESS:
+		status = STATUS_COMPLETED
+		result = RESULT_SUCCESS
+	case buildbucketpb.Status_FAILURE:
+		status = STATUS_COMPLETED
+		result = RESULT_FAILURE
+	case buildbucketpb.Status_INFRA_FAILURE:
+		status = STATUS_COMPLETED
+		result = RESULT_FAILURE
+	case buildbucketpb.Status_CANCELED:
+		status = STATUS_COMPLETED
+		result = RESULT_CANCELED
+	}
+	return &Build{
+		Bucket:    b.Builder.Bucket,
+		Completed: time.Unix(b.EndTime.Seconds, int64(b.EndTime.Nanos)).UTC(),
+		CreatedBy: b.CreatedBy,
+		Created:   time.Unix(b.CreateTime.Seconds, int64(b.CreateTime.Nanos)).UTC(),
+		Id:        fmt.Sprintf("%d", b.Id),
+		Url:       fmt.Sprintf(BUILD_URL_TMPL, c.host, b.Id),
+		Parameters: &Parameters{
+			BuilderName: b.Builder.Builder,
+			Properties: Properties{
+				Category:       b.Input.Properties.Fields["category"].GetStringValue(),
+				Gerrit:         b.Input.Properties.Fields["patch_gerrit_url"].GetStringValue(),
+				GerritIssue:    int64(b.Input.Properties.Fields["patch_issue"].GetNumberValue()),
+				GerritPatchset: fmt.Sprintf("%d", int64(b.Input.Properties.Fields["patch_set"].GetNumberValue())),
+				PatchProject:   b.Input.Properties.Fields["patch_project"].GetStringValue(),
+				PatchStorage:   b.Input.Properties.Fields["patch_storage"].GetStringValue(),
+				Reason:         b.Input.Properties.Fields["reason"].GetStringValue(),
+				Revision:       b.Input.Properties.Fields["revision"].GetStringValue(),
+				TryJobRepo:     b.Input.Properties.Fields["try_job_repo"].GetStringValue(),
 			},
 		},
-		Properties: Properties{
-			Reason: "Triggered by SkiaScheduler",
-		},
+		Result: result,
+		Status: status,
 	}
-	if swarmingBotId != "" {
-		p.Swarming = &swarming{
-			OverrideBuilderCfg: swarmingOverrides{
-				Dimensions: []string{
-					fmt.Sprintf("id:%s", swarmingBotId),
-				},
-			},
-		}
-	}
-	jsonParams, err := json.Marshal(p)
-	if err != nil {
-		return nil, err
-	}
-	body := buildBucketRequest{
-		Bucket:         fmt.Sprintf("master.%s", master),
-		ParametersJSON: string(jsonParams),
-	}
-	jsonBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	url := apiUrl + "/builds"
-	req, err := http.NewRequest("PUT", url, bytes.NewReader(jsonBody))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to schedule build (code %s); couldn't read response body: %v", resp.Status, err)
-		}
-		return nil, fmt.Errorf("Response code is %s. Response body:\n%s", resp.Status, string(b))
-	}
-	var res buildBucketResponse
-	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return nil, fmt.Errorf("Failed to decode response body: %v", err)
-	}
-	if res.Error != nil {
-		return nil, fmt.Errorf("Failed to schedule build: %s", res.Error.Message)
-	}
-	return res.Build, nil
 }
 
 // GetBuild retrieves the build with the given ID.
-func (c *Client) GetBuild(buildId string) (*Build, error) {
-	url := apiUrl + "/builds/" + buildId + "?alt=json"
-	resp, err := c.Get(url)
+func (c *Client) GetBuild(ctx context.Context, buildId string) (*Build, error) {
+	id, err := strconv.ParseInt(buildId, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse build ID as int64: %s", err)
+	}
+	b, err := c.bc.GetBuild(ctx, &buildbucketpb.GetBuildRequest{
+		Id:     id,
+		Fields: getBuildFields,
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Request got response %s", resp.Status)
-	}
-	var result struct {
-		Build *Build `json:"build"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-	return result.Build, nil
+	return c.convertBuild(b), nil
 }
 
-// getOnePage retrieves one page of search results.
-func (c *Client) getOnePage(url string) ([]*Build, string, error) {
-	resp, err := c.Get(url)
-	if err != nil {
-		return nil, "", err
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return nil, "", fmt.Errorf("Request got response %s", resp.Status)
-	}
-	var result struct {
-		Builds     []*Build `json:"builds"`
-		NextCursor string   `json:"next_cursor"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, "", err
-	}
-	return result.Builds, result.NextCursor, nil
-}
-
-// Search retrieves results based on the given criteria.
-func (c *Client) Search(url string) ([]*Build, error) {
+// Search retrieves Builds which match the given criteria.
+func (c *Client) Search(ctx context.Context, pred *buildbucketpb.BuildPredicate) ([]*Build, error) {
 	rv := []*Build{}
 	cursor := ""
 	for {
-		newUrl := url
-		if cursor != "" {
-			newUrl += fmt.Sprintf("&start_cursor=%s", cursor)
+		req := &buildbucketpb.SearchBuildsRequest{
+			Fields:    searchBuildsFields,
+			PageToken: cursor,
+			Predicate: pred,
 		}
-		var builds []*Build
-		var err error
-		builds, cursor, err = c.getOnePage(newUrl)
+		resp, err := c.bc.SearchBuilds(ctx, req)
 		if err != nil {
 			return nil, err
 		}
-		rv = append(rv, builds...)
+		if resp == nil {
+			break
+		}
+		for _, b := range resp.Builds {
+			rv = append(rv, c.convertBuild(b))
+		}
+		cursor = resp.NextPageToken
 		if cursor == "" {
 			break
 		}
@@ -253,28 +219,29 @@ func (c *Client) Search(url string) ([]*Build, error) {
 	return rv, nil
 }
 
+// getTrybotsForCLPredicate returns a *buildbucketpb.BuildPredicate which
+// searches for trybots from the given CL.
+func getTrybotsForCLPredicate(issue, patchset int64, gerritUrl string) (*buildbucketpb.BuildPredicate, error) {
+	u, err := url.Parse(gerritUrl)
+	if err != nil {
+		return nil, err
+	}
+	return &buildbucketpb.BuildPredicate{
+		GerritChanges: []*buildbucketpb.GerritChange{
+			&buildbucketpb.GerritChange{
+				Host:     u.Host,
+				Change:   issue,
+				Patchset: patchset,
+			},
+		},
+	}, nil
+}
+
 // GetTrybotsForCL retrieves trybot results for the given CL.
-func (c *Client) GetTrybotsForCL(issueID, patchsetID int64, patchStorage, crUrl string) ([]*Build, error) {
-	u, err := url.Parse(crUrl)
+func (c *Client) GetTrybotsForCL(ctx context.Context, issue, patchset int64, gerritUrl string) ([]*Build, error) {
+	pred, err := getTrybotsForCLPredicate(issue, patchset, gerritUrl)
 	if err != nil {
 		return nil, err
 	}
-	host := u.Host
-	q := url.Values{"tag": []string{fmt.Sprintf("buildset:patch/%s/%s/%d/%d", patchStorage, host, issueID, patchsetID)}}
-	url := apiUrl + "/search?" + q.Encode()
-
-	builds, err := c.Search(url)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the parameters.
-	for _, build := range builds {
-		build.Parameters = &Parameters{}
-		if err := json.Unmarshal([]byte(build.ParametersJson), build.Parameters); err != nil {
-			return nil, fmt.Errorf("Unable to decode parameters in build: %s", err)
-		}
-	}
-
-	return builds, nil
+	return c.Search(ctx, pred)
 }

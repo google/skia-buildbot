@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
-	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 )
@@ -182,9 +181,16 @@ func TestGerritRoll(t *testing.T) {
 	roll = makeFakeRoll(124, from, to, true, false)
 	g.MockGetIssueProperties(roll)
 	tryjob := &buildbucket.Build{
-		Created:        jsonutils.Time(time.Now().UTC().Round(time.Millisecond)),
-		Status:         autoroll.TRYBOT_STATUS_STARTED,
-		ParametersJson: "{\"builder_name\":\"fake-builder\",\"properties\":{\"category\":\"cq\"}}",
+		Id:      "99999",
+		Created: time.Now().UTC().Round(time.Millisecond),
+		Status:  autoroll.TRYBOT_STATUS_STARTED,
+		Parameters: &buildbucket.Parameters{
+			BuilderName: "fake-builder",
+			Properties: buildbucket.Properties{
+				Category:       "cq",
+				GerritPatchset: "1",
+			},
+		},
 	}
 	g.MockGetTrybotResults(roll, 1, []*buildbucket.Build{tryjob})
 	gr, err = newGerritRoll(ctx, g.Gerrit, fullHash, recent, roll.Issue, "http://issue/", nil)
