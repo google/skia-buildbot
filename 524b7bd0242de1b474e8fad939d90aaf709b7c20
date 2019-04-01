@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9ed383b_cc5d6b15",
+        "filename": "golden/docs/PROD.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-01T13:53:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb5d7fa5_e1a92b10",
+      "range": {
+        "startLine": 4,
+        "startChar": 24,
+        "endLine": 4,
+        "endChar": 31
+      },
+      "revId": "524b7bd0242de1b474e8fad939d90aaf709b7c20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
