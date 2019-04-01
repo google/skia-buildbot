@@ -256,9 +256,11 @@ type JobReader interface {
 	// job is not found.
 	GetJobById(string) (*types.Job, error)
 
-	// GetJobsFromDateRange retrieves all jobs with Created in the given range.
-	// The returned jobs are sorted by Created timestamp.
-	GetJobsFromDateRange(time.Time, time.Time) ([]*types.Job, error)
+	// GetJobsFromDateRange retrieves all jobs with Created in the given
+	// range. The returned jobs are sorted by Created timestamp. The string
+	// field is an optional repository; if provided, only return tasks
+	// associated with that repo.
+	GetJobsFromDateRange(time.Time, time.Time, string) ([]*types.Job, error)
 }
 
 // JobDB is used by the task scheduler to store Jobs.
@@ -385,7 +387,7 @@ func SearchJobs(db JobReader, p *JobSearchParams) ([]*types.Job, error) {
 		p.TimeEnd = time.Now()
 		p.TimeStart = p.TimeEnd.Add(-24 * time.Hour)
 	}
-	jobs, err := db.GetJobsFromDateRange(p.TimeStart, p.TimeEnd)
+	jobs, err := db.GetJobsFromDateRange(p.TimeStart, p.TimeEnd, p.Repo)
 	if err != nil {
 		return nil, err
 	}
@@ -507,17 +509,43 @@ func GetTasksFromWindow(db TaskReader, w *window.Window, now time.Time) ([]*type
 	}
 	tasks := make([]*types.Task, 0, 1024)
 	for repo, start := range startTimesByRepo {
-		sklog.Infof("Reading Tasks from %s to %s.", start, now)
+		sklog.Infof("Reading Tasks in %s from %s to %s.", repo, start, now)
 		t0 := time.Now()
 		t, err := db.GetTasksFromDateRange(start, now, repo)
 		if err != nil {
 			return nil, err
 		}
-		sklog.Infof("Read %d tasks in %s", len(t), time.Now().Sub(t0))
+		sklog.Infof("Read %d tasks from %s in %s", len(t), repo, time.Now().Sub(t0))
 		tasks = append(tasks, t...)
 	}
 	sort.Sort(types.TaskSlice(tasks))
 	return tasks, nil
+}
+
+// GetJobsFromWindow returns all jobs matching the given Window from the
+// JobReader.
+func GetJobsFromWindow(db JobReader, w *window.Window, now time.Time) ([]*types.Job, error) {
+	defer metrics2.FuncTimer().Stop()
+
+	startTimesByRepo := w.StartTimesByRepo()
+	if len(startTimesByRepo) == 0 {
+		// If the timeWindow has no associated repos, default to loading
+		// tasks for all repos from the beginning of the timeWindow.
+		startTimesByRepo[""] = w.EarliestStart()
+	}
+	jobs := make([]*types.Job, 0, 1024)
+	for repo, start := range startTimesByRepo {
+		sklog.Infof("Reading Jobs in %s from %s to %s.", repo, start, now)
+		t0 := time.Now()
+		j, err := db.GetJobsFromDateRange(start, now, repo)
+		if err != nil {
+			return nil, err
+		}
+		sklog.Infof("Read %d jobs from %s in %s", len(j), repo, time.Now().Sub(t0))
+		jobs = append(jobs, j...)
+	}
+	sort.Sort(types.JobSlice(jobs))
+	return jobs, nil
 }
 
 var errNotModified = errors.New("Task not modified")

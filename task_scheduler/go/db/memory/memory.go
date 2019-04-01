@@ -148,13 +148,16 @@ func (d *inMemoryJobDB) GetJobById(id string) (*types.Job, error) {
 }
 
 // See docs for JobDB interface.
-func (d *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*types.Job, error) {
+func (d *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time, repo string) ([]*types.Job, error) {
 	d.jobsMtx.RLock()
 	defer d.jobsMtx.RUnlock()
 
 	rv := []*types.Job{}
 	// TODO(borenet): Binary search.
 	for _, b := range d.jobs {
+		if repo != "" && b.Repo != repo {
+			continue
+		}
 		if (b.Created.Equal(start) || b.Created.After(start)) && b.Created.Before(end) {
 			rv = append(rv, b.Copy())
 		}
