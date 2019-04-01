@@ -138,7 +138,7 @@ function incidentList(ele, incidents) {
     </span>
     <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
     </h2>
-    `)
+    `);
 }
 
 function statsList(ele) {
@@ -573,36 +573,39 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
   // Fix-up all the incidents and silences, including re-sorting them.
   _rationalize() {
     this._incidents.forEach(incident => {
-      let silenced = this._silences.reduce((isSilenced, silence) => (isSilenced || (silence.active && paramset.match(silence.param_set, incident.params))), false);
+      let silenced = this._silences.reduce((isSilenced, silence) => {
+        return isSilenced ||
+              (silence.active && paramset.match(silence.param_set, incident.params));
+      }, false);
       incident.params.__silence_state = silenced ? 'silenced' : 'active';
     });
 
-    // Sort the incidents.
-    let sortby = ['__silence_state', 'assigned_to', 'abbr', 'alertname', 'id'];
-    this._incidents.sort((a,b) => {
+    // Sort the incidents, using the following 'sortby' list as tiebreakers.
+    const sortby = ['__silence_state', 'assigned_to', 'alertname', 'abbr', 'id'];
+    this._incidents.sort((a, b) => {
       // Sort active before inactive.
       if (a.active !== b.active) {
         return a.active ? -1 : 1;
       }
       // Inactive incidents are then sorted by 'lastseen' timestamp.
       if (!a.active) {
-        let delta = b.last_seen - a.last_seen;
+        const delta = b.last_seen - a.last_seen;
         if (delta) {
           return delta;
         }
       }
       for (let i = 0; i < sortby.length; i++) {
-        let key = sortby[i];
-        let left = a.params[key];
-        let right = b.params[key];
+        const key = sortby[i];
+        const left = a.params[key];
+        const right = b.params[key];
         left = left || '';
         right = right || '';
-        let cmp = left.localeCompare(right);
+        const cmp = left.localeCompare(right);
         if (cmp) {
           return cmp;
         }
       }
-      return 0
+      return 0;
     });
     this._silences.sort((a,b) => {
       // Sort active before inactive.
@@ -623,9 +626,9 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
             && !incident.params.assigned_to)
       )
     ) {
-      return true
+      return true;
     }
-    return false
+    return false;
   }
 
   _requestDesktopNotificationPermission() {
@@ -686,12 +689,12 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
 
     document.title = `${numActive} - AlertManager`;
     if (!this._favicon) {
-      return
+      return;
     }
     if (numActive > 0) {
-      this._favicon.href = '/static/icon-active.png'
+      this._favicon.href = '/static/icon-active.png';
     } else {
-      this._favicon.href = '/static/icon.png'
+      this._favicon.href = '/static/icon.png';
     }
   }
 
