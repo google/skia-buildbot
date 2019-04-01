@@ -22,6 +22,30 @@
       "revId": "ce9a8e65f827fc066f10b388c36cdfdfe634c8c9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "df0fb5a1_8a69eb84",
+        "filename": "am/modules/alert-manager-sk/alert-manager-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-01T13:14:21Z",
+      "side": 1,
+      "message": "Correct",
+      "parentUuid": "53c920c5_a4a3fdc2",
+      "range": {
+        "startLine": 584,
+        "startChar": 54,
+        "endLine": 584,
+        "endChar": 73
+      },
+      "revId": "ce9a8e65f827fc066f10b388c36cdfdfe634c8c9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
