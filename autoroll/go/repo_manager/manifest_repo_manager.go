@@ -250,6 +250,11 @@ TEST=CQ
 		return issue.Issue, err
 	}
 
+	// Mark the change as ready for review, if necessary.
+	if err := mr.unsetWIP(change, 0); err != nil {
+		return 0, err
+	}
+
 	return issue.Issue, nil
 }
 

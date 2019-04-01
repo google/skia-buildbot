@@ -111,6 +111,7 @@ type ChangeInfo struct {
 	Labels          map[string]*LabelEntry `json:"labels"`
 	Owner           *Owner                 `json:"owner"`
 	Status          string                 `json:"status"`
+	WorkInProgress  bool                   `json:"work_in_progress"`
 }
 
 // Find the set of non-trivial patchsets. Returns the Revisions in order of
@@ -223,6 +224,7 @@ type GerritInterface interface {
 	SendToCQ(*ChangeInfo, string) error
 	SendToDryRun(*ChangeInfo, string) error
 	SetCommitMessage(*ChangeInfo, string) error
+	SetReadyForReview(*ChangeInfo) error
 	SetReview(*ChangeInfo, string, map[string]interface{}, []string) error
 	SetTopic(string, int64) error
 	TurnOnAuthenticatedGets()
@@ -840,6 +842,11 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 
 func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
 	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.url)
+}
+
+// SetReadyForReview marks the change as ready for review (ie, not WIP).
+func (g *Gerrit) SetReadyForReview(ci *ChangeInfo) error {
+	return g.post(fmt.Sprintf("/a/changes/%d/ready", ci.Issue), []byte("{}"))
 }
 
 var revisionRegex = regexp.MustCompile("^[a-z0-9]+$")

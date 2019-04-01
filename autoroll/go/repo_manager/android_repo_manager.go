@@ -483,6 +483,11 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 		}
 	}
 
+	// Mark the change as ready for review, if necessary.
+	if err := r.unsetWIP(change, 0); err != nil {
+		return 0, err
+	}
+
 	return change.Issue, nil
 }
 

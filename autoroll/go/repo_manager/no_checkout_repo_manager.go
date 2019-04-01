@@ -117,6 +117,11 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to str
 		return 0, err
 	}
 
+	// Mark the change as ready for review, if necessary.
+	if err := rm.unsetWIP(ci, 0); err != nil {
+		return 0, err
+	}
+
 	// Set the CQ bit as appropriate.
 	if err = rm.g.SetReview(ci, "", rm.gerritConfig.GetLabels(dryRun), emails); err != nil {
 		// TODO(borenet): Should we try to abandon the CL?

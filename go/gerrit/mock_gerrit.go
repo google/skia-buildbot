@@ -63,6 +63,9 @@ func (g *MockedGerrit) DisApprove(issue *ChangeInfo, message string) error {
 func (g *MockedGerrit) Abandon(issue *ChangeInfo, message string) error {
 	return nil
 }
+func (g *MockedGerrit) SetReadyForReview(issue *ChangeInfo) error {
+	return nil
+}
 func (g *MockedGerrit) SetTopic(topic string, changeNum int64) error {
 	return nil
 }
