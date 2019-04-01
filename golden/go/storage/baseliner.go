@@ -1,9 +1,12 @@
 package storage
 
 import (
+	"context"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -91,6 +94,14 @@ func (b *Baseliner) PushMasterBaselines(cpxTile *types.ComplexTile) error {
 	if err != nil {
 		return skerr.Fmt("Unable to retrieve expectations: %s", err)
 	}
+
+	// Make sure we have all commits, not just the ones that are in the tile.
+	tileCommits := cpxTile.AllCommits()
+	indexCommits, err := b.getCommitsSince(tileCommits[len(tileCommits)-1])
+	if err != nil {
+		return err
+	}
+
 	perCommitBaselines, err := baseline.GetBaselinesPerCommit(exps, cpxTile)
 	if err != nil {
 		return skerr.Fmt("Error getting master baseline: %s", err)
@@ -223,6 +234,54 @@ func (b *Baseliner) FetchBaseline(commitHash string, issueID int64, patchsetID i
 		masterBaseline.Issue = issueID
 	}
 	return masterBaseline, nil
+}
+
+func (b *Baseliner) getCommitsSince(firstCommit *tiling.Commit) ([]*vcsinfo.IndexCommit, error) {
+
+	// If there is an underlying gitstore retrieve it, otherwise this function becomes a no-op.
+	gitStoreBased, ok := b.vcs.(gitstore.GitStoreBased)
+	if !ok {
+		return []*vcsinfo.IndexCommit{}, nil
+	}
+
+	gitStore := gitStoreBased.GetGitStore()
+	ctx := context.TODO()
+	startTime := time.Unix(firstCommit.CommitTime, 0)
+	endTime := startTime.Add(time.Second)
+	commits, err := gitStore.RangeByTime(ctx, startTime, endTime, b.vcs.GetBranch())
+	if err != nil {
+		return nil, err
+	}
+
+	if len(commits) == 0 {
+		return nil, skerr.Fmt("No commits found while querying for commit %s", firstCommit.Hash)
+	}
+
+	var target *vcsinfo.IndexCommit
+	for _, c := range commits {
+		if c.Hash == firstCommit.Hash {
+			target = c
+		}
+	}
+
+	if target == nil {
+		return nil, skerr.Fmt("Commit %s not found in gitstore", firstCommit.Hash)
+	}
+
+	commits,
+
+		// Find the starting index by searching for the timestamp.
+		startTime := time.Unix(firstCommit.CommitTime, 0)
+	commits, err := b.vcs.Range(startTime, vcsinfo.MaxTime)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(commits) == 0 {
+		return nil, skerr.Fmt("Unable to start commit %s", firstCommit.Hash)
+	}
+
+	return nil, nil
 }
 
 func (b *Baseliner) getMasterExpectations(commitHash string) (*baseline.CommitableBaseLine, error) {

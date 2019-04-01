@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
@@ -30,20 +31,31 @@ type btVCS struct {
 	mutex        sync.RWMutex
 }
 
+var (
+	defaultWatchInterval = time.Second * 10
+)
+
 // NewVCS returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // If defaultBranch is "" all commits in the repository are considered.
 // The instances of gitiles.Repo is only used to fetch files.
-func NewVCS(gitstore GitStore, defaultBranch string, repo *gitiles.Repo) (vcsinfo.VCS, error) {
+func NewVCS(gitStore GitStore, defaultBranch string, repo *gitiles.Repo, evt eventbus.EventBus, nCommits int) (vcsinfo.VCS, error) {
 	ret := &btVCS{
-		gitStore:      gitstore,
+		gitStore:      gitStore,
 		repo:          repo,
 		defaultBranch: defaultBranch,
 	}
 	if err := ret.Update(context.TODO(), true, false); err != nil {
 		return nil, err
 	}
+
+	// Start watching the repo for changes and fire events when they happen.
+	_ = startVCSTracker(gitStore, defaultWatchInterval, evt, defaultBranch, nCommits)
 	return ret, nil
+}
+
+func (b *btVCS) GetBranch() string {
+	return b.defaultBranch
 }
 
 // SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
@@ -199,6 +211,11 @@ func (b *btVCS) GetFile(ctx context.Context, fileName, commitHash string) (strin
 // Update implements the vcsinfo.VCS interface
 func (b *btVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	return "", skerr.Fmt("Not implemented yet")
+}
+
+// GetGitStore implements the gitstore.GitStoreBased interface
+func (b *btVCS) GetGitStore() GitStore {
+	return b.gitStore
 }
 
 // fetchIndexRange gets in the range [startIndex, endIndex).
