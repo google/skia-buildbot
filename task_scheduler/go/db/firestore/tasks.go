@@ -64,13 +64,22 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 		}
 		if doc.Ref.ID != task.Id {
 			sklog.Errorf("Task %s is stored with ID %s; GetTaskById will not be able to find it!", task.Id, doc.Ref.ID)
+			return nil
 		}
-		if repo == "" || task.Repo == repo {
-			tasks[idx] = append(tasks[idx], &task)
+		if repo != "" {
+			if task.Repo != repo {
+				sklog.Errorf("Query returned task with wrong repo; wanted %q but got %q; task: %+v", repo, task.Repo, task)
+				return nil
+			}
 		}
+		tasks[idx] = append(tasks[idx], &task)
 		return nil
 	}
-	if err := d.dateRangeHelper("GetTasksFromDateRange", d.tasks(), start, end, init, elem); err != nil {
+	q := d.tasks().Query
+	if repo != "" {
+		q = q.Where(KEY_REPO, "==", repo)
+	}
+	if err := d.dateRangeHelper("GetTasksFromDateRange", q, start, end, init, elem); err != nil {
 		return nil, err
 	}
 	totalResults := 0

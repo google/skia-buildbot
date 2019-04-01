@@ -678,11 +678,7 @@ func (c *jobCache) reset() error {
 	if err != nil {
 		return err
 	}
-	now := time.Now()
-	start := c.timeWindow.EarliestStart()
-	sklog.Infof("Reading Jobs from %s to %s.", start, now)
-	t0 := time.Now()
-	jobs, err := c.db.GetJobsFromDateRange(start, now)
+	jobs, err := db.GetJobsFromWindow(c.db, c.timeWindow, time.Now())
 	if err != nil {
 		c.db.StopTrackingModifiedJobs(queryId)
 		return err
@@ -693,7 +689,6 @@ func (c *jobCache) reset() error {
 	c.triggeredForCommit = map[string]map[string]bool{}
 	c.unfinished = map[string]*types.Job{}
 	c.expireAndUpdate(jobs)
-	sklog.Infof("Read %d jobs in %s", len(jobs), time.Now().Sub(t0))
 	return nil
 }
 

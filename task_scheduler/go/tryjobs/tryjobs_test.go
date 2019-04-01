@@ -288,7 +288,7 @@ func TestJobFinished(t *testing.T) {
 type addedJobs map[string]*types.Job
 
 func (aj addedJobs) getAddedJob(t *testing.T, d db.JobReader) *types.Job {
-	allJobs, err := d.GetJobsFromDateRange(time.Time{}, time.Now())
+	allJobs, err := d.GetJobsFromDateRange(time.Time{}, time.Now(), "")
 	assert.NoError(t, err)
 	for _, job := range allJobs {
 		if _, ok := aj[job.Id]; !ok {

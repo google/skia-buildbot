@@ -118,7 +118,7 @@ func (j *jobEventDB) update() error {
 	defer metrics2.FuncTimer().Stop()
 	now := time.Now()
 	longestPeriod := TIME_PERIODS[len(TIME_PERIODS)-1]
-	jobs, err := j.db.GetJobsFromDateRange(now.Add(-longestPeriod), now)
+	jobs, err := j.db.GetJobsFromDateRange(now.Add(-longestPeriod), now, "")
 	if err != nil {
 		return fmt.Errorf("Failed to load jobs from %s to %s: %s", now.Add(-longestPeriod), now, err)
 	}
