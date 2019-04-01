@@ -3,6 +3,7 @@ package cq
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -165,7 +166,7 @@ func (c *Client) RefreshCQTryBots() error {
 // ReportCQStats reports all relevant stats for the specified Gerrit change.
 // Note: Different stats are reported depending on whether the change has been
 // merged or not.
-func (c *Client) ReportCQStats(change int64) error {
+func (c *Client) ReportCQStats(ctx context.Context, change int64) error {
 	changeInfo, err := c.gerritClient.GetIssueProperties(change)
 	if err != nil {
 		return err
@@ -179,7 +180,7 @@ func (c *Client) ReportCQStats(change int64) error {
 		latestPatchsetId = patchsetIds[len(patchsetIds)-2]
 	}
 
-	builds, err := c.gerritClient.GetTrybotResults(change, latestPatchsetId)
+	builds, err := c.gerritClient.GetTrybotResults(ctx, change, latestPatchsetId)
 	if err != nil {
 		return err
 	}

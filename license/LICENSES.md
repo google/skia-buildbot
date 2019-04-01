@@ -23,6 +23,7 @@ The following licenses are used in dependent packages.
 | github.com/flynn/json5              | BSD-3-Clause/MIT |
 | github.com/godbus/dbus              | BSD-2-Clause     |
 | github.com/golang/                  | Apache 2.0       |
+| github.com/golang/mock              | Apache 2.0       |
 | github.com/googleapis/gax-go/v2     | BSD-3-Clause     |
 | github.com/google/gofuzz            | Apache 2.0       |
 | github.com/google/go-github/github  | BSD-3-Clause     |

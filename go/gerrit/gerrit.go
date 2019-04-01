@@ -3,6 +3,7 @@ package gerrit
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -210,7 +211,7 @@ type GerritInterface interface {
 	GetIssueProperties(int64) (*ChangeInfo, error)
 	GetPatch(int64, string) (string, error)
 	GetRepoUrl() string
-	GetTrybotResults(int64, int64) ([]*buildbucket.Build, error)
+	GetTrybotResults(context.Context, int64, int64) ([]*buildbucket.Build, error)
 	GetUserEmail() (string, error)
 	Initialized() bool
 	IsBinaryPatch(issue int64, patch string) (bool, error)
@@ -231,7 +232,7 @@ type GerritInterface interface {
 // Gerrit is an object used for interacting with the issue tracker.
 type Gerrit struct {
 	client               *http.Client
-	buildbucketClient    *buildbucket.Client
+	BuildbucketClient    *buildbucket.Client
 	gitCookiesPath       string
 	url                  string
 	useAuthenticatedGets bool
@@ -259,7 +260,7 @@ func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, 
 	return &Gerrit{
 		url:               gerritUrl,
 		client:            client,
-		buildbucketClient: buildbucket.NewClient(client),
+		BuildbucketClient: buildbucket.NewClient(client),
 		gitCookiesPath:    gitCookiesPath,
 		extractRegEx:      extractRegEx,
 	}, nil
@@ -837,8 +838,8 @@ func (g *Gerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, error) 
 	return issues, nil
 }
 
-func (g *Gerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
-	return g.buildbucketClient.GetTrybotsForCL(issueID, patchsetID, "gerrit", g.url)
+func (g *Gerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
+	return g.BuildbucketClient.GetTrybotsForCL(ctx, issueID, patchsetID, g.url)
 }
 
 var revisionRegex = regexp.MustCompile("^[a-z0-9]+$")

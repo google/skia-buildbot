@@ -1,65 +1,100 @@
 package buildbucket
 
 import (
-	"encoding/json"
+	"context"
+	fmt "fmt"
 	"testing"
+	"time"
 
-	"github.com/gorilla/mux"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/mockhttpclient"
+	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
+	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 )
 
-func TestGetTrybotsForCL(t *testing.T) {
-	testutils.MediumTest(t)
-
-	client := NewClient(httputils.NewTimeoutClient())
-	tries, err := client.GetTrybotsForCL(183562, 1, "gerrit", "https://skia-review.googlesource.com")
-	assert.NoError(t, err)
-	assert.Equal(t, 4, len(tries))
-}
-
-func TestSerialize(t *testing.T) {
+func TestGetBuild(t *testing.T) {
 	testutils.SmallTest(t)
-	tc := []struct {
-		in  Properties
-		out string
-	}{
-		{
-			in:  Properties{},
-			out: "{}", // Leave out all empty fields.
-		},
-		{
-			in: Properties{
-				Reason: "Triggered by SkiaScheduler",
+
+	id := int64(12345)
+	c := NewMockClient(t)
+
+	expect := &Build{
+		Bucket:    "skia.primary",
+		Completed: time.Unix(1553793030, 570629000).UTC(),
+		CreatedBy: "some@user.com",
+		Created:   time.Unix(1553792903, 783203000).UTC(),
+		Id:        fmt.Sprintf("%d", id),
+		Url:       fmt.Sprintf(BUILD_URL_TMPL, apiUrl, id),
+		Parameters: &Parameters{
+			BuilderName: "Housekeeper-OnDemand-Presubmit",
+			Properties: Properties{
+				Category:       "cq",
+				Gerrit:         "https://skia-review.googlesource.com",
+				GerritIssue:    12345,
+				GerritPatchset: "1",
+				PatchProject:   "skia",
+				PatchStorage:   "gerrit",
+				Reason:         "CQ",
+				Revision:       "HEAD",
+				TryJobRepo:     "https://skia.googlesource.com/skia_internal.git",
 			},
-			out: "{\"reason\":\"Triggered by SkiaScheduler\"}",
 		},
+		Result: RESULT_SUCCESS,
+		Status: STATUS_COMPLETED,
 	}
-	for _, c := range tc {
-		b, err := json.Marshal(c.in)
-		assert.NoError(t, err)
-		assert.Equal(t, []byte(c.out), b)
-	}
-}
-
-func TestRequestBuild(t *testing.T) {
-	testutils.SmallTest(t)
-	respBody := []byte(testutils.MarshalJSON(t, &buildBucketResponse{
-		Build: &Build{},
-		Error: nil,
-		Kind:  "",
-		Etag:  "",
-	}))
-	reqType := "application/json; charset=utf-8"
-	reqBody := []byte(`{"bucket":"master.my-master","parameters_json":"{\"builder_name\":\"my-builder\",\"changes\":[{\"author\":{\"email\":\"my-author\"},\"repo_url\":\"my-repo\",\"revision\":\"abc123\"}],\"properties\":{\"reason\":\"Triggered by SkiaScheduler\"}}"}`)
-	r := mux.NewRouter()
-	md := mockhttpclient.MockPutDialogue(reqType, reqBody, respBody)
-	r.Schemes("https").Host("cr-buildbucket.appspot.com").Methods("PUT").Path("/api/buildbucket/v1/builds").Handler(md)
-	httpClient := mockhttpclient.NewMuxClient(r)
-	c := NewClient(httpClient)
-	b, err := c.RequestBuild("my-builder", "my-master", "abc123", "my-repo", "my-author", "")
+	c.MockGetBuild(expect.Id, expect, nil)
+	b, err := c.GetBuild(context.TODO(), fmt.Sprintf("%d", id))
 	assert.NoError(t, err)
 	assert.NotNil(t, b)
+	deepequal.AssertCopy(t, expect, b)
+	deepequal.AssertCopy(t, expect.Parameters, b.Parameters)
+	deepequal.AssertCopy(t, expect.Parameters.Properties, b.Parameters.Properties)
+}
+
+func TestGetTrybotsForCL(t *testing.T) {
+	testutils.SmallTest(t)
+
+	id := int64(12345)
+	c := NewMockClient(t)
+
+	expect := &Build{
+		Bucket:    "skia.primary",
+		Completed: time.Unix(1553793030, 570629000).UTC(),
+		CreatedBy: "some@user.com",
+		Created:   time.Unix(1553792903, 783203000).UTC(),
+		Id:        fmt.Sprintf("%d", id),
+		Url:       fmt.Sprintf(BUILD_URL_TMPL, apiUrl, id),
+		Parameters: &Parameters{
+			BuilderName: "Housekeeper-OnDemand-Presubmit",
+			Properties: Properties{
+				Category:       "cq",
+				Gerrit:         "https://skia-review.googlesource.com",
+				GerritIssue:    12345,
+				GerritPatchset: "1",
+				PatchProject:   "skia",
+				PatchStorage:   "gerrit",
+				Reason:         "CQ",
+				Revision:       "HEAD",
+				TryJobRepo:     "https://skia.googlesource.com/skia_internal.git",
+			},
+		},
+		Result: RESULT_SUCCESS,
+		Status: STATUS_COMPLETED,
+	}
+	c.MockSearchBuilds(&buildbucketpb.BuildPredicate{
+		GerritChanges: []*buildbucketpb.GerritChange{
+			&buildbucketpb.GerritChange{
+				Host:     "skia-review.googlesource.com",
+				Change:   12345,
+				Patchset: 1,
+			},
+		},
+	}, []*Build{expect}, nil)
+	b, err := c.GetTrybotsForCL(context.TODO(), 12345, 1, "https://skia-review.googlesource.com")
+	assert.NoError(t, err)
+	assert.NotNil(t, b)
+	assert.Equal(t, 1, len(b))
+	deepequal.AssertCopy(t, expect, b[0])
+	deepequal.AssertCopy(t, expect.Parameters, b[0].Parameters)
+	deepequal.AssertCopy(t, expect.Parameters.Properties, b[0].Parameters.Properties)
 }

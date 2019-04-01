@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/isolate"
-	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils"
@@ -168,7 +167,7 @@ func Params(t testutils.TestingT, builder, project, revision, server, issue, pat
 	assert.NoError(t, err)
 	p.Properties.PatchStorage = "gerrit"
 	p.Properties.Gerrit = server
-	p.Properties.GerritIssue = jsonutils.Number(issueInt)
+	p.Properties.GerritIssue = int64(issueInt)
 	p.Properties.GerritPatchset = patchset
 	return p
 }

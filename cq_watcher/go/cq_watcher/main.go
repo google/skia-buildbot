@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"time"
@@ -38,7 +39,7 @@ const (
 // * Number of CLs waiting for the CQ (both for dry runs and commits).
 // * How long CQ trybots have been running for.
 // * How many CQ trybots have been triggered.
-func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
+func monitorStatsForInFlightCLs(ctx context.Context, cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME))
 	cqMetric := metrics2.GetInt64Metric(fmt.Sprintf("%s_%s_%s", METRIC_NAME, cq.INFLIGHT_METRIC_NAME, cq.INFLIGHT_WAITING_IN_CQ))
 	for range time.Tick(time.Duration(IN_FLIGHT_POLL_TIME)) {
@@ -59,7 +60,7 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 		cqMetric.Update(int64(len(changes)))
 
 		for _, change := range changes {
-			if err := cqClient.ReportCQStats(change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(ctx, change.Issue); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
@@ -84,7 +85,7 @@ func monitorStatsForInFlightCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit
 // reported for the matching CLs:
 // * The total time the CL spent waiting for CQ trybots to complete.
 // * The time each CQ trybot took to complete.
-func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
+func monitorStatsForLandedCLs(ctx context.Context, cqClient *cq.Client, gerritClient *gerrit.Gerrit) {
 	liveness := metrics2.NewLiveness(fmt.Sprintf("%s_%s", METRIC_NAME, cq.LANDED_METRIC_NAME))
 	previousPollChanges := []*gerrit.ChangeInfo{}
 	for range time.Tick(time.Duration(AFTER_COMMIT_POLL_TIME)) {
@@ -100,7 +101,7 @@ func monitorStatsForLandedCLs(cqClient *cq.Client, gerritClient *gerrit.Gerrit) 
 			if gerrit.ContainsAny(change.Issue, previousPollChanges) {
 				continue
 			}
-			if err := cqClient.ReportCQStats(change.Issue); err != nil {
+			if err := cqClient.ReportCQStats(ctx, change.Issue); err != nil {
 				sklog.Errorf("Could not get CQ stats for %d: %s", change.Issue, err)
 				continue
 			}
@@ -121,6 +122,7 @@ func refreshCQTryBots(cqClient *cq.Client) {
 func main() {
 	common.InitWithMust(METRIC_NAME, common.PrometheusOpt(promPort))
 
+	ctx := context.Background()
 	httpClient := httputils.NewTimeoutClient()
 	gerritClient, err := gerrit.NewGerrit(gerrit.GERRIT_SKIA_URL, "", httpClient)
 	if err != nil {
@@ -135,7 +137,7 @@ func main() {
 	// are picked up without needing to restart the app.
 	go refreshCQTryBots(cqClient)
 	// Monitor in-flight CLs.
-	go monitorStatsForInFlightCLs(cqClient, gerritClient)
+	go monitorStatsForInFlightCLs(ctx, cqClient, gerritClient)
 	// Monitor landed CLs.
-	monitorStatsForLandedCLs(cqClient, gerritClient)
+	monitorStatsForLandedCLs(ctx, cqClient, gerritClient)
 }

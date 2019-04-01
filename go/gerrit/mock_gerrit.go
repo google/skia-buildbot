@@ -1,6 +1,8 @@
 package gerrit
 
 import (
+	"context"
+
 	"github.com/stretchr/testify/mock"
 	"go.skia.org/infra/go/buildbucket"
 )
@@ -69,7 +71,7 @@ func (g *MockedGerrit) Search(limit int, terms ...*SearchTerm) ([]*ChangeInfo, e
 	results = append(results, &ChangeInfo{Issue: g.IssueID})
 	return results, nil
 }
-func (g *MockedGerrit) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
+func (g *MockedGerrit) GetTrybotResults(ctx context.Context, issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
 	return nil, nil
 }
 

@@ -48,7 +48,7 @@ func retrieveGerritIssue(ctx context.Context, g gerrit.GerritInterface, fullHash
 			}
 			return nil, nil, errors.New(msg)
 		}
-		tries, err := g.GetTrybotResults(a.Issue, nontrivial[len(nontrivial)-1].Number)
+		tries, err := g.GetTrybotResults(ctx, a.Issue, nontrivial[len(nontrivial)-1].Number)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to retrieve try results: %s", err)
 		}
