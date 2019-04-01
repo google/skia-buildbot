@@ -2,7 +2,9 @@ package repo_manager
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -12,8 +14,10 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 )
@@ -127,7 +131,22 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGerrit(t, wd)
+	gUrl := "https://fake-skia-review.googlesource.com"
+	urlMock := mockhttpclient.NewURLMock()
+	serialized, err := json.Marshal(&gerrit.AccountDetails{
+		AccountId: 101,
+		Name:      mockUser,
+		Email:     mockUser,
+		UserName:  mockUser,
+	})
+	assert.NoError(t, err)
+	serialized = append([]byte("abcd\n"), serialized...)
+	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
+	gitcookies := path.Join(wd, "gitcookies_fake")
+	assert.NoError(t, ioutil.WriteFile(gitcookies, []byte(".googlesource.com\tTRUE\t/\tTRUE\t123\to\tgit-user.google.com=abc123"), os.ModePerm))
+	g, err := gerrit.NewGerrit(gUrl, gitcookies, urlMock.Client())
+	assert.NoError(t, err)
+
 	cfg := copyCfg()
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
@@ -138,6 +157,21 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	assert.NoError(t, rm.Update(ctx))
 
 	// Create a roll, assert that it's at tip of tree.
+	ci := gerrit.ChangeInfo{
+		ChangeId: "12345",
+		Id:       "12345",
+		Issue:    12345,
+		Revisions: map[string]*gerrit.Revision{
+			"ps1": &gerrit.Revision{
+				ID:     "ps1",
+				Number: 1,
+			},
+		},
+	}
+	respBody, err := json.Marshal(ci)
+	assert.NoError(t, err)
+	respBody = append([]byte(")]}'\n"), respBody...)
+	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/12345/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
 	issue, err := rm.CreateNewRoll(ctx, rm.LastRollRev(), rm.NextRollRev(), emails, cqExtraTrybots, false)
 	assert.NoError(t, err)
 	assert.Equal(t, issueNum, issue)

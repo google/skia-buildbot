@@ -321,6 +321,12 @@ func (rm *assetRepoManager) CreateNewRoll(ctx context.Context, from, to string, 
 	if err := json.NewDecoder(f).Decode(&issue); err != nil {
 		return 0, err
 	}
+
+	// Mark the change as ready for review, if necessary.
+	if err := rm.unsetWIP(nil, issue.Issue); err != nil {
+		return 0, err
+	}
+
 	return issue.Issue, nil
 }
 

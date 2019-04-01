@@ -237,6 +237,7 @@ TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNot
 				Number: 1,
 			},
 		},
+		WorkInProgress: true,
 	}
 	respBody, err := json.Marshal(ci)
 	assert.NoError(t, err)
@@ -262,6 +263,11 @@ TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNot
 	assert.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+
+	// Mock the request to set the change as read for review. This is only
+	// done if ChangeInfo.WorkInProgress is true.
+	reqBody = []byte(`{}`)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to set the CQ.
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
