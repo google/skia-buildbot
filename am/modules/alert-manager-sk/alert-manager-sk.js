@@ -596,10 +596,8 @@ window.customElements.define('alert-manager-sk', class extends HTMLElement {
       }
       for (let i = 0; i < sortby.length; i++) {
         const key = sortby[i];
-        const left = a.params[key];
-        const right = b.params[key];
-        left = left || '';
-        right = right || '';
+        const left = a.params[key] || '';
+        const right = b.params[key] || '';
         const cmp = left.localeCompare(right);
         if (cmp) {
           return cmp;
