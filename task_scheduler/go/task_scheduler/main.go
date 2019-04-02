@@ -52,6 +52,8 @@ const (
 	// APP_NAME is the name of this app.
 	APP_NAME = "task_scheduler"
 
+	OAUTH2_CALLBACK = "/oauth2callback/"
+
 	PUBSUB_SUBSCRIBER_TASK_SCHEDULER          = "task-scheduler"
 	PUBSUB_SUBSCRIBER_TASK_SCHEDULER_INTERNAL = "task-scheduler-internal"
 )
@@ -561,7 +563,11 @@ func main() {
 
 	skiaversion.MustLogVersion()
 
-	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), nil)
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+	login.InitWithAllow(serverURL+OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
@@ -699,10 +705,6 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	serverURL := "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
 	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)

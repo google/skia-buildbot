@@ -743,7 +743,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	login.InitWithAllow(*port, *testing, adminAllowed, editAllowed, nil)
+	login.InitWithAllow(serverURL+OAUTH2_CALLBACK_PATH, adminAllowed, editAllowed, nil)
 
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")
