@@ -112,7 +112,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&pixel_diff.UpdateVars{}, *taskID, *runID))
-	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Pixel diff", *runID, *description))
+	skutil.LogErr(util.SendTaskStartEmail(*taskID, emailsArr, "Pixel diff", *runID, *description, ""))
 
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.
