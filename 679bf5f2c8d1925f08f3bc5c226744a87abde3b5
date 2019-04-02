@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c47af45a_6f6483e6",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-02T19:04:54Z",
+      "side": 1,
+      "message": "nit: seems odd to use a constant for one path component but inline values for the others.",
+      "range": {
+        "startLine": 185,
+        "startChar": 71,
+        "endLine": 185,
+        "endChar": 130
+      },
+      "revId": "679bf5f2c8d1925f08f3bc5c226744a87abde3b5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
