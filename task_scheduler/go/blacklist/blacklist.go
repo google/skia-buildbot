@@ -40,7 +40,7 @@ type Blacklist struct {
 	client *firestore.Client
 	coll   *fs.CollectionRef
 	mtx    sync.RWMutex
-	rules  map[string]*Rule
+	rules  RuleSet
 }
 
 // New returns a Blacklist instance.
@@ -73,7 +73,7 @@ func (b *Blacklist) Update() error {
 	if b == nil {
 		return nil
 	}
-	rules := map[string]*Rule{}
+	rules := RuleSet{}
 	q := b.coll.Query
 	if err := b.client.IterDocs("GetBlacklistEntries", "", q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
 		var r Rule
@@ -106,12 +106,7 @@ func (b *Blacklist) MatchRule(taskSpec, commit string) string {
 	}
 	b.mtx.RLock()
 	defer b.mtx.RUnlock()
-	for _, rule := range b.rules {
-		if rule.Match(taskSpec, commit) {
-			return rule.Name
-		}
-	}
-	return ""
+	return b.rules.MatchRule(taskSpec, commit)
 }
 
 // Add adds a new Rule to the Blacklist.
@@ -308,4 +303,27 @@ func (r *Rule) Copy() *Rule {
 		Description:      r.Description,
 		Name:             r.Name,
 	}
+}
+
+type RuleSet map[string]*Rule
+
+// Match determines whether the given taskSpec/commit pair matches one of the
+// Rules in the RuleSet.
+func (s RuleSet) Match(taskSpec, commit string) bool {
+	return s.MatchRule(taskSpec, commit) != ""
+}
+
+// MatchRule determines whether the given taskSpec/commit pair matches one of the
+// Rules in the RuleSet. Returns the name of the matched Rule or the empty
+// string if no Rules match.
+func (s RuleSet) MatchRule(taskSpec, commit string) string {
+	if s == nil {
+		return ""
+	}
+	for _, rule := range s {
+		if rule.Match(taskSpec, commit) {
+			return rule.Name
+		}
+	}
+	return ""
 }

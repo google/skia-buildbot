@@ -16,6 +16,7 @@ func TestCopyTaskCandidate(t *testing.T) {
 		Attempt:            3,
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
+		Diagnostics:        &taskCandidateDiagnostics{},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
 		Jobs: jobSet(&types.Job{
@@ -36,7 +37,10 @@ func TestCopyTaskCandidate(t *testing.T) {
 			Isolate: "confine",
 		},
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+	cp := v.CopyNoDiagnostics()
+	assert.Nil(t, cp.Diagnostics)
+	cp.Diagnostics = &taskCandidateDiagnostics{}
+	deepequal.AssertCopy(t, v, cp)
 }
 
 func TestTaskCandidateId(t *testing.T) {
