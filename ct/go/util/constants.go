@@ -45,18 +45,19 @@ const (
 	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
-	BINARY_CHROME         = "chrome"
-	BINARY_CHROME_WINDOWS = "chrome.exe"
-	BINARY_RECORD_WPR     = "record_wpr"
-	BINARY_RUN_BENCHMARK  = "run_benchmark"
-	BINARY_GCLIENT        = "gclient"
-	BINARY_NINJA          = "ninja"
-	BINARY_LUA_PICTURES   = "lua_pictures"
-	BINARY_SKPINFO        = "skpinfo"
-	BINARY_ADB            = "adb"
-	BINARY_GIT            = "git"
-	BINARY_MAIL           = "mail"
-	BINARY_LUA            = "lua"
+	BINARY_CHROME          = "chrome"
+	BINARY_CHROME_WINDOWS  = "chrome.exe"
+	BINARY_RECORD_WPR      = "record_wpr"
+	BINARY_RUN_BENCHMARK   = "run_benchmark"
+	BINARY_ANALYZE_METRICS = "analyze_metrics_ct.py"
+	BINARY_GCLIENT         = "gclient"
+	BINARY_NINJA           = "ninja"
+	BINARY_LUA_PICTURES    = "lua_pictures"
+	BINARY_SKPINFO         = "skpinfo"
+	BINARY_ADB             = "adb"
+	BINARY_GIT             = "git"
+	BINARY_MAIL            = "mail"
+	BINARY_LUA             = "lua"
 	// TODO(rmistry): Remove once all CT bots have been upgraded to use 2.7.11
 	//                by default.
 	BINARY_PYTHON_2_7_11 = "/usr/local/lib/python2.7.11/bin/python"
@@ -76,7 +77,6 @@ const (
 	BENCHMARK_USECOUNTER               = "usecounter_ct"
 	BENCHMARK_LEAK_DETECTION           = "leak_detection.cluster_telemetry"
 	BENCHMARK_MEMORY                   = "memory.cluster_telemetry"
-	BENCHMARK_METRICS_ANALYSIS         = "analysis_metrics_ct"
 	BENCHMARK_V8_LOADING               = "v8.loading.cluster_telemetry"
 	BENCHMARK_V8_LOADING_RUNTIME_STATS = "v8.loading_runtime_stats.cluster_telemetry"
 
