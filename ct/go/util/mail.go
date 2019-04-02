@@ -124,7 +124,7 @@ func GetCTPerfEmailHtml(groupName string) string {
 	}
 }
 
-func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, description string) error {
+func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, runDescription, additionalDescription string) error {
 	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (#%d)", taskName, taskId)
 	swarmingLogsLink := fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
 
@@ -133,8 +133,11 @@ func SendTaskStartEmail(taskId int64, recipients []string, taskName, runID, desc
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
 	descriptionHtml := ""
-	if description != "" {
-		descriptionHtml = fmt.Sprintf("Run description: %s<br/><br/>", description)
+	if runDescription != "" {
+		descriptionHtml += fmt.Sprintf("Run description: %s<br/><br/>", runDescription)
+	}
+	if additionalDescription != "" {
+		descriptionHtml += fmt.Sprintf("%s<br/><br/>", additionalDescription)
 	}
 	bodyTemplate := `
 	The %s queued task has started.<br/>
