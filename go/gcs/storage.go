@@ -26,7 +26,7 @@ type GCSClient interface {
 	// context. storage.ErrObjectNotExist will be returned if the file is not found.
 	// The caller must call Close on the returned Reader when done reading.
 	FileReader(ctx context.Context, path string) (io.ReadCloser, error)
-	// FileReader returns an io.WriteCloser that writes to the GCS file given by path
+	// FileWriter returns an io.WriteCloser that writes to the GCS file given by path
 	// using the provided context. A new GCS file will be created if it doesn't already exist.
 	// Otherwise, the existing file will be overwritten. The caller must call Close on
 	// the returned Writer to flush the writes.
@@ -82,6 +82,8 @@ func NewGCSClient(s *storage.Client, bucket string) GCSClient {
 
 // See the GCSClient interface for more information about FileReader.
 func (g *gcsclient) FileReader(ctx context.Context, path string) (io.ReadCloser, error) {
+	// TODO(dogben): we should use ReadCompressed here and wrap the reader in a gzip.Reader if
+	// reader.Attrs.ContentEncoding == "gzip".
 	return g.client.Bucket(g.bucket).Object(path).NewReader(ctx)
 }
 
@@ -155,4 +157,28 @@ func (g *gcsclient) DeleteFile(ctx context.Context, path string) error {
 // See the GCSClient interface for more information about Bucket.
 func (g *gcsclient) Bucket() string {
 	return g.bucket
+}
+
+// WithWriter writes to a GCS object using the given function, handling all errors. No compression
+// is done on the data. See GCSClient.FileWriter for details on the parameters.
+func WithWriter(client GCSClient, ctx context.Context, path string, opts FileWriteOptions, fn func(io.Writer) error) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	writer := client.FileWriter(ctx, path, opts)
+	if err := fn(writer); err != nil {
+		cancel()
+		return err
+	}
+	return writer.Close()
+}
+
+// WithWriter writes to a GCS object using the given function, compressing the data with gzip and
+// handling all errors. See GCSClient.FileWriter for details on the parameters.
+func WithGzipWriter(client GCSClient, ctx context.Context, path string, fn func(io.Writer) error) error {
+	opts := FileWriteOptions{
+		ContentEncoding: "gzip",
+	}
+	return WithWriter(client, ctx, path, opts, func(w io.Writer) error {
+		return util.WithGzipWriter(w, fn)
+	})
 }
