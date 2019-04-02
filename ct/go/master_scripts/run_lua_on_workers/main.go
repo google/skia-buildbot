@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -46,9 +47,21 @@ func sendEmail(recipients []string) {
 	// Send completion email.
 	emailSubject := fmt.Sprintf("Run lua script Cluster telemetry task has completed (#%d)", *taskID)
 	failureHtml := ""
+	viewActionMarkup := ""
+	var err error
+
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
 		failureHtml = util.GetFailureEmailHtml(*runID)
+		if viewActionMarkup, err = email.GetViewActionMarkup(util.GetSwarmingLogsLink(*runID), "View Failure", "Direct link to the swarming logs"); err != nil {
+			sklog.Errorf("Failed to get view action markup: %s", err)
+			return
+		}
+	} else {
+		if viewActionMarkup, err = email.GetViewActionMarkup(luaOutputRemoteLink, "View Results", "Direct link to the lua output"); err != nil {
+			sklog.Errorf("Failed to get view action markup: %s", err)
+			return
+		}
 	}
 	scriptOutputHtml := ""
 	if luaOutputRemoteLink != "" {
@@ -68,7 +81,7 @@ func sendEmail(recipients []string) {
 	Thanks!
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, util.GetSwarmingLogsLink(*runID), *description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, frontend.LuaTasksWebapp)
-	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
+	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		sklog.Errorf("Error while sending email: %s", err)
 		return
 	}
