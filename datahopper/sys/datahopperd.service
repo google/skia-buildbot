@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/datahopper \
     --bigtable_project=skia-public \
     --bigtable_instance=production \
     --firestore_instance=production \
+    --pubsub_project=skia-public \
     --pubsub_topic_set=production \
     --repo=https://skia.googlesource.com/skia.git \
     --repo=https://skia.googlesource.com/buildbot.git \
