@@ -14,6 +14,7 @@ ExecStart=/usr/local/bin/status \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \
     --firestore_instance=internal \
+    --pubsub_project=google.com:skia-corp \
     --pubsub_topic_set=internal \
     --repo=https://skia.googlesource.com/skia_internal.git \
     --repo=https://skia.googlesource.com/internal_test.git \

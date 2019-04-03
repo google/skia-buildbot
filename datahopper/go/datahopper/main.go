@@ -50,6 +50,7 @@ var (
 
 	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
 	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
+	pubsubProject  = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
 	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 )
 
@@ -185,7 +186,7 @@ func main() {
 	// TODO(borenet): We should include metrics from all three (production,
 	// internal, staging) instances.
 	label := "datahopper"
-	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, newTs)
+	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, newTs)
 	if err != nil {
 		sklog.Fatal(err)
 	}

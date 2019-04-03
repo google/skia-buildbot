@@ -57,13 +57,6 @@ const (
 )
 
 var (
-	// "Constants"
-	VALID_DB_EMAILS = []string{
-		"datahopper@skia-buildbots.google.com.iam.gserviceaccount.com",
-		"skia-status@skia-public.iam.gserviceaccount.com",
-		"skia-status-internal@skia-public.iam.gserviceaccount.com",
-	}
-
 	// Task Scheduler instance.
 	ts *scheduling.TaskScheduler
 
@@ -96,6 +89,7 @@ var (
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	kube              = flag.Bool("kube", false, "Whether we're running in Kubernetes.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	pubsubProject     = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
 	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
 	// instance name. Once all schedulers are using Firestore for their
 	// task DB, firestoreInstance will have the same value. We should
@@ -628,7 +622,7 @@ func main() {
 
 	// Initialize the database.
 	label := *host
-	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, tokenSource)
+	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
