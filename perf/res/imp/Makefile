@@ -1,6 +1,7 @@
 # Set up the local directory to run the demo pages.
 default:
 	ln -sf ../../res res
+	ln -sf ../../node_modules nm
 	npm install http-server
 
 # Run a local HTTP server for the demo pages.
