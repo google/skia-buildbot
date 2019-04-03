@@ -23,7 +23,7 @@ const (
 )
 
 var (
-	TELEMETRY_ISOLATES_TARGET  = "telemetry_perf_tests_without_chrome"
+	TELEMETRY_ISOLATES_TARGET  = "ct_telemetry_perf_tests_without_chrome"
 	TELEMETRY_ISOLATES_OUT_DIR = filepath.Join("out", "telemetry_isolates")
 )
 

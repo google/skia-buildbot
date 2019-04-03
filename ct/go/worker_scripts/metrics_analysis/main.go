@@ -182,15 +182,11 @@ func metricsAnalysis() error {
 // runMetricsAnalysisBenchmark runs the analysis_metrics_ct benchmark on the provided trace.
 func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrace, cloudTraceLink string) error {
 	args := []string{
-		filepath.Join(util.GetPathToTelemetryBinaries(*worker_common.Local), util.BINARY_RUN_BENCHMARK),
-		util.BENCHMARK_METRICS_ANALYSIS,
-		"--local-trace-path", fmt.Sprintf("file://%s", downloadedTrace),
+		filepath.Join(util.GetPathToTelemetryCTBinaries(*worker_common.Local), util.BINARY_ANALYZE_METRICS),
+		"--local-trace-path", downloadedTrace,
 		"--cloud-trace-link", cloudTraceLink,
 		"--metric-name", *metricName,
-		// Next 2 args are an unfortunate hack made due to skbug.com/8918
-		"--browser", "exact",
-		"--browser-executable", "/bin/sh",
-		"--output-dir", filepath.Join(outputPath, getTraceName(downloadedTrace)),
+		"--output-csv", filepath.Join(outputPath, getTraceName(downloadedTrace), "result.csv"),
 	}
 	// Calculate what timeout should be used when executing run_benchmark.
 	timeoutSecs := util.GetRunBenchmarkTimeoutValue(*benchmarkExtraArgs, METRICS_BENCHMARK_TIMEOUT_SECS)
