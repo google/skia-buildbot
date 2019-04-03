@@ -1,4 +1,4 @@
-<!-- The <debugger-app-sk> custom element declaration.
+<!-- The <wasm-debugger-app-sk> custom element declaration.
 
 The main application element for the Skia Debugger.
 
@@ -35,7 +35,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/common/imp/play.html">
 <link rel=import href="/res/common/imp/zoom.html">
 
-<dom-module id="debugger-app-sk">
+<dom-module id="wasm-debugger-app-sk">
   <style include="iron-flex iron-flex-alignment iron-flex-factors">
     :root {
       --paper-toolbar-background: #1f78b4;
@@ -412,7 +412,7 @@ The main application element for the Skia Debugger.
     var OUTDENTERS = ["Restore", "EndDrawPicture"];
 
     Polymer({
-      is: "debugger-app-sk",
+      is: "wasm-debugger-app-sk",
 
       properties: {
         tab_selected: {
