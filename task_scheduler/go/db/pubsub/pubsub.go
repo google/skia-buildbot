@@ -22,9 +22,6 @@ const (
 	// Auth scope.
 	AUTH_SCOPE = pubsub.ScopePubSub
 
-	// Default project ID.
-	PROJECT_ID = "skia-public"
-
 	// Sets of topic, based on scheduler instance.
 	TOPIC_SET_PRODUCTION = "production"
 	TOPIC_SET_INTERNAL   = "internal"
@@ -172,8 +169,8 @@ type TaskPublisher struct {
 
 // NewTaskPublisher creates a TaskPublisher instance. It creates the given topic
 // if it does not already exist.
-func NewTaskPublisher(topic string, ts oauth2.TokenSource) (*TaskPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewTaskPublisher(projectId, topic string, ts oauth2.TokenSource) (*TaskPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -196,8 +193,8 @@ type JobPublisher struct {
 
 // NewJobPublisher creates a JobPublisher instance. It creates the given topic
 // if it does not already exist.
-func NewJobPublisher(topic string, ts oauth2.TokenSource) (*JobPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewJobPublisher(projectId, topic string, ts oauth2.TokenSource) (*JobPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -220,8 +217,8 @@ type TaskSpecCommentPublisher struct {
 
 // NewTaskSpecCommentPublisher creates a TaskSpecCommentPublisher instance. It
 // creates the given topic if it does not already exist.
-func NewTaskSpecCommentPublisher(topic string, ts oauth2.TokenSource) (*TaskSpecCommentPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewTaskSpecCommentPublisher(projectId, topic string, ts oauth2.TokenSource) (*TaskSpecCommentPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -244,8 +241,8 @@ type TaskCommentPublisher struct {
 
 // NewTaskCommentPublisher creates a TaskCommentPublisher instance. It creates the given
 // topic if it does not already exist.
-func NewTaskCommentPublisher(topic string, ts oauth2.TokenSource) (*TaskCommentPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewTaskCommentPublisher(projectId, topic string, ts oauth2.TokenSource) (*TaskCommentPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -268,8 +265,8 @@ type CommitCommentPublisher struct {
 
 // NewCommitCommentPublisher creates a CommitCommentPublisher instance. It creates the given
 // topic if it does not already exist.
-func NewCommitCommentPublisher(topic string, ts oauth2.TokenSource) (*CommitCommentPublisher, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewCommitCommentPublisher(projectId, topic string, ts oauth2.TokenSource) (*CommitCommentPublisher, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -377,8 +374,8 @@ func (s *subscriber) start() (context.CancelFunc, error) {
 // is Ack'd and will not be re-sent. Therefore, if the task is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewTaskSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Task) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewTaskSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Task) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -406,8 +403,8 @@ func NewTaskSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, cal
 // is Ack'd and will not be re-sent. Therefore, if the job is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewJobSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Job) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewJobSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.Job) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -435,8 +432,8 @@ func NewJobSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, call
 // is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewTaskCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskComment) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewTaskCommentSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskComment) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -464,8 +461,8 @@ func NewTaskCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSour
 // is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewTaskSpecCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskSpecComment) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewTaskSpecCommentSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.TaskSpecComment) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -493,8 +490,8 @@ func NewTaskSpecCommentSubscriber(topic, subscriberLabel string, ts oauth2.Token
 // is Ack'd and will not be re-sent. Therefore, if the comment is not valid or
 // otherwise cannot ever be processed, the callback should return nil to prevent
 // the message from being re-sent.
-func NewCommitCommentSubscriber(topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.CommitComment) error) (context.CancelFunc, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewCommitCommentSubscriber(projectId, topic, subscriberLabel string, ts oauth2.TokenSource, callback func(*types.CommitComment) error) (context.CancelFunc, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}

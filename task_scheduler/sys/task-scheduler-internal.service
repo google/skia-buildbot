@@ -14,6 +14,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --isolate_server=https://chrome-isolated.appspot.com \
     --logtostderr \
     --pool=SkiaInternal \
+    --pubsub_project=google.com:skia-corp \
     --pubsub_topic_set=internal \
     --pubsub_topic=swarming-tasks-internal \
     --pubsub_subscriber=task-scheduler-internal \

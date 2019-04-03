@@ -20,20 +20,20 @@ import (
 )
 
 // NewModifiedData returns a db.ModifiedData instance which uses pubsub.
-func NewModifiedData(topicSet, label string, ts oauth2.TokenSource) (db.ModifiedData, error) {
+func NewModifiedData(projectId, topicSet, label string, ts oauth2.TokenSource) (db.ModifiedData, error) {
 	topicSetObj, ok := topics[topicSet]
 	if !ok {
 		return nil, fmt.Errorf("Topic must be one of %v, not %q", VALID_TOPIC_SETS, topicSet)
 	}
-	t, err := NewModifiedTasks(topicSetObj.tasks, label, ts)
+	t, err := NewModifiedTasks(projectId, topicSetObj.tasks, label, ts)
 	if err != nil {
 		return nil, err
 	}
-	j, err := NewModifiedJobs(topicSetObj.jobs, label, ts)
+	j, err := NewModifiedJobs(projectId, topicSetObj.jobs, label, ts)
 	if err != nil {
 		return nil, err
 	}
-	c, err := NewModifiedComments(topicSetObj.taskComments, topicSetObj.taskSpecComments, topicSetObj.commitComments, label, ts)
+	c, err := NewModifiedComments(projectId, topicSetObj.taskComments, topicSetObj.taskSpecComments, topicSetObj.commitComments, label, ts)
 	if err != nil {
 		return nil, err
 	}
@@ -242,8 +242,8 @@ type taskClient struct {
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
 // ModifiedTasks, unique to each instance.
-func NewModifiedTasks(topic, label string, ts oauth2.TokenSource) (db.ModifiedTasks, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewModifiedTasks(projectId, topic, label string, ts oauth2.TokenSource) (db.ModifiedTasks, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -311,8 +311,8 @@ type jobClient struct {
 // this should help to debug zombie subscriptions. It should be descriptive and
 // unique to this process, or if the process uses multiple instances of
 // ModifiedJobs, unique to each instance.
-func NewModifiedJobs(topic, label string, ts oauth2.TokenSource) (db.ModifiedJobs, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewModifiedJobs(projectId, topic, label string, ts oauth2.TokenSource) (db.ModifiedJobs, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -382,8 +382,8 @@ type commentClient struct {
 // timestamp; this should help to debug zombie subscriptions. It should be
 // descriptive and unique to this process, or if the process uses multiple
 // instances of ModifiedJobs, unique to each instance.
-func NewModifiedComments(taskCommentsTopic, taskSpecCommentsTopic, commitCommentsTopic string, label string, ts oauth2.TokenSource) (db.ModifiedComments, error) {
-	c, err := pubsub.NewClient(context.Background(), PROJECT_ID, option.WithTokenSource(ts))
+func NewModifiedComments(projectId, taskCommentsTopic, taskSpecCommentsTopic, commitCommentsTopic string, label string, ts oauth2.TokenSource) (db.ModifiedComments, error) {
+	c, err := pubsub.NewClient(context.Background(), projectId, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ ExecStart=/usr/local/bin/status \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \
     --firestore_instance=production \
+    --pubsub_project=skia-public \
     --pubsub_topic_set=production \
     --repo=https://skia.googlesource.com/skia.git \
     --repo=https://skia.googlesource.com/buildbot.git \

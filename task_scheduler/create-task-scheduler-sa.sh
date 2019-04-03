@@ -16,8 +16,8 @@ cd /tmp/ramdisk
 gcloud --project=${PROJECT_ID} iam service-accounts create "${SA_NAME}" --display-name="Service account for Skia Task Scheduler"
 gcloud projects add-iam-policy-binding google.com:skia-buildbots --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
 gcloud projects add-iam-policy-binding skia-firestore --member serviceAccount:${SA_EMAIL} --role roles/datastore.user
-gcloud projects add-iam-policy-binding skia-public --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
-gcloud projects add-iam-policy-binding skia-public --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user
+gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
+gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_EMAIL}"
 
