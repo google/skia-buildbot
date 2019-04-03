@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f284611_50368c60",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-03T12:32:38Z",
+      "side": 1,
+      "message": "Needs some docs about what it\u0027s used for. \nNot strictly necessary: since this appears at least twice in this CL alone, it should maybe moved as a constant into the auth package or a similar place.",
+      "revId": "a2e799a8ab9e61f745a0da5da8e47db352440ad0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87ef3439_f30169c7",
+        "filename": "go/login/login.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-03T12:32:38Z",
+      "side": 1,
+      "message": "supernit: make a reference that the other arguments have the same/similar purpose as in SimpleInitWithAllow",
+      "revId": "a2e799a8ab9e61f745a0da5da8e47db352440ad0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
