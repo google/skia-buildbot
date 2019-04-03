@@ -57,7 +57,7 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-	login.InitWithAllow(*port, *local, nil, nil, allowed.NewAllowedFromList([]string{"google.com"}))
+	login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.NewAllowedFromList([]string{"google.com"}))
 	targetURL := fmt.Sprintf("http://localhost%s", *targetPort)
 	target, err := url.Parse(targetURL)
 	if err != nil {

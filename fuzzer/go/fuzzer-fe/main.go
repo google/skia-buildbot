@@ -210,7 +210,7 @@ func writeFlagsToConfig() error {
 }
 
 func setupOAuth(ctx context.Context) error {
-	login.InitWithAllow(*port, *local, nil, nil, allowed.Googlers())
+	login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 
 	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE)
 	if err != nil {

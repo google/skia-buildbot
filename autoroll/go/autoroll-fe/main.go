@@ -311,14 +311,14 @@ func runServer(ctx context.Context, serverURL string) {
 	if *internal {
 		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(WHITELISTED_VIEWERS), allowed.Googlers())
 	}
-	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), viewAllow)
+	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/json/all", jsonAllHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
@@ -334,7 +334,7 @@ func runServer(ctx context.Context, serverURL string) {
 	if !*local {
 		if viewAllow != nil {
 			h = login.RestrictViewer(h)
-			h = login.ForceAuth(h, "/oauth2callback/")
+			h = login.ForceAuth(h, login.DEFAULT_OAUTH2_CALLBACK)
 		}
 		h = httputils.HealthzAndHTTPS(h)
 	}

@@ -58,14 +58,20 @@ const (
 	// DEFAULT_REDIRECT_URL is the redirect URL to use if Init is called with DEFAULT_DOMAIN_WHITELIST.
 	DEFAULT_REDIRECT_URL = "https://skia.org/oauth2callback/"
 
+	// DEFAULT_OAUTH2_CALLBACK is the default relative OAuth2 redirect URL.
+	DEFAULT_OAUTH2_CALLBACK = "/oauth2callback/"
+
 	// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
 	DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
 
 	// DEFAULT_ADMIN_WHITELIST is the white list of users we consider admins when we can't retrieve the whitelist from metadata.
 	DEFAULT_ADMIN_WHITELIST = "benjaminwagner@google.com borenet@google.com jcgregorio@google.com kjlubick@google.com rmistry@google.com stephana@google.com"
 
-	// COOKIE_DOMAIN is the domain that are cookies attached to.
-	COOKIE_DOMAIN = "skia.org"
+	// COOKIE_DOMAIN_SKIA_ORG is the cookie domain for skia.org.
+	COOKIE_DOMAIN_SKIA_ORG = "skia.org"
+
+	// COOKIE_DOMAIN_SKIA_CORP is the cookie domain for skia*.corp.goog.
+	COOKIE_DOMAIN_SKIA_CORP = "corp.goog"
 
 	// LOGIN_CONFIG_FILE is the location of the login config when running in kubernetes.
 	LOGIN_CONFIG_FILE = "/etc/skia.org/login.json"
@@ -135,16 +141,31 @@ func SimpleInitMust(port string, local bool) {
 	}
 }
 
-// InitWithAllow initializes the login system for the default case (see docs for
-// SimpleInitMust) and sets the admin, editor, and viewer lists. These may be
-// nil, in which case we fall back on the default whitelists. For editors we
-// default to denying access to everyone, and for viewers we default to allowing
-// access to everyone.
-func InitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
+// SimpleInitWithAllow initializes the login system for the default case (see
+// docs for SimpleInitMust) and sets the admin, editor, and viewer lists. These
+// may be nil, in which case we fall back on the default whitelists. For editors
+// we default to denying access to everyone, and for viewers we default to
+// allowing access to everyone.
+func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", port)
+	if !local {
+		redirectURL = DEFAULT_REDIRECT_URL
+	}
+	InitWithAllow(redirectURL, admin, edit, view)
+}
+
+// InitWithAllow initializes the login system with the given redirect URL. Sets
+// the admin, editor, and viewer lists as provided. These may be nil, in which
+// case we fall back on the default whitelists. For editors we default to
+// denying access to everyone, and for viewers we default to allowing access
+// to everyone.
+func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 	adminAllow = admin
 	editAllow = edit
 	viewAllow = view
-	SimpleInitMust(port, local)
+	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST, ""); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
 	RestrictAdmin = RestrictWithMessage(adminAllow, "User is not an admin")
 	RestrictEditor = RestrictWithMessage(editAllow, "User is not an editor")
 	RestrictViewer = RestrictWithMessage(viewAllow, "User is not a viewer")
@@ -373,8 +394,14 @@ func domainFromHost(fullhost string) string {
 	host := parts[0]
 	if host == "localhost" {
 		return host
+	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_CORP) {
+		return COOKIE_DOMAIN_SKIA_CORP
+	} else if strings.HasSuffix(fullhost, "."+COOKIE_DOMAIN_SKIA_ORG) {
+		return COOKIE_DOMAIN_SKIA_ORG
+	} else {
+		sklog.Errorf("Unknown domain for host: %s; falling back to %s", fullhost, COOKIE_DOMAIN_SKIA_ORG)
+		return COOKIE_DOMAIN_SKIA_ORG
 	}
-	return COOKIE_DOMAIN
 }
 
 // CookieFor creates an encoded Cookie for the given user id.
@@ -571,7 +598,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, "Invalid Origin")
 			return
 		}
-		if strings.HasSuffix(u.Host, ".skia.org") {
+		if strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_ORG) || strings.HasSuffix(u.Host, "."+COOKIE_DOMAIN_SKIA_CORP) {
 			w.Header().Add("Access-Control-Allow-Origin", "https://"+u.Host)
 			w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 			w.Header().Add("Access-Control-Allow-Credentials", "true")
@@ -603,8 +630,12 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId := LoggedInAs(r)
 		if userId == "" {
-			// If this is not the oauth callback then redirect.
-			if !strings.HasPrefix(r.URL.Path, oauthCallbackPath) {
+			if strings.HasPrefix(r.URL.Path, oauthCallbackPath) {
+				// If this is the oauth2 callback, run that handler.
+				OAuth2CallbackHandler(w, r)
+				return
+			} else {
+				// If this is not the oauth callback then redirect.
 				redirectUrl := LoginURL(w, r)
 				sklog.Infof("Redirect URL: %s", redirectUrl)
 				if redirectUrl == "" {

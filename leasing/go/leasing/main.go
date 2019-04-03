@@ -521,7 +521,7 @@ func main() {
 	} else {
 		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
-	login.InitWithAllow(*port, *local, nil, nil, allow)
+	login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
 
 	// Initialize isolate and swarming.
 	if err := SwarmingInit(*serviceAccountFile); err != nil {
