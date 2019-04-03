@@ -788,7 +788,7 @@ server {
     error_log /var/log/nginx/status.error.log error;
 
     location / {
-        proxy_pass http://skia-status:8002;
+        proxy_pass https://35.201.76.220;
         proxy_set_header Host $host;
     }
 }
@@ -808,15 +808,13 @@ server {
     access_log /var/log/nginx/status-internal.access.log;
     error_log /var/log/nginx/status-internal.error.log error;
 
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "skia-status-internal-8002-proxy.skia.org";
-    }
+    rewrite ^ https://skia-status.corp.goog redirect;
 }
+
 server {
     listen      80;
     server_name status-internal.skia.org;
-    return 301 https://status-internal.skia.org$request_uri;
+    rewrite ^ https://skia-status.corp.goog redirect;
 }
 
 #####   status-staging.skia.org   ###########################
@@ -830,7 +828,7 @@ server {
     error_log /var/log/nginx/status-staging.error.log error;
 
     location / {
-        proxy_pass http://skia-status-staging:8002;
+        proxy_pass https://35.201.76.220;
         proxy_set_header Host $host;
     }
 }
@@ -1037,7 +1035,7 @@ server {
     error_log /var/log/nginx/task-scheduler.error.log error;
 
     location / {
-        proxy_pass http://skia-task-scheduler:8000;
+        proxy_pass https://35.201.76.220;
         proxy_set_header Host $host;
     }
 }
@@ -1057,23 +1055,13 @@ server {
     access_log /var/log/nginx/task-scheduler-internal.access.log;
     error_log /var/log/nginx/task-scheduler-internal.error.log error;
 
-    location / {
-        proxy_pass http://skia-proxy:8000;
-        proxy_set_header Host "skia-task-scheduler-internal-8000-proxy.skia.org";
-    }
-    location /google2c59f97e1ced9fdc.html {
-        add_header Content-Type text/html;
-        return 200 'google-site-verification: google2c59f97e1ced9fdc.html';
-    }
-    location /pubsub/ {
-        proxy_pass http://skia-task-scheduler-internal:8000;
-        proxy_set_header Host $host;
-    }
+    rewrite ^ https://skia-task-scheduler.corp.goog redirect;
 }
+
 server {
     listen      80;
     server_name task-scheduler-internal.skia.org;
-    return 301 https://task-scheduler-internal.skia.org$request_uri;
+    rewrite ^ https://skia-task-scheduler.corp.goog redirect;
 }
 
 #####   task-scheduler-staging.skia.org   ###########################
@@ -1087,7 +1075,7 @@ server {
     error_log /var/log/nginx/task-scheduler-staging.error.log error;
 
     location / {
-        proxy_pass http://skia-task-scheduler-staging:8000;
+        proxy_pass https://35.201.76.220;
         proxy_set_header Host $host;
     }
 }
@@ -1395,26 +1383,6 @@ server {
     listen      80;
     server_name skottie-internal.skia.org;
     return 301 https://skottie-internal.skia.org$request_uri;
-}
-#####   status2.skia.org   ###########################
-server {
-    listen      443;
-    server_name status2.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/status2.access.log;
-    error_log /var/log/nginx/status2.error.log error;
-
-    location / {
-        proxy_pass https://35.201.76.220;
-        proxy_set_header Host $host;
-    }
-}
-server {
-    listen      80;
-    server_name status2.skia.org;
-    return 301 https://status2.skia.org$request_uri;
 }
 #####   named-fiddles.skia.org   ###########################
 server {
