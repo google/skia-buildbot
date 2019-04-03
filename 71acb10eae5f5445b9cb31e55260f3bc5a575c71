@@ -1,0 +1,573 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "55fc4a07_7650d693",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "its",
+      "range": {
+        "startLine": 38,
+        "startChar": 49,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c059d34_1303d0ca",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "Skia",
+      "range": {
+        "startLine": 44,
+        "startChar": 66,
+        "endLine": 44,
+        "endChar": 70
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e787f2ec_4720b59c",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "its",
+      "range": {
+        "startLine": 44,
+        "startChar": 32,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d79e673_c4359546",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "\u003chttp://localhost:9000/res/v2.html\u003e will make a link  here and line 72",
+      "range": {
+        "startLine": 60,
+        "startChar": 11,
+        "endLine": 60,
+        "endChar": 46
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b36101ca_1294f92f",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "Docker",
+      "range": {
+        "startLine": 62,
+        "startChar": 15,
+        "endLine": 62,
+        "endChar": 21
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b33a3abb_978cdf3a",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "unused?  if used, need var",
+      "range": {
+        "startLine": 456,
+        "startChar": 8,
+        "endLine": 456,
+        "endChar": 19
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80b7cac9_49b37c8e",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "wrap all comments to 100 cols",
+      "range": {
+        "startLine": 458,
+        "startChar": 85,
+        "endLine": 458,
+        "endChar": 93
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4d136801_1d30b892",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "_dvcanvas?  what does dv stand for?",
+      "range": {
+        "startLine": 460,
+        "startChar": 13,
+        "endLine": 460,
+        "endChar": 22
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d7bf24d_448c9ff8",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "I\u0027m surprised Polymer/vulcanize is ok with arrow notation.",
+      "range": {
+        "startLine": 505,
+        "startChar": 24,
+        "endLine": 505,
+        "endChar": 39
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a53571f_f84faff2",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "remove?  other logs in the file?",
+      "range": {
+        "startLine": 510,
+        "startChar": 10,
+        "endLine": 510,
+        "endChar": 36
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "991e1b66_f8a40444",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "no. The arrow function automatically binds for you (one of its main selling points IMO)",
+      "range": {
+        "startLine": 511,
+        "startChar": 12,
+        "endLine": 511,
+        "endChar": 25
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70093eae_7fb0f336",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "assuming Polymer/vulcanize likes arrow notation: use it!  it saves the bind(this) all over the place.",
+      "range": {
+        "startLine": 513,
+        "startChar": 56,
+        "endLine": 513,
+        "endChar": 69
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56c68157_cb9a1f48",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "!\u003d\u003d unless you have a comment explaining why type coercion is ok.  other places too",
+      "range": {
+        "startLine": 517,
+        "startChar": 31,
+        "endLine": 517,
+        "endChar": 33
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52830a91_9a0156b5",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "single quotes, here and everywhere.",
+      "range": {
+        "startLine": 550,
+        "startChar": 65,
+        "endLine": 550,
+        "endChar": 66
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99f0b854_32b56962",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "!this._filtered... is more idiomatic",
+      "range": {
+        "startLine": 573,
+        "startChar": 14,
+        "endLine": 573,
+        "endChar": 49
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d12638a_48680901",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "You should not have clients (I consider debugger) calling _malloc directly. I feel like much of this should go in a helper function on the debugger wasm side.\n\nIn general, if you find yourself calling functions with an underscore prefix, take great care and possibly don\u0027t do that (directly).",
+      "range": {
+        "startLine": 636,
+        "startChar": 34,
+        "endLine": 636,
+        "endChar": 59
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63c256d8_9a86af0d",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "I thought vulcanize didn\u0027t like let/const?",
+      "range": {
+        "startLine": 636,
+        "startChar": 10,
+        "endLine": 636,
+        "endChar": 15
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b1c7f17_c0844458",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 638,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "buffer should likely also be considered private",
+      "range": {
+        "startLine": 638,
+        "startChar": 55,
+        "endLine": 638,
+        "endChar": 61
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "43feeea6_8d1f6a6e",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 677,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "how do these classes get here in the first place?",
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97acf27e_bb94405c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 717,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "var newCanvas",
+      "range": {
+        "startLine": 717,
+        "startChar": 8,
+        "endLine": 717,
+        "endChar": 17
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82eacac2_ef1bd427",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 734,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "!s.length",
+      "range": {
+        "startLine": 734,
+        "startChar": 15,
+        "endLine": 734,
+        "endChar": 28
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d873e6a_d5f9e4de",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 809,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "trailing semicolons here, line 813, other places",
+      "range": {
+        "startLine": 809,
+        "startChar": 27,
+        "endLine": 809,
+        "endChar": 28
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ac9e0a6_4b6c302e",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "Isn\u0027t there a Color helper?  or is that just CanvasKit?",
+      "range": {
+        "startLine": 859,
+        "startChar": 39,
+        "endLine": 859,
+        "endChar": 62
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ede6cb5_da06ec66",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "delete it and find out?",
+      "range": {
+        "startLine": 928,
+        "startChar": 9,
+        "endLine": 928,
+        "endChar": 26
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d631775_d75a3467",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 992,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-03T19:15:24Z",
+      "side": 1,
+      "message": "var k",
+      "range": {
+        "startLine": 992,
+        "startChar": 13,
+        "endLine": 992,
+        "endChar": 15
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
