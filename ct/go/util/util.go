@@ -584,6 +584,11 @@ func GetPathToTelemetryBinaries(local bool) string {
 	}
 }
 
+// GetPathToTelemetryBinaries returns the location of CT binaries in Telemetry.
+func GetPathToTelemetryCTBinaries(local bool) string {
+	return filepath.Join(GetPathToTelemetryBinaries(local), "contrib", "cluster_telemetry")
+}
+
 func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *GcsUtil, totalPages, maxPagesPerBot int, handleStrings bool, repeatValue int) (string, []string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
 	util.MkdirAll(localOutputDir, 0700)
