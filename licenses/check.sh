@@ -10,7 +10,7 @@ if [ "$1" = "regenerate" ]; then
 elif [ "$1" = "" ]; then
   diff -s <(echo "$DEPS") all_deps.txt
   if [ $? != 0 ]; then
-    echo "Check failed. See license/README.md on how to fix the failures."
+    echo "Check failed. See licenses/README.md on how to fix the failures."
     exit 1
   fi
 else
