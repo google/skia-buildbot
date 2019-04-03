@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "84d7cb13_e6c606e0",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-03T15:46:11Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem like it will work, e.g. \"url\" below.",
+      "range": {
+        "startLine": 803,
+        "startChar": 61,
+        "endLine": 803,
+        "endChar": 95
+      },
+      "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
