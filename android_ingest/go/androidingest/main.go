@@ -290,7 +290,7 @@ func main() {
 		sklog.Fatal("The --repo_url flag must be supplied.")
 	}
 	if !*local {
-		login.InitWithAllow(*port, *local, nil, nil, allowed.Googlers())
+		login.SimpleInitWithAllow(*port, *local, nil, nil, allowed.Googlers())
 	}
 
 	Init()

@@ -61,9 +61,6 @@ const (
 	MAX_COMMITS_TO_LOAD     = 100
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
-
-	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
-	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 var (
@@ -657,7 +654,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/lkgr", lkgrHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
 	taskComments.HandleFunc("/comments", addTaskCommentHandler).Methods("POST")
@@ -743,7 +740,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	login.InitWithAllow(*port, *testing, adminAllowed, editAllowed, nil)
+	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, adminAllowed, editAllowed, nil)
 
 	// Check out source code.
 	reposDir := path.Join(*workdir, "repos")

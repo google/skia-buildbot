@@ -468,7 +468,7 @@ func main() {
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		login.InitWithAllow(*port, *local, nil, nil, allow)
+		login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
 	}
 
 	if !*local {

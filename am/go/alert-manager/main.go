@@ -79,7 +79,7 @@ func New() (baseapp.App, error) {
 		assign = allowed.NewAllowedFromList([]string{"betty@example.org", "fred@example.org", "barney@example.org", "wilma@example.org"})
 	}
 
-	login.InitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, pubsub.ScopePubSub, "https://www.googleapis.com/auth/datastore")

@@ -86,7 +86,7 @@ func New() (*Server, error) {
 
 	if *lockedDown {
 		allow := allowed.NewAllowedFromList([]string{"google.com"})
-		login.InitWithAllow(*port, *local, nil, nil, allow)
+		login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
 	}
 
 	bucket := BUCKET

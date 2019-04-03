@@ -561,7 +561,11 @@ func main() {
 
 	skiaversion.MustLogVersion()
 
-	login.InitWithAllow(*port, *local, allowed.Googlers(), allowed.Googlers(), nil)
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
+	}
+	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)
@@ -699,10 +703,6 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	serverURL := "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
 	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
