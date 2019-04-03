@@ -115,7 +115,15 @@ work, so we just prefix every rule with plot-simple-sk.
 <link rel="stylesheet" href="plot-simple.css">
 
 <dom-module id="plot-simple-sk">
+  <style type="text/css" media="screen">
+    div {
+      position: relative;
+    }
+  </style>
   <template>
+    <div>
+      <canvas id=chart width$="{{width}}" height$="{{height}}"></canvas>
+    </div>
     <svg id="svg" width$="{{width}}" height$="{{height}}"
       class$="{{noCrosshair(nocrosshair)}}">
       <defs>
@@ -209,10 +217,162 @@ work, so we just prefix every rule with plot-simple-sk.
         this._initialSetup();
         this.resetAxes();
         this._plot();
+
+        this._chart = new Chart(this.$.chart, {
+          type: 'line',
+          data: {
+            datasets: [],
+          },
+          options: {
+            responsive: true,
+            animation: {
+              duration: 0, // general animation time
+            },
+            hover: {
+              animationDuration: 0, // duration of animations when hovering an item
+            },
+            annotation: {
+              annotations: [],
+            },
+            responsiveAnimationDuration: 0, // animation duration after a resize
+            maintainAspectRatio: false,
+            elements: {
+              line: {
+                tension: 0 // disables bezier curves
+              }
+            },
+            scales: {
+              xAxes: [{
+                type: 'linear',
+                position: 'bottom'
+              }]
+            },
+            tooltips: {
+              intersect: false,
+              mode: 'nearest',
+              animationDuration: 0,
+              caretPadding: 10,
+              callbacks: {
+                label: function(tooltipItem, data) {
+                  var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                  console.log({
+                    id: label,
+                    value: tooltipItem.value,
+                    index: tooltipItem.index,
+                    pt: [tooltipItem.index, tooltipItem.value],
+                  });
+                  return `${label}: ${tooltipItem.value}`;
+                }
+              },
+            },
+            scales: {
+              xAxes: [{
+                type: 'time',
+                time: {
+                  round: 'second',
+                  source: 'labels',
+                },
+                distribution: 'series'
+              }]
+            },
+            legend: {
+              display: false,
+            },
+            onClick: (e) => {
+              let eles = this._chart.getElementAtEvent(e);
+              if (!eles.length) {
+                return
+              }
+              let ele = eles[0];
+              console.log(ele);
+              let id = this._chart.data.datasets[ele._datasetIndex].label;
+              if (id.startsWith(SPECIAL))  {
+                return
+              }
+              let index = ele._index;
+              let value = this._chart.data.datasets[ele._datasetIndex].data[ele._index];
+              let detail =  {
+                id: id,
+                index: index,
+                value: value,
+                pt: [index, value],
+              };
+              this.setHighlight([id]);
+
+              console.log('Click', detail);
+            },
+						plugins: {
+							zoom: {
+								pan: {
+									enabled: true,
+									mode: 'xy',
+									rangeMin: {
+										x: null,
+										y: null
+									},
+									rangeMax: {
+										x: null,
+										y: null
+									},
+								},
+								zoom: {
+									enabled: true,
+									drag: true,
+
+									drag: {
+										 borderColor: 'lightgray',
+										 borderWidth: 3,
+									},
+
+									mode: 'xy',
+									rangeMin: {
+										x: null,
+										y: null
+									},
+									rangeMax: {
+										x: null,
+										y: null
+									},
+
+									// Speed of zoom via mouse wheel
+									// (percentage of zoom on a wheel event)
+									speed: 0.1,
+
+									onZoom: (c) => {
+										let detail = {
+											xMin: c.chart.scales["x-axis-0"].min,
+											xMax: c.chart.scales["x-axis-0"].max,
+											yMin: c.chart.scales["y-axis-0"].min,
+											yMax: c.chart.scales["y-axis-0"].max,
+										};
+										console.log('zoom: ', detail);
+									},
+								}
+							}
+						}
+          },
+        });
       },
 
       // lines is a map to the line data.
-      addLines: function(lines) {
+      addLines: function(lines, labels) {
+        if (labels) {
+          this._chart.data.labels = labels;
+        }
+        Object.keys(lines).forEach(function(id) {
+          let data = lines[id].map(arr => arr[1]);
+          console.log(data);
+          this._chart.data.datasets.push({
+            label: id,
+            data: data,
+            fill: false,
+            borderColor: colors[(sk.hashString(id) % 8) + 1],
+            borderWidth: 1,
+          });
+        }.bind(this));
+        this._chart.update();
+
+
         Object.keys(lines).forEach(function(id) {
           var line = lines[id];
           line._id = id;
@@ -240,11 +400,24 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       removeAll: function() {
+        this._chart.data.datasets = [];
+        this._chart.update();
+
         this._lineData = [];
         this._plot();
       },
 
       setHighlight: function(ids) {
+
+        this._chart.data.datasets.forEach((dataset) => {
+          if (ids.indexOf(dataset.label) != -1) {
+            dataset.borderWidth = 3;
+          } else {
+            dataset.borderWidth = 1;
+          }
+        });
+        this._chart.update();
+
         $$('.trace').forEach(function(ele) {
           if (ids.indexOf(ele.getAttribute('data-id')) != -1) {
             ele.classList.add('highlight');
@@ -261,11 +434,30 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       clearHighlight: function() {
+        this._chart.data.datasets.forEach((dataset) => {
+          dataset.borderWidth = 1;
+        });
+        this._chart.update();
+
+
         this._svg.selectAll(".trace")
           .classed('highlight', false);
       },
 
       setXBar: function(x) {
+        this.clearXBar();
+        this._chart.options.annotation.annotations.push({
+            id: 'xbar',
+            type: 'line',
+            mode: 'vertical',
+            scaleID: 'x-axis-0',
+            value: this._chart.data.labels[x],
+            borderColor: 'red',
+            borderWidth: 3,
+            drawTime: 'beforeDatasetsDraw',
+        });
+        this._chart.update();
+
         this._xbarx = x;
         this._xbar
           .attr('x1', this._xRange(x))
@@ -274,11 +466,31 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       clearXBar: function(x) {
+        this._chart.options.annotation.annotations =
+          this._chart.options.annotation.annotations.filter(ann => {
+            return ann.id != 'xbar';
+          });
+        this._chart.update();
+
         this._xbar
           .classed('displayed', false);
       },
 
       setBanding: function(bands) {
+        bands.forEach((band, i) => {
+          this._chart.options.annotation.annotations.push({
+            id: `band-${i}`,
+            type: 'box',
+            mode: 'vertical',
+            xScaleID: 'x-axis-0',
+            xMin: this._chart.data.labels[band[0]],
+            xMax: this._chart.data.labels[band[1]],
+            backgroundColor: 'lightgray',
+            drawTime: 'beforeDatasetsDraw',
+          });
+        });
+        this._chart.update();
+
         this._bands = bands;
         this._plot();
       },
@@ -295,6 +507,10 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       resetAxes:  function() {
+        if (this._chart) {
+          this._chart.resetZoom();
+        }
+
         if (!this._lineData || !this._xRange) {
           return
         }
