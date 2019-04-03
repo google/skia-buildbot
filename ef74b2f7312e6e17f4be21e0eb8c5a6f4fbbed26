@@ -22,6 +22,30 @@
       "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60ff2f40_8c1ce26a",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-03T16:25:55Z",
+      "side": 1,
+      "message": "Hrm, you\u0027re right. Unfortunately the request to \"https://skia-autoroll.corp.goog/json/all\" just gets a login redirect.  I\u0027m not sure how we\u0027re going to get roll-up statuses for internal rollers like Android from public Status...",
+      "parentUuid": "84d7cb13_e6c606e0",
+      "range": {
+        "startLine": 803,
+        "startChar": 61,
+        "endLine": 803,
+        "endChar": 95
+      },
+      "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
