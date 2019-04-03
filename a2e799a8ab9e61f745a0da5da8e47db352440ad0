@@ -33,6 +33,29 @@
       "revId": "a2e799a8ab9e61f745a0da5da8e47db352440ad0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c924351b_fcd62285",
+        "filename": "go/login/login.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 626,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-04-03T15:15:27Z",
+      "side": 1,
+      "message": "comment no longer makes sense.",
+      "range": {
+        "startLine": 626,
+        "startChar": 3,
+        "endLine": 626,
+        "endChar": 54
+      },
+      "revId": "a2e799a8ab9e61f745a0da5da8e47db352440ad0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
