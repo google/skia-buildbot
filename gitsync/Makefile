@@ -12,7 +12,7 @@ btgit:
 	go install ./go/btgit/...
 
 .PHONY: build_release
- build_release: build-static-gitsync
+build_release: build-static-gitsync
 	./build_release
 
 .PHONY: build-static-gitsync
