@@ -530,5 +530,6 @@ func (r *androidRepoManager) DefaultStrategy() string {
 func (r *androidRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_REMOTE_BATCH,
+		strategy.ROLL_STRATEGY_REMOTE_N_BATCH,
 	}
 }
