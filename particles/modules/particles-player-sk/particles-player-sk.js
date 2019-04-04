@@ -75,7 +75,7 @@ window.customElements.define('particles-player-sk', class extends HTMLElement {
     this._config = {
       width:      this.hasAttribute('width')  ? +this.getAttribute('width')  : 256,
       height:     this.hasAttribute('height') ? +this.getAttribute('height') : 256,
-      bgcolor:    this.hasAttribute('bgcolor') ? +this.getAttribute('bgcolor') : -16777216, // black
+      bgcolor:    this.hasAttribute('bgcolor') ? +this.getAttribute('bgcolor') : 4278190080, // black
     };
 
     this.render();
