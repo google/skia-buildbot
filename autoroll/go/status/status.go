@@ -13,6 +13,15 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+var (
+	// Insert the AutoRollMiniStatus for these internal rollers into the
+	// external datastore.
+	EXPORT_WHITELIST = []string{
+		"android-master-autoroll",
+		"google3-autoroll",
+	}
+)
+
 // AutoRollStatus is a struct which provides roll-up status information about
 // the AutoRoll Bot.
 type AutoRollStatus struct {
@@ -90,6 +99,34 @@ func Set(ctx context.Context, rollerName string, st *AutoRollStatus) error {
 		_, err := tx.Put(key(rollerName), w)
 		return err
 	})
+	if err != nil {
+		return err
+	}
+
+	// Optionally export the mini version of the internal roller's status
+	// to the external datastore.
+	if util.In(rollerName, EXPORT_WHITELIST) {
+		exportStatus := &AutoRollStatus{
+			AutoRollMiniStatus: st.AutoRollMiniStatus,
+		}
+		buf := bytes.NewBuffer(nil)
+		if err := gob.NewEncoder(buf).Encode(exportStatus); err != nil {
+			return err
+		}
+		w := &DsStatusWrapper{
+			Data:   buf.Bytes(),
+			Roller: rollerName,
+		}
+		_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
+			k := key(rollerName)
+			k.Namespace = ds.AUTOROLL_NS
+			_, err := tx.Put(k, w)
+			return err
+		})
+		if err != nil {
+			return err
+		}
+	}
 	return err
 }
 
