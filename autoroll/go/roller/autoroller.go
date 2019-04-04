@@ -453,8 +453,16 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	}
 
 	sklog.Infof("Updating status (%d)", r.rm.CommitsNotRolled())
+	currentRollRev := ""
+	currentRoll := r.recent.CurrentRoll()
+	if currentRoll != nil {
+		currentRollRev = currentRoll.RollingTo
+	}
 	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
+			CurrentRollRev:      currentRollRev,
+			LastRollRev:         r.rm.LastRollRev(),
+			Mode:                r.GetMode(),
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: r.rm.CommitsNotRolled(),
 		},
