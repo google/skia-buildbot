@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b0528d3c_92fcd31a",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2019-04-04T16:22:00Z",
+      "side": 1,
+      "message": "Looks like match can scope into the if?",
+      "revId": "c7db65796e111fa827b179f5db2f40ff3fa4cc11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60b3fc6a_4657238e",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2019-04-04T16:22:00Z",
+      "side": 1,
+      "message": "Is this different from\n\n   err \u003d scanner.Err()\n   return\n\n?",
+      "range": {
+        "startLine": 226,
+        "startChar": 1,
+        "endLine": 229,
+        "endChar": 7
+      },
+      "revId": "c7db65796e111fa827b179f5db2f40ff3fa4cc11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
