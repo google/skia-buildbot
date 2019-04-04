@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "95e92c27_29973d14",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "55fc4a07_7650d693",
+      "range": {
+        "startLine": 38,
+        "startChar": 49,
+        "endLine": 38,
+        "endChar": 53
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1c059d34_1303d0ca",
         "filename": "debugger-assets/README.md",
         "patchSetId": 14
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "5fa995f1_01fd5567",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e787f2ec_4720b59c",
+      "range": {
+        "startLine": 44,
+        "startChar": 32,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f8d282c1_09b5d227",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1c059d34_1303d0ca",
+      "range": {
+        "startLine": 44,
+        "startChar": 66,
+        "endLine": 44,
+        "endChar": 70
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0d79e673_c4359546",
         "filename": "debugger-assets/README.md",
         "patchSetId": 14
@@ -91,6 +163,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c9a9dae_a2b38c10",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d79e673_c4359546",
+      "range": {
+        "startLine": 60,
+        "startChar": 11,
+        "endLine": 60,
+        "endChar": 46
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1a97ecdc_170cc567",
+        "filename": "debugger-assets/README.md",
+        "patchSetId": 14
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b36101ca_1294f92f",
+      "range": {
+        "startLine": 62,
+        "startChar": 15,
+        "endLine": 62,
+        "endChar": 21
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b33a3abb_978cdf3a",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -137,6 +257,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d18c01b_64e92e0c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b33a3abb_978cdf3a",
+      "range": {
+        "startLine": 456,
+        "startChar": 8,
+        "endLine": 456,
+        "endChar": 19
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1bedf0e7_78936c2f",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 458,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80b7cac9_49b37c8e",
+      "range": {
+        "startLine": 458,
+        "startChar": 85,
+        "endLine": 458,
+        "endChar": 93
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4d136801_1d30b892",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "08a7d6f1_666be6f0",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "debugger view. I didn\u0027t want to use this._canvas since there are other canvases on the page (zoom)",
+      "parentUuid": "4d136801_1d30b892",
+      "range": {
+        "startLine": 460,
+        "startChar": 13,
+        "endLine": 460,
+        "endChar": 22
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d7bf24d_448c9ff8",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -197,6 +389,30 @@
       "writtenOn": "2019-04-03T19:15:24Z",
       "side": 1,
       "message": "I\u0027m surprised Polymer/vulcanize is ok with arrow notation.",
+      "range": {
+        "startLine": 505,
+        "startChar": 24,
+        "endLine": 505,
+        "endChar": 39
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "74e51bd7_2c69b6c8",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Apparently I was wrong about it not supporting these newer things.",
+      "parentUuid": "8d7bf24d_448c9ff8",
       "range": {
         "startLine": 505,
         "startChar": 24,
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "cf417c56_e38cce42",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a53571f_f84faff2",
+      "range": {
+        "startLine": 510,
+        "startChar": 10,
+        "endLine": 510,
+        "endChar": 36
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "991e1b66_f8a40444",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -252,6 +492,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a3c5f40_54824e83",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 511,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "That\u0027s excellent",
+      "parentUuid": "991e1b66_f8a40444",
+      "range": {
+        "startLine": 511,
+        "startChar": 12,
+        "endLine": 511,
+        "endChar": 25
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "ee0e4e94_fb9b7ca5",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70093eae_7fb0f336",
+      "range": {
+        "startLine": 513,
+        "startChar": 56,
+        "endLine": 513,
+        "endChar": 69
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56c68157_cb9a1f48",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -298,6 +586,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36424d8d_0a20b313",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "I just fell for a noob js trap huh",
+      "parentUuid": "56c68157_cb9a1f48",
+      "range": {
+        "startLine": 517,
+        "startChar": 31,
+        "endLine": 517,
+        "endChar": 33
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "348ce10a_5f6e0869",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 550,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52830a91_9a0156b5",
+      "range": {
+        "startLine": 550,
+        "startChar": 65,
+        "endLine": 550,
+        "endChar": 66
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99f0b854_32b56962",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -344,6 +680,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b00fd92_46c94814",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99f0b854_32b56962",
+      "range": {
+        "startLine": 573,
+        "startChar": 14,
+        "endLine": 573,
+        "endChar": 49
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -393,6 +753,54 @@
     },
     {
       "key": {
+        "uuid": "c79c8a4e_935cd941",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Seems I was wrong about this. It\u0027s working fine. Used let everywhere :/",
+      "parentUuid": "63c256d8_9a86af0d",
+      "range": {
+        "startLine": 636,
+        "startChar": 10,
+        "endLine": 636,
+        "endChar": 15
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "31728e06_a22d82cd",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "I\u0027ve added a helper to the wasm debugger in skia. You\u0027ll see that cl soon, and after it\u0027s landed, I can send a cl to use that helper method here.",
+      "parentUuid": "6d12638a_48680901",
+      "range": {
+        "startLine": 636,
+        "startChar": 34,
+        "endLine": 636,
+        "endChar": 59
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b1c7f17_c0844458",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -433,6 +841,24 @@
     },
     {
       "key": {
+        "uuid": "ce79268f_c6071d1c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 677,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "I guess this is a good place for a comment about how the fit buttons works.",
+      "parentUuid": "43feeea6_8d1f6a6e",
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "97acf27e_bb94405c",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -453,6 +879,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d3f61c6_368ffd9e",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 717,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97acf27e_bb94405c",
+      "range": {
+        "startLine": 717,
+        "startChar": 8,
+        "endLine": 717,
+        "endChar": 17
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -479,6 +929,30 @@
     },
     {
       "key": {
+        "uuid": "f953cb60_08c57364",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 734,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "82eacac2_ef1bd427",
+      "range": {
+        "startLine": 734,
+        "startChar": 15,
+        "endLine": 734,
+        "endChar": 28
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d873e6a_d5f9e4de",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -502,6 +976,30 @@
     },
     {
       "key": {
+        "uuid": "945ed415_30b07b58",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 809,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d873e6a_d5f9e4de",
+      "range": {
+        "startLine": 809,
+        "startChar": 27,
+        "endLine": 809,
+        "endChar": 28
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4ac9e0a6_4b6c302e",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -513,6 +1011,30 @@
       "writtenOn": "2019-04-03T19:15:24Z",
       "side": 1,
       "message": "Isn\u0027t there a Color helper?  or is that just CanvasKit?",
+      "range": {
+        "startLine": 859,
+        "startChar": 39,
+        "endLine": 859,
+        "endChar": 62
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df43daeb_d95b8f54",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Yeah I left that out of debugger. But given that I\u0027ll probably add another pre-js file to hold the file loading helper, I\u0027ll put one there.",
+      "parentUuid": "4ac9e0a6_4b6c302e",
       "range": {
         "startLine": 859,
         "startChar": 39,
@@ -548,6 +1070,30 @@
     },
     {
       "key": {
+        "uuid": "59c168d1_5690950c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 928,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ede6cb5_da06ec66",
+      "range": {
+        "startLine": 928,
+        "startChar": 9,
+        "endLine": 928,
+        "endChar": 26
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d631775_d75a3467",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -568,6 +1114,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d3931f0_22c58160",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 992,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-04T18:42:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8d631775_d75a3467",
+      "range": {
+        "startLine": 992,
+        "startChar": 13,
+        "endLine": 992,
+        "endChar": 15
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
