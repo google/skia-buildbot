@@ -231,6 +231,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	hash := fmt.Sprintf("%x", h.Sum(nil))
+	sklog.Infof("Processing input with hash %s", hash)
 
 	if strings.HasSuffix(req.Filename, ".json") {
 		if err := srv.createFromJSON(&req, hash, ctx); err != nil {
@@ -363,18 +364,9 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 	// Upload everything else as an asset
 	for _, f := range zr.File {
 		if f != nil {
-			pieces := strings.Split(f.Name, "/")
-			strippedName := pieces[len(pieces)-1]
-			if len(strippedName) < 1 {
-				// Ignore directory listing
-				continue
-			}
-			if strings.HasSuffix(strippedName, ".json") {
+			strippedName := getFileName(f.Name)
+			if strippedName == "" || strings.HasSuffix(strippedName, ".json") {
 				// We already uploaded this
-				continue
-			}
-			if !validFileName.MatchString(strippedName) {
-				sklog.Infof("Ignoring potentially maliciously-named file %q", f.Name)
 				continue
 			}
 			// Make a local variable to get the file into the closure correctly.
@@ -410,6 +402,28 @@ func (srv *Server) writeZipFileToGCS(f *zip.File, dest, encoding string, ctx con
 	return nil
 }
 
+// getFileName takes an entry in a zip file and returns the basename
+// for example, "images/foo.png" will be translated into "foo.png"
+// If the given entry is invalid, empty string is returned.
+func getFileName(zipName string) string {
+	if strings.HasPrefix(zipName, "__MACOSX") {
+		// skip this unhelpful folder
+		return ""
+	}
+	pieces := strings.Split(zipName, "/")
+	strippedName := pieces[len(pieces)-1]
+	if len(strippedName) < 1 {
+		// Ignore directory listing
+		return ""
+	}
+
+	if !validFileName.MatchString(strippedName) {
+		sklog.Infof("Ignoring potentially maliciously-named file %q", zipName)
+		return ""
+	}
+	return strippedName
+}
+
 var topJSONFile = regexp.MustCompile(`^(?P<prefix>.*?)(?P<name>[^/]+\.json)$`)
 var validFileName = regexp.MustCompile(`^[A-Za-z0-9\._\-]+$`)
 
@@ -421,8 +435,9 @@ func (srv *Server) uploadAssetsZip(lottieHash, b64Zip string, ctx context.Contex
 
 	for _, f := range zr.File {
 		if f != nil {
-			if !validFileName.MatchString(f.Name) {
-				sklog.Warningf("Saw potentially malicious filename in zip file: %q", f.Name)
+			strippedName := getFileName(f.Name)
+			if strippedName == "" {
+				// Skip invalid file
 				continue
 			}
 			fr, err := f.Open()
@@ -430,8 +445,8 @@ func (srv *Server) uploadAssetsZip(lottieHash, b64Zip string, ctx context.Contex
 				return skerr.Fmt("Could not open zipped file %s: %s", f.Name, err)
 			}
 			defer util.Close(fr)
-			sklog.Infof("See %s in zip file, should upload it", f.Name)
-			path := strings.Join([]string{lottieHash, "assets", f.Name}, "/")
+			sklog.Infof("See %s [%s] in zip file, should upload it", strippedName, f.Name)
+			path := strings.Join([]string{lottieHash, "assets", strippedName}, "/")
 			obj := srv.bucket.Object(path)
 			wr := obj.NewWriter(ctx)
 
