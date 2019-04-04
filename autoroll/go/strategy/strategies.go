@@ -15,12 +15,16 @@ import (
 )
 
 const (
-	ROLL_STRATEGY_AFDO         = "afdo"
-	ROLL_STRATEGY_BATCH        = "batch"
-	ROLL_STRATEGY_FUCHSIA_SDK  = "fuchsiaSDK"
-	ROLL_STRATEGY_GCS_FILE     = "gcs file"
-	ROLL_STRATEGY_REMOTE_BATCH = "remote batch"
-	ROLL_STRATEGY_SINGLE       = "single"
+	ROLL_STRATEGY_AFDO           = "afdo"
+	ROLL_STRATEGY_BATCH          = "batch"
+	ROLL_STRATEGY_FUCHSIA_SDK    = "fuchsiaSDK"
+	ROLL_STRATEGY_GCS_FILE       = "gcs file"
+	ROLL_STRATEGY_REMOTE_BATCH   = "remote batch"
+	ROLL_STRATEGY_REMOTE_N_BATCH = "remote n_batch"
+	ROLL_STRATEGY_SINGLE         = "single"
+
+	// The number of commits to use in ROLL_STRATEGY_REMOTE_N_BATCH.
+	N_COMMITS = 20
 )
 
 // NextRollStrategy is an interface for modules which determine what the next roll
@@ -55,6 +59,8 @@ func GetNextRollStrategy(ctx context.Context, strategy, branch, upstreamRemote, 
 		return nil, nil // Handled by FuchsiaSDKRepoManager.
 	case ROLL_STRATEGY_REMOTE_BATCH:
 		return StrategyRemoteHead(branch, upstreamRemote, repo), nil
+	case ROLL_STRATEGY_REMOTE_N_BATCH:
+		return StrategyRemoteNCommits(branch, upstreamRemote, repo), nil
 	case ROLL_STRATEGY_SINGLE:
 		return StrategySingle(branch), nil
 	default:
@@ -105,6 +111,35 @@ func (s *remoteHeadStrategy) GetNextRollRev(ctx context.Context, _ []*vcsinfo.Lo
 // given branch, as defined by "git ls-remote".
 func StrategyRemoteHead(branch, upstreamRemote string, repo *git.Checkout) NextRollStrategy {
 	return &remoteHeadStrategy{
+		branch:         branch,
+		repo:           repo,
+		upstreamRemote: upstreamRemote,
+	}
+}
+
+// remoteNCommitsStrategy is a NextRollStrategy which always rolls to maximum N commits of a
+// given branch, as defined by "git ls-remote".
+type remoteNCommitsStrategy struct {
+	branch         string
+	repo           *git.Checkout
+	upstreamRemote string
+}
+
+// See documentation for NextRollStrategy interface.
+func (s *remoteNCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsinfo.LongCommit) (string, error) {
+	if len(notRolled) > N_COMMITS {
+		return notRolled[len(notRolled)-N_COMMITS].Hash, nil
+	} else if len(notRolled) > 0 {
+		return notRolled[len(notRolled)-1].Hash, nil
+	} else {
+		return "", nil
+	}
+}
+
+// StrategyRemoteNCommits returns a NextRollStrategy which always rolls to maximum N commits of a
+// given branch, as defined by "git ls-remote".
+func StrategyRemoteNCommits(branch, upstreamRemote string, repo *git.Checkout) NextRollStrategy {
+	return &remoteNCommitsStrategy{
 		branch:         branch,
 		repo:           repo,
 		upstreamRemote: upstreamRemote,

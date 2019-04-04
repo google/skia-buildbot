@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -280,8 +281,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 		return 0, fmt.Errorf("Failed to list revisions: %s", err)
 	}
 
-	// Start the merge.
-
 	if _, err := exec.RunCwd(ctx, r.childDir, "git", "merge", to, "--no-commit"); err != nil {
 		// Check to see if this was a merge conflict with IGNORE_MERGE_CONFLICT_FILES.
 		conflictsOutput, conflictsErr := exec.RunCwd(ctx, r.childDir, "git", "diff", "--name-only", "--diff-filter=U")
@@ -301,6 +300,21 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to string,
 					break
 				}
 			}
+
+			// HACK TO PROCEED HERE.
+			fmt.Println("Sleep for 5 mins to manually resolve conflicts")
+			time.Sleep(5 * time.Minute)
+			conflictsOutput, _ := exec.RunCwd(ctx, r.childDir, "git", "diff", "--name-only", "--diff-filter=U")
+			if conflictsOutput != "" {
+				sklog.Error(conflictsOutput)
+				util.LogErr(r.abortMerge(ctx))
+				return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
+			} else {
+				// No more conflicts.
+				ignoreConflict = true
+			}
+			// HACK DONE
+
 			if !ignoreConflict {
 				util.LogErr(r.abortMerge(ctx))
 				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, err)
@@ -408,6 +422,7 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 			emails = append(emails, e)
 		}
 	}
+	emails = append(emails, "rmistry@google.com")
 	emailStr := strings.Join(emails, ",")
 
 	// Commit the change with the above message.
@@ -458,16 +473,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	// Set the topic of the merge change.
 	if err := r.setTopic(change.Issue); err != nil {
 		return 0, err
-	}
-
-	// TODO(rmistry): This is a temporary hack for a few weeks to make sure
-	// that android-master-roll does not accidentally switch out of dry run mode.
-	if r.parentBranch == "master" && r.childBranch == "master" && r.childPath == "external/skia" {
-		if !dryRun {
-			sklog.Error("android-master-roll is not running in dry run mode!")
-			sklog.Error("Forcing it back to dry run mode!")
-			dryRun = true
-		}
 	}
 
 	// Set labels.
@@ -530,5 +535,6 @@ func (r *androidRepoManager) DefaultStrategy() string {
 func (r *androidRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_REMOTE_BATCH,
+		strategy.ROLL_STRATEGY_REMOTE_N_BATCH,
 	}
 }
