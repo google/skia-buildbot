@@ -70,6 +70,30 @@
       "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1d965e4_ec761130",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-04T15:00:27Z",
+      "side": 1,
+      "message": "The inter-diffs are confusing, but it looks like this CL doesn\u0027t modify this code now? If so, please ignore nit.",
+      "parentUuid": "415f4abe_203afa9b",
+      "range": {
+        "startLine": 803,
+        "startChar": 61,
+        "endLine": 803,
+        "endChar": 95
+      },
+      "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

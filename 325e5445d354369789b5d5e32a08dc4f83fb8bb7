@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "42859dc4_c01c8244",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-04T15:00:27Z",
+      "side": 1,
+      "message": "nit: use a package alias, since status is overloaded in this file.",
+      "revId": "325e5445d354369789b5d5e32a08dc4f83fb8bb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
