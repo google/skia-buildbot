@@ -3,7 +3,6 @@ package buildbucket
 
 import (
 	"context"
-	"encoding/json"
 	fmt "fmt"
 	"net/http"
 	"net/url"
@@ -12,7 +11,6 @@ import (
 
 	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 	"go.chromium.org/luci/grpc/prpc"
-	"go.skia.org/infra/go/sklog"
 	"google.golang.org/genproto/protobuf/field_mask"
 )
 
@@ -122,11 +120,6 @@ func NewClient(c *http.Client) *Client {
 }
 
 func (c *Client) convertBuild(b *buildbucketpb.Build) *Build {
-	bytes, err := json.MarshalIndent(b, "", "  ")
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	sklog.Info(string(bytes))
 	status := ""
 	result := ""
 	switch b.Status {
@@ -149,11 +142,19 @@ func (c *Client) convertBuild(b *buildbucketpb.Build) *Build {
 		status = STATUS_COMPLETED
 		result = RESULT_CANCELED
 	}
+	created := time.Time{}
+	if b.CreateTime != nil {
+		created = time.Unix(b.CreateTime.Seconds, int64(b.CreateTime.Nanos)).UTC()
+	}
+	completed := time.Time{}
+	if b.EndTime != nil {
+		completed = time.Unix(b.EndTime.Seconds, int64(b.EndTime.Nanos)).UTC()
+	}
 	return &Build{
 		Bucket:    b.Builder.Bucket,
-		Completed: time.Unix(b.EndTime.Seconds, int64(b.EndTime.Nanos)).UTC(),
+		Completed: completed,
 		CreatedBy: b.CreatedBy,
-		Created:   time.Unix(b.CreateTime.Seconds, int64(b.CreateTime.Nanos)).UTC(),
+		Created:   created,
 		Id:        fmt.Sprintf("%d", b.Id),
 		Url:       fmt.Sprintf(BUILD_URL_TMPL, c.host, b.Id),
 		Parameters: &Parameters{
