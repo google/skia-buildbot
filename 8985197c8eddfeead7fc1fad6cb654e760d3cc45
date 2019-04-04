@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9be5a5ab_cb7d4b37",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-04T18:16:23Z",
+      "side": 1,
+      "message": "You can probably fix that here: https://skia.googlesource.com/buildbot/+/refs/heads/master/promk/prometheus/prometheus-corp.yml#166",
+      "range": {
+        "startLine": 10,
+        "startChar": 20,
+        "endLine": 11,
+        "endChar": 7
+      },
+      "revId": "8985197c8eddfeead7fc1fad6cb654e760d3cc45",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
