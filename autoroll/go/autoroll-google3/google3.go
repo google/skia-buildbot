@@ -138,8 +138,16 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		sklog.Warningf("Last roll %d; errorMsg: %s", lastRollIssue, errorMsg)
 	}
 
+	currentRollRev := ""
+	currentRoll := a.recent.CurrentRoll()
+	if currentRoll != nil {
+		currentRollRev = currentRoll.RollingTo
+	}
 	newStatus := &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
+			CurrentRollRev:      currentRollRev,
+			LastRollRev:         lastSuccessRev,
+			Mode:                modes.MODE_RUNNING,
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
 		},
