@@ -99,7 +99,7 @@ func deleteEntities(client *datastore.Client, params ...string) {
 			sklog.Errorf("Error deleting slice: %s", err)
 		}
 	}
-	processConcurrently(client, procFn, entityName, 500)
+	processConcurrently(client, procFn, entityName, 10)
 }
 
 // touchEntities implements the touch command.

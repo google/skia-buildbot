@@ -261,6 +261,19 @@ func main() {
 			sklog.Fatal(err)
 		}
 
+		// Set up the event bus which can either be in-process or distributed
+		// depending whether an PubSub topic was defined.
+		var evt eventbus.EventBus = nil
+		if *eventTopic != "" {
+			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
+			if err != nil {
+				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
+			}
+			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
+		} else {
+			evt = eventbus.New()
+		}
+
 		var vcs vcsinfo.VCS
 		if *gitBTInstanceID != "" && *gitBTTableID != "" {
 			btConf := &gitstore.BTConfig{
@@ -281,25 +294,12 @@ func main() {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}
 			gitilesRepo := gitiles.NewRepo("", "", nil)
-			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo)
+			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, evt, *nCommits*10)
 		} else {
 			vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 		}
 		if err != nil {
 			sklog.Fatalf("Error creating VCS instance: %s", err)
-		}
-
-		// Set up the event bus which can either be in-process or distributed
-		// depending whether an PubSub topic was defined.
-		var evt eventbus.EventBus = nil
-		if *eventTopic != "" {
-			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
-			if err != nil {
-				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
-			}
-			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
-		} else {
-			evt = eventbus.New()
 		}
 
 		// If this is an authoritative instance we need an authenticated Gerrit client
