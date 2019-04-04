@@ -10,6 +10,7 @@ ${INSTALL} --mode=755 -T ${APPNAME}/Dockerfile    ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
 ${INSTALL} --mode=644 ./res/js/core.js            ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
 ${INSTALL} --mode=644 ./res/vul/elements.html     ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL} --mode=644 ./res/v2.html               ${ROOT}/usr/local/share/${APPNAME}/res/v2.html
 ${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/${APPNAME}/res/img
 ${INSTALL} --mode=644 ./res/img/*                 ${ROOT}/usr/local/share/${APPNAME}/res/img
 }

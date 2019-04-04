@@ -1,0 +1,1016 @@
+<!-- The <wasm-debugger-app-sk> custom element declaration.
+
+The main application element for the Skia Debugger.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel=import href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
+<link rel=import href="/res/imp/bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel=import href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
+<link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel=import href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel=import href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
+<link rel=import href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
+<link rel=import href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
+<link rel=import href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
+<link rel=import href="/res/imp/bower_components/iron-pages/iron-pages.html">
+
+<link rel=import href="/res/common/imp/canvas-layers.html">
+<link rel=import href="/res/common/imp/crosshair.html">
+<link rel=import href="/res/common/imp/dbg-info.html">
+<link rel=import href="/res/common/imp/details-summary.html">
+<link rel=import href="/res/common/imp/error-toast-sk.html">
+<link rel=import href="/res/common/imp/play.html">
+<link rel=import href="/res/common/imp/zoom.html">
+
+<dom-module id="wasm-debugger-app-sk">
+  <style include="iron-flex iron-flex-alignment iron-flex-factors">
+    :root {
+      --paper-toolbar-background: #1f78b4;
+    }
+
+    paper-tab {
+      --paper-tab: {
+        font-size: 12px;
+      }
+    }
+
+    paper-tabs {
+      height: 24px;
+    }
+
+    button {
+      font-size: 12px;
+    }
+
+    :host {
+      font-size: 12px;
+      display: block;
+      height: 100%
+    }
+
+    #content {
+      margin: 0.5em;
+    }
+
+    op-sk {
+      display: block;
+    }
+
+    play-sk {
+      margin: 5px auto;
+    }
+
+    #center {
+      overflow: hidden;
+    }
+
+    #rendered {
+      margin: 0 10px;
+      overflow: auto;
+    }
+
+    * {
+      font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .shortcuts {
+      margin-left: 3em;
+      margin-bottom: 2em;
+    }
+
+    .shortcuts td {
+      padding-left: 1em;
+    }
+
+    .shortcuts tr {
+      padding-bottom: 0.5em;
+    }
+
+    #colorBreakPoint {
+      margin-left: 3em;
+    }
+
+    #download {
+      margin: 0 3em;
+      color: #1f78b4;
+    }
+
+    dbg-info-sk,
+    #clip {
+      margin-left: 3em;
+      margin-bottom: 1em;
+      display: block;
+    }
+
+    paper-radio-button {
+      margin-left: 3em;
+      margin-bottom: 1em;
+      padding: 0;
+    }
+
+    #gpuOpBounds,
+    paper-toggle-button {
+      margin: 0.5em 1em;
+    }
+
+    .gpuDrawBoundColor {
+      color: #E31A1C;
+      opacity: 0.75;
+    }
+
+    .gpuOpBoundColor {
+      color: #FF7F00;
+      opacity: 0.75;
+    }
+
+    .gpuTotalOpColor {
+      color: #6A3D9A;
+      opacity: 0.75;
+    }
+
+    paper-tabs {
+      --paper-tabs-selection-bar-color: #1f78b4;
+      margin-bottom: 5px;
+    }
+
+    paper-tab {
+      color: white;
+      background: gray;
+    }
+
+    paper-tab.iron-selected {
+      font-weight: bold;
+      background: #1f78b4;
+    }
+
+    paper-tab[aria-disabled=true] {
+      color: white;
+      font-style: italic;
+      background: lightgray;
+    }
+
+    header {
+      background: #1f78b4;
+      color: white;
+      padding: 0.5em;
+      margin: 0;
+    }
+
+    header h2,
+    header div,
+    header instance-status-sk,
+    {
+      display: inline-block;
+    }
+
+    header .hidden {
+      display: none;
+    }
+
+    header h2 {
+      margin: 0;
+    }
+
+    dt {
+      font-weight: bold;
+      padding: 0.5em 0;
+    }
+
+    dd {
+      font-family: monospace;
+    }
+
+    canvas-layers-sk  {
+      border: solid lightgray 1px;
+      background-position: 0px 0px, 10px 10px;
+      background-size: 20px 20px;
+      background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+                        linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+    }
+
+    paper-icon-button.resizer
+    #left paper-icon-button {
+      margin: 0;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+    }
+
+    #upload summary-sk {
+      font-weight: bold;
+    }
+
+    #upload div {
+      padding: 1em 2em;
+    }
+
+    #histogram table {
+      padding-left: 2em;
+    }
+
+    #histogram .countCol {
+      text-align: right;
+    }
+
+    #histogram td {
+      padding: 0.2em;
+    }
+
+    zoom-sk {
+      display: inline-block;
+      margin-top: 1em;
+      box-shadow: 5px 5px 18px grey;
+      background-position: 0px 0px, 10px 10px;
+      background-size: 20px 20px;
+      background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+                        linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+}
+    }
+
+    #keyboardshortcuts {
+      margin-top: 1em;
+    }
+
+    #img.bottom {
+      width: auto;
+      height: 60vh;
+    }
+
+    #img.fit {
+      max-width: 100%;
+      max-height: 60vh;
+      width: auto;
+      height: auto;
+    }
+
+    #img.natural {
+      width: auto;
+      height: auto;
+    }
+
+    #img.right{
+      width: 100%;
+      height: auto;
+    }
+
+    .sizeToolBar paper-icon-button {
+      opacity: 0.5;
+    }
+
+    .sizeToolBar paper-icon-button:hover {
+      background-color: #eee;
+    }
+
+    details-sk {
+      display: block;
+    }
+  </style>
+  <template>
+    <header class="horizontal layout center">
+      <h2>Skia Debugger</h2>
+      <div class=flex></div>
+    </header>
+    <div id=content>
+      <div class="layout horizontal center">
+        <label>SKP to open:</label>
+        <input type="file" id="file_input" disabled />
+      </div>
+      <div class="layout horizontal">
+        <div id=left class$="layout vertical flex-{{ _leftRatio }}">
+          <div class="layout horizontal end-justified">
+            <paper-icon-button class=resizer on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
+          </div>
+          <div class="layout horizontal">
+            <paper-input id="fast" on-change="_fastFilter" label="Filter
+              (Leading ! means remove matches)" placeholder="!save restore"
+              class=flex></paper-input>
+            <button id=clear on-tap=_clearFilter>Clear</button>
+          </div>
+          <play-sk id=play></play-sk>
+          <commands-sk id=commands grouping=50></commands-sk>
+        </div>
+        <div id=center class="layout vertical flex-3">
+          <div>
+            <paper-icon-button class=resizer on-tap=_biggerLeft icon="arrow-forward"
+              title="Grow the command panel."></paper-icon-button>
+          </div>
+          <div id=rendered>
+            <paper-tabs selected="{{tab_selected}}">
+              <paper-tab>Picture</paper-tab>
+              <paper-tab disabled=[[_isEmpty(bitmap)]]>Image</paper-tab>
+            </paper-tabs>
+            <iron-pages selected="{{tab_selected}}">
+              <div>
+                <div class="layout horizontal sizeToolBar">
+                  <paper-icon-button src="https://debugger-assets.skia.org/res/img/image.png"  data-style="natural" title="Original size."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="https://debugger-assets.skia.org/res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="https://debugger-assets.skia.org/res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="https://debugger-assets.skia.org/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button icon="file-download" title="Save current image" on-tap="_saveImage"></paper-icon-button>
+                </div>
+                <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
+                  <canvas id=img width=400 height=400></canvas>
+                </canvas-layers-sk>
+                <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
+              </div>
+              <div>
+                <img id=standAloneImg src$="[[bitmap]]">
+              </div>
+            </iron-pages>
+          </div>
+        </div>
+        <div id=right class$="layout vertical flex-2">
+          <div class="layout horizontal">
+            <paper-toggle-button on-iron-change="_replaceSurface" id=gpu checked="{{render_mode_gpu}}">GPU</paper-toggle-button>
+            <paper-checkbox disabled="{{!render_mode_gpu}}" checked="{{draw_gpu_op_bounds}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
+          </div>
+          <div class="layout horizontal">
+            <paper-checkbox checked="{{show_overdraw}}" id=showOverdrawCheckbox on-change="_overdrawHandler">Display Overdraw Vis</paper-checkbox>
+          </div>
+          <details-sk>
+            <summary-sk>
+              Bounds and Matrix
+            </summary-sk>
+            <paper-checkbox id=clip on-change="_clipHandler">Show Clip</paper-checkbox>
+            <dbg-info-sk info="[[ info ]]"></dbg-info-sk>
+          </details-sk>
+          <details-sk id=gpuOpBoundsLegend class=hidden>
+            <summary-sk>
+              GPU Op Bounds Legend
+            </summary-sk>
+            <table class=shortcuts>
+              <tr><td class=gpuDrawBoundColor>Bounds for the current draw.</td></tr>
+              <tr><td class=gpuOpBoundColor>Individual bounds for other draws in the same op.</td></tr>
+              <tr><td class=gpuTotalOpColor>Total bounds of the current op.</td></tr>
+            </table>
+          </details-sk>
+          <details-sk id=histogram class="hidden">
+            <summary-sk>
+              Histogram
+            </summary-sk>
+            <table>
+              <template is="dom-repeat" items="[[histogram]]">
+                <tr><td class=countCol>[[item.count]]</td><td>[[item.name]]</td></tr>
+              </template>
+              <tr><td class=countCol>[[_filtered.commands.length]]</td><td><b>Total</b></td></tr>
+            </table>
+          </details-sk>
+          <dl>
+            <dt>Postion</dt>
+            <dd>([[ x ]], [[ y ]])</dd>
+            <dt>Color</dt>
+            <dd>[[ rgb ]]</dd>
+            <dd>[[ hex ]]</dd>
+          </dl>
+          <div>
+            <paper-checkbox disabled id=colorBreakPoint on-change="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
+          </div>
+          <zoom-sk source=img pixels=21 id=zoom></zoom-sk>
+          <details-sk id=keyboardshortcuts class=hidden>
+            <summary-sk>
+              Keyboard shortcuts
+            </summary-sk>
+            <table class=shortcuts>
+              <tr><th>H</th><td>Left</td></tr>
+              <tr><th>L</th><td>Right</td></tr>
+              <tr><th>J</th><td>Down</td></tr>
+              <tr><th>K</th><td>Up</td></tr>
+              <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
+            </table>
+          </details-sk>
+        </div>
+      </div>
+      <error-toast-sk></error-toast-sk>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  (function () {
+    let INDENTERS = {
+      'Save':             { icon: 'icons:save',         color: '#B2DF8A', count: 1 },
+      'SaveLayer':        { icon: 'icons:content-copy', color: '#FDBF6F', count: 1  },
+      'BeginDrawPicture': { icon: 'image:image',        color: '#A6CEE3', count: 1  },
+    };
+    let OUTDENTERS = ['Restore', 'EndDrawPicture'];
+
+    Polymer({
+      is: 'wasm-debugger-app-sk',
+
+      properties: {
+        tab_selected: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: false,
+        },
+        bitmap: {
+          type: String,
+          value: '',
+          reflectToAttribute: false,
+        },
+        _leftRatio: {
+          type: Number,
+          value: 3,
+          reflectToAttribute: false,
+        },
+        render_mode_gpu: {
+          type: Boolean,
+          value: true,
+          reflectToAttribute: false,
+        },
+        draw_gpu_op_bounds: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: false,
+        },
+        show_overdraw: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: false,
+        },
+        histogram: {
+          type: Array,
+          value: function() { return []; },
+          reflectToAttribute: false,
+        }
+      },
+
+      ready: function() {
+        // reference to the active canvas object. used instead of query selector because the query
+        // selector seemed to produce inconsistent results when replacing canvas during gpu/cpu
+        // swap. dv stands for debugger view.
+        this._dvcanvas = document.getElementById('img');
+        // the instance of SkpDebugPlayer created after loading a file
+        this._player = null;
+        // Pointer to the SkSurface being drawn to in the shared wasm memory.
+        // Can be either a cpu or gpu surface. Passed to every drawTo call.
+        this._surface = null;
+
+        // _targetItem is the index of the op we are in the process of moving to.
+        // The index is the offset of the op in the this._filtered.commands array.
+        // That is, we've requested to move to this op, but the image might not
+        // be loaded yet.
+        this._targetItem = 0;
+
+        // this timeout value in ms can control the speed of playback
+        // 0 means as fast as possible.
+        this._minPlaybackDelay = 0;
+
+        // The original JSON response from the server.
+        this._cmd = {
+          version: 1,
+          commands: [],
+        };
+
+        // _filtered contains the .commands that match the current filter, or all
+        // of the commands if no filter is active.
+        //
+        // NB: There is a distintion in the code below between an op's item vs
+        // index. That is, an ops index never changes, it is the index
+        // number that the server understands, and is the location of the op
+        // in this._cmd.commands.
+        //
+        // The op item changes, it is the location of the op in
+        // this._filtered.commands. Some functions use index, some use
+        // item.
+        this._filtered = {
+          version: 1,
+          commands: [],
+        };
+
+        // debugger.js (a file compiled by emscripten) defines DebuggerInit.
+        // It accepts a method to help it locate the .wasm file, and returns a promise
+        // that resolves when the file has been loaded and the wasm module initialized.
+        // it provides a reference to the module (called Debugger here).
+        DebuggerInit({
+          locateFile: (file) => '/res/'+file,
+        }).ready().then((Debugger) => {
+          // Save a reference to the module somewhere we can use it later.
+          this._debugwasm = Debugger;
+          // Enable the file input element.
+          this.$.file_input.disabled = false;
+        });
+
+        this.$.commands.addEventListener('op-selected', (e) => {
+          // Only force reloading the image if necessary.
+
+          let item = this._findItemFromIndex(e.detail.index);
+          if (this._targetItem !== item) {
+            this._targetItem = item;
+            this._moveToTargetItem();
+          } else {
+            // We know if we've gotten here that the element wasn't selected by
+            // a UI action, i.e. we know we're here because we are 'run'ing.
+            this.$.commands.scrollToTop(e.detail.index);
+          }
+        });
+
+        this.$.commands.addEventListener('op-toggled', (e) => {
+          // Toggle the op and the trigger a reload of the image.
+          DebugCanvas.toggleOp(e.detail.index, e.detail.checked).then(() => {
+            this._updateDebuggerView();
+          }).catch(sk.errorMessage);
+        });
+
+        this.$.commands.addEventListener('op-zoom', (e) => {
+          this.$.fast.value = e.detail;
+          this._fastFilter();
+        });
+
+        // this event would be better named crosshair-moved
+        this.$.crosshair.addEventListener('crosshair', (e) => {
+          this.$.zoom.x = e.detail.x;
+          this.$.zoom.y = e.detail.y;
+          this.$.zoom.updateZoom();
+        });
+
+        this.$.play.prePlayCallback(() => {
+          if (!this.$.colorBreakPoint.disabled && this.$.colorBreakPoint.checked) {
+            // TODO(nifong) migrate breakpoint functionality to wasm debugger.
+            DebugCanvas.setBreakpoint(this._targetItem, this.x, this.y).then((json) => {
+              if (json.endOp !== -1) {
+                this.$.prevColor.textContent = json.startColor + ' -> ' + json.endColor;
+                let item = this._findItemFromIndex(json.endOp);
+                this._targetItem = item;
+              } else {
+                sk.errorMessage('Pixel at (' + this.x + ', ' + this.y + ') never changes.');
+              }
+            }).catch(sk.errorMessage);
+            return false;
+          }
+          return true;
+        });
+
+        this.$.zoom.addEventListener('zoom-point', (e) => {
+          this.set('rgb', e.detail.rgb);
+          this.set('hex', e.detail.hex);
+          this.set('x', e.detail.x);
+          this.set('y', e.detail.y);
+        });
+
+        // This event is the play/pause widget telling us to show a certain command.
+        this.$.play.addEventListener('moveto', (e) => {
+          if (!this._filtered.commands) {
+            return;
+          }
+          this._targetItem = e.detail.item;
+          this._moveToTargetItem();
+        });
+
+        // This event is the play/pause button being clicked.
+        this.$.play.addEventListener('mode-changed-manually', (e) => {
+          // Clear the breakpoint info if the user presses a button.
+          this.$.prevColor.textContent = '';
+        });
+
+        // This event is created byt sk-canvas-layers when it is resized
+        this.$.layers.addEventListener('canvas-update', (e) => {
+          this._updateDebuggerView();
+        });
+
+        this.$.file_input.addEventListener('change', (e) => {
+          this._openSkpFile(e);
+        });
+      },
+
+      _moveToTargetItem: function() {
+        // highlight it in the command list.
+        this.$.commands.item = this._targetItem;
+        // update wasm module
+        this._updateDebuggerView();
+        // Acknowledge we've moved by calling play.movedTo
+        // save play widget so it can be bound in the closure below.
+        // call this later, doing it immediately would cause a stack overflow.
+        // if this were not done, playback would not continue from the selected command
+        // instead continuing from where the player thinks it is.
+        setTimeout(() => {
+          this.$.play.movedTo(this._targetItem);
+        }, this._minPlaybackDelay);
+      },
+
+      attached: function() {
+        document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      // Called when the filename in the file input element changs
+      _openSkpFile: function(e) {
+        // Did the change event result in the file-input element specifing a file?
+        // (user might have cancelled the dialog)
+        const file = e.target.files[0];
+        if (!file) {
+          return;
+        }
+        // Create a reader and a callback for when the file finishes being read.
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Create the instance of SkpDebugPlayer
+          this._player = new this._debugwasm.SkpDebugPlayer();
+          // Convert e.target.result (an ArrayBuffer) into a typedarray,
+          // otherwise fileMem.set() below seems to have no effect.
+          const fileContents = new Uint8Array(e.target.result);
+          const size = fileContents.byteLength;
+          // Allocate memory in wasm to hold the skp file selected by the user.
+          const fileMemPtr = this._debugwasm._malloc(size);
+          // Make a typed array view of that memory
+          let fileMem = new Uint8Array(this._debugwasm.buffer, fileMemPtr, size);
+          // Copy the file into it
+          fileMem.set(fileContents);
+          // Hand off pointer to wasm
+          this._player.loadSkp(fileMemPtr, size);
+          // From the loaded SKP, player now knows how large its picture is.
+          let bounds = this._player.getBounds();
+          // Resize our canvas to match
+          this._dvcanvas.width = bounds.fRight - bounds.fLeft;
+          this._dvcanvas.height = bounds.fBottom - bounds.fTop;
+          // Make GPU or CPU selection match UI toggle.
+          if (this.render_mode_gpu) {
+            this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
+          } else {
+            this._surface = this._debugwasm.MakeSWCanvasSurface(this._dvcanvas);
+          }
+          // Set player clip and overdraw setting to match UI selection, but don't update view yet.
+          this._clipHandler(false);
+          this._overdrawHandler(false);
+          // Request and parse command list for this file.
+          json = this._player.jsonCommandList(this._surface);
+          this._setCommands(JSON.parse(json));
+          this.$.zoom.allow_draw = true;
+
+          window.dispatchEvent(new CustomEvent('partial-resize'));
+        };
+        reader.readAsArrayBuffer(file);
+      },
+
+      // Called when any of the fit buttons are pressed.
+      // resises the image of the skp. (the canvas element the wasm is drawing into)
+      // This resize zooms the canvas without changing the resolution of the surface.
+      // No refresh is necessary.
+      _resizeImage: function(e) {
+        // what is the purpose of this early return check?
+        let ele = sk.findParent(e.target, 'PAPER-ICON-BUTTON');
+        if (!ele) {
+          return;
+        }
+        // Remove any of the 4 fit classes that may be present and apply the requested one.
+        // The debugger canvas is only meant to have one of these at a time. Each one corresponds
+        // to one of the fit buttons and sizes the canvas in a different way.
+        this._dvcanvas.classList.remove('natural', 'fit', 'right', 'bottom');
+        this._dvcanvas.classList.add(ele.dataset.style);
+        // this event is received by sk-canvas-layers which resizes it's constituent layers
+        // including crosshair.
+        window.dispatchEvent(new CustomEvent('partial-resize'));
+        this._updateDebuggerView();
+      },
+
+      _saveImage: function(e) {
+        // Download the current frame by making an anchor tag with a download attribute.
+        let a = document.createElement('a');
+        a.href = this._dvcanvas.toDataURL();
+        // download attribute becomes the name of the downloaded file.
+        // use the name of the skp file and the command number to give it a unique name.
+        let index = this._filtered.commands[this._targetItem]._index;
+        let mode = (this.render_mode_gpu ?  'gpu' : 'cpu');
+        a.download = this.$.file_input.files[0].name+'-'+index+'-debug-'+mode+'.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      },
+
+      _smallerLeft: function() {
+        if (this._leftRatio > 1) {
+          this._leftRatio--;
+        }
+      },
+
+      _biggerLeft: function() {
+        if (this._leftRatio < 12) {
+          this._leftRatio++;
+        }
+      },
+
+      // Create a new drawing surface. this is called when
+      // * GPU/CPU mode changes
+      // * Bounds of the skp change (skp loaded)
+      // * (not yet supported) Color mode changes
+      _replaceSurface() {
+        if (!this._debugwasm) { return; }
+        // Discard canvas when switching between cpu/gpu backend because it's bound to a context.
+        let newCanvas = this._dvcanvas.cloneNode(true);
+        // Neither parent.replaceChild or parent.removeChild appear to work here more than once
+        // because they conflict with polymer templates and leave the new node without a parent.
+        // Thus remove and appendChild are used.
+        this._dvcanvas.remove();
+        this._dvcanvas = newCanvas;
+        this.$.layers.appendChild(newCanvas);
+        if (this._surface) { this._surface.dispose(); }
+        if (this.render_mode_gpu) {
+          this._surface = this._debugwasm.MakeWebGLCanvasSurface(this._dvcanvas);
+        } else {
+          this._surface = this._debugwasm.MakeSWCanvasSurface(this._dvcanvas);
+        }
+        this.$.layers.changeSubject(this._dvcanvas);
+        this.$.zoom.changeSource(this._dvcanvas);
+        this._updateDebuggerView();
+      },
+
+      _isEmpty: function(s) {
+        return !s.length;
+      },
+
+      // Called when GPU op bounds checkbox state changes.
+      _gpuOpBounds: function(e) {
+        this._player.setGpuOpBounds(this.draw_gpu_op_bounds);
+      },
+
+      _breakPoint: function() {
+        if (this.$.colorBreakPoint.checked) {
+          // We want to be able to jump to any op when the breakpoint
+          // triggers, so we remove all filtering.
+          this._clearFilter();
+        }
+      },
+
+      _findItemFromIndex: function(index) {
+        let item = 0;
+        for (let i = 0; i < this._filtered.commands.length ; i++) {
+          if (this._filtered.commands[i]._index == index) {
+            item = i;
+            break;
+          }
+        }
+        return item;
+      },
+
+      // consider putting these filter functions in the commands element
+      _clearFilter: function()  {
+        this.$.fast.value = '';
+        this._fastFilter();
+      },
+
+      _fastFilter: function() {
+        let rawFilter = this.$.fast.value.trim().toLowerCase();
+        if (rawFilter.indexOf(':') > 0) {
+          // This is a range filter, e.g. '3:21'.
+          this._rangeFilter(rawFilter);
+        } else {
+          // Text filter, e.g. '!save restore'.
+          this._textFilter(rawFilter);
+        }
+      },
+
+      _rangeFilter: function(rawFilter) {
+        let parts = rawFilter.split(':');
+        if (parts.length !== 2) {
+          sk.errorMessage('Range filters are of the form "N:M".');
+          return
+        }
+        let begin = +parts[0];
+        let end = +parts[1];
+        let filtered = {
+          version: 1,
+          commands: [],
+        };
+        this._cmd.commands.forEach((c, i) => {
+          if (i >= begin && i <= end) {
+            filtered.commands.push(c);
+          }
+        });
+        this._setFiltered(filtered);
+      },
+
+      _textFilter: function(rawFilter) {
+        let negative = (rawFilter[0] == '!');
+        if (negative) {
+          rawFilter = rawFilter.slice(1).trim();
+        }
+        let filters = rawFilter.split(/\s+/);
+        let matches = function(s) {
+          s = s.toLowerCase();
+          for (let i = 0; i < filters.length; i++) {
+            if (negative) {
+              if (s.indexOf(filters[i]) >= 0) {
+                return false;
+              }
+            } else {
+              if (s.indexOf(filters[i]) >= 0) {
+                return true;
+              }
+            }
+          }
+          return negative;
+        };
+        let filtered = {
+          version: 1,
+          commands: [],
+        };
+        this._cmd.commands.forEach((c) => {
+          if (matches(JSON.stringify(c.details).toLowerCase())) {
+            filtered.commands.push(c);
+          }
+        });
+        this._setFiltered(filtered);
+      },
+
+      _setCommands: function(json) {
+        this._cmd = this._processCommands(json);
+        if (this.$.fast.value) {
+          this._fastFilter();
+        } else {
+          let filtered = {
+            version: 1,
+            commands: this._cmd.commands.slice(),
+          };
+          this._setFiltered(filtered);
+        }
+      },
+
+      _setFiltered: function(filtered) {
+        this.$.commands.cmd = filtered;
+        this._filtered = filtered;
+        this.$.play.size = filtered.commands.length;
+        this._targetItem = filtered.commands.length - 1;
+        this._moveToTargetItem();
+      },
+
+      _hasBitmap: function(s) {
+        return !!s;
+      },
+
+      _clipHandler: function(update=true) {
+        if(this.$.clip.checked) {
+          // ON: 30% transparent dark teal
+          this._player.setClipVizColor(parseInt('500e978d',16));
+        } else {
+          // OFF: transparent black
+          this._player.setClipVizColor(0);
+        }
+        if (update) {
+          this._updateDebuggerView();
+        }
+      },
+
+      _overdrawHandler: function(update=false) {
+        this._player.setOverdrawVis(this.show_overdraw);
+        if (update) {
+          this._updateDebuggerView();
+        }
+      },
+
+      // Asks the wasm module to draw to the provided surface.
+      // Up to the command index indidated by the command list.
+      _updateDebuggerView: function() {
+        // Get op index from item number using this._filtered.
+        if (this._filtered.commands.length == 0) {
+          return;
+        }
+        let index = this._filtered.commands[this._targetItem]._index;
+        this._player.drawTo(this._surface, index);
+        if (!this.render_mode_gpu) {
+          this._surface.flush();
+        }
+        // update zoom
+        this.$.zoom.updateZoom();
+        json = this._player.lastCommandInfo();
+        this.set('info', JSON.parse(json));
+      },
+
+      _crosshairClick: function(e) {
+        if (this.$.crosshair.update_on === 'move') {
+          this.$.crosshair.update_on = 'click';
+          this.$.colorBreakPoint.disabled = false;
+          this.$.keyboardshortcuts.classList.remove('hidden');
+          this.$.crosshair.hidden = false;
+        } else {
+          this.$.crosshair.update_on = 'move';
+          this.$.colorBreakPoint.disabled = true;
+          this.$.keyboardshortcuts.classList.add('hidden');
+          this.$.crosshair.hidden = true;
+        }
+      },
+
+      _keyDownHandler: function(e) {
+        let c = String.fromCharCode(e.keyCode);
+        switch (c) {
+          case 'J':
+            this.$.crosshair.y = this.$.crosshair.y+1;
+            break;
+          case 'K':
+            this.$.crosshair.y = this.$.crosshair.y-1;
+            break;
+          case 'H':
+            this.$.crosshair.x = this.$.crosshair.x-1;
+            break;
+          case 'L':
+            this.$.crosshair.x = this.$.crosshair.x+1;
+            break;
+        }
+        if ('JKHL'.indexOf(c) !== -1 ) {
+          e.stopPropagation();
+        }
+        this.$.crosshair.coordinatesUpdated();
+      },
+
+      _deepCopy: function(o) {
+        return JSON.parse(JSON.stringify(o));
+      },
+
+      // _processCommands cycles through the commands and set a depth based on Save/Restore pairs.
+      //
+      // Also calculates the histogram.
+      _processCommands: function(cmd) {
+        let commands = cmd.commands;
+        let depth = 0;
+        let prefixes = [];
+        let counts = {}; // Tally of each command.
+        let matchup = []; // Match up saves and restores.
+        for (let i = 0; i < commands.length; i++) {
+          commands[i] = {
+            details: commands[i],
+            _index: i,
+          };
+          commands[i]._depth = depth;
+          commands[i]._prefix = this._deepCopy(prefixes);
+          let name = commands[i].details.command;
+          counts[name] = (counts[name] || 0) + 1;
+          if (commands[i].details.command in INDENTERS) {
+            depth++;
+
+            matchup.push(i);
+            // If this is the same type of indenting op we've already seen
+            // then just increment the count, otherwise add as a new
+            // op in prefixes.
+            if (depth > 1 && prefixes[prefixes.length-1].icon
+                == INDENTERS[commands[i].details.command].icon) {
+              prefixes[prefixes.length-1].count++;
+            } else {
+              prefixes.push(this._deepCopy(INDENTERS[commands[i].details.command]));
+            }
+          } else if (OUTDENTERS.indexOf(commands[i].details.command) !== -1) {
+            depth--;
+
+            // Now that we can match an OUTDENTER with an INDENTER we can set
+            // the _zoom property for both commands.
+            let begin = matchup.pop();
+            let range = begin + ':' + i;
+            commands[i]._zoom = range;
+            commands[begin]._zoom = range;
+
+            // Only pop the op from prefixes if its count has reached 1.
+            if (prefixes[prefixes.length-1].count > 1) {
+              prefixes[prefixes.length-1].count--;
+            } else {
+              prefixes.pop();
+            }
+            commands[i]._depth = depth;
+            commands[i]._prefix = this._deepCopy(prefixes);
+          }
+        }
+
+        // Calculate the histogram of the ops.
+        // First convert the object into an Array of objects.
+        let histogram = [];
+        for (const k in counts) {
+          histogram.push({
+            name: k,
+            count: counts[k],
+          });
+        }
+        // Now sort the array, descending on the count, ascending
+        // on the op name.
+        histogram.sort(function(a,b) {
+          if (a.count == b.count) {
+            if (a.name < b.name) {
+              return -1;
+            }
+            if (a.name > b.name) {
+              return 1;
+            }
+            return 0;
+          } else {
+            return b.count - a.count;
+          }
+        });
+        this.histogram = histogram;
+        this.$.histogram.classList.remove('hidden');
+        return cmd;
+      }
+    });
+  })();
+</script>
