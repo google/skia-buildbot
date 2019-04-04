@@ -16,6 +16,24 @@
       "revId": "325e5445d354369789b5d5e32a08dc4f83fb8bb7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1a85e70_1b0317dd",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-04T16:55:15Z",
+      "side": 1,
+      "message": "Done in https://skia-review.googlesource.com/c/buildbot/+/206061/5",
+      "parentUuid": "42859dc4_c01c8244",
+      "revId": "325e5445d354369789b5d5e32a08dc4f83fb8bb7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
