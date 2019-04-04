@@ -99,6 +99,7 @@ var (
 
 // flags
 var (
+	chromeInfraAuthJWT = flag.String("chrome_infra_auth_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	// TODO(borenet): Combine btInstance, firestoreInstance, and
 	// pubsubTopicSet.
 	btInstance                  = flag.String("bigtable_instance", "", "BigTable instance to use.")
@@ -109,14 +110,14 @@ var (
 	host                        = flag.String("host", "localhost", "HTTP service host")
 	port                        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	promPort                    = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	pubsubProject               = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
+	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 	repoUrls                    = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	resourcesDir                = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	chromeInfraAuthJWT          = flag.String("service_account_jwt", "/var/secrets/skia-public-auth/key.json", "The JWT key for the service account that has access to chrome infra auth.")
 	swarmingUrl                 = flag.String("swarming_url", "https://chromium-swarm.appspot.com", "URL of the Swarming server.")
 	taskSchedulerUrl            = flag.String("task_scheduler_url", "https://task-scheduler.skia.org", "URL of the Task Scheduler server.")
 	testing                     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir                     = flag.String("workdir", ".", "Directory to use for scratch work.")
-	pubsubTopicSet              = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 
 	repos repograph.Map
 )
@@ -730,7 +731,7 @@ func main() {
 	}
 
 	label := *host
-	mod, err := pubsub.NewModifiedData(*pubsubTopicSet, label, ts)
+	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize pubsub: %s", err)
 	}

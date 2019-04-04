@@ -14,6 +14,7 @@ ExecStart=/usr/local/bin/status \
     --resources_dir=/usr/local/share/status \
     --capacity_recalculate_interval=30m \
     --firestore_instance=staging \
+    --pubsub_project=skia-public \
     --pubsub_topic_set=staging \
     --repo=https://skia.googlesource.com/skiabot-test.git \
     --swarming_url=https://chromium-swarm-dev.appspot.com \
