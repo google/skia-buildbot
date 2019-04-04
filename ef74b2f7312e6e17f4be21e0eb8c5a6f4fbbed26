@@ -46,6 +46,30 @@
       "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "415f4abe_203afa9b",
+        "filename": "status/go/statusk/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 803,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-04T13:55:26Z",
+      "side": 1,
+      "message": "See https://skia-review.googlesource.com/c/buildbot/+/206061.  The new plan is to have Status read these directly from Datastore, rather than going through the Autoroll frontend.  That makes more sense anyway.  Status will only read the DS for public rollers.  A whitelisted set of internal rollers will write their mini-status information to the public roller DS in addition to the internal DS.",
+      "parentUuid": "60ff2f40_8c1ce26a",
+      "range": {
+        "startLine": 803,
+        "startChar": 61,
+        "endLine": 803,
+        "endChar": 95
+      },
+      "revId": "ef74b2f7312e6e17f4be21e0eb8c5a6f4fbbed26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
