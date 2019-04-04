@@ -181,23 +181,21 @@ func metricsAnalysis() error {
 
 // runMetricsAnalysisBenchmark runs the analysis_metrics_ct benchmark on the provided trace.
 func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrace, cloudTraceLink string) error {
+	outputCSVDir := filepath.Join(outputPath, getTraceName(downloadedTrace))
+	if err := os.MkdirAll(outputCSVDir, 0700); err != nil {
+		return fmt.Errorf("Could not create %s: %s", outputCSVDir, err)
+	}
+
 	args := []string{
 		filepath.Join(util.GetPathToTelemetryCTBinaries(*worker_common.Local), util.BINARY_ANALYZE_METRICS),
 		"--local-trace-path", downloadedTrace,
 		"--cloud-trace-link", cloudTraceLink,
 		"--metric-name", *metricName,
-		"--output-csv", filepath.Join(outputPath, getTraceName(downloadedTrace), "result.csv"),
+		"--output-csv", filepath.Join(outputCSVDir, "results.csv"),
 	}
 	// Calculate what timeout should be used when executing run_benchmark.
 	timeoutSecs := util.GetRunBenchmarkTimeoutValue(*benchmarkExtraArgs, METRICS_BENCHMARK_TIMEOUT_SECS)
 	sklog.Infof("Using %d seconds for timeout", timeoutSecs)
-	// Remove from benchmarkExtraArgs "special" flags that are recognized by CT but not
-	// by the run_benchmark script.
-	extraArgs := util.RemoveFlagsFromArgs(*benchmarkExtraArgs, util.RUN_BENCHMARK_TIMEOUT_FLAG, util.MAX_PAGES_PER_BOT)
-	// Split extraArgs if not empty and append to args.
-	if extraArgs != "" {
-		args = append(args, strings.Fields(extraArgs)...)
-	}
 	// Set the DISPLAY.
 	env := []string{
 		"DISPLAY=:0",
