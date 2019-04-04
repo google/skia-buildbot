@@ -22,6 +22,30 @@
       "revId": "316ac4f5de099a6140cbe7338c1d8b7e3e442dd6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd4fc976_81ccf1a1",
+        "filename": "autoroll/go/autoroll-google3/google3.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-04T18:56:43Z",
+      "side": 1,
+      "message": "Nope, G3 roller doesn\u0027t allow mode changes and is always running.",
+      "parentUuid": "7db5b1de_df1353da",
+      "range": {
+        "startLine": 150,
+        "startChar": 24,
+        "endLine": 150,
+        "endChar": 42
+      },
+      "revId": "316ac4f5de099a6140cbe7338c1d8b7e3e442dd6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
