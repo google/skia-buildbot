@@ -38,7 +38,7 @@ It is served at http://debugger-assets.skia.org/res/v2.html
 This application is in res/imp/wasm-app.html and its wasm code is in
 experimental/wasm-skp-debugger in the skia repo.
 
-Running locally
+Running WASM debugger locally
 ---------------
 
 First build the wasm module and its associated Javascript in the Skia repository.
@@ -46,8 +46,9 @@ First build the wasm module and its associated Javascript in the Skia repository
     cd {skia}/experimental/wasm-skp-debugger
     make debug
     cd ../..
-    cp out/debugger_wasm/debugger.wasm ~/go/src/go.skia.org/infra/debugger-assets/res
-    cp out/debugger_wasm/debugger.js ~/go/src/go.skia.org/infra/debugger-assets/res/js
+
+This will copy the two outputs from `out/debugger_wasm` to
+`~/go/src/go.skia.org/infra/debugger-assets/res`
 
 Since this version requires no backend, the custom app element is simply instantiated in
 res/imp/wasm-app-demo.html which can be loaded in the browser. It will load debugger.wasm and
@@ -57,7 +58,7 @@ type to be correct. To start this server:
 
     make run_server_local
 
-then visit <http://localhost:9000/res/v2.html>
+then visit <http://localhost:9000/res/imp/wasm-app-demo.html>
 
 Running within docker
 ---------------------
