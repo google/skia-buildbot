@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9215cae4_840a5e36",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-04-04T16:51:39Z",
+      "side": 1,
+      "message": "Avoid named return values, just ([]string, error) and be explicit about the returns below.",
+      "range": {
+        "startLine": 206,
+        "startChar": 31,
+        "endLine": 206,
+        "endChar": 57
+      },
+      "revId": "70702b879a6a240a851a738cc1b1a26600d6e2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff3f718f_81d4659a",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2019-04-04T16:51:39Z",
+      "side": 1,
+      "message": "Comment the getIncludes func to document the format it\u0027s looking for.\n\nAlso create a test for this func in a file called main_test.go.\n\nSee https://github.com/google/skia-buildbot/blob/master/go/fileutil/fileutil_test.go as an example of testing that uses an external file.",
+      "range": {
+        "startLine": 206,
+        "startChar": 5,
+        "endLine": 206,
+        "endChar": 16
+      },
+      "revId": "70702b879a6a240a851a738cc1b1a26600d6e2bf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
