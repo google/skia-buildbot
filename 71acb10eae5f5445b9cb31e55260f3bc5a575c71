@@ -378,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "1970aca4_45ad02d7",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-04T18:50:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "08a7d6f1_666be6f0",
+      "range": {
+        "startLine": 460,
+        "startChar": 13,
+        "endLine": 460,
+        "endChar": 22
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8d7bf24d_448c9ff8",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -613,6 +637,30 @@
     },
     {
       "key": {
+        "uuid": "7bfd4af8_e5851403",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-04T18:50:49Z",
+      "side": 1,
+      "message": "Another one is that when creating a Date object, be aware that everything *except* the month is (properly) 1-indexed.  The month is 0-indexed.  I once started an experiment a month late because of that bug 😭",
+      "parentUuid": "36424d8d_0a20b313",
+      "range": {
+        "startLine": 517,
+        "startChar": 31,
+        "endLine": 517,
+        "endChar": 33
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "52830a91_9a0156b5",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 14
@@ -789,6 +837,30 @@
       "side": 1,
       "message": "I\u0027ve added a helper to the wasm debugger in skia. You\u0027ll see that cl soon, and after it\u0027s landed, I can send a cl to use that helper method here.",
       "parentUuid": "6d12638a_48680901",
+      "range": {
+        "startLine": 636,
+        "startChar": 34,
+        "endLine": 636,
+        "endChar": 59
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a35274b_d4290b9c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 636,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-04T18:50:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "31728e06_a22d82cd",
       "range": {
         "startLine": 636,
         "startChar": 34,
@@ -1044,6 +1116,30 @@
       "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef5a8c79_f5d4bdc4",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 14
+      },
+      "lineNbr": 859,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-04T18:50:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "df43daeb_d95b8f54",
+      "range": {
+        "startLine": 859,
+        "startChar": 39,
+        "endLine": 859,
+        "endChar": 62
+      },
+      "revId": "71acb10eae5f5445b9cb31e55260f3bc5a575c71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {

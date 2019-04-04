@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e06816b6_1067621c",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 15
+      },
+      "lineNbr": 664,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-04T18:50:49Z",
+      "side": 1,
+      "message": "refresh",
+      "range": {
+        "startLine": 664,
+        "startChar": 12,
+        "endLine": 664,
+        "endChar": 18
+      },
+      "revId": "a3c5174c966af7a1818e75eccef3650d0460dd05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c27e5b67_d13a4788",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 15
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-04T18:50:49Z",
+      "side": 1,
+      "message": "ubernit: const k in counts (I like const in my for each loops)",
+      "range": {
+        "startLine": 989,
+        "startChar": 13,
+        "endLine": 989,
+        "endChar": 16
+      },
+      "revId": "a3c5174c966af7a1818e75eccef3650d0460dd05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
