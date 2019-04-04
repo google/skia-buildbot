@@ -24,9 +24,11 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	autoroll_status "go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore"
@@ -49,6 +51,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/pubsub"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -77,15 +80,20 @@ var (
 	tasksPerCommit   *tasksPerCommitCache          = nil
 	tCache           cache.TaskCache               = nil
 
-	// AUTOROLLERS maps roller IDs to their human-friendly display names.
-	AUTOROLLERS = map[string]string{
-		"android-master-autoroll":   "Android",
-		"skia-flutter-autoroll":     "Flutter",
-		"skia-autoroll":             "Chrome",
-		"google3-autoroll":          "Google3",
-		"angle-skia-autoroll":       "ANGLE",
-		"skcms-skia-autoroll":       "skcms",
-		"swiftshader-skia-autoroll": "SwiftSh",
+	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
+	// their human-friendly display names.
+	AUTOROLLERS = map[string]map[string]string{
+		"autoroll.skia.org": map[string]string{
+			"skia-flutter-autoroll":     "Flutter",
+			"skia-autoroll":             "Chrome",
+			"angle-skia-autoroll":       "ANGLE",
+			"skcms-skia-autoroll":       "skcms",
+			"swiftshader-skia-autoroll": "SwiftSh",
+		},
+		"skia-autoroll.corp.goog": map[string]string{
+			"android-master-autoroll": "Android",
+			"google3-autoroll":        "Google3",
+		},
 	}
 )
 
@@ -679,6 +687,11 @@ func runServer(serverURL string) {
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+type autoRollStatus struct {
+	autoroll_status.AutoRollMiniStatus
+	Url string `json:"url"`
+}
+
 func main() {
 	// Setup flags.
 	common.InitWithMust(
@@ -700,7 +713,6 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	c := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Create LKGR object.
 	lkgrObj, err = lkgr.New(ctx)
@@ -797,23 +809,20 @@ func main() {
 	capacityClient.StartLoading(ctx, *capacityRecalculateInterval)
 
 	// Periodically obtain the autoroller statuses.
-	updateAutorollStatus := func() error {
-		statuses := make(map[string]interface{}, len(AUTOROLLERS))
-		for _, host := range []string{"https://autoroll.skia.org", "https://autoroll-internal.skia.org"} {
-			url := host + "/json/all"
-			resp, err := c.Get(url)
-			if err != nil {
-				return err
-			}
-			defer util.Close(resp.Body)
-			var st map[string]map[string]interface{}
-			if err := json.NewDecoder(resp.Body).Decode(&st); err != nil {
-				return err
-			}
-			for name, s := range st {
-				if friendlyName, ok := AUTOROLLERS[name]; ok {
-					s["url"] = host + "/r/" + name
-					statuses[friendlyName] = s
+	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
+		sklog.Fatalf("Failed to initialize datastore: %s", err)
+	}
+	updateAutorollStatus := func(ctx context.Context) error {
+		statuses := map[string]autoRollStatus{}
+		for host, subMap := range AUTOROLLERS {
+			for roller, friendlyName := range subMap {
+				s, err := autoroll_status.Get(ctx, roller)
+				if err != nil {
+					return err
+				}
+				statuses[friendlyName] = autoRollStatus{
+					AutoRollMiniStatus: s.AutoRollMiniStatus,
+					Url:                fmt.Sprintf("https://%s/r/%s", host, roller),
 				}
 			}
 		}
@@ -826,11 +835,11 @@ func main() {
 		autorollStatus = b
 		return nil
 	}
-	if err := updateAutorollStatus(); err != nil {
+	if err := updateAutorollStatus(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 	go util.RepeatCtx(60*time.Second, ctx, func() {
-		if err := updateAutorollStatus(); err != nil {
+		if err := updateAutorollStatus(ctx); err != nil {
 			sklog.Errorf("Failed to update autoroll status: %s", err)
 		}
 	})
