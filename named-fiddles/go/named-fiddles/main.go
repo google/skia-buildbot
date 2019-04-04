@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -201,6 +203,31 @@ func (srv *Server) checkValid() {
 	}
 }
 
+// getIncludes parses a c++ file with relative includes and returns a list of
+// the included files, with the directories joined together correctly.
+func getIncludes(path string) ([]string, error) {
+	dir := filepath.Dir(path)
+	f, err := os.Open(filepath.Clean(path))
+	if err != nil {
+		return nil, err
+	}
+	re, err := regexp.Compile("^\\s*#include\\s+\"([^\"]+)\"\\s*$")
+	if err != nil {
+		return nil, err
+	}
+	scanner := bufio.NewScanner(f)
+	var values []string
+	for scanner.Scan() {
+		if match := re.FindStringSubmatch(scanner.Text()); len(match) > 1 {
+			values = append(values, filepath.Join(dir, match[1]))
+		}
+	}
+	if err = scanner.Err(); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
 // exampleStep is a single run through naming all the examples.
 func (srv *Server) exampleStep() {
 	srv.errorsInExamplesRun.Reset()
@@ -212,35 +239,34 @@ func (srv *Server) exampleStep() {
 
 	var numInvalid int64
 	// Get a list of all examples.
-	dir := filepath.Join(*repoDir, "docs", "examples")
-	err := filepath.Walk(dir+"/", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("Failed to open %q: %s", path, err)
-		}
-		if info.IsDir() {
-			return nil
-		}
-		name := filepath.Base(info.Name())
+
+	paths, err := getIncludes(filepath.Join(*repoDir, "tools", "fiddle", "all_examples.cpp"))
+	if err != nil {
+		sklog.Errorf("Error processing all_exampels.cpp: %q", err)
+		return
+	}
+	for _, path := range paths {
+		name := filepath.Base(path)
 		if !strings.HasSuffix(name, ".cpp") {
-			return nil
+			continue
 		}
 		name = name[0 : len(name)-4]
-		b, err := ioutil.ReadFile(filepath.Join(dir, info.Name()))
+		b, err := ioutil.ReadFile(filepath.Clean(path))
 		fc, err := parse.ParseCpp(string(b))
 		if err == parse.ErrorInactiveExample {
-			sklog.Infof("Inactive sample: %q", info.Name())
-			return nil
+			sklog.Infof("Inactive sample: %q", name)
+			continue
 		} else if err != nil {
-			sklog.Infof("Invalid sample: %q", info.Name())
+			sklog.Infof("Invalid sample: %q", name)
 			numInvalid += 1
-			return nil
+			continue
 		}
 		// Now run it.
 		sklog.Infof("About to run: %s", name)
 		b, err = json.Marshal(fc)
 		if err != nil {
 			sklog.Errorf("Failed to encode example to JSON: %s", err)
-			return nil
+			continue
 		}
 
 		runResults, success := client.Do(b, false, "https://fiddle.skia.org", func(*types.RunResults) bool {
@@ -249,18 +275,13 @@ func (srv *Server) exampleStep() {
 		if !success {
 			sklog.Errorf("Failed to run")
 			srv.errorsInExamplesRun.Inc(1)
-			return nil
+			continue
 		}
 		status := errorsInResults(runResults, success)
 		if err := srv.store.WriteName(name, runResults.FiddleHash, "Skia example", status); err != nil {
 			sklog.Errorf("Failed to write status for %s: %s", name, err)
 			srv.errorsInExamplesRun.Inc(1)
 		}
-		return nil
-	})
-	if err != nil {
-		sklog.Errorf("Error walking the path %q: %v\n", dir, err)
-		return
 	}
 
 	srv.numInvalidExamples.Update(numInvalid)
