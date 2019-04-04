@@ -163,4 +163,4 @@ scrape_configs:
         target_label: kubernetes_pod_name
       - action: replace
         target_label: project
-        replacement: skia-corp
+        replacement: google.com:skia-corp
