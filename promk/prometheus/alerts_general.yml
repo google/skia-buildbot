@@ -153,6 +153,16 @@ groups:
       '
 
 # Skia Status
+  - alert: StatusLatency
+    expr: prober{type="latency",probename="skiastatus_json"}/1000 > 10
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.probename }}'
+      description: 'The endpoint for {{ $labels.probename }} took more than 10s to respond. https://skia.googlesource.com/buildbot/%2B/master/status/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+
   - alert: StatusIncrementalCacheUpdate
     expr: liveness_last_successful_incremental_cache_update_s > 5*60
     labels:

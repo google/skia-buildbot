@@ -29,21 +29,6 @@ touch_elements:
 testgo: skiaversion
 	go test ./go/... -v
 
-release: all
-	./build_release "$(MESSAGE)"
-
-push: all
-	./build_release "`git log -n1 --format=%s`"
-	pushcli statusd skia-status
-
-push_internal: all
-	./build_internal_release "`git log -n1 --format=%s`"
-	pushcli status-internal skia-status-internal
-
-push_staging: all
-	./build_staging_release "`git log -n1 --format=%s`"
-	pushcli status-staging skia-status-staging
-
 statusk: web skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/statusk
 

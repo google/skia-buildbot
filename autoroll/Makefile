@@ -92,6 +92,7 @@ push-be-kube-external: release-be-kube kube-conf-gen pushk deployment-dirs $(SKI
 push-be-kube-all: push-be-kube-internal push-be-kube-external
 
 push-fe: release-fe
+	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-corp autoroll-fe-internal
 	pushk --ignore-dirty --message="$(MESSAGE)" --cluster=skia-public autoroll-fe
 
 push-google3: release-google3 pushk deployment-dirs $(SKIA_PUBLIC_CONFIG_DIR)

@@ -38,7 +38,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: task_scheduler_debug
 task_scheduler_debug: debug skiaversion
-	go install -v ./go/task_scheduler
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/task_scheduler
 
 .PHONY: release_kube
 release_kube: task_scheduler_kube
@@ -47,54 +47,6 @@ release_kube: task_scheduler_kube
 .PHONY: push_kube
 push_kube: release_kube skia-public
 	pushk --message="$(MESSAGE)" task-scheduler
-
-.PHONY: push
-push: all
-	./build_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli task-scheduler skia-task-scheduler
-
-.PHONY: push_internal
-push_internal: all
-	./build_internal_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli task-scheduler-internal skia-task-scheduler-internal
-
-.PHONY: push_staging
-push_staging: all
-	./build_staging_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli task-scheduler-staging skia-task-scheduler-staging
-
-.PHONY: push_backup
-push_backup: all
-	./build_backup_release "`git log -n1 --format=%s`"
-	go install -v ../push/go/pushcli
-	pushcli task-scheduler-db-backup skia-task-scheduler
-
-.PHONY: vm_create_prod
-vm_create_prod:
-	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=prod
-
-.PHONY: vm_delete_prod
-vm_delete_prod:
-	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=prod
-
-.PHONY: vm_create_internal
-vm_create_internal:
-	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=internal
-
-.PHONY: vm_delete_internal
-vm_delete_internal:
-	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=internal
-
-.PHONY: vm_create_staging
-vm_create_staging:
-	go run ./vm.go --alsologtostderr --create --ignore-exists --instance=staging
-
-.PHONY: vm_delete_staging
-vm_delete_staging:
-	go run ./vm.go --alsologtostderr --delete --ignore-exists --instance=staging
 
 .PHONY: validate_db
 validate_db:
