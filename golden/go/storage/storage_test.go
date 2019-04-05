@@ -426,6 +426,10 @@ func (m *mockVCS) DetailsMulti(ctx context.Context, hashes []string, includeBran
 	return ret, nil
 }
 
+func (m *mockVCS) GetBranch() string {
+	return "master"
+}
+
 func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) { return 0, nil }
 func (m *mockVCS) GetFile(ctx context.Context, fileName string, commitHash string) (string, error) {
 	return "", nil
