@@ -22,6 +22,30 @@
       "revId": "1a542a81f3896f6dfc5506f96a1c19ef95d38a43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a2a21115_33e2379d",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-05T17:23:18Z",
+      "side": 0,
+      "message": "It does not, that\u0027s why we do not append them to args. benchmark extra args is used purely for the CT flags.",
+      "parentUuid": "10bb6b07_643830e0",
+      "range": {
+        "startLine": 194,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 2
+      },
+      "revId": "1a542a81f3896f6dfc5506f96a1c19ef95d38a43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
