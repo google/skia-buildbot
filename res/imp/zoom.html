@@ -4,15 +4,11 @@
 
   Attributes:
     source - The id of an img element to present a zoom for.
-      Affects only which element is used as source at creation time. to modify it
-      at a later time, call changeSource(element).
 
     x, y - The point to center the zoom on. The units are in the natural size
       of the source image.
 
     pixels - The number of pixels to display in the horizontal direction.
-
-    allow_draw - used to block mouse move zoom function before data is available.
 
   Events:
     zoom-point - This event is generated whenever the zoom moves. The detail
@@ -30,19 +26,12 @@
           }
 
     zoom-loaded - This event is generated whenever the zoom has finished
-        updating the zoomed view after an image load. It is never produced when
-        zoom source is a canvas since you are expected to have synchronously
-        called updateZoom in that case.
+        updating the zoomed view after an image load.
 
   Methods:
-
-    updateZoom() - To be called if the source img/canvas in the zoomed region has changed,
-                 or the x,y location has changed. Call this directly, as it is not registered
-                 as an observer on x or y to avoid it being called twice and slowing you down.
+    getImageData() - Returns the image data of the image wrapped by this zoom-sk element.
 
     getPixelColor(x,y) - Returns the color of the pixel as an array in RGBA format.
-
-    changeSource(element) - Sets the img or canvas element acting as the source of zoom data.
 
 -->
 
@@ -68,9 +57,6 @@
     <canvas id=copy width=10 height=10></canvas>
   </template>
   <script>
-    // width and height of one zoomed in pixel.
-    var PIXEL_SIZE = 13;
-
     Polymer({
       is: 'zoom-sk',
 
@@ -96,41 +82,43 @@
           type: Number,
           value: 0,
           reflectToAttribute: true,
+          observer: "_drawZoom",
         },
         y: {
           type: Number,
           value: 0,
           reflectToAttribute: true,
+          observer: "_drawZoom",
         },
         pixels: {
           type: Number,
           value: 10,
           reflectToAttribute: true,
-          observer: '_onIronResize',
+          observer: "_pixelResize",
         },
-        allow_draw: {
-          type: Boolean,
-          value: false,
-        }
       },
 
       ready: function () {
-        // Grab the img or canvas we are zooming from.
-        this.changeSource($$$('#' + this.source, this._findParent()));
+        // Grab the img we are zooming from.
+        this._img = $$$('#' + this.source, this._findParent());
+        this._img.addEventListener('load', function() {
+          this._onIronResize();
+          this._cloneImage();
+          this.dispatchEvent(new CustomEvent('zoom-loaded', { bubbles: true }));
+        }.bind(this));
+        this._cloneImage();
+
         // The canvas context we are drawing the zoomed pixels on.
         this.ctx = this.$.zoom.getContext('2d');
       },
 
-      changeSource(element) {
-        this._source = element;
-        if (this._source.nodeName === 'IMG') {
-          this._source.addEventListener('load', function() {
-            this.allow_draw = true;
-            this._cloneImage();
-            this.dispatchEvent(new CustomEvent('zoom-loaded', { bubbles: true }));
-          }.bind(this));
-          this._cloneImage();
-        }
+      getImageData: function() {
+        var c = this.$.copy;
+        return c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      },
+
+      getPixelColor: function(x,y) {
+        return this.$.copy.getContext('2d').getImageData(x, y, 1, 1).data;
       },
 
       _findParent: function() {
@@ -142,82 +130,46 @@
       },
 
       _onIronResize: function() {
-         var w = this.pixels * PIXEL_SIZE + 1;
-         this.$.zoom.width = w;
-         this.$.zoom.height = w;
-         this.$.zoom.parentElement.width = w;
-         this.$.zoom.parentElement.height = w;
-         this.updateZoom();
+        this.$.zoom.width = this.parentElement.clientWidth;
+        this.$.zoom.height = this.parentElement.clientWidth;
+        this._pixelResize();
       },
+
+      _pixelResize: function() {
+        this.pixelSize = Math.floor(this.$.zoom.width/this.pixels);
+        this._drawZoom();
+      },
+
 
       _cloneImage: function() {
-        if (!this._source) { return; }
-        this.$.copy.width = this._source.naturalWidth;
-        this.$.copy.height = this._source.naturalHeight;
-        this.$.copy.getContext('2d').drawImage(
-          this._source, 0, 0, this._source.naturalWidth, this._source.naturalHeight);
-        this.updateZoom();
+        this.$.copy.width = this._img.naturalWidth;
+        this.$.copy.height = this._img.naturalHeight;
+        this.$.copy.getContext('2d').drawImage(this._img, 0, 0, this._img.naturalWidth, this._img.naturalHeight);
+        this._drawZoom();
       },
 
-      updateZoom: function () {
-        if (!this.allow_draw) { return; }
-        if (!this.ctx) { return; }
-
-        // Clears to transparent black.
+      _drawZoom: function () {
+        if (!this.ctx) {
+          return
+        }
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        var dx = this.pixelSize;
+        var dy = this.pixelSize;
         this.ctx.lineWidth =  1;
         this.ctx.strokeStyle = '#000';
-        // Draw out each pixel as a rect on the target canvas, as this works around FireFox doing a
-        // blur as it copies from one canvas to another.
-
-        var size = this.pixels; // number of zoomed pixels to show (width and height)
-        var halfsize = Math.floor(size / 2);
-        var colors;
-        var flip = false;
-        // Copy out the color data from the region we are zooming into.
-        // Do it differently based on what kind of element is being copied out of.
-        if (this._source.nodeName === "IMG") {
-          // If it is an image, assume it has been cloned into the canvas called copy, which has a
-          // '2d' context.
-          colors = this.$.copy.getContext('2d').getImageData(
-            this.x-halfsize, this.y-halfsize, size, size).data;
-        } else if (sourceCtx = this._source.getContext('2d')) {
-          // Note that if it is a canvas, we can assume getContext has been called before, and the
-          // element is locked into a certain kind of context (2d, webgl, or webgl2). If we ask for
-          // the one it is locked into, it will be returned, otherwise getContext will return null.
-          // We use this both to fetch the context and determine what type it is.
-          // If zooming from a canvas with a 2d context, call getImageData directly.
-          // (no need for intermediate copy)
-          colors = sourceCtx.getImageData(this.x-halfsize, this.y-halfsize, size, size).data;
-        } else if ((sourceCtx = this._source.getContext('webgl2')) ||
-                   (sourceCtx = this._source.getContext('webgl'))) {
-          // If zooming from a canvas with a webgl context, getImageData will not work.
-          // We can use the similar readPixels function, assuming the context was created with
-          // preserveDrawingBuffer=1
-          colors = new Uint8Array(size*size*4); // 4 bytes for 8888 RGBA
-          sourceCtx.readPixels(
-            this.x-halfsize, (sourceCtx.drawingBufferHeight-this.y)-halfsize, size, size,
-            sourceCtx.RGBA, sourceCtx.UNSIGNED_BYTE, colors);
-          // Indicate to the code below that this buffer is vertically flipped. readPixels origin
-          // is at the bottom left. HTML canvas origin is at the top left.
-          flip = true;
-        }
-        // Now draw each zoomed pixel as a rect.
-        for (var x = 0; x < size; x++) {
-          for (var y = 0; y < size; y++) {
-            // Calulate the offset of this pixel into the buffer from x and y.
-            var offset = (y * size + x) * 4;
-            // If the buffer is vertically flipped, look for row size-1-y instead.
-            if (flip) { offset = ((size - 1 - y) * size + x) * 4; }
-            // Read the pixel color.
+        // Draw out each pixel as a rect on the target canvas, as this works around FireFox doing a blur as it copies from one canvas to another.
+        var colors = this.$.copy.getContext('2d').getImageData(this.x - this.pixels/ 2, this.y - this.pixels / 2, this.pixels, this.pixels).data;
+        for (var x = 0; x < this.pixels; x++) {
+          for (var y = 0; y < this.pixels; y++) {
+            var offset = (y * this.pixels + x) * 4;
+            // Offset into the colors array.
             var colorRGB = sk.colorRGB(colors, offset, true);
             var colorRGBStyle = sk.colorRGB(colors, offset, false);
             this.set("ctx.fillStyle", colorRGBStyle);
-            this.ctx.fillRect(x*PIXEL_SIZE+1, y*PIXEL_SIZE+1, PIXEL_SIZE-1, PIXEL_SIZE-1);
+            this.ctx.fillRect(x * dx, y * dy, dx - 1, dy - 1);
             // Box one selected pixel with its rgba values.
-            if (x === halfsize && y === halfsize) {
-              this.ctx.strokeRect(x*PIXEL_SIZE+0.5, y*PIXEL_SIZE+0.5, PIXEL_SIZE, PIXEL_SIZE);
-              // When the selected pixel is drawn, publish some info about it in an event.
+            if (x == this.pixels / 2 && y == this.pixels / 2) {
+              this.ctx.strokeRect(x * dx - 0.5, y * dy - 0.5, dx, dy);
               var detail = {
                 x: this.x,
                 y: this.y,

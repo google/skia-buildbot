@@ -93,4 +93,6 @@ type VCS interface {
 	// ResolveCommit will resolve the given commit against a secondary repo if one
 	// was defined with the VCS.
 	ResolveCommit(ctx context.Context, commitHash string) (string, error)
+
+	GetBranch() string
 }
