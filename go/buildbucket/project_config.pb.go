@@ -413,16 +413,6 @@ func (m *BuildbucketCfg) GetBuckets() []*Bucket {
 	return nil
 }
 
-func init() {
-	proto.RegisterType((*Acl)(nil), "buildbucket.Acl")
-	proto.RegisterType((*Swarming)(nil), "buildbucket.Swarming")
-	proto.RegisterType((*Swarming_Recipe)(nil), "buildbucket.Swarming.Recipe")
-	proto.RegisterType((*Swarming_Builder)(nil), "buildbucket.Swarming.Builder")
-	proto.RegisterType((*Bucket)(nil), "buildbucket.Bucket")
-	proto.RegisterType((*BuildbucketCfg)(nil), "buildbucket.BuildbucketCfg")
-	proto.RegisterEnum("buildbucket.Acl_Role", Acl_Role_name, Acl_Role_value)
-}
-
 func init() { proto.RegisterFile("project_config.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
