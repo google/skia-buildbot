@@ -13,7 +13,7 @@ import (
 func setupTasks(t *testing.T) db.ModifiedTasks {
 	testutils.LargeTest(t)
 	topic := uuid.New()
-	m, err := NewModifiedTasks(fmt.Sprintf("modified-tasks-test-%s", topic), "fake-label", nil)
+	m, err := NewModifiedTasks("fake-project", fmt.Sprintf("modified-tasks-test-%s", topic), "fake-label", nil)
 	assert.NoError(t, err)
 	return m
 }
@@ -31,7 +31,7 @@ func TestPubsubMultipleTaskModifications(t *testing.T) {
 func setupJobs(t *testing.T) db.ModifiedJobs {
 	testutils.LargeTest(t)
 	topic := uuid.New()
-	m, err := NewModifiedJobs(fmt.Sprintf("modified-jobs-test-%s", topic), "fake-label", nil)
+	m, err := NewModifiedJobs("fake-project", fmt.Sprintf("modified-jobs-test-%s", topic), "fake-label", nil)
 	assert.NoError(t, err)
 	return m
 }
@@ -51,7 +51,7 @@ func setupComments(t *testing.T) db.ModifiedComments {
 	topic1 := fmt.Sprintf("modified-comments-test-tasks-%s", uuid.New())
 	topic2 := fmt.Sprintf("modified-comments-test-taskspecs-%s", uuid.New())
 	topic3 := fmt.Sprintf("modified-comments-test-commits-%s", uuid.New())
-	m, err := NewModifiedComments(topic1, topic2, topic3, "fake-label", nil)
+	m, err := NewModifiedComments("fake-project", topic1, topic2, topic3, "fake-label", nil)
 	assert.NoError(t, err)
 	return m
 }

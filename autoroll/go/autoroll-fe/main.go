@@ -53,7 +53,7 @@ var (
 	WHITELISTED_VIEWERS = []string{
 		"prober@skia-public.iam.gserviceaccount.com",
 		"skia-status@skia-public.iam.gserviceaccount.com",
-		"skia-status-internal@skia-public.iam.gserviceaccount.com",
+		"skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com",
 		"status@skia-buildbots.google.com.iam.gserviceaccount.com",
 		"status-internal@skia-buildbots.google.com.iam.gserviceaccount.com",
 		"showy-dashboards@prod.google.com",

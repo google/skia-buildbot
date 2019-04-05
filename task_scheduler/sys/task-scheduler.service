@@ -11,6 +11,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --host=task-scheduler.skia.org \
     --firestore_instance=production \
     --logtostderr \
+    --pubsub_project=skia-public \
     --pubsub_topic_set=production \
     --workdir=/mnt/pd0/task_scheduler_workdir \
     --repo=https://skia.googlesource.com/skia.git \

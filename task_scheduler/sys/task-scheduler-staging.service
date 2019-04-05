@@ -14,6 +14,7 @@ ExecStart=/usr/local/bin/task_scheduler \
     --isolate_server=https://isolateserver-dev.appspot.com \
     --logtostderr \
     --pool=Skia \
+    --pubsub_project=skia-public \
     --pubsub_topic_set=staging \
     --pubsub_topic=swarming-tasks-staging \
     --pubsub_subscriber=task-scheduler-staging \
