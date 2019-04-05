@@ -9,6 +9,7 @@ source ../bash/ramdisk.sh
 
 # New service account we will create.
 SA_NAME="skia-status"
+SA_EMAIL="${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com"
 
 cd /tmp/ramdisk
 
