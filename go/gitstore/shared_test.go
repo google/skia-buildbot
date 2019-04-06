@@ -34,7 +34,7 @@ var (
 func setupVCSLocalRepo(t *testing.T) (vcsinfo.VCS, func()) {
 	repoDir, cleanup := vcstu.InitTempRepo()
 	_, _, gitStore := setupAndLoadGitStore(t, localRepoURL, repoDir, true)
-	vcs, err := NewVCS(gitStore, "master", nil)
+	vcs, err := NewVCS(gitStore, "master", nil, nil, 0)
 	assert.NoError(t, err)
 	return vcs, cleanup
 }

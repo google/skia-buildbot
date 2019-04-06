@@ -116,6 +116,10 @@ type GitStore interface {
 	GetGraph(ctx context.Context) (*CommitGraph, error)
 }
 
+type GitStoreBased interface {
+	GetGitStore() GitStore
+}
+
 // BranchPointer captures the HEAD of a branch and the index of that commit.
 type BranchPointer struct {
 	Head  string

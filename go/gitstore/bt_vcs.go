@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/sync/errgroup"
 )
 
 // btVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
@@ -30,20 +32,34 @@ type btVCS struct {
 	mutex        sync.RWMutex
 }
 
+var (
+	defaultWatchInterval = time.Second * 10
+)
+
 // NewVCS returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // If defaultBranch is "" all commits in the repository are considered.
 // The instances of gitiles.Repo is only used to fetch files.
-func NewVCS(gitstore GitStore, defaultBranch string, repo *gitiles.Repo) (vcsinfo.VCS, error) {
+func NewVCS(gitStore GitStore, defaultBranch string, repo *gitiles.Repo, evt eventbus.EventBus, nCommits int) (vcsinfo.VCS, error) {
 	ret := &btVCS{
-		gitStore:      gitstore,
+		gitStore:      gitStore,
 		repo:          repo,
 		defaultBranch: defaultBranch,
 	}
 	if err := ret.Update(context.TODO(), true, false); err != nil {
 		return nil, err
 	}
+
+	// Start watching the repo for changes and fire events when they happen if an event bus was
+	// provided.
+	if evt != nil && nCommits > 0 {
+		_ = startVCSTracker(gitStore, defaultWatchInterval, evt, defaultBranch, nCommits)
+	}
 	return ret, nil
+}
+
+func (b *btVCS) GetBranch() string {
+	return b.defaultBranch
 }
 
 // SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
@@ -95,12 +111,38 @@ func (b *btVCS) Details(ctx context.Context, hash string, includeBranchInfo bool
 	return b.details(ctx, hash, includeBranchInfo)
 }
 
+func (b *btVCS) getBranchInfo(c *vcsinfo.LongCommit) (map[string]bool, error) {
+	return map[string]bool{"master": true}, nil
+}
+
 // DetailsMulti implements the vcsinfo.VCS interface
 func (b *btVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranchInfo bool) ([]*vcsinfo.LongCommit, error) {
 	commits, err := b.gitStore.Get(ctx, hashes)
 	if err != nil {
 		return nil, err
 	}
+
+	if includeBranchInfo {
+		var egroup errgroup.Group
+		for _, c := range commits {
+			if c != nil {
+				func(c *vcsinfo.LongCommit) {
+					egroup.Go(func() error {
+						branches, err := b.getBranchInfo(c)
+						if err != nil {
+							return err
+						}
+						c.Branches = branches
+						return nil
+					})
+				}(c)
+			}
+		}
+		if err := egroup.Wait(); err != nil {
+			return nil, err
+		}
+	}
+
 	return commits, nil
 }
 
@@ -116,6 +158,14 @@ func (b *btVCS) details(ctx context.Context, hash string, includeBranchInfo bool
 
 	if len(commits) == 0 {
 		return nil, skerr.Fmt("Commit %s not found", hash)
+	}
+
+	if includeBranchInfo {
+		branches, err := b.getBranchInfo(commits[0])
+		if err != nil {
+			return nil, err
+		}
+		commits[0].Branches = branches
 	}
 	return commits[0], nil
 }
@@ -199,6 +249,11 @@ func (b *btVCS) GetFile(ctx context.Context, fileName, commitHash string) (strin
 // Update implements the vcsinfo.VCS interface
 func (b *btVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	return "", skerr.Fmt("Not implemented yet")
+}
+
+// GetGitStore implements the gitstore.GitStoreBased interface
+func (b *btVCS) GetGitStore() GitStore {
+	return b.gitStore
 }
 
 // fetchIndexRange gets in the range [startIndex, endIndex).
