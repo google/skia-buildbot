@@ -46,6 +46,30 @@
       "revId": "1a542a81f3896f6dfc5506f96a1c19ef95d38a43",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "00171a17_108bbf67",
+        "filename": "ct/go/worker_scripts/metrics_analysis/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-07T23:29:14Z",
+      "side": 0,
+      "message": "Ack. Sorry for the noise.",
+      "parentUuid": "a2a21115_33e2379d",
+      "range": {
+        "startLine": 194,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 2
+      },
+      "revId": "1a542a81f3896f6dfc5506f96a1c19ef95d38a43",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
