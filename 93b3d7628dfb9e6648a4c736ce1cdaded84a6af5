@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0df5fdb6_fd0e46ce",
+        "filename": "go/gcs/storage.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-08T16:36:06Z",
+      "side": 1,
+      "message": "I\u0027m confused - do we need the gzipReader or not?  Your comment above indicates it will be automatically uncompressed.",
+      "range": {
+        "startLine": 89,
+        "startChar": 77,
+        "endLine": 89,
+        "endChar": 88
+      },
+      "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64e4d6fa_1e86d407",
+        "filename": "go/gcs/storage.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-08T16:36:06Z",
+      "side": 1,
+      "message": "name suggestion: UploadWithWriter.  also UploadWithGZIPWriter",
+      "range": {
+        "startLine": 168,
+        "startChar": 5,
+        "endLine": 168,
+        "endChar": 15
+      },
+      "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d21c8dc2_1670c329",
+        "filename": "go/gcs/storage_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-08T16:36:06Z",
+      "side": 1,
+      "message": "Are there any cases when the context would not be cancelled?",
+      "range": {
+        "startLine": 45,
+        "startChar": 26,
+        "endLine": 45,
+        "endChar": 34
+      },
+      "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
