@@ -82,6 +82,8 @@ type TestingT interface {
 	Skipped() bool
 }
 
+var testNameToTestType sync.Map
+
 // ShouldRun determines whether the test should run based on the provided flags.
 func ShouldRun(testType string) bool {
 	if *uncategorized {
@@ -106,22 +108,28 @@ func ShouldRun(testType string) bool {
 	return false
 }
 
+func filterTest(t TestingT, testType string) {
+	prevTestType, ok := testNameToTestType.LoadOrStore(t.Name(), testType)
+	if ok && prevTestType.(string) != testType {
+		t.Fatalf("The test %q is marked as both %q and %q", t.Name(), prevTestType, testType)
+	}
+	if !ShouldRun(testType) {
+		t.Skipf("Not running %s tests.", testType)
+	}
+}
+
 // SmallTest is a function which should be called at the beginning of a small
 // test: A test (under 2 seconds) with no dependencies on external databases,
 // networks, etc.
 func SmallTest(t TestingT) {
-	if !ShouldRun(SMALL_TEST) {
-		t.Skip("Not running small tests.")
-	}
+	filterTest(t, SMALL_TEST)
 }
 
 // MediumTest is a function which should be called at the beginning of an
 // medium-sized test: a test (2-15 seconds) which has dependencies on external
 // databases, networks, etc.
 func MediumTest(t TestingT) {
-	if !ShouldRun(MEDIUM_TEST) {
-		t.Skip("Not running medium tests.")
-	}
+	filterTest(t, MEDIUM_TEST)
 }
 
 // LargeTest is a function which should be called at the beginning of a large
@@ -129,9 +137,7 @@ func MediumTest(t TestingT) {
 // dependencies which makes it too slow or flaky to run as part of the normal
 // test suite.
 func LargeTest(t TestingT) {
-	if !ShouldRun(LARGE_TEST) {
-		t.Skip("Not running large tests.")
-	}
+	filterTest(t, LARGE_TEST)
 }
 
 // ManualTest is a function which should be called at the beginning of tests
