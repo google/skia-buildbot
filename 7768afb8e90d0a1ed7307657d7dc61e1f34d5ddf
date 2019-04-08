@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7dfbd1fa_961c7b1d",
+        "filename": "go/metrics2/events/bigtable.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:26:42Z",
+      "side": 1,
+      "message": "nit: context.TODO(), x2",
+      "range": {
+        "startLine": 89,
+        "startChar": 44,
+        "endLine": 89,
+        "endChar": 54
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afd07905_3ca75f06",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:26:42Z",
+      "side": 1,
+      "message": "nit: \"...inserts an Event with the given data...\"",
+      "range": {
+        "startLine": 15,
+        "startChar": 11,
+        "endLine": 15,
+        "endChar": 33
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bd653cd_b12612c0",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:26:42Z",
+      "side": 1,
+      "message": "nit: \"cleans up\" sounds like it removes old Events or something. Maybe \"frees resources\" would be better.",
+      "range": {
+        "startLine": 17,
+        "startChar": 10,
+        "endLine": 17,
+        "endChar": 19
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8450e1ab_392d8e6c",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:26:42Z",
+      "side": 1,
+      "message": "nit: should say if inclusive or exclusive",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 47
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
