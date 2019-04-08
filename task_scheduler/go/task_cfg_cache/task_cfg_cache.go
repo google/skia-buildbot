@@ -23,11 +23,6 @@ import (
 const (
 	// BigTable configuration.
 
-	// BigTable used for storing TaskCfgs.
-	BT_INSTANCE_PROD     = "tasks-cfg-prod"
-	BT_INSTANCE_INTERNAL = "tasks-cfg-internal"
-	BT_INSTANCE_STAGING  = "tasks-cfg-staging"
-
 	// We use a single BigTable table for storing gob-encoded TaskSpecs and
 	// JobSpecs.
 	BT_TABLE = "tasks-cfg"

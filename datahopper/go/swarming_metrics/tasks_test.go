@@ -1,14 +1,15 @@
 package swarming_metrics
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
-	"path"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -72,7 +73,7 @@ func makeTask(id, name string, created, started, completed time.Time, dims map[s
 }
 
 func TestLoadSwarmingTasks(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -102,7 +103,9 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
 	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
 
-	edb, err := events.NewEventDB(path.Join(wd, "events.db"))
+	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
+	defer cleanup()
+	edb, err := events.NewBTEventDB(context.Background(), btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	// Load Swarming tasks.
@@ -113,9 +116,17 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	// Ensure that we inserted the expected task and added the other to
 	// the revisit list.
 	assert.Equal(t, 1, len(revisit))
-	ev, err := edb.Range(STREAM_SWARMING_TASKS, lastLoad, now)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(ev))
+	assertCount := func(from, to time.Time, expect int) {
+		assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
+			ev, err := edb.Range(STREAM_SWARMING_TASKS, from, to)
+			assert.NoError(t, err)
+			if len(ev) != expect {
+				return testutils.TryAgainErr
+			}
+			return nil
+		}))
+	}
+	assertCount(lastLoad, now, 1)
 
 	// datahopper will follow up on the revisit list (which is t2's id)
 	swarm.On("GetTaskMetadata", "2").Return(t2, nil)
@@ -137,13 +148,11 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	// Ensure that we loaded details for the unfinished task from the last
 	// attempt.
 	assert.Equal(t, 0, len(revisit))
-	ev, err = edb.Range(STREAM_SWARMING_TASKS, now.Add(-time.Hour), now)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(ev))
+	assertCount(now.Add(-time.Hour), now, 2)
 }
 
 func TestMetrics(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -157,7 +166,7 @@ func TestMetrics(t *testing.T) {
 	mp := taskname.NewMockTaskNameParser()
 	defer mp.AssertExpectations(t)
 	// This needs to be now, otherwise the metrics won't be aggregated
-	// due to the requirment to list the period (e.g. 24h)
+	// due to the requirement to list the period (e.g. 24h)
 	now := time.Now()
 	lastLoad := now.Add(-time.Hour)
 
@@ -177,7 +186,9 @@ func TestMetrics(t *testing.T) {
 	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1}, nil)
 
 	// Setup the metrics.
-	edb, em, err := setupMetrics(wd)
+	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
+	defer cleanup()
+	edb, em, err := setupMetrics(context.Background(), btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	// Load the Swarming task, ensure that it got inserted.
@@ -223,7 +234,7 @@ func TestMetrics(t *testing.T) {
 }
 
 func TestPerfUpload(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
@@ -264,7 +275,9 @@ func TestPerfUpload(t *testing.T) {
 
 	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
 
-	edb, err := events.NewEventDB(path.Join(wd, "events.db"))
+	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
+	defer cleanup()
+	edb, err := events.NewBTEventDB(context.Background(), btProject, btInstance, nil)
 	assert.NoError(t, err)
 
 	mp.On("ParseTaskName", "Test-MyOS").Return(map[string]string{
