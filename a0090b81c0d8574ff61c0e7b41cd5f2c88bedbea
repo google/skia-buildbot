@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bf10def6_dbb3bf22",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T19:56:22Z",
+      "side": 1,
+      "message": "nit: this is probably legacy cruft; generally I would expect libraries to handle HTTP response codes correctly.",
+      "range": {
+        "startLine": 90,
+        "startChar": 67,
+        "endLine": 90,
+        "endChar": 80
+      },
+      "revId": "a0090b81c0d8574ff61c0e7b41cd5f2c88bedbea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
