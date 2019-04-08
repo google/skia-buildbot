@@ -102,3 +102,37 @@ func TestInfiniteNesting(t *testing.T) {
 
 	AssertDeepEqual(t, a, b)
 }
+
+func TestAssertJSONRoundTrip(t *testing.T) {
+	testutils.SmallTest(t)
+
+	type Success struct {
+		Public int `json:"public"`
+	}
+	AssertJSONRoundTrip(t, &Success{
+		Public: 123,
+	})
+
+	type Unencodable struct {
+		Unsupported map[Success]struct{} `json:"unsupported"`
+	}
+	testutils.AssertFails(t, `unsupported type: map\[\w+\.Success]struct`, func(t testutils.TestingT) {
+		AssertJSONRoundTrip(t, &Unencodable{
+			Unsupported: map[Success]struct{}{
+				Success{
+					Public: 5,
+				}: struct{}{},
+			},
+		})
+	})
+
+	type CantRoundTrip struct {
+		// go vet complains if we add a json struct field tag to a private field.
+		private int
+	}
+	testutils.AssertFails(t, "Objects do not match", func(t testutils.TestingT) {
+		AssertJSONRoundTrip(t, &CantRoundTrip{
+			private: 123,
+		})
+	})
+}

@@ -12,6 +12,7 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
@@ -291,4 +292,80 @@ func EventuallyConsistent(duration time.Duration, f func() error) error {
 		}
 	}
 	return fmt.Errorf("Failed to pass test in allotted time.")
+}
+
+// MockTestingT implements TestingT by saving calls to Log and Fail. MockTestingT can be used to
+// test a test helper function. See also AssertFails.
+// The methods Helper, Name, Skip, SkipNow, Skipf, and Skipped are unimplemented.
+// This type is not safe for concurrent use.
+type MockTestingT struct {
+	LogMsgs  []string
+	IsFailed bool
+}
+
+func (m *MockTestingT) Error(args ...interface{}) {
+	m.Log(args...)
+	m.Fail()
+}
+func (m *MockTestingT) Errorf(format string, args ...interface{}) {
+	m.Logf(format, args...)
+	m.Fail()
+}
+func (m *MockTestingT) Fail() {
+	m.IsFailed = true
+}
+func (m *MockTestingT) FailNow() {
+	m.Fail()
+	runtime.Goexit()
+}
+func (m *MockTestingT) Failed() bool {
+	return m.IsFailed
+}
+func (m *MockTestingT) Fatal(args ...interface{}) {
+	m.Log(args...)
+	m.FailNow()
+}
+func (m *MockTestingT) Fatalf(format string, args ...interface{}) {
+	m.Logf(format, args...)
+	m.FailNow()
+}
+func (m *MockTestingT) Helper() {}
+func (m *MockTestingT) Log(args ...interface{}) {
+	m.LogMsgs = append(m.LogMsgs, fmt.Sprintln(args...))
+}
+func (m *MockTestingT) Logf(format string, args ...interface{}) {
+	m.LogMsgs = append(m.LogMsgs, fmt.Sprintf(format, args...))
+}
+func (m *MockTestingT) Name() string {
+	return ""
+}
+func (m *MockTestingT) Skip(args ...interface{}) {
+	m.Log(args...)
+	m.SkipNow()
+}
+func (m *MockTestingT) SkipNow() {
+	panic("SkipNow is not implemented.")
+}
+func (m *MockTestingT) Skipf(format string, args ...interface{}) {
+	m.Logf(format, args...)
+	m.SkipNow()
+}
+func (m *MockTestingT) Skipped() bool {
+	return false
+}
+
+// AssertFails runs testfn with a MockTestingT and asserts that the test fails and the first failure
+// logged matches the regexp. The TestingT passed to testfn is not safe for concurrent use.
+func AssertFails(parent TestingT, regexp string, testfn func(TestingT)) {
+	mock := MockTestingT{}
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		testfn(&mock)
+	}()
+	wg.Wait()
+	assert.True(parent, mock.Failed(), "In AssertFails, the test function did not fail.")
+	assert.True(parent, len(mock.LogMsgs) > 0, "In AssertFails, the test function did not produce any failure messages.")
+	assert.Regexp(parent, regexp, mock.LogMsgs[0])
 }

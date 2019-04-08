@@ -19,39 +19,30 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func jobSet(jobs ...*types.Job) map[*types.Job]struct{} {
-	rv := make(map[*types.Job]struct{}, len(jobs))
-	for _, j := range jobs {
-		rv[j] = struct{}{}
-	}
-	return rv
-}
-
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Attempt int `json:"attempt"`
 	// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 	// could be inherited from any matching Job. Therefore, this should be
 	// used for non-critical, informational purposes only.
-	BuildbucketBuildId int64                   `json:"buildbucketBuildId"`
-	Commits            []string                `json:"commits"`
-	IsolatedInput      string                  `json:"isolatedInput"`
-	IsolatedHashes     []string                `json:"isolatedHashes"`
-	Jobs               map[*types.Job]struct{} `json:"jobs"`
-	ParentTaskIds      []string                `json:"parentTaskIds"`
-	RetryOf            string                  `json:"retryOf"`
-	Score              float64                 `json:"score"`
-	StealingFromId     string                  `json:"stealingFromId"`
+	BuildbucketBuildId int64    `json:"buildbucketBuildId"`
+	Commits            []string `json:"commits"`
+	IsolatedInput      string   `json:"isolatedInput"`
+	IsolatedHashes     []string `json:"isolatedHashes"`
+	// Jobs must be kept in sorted order; see AddJob.
+	Jobs           []*types.Job `json:"jobs"`
+	ParentTaskIds  []string     `json:"parentTaskIds"`
+	RetryOf        string       `json:"retryOf"`
+	Score          float64      `json:"score"`
+	StealingFromId string       `json:"stealingFromId"`
 	types.TaskKey
 	TaskSpec *specs.TaskSpec `json:"taskSpec"`
 }
 
 // Copy returns a copy of the taskCandidate.
 func (c *taskCandidate) Copy() *taskCandidate {
-	jobs := make(map[*types.Job]struct{}, len(c.Jobs))
-	for j, _ := range c.Jobs {
-		jobs[j] = struct{}{}
-	}
+	jobs := make([]*types.Job, len(c.Jobs))
+	copy(jobs, c.Jobs)
 	return &taskCandidate{
 		Attempt:            c.Attempt,
 		BuildbucketBuildId: c.BuildbucketBuildId,
@@ -98,12 +89,49 @@ func parseId(id string) (types.TaskKey, error) {
 	return rv, nil
 }
 
+// findJob locates job in c.Jobs and returns its index and true if found or the
+// insertion index and false if not.
+func (c *taskCandidate) findJob(job *types.Job) (int, bool) {
+	idx := sort.Search(len(c.Jobs), func(i int) bool {
+		return !c.Jobs[i].Created.Before(job.Created)
+	})
+	if idx >= len(c.Jobs) {
+		return idx, false
+	}
+	for offset, j := range c.Jobs[idx:] {
+		if j.Id == job.Id {
+			return idx + offset, true
+		}
+		if j.Created.After(job.Created) {
+			return idx + offset, false
+		}
+	}
+	// This shouldn't happen, but golang doesn't know that.
+	return len(c.Jobs), false
+}
+
+// HasJob returns true if job is a member of c.Jobs.
+func (c *taskCandidate) HasJob(job *types.Job) bool {
+	_, ok := c.findJob(job)
+	return ok
+}
+
+// AddJob adds job to c.Jobs, unless already present.
+func (c *taskCandidate) AddJob(job *types.Job) {
+	idx, ok := c.findJob(job)
+	if !ok {
+		c.Jobs = append(c.Jobs, nil)
+		copy(c.Jobs[idx+1:], c.Jobs[idx:])
+		c.Jobs[idx] = job
+	}
+}
+
 // MakeTask instantiates a types.Task from the taskCandidate.
 func (c *taskCandidate) MakeTask() *types.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
 	jobs := make([]string, 0, len(c.Jobs))
-	for j := range c.Jobs {
+	for _, j := range c.Jobs {
 		jobs = append(jobs, j.Id)
 	}
 	sort.Strings(jobs)

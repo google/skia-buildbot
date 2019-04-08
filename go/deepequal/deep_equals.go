@@ -31,6 +31,8 @@
 package deepequal
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"unsafe"
@@ -392,4 +394,17 @@ func AssertCopy(t testutils.TestingT, a, b interface{}) {
 			assert.NotEqual(t, fa.Pointer(), fb.Pointer(), "Field %q not deep-copied.", va.Type().Field(i).Name)
 		}
 	}
+}
+
+// AssertJSONRoundTrip encodes and decodes an object to/from JSON and asserts
+// that the result is deep equal to the original. obj must be a pointer.
+func AssertJSONRoundTrip(t testutils.TestingT, obj interface{}) {
+	val := reflect.ValueOf(obj)
+	assert.Equal(t, reflect.Ptr, val.Kind(), "AssertJSONRoundTrip must be passed a pointer.")
+	cpyval := reflect.New(val.Elem().Type())
+	cpy := cpyval.Interface()
+	buf := bytes.Buffer{}
+	assert.NoError(t, json.NewEncoder(&buf).Encode(obj))
+	assert.NoError(t, json.NewDecoder(&buf).Decode(cpy))
+	AssertDeepEqual(t, obj, cpy)
 }

@@ -680,13 +680,13 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
 					BuildbucketBuildId: j.BuildbucketBuildId,
-					Jobs:               jobSet(),
+					Jobs:               nil,
 					TaskKey:            key,
 					TaskSpec:           spec,
 				}
 				candidates[key] = c
 			}
-			c.Jobs[j] = struct{}{}
+			c.AddJob(j)
 		}
 	}
 	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
@@ -798,7 +798,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 
 	// Formula for priority is 1 - (1-<job1 priority>)(1-<job2 priority>)...(1-<jobN priority>).
 	inversePriorityProduct := 1.0
-	for j := range c.Jobs {
+	for _, j := range c.Jobs {
 		jobPriority := specs.DEFAULT_JOB_SPEC_PRIORITY
 		if j.Priority <= 1 && j.Priority > 0 {
 			jobPriority = j.Priority
@@ -808,12 +808,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	priority := 1 - inversePriorityProduct
 
 	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
-	var earliestJob *types.Job
-	for j := range c.Jobs {
-		if earliestJob == nil || earliestJob.Created.After(j.Created) {
-			earliestJob = j
-		}
-	}
+	earliestJob := c.Jobs[0]
 
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(earliestJob.Created).Hours()
