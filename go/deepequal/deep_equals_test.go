@@ -102,3 +102,23 @@ func TestInfiniteNesting(t *testing.T) {
 
 	AssertDeepEqual(t, a, b)
 }
+
+func TestAssertJSONRoundTrip(t *testing.T) {
+	testutils.SmallTest(t)
+
+	type Success struct {
+		Public int `json:public`
+	}
+	AssertJSONRoundTrip(t, &Success{
+		Public: 123,
+	})
+
+	type Failure struct {
+		private int `json:private`
+	}
+	testutils.AssertFails(t, "Objects do not match", func(t testutils.TestingT) {
+		AssertJSONRoundTrip(t, &Failure{
+			private: 123,
+		})
+	})
+}

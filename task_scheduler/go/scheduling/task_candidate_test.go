@@ -10,17 +10,16 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func TestCopyTaskCandidate(t *testing.T) {
-	testutils.SmallTest(t)
-	v := &taskCandidate{
+func fullTaskCandidate() *taskCandidate {
+	return &taskCandidate{
 		Attempt:            3,
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
-		Jobs: jobSet(&types.Job{
+		Jobs: []*types.Job{&types.Job{
 			Id: "dummy",
-		}),
+		}},
 		ParentTaskIds:  []string{"38", "39", "40"},
 		RetryOf:        "41",
 		Score:          99,
@@ -36,7 +35,21 @@ func TestCopyTaskCandidate(t *testing.T) {
 			Isolate: "confine",
 		},
 	}
-	deepequal.AssertCopy(t, v, v.Copy())
+}
+
+func TestCopyTaskCandidate(t *testing.T) {
+	testutils.SmallTest(t)
+	v := fullTaskCandidate()
+	cp := v.CopyNoDiagnostics()
+	assert.Nil(t, cp.Diagnostics)
+	cp.Diagnostics = &taskCandidateDiagnostics{}
+	deepequal.AssertCopy(t, v, cp)
+}
+
+func TestTaskCandidateJSON(t *testing.T) {
+	testutils.SmallTest(t)
+	v := fullTaskCandidate()
+	deepequal.AssertJSONRoundTrip(t, v)
 }
 
 func TestTaskCandidateId(t *testing.T) {
