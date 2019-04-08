@@ -45,6 +45,30 @@
       "revId": "5d85145a16b686df0831ee122a38dd9506c71805",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c159d86a_a2d1e889",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1700,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:28:29Z",
+      "side": 1,
+      "message": "No, bad merge. Thanks!",
+      "parentUuid": "ca3a55a7_d7aabdc1",
+      "range": {
+        "startLine": 1700,
+        "startChar": 1,
+        "endLine": 1700,
+        "endChar": 8
+      },
+      "revId": "5d85145a16b686df0831ee122a38dd9506c71805",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
