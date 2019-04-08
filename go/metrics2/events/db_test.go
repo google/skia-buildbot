@@ -2,15 +2,11 @@ package events
 
 import (
 	"encoding/binary"
-	"fmt"
-	"io/ioutil"
 	"math"
-	"path"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/testutils"
 )
 
 func encodeEvent(v float64) []byte {
@@ -21,45 +17,6 @@ func encodeEvent(v float64) []byte {
 
 func decodeEvent(b []byte) float64 {
 	return math.Float64frombits(binary.BigEndian.Uint64(b))
-}
-
-func TestEncodeDecodeKey(t *testing.T) {
-	testutils.SmallTest(t)
-
-	tc := []time.Time{
-		time.Unix(0, 0),
-		time.Now(),
-		time.Now().UTC(),
-	}
-	for _, c := range tc {
-		enc, err := encodeKey(c)
-		assert.NoError(t, err)
-		dec, err := decodeKey(enc)
-		assert.NoError(t, err, fmt.Sprintf("%s", c))
-		assert.Equal(t, c.UTC(), dec.UTC())
-	}
-
-	// Errors.
-	tc = []time.Time{
-		{},
-		time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC),
-	}
-	for _, c := range tc {
-		_, err := encodeKey(c)
-		assert.Error(t, err)
-	}
-}
-
-func TestInsertRetrieve(t *testing.T) {
-	testutils.MediumTest(t)
-
-	tmp, err := ioutil.TempDir("", "")
-	assert.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-
-	d, err := NewEventDB(path.Join(tmp, "events.bdb"))
-	assert.NoError(t, err)
-	testInsertRetrieve(t, d)
 }
 
 func testInsertRetrieve(t *testing.T, d EventDB) {
