@@ -516,6 +516,7 @@ The main application element for the Skia Debugger.
         this.$.crosshair.addEventListener('crosshair', function(e) {
           this.$.zoom.x = e.detail.x;
           this.$.zoom.y = e.detail.y;
+          this.$.zoom.updateZoom();
         }.bind(this));
 
         this.$.play.prePlayCallback(function() {
@@ -858,6 +859,7 @@ The main application element for the Skia Debugger.
         if ("JKHL".indexOf(c) != -1 ) {
           e.stopPropagation();
         }
+        this.$.crosshair.coordinatesUpdated();
       },
 
       _json: function(s) {

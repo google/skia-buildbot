@@ -325,7 +325,7 @@ The main application element for the Skia Debugger.
                   <paper-icon-button src="https://debugger-assets.skia.org/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
                   <paper-icon-button icon="file-download" title="Save current image" on-tap="_saveImage"></paper-icon-button>
                 </div>
-                <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
+                <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick" useObservers=false>
                   <canvas id=img width=400 height=400></canvas>
                 </canvas-layers-sk>
                 <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
