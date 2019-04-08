@@ -14,11 +14,7 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 include ../go/skiaversion/skiaversion.mk
 
 .PHONY: all
-all: task_scheduler validate_db
-
-.PHONY: task_scheduler
-task_scheduler: core_js elements_html skiaversion
-	go install -v ./go/task_scheduler
+all: task_scheduler_kube validate_db
 
 .PHONY: task_scheduler_kube
 task_scheduler_kube: core_js elements_html skiaversion
