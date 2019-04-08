@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0899f003_a9d99504",
+        "filename": "go/deepequal/deep_equals.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-08T16:49:11Z",
+      "side": 1,
+      "message": "Thanks for this!",
+      "range": {
+        "startLine": 401,
+        "startChar": 5,
+        "endLine": 401,
+        "endChar": 24
+      },
+      "revId": "5d85145a16b686df0831ee122a38dd9506c71805",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca3a55a7_d7aabdc1",
+        "filename": "task_scheduler/go/scheduling/task_scheduler_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1700,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-08T16:49:11Z",
+      "side": 1,
+      "message": "Nit: Left intentionally?",
+      "range": {
+        "startLine": 1700,
+        "startChar": 1,
+        "endLine": 1700,
+        "endChar": 8
+      },
+      "revId": "5d85145a16b686df0831ee122a38dd9506c71805",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
