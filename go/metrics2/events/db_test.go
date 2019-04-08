@@ -59,7 +59,10 @@ func TestInsertRetrieve(t *testing.T) {
 
 	d, err := NewEventDB(path.Join(tmp, "events.bdb"))
 	assert.NoError(t, err)
+	testInsertRetrieve(t, d)
+}
 
+func testInsertRetrieve(t *testing.T, d EventDB) {
 	now := time.Now()
 	k1 := now.Add(-3 * time.Second)
 	v1 := 0.05

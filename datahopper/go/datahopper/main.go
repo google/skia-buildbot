@@ -166,7 +166,7 @@ func main() {
 	swarming_metrics.StartSwarmingBotMetrics(swarmingClients, swarmingPools, metrics2.GetDefaultClient())
 
 	// Swarming tasks.
-	if err := swarming_metrics.StartSwarmingTaskMetrics(w, swarm, ctx, pc, tnp); err != nil {
+	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarm, pc, tnp, newTs); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -204,7 +204,7 @@ func main() {
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(ctx, d, repos, tcc, *workdir); err != nil {
+	if err := bot_metrics.Start(ctx, d, repos, tcc, *btProject, *btInstance, *workdir, newTs); err != nil {
 		sklog.Fatal(err)
 	}
 

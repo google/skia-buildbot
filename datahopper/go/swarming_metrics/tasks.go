@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/perfclient"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -329,8 +329,8 @@ func isolateCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (in
 }
 
 // setupMetrics creates the event metrics for Swarming tasks.
-func setupMetrics(workdir string) (events.EventDB, *events.EventMetrics, error) {
-	edb, err := events.NewEventDB(path.Join(workdir, "swarming-tasks.bdb"))
+func setupMetrics(ctx context.Context, btProject, btInstance string, ts oauth2.TokenSource) (events.EventDB, *events.EventMetrics, error) {
+	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -402,8 +402,8 @@ func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events
 
 // StartSwarmingTaskMetrics initiates a goroutine which loads Swarming task
 // results and computes metrics.
-func StartSwarmingTaskMetrics(workdir string, swarm swarming.ApiClient, ctx context.Context, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser) error {
-	edb, em, err := setupMetrics(workdir)
+func StartSwarmingTaskMetrics(ctx context.Context, btProject, btInstance string, swarm swarming.ApiClient, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, ts oauth2.TokenSource) error {
+	edb, em, err := setupMetrics(ctx, btProject, btInstance, ts)
 	if err != nil {
 		return err
 	}

@@ -12,9 +12,15 @@ import (
 
 // EventDB is an interface used for storing Events in a BoltDB.
 type EventDB interface {
+	// Append inserts an Event with the given data into the given stream at
+	// the current time.
 	Append(string, []byte) error
+	// Close frees up resources used by the eventDB.
 	Close() error
+	// Insert inserts the given Event into DB.
 	Insert(*Event) error
+	// Range returns all Events in the given range from the given stream.
+	// The beginning of the range is inclusive, while the end is exclusive.
 	Range(string, time.Time, time.Time) ([]*Event, error)
 }
 
@@ -23,7 +29,7 @@ type eventDB struct {
 	db *bolt.DB
 }
 
-// NewEventDB returns an EventDB instance.
+// NewEventDB returns an EventDB instance which is backed by a local Bolt DB.
 func NewEventDB(filename string) (EventDB, error) {
 	db, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
@@ -37,12 +43,12 @@ func NewEventDB(filename string) (EventDB, error) {
 	return rv, nil
 }
 
-// Close cleans up the eventDB.
+// See documentation for EventDB interface.
 func (m *eventDB) Close() error {
 	return m.db.Close()
 }
 
-// Insert inserts the given Event into DB.
+// See documentation for EventDB interface.
 func (m *eventDB) Insert(e *Event) error {
 	if util.TimeIsZero(e.Timestamp) {
 		return fmt.Errorf("Cannot insert an event without a timestamp.")
@@ -68,7 +74,7 @@ func (m *eventDB) Insert(e *Event) error {
 	})
 }
 
-// Append inserts the given data into the given stream at the current time.
+// See documentation for EventDB interface.
 func (m *eventDB) Append(stream string, data []byte) error {
 	return m.Insert(&Event{
 		Stream:    stream,
@@ -77,7 +83,7 @@ func (m *eventDB) Append(stream string, data []byte) error {
 	})
 }
 
-// Range returns all Events in the given range from the given stream.
+// See documentation for EventDB interface.
 func (m *eventDB) Range(stream string, start, end time.Time) ([]*Event, error) {
 	min, err := encodeKey(start)
 	if err != nil {
