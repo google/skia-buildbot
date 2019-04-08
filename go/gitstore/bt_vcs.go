@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/vcsinfo"
+	"golang.org/x/sync/errgroup"
 )
 
 // btVCS implements the vcsinfo.VCS interface based on a BT-backed GitStore.
@@ -30,20 +32,34 @@ type btVCS struct {
 	mutex        sync.RWMutex
 }
 
+var (
+	defaultWatchInterval = time.Second * 10
+)
+
 // NewVCS returns an instance of vcsinfo.VCS that is backed by the given GitStore and uses the
 // gittiles.Repo to retrieve files. Each instance provides an interface to one branch.
 // If defaultBranch is "" all commits in the repository are considered.
 // The instances of gitiles.Repo is only used to fetch files.
-func NewVCS(gitstore GitStore, defaultBranch string, repo *gitiles.Repo) (vcsinfo.VCS, error) {
+func NewVCS(gitStore GitStore, defaultBranch string, repo *gitiles.Repo, evt eventbus.EventBus, nCommits int) (vcsinfo.VCS, error) {
 	ret := &btVCS{
-		gitStore:      gitstore,
+		gitStore:      gitStore,
 		repo:          repo,
 		defaultBranch: defaultBranch,
 	}
 	if err := ret.Update(context.TODO(), true, false); err != nil {
 		return nil, err
 	}
+
+	// Start watching the repo for changes and fire events when they happen if an event bus was
+	// provided.
+	if evt != nil && nCommits > 0 {
+		_ = startVCSTracker(gitStore, defaultWatchInterval, evt, defaultBranch, nCommits)
+	}
 	return ret, nil
+}
+
+func (b *btVCS) GetBranch() string {
+	return b.defaultBranch
 }
 
 // SetSecondaryRepo allows to add a secondary repository and extractor to this instance.
@@ -55,17 +71,23 @@ func (b *btVCS) SetSecondaryRepo(secVCS vcsinfo.VCS, extractor depot_tools.DEPSE
 
 // Update implements the vcsinfo.VCS interface
 func (b *btVCS) Update(ctx context.Context, pull, allBranches bool) error {
+	// Check if we need to pull across all branches.
+	targetBranch := b.defaultBranch
+	if allBranches {
+		targetBranch = ""
+	}
+
 	// Simulate a pull by fetching the latest head of the target branch.
 	if pull {
-		allBranches, err := b.gitStore.GetBranches(ctx)
+		branchHeads, err := b.gitStore.GetBranches(ctx)
 		if err != nil {
 			return err
 		}
 
 		var ok bool
-		b.branchInfo, ok = allBranches[b.defaultBranch]
+		b.branchInfo, ok = branchHeads[targetBranch]
 		if !ok {
-			return skerr.Fmt("Unable to find branch %s in BitTable repo %s", b.defaultBranch, (b.gitStore.(*btGitStore)).repoURL)
+			return skerr.Fmt("Unable to find branch %q in BitTable repo %s", targetBranch, (b.gitStore.(*btGitStore)).repoURL)
 		}
 	}
 
@@ -101,6 +123,33 @@ func (b *btVCS) DetailsMulti(ctx context.Context, hashes []string, includeBranch
 	if err != nil {
 		return nil, err
 	}
+
+	if includeBranchInfo {
+		branchPointers, err := b.gitStore.GetBranches(ctx)
+		if err != nil {
+			return nil, skerr.Fmt("Error retrieving branches: %s", err)
+		}
+
+		var egroup errgroup.Group
+		for _, c := range commits {
+			if c != nil {
+				func(c *vcsinfo.LongCommit) {
+					egroup.Go(func() error {
+						branches, err := b.getBranchInfo(ctx, c, branchPointers)
+						if err != nil {
+							return err
+						}
+						c.Branches = branches
+						return nil
+					})
+				}(c)
+			}
+		}
+		if err := egroup.Wait(); err != nil {
+			return nil, err
+		}
+	}
+
 	return commits, nil
 }
 
@@ -117,7 +166,52 @@ func (b *btVCS) details(ctx context.Context, hash string, includeBranchInfo bool
 	if len(commits) == 0 {
 		return nil, skerr.Fmt("Commit %s not found", hash)
 	}
+
+	if includeBranchInfo {
+		branchPointers, err := b.gitStore.GetBranches(ctx)
+		if err != nil {
+			return nil, skerr.Fmt("Error retrieving branches: %s", err)
+		}
+
+		branches, err := b.getBranchInfo(ctx, commits[0], branchPointers)
+		if err != nil {
+			return nil, err
+		}
+		commits[0].Branches = branches
+	}
 	return commits[0], nil
+}
+
+func (b *btVCS) getBranchInfo(ctx context.Context, c *vcsinfo.LongCommit, allBranches map[string]*BranchPointer) (map[string]bool, error) {
+	ret := make(map[string]bool, len(allBranches))
+	var mutex sync.Mutex
+	var egroup errgroup.Group
+	for branchName := range allBranches {
+		if branchName != "" {
+			func(branchName string) {
+				egroup.Go(func() error {
+					commits, err := b.gitStore.RangeByTime(ctx, c.Timestamp, c.Timestamp.Add(time.Second), branchName)
+					if err != nil {
+						return err
+					}
+
+					// Iterate over the commits at the given timestamp. Most of the time there should only be one.
+					for _, idxCommit := range commits {
+						if idxCommit.Hash == c.Hash {
+							mutex.Lock()
+							ret[branchName] = true
+							mutex.Unlock()
+						}
+					}
+					return nil
+				})
+			}(branchName)
+		}
+	}
+	if err := egroup.Wait(); err != nil {
+		return nil, skerr.Fmt("Error retrieving branch membership: %s", err)
+	}
+	return ret, nil
 }
 
 // Update implements the vcsinfo.VCS interface
@@ -199,6 +293,11 @@ func (b *btVCS) GetFile(ctx context.Context, fileName, commitHash string) (strin
 // Update implements the vcsinfo.VCS interface
 func (b *btVCS) ResolveCommit(ctx context.Context, commitHash string) (string, error) {
 	return "", skerr.Fmt("Not implemented yet")
+}
+
+// GetGitStore implements the gitstore.GitStoreBased interface
+func (b *btVCS) GetGitStore() GitStore {
+	return b.gitStore
 }
 
 // fetchIndexRange gets in the range [startIndex, endIndex).
