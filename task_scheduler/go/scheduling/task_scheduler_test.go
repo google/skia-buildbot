@@ -226,6 +226,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 }
 
 func TestGatherNewJobs(t *testing.T) {
+	testutils.MediumTest(t)
 	ctx, gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
 
