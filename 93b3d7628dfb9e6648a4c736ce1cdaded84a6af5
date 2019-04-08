@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "433b97be_ee500d47",
+        "filename": "go/gcs/storage.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:04:20Z",
+      "side": 1,
+      "message": "This is a TODO. I added some context; let me know if it\u0027s still not clear.",
+      "parentUuid": "0df5fdb6_fd0e46ce",
+      "range": {
+        "startLine": 89,
+        "startChar": 77,
+        "endLine": 89,
+        "endChar": 88
+      },
+      "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64e4d6fa_1e86d407",
         "filename": "go/gcs/storage.go",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2019-04-08T16:36:06Z",
       "side": 1,
       "message": "name suggestion: UploadWithWriter.  also UploadWithGZIPWriter",
+      "range": {
+        "startLine": 168,
+        "startChar": 5,
+        "endLine": 168,
+        "endChar": 15
+      },
+      "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f084c62e_ba5c2032",
+        "filename": "go/gcs/storage.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:04:20Z",
+      "side": 1,
+      "message": "Hmm, none of the GCSClient API mentions anything about \"Upload\" so I don\u0027t think that really fits.\n\nI would have added these as additional methods on GCSClient, but then every impl would need to add them as well, which seems like a lot of trouble. Maybe instead we should have a smaller GCSClientImpl interface that only provides FileReader, FileWriter, AllFilesInDirectory, DeleteFile, and Bucket; and use an adapter to provide DoesFileExist, GetFileContents, SetFileContents, WithWriter, and WithGzipWriter?",
+      "parentUuid": "64e4d6fa_1e86d407",
       "range": {
         "startLine": 168,
         "startChar": 5,
@@ -68,6 +116,30 @@
       "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e4aa390_59db3123",
+        "filename": "go/gcs/storage_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:04:20Z",
+      "side": 1,
+      "message": "It appears that both current uses of FileWriter fail to cancel the context when there is an error.\nhttps://skia.googlesource.com/buildbot/+/0cc3e07d95889b77214063bd92e3f005998f26be/go/counters/counters.go#79\nhttps://skia.googlesource.com/buildbot/+/aa16e38ba0fbfd7ec48d0d000a4d4bbd963d77a2/go/gcs/storage.go#122\n\nI will follow up with another CL to fix these (probably by using WithWriter).\n\nIf we\u0027re doing whitebox testing, yes, it\u0027s pretty clear from the code that the context will always be canceled. Maybe this test is more whiteboxy than blackboxy, but I don\u0027t think it hurts to have this assertion.",
+      "parentUuid": "d21c8dc2_1670c329",
+      "range": {
+        "startLine": 45,
+        "startChar": 26,
+        "endLine": 45,
+        "endChar": 34
+      },
+      "revId": "93b3d7628dfb9e6648a4c736ce1cdaded84a6af5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
