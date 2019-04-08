@@ -365,6 +365,8 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._state.assets = assets;
       this.render();
       this._initializePlayer();
+      // Re-sync all players
+      this._rewind();
     });
 
   }
@@ -395,7 +397,7 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
           }));
       }
       // Look for the fonts in the assets directory with a .ttf extension
-      if (font.fName) {
+      else if (font.fName) {
         promises.push(fetch(`${this._assetsPath}/${this._hash}/${font.fName}.ttf`)
           .then((resp) => {
             // fetch does not reject on 404
@@ -492,7 +494,6 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
         }
         this._ui = LOADED_MODE;
         this._loadAssetsAndRender();
-        this._rewind();
       }).catch((msg) => this._recoverFromError(msg));
     });
   }
@@ -690,8 +691,6 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       this._stateChanged();
       if (this._state.assetsZip) {
         this._loadAssetsAndRender();
-        // Re-sync all players
-        this._rewind();
       }
       this.render();
     }).catch((msg) => this._recoverFromError(msg));
@@ -701,9 +700,9 @@ window.customElements.define('skottie-sk', class extends HTMLElement {
       // Start drawing right away, no need to wait for
       // the JSON to make a round-trip to the server, since there
       // are no assets that we need to unzip server-side.
+      // We still need to check for things like webfonts.
       this.render();
-      this._initializePlayer();
-      this._rewind();
+      this._loadAssetsAndRender();
     } else {
       // We have to wait for the server to process the zip file.
       this._ui = LOADING_MODE;
