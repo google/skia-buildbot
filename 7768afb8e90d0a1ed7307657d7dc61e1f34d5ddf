@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b1015a80_c70047a3",
+        "filename": "go/metrics2/events/bigtable.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-08T17:49:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7dfbd1fa_961c7b1d",
+      "range": {
+        "startLine": 89,
+        "startChar": 44,
+        "endLine": 89,
+        "endChar": 54
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "afd07905_3ca75f06",
         "filename": "go/metrics2/events/db.go",
         "patchSetId": 1
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "f562912c_0ced0cab",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-08T17:49:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1bd653cd_b12612c0",
+      "range": {
+        "startLine": 17,
+        "startChar": 10,
+        "endLine": 17,
+        "endChar": 19
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8450e1ab_392d8e6c",
         "filename": "go/metrics2/events/db.go",
         "patchSetId": 1
@@ -91,6 +139,30 @@
       "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2ddfb53_89cadb12",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-08T17:49:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8450e1ab_392d8e6c",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 47
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
