@@ -132,6 +132,7 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 type MemoryGCSClient struct {
 	bucket string
 	data   map[string][]byte
+	opts   map[string]FileWriteOptions
 }
 
 // Return a MemoryGCSClient instance.
@@ -139,6 +140,7 @@ func NewMemoryGCSClient(bucket string) *MemoryGCSClient {
 	return &MemoryGCSClient{
 		bucket: bucket,
 		data:   map[string][]byte{},
+		opts:   map[string]FileWriteOptions{},
 	}
 }
 
@@ -148,7 +150,18 @@ func (c *MemoryGCSClient) FileReader(ctx context.Context, path string) (io.ReadC
 	if !ok {
 		return nil, storage.ErrObjectNotExist
 	}
-	return ioutil.NopCloser(bytes.NewReader(contents)), nil
+	rv := ioutil.NopCloser(bytes.NewReader(contents))
+	// GCS automatically decodes gzip-encoded files. See
+	// https://cloud.google.com/storage/docs/transcoding. We do the same here so that tests acurately
+	// reflect what will happen when actually using GCS.
+	if c.opts[path].ContentEncoding == "gzip" {
+		var err error
+		rv, err = gzip.NewReader(rv)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return rv, nil
 }
 
 // io.WriteCloser implementation used by MemoryGCSClient.
@@ -171,6 +184,7 @@ func (w *memoryWriter) Close() error {
 
 // See documentation for GCSClient interface.
 func (c *MemoryGCSClient) FileWriter(ctx context.Context, path string, opts FileWriteOptions) io.WriteCloser {
+	c.opts[path] = opts
 	return &memoryWriter{
 		buf:    bytes.NewBuffer(nil),
 		client: c,
@@ -182,6 +196,9 @@ func (c *MemoryGCSClient) FileWriter(ctx context.Context, path string, opts File
 func (c *MemoryGCSClient) DoesFileExist(ctx context.Context, path string) (bool, error) {
 	_, err := c.FileReader(ctx, path)
 	if err != nil {
+		if err == storage.ErrObjectNotExist {
+			return false, nil
+		}
 		return false, err
 	}
 	return true, nil
@@ -208,10 +225,16 @@ func (c *MemoryGCSClient) SetFileContents(ctx context.Context, path string, opts
 func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
 	for key, data := range c.data {
 		if strings.HasPrefix(key, prefix) {
+			opts := c.opts[key]
 			item := &storage.ObjectAttrs{
-				Bucket: c.bucket,
-				Name:   key,
-				Size:   int64(len(data)),
+				Bucket:             c.bucket,
+				Name:               key,
+				ContentType:        opts.ContentType,
+				ContentLanguage:    opts.ContentLanguage,
+				Size:               int64(len(data)),
+				ContentEncoding:    opts.ContentEncoding,
+				ContentDisposition: opts.ContentDisposition,
+				Metadata:           util.CopyStringMap(opts.Metadata),
 			}
 			callback(item)
 		}
@@ -222,6 +245,7 @@ func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string
 // See documentation for GCSClient interface.
 func (c *MemoryGCSClient) DeleteFile(ctx context.Context, path string) error {
 	delete(c.data, path)
+	delete(c.opts, path)
 	return nil
 }
 
@@ -229,3 +253,5 @@ func (c *MemoryGCSClient) DeleteFile(ctx context.Context, path string) error {
 func (c *MemoryGCSClient) Bucket() string {
 	return c.bucket
 }
+
+var _ GCSClient = (*MemoryGCSClient)(nil)

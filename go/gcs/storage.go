@@ -25,8 +25,10 @@ type GCSClient interface {
 	// FileReader returns an io.ReadCloser pointing to path on GCS, using the provided
 	// context. storage.ErrObjectNotExist will be returned if the file is not found.
 	// The caller must call Close on the returned Reader when done reading.
+	// Note that per https://cloud.google.com/storage/docs/transcoding, a file that is gzip encoded
+	// will be automatically uncompressed.
 	FileReader(ctx context.Context, path string) (io.ReadCloser, error)
-	// FileReader returns an io.WriteCloser that writes to the GCS file given by path
+	// FileWriter returns an io.WriteCloser that writes to the GCS file given by path
 	// using the provided context. A new GCS file will be created if it doesn't already exist.
 	// Otherwise, the existing file will be overwritten. The caller must call Close on
 	// the returned Writer to flush the writes.
@@ -40,6 +42,8 @@ type GCSClient interface {
 	// GetFileContents returns the []byte represented by the GCS file at path. This is a
 	// convenience wrapper around FileReader. storage.ErrObjectNotExist will be returned
 	// if the file is not found.
+	// Note that per https://cloud.google.com/storage/docs/transcoding, a file that is gzip encoded
+	// will be automatically uncompressed.
 	GetFileContents(ctx context.Context, path string) ([]byte, error)
 	// SetFileContents writes the []byte to the GCS file at path. This is a
 	// convenience wrapper around FileWriter. The GCS file will be created if it doesn't exist.
@@ -82,6 +86,10 @@ func NewGCSClient(s *storage.Client, bucket string) GCSClient {
 
 // See the GCSClient interface for more information about FileReader.
 func (g *gcsclient) FileReader(ctx context.Context, path string) (io.ReadCloser, error) {
+	// TODO(dogben): if reader.Attrs.ContentEncoding == "gzip" then we should use ReadCompressed here
+	// to get the compressed content, and wrap the reader in a gzip.Reader. Currently, with NewReader,
+	// the content is decompressed on the server side; using ReadCompressed + gzip.Reader would save
+	// bandwidth when retrieving while preserving the current behaviour.
 	return g.client.Bucket(g.bucket).Object(path).NewReader(ctx)
 }
 
@@ -155,4 +163,28 @@ func (g *gcsclient) DeleteFile(ctx context.Context, path string) error {
 // See the GCSClient interface for more information about Bucket.
 func (g *gcsclient) Bucket() string {
 	return g.bucket
+}
+
+// WithWriteFile writes to a GCS object using the given function, handling all errors. No
+// compression is done on the data. See GCSClient.FileWriter for details on the parameters.
+func WithWriteFile(client GCSClient, ctx context.Context, path string, opts FileWriteOptions, fn func(io.Writer) error) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	writer := client.FileWriter(ctx, path, opts)
+	if err := fn(writer); err != nil {
+		cancel()
+		return err
+	}
+	return writer.Close()
+}
+
+// WithWriteFileGzip writes to a GCS object using the given function, compressing the data with gzip
+// and handling all errors. See GCSClient.FileWriter for details on the parameters.
+func WithWriteFileGzip(client GCSClient, ctx context.Context, path string, fn func(io.Writer) error) error {
+	opts := FileWriteOptions{
+		ContentEncoding: "gzip",
+	}
+	return WithWriteFile(client, ctx, path, opts, func(w io.Writer) error {
+		return util.WithGzipWriter(w, fn)
+	})
 }
