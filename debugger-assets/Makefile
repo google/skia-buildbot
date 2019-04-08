@@ -28,6 +28,7 @@ run_server_local: build
 
 .PHONY: release
 release: build
+	docker pull gcr.io/skia-public/skia-wasm-release:prod
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/debugger-assets
 	./build_docker_release
 
