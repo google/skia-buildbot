@@ -1,0 +1,52 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73fe6e7f_e596c5bb",
+        "filename": "named-fiddles/go/named-fiddles/testdata/example.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5110
+      },
+      "writtenOn": "2019-04-08T19:17:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3e202541_9c9cd01e",
+      "range": {
+        "startLine": 4,
+        "startChar": 21,
+        "endLine": 4,
+        "endChar": 24
+      },
+      "revId": "3ced1406b53ea9799117179cfc8e4fd7bd5c1dd1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c076436a_f22ff725",
+        "filename": "named-fiddles/go/named-fiddles/testdata/example.cpp",
+        "patchSetId": 6
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5110
+      },
+      "writtenOn": "2019-04-08T19:17:31Z",
+      "side": 1,
+      "message": "Ack\n\n(deliberately bad test data)",
+      "parentUuid": "394a3d4a_e158f70f",
+      "range": {
+        "startLine": 6,
+        "startChar": 28,
+        "endLine": 6,
+        "endChar": 30
+      },
+      "revId": "3ced1406b53ea9799117179cfc8e4fd7bd5c1dd1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
