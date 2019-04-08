@@ -211,6 +211,30 @@
       "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4a9e529c_ec67f3b0",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-08T17:57:51Z",
+      "side": 1,
+      "message": "Hrm, looks that way.  Shall I remove the BDB impl, to make things consistent? :P",
+      "parentUuid": "b9a10b2c_b1ac3930",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 47
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
