@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "385ca440_bba93564",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:55:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "afd07905_3ca75f06",
+      "range": {
+        "startLine": 15,
+        "startChar": 11,
+        "endLine": 15,
+        "endChar": 33
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bd653cd_b12612c0",
         "filename": "go/metrics2/events/db.go",
         "patchSetId": 1
@@ -154,6 +178,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "8450e1ab_392d8e6c",
+      "range": {
+        "startLine": 21,
+        "startChar": 29,
+        "endLine": 21,
+        "endChar": 47
+      },
+      "revId": "7768afb8e90d0a1ed7307657d7dc61e1f34d5ddf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b9a10b2c_b1ac3930",
+        "filename": "go/metrics2/events/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T17:55:48Z",
+      "side": 1,
+      "message": "We probably don\u0027t care, but it looks like the BDB impl has end inclusive.",
+      "parentUuid": "e2ddfb53_89cadb12",
       "range": {
         "startLine": 21,
         "startChar": 29,
