@@ -8,7 +8,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -43,6 +43,7 @@ var (
 	btInstance        = flag.String("bigtable_instance", "", "BigTable instance to use.")
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
+	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
@@ -117,15 +118,13 @@ func main() {
 	if *repoUrls == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
-	reposDir := path.Join(w, "repos")
-	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
-		sklog.Fatal(err)
+	btConf := &gitstore.BTConfig{
+		ProjectID:  *btProject,
+		InstanceID: *btInstance,
+		TableID:    *gitstoreTable,
 	}
-	repos, err := repograph.NewLocalMap(ctx, *repoUrls, reposDir)
+	repos, err := repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {
-		sklog.Fatal(err)
-	}
-	if err := repos.Update(ctx); err != nil {
 		sklog.Fatal(err)
 	}
 	lvRepos := metrics2.NewLiveness("datahopper_repo_update")

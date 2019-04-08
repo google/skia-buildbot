@@ -31,7 +31,7 @@ func initFromFile(g *Graph, cacheFile string) error {
 	var r gobGraph
 	if err := util.MaybeReadGobFile(cacheFile, &r); err != nil {
 		sklog.Errorf("Failed to read Graph cache file %s; deleting the file and starting from scratch: %s", cacheFile, err)
-		if err2 := os.Remove(cacheFile); err != nil {
+		if err2 := os.Remove(cacheFile); err2 != nil {
 			return fmt.Errorf("Failed to read Graph cache file %s: %s\n...and failed to remove with: %s", cacheFile, err, err2)
 		}
 	}
