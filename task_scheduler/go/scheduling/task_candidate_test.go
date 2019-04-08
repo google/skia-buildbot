@@ -1,26 +1,27 @@
 package scheduling
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-func TestCopyTaskCandidate(t *testing.T) {
-	testutils.SmallTest(t)
-	v := &taskCandidate{
+func fullTaskCandidate() *taskCandidate {
+	return &taskCandidate{
 		Attempt:            3,
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
-		Jobs: jobSet(&types.Job{
+		Jobs: []*types.Job{&types.Job{
 			Id: "dummy",
-		}),
+		}},
 		ParentTaskIds:  []string{"38", "39", "40"},
 		RetryOf:        "41",
 		Score:          99,
@@ -36,7 +37,18 @@ func TestCopyTaskCandidate(t *testing.T) {
 			Isolate: "confine",
 		},
 	}
+}
+
+func TestCopyTaskCandidate(t *testing.T) {
+	testutils.SmallTest(t)
+	v := fullTaskCandidate()
 	deepequal.AssertCopy(t, v, v.Copy())
+}
+
+func TestTaskCandidateJSON(t *testing.T) {
+	testutils.SmallTest(t)
+	v := fullTaskCandidate()
+	deepequal.AssertJSONRoundTrip(t, v)
 }
 
 func TestTaskCandidateId(t *testing.T) {
@@ -98,4 +110,82 @@ func TestReplaceVar(t *testing.T) {
 	c.Patchset = "3"
 	c.Server = "https://server"
 	assert.Equal(t, "refs/changes/45/12345/3", replaceVars(c, "<(PATCH_REF)", dummyId))
+}
+
+func TestTaskCandidateJobs(t *testing.T) {
+	testutils.SmallTest(t)
+
+	c := taskCandidate{}
+	now := time.Now().UTC()
+	j1 := &types.Job{
+		Created: now,
+		Id:      "j1",
+	}
+	j2 := &types.Job{
+		Created: now,
+		Id:      "j2",
+	}
+	j3 := &types.Job{
+		Created: now.Add(time.Second),
+		Id:      "j3",
+	}
+	j4 := &types.Job{
+		Created: now.Add(2 * time.Second),
+		Id:      "j4",
+	}
+
+	for _, j := range []*types.Job{j1, j2, j3, j4} {
+		assert.False(t, c.HasJob(j))
+	}
+
+	c.AddJob(j3)
+	assert.Len(t, c.Jobs, 1)
+	assert.False(t, c.HasJob(j1))
+	assert.False(t, c.HasJob(j2))
+	assert.True(t, c.HasJob(j3))
+	assert.False(t, c.HasJob(j4))
+
+	c.AddJob(j1)
+	assert.Len(t, c.Jobs, 2)
+	assert.True(t, c.HasJob(j1))
+	assert.False(t, c.HasJob(j2))
+	assert.True(t, c.HasJob(j3))
+	assert.False(t, c.HasJob(j4))
+	assert.Equal(t, []*types.Job{j1, j3}, c.Jobs)
+
+	c.AddJob(j4)
+	assert.Len(t, c.Jobs, 3)
+	assert.True(t, c.HasJob(j1))
+	assert.False(t, c.HasJob(j2))
+	assert.True(t, c.HasJob(j3))
+	assert.True(t, c.HasJob(j4))
+	assert.Equal(t, []*types.Job{j1, j3, j4}, c.Jobs)
+
+	c.AddJob(j2)
+	assert.Len(t, c.Jobs, 4)
+	assert.True(t, c.HasJob(j1))
+	assert.True(t, c.HasJob(j2))
+	assert.True(t, c.HasJob(j3))
+	assert.True(t, c.HasJob(j4))
+	// Order is deterministic.
+	assert.Equal(t, []*types.Job{j1, j2, j3, j4}, c.Jobs)
+
+	c.AddJob(j4)
+	assert.Len(t, c.Jobs, 4)
+	c.AddJob(j2)
+	assert.Len(t, c.Jobs, 4)
+	c.AddJob(j1)
+	assert.Len(t, c.Jobs, 4)
+
+	for i := 5; i < 100; i++ {
+		c.AddJob(&types.Job{
+			Created: now.Add(time.Duration(i*23%7) * time.Second),
+			Id:      fmt.Sprintf("j%d", i),
+		})
+	}
+	last := time.Time{}
+	for _, j := range c.Jobs {
+		assert.True(t, !last.After(j.Created))
+		last = j.Created
+	}
 }
