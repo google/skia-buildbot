@@ -336,7 +336,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs1.Copy(),
 	}
 	tc1 := &taskCandidate{
-		Jobs: jobSet(j1),
+		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      tcc_testutils.BuildTaskName,
@@ -344,7 +344,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
 	tc2 := &taskCandidate{
-		Jobs: jobSet(j1),
+		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
 			Name:      tcc_testutils.TestTaskName,
@@ -376,7 +376,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		RepoState:    rs2,
 	}
 	tc3 := &taskCandidate{
-		Jobs: jobSet(j2, j3),
+		Jobs: []*types.Job{j2, j3},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.BuildTaskName,
@@ -384,7 +384,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
 	tc4 := &taskCandidate{
-		Jobs: jobSet(j2),
+		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.TestTaskName,
@@ -392,7 +392,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 	tc5 := &taskCandidate{
-		Jobs: jobSet(j3),
+		Jobs: []*types.Job{j3},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
 			Name:      tcc_testutils.PerfTaskName,
@@ -412,7 +412,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	delete(allCandidates, j3.MakeTaskKey(tcc_testutils.PerfTaskName))
 	// This is hacky, but findTaskCandidatesForJobs accepts an already-
 	// filtered list of jobs, so we have to pretend it never existed.
-	delete(tc3.Jobs, j3)
+	tc3.Jobs = tc3.Jobs[:1]
 	test([]*types.Job{j1, j2}, allCandidates)
 
 	// Ensure that we don't generate candidates for jobs at nonexistent commits.
@@ -663,7 +663,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		RepoState: tryjobRs,
 	}
 	c := &taskCandidate{
-		Jobs: jobSet(tryjob),
+		Jobs: []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
 			RepoState: tryjobRs,
 		},
@@ -676,7 +676,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	// Retries are scored lower.
 	c = &taskCandidate{
 		Attempt: 1,
-		Jobs:    jobSet(tryjob),
+		Jobs:    []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
 			RepoState: tryjobRs,
 		},
@@ -698,7 +698,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	}
 	// Manually forced candidates have a blamelist and a specific score.
 	c = &taskCandidate{
-		Jobs: jobSet(forcedJob),
+		Jobs: []*types.Job{forcedJob},
 		TaskKey: types.TaskKey{
 			RepoState:   rs2,
 			ForcedJobId: forcedJob.Id,
@@ -717,7 +717,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		RepoState: rs2,
 	}
 	c = &taskCandidate{
-		Jobs: jobSet(regularJob),
+		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
 			RepoState: rs2,
 		},
@@ -733,7 +733,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	s.window, err = window.New(time.Nanosecond, 0, nil)
 	assert.NoError(t, err)
 	c = &taskCandidate{
-		Jobs: jobSet(regularJob),
+		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
 			RepoState: rs2,
 		},
@@ -769,13 +769,13 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	}
 	// Candidates at rs1 and rs2
 	c1 := &taskCandidate{
-		Jobs: jobSet(j1),
+		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1,
 		},
 	}
 	c2 := &taskCandidate{
-		Jobs: jobSet(j2),
+		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
 			RepoState: rs2,
 		},
@@ -917,7 +917,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		gb.RepoUrl(): {
 			tcc_testutils.BuildTaskName: {
 				{
-					Jobs: jobSet(testJob1),
+					Jobs: []*types.Job{testJob1},
 					TaskKey: types.TaskKey{
 						RepoState: rs1,
 						Name:      tcc_testutils.BuildTaskName,
@@ -925,7 +925,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					Jobs: jobSet(testJob2, perfJob2),
+					Jobs: []*types.Job{testJob2, perfJob2},
 					TaskKey: types.TaskKey{
 						RepoState: rs2,
 						Name:      tcc_testutils.BuildTaskName,
@@ -933,7 +933,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					Jobs: jobSet(forcedBuildJob2),
+					Jobs: []*types.Job{forcedBuildJob2},
 					TaskKey: types.TaskKey{
 						RepoState:   rs2,
 						Name:        tcc_testutils.BuildTaskName,
@@ -944,7 +944,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 			},
 			tcc_testutils.TestTaskName: {
 				{
-					Jobs: jobSet(testJob1),
+					Jobs: []*types.Job{testJob1},
 					TaskKey: types.TaskKey{
 						RepoState: rs1,
 						Name:      tcc_testutils.TestTaskName,
@@ -952,7 +952,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					Jobs: jobSet(testJob2),
+					Jobs: []*types.Job{testJob2},
 					TaskKey: types.TaskKey{
 						RepoState: rs2,
 						Name:      tcc_testutils.TestTaskName,
@@ -962,7 +962,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 			},
 			tcc_testutils.PerfTaskName: {
 				{
-					Jobs: jobSet(perfJob2),
+					Jobs: []*types.Job{perfJob2},
 					TaskKey: types.TaskKey{
 						RepoState: rs2,
 						Name:      tcc_testutils.PerfTaskName,
@@ -970,7 +970,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 					TaskSpec: &specs.TaskSpec{},
 				},
 				{
-					Jobs: jobSet(perfTryjob2),
+					Jobs: []*types.Job{perfTryjob2},
 					TaskKey: types.TaskKey{
 						RepoState: tryjobRs,
 						Name:      tcc_testutils.PerfTaskName,
