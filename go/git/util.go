@@ -26,6 +26,9 @@ func NormalizeURL(inputURL string) (string, error) {
 	if parsedURL.Scheme == "ssh" {
 		host = strings.Replace(host, ":", "/", 1)
 	}
-	path := "/" + strings.TrimLeft(strings.TrimSuffix(parsedURL.Path, ".git"), "/:")
+
+	// Trim trailing slashes and the ".git" extension.
+	path := strings.TrimRight(strings.TrimSuffix(parsedURL.Path, ".git"), "/")
+	path = "/" + strings.TrimLeft(path, "/:")
 	return host + path, nil
 }
