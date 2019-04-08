@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4d201569_f627f317",
+        "filename": "datahopper/create-datahopper-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-08T20:00:52Z",
+      "side": 1,
+      "message": "nit copy/pasto",
+      "range": {
+        "startLine": 3,
+        "startChar": 38,
+        "endLine": 3,
+        "endChar": 52
+      },
+      "revId": "a3d8487c2b107d26d04af4f236bb4c7132502861",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
