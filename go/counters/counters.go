@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
@@ -77,9 +78,9 @@ func NewPersistentAutoDecrementCounter(ctx context.Context, gcsClient gcs.GCSCli
 
 // write the timings to the backing file. Assumes the caller holds a write lock.
 func (c *PersistentAutoDecrementCounter) write(ctx context.Context) error {
-	w := c.gcs.FileWriter(ctx, c.file, gcs.FILE_WRITE_OPTS_TEXT)
-	defer util.Close(w)
-	return gob.NewEncoder(w).Encode(c.times)
+	return gcs.WithWriteFile(c.gcs, ctx, c.file, gcs.FILE_WRITE_OPTS_TEXT, func(w io.Writer) error {
+		return gob.NewEncoder(w).Encode(c.times)
+	})
 }
 
 // Inc increments the PersistentAutoDecrementCounter and schedules a decrement.
