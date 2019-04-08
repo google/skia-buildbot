@@ -17,6 +17,7 @@ func fullTaskCandidate() *taskCandidate {
 		Attempt:            3,
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
+		Diagnostics:        &taskCandidateDiagnostics{},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
 		Jobs: []*types.Job{&types.Job{
@@ -42,7 +43,10 @@ func fullTaskCandidate() *taskCandidate {
 func TestCopyTaskCandidate(t *testing.T) {
 	testutils.SmallTest(t)
 	v := fullTaskCandidate()
-	deepequal.AssertCopy(t, v, v.Copy())
+	cp := v.CopyNoDiagnostics()
+	assert.Nil(t, cp.Diagnostics)
+	cp.Diagnostics = &taskCandidateDiagnostics{}
+	deepequal.AssertCopy(t, v, cp)
 }
 
 func TestTaskCandidateJSON(t *testing.T) {
