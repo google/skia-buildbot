@@ -1,23 +1,26 @@
 package events
 
 import (
+	"context"
 	"io/ioutil"
-	"path"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/testutils"
 )
 
 func TestAggregateMetric(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	db, err := NewEventDB(path.Join(tmp, "events.bdb"))
+	project, instance, cleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
+	defer cleanup()
+	db, err := NewBTEventDB(context.Background(), project, instance, nil)
 	assert.NoError(t, err)
 	m, err := NewEventMetrics(db, "test-metrics")
 	assert.NoError(t, err)
@@ -46,13 +49,15 @@ func TestAggregateMetric(t *testing.T) {
 }
 
 func TestDynamicMetric(t *testing.T) {
-	testutils.MediumTest(t)
+	testutils.LargeTest(t)
 
 	tmp, err := ioutil.TempDir("", "")
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 
-	db, err := NewEventDB(path.Join(tmp, "events.bdb"))
+	project, instance, cleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
+	defer cleanup()
+	db, err := NewBTEventDB(context.Background(), project, instance, nil)
 	assert.NoError(t, err)
 	m, err := NewEventMetrics(db, "test-dynamic-metrics")
 	assert.NoError(t, err)
