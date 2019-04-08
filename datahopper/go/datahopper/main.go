@@ -8,7 +8,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"path"
 	"path/filepath"
 	"regexp"
 	"time"
@@ -81,15 +80,16 @@ func main() {
 	}
 	sklog.Infof("Workdir is %s", w)
 
-	// Authenticated HTTP client.
-	oauthCacheFile := path.Join(w, "google_storage_token.data")
-	legacyTs, err := auth.NewLegacyTokenSource(*local, oauthCacheFile, "", swarming.AUTH_SCOPE)
+	// OAuth2.0 TokenSource.
+	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope, datastore.ScopeDatastore, swarming.AUTH_SCOPE, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(legacyTs).With2xxOnly().Client()
 
-	// Swarming API client.
+	// Authenticated HTTP client.
+	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+
+	// Various API clients.
 	swarm, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
 	if err != nil {
 		sklog.Fatal(err)
@@ -98,14 +98,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-
-	jwtTs, err := auth.NewDefaultJWTServiceAccountTokenSource(auth.SCOPE_READ_WRITE)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	authClient := httputils.DefaultClientConfig().WithTokenSource(jwtTs).With2xxOnly().Client()
-
-	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
+	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -137,11 +130,7 @@ func main() {
 	})
 
 	// TaskCfgCache.
-	newTs, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL, pubsub.AUTH_SCOPE, bigtable.Scope, datastore.ScopeDatastore)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, newTs)
+	tcc, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create TaskCfgCache: %s", err)
 	}
@@ -165,7 +154,7 @@ func main() {
 	swarming_metrics.StartSwarmingBotMetrics(swarmingClients, swarmingPools, metrics2.GetDefaultClient())
 
 	// Swarming tasks.
-	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarm, pc, tnp, newTs); err != nil {
+	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarm, pc, tnp, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -185,11 +174,11 @@ func main() {
 	// TODO(borenet): We should include metrics from all three (production,
 	// internal, staging) instances.
 	label := "datahopper"
-	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, newTs)
+	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	d, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, newTs, mod)
+	d, err := firestore.NewDB(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts, mod)
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
@@ -203,11 +192,11 @@ func main() {
 	}
 
 	// Generate "time to X% bot coverage" metrics.
-	if err := bot_metrics.Start(ctx, d, repos, tcc, *btProject, *btInstance, *workdir, newTs); err != nil {
+	if err := bot_metrics.Start(ctx, d, repos, tcc, *btProject, *btInstance, *workdir, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
-	if err := StartFirestoreBackupMetrics(ctx, newTs); err != nil {
+	if err := StartFirestoreBackupMetrics(ctx, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
