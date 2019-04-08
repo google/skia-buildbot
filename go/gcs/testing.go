@@ -215,10 +215,10 @@ func (c *MemoryGCSClient) GetFileContents(ctx context.Context, path string) ([]b
 
 // See documentation for GCSClient interface.
 func (c *MemoryGCSClient) SetFileContents(ctx context.Context, path string, opts FileWriteOptions, contents []byte) error {
-	w := c.FileWriter(ctx, path, opts)
-	defer util.Close(w)
-	_, err := w.Write(contents)
-	return err
+	return WithWriteFile(c, ctx, path, opts, func(w io.Writer) error {
+		_, err := w.Write(contents)
+		return err
+	})
 }
 
 // See documentation for GCSClient interface.
