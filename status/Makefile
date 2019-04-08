@@ -9,12 +9,9 @@ CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.m
 
 BOWER_DIR=third_party/bower_components
 
-all: clean_webtools status
+all: clean_webtools statusk
 
 include ../go/skiaversion/skiaversion.mk
-
-status: web skiaversion
-	go install -v ./go/status
 
 # Build the web assets in production mode.
 .PHONY: web
