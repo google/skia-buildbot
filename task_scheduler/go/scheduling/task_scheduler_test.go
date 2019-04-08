@@ -3545,7 +3545,7 @@ func TestIsolateTaskFailed(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 	// We'll try to trigger all tasks but the one for the bad commit will
 	// fail. Ensure that we triggered all of the others.
-	assert.Equal(t, 0, len(s.queue))
+	assert.Equal(t, 1, len(s.queue))
 	tasks, err := s.tCache.GetTasksForCommits(gb.RepoUrl(), commits)
 	assert.NoError(t, err)
 
