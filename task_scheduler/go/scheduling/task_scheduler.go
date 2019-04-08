@@ -1285,7 +1285,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 	}()
 
 	// Trigger Swarming tasks.
-	triggered := s.triggerTasks(candidates, errCh)
+	triggered := s.triggerTasks(isolated, errCh)
 
 	// Collect the tasks we triggered.
 	numTriggered := 0
