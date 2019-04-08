@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -398,14 +399,14 @@ func writeTs(workdir string, ts time.Time) error {
 
 // Start initiates "average time to X% bot coverage" metrics data generation.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, workdir string) error {
+func Start(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache, btProject, btInstance, workdir string, ts oauth2.TokenSource) error {
 	// Setup.
 	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
 		return err
 	}
 
 	// Set up event metrics.
-	edb, err := events.NewEventDB(path.Join(workdir, "percent-metrics.bdb"))
+	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
 	if err != nil {
 		return fmt.Errorf("Failed to create EventDB: %s", err)
 	}
