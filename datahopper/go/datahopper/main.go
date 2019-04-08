@@ -43,7 +43,9 @@ var (
 	btProject         = flag.String("bigtable_project", "", "GCE project to use for BigTable.")
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
+	kube              = flag.Bool("kube", false, "True if running in Kubernetes.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port              = flag.String("port", ":8000", "HTTP service port for the health check server (e.g., ':8000')")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
 	workdir           = flag.String("workdir", ".", "Working directory used by data processors.")
@@ -66,11 +68,22 @@ var (
 )
 
 func main() {
-	common.InitWithMust(
-		"datahopper",
-		common.PrometheusOpt(promPort),
-		common.CloudLoggingOpt(),
-	)
+	// TODO(borenet): Temporary measure until datahopper is permanently
+	// running in Kubernetes.
+	flag.Parse()
+	if *kube {
+		common.InitWithMust(
+			"datahopper",
+			common.PrometheusOpt(promPort),
+			common.MetricsLoggingOpt(),
+		)
+	} else {
+		common.InitWithMust(
+			"datahopper",
+			common.PrometheusOpt(promPort),
+			common.CloudLoggingOpt(),
+		)
+	}
 	ctx := context.Background()
 
 	// Absolutify the workdir.
@@ -201,5 +214,5 @@ func main() {
 	}
 
 	// Wait while the above goroutines generate data.
-	select {}
+	httputils.RunHealthCheckServer(*port)
 }
