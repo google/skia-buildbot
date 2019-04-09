@@ -108,6 +108,30 @@
     },
     {
       "key": {
+        "uuid": "2297117f_370992b3",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-09T18:38:16Z",
+      "side": 1,
+      "message": "Ok, I think it\u0027s fixed. Added the log link to a few other alerts as well.",
+      "parentUuid": "a79fcc57_6ae56eb2",
+      "range": {
+        "startLine": 312,
+        "startChar": 108,
+        "endLine": 312,
+        "endChar": 141
+      },
+      "revId": "5f7284657dc8c505742d513436786c924373a33d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "eaf2d6d5_58862f11",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1

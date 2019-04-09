@@ -22,6 +22,30 @@
       "revId": "2935041b9bfd94c0c126e8fa5564edcc5b24e753",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e781fce4_022158be",
+        "filename": "promk/prometheus/alerts_public.yml",
+        "patchSetId": 2
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-09T18:38:16Z",
+      "side": 1,
+      "message": "Removed from this file.",
+      "parentUuid": "338d0b6c_6b6aa5dc",
+      "range": {
+        "startLine": 329,
+        "startChar": 0,
+        "endLine": 337,
+        "endChar": 203
+      },
+      "revId": "2935041b9bfd94c0c126e8fa5564edcc5b24e753",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
