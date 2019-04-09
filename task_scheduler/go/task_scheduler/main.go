@@ -529,7 +529,6 @@ func runServer(serverURL string, taskDb db.RemoteDB) {
 func main() {
 
 	// Global init.
-	flag.Parse()
 	common.InitWithMust(
 		APP_NAME,
 		common.PrometheusOpt(promPort),
