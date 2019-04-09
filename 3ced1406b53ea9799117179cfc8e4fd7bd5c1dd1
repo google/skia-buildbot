@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "f00773ef_b6b6abcb",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2019-04-09T17:29:16Z",
+      "side": 1,
+      "message": "Have you considered passing in an io.Reader to this function instead of a path?  That\u0027ll let you avoid the need to have separate testdata directories and files and such, instead using e.g. a strings.Reader to pass the data around in the unit test.",
+      "revId": "3ced1406b53ea9799117179cfc8e4fd7bd5c1dd1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "73fe6e7f_e596c5bb",
         "filename": "named-fiddles/go/named-fiddles/testdata/example.cpp",
         "patchSetId": 6
