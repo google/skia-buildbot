@@ -65,7 +65,7 @@
   "maxRollFrequency": "0m",
   "notifiers": [
     {
-      "filter": "info",
+      "filter": "error",
       "email": {
         "emails": [
           "$SHERIFF"
