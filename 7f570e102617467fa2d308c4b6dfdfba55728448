@@ -70,6 +70,30 @@
       "revId": "7f570e102617467fa2d308c4b6dfdfba55728448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84d58283_422efcc5",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-09T21:39:57Z",
+      "side": 1,
+      "message": "Ok, I\u0027ve changed it to use the Firestore approach.",
+      "parentUuid": "d695b796_5f42149b",
+      "range": {
+        "startLine": 681,
+        "startChar": 1,
+        "endLine": 683,
+        "endChar": 0
+      },
+      "revId": "7f570e102617467fa2d308c4b6dfdfba55728448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
