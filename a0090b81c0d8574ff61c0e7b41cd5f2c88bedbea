@@ -22,6 +22,30 @@
       "revId": "a0090b81c0d8574ff61c0e7b41cd5f2c88bedbea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1bbd0ff_81e36fde",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-09T11:14:19Z",
+      "side": 1,
+      "message": "Agreed, but with so much other stuff changing, I\u0027d rather not introduce another potential behavior change at the moment.",
+      "parentUuid": "bf10def6_dbb3bf22",
+      "range": {
+        "startLine": 90,
+        "startChar": 67,
+        "endLine": 90,
+        "endChar": 80
+      },
+      "revId": "a0090b81c0d8574ff61c0e7b41cd5f2c88bedbea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
