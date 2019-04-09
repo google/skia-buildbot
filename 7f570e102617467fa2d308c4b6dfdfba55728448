@@ -22,6 +22,30 @@
       "revId": "7f570e102617467fa2d308c4b6dfdfba55728448",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df310b5b_8d6a2e35",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-09T19:24:22Z",
+      "side": 1,
+      "message": "I was thinking they would write to different buckets.",
+      "parentUuid": "1722dd2e_4e62bf92",
+      "range": {
+        "startLine": 681,
+        "startChar": 1,
+        "endLine": 683,
+        "endChar": 0
+      },
+      "revId": "7f570e102617467fa2d308c4b6dfdfba55728448",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
