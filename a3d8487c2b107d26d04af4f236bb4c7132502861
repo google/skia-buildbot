@@ -22,6 +22,30 @@
       "revId": "a3d8487c2b107d26d04af4f236bb4c7132502861",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3e67a09_508cf664",
+        "filename": "datahopper/create-datahopper-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-09T11:16:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4d201569_f627f317",
+      "range": {
+        "startLine": 3,
+        "startChar": 38,
+        "endLine": 3,
+        "endChar": 52
+      },
+      "revId": "a3d8487c2b107d26d04af4f236bb4c7132502861",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
