@@ -45,10 +45,12 @@ First build the wasm module and its associated Javascript in the Skia repository
 
     cd {skia}/experimental/wasm-skp-debugger
     make debug
-    cd ../..
+    make move-assets
 
 This will copy the two outputs from `out/debugger_wasm` to
 `~/go/src/go.skia.org/infra/debugger-assets/res`
+
+You could also `make release` instead to test the closure compilation and externs.
 
 Since this version requires no backend, the custom app element is simply instantiated in
 res/imp/wasm-app-demo.html which can be loaded in the browser. It will load debugger.wasm and
@@ -56,6 +58,7 @@ debugger.js which were built in the previous step. It is necessary to serve debu
 an http server rather than opening the file directly because wasm-loading code requires the mime
 type to be correct. To start this server:
 
+    cd ~/go/src/go.skia.org/infra/debugger-assets
     make run_server_local
 
 then visit <http://localhost:9000/res/imp/wasm-app-demo.html>
