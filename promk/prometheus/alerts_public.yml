@@ -323,3 +323,25 @@ groups:
       owner: borenet@google.com
     annotations:
       description: 'The JSON endpoint at https://status.skia.org/json/skia/commits/ took more than 10s to respond.'
+
+# Datahopper
+
+  - alert: FirestoreBackupTooOld
+    expr: liveness_last_successful_firestore_backup_s/60/60 > 26
+    labels:
+      category: infra
+      severity: critical
+      owner: benjaminwagner@google.com
+    annotations:
+      abbr: '{{ $labels.app }}'
+      description: 'The most recent successful Firestore nightly backup was more than 26 hours ago. https://skia.googlesource.com/buildbot/%2B/master/datahopper/PROD.md#firestore_nightly_backup'
+
+# Swarming
+
+  - alert: WindowsSkoloOSVersion
+    expr: round(avg_over_time(windows_skolo_os_version_count{pool="Skia"}[1h])) != 1
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'Windows Skolo bots OS version has diverged. https://goto.google.com/skolo-maintenance'
