@@ -48,6 +48,7 @@ func fuchsiaCfg() *FuchsiaSDKRepoManagerConfig {
 				ParentBranch: "master",
 			},
 		},
+		IncludeMacSDK: true,
 	}
 }
 
