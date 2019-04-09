@@ -241,7 +241,6 @@ The main application element for the Skia Debugger.
       background-size: 20px 20px;
       background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
                         linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
-}
     }
 
     #keyboardshortcuts {
@@ -276,6 +275,19 @@ The main application element for the Skia Debugger.
 
     .sizeToolBar paper-icon-button:hover {
       background-color: #eee;
+    }
+
+    .color-p {
+      width: 24em;
+    }
+
+    .color-preview {
+      width: 10px;
+      height: 10px;
+      margin: 0;
+      padding: 0;
+      display: inline-block;
+      border: 1px solid black;
     }
 
     details-sk {
@@ -380,7 +392,12 @@ The main application element for the Skia Debugger.
             <dd>[[ hex ]]</dd>
           </dl>
           <div>
-            <paper-checkbox disabled id=colorBreakPoint on-change="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
+            <paper-checkbox disabled id=colorBreakPoint on-change="_breakPoint">Break on change.</paper-checkbox>
+            <div id=colorText class="color-p hidden">
+              Moving to command <span id=colorTextCommand></span> changed the color of the selected pixel from
+              <div class=color-preview id=prevColor></div> <span id=colorTextColor1></span> to
+              <div class=color-preview id=currColor></div> <span id=colorTextColor2></span>.
+            </div>
           </div>
           <zoom-sk source=img pixels=21 id=zoom></zoom-sk>
           <details-sk id=keyboardshortcuts class=hidden>
@@ -541,28 +558,22 @@ The main application element for the Skia Debugger.
           this.$.zoom.updateZoom();
         });
 
-        this.$.play.prePlayCallback(() => {
-          if (!this.$.colorBreakPoint.disabled && this.$.colorBreakPoint.checked) {
-            // TODO(nifong) migrate breakpoint functionality to wasm debugger.
-            DebugCanvas.setBreakpoint(this._targetItem, this.x, this.y).then((json) => {
-              if (json.endOp !== -1) {
-                this.$.prevColor.textContent = json.startColor + ' -> ' + json.endColor;
-                let item = this._findItemFromIndex(json.endOp);
-                this._targetItem = item;
-              } else {
-                sk.errorMessage('Pixel at (' + this.x + ', ' + this.y + ') never changes.');
-              }
-            }).catch(sk.errorMessage);
-            return false;
-          }
-          return true;
-        });
-
         this.$.zoom.addEventListener('zoom-point', (e) => {
           this.set('rgb', e.detail.rgb);
           this.set('hex', e.detail.hex);
           this.set('x', e.detail.x);
           this.set('y', e.detail.y);
+
+          // Track changes in the color of the selected pixel for stopping packback if breakpoint
+          // is enabled.
+          this._prevSelectionColor = this._currSelectionColor
+          this._currSelectionColor = e.detail.rgb;
+        });
+
+        this.$.zoom.addEventListener('click-to-move', (e) => {
+          this.$.crosshair.x = e.detail.x;
+          this.$.crosshair.y = e.detail.y;
+          this.$.crosshair.coordinatesUpdated();
         });
 
         // This event is the play/pause widget telling us to show a certain command.
@@ -572,12 +583,25 @@ The main application element for the Skia Debugger.
           }
           this._targetItem = e.detail.item;
           this._moveToTargetItem();
+          // If moving to this target caused the color of the selected pixel to change, and the
+          // breakpoint is enabled, pause playback.
+          if (this.$.colorBreakPoint.checked
+              && (this._prevSelectionColor !== this._currSelectionColor)) {
+            this.$.prevColor.style.backgroundColor = this._prevSelectionColor;
+            this.$.currColor.style.backgroundColor = this._currSelectionColor;
+            this.$.colorTextCommand.textContent = this._targetItem;
+            this.$.colorTextColor1.textContent = this._prevSelectionColor;
+            this.$.colorTextColor2.textContent = this._currSelectionColor;
+            this.$.colorText.classList.remove('hidden');
+            // Stop playback
+            this.$.play.mode = "pause";
+          }
         });
 
         // This event is the play/pause button being clicked.
         this.$.play.addEventListener('mode-changed-manually', (e) => {
           // Clear the breakpoint info if the user presses a button.
-          this.$.prevColor.textContent = '';
+          this.$.colorText.classList.add('hidden');
         });
 
         // This event is created byt sk-canvas-layers when it is resized
