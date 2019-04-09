@@ -22,6 +22,29 @@
       "revId": "0fd1e752d4319148081a516102f4f81796b5bf29",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86826050_e1c44870",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-09T17:47:47Z",
+      "side": 1,
+      "message": "(linux) ?",
+      "range": {
+        "startLine": 178,
+        "startChar": 68,
+        "endLine": 178,
+        "endChar": 69
+      },
+      "revId": "0fd1e752d4319148081a516102f4f81796b5bf29",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
