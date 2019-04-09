@@ -411,6 +411,7 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 		return err
 	}
 
+	latestJobAge := make(map[jobSpecMetricKey]metrics2.Int64Metric, len(m.prevLatestJobAge))
 	// Process each repo individually.
 	for repoUrl, repo := range m.repos {
 		// Include only the jobs at current master (or most recently
@@ -526,7 +527,6 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 		if err != nil {
 			return err
 		}
-		latestJobAge := make(map[jobSpecMetricKey]metrics2.Int64Metric, len(names))
 		for name, jobs := range jobsByName {
 			key := jobSpecMetricKey{
 				Repo:    repoUrl,
@@ -547,17 +547,17 @@ func (m *overdueJobMetrics) updateOverdueJobSpecMetrics(ctx context.Context, now
 			metric.Update(int64(now.Sub(latest).Seconds()))
 			latestJobAge[key] = metric
 		}
-		for key, metric := range m.prevLatestJobAge {
-			if _, ok := latestJobAge[key]; !ok {
-				if err := metric.Delete(); err != nil {
-					sklog.Errorf("Failed to delete metric: %s", err)
-					// Set to 0 and attempt to remove on the next cycle.
-					metric.Update(0)
-					latestJobAge[key] = metric
-				}
+	}
+	for key, metric := range m.prevLatestJobAge {
+		if _, ok := latestJobAge[key]; !ok {
+			if err := metric.Delete(); err != nil {
+				sklog.Errorf("Failed to delete metric: %s", err)
+				// Set to 0 and attempt to remove on the next cycle.
+				metric.Update(0)
+				latestJobAge[key] = metric
 			}
 		}
-		m.prevLatestJobAge = latestJobAge
 	}
+	m.prevLatestJobAge = latestJobAge
 	return nil
 }
