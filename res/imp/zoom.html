@@ -34,6 +34,11 @@
         zoom source is a canvas since you are expected to have synchronously
         called updateZoom in that case.
 
+    click-to-move - This event is generated if the user clicks on the zoom element.
+      x - the position of the click in the coordinate space of the source image/canvas
+          in it's native resolution.
+      y - ||
+
   Methods:
 
     updateZoom() - To be called if the source img/canvas in the zoomed region has changed,
@@ -124,6 +129,22 @@
         this.changeSource($$$('#' + this.source, this._findParent()));
         // The canvas context we are drawing the zoomed pixels on.
         this.ctx = this.$.zoom.getContext('2d');
+        // A click on the zoom view can be used to move it.
+        this.$.zoom.addEventListener('click', (e) => {
+          let halfsize = Math.floor(this.pixels / 2);
+          let gridX = Math.floor(e.offsetX / this.pixel_size) - halfsize;
+          let gridY = Math.floor(e.offsetY / this.pixel_size) - halfsize;
+          // Dispatch an event indicating the user would like to move the selection.
+          let detail = {
+            x: this.x + gridX,
+            y: this.y + gridY,
+          };
+          let evt = new CustomEvent('click-to-move', {
+            detail: detail,
+            bubbles: true
+          });
+          this.dispatchEvent(evt);
+        });
       },
 
       changeSource(element) {
