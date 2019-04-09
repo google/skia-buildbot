@@ -71,6 +71,7 @@ func fuchsiaSDKShortVersion(long string) string {
 // RepoManager.
 type FuchsiaSDKRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
+	IncludeMacSDK bool `json:"includeMacSDK"`
 }
 
 // fuchsiaSDKRepoManager is a RepoManager which rolls the Fuchsia SDK version
@@ -95,11 +96,11 @@ type fuchsiaSDKRepoManager struct {
 // Return a fuchsiaSDKRepoManager instance.
 func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, workdir string, g gerrit.GerritInterface, serverURL, gitcookiesPath string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to validate config: %s", err)
 	}
 	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create storage client: %s", err)
 	}
 
 	rv := &fuchsiaSDKRepoManager{
@@ -110,12 +111,14 @@ func newFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfi
 		gsListPath:        FUCHSIA_SDK_GS_PATH,
 		storageClient:     storageClient,
 		versionFileLinux:  FUCHSIA_SDK_VERSION_FILE_PATH_LINUX,
-		versionFileMac:    FUCHSIA_SDK_VERSION_FILE_PATH_MAC,
+	}
+	if c.IncludeMacSDK {
+		rv.versionFileMac = FUCHSIA_SDK_VERSION_FILE_PATH_MAC
 	}
 
 	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, workdir, g, serverURL, gitcookiesPath, authClient, cr, rv.buildCommitMessage, rv.updateHelper, local)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create NoCheckoutRepoManager: %s", err)
 	}
 	rv.noCheckoutRepoManager = ncrm
 	return rv, nil
@@ -141,14 +144,14 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// Read the version file to determine the last roll rev.
 	buf := bytes.NewBuffer([]byte{})
 	if err := parentRepo.ReadFileAtRef(rm.versionFileLinux, baseCommit, buf); err != nil {
-		return "", "", 0, nil, err
+		return "", "", 0, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileLinux, baseCommit, err)
 	}
 	lastRollRevLinuxStr := strings.TrimSpace(buf.String())
 
 	buf = bytes.NewBuffer([]byte{})
 	if rm.versionFileMac != "" {
 		if err := parentRepo.ReadFileAtRef(rm.versionFileMac, baseCommit, buf); err != nil {
-			return "", "", 0, nil, err
+			return "", "", 0, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileMac, baseCommit, err)
 		}
 	}
 	lastRollRevMacStr := strings.TrimSpace(buf.String())
@@ -163,7 +166,7 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 			Version:   vSplit[len(vSplit)-1],
 		})
 	}); err != nil {
-		return "", "", 0, nil, err
+		return "", "", 0, nil, fmt.Errorf("Failed to list available versions: %s", err)
 	}
 	if len(availableVersions) == 0 {
 		return "", "", 0, nil, fmt.Errorf("No matching items found.")
@@ -173,13 +176,13 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	// Get next SDK version.
 	nextRollRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathLinux)
 	if err != nil {
-		return "", "", 0, nil, err
+		return "", "", 0, nil, fmt.Errorf("Failed to read next SDK version (linux): %s", err)
 	}
 	nextRollRevLinuxStr := strings.TrimSpace(string(nextRollRevLinuxBytes))
 
 	nextRollRevMacBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathMac)
 	if err != nil {
-		return "", "", 0, nil, err
+		return "", "", 0, nil, fmt.Errorf("Failed to read next SDK version (mac): %s", err)
 	}
 	nextRollRevMacStr := strings.TrimSpace(string(nextRollRevMacBytes))
 
