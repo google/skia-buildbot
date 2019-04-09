@@ -16,6 +16,24 @@
       "revId": "9e992abb0c768cacf38f2fea0751e97b74063d04",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9b5c06e0_cde79239",
+        "filename": "go/gcs/storage.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-09T11:43:56Z",
+      "side": 0,
+      "message": "Seems reasonable to me",
+      "parentUuid": "9bc1e719_55f540f6",
+      "revId": "9e992abb0c768cacf38f2fea0751e97b74063d04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
