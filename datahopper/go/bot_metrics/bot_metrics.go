@@ -205,7 +205,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	// Read cached data.
 	data, err := read(edb, repos, now)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to read cached data: %s", err)
 	}
 
 	// Compute lag times for all commits in range.
@@ -226,7 +226,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 		sklog.Infof("Loading data for %s - %s", periodStart, periodEnd)
 		tasks, err := taskDb.GetTasksFromDateRange(periodStart, periodEnd, "")
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to load tasks from %s to %s: %s", periodStart, periodEnd, err)
 		}
 
 		// For each task, find all commits first covered by the task
@@ -343,7 +343,7 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 			}
 		}
 		if err := write(edb, data); err != nil {
-			return err
+			return fmt.Errorf("Failed to write results: %s", err)
 		}
 		if periodEnd.Equal(now) {
 			break
@@ -359,11 +359,11 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 		}
 	}
 	if err := write(edb, data); err != nil {
-		return err
+		return fmt.Errorf("Failed to write results (2): %s", err)
 	}
 
 	if err := em.UpdateMetrics(); err != nil {
-		return err
+		return fmt.Errorf("Failed to update metrics: %s", err)
 	}
 	em.LogMetrics()
 	if err := writeTs(workdir, now); err != nil {
