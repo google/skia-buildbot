@@ -119,6 +119,8 @@
         this.changeSource($$$('#' + this.source, this._findParent()));
         // The canvas context we are drawing the zoomed pixels on.
         this.ctx = this.$.zoom.getContext('2d');
+
+        //this.$.zoom.addEventListener('click', this._clickEventHandlerBound);
       },
 
       changeSource(element) {
