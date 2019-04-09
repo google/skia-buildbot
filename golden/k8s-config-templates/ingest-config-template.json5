@@ -26,6 +26,7 @@
     // Gold Tryjob Ingester for gold-{{.INSTANCE_ID}}.
     "gold-tryjob": {
       RunEvery: "5m",
+      NCommits: {{.ING_TRY_N_COMMITS}},
       MinDays: 120,
       StatusDir: "/data/tryjobs/ingest_status",
       MetricName: "{{.INSTANCE_ID}}-gold-ingest-tryjob",
@@ -42,7 +43,7 @@
         BuildBucketPollInterval: "{{.ING_TRY_BB_INTERVAL}}",
         BuildBucketTimeWindow: "{{.ING_TRY_BB_WINDOW}}",
         BuilderRegEx: "{{.ING_TRY_BUILDER_REGEX}}",
-        ServiceAccountFile: "/etc/gold-config/buildbot-service-account.json"
+        ServiceAccountFile: "/etc/gold-config/service-account.json"
       }
     {{end}}
     }

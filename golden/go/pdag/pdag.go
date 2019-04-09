@@ -1,4 +1,4 @@
-// Package pdag allows to define a DAG of processing fuctions.
+// Package pdag allows to define a DAG of processing functions.
 //
 // The processing can be triggered at any node of the graph
 // and will follow the directed edges of the graph. Before
@@ -38,7 +38,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// Type of the processing functio nin each node.
+// Type of the processing function nin each node.
 type ProcessFn func(interface{}) error
 
 // Node of the Dag.
