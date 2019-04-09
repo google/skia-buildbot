@@ -279,12 +279,12 @@ func (m *EventMetrics) updateMetrics(now time.Time) error {
 		for period, metrics := range byPeriod {
 			ev, err := m.db.Range(stream, now.Add(-period), now)
 			if err != nil {
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("Failed to retrieve %q events from range %s - %s: %s", stream, now.Add(-period), now, err))
 				continue
 			}
 			for _, mx := range metrics {
 				if err := m.updateMetric(ev, mx); err != nil {
-					errs = append(errs, err)
+					errs = append(errs, fmt.Errorf("Failed to update metric: %+v\n%s", mx, err))
 					continue
 				}
 			}
@@ -295,13 +295,13 @@ func (m *EventMetrics) updateMetrics(now time.Time) error {
 		for period, metrics := range byPeriod {
 			ev, err := m.db.Range(stream, now.Add(-period), now)
 			if err != nil {
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("Failed to retrieve %q events from range %s - %s (2): %s", stream, now.Add(-period), now, err))
 				continue
 			}
 			for _, mx := range metrics {
 				got, err := m.updateDynamicMetric(ev, mx)
 				if err != nil {
-					errs = append(errs, err)
+					errs = append(errs, fmt.Errorf("Failed to update dynamic metric: %+v\n%s", mx, err))
 					continue
 				}
 				for k, v := range got {
@@ -314,7 +314,7 @@ func (m *EventMetrics) updateMetrics(now time.Time) error {
 	for k, v := range m.currentDynamicMetrics {
 		if _, ok := gotDynamicMetrics[k]; !ok {
 			if err := v.Delete(); err != nil {
-				errs = append(errs, err)
+				errs = append(errs, fmt.Errorf("Failed to delete old metric %q: %s", k, err))
 			}
 		}
 	}
