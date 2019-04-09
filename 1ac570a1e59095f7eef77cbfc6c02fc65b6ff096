@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71311376_eeab9c2e",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 3
+      },
+      "lineNbr": 323,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-09T18:43:02Z",
+      "side": 1,
+      "message": "here too?",
+      "range": {
+        "startLine": 323,
+        "startChar": 176,
+        "endLine": 323,
+        "endChar": 177
+      },
+      "revId": "1ac570a1e59095f7eef77cbfc6c02fc65b6ff096",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
