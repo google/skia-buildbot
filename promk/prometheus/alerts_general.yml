@@ -216,7 +216,7 @@ groups:
       description: 'The endpoint for {{ $labels.probename }} took more than 300ms to respond. https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#http_latency Logs: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
   - alert: TaskSchedulerErrorRate
-    expr: rate(num_log_lines{level="ERROR",app=~"task_scheduler.*"}[2m]) > 0.05
+    expr: rate(num_log_lines{level="ERROR",app=~"task-scheduler.*"}[2m]) > 0.05
     labels:
       category: infra
       severity: critical
@@ -426,7 +426,7 @@ groups:
       description: 'Swarming bot {{ $labels.bot }} is quarantined. https://{{ $labels.swarming }}/bot?id={{ $labels.bot }} https://goto.google.com/skolo-maintenance'
 
   - alert: DeviceUnhealthy
-    expr: avg_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)",bot!="skia-rpi-template"}[1h]) >= 1
+    expr: avg(avg_over_time(swarming_bots_quarantined{device_state=~"(too_hot)|(low_battery)",bot!="skia-rpi-template"}[1h])) by (bot, device_state) >= 1
     labels:
       category: infra
       severity: critical
