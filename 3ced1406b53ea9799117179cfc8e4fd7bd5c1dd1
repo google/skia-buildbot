@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "e8c39841_b10826ef",
+        "filename": "named-fiddles/go/named-fiddles/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5110
+      },
+      "writtenOn": "2019-04-10T13:30:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f00773ef_b6b6abcb",
+      "revId": "3ced1406b53ea9799117179cfc8e4fd7bd5c1dd1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73fe6e7f_e596c5bb",
         "filename": "named-fiddles/go/named-fiddles/testdata/example.cpp",
         "patchSetId": 6
