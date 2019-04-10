@@ -39,6 +39,10 @@ type GitInfo struct {
 	mutex sync.Mutex
 }
 
+func (g *GitInfo) GetBranch() string {
+	return "master"
+}
+
 // NewGitInfo creates a new GitInfo for the Git repository found in directory
 // dir. If pull is true then a git pull is done on the repo before querying it
 // for history.

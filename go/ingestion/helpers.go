@@ -20,8 +20,11 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -63,7 +66,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *gitstore.BTConfig) ([]*Ingester, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
@@ -76,8 +79,23 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
 	var err error
-	if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
-		return nil, err
+	if btConf != nil {
+		gitStore, err := gitstore.NewBTGitStore(ctx, btConf, config.GitRepoURL)
+		if err != nil {
+			return nil, skerr.Fmt("Error instantiating gitstore: %s", err)
+		}
+
+		// Set up VCS instance to track master.
+		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", client)
+		if vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, nil, 0); err != nil {
+			return nil, err
+		}
+		sklog.Infof("Created vcs client based on BigTable.")
+	} else {
+		if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
+			return nil, err
+		}
+		sklog.Infof("Created vcs client based on local checkout.")
 	}
 
 	// Instantiate the secondary repo if one was specified.
@@ -98,6 +116,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 	// for each defined ingester create an instance.
 	for id, ingesterConf := range config.Ingesters {
+		sklog.Infof("Starting to instantiate ingester: %s", id)
 		processorConstructor, ok := constructors[id]
 		if !ok {
 			return nil, fmt.Errorf("Unknown ingester: '%s'", id)
@@ -111,6 +130,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
 			sources = append(sources, oneSource)
+			sklog.Infof("Source %s created for ingester %s", oneSource.ID(), id)
 		}
 
 		// instantiate the processor
@@ -118,6 +138,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		if err != nil {
 			return nil, err
 		}
+		sklog.Infof("Processor constructor for ingester %s created", id)
 
 		// create the ingester and add it to the result.
 		ingester, err := NewIngester(id, ingesterConf, vcs, sources, processor, ingestionStore, eventBus)
@@ -125,6 +146,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 			return nil, err
 		}
 		ret = append(ret, ingester)
+		sklog.Infof("Ingester %s created successfully", id)
 	}
 
 	return ret, nil

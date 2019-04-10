@@ -29,6 +29,8 @@ spec:
           args:
             - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config.json5"
             - "--namespace=gold-{{.INSTANCE_ID}}"
+            - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
+            - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--http_port=:9091"
             - "--logtostderr"
             - "--no_cloud_log"
@@ -45,6 +47,9 @@ spec:
               mountPath: /data
             - name: gold-service-account-secrets
               mountPath: /etc/gold-config/
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/gold-config/service-account.json
           resources:
             limits:
               memory: "4Gi"
