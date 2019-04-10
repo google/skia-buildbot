@@ -111,7 +111,6 @@ func (i *imgTestEnv) addCommonFlags(cmd *cobra.Command, optional bool) {
 	if !optional {
 		_ = cmd.MarkFlagRequired("instance")
 		_ = cmd.MarkFlagRequired(fstrWorkDir)
-		_ = cmd.MarkFlagRequired("passfail")
 		_ = cmd.MarkFlagRequired("commit")
 		_ = cmd.MarkFlagRequired("keys-file")
 	}
