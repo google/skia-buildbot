@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8676a940_6aed8e1a",
+        "filename": "datahopper/go/datahopper/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-10T19:17:38Z",
+      "side": 1,
+      "message": "typo\n\n(Not your fault, but now you\u0027re on the blame. 🙂)",
+      "range": {
+        "startLine": 49,
+        "startChar": 131,
+        "endLine": 49,
+        "endChar": 137
+      },
+      "revId": "818b3db58a7dc6b9a35a907c561aac2817011e01",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
