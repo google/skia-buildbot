@@ -164,7 +164,7 @@ func main() {
 		swarming.SWARMING_SERVER:         swarming.POOLS_PUBLIC,
 		swarming.SWARMING_SERVER_PRIVATE: swarming.POOLS_PRIVATE,
 	}
-	swarming_metrics.StartSwarmingBotMetrics(swarmingClients, swarmingPools, metrics2.GetDefaultClient())
+	swarming_metrics.StartSwarmingBotMetrics(ctx, swarmingClients, swarmingPools, metrics2.GetDefaultClient())
 
 	// Swarming tasks.
 	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarm, pc, tnp, ts); err != nil {
