@@ -56,20 +56,11 @@ func (a *authEnv) validateFlags(cmd *cobra.Command, args []string) error {
 
 // runAuthCommand
 func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
-	config := &goldclient.GoldClientConfig{
-		WorkDir: a.flagWorkDir,
-	}
-
-	// Create a cloud based Gold client and authenticate.
-	goldClient, err := goldclient.NewCloudClient(config, nil)
-	ifErrLogExit(cmd, err)
-
-	var authOpt *goldclient.AuthOpt
+	var err error
 	if a.flagUseLUCIContext {
-		authOpt = goldclient.LUCIAuthOpt()
+		_, err = goldclient.InitLUCIAuth(a.flagWorkDir)
 	} else {
-		authOpt = goldclient.ServiceAccountAuthOpt(a.flagServiceAccount)
+		_, err = goldclient.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
 	}
-	err = goldClient.SetAuthOpt(authOpt)
 	ifErrLogExit(cmd, err)
 }
