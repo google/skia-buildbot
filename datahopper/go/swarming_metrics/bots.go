@@ -62,9 +62,6 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 	newMetrics := []metrics2.Int64Metric{}
 	for _, bot := range bots {
 		last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
-		if strings.HasPrefix(bot.BotId, "skia-gce-24") {
-			sklog.Debugf("Bot %s said last seen TS was %s, we parsed it to %s", bot.BotId, bot.LastSeenTs, last)
-		}
 		if err != nil {
 			sklog.Errorf("Malformed last seen time in bot: %s", err)
 			continue
@@ -104,7 +101,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 
 		for _, reason := range device_state_guages {
 			// Bot quarantined status.  So we can differentiate the cause (e.g. if it's a
-			// low_batery or too_hot), write everything else to 0.
+			// low_battery or too_hot), write everything else to 0.
 			quarantinedTags := map[string]string{
 				"bot":          bot.BotId,
 				"pool":         pool,
@@ -262,15 +259,30 @@ func StartSwarmingBotMetrics(swarmingClients map[string]swarming.ApiClient, swar
 					"server": server,
 					"pool":   pool,
 				})
-				oldMetrics := []metrics2.Int64Metric{}
+				oldMetrics := map[metrics2.Int64Metric]struct{}{}
 				for range time.Tick(2 * time.Minute) {
-					oldMetrics = cleanupOldMetrics(oldMetrics)
 					newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, server)
-					oldMetrics = append(oldMetrics, newMetrics...)
 					if err != nil {
 						sklog.Error(err)
 						continue
 					}
+					newMetricsMap := make(map[metrics2.Int64Metric]struct{}, len(newMetrics))
+					for _, m := range newMetrics {
+						newMetricsMap[m] = struct{}{}
+					}
+					var cleanup []metrics2.Int64Metric
+					for m, _ := range oldMetrics {
+						if _, ok := newMetricsMap[m]; !ok {
+							cleanup = append(cleanup, m)
+						}
+					}
+					if len(cleanup) > 0 {
+						failedDelete := cleanupOldMetrics(cleanup)
+						for _, m := range failedDelete {
+							newMetricsMap[m] = struct{}{}
+						}
+					}
+					oldMetrics = newMetricsMap
 					lvReportBotMetrics.Reset()
 				}
 			}(swarmingServer, pool, client)
