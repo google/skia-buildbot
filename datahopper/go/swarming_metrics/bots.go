@@ -1,6 +1,7 @@
 package swarming_metrics
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -54,6 +55,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 	if err != nil {
 		return nil, fmt.Errorf("Could not get list of bots for pool %s: %s", pool, err)
 	}
+	sklog.Infof("  Found %d bots in pool %s", len(bots), pool)
 
 	// Keep track of the unique "os" dimensions for Windows Skolo bots. (Currently we expect only one
 	// version of Windows running in Skolo.)
@@ -62,9 +64,6 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 	newMetrics := []metrics2.Int64Metric{}
 	for _, bot := range bots {
 		last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
-		if strings.HasPrefix(bot.BotId, "skia-gce-24") {
-			sklog.Debugf("Bot %s said last seen TS was %s, we parsed it to %s", bot.BotId, bot.LastSeenTs, last)
-		}
 		if err != nil {
 			sklog.Errorf("Malformed last seen time in bot: %s", err)
 			continue
@@ -104,7 +103,7 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 
 		for _, reason := range device_state_guages {
 			// Bot quarantined status.  So we can differentiate the cause (e.g. if it's a
-			// low_batery or too_hot), write everything else to 0.
+			// low_battery or too_hot), write everything else to 0.
 			quarantinedTags := map[string]string{
 				"bot":          bot.BotId,
 				"pool":         pool,
@@ -254,26 +253,42 @@ type androidDevice struct {
 
 // StartSwarmingBotMetrics spins up several go routines to begin reporting
 // metrics every 2 minutes.
-func StartSwarmingBotMetrics(swarmingClients map[string]swarming.ApiClient, swarmingPools map[string][]string, metricsClient metrics2.Client) {
+func StartSwarmingBotMetrics(ctx context.Context, swarmingClients map[string]swarming.ApiClient, swarmingPools map[string][]string, metricsClient metrics2.Client) {
 	for swarmingServer, client := range swarmingClients {
 		for _, pool := range swarmingPools[swarmingServer] {
-			go func(server, pool string, client swarming.ApiClient) {
-				lvReportBotMetrics := metrics2.NewLiveness("last_successful_report_bot_metrics", map[string]string{
-					"server": server,
-					"pool":   pool,
-				})
-				oldMetrics := []metrics2.Int64Metric{}
-				for range time.Tick(2 * time.Minute) {
-					oldMetrics = cleanupOldMetrics(oldMetrics)
-					newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, server)
-					oldMetrics = append(oldMetrics, newMetrics...)
-					if err != nil {
-						sklog.Error(err)
-						continue
-					}
-					lvReportBotMetrics.Reset()
+			server := swarmingServer
+			pool := pool
+			client := client
+			lvReportBotMetrics := metrics2.NewLiveness("last_successful_report_bot_metrics", map[string]string{
+				"server": server,
+				"pool":   pool,
+			})
+			oldMetrics := map[metrics2.Int64Metric]struct{}{}
+			go util.RepeatCtx(2*time.Minute, ctx, func() {
+				newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, server)
+				if err != nil {
+					sklog.Error(err)
+					return
 				}
-			}(swarmingServer, pool, client)
+				newMetricsMap := make(map[metrics2.Int64Metric]struct{}, len(newMetrics))
+				for _, m := range newMetrics {
+					newMetricsMap[m] = struct{}{}
+				}
+				var cleanup []metrics2.Int64Metric
+				for m, _ := range oldMetrics {
+					if _, ok := newMetricsMap[m]; !ok {
+						cleanup = append(cleanup, m)
+					}
+				}
+				if len(cleanup) > 0 {
+					failedDelete := cleanupOldMetrics(cleanup)
+					for _, m := range failedDelete {
+						newMetricsMap[m] = struct{}{}
+					}
+				}
+				oldMetrics = newMetricsMap
+				lvReportBotMetrics.Reset()
+			})
 		}
 	}
 }
