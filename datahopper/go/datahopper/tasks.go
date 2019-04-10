@@ -162,10 +162,10 @@ func computeTaskFlakeRate(ev []*events.Event) ([]map[string]string, []float64, e
 }
 
 // addTaskAggregates adds aggregation functions for job events to the EventStream.
-func addTaskAggregates(s *events.EventStream) error {
+func addTaskAggregates(s *events.EventStream, instance string) error {
 	for _, period := range TIME_PERIODS {
 		// Flake rate.
-		if err := s.DynamicMetric(nil, period, computeTaskFlakeRate); err != nil {
+		if err := s.DynamicMetric(map[string]string{"instance": instance}, period, computeTaskFlakeRate); err != nil {
 			return err
 		}
 	}
@@ -173,7 +173,7 @@ func addTaskAggregates(s *events.EventStream) error {
 }
 
 // StartTaskMetrics starts a goroutine which ingests metrics data based on Tasks.
-func StartTaskMetrics(ctx context.Context, taskDb db.TaskReader) error {
+func StartTaskMetrics(ctx context.Context, taskDb db.TaskReader, instance string) error {
 	edb := &taskEventDB{
 		cached: []*events.Event{},
 		db:     taskDb,
@@ -185,7 +185,7 @@ func StartTaskMetrics(ctx context.Context, taskDb db.TaskReader) error {
 	edb.em = em
 
 	s := em.GetEventStream(TASK_STREAM)
-	if err := addTaskAggregates(s); err != nil {
+	if err := addTaskAggregates(s, instance); err != nil {
 		return err
 	}
 

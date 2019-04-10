@@ -101,7 +101,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	t1 := makeTask("1", "my-task", cr, st, co, d, nil, 0.0, 0.0, 0.0)
 	t2 := makeTask("2", "my-task", cr.Add(time.Second), st, util.TimeZero, d, nil, 0.0, 0.0, 0.0)
 	t2.TaskResult.State = swarming.TASK_STATE_RUNNING
-	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2}, nil)
 
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
@@ -110,7 +110,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 
 	// Load Swarming tasks.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
 	// Ensure that we inserted the expected task and added the other to
@@ -118,7 +118,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	assert.Equal(t, 1, len(revisit))
 	assertCount := func(from, to time.Time, expect int) {
 		assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
-			ev, err := edb.Range(STREAM_SWARMING_TASKS, from, to)
+			ev, err := edb.Range(streamForPool("Skia"), from, to)
 			assert.NoError(t, err)
 			if len(ev) != expect {
 				return testutils.TryAgainErr
@@ -139,10 +139,10 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	now = now.Add(10 * time.Minute)
 
 	// This is empty because datahopper will pull in the task data from revisit
-	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
 
 	// Load Swarming tasks again.
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
 	// Ensure that we loaded details for the unfinished task from the last
@@ -183,20 +183,20 @@ func TestMetrics(t *testing.T) {
 	t1.TaskResult.PerformanceStats.BotOverhead = 21
 	t1.TaskResult.PerformanceStats.IsolatedUpload.Duration = 13
 	t1.TaskResult.PerformanceStats.IsolatedDownload.Duration = 7
-	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1}, nil)
 
 	// Setup the metrics.
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
-	edb, em, err := setupMetrics(context.Background(), btProject, btInstance, nil)
+	edb, em, err := setupMetrics(context.Background(), btProject, btInstance, "Skia", nil)
 	assert.NoError(t, err)
 
 	// Load the Swarming task, ensure that it got inserted.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(revisit))
-	ev, err := edb.Range(STREAM_SWARMING_TASKS, lastLoad, now)
+	ev, err := edb.Range(streamForPool("Skia"), lastLoad, now)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(ev))
 
@@ -211,7 +211,8 @@ func TestMetrics(t *testing.T) {
 			"metric":    metric,
 			"os":        "Ubuntu",
 			"period":    "24h0m0s",
-			"stream":    STREAM_SWARMING_TASKS,
+			"pool":      "Skia",
+			"stream":    streamForPool("Skia"),
 			"task_name": "my-task",
 		}
 		for k := range DIMENSION_WHITELIST {
@@ -273,7 +274,7 @@ func TestPerfUpload(t *testing.T) {
 	t3 := makeTask("3", "my-task", cr.Add(2*time.Second), st, now.Add(-time.Minute), d, nil, 47*time.Second, 3*time.Second, 34*time.Second)
 	t3.TaskResult.State = swarming.TASK_STATE_BOT_DIED
 
-	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{t1, t2, t3}, nil)
 
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
@@ -306,7 +307,7 @@ func TestPerfUpload(t *testing.T) {
 
 	// Load Swarming tasks.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
 	pc.AssertNumberOfCalls(t, "PushToPerf", 1)
@@ -320,7 +321,7 @@ func TestPerfUpload(t *testing.T) {
 	lastLoad = now
 	now = now.Add(10 * time.Minute)
 	// This is empty because datahopper will pull in the task data from revisit
-	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
+	swarm.On("ListTasks", lastLoad, now, []string{"pool:Skia"}, "").Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
 
 	// datahopper will follow up on the revisit list (which is t2's id)
 	swarm.On("GetTaskMetadata", "2").Return(t2, nil)
@@ -351,7 +352,7 @@ func TestPerfUpload(t *testing.T) {
 
 	// Load Swarming tasks again.
 
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 	pc.AssertNumberOfCalls(t, "PushToPerf", 2)
 
