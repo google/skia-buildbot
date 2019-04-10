@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
@@ -96,12 +97,14 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	if err != nil {
 		return nil, sklog.FmtErrorf("Unable to create cloud expectations store: %s", err)
 	}
+	sklog.Infof("Cloud Expectations Store created")
 
 	// Create the cloud tryjob store.
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
+	sklog.Infof("Cloud Tryjobstore Store created")
 
 	// Instantiate the Gerrit API client.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
@@ -109,11 +112,13 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	sklog.Infof("HTTP client instantiated")
 
 	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("Gerrit client instantiated")
 
 	bbConf := &bbstate.Config{
 		BuildBucketURL:  buildBucketURL,
@@ -130,6 +135,7 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("BuildBucketState created")
 
 	ret := &goldTryjobProcessor{
 		buildIssueSync: bbGerritClient,
@@ -181,7 +187,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	// Gerrit and Buildbucket. This should be the exception since tryjobs should
 	// be picket up by BuildBucketState as they are added.
 	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
-		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
+		if issue, tryjob, err = g.throttledSyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
 			sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
 			return ingestion.IgnoreResultsFileErr
 		}
@@ -211,9 +217,10 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 			found.Params.AddParams(entry.Params)
 		} else {
 			resultsMap[key] = &tryjobstore.TryjobResult{
-				TestName: testName,
-				Digest:   string(entry.Value),
-				Params:   paramtools.NewParamSet(entry.Params),
+				BuildBucketID: tryjob.BuildBucketID,
+				TestName:      testName,
+				Digest:        string(entry.Value),
+				Params:        paramtools.NewParamSet(entry.Params),
 			}
 		}
 	}
@@ -224,13 +231,17 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	}
 
 	// Update the database with the results.
-	if err := g.tryjobStore.UpdateTryjobResult(tryjob, tjResults); err != nil {
-		sklog.Errorf("Error updating tryjob results: %s", err)
-		return ingestion.IgnoreResultsFileErr
+	if err := g.tryjobStore.UpdateTryjobResult(tjResults); err != nil {
+		return skerr.Fmt("Error updating tryjob results: %s", err)
 	}
 
 	tryjob.Status = tryjobstore.TRYJOB_INGESTED
 	return g.tryjobStore.UpdateTryjob(0, tryjob, nil)
+}
+
+func (g *goldTryjobProcessor) throttledSyncIssueTryjob(issueID, buildBucketID int64) (*tryjobstore.Issue, *tryjobstore.Tryjob, error) {
+	time.Sleep(time.Millisecond * 500)
+	return g.buildIssueSync.SyncIssueTryjob(issueID, buildBucketID)
 }
 
 // setTryjobToState is a utility function that updates the status of a tryjob

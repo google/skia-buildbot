@@ -27,7 +27,7 @@ http://localhost:9000 and not https://debugger-assets.skia.org. I.e:
 
     bin/gn gen out/Debug
     ninja -C out/Debug skiaserve
-    ./out/Release/skiaserve --source http://localhost:9000
+    ./out/Debug/skiaserve --source http://localhost:9000
 
 WASM Debugger
 =============
