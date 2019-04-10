@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ec8e66cc_79d41d42",
+        "filename": "debugger-assets/res/imp/op.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-10T16:26:54Z",
+      "side": 1,
+      "message": "try to wrap this like\n\u003cspan title\u003d\"...\"\n      class\u003d\n      style\u003d\"\"\u003e\n{{_smartNumber}...\n\u003c/span\u003e\n\nException would be if that extra whitespace makes it look strange, then\n\u003cspan title\u003d\"...\"\n      class\u003d\n      style\u003d\"\"\n\u003e{{_smartNumber}...\u003c/span\u003e",
+      "range": {
+        "startLine": 142,
+        "startChar": 10,
+        "endLine": 142,
+        "endChar": 211
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d44ee9a_66bfd23e",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-10T16:26:54Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 602,
+        "startChar": 22,
+        "endLine": 602,
+        "endChar": 24
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c397899a_330ba98a",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-10T16:26:54Z",
+      "side": 1,
+      "message": "Why do this \"asynchronously\", i.e. on the next microtask, and not synchronously?",
+      "range": {
+        "startLine": 603,
+        "startChar": 12,
+        "endLine": 603,
+        "endChar": 26
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83ce46fb_48c4b0dd",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 967,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-10T16:26:54Z",
+      "side": 1,
+      "message": "flen +",
+      "range": {
+        "startLine": 967,
+        "startChar": 32,
+        "endLine": 967,
+        "endChar": 37
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
