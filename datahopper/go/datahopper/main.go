@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -44,15 +45,16 @@ var (
 	firestoreInstance = flag.String("firestore_instance", "", "Firestore instance to use, eg. \"production\"")
 	gitstoreTable     = flag.String("gitstore_bt_table", "git-repos", "BigTable table used for GitStore.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	perfBucket        = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
+	perfPrefix        = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric should be written.")
 	port              = flag.String("port", ":8000", "HTTP service port for the health check server (e.g., ':8000')")
 	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	pubsubProject     = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
+	pubsubTopicSet    = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories to query for status.")
+	swarmingServer    = flag.String("swarming_server", "", "Host name of the Swarming server.")
+	swarmingPools     = common.NewMultiStringFlag("swarming_pool", nil, "Swarming pools to use.")
 	workdir           = flag.String("workdir", ".", "Working directory used by data processors.")
-
-	perfBucket     = flag.String("perf_bucket", "skia-perf", "The GCS bucket that should be used for writing into perf")
-	perfPrefix     = flag.String("perf_duration_prefix", "task-duration", "The folder name in the bucket that task duration metric shoudl be written.")
-	pubsubProject  = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
-	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
 )
 
 var (
@@ -91,14 +93,6 @@ func main() {
 	httpClient := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Various API clients.
-	swarm, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	swarmInternal, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
-	if err != nil {
-		sklog.Fatal(err)
-	}
 	gsClient, err := storage.NewClient(ctx, option.WithHTTPClient(httpClient))
 	if err != nil {
 		sklog.Fatal(err)
@@ -144,36 +138,32 @@ func main() {
 	// Data generation goroutines.
 
 	// Swarming bots.
-	swarmingClients := map[string]swarming.ApiClient{
-		swarming.SWARMING_SERVER:         swarm,
-		swarming.SWARMING_SERVER_PRIVATE: swarmInternal,
+	swarmClient, err := swarming.NewApiClient(httpClient, *swarmingServer)
+	if err != nil {
+		sklog.Fatal(err)
 	}
-	swarmingPools := map[string][]string{
-		swarming.SWARMING_SERVER:         swarming.POOLS_PUBLIC,
-		swarming.SWARMING_SERVER_PRIVATE: swarming.POOLS_PRIVATE,
-	}
-	swarming_metrics.StartSwarmingBotMetrics(ctx, swarmingClients, swarmingPools, metrics2.GetDefaultClient())
+	swarming_metrics.StartSwarmingBotMetrics(ctx, *swarmingServer, *swarmingPools, swarmClient, metrics2.GetDefaultClient())
 
 	// Swarming tasks.
-	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarm, pc, tnp, ts); err != nil {
+	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarmClient, *swarmingPools, pc, tnp, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Number of commits in the repo.
 	go func() {
-		skiaGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "skia"})
-		infraGauge := metrics2.GetInt64Metric("repo_commits", map[string]string{"repo": "infra"})
 		for range time.Tick(5 * time.Minute) {
-			nSkia := repos[common.REPO_SKIA].Len()
-			skiaGauge.Update(int64(nSkia))
-			nInfra := repos[common.REPO_SKIA_INFRA].Len()
-			infraGauge.Update(int64(nInfra))
+			for repoUrl, repo := range repos {
+				normUrl, err := git.NormalizeURL(repoUrl)
+				if err != nil {
+					sklog.Fatal(err)
+				}
+				tags := map[string]string{"repo": normUrl}
+				metrics2.GetInt64Metric("repo_commits", tags).Update(int64(repo.Len()))
+			}
 		}
 	}()
 
 	// Tasks metrics.
-	// TODO(borenet): We should include metrics from all three (production,
-	// internal, staging) instances.
 	label := "datahopper"
 	mod, err := pubsub.NewModifiedData(*pubsubProject, *pubsubTopicSet, label, ts)
 	if err != nil {
@@ -183,12 +173,12 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create Firestore DB client: %s", err)
 	}
-	if err := StartTaskMetrics(ctx, d); err != nil {
+	if err := StartTaskMetrics(ctx, d, *firestoreInstance); err != nil {
 		sklog.Fatal(err)
 	}
 
 	// Jobs metrics.
-	if err := StartJobMetrics(ctx, d, repos, tcc); err != nil {
+	if err := StartJobMetrics(ctx, d, *firestoreInstance, repos, tcc); err != nil {
 		sklog.Fatal(err)
 	}
 

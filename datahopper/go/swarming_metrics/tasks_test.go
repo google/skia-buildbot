@@ -110,7 +110,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 
 	// Load Swarming tasks.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
 	// Ensure that we inserted the expected task and added the other to
@@ -118,7 +118,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	assert.Equal(t, 1, len(revisit))
 	assertCount := func(from, to time.Time, expect int) {
 		assert.NoError(t, testutils.EventuallyConsistent(5*time.Second, func() error {
-			ev, err := edb.Range(STREAM_SWARMING_TASKS, from, to)
+			ev, err := edb.Range(streamForPool("Skia"), from, to)
 			assert.NoError(t, err)
 			if len(ev) != expect {
 				return testutils.TryAgainErr
@@ -142,7 +142,7 @@ func TestLoadSwarmingTasks(t *testing.T) {
 	swarm.On("ListSkiaTasks", lastLoad, now).Return([]*swarming_api.SwarmingRpcsTaskRequestMetadata{}, nil)
 
 	// Load Swarming tasks again.
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
 	// Ensure that we loaded details for the unfinished task from the last
@@ -188,15 +188,15 @@ func TestMetrics(t *testing.T) {
 	// Setup the metrics.
 	btProject, btInstance, cleanup := bt_testutil.SetupBigTable(t, events.BT_TABLE, events.BT_COLUMN_FAMILY)
 	defer cleanup()
-	edb, em, err := setupMetrics(context.Background(), btProject, btInstance, nil)
+	edb, em, err := setupMetrics(context.Background(), btProject, btInstance, "Skia", nil)
 	assert.NoError(t, err)
 
 	// Load the Swarming task, ensure that it got inserted.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(revisit))
-	ev, err := edb.Range(STREAM_SWARMING_TASKS, lastLoad, now)
+	ev, err := edb.Range(streamForPool("Skia"), lastLoad, now)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(ev))
 
@@ -211,7 +211,7 @@ func TestMetrics(t *testing.T) {
 			"metric":    metric,
 			"os":        "Ubuntu",
 			"period":    "24h0m0s",
-			"stream":    STREAM_SWARMING_TASKS,
+			"stream":    streamForPool("Skia"),
 			"task_name": "my-task",
 		}
 		for k := range DIMENSION_WHITELIST {
@@ -306,7 +306,7 @@ func TestPerfUpload(t *testing.T) {
 
 	// Load Swarming tasks.
 	revisit := []string{}
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 
 	pc.AssertNumberOfCalls(t, "PushToPerf", 1)
@@ -351,7 +351,7 @@ func TestPerfUpload(t *testing.T) {
 
 	// Load Swarming tasks again.
 
-	revisit, err = loadSwarmingTasks(swarm, edb, pc, mp, lastLoad, now, revisit)
+	revisit, err = loadSwarmingTasks(swarm, "Skia", edb, pc, mp, lastLoad, now, revisit)
 	assert.NoError(t, err)
 	pc.AssertNumberOfCalls(t, "PushToPerf", 2)
 

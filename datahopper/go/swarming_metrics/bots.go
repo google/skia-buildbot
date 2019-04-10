@@ -253,42 +253,38 @@ type androidDevice struct {
 
 // StartSwarmingBotMetrics spins up several go routines to begin reporting
 // metrics every 2 minutes.
-func StartSwarmingBotMetrics(ctx context.Context, swarmingClients map[string]swarming.ApiClient, swarmingPools map[string][]string, metricsClient metrics2.Client) {
-	for swarmingServer, client := range swarmingClients {
-		for _, pool := range swarmingPools[swarmingServer] {
-			server := swarmingServer
-			pool := pool
-			client := client
-			lvReportBotMetrics := metrics2.NewLiveness("last_successful_report_bot_metrics", map[string]string{
-				"server": server,
-				"pool":   pool,
-			})
-			oldMetrics := map[metrics2.Int64Metric]struct{}{}
-			go util.RepeatCtx(2*time.Minute, ctx, func() {
-				newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, server)
-				if err != nil {
-					sklog.Error(err)
-					return
+func StartSwarmingBotMetrics(ctx context.Context, swarmingServer string, swarmingPools []string, client swarming.ApiClient, metricsClient metrics2.Client) {
+	for _, pool := range swarmingPools {
+		pool := pool
+		lvReportBotMetrics := metrics2.NewLiveness("last_successful_report_bot_metrics", map[string]string{
+			"server": swarmingServer,
+			"pool":   pool,
+		})
+		oldMetrics := map[metrics2.Int64Metric]struct{}{}
+		go util.RepeatCtx(2*time.Minute, ctx, func() {
+			newMetrics, err := reportBotMetrics(time.Now(), client, metricsClient, pool, swarmingServer)
+			if err != nil {
+				sklog.Error(err)
+				return
+			}
+			newMetricsMap := make(map[metrics2.Int64Metric]struct{}, len(newMetrics))
+			for _, m := range newMetrics {
+				newMetricsMap[m] = struct{}{}
+			}
+			var cleanup []metrics2.Int64Metric
+			for m, _ := range oldMetrics {
+				if _, ok := newMetricsMap[m]; !ok {
+					cleanup = append(cleanup, m)
 				}
-				newMetricsMap := make(map[metrics2.Int64Metric]struct{}, len(newMetrics))
-				for _, m := range newMetrics {
+			}
+			if len(cleanup) > 0 {
+				failedDelete := cleanupOldMetrics(cleanup)
+				for _, m := range failedDelete {
 					newMetricsMap[m] = struct{}{}
 				}
-				var cleanup []metrics2.Int64Metric
-				for m, _ := range oldMetrics {
-					if _, ok := newMetricsMap[m]; !ok {
-						cleanup = append(cleanup, m)
-					}
-				}
-				if len(cleanup) > 0 {
-					failedDelete := cleanupOldMetrics(cleanup)
-					for _, m := range failedDelete {
-						newMetricsMap[m] = struct{}{}
-					}
-				}
-				oldMetrics = newMetricsMap
-				lvReportBotMetrics.Reset()
-			})
-		}
+			}
+			oldMetrics = newMetricsMap
+			lvReportBotMetrics.Reset()
+		})
 	}
 }
