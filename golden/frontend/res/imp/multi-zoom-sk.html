@@ -162,6 +162,7 @@ There are three images that it deals with, called left, top, and diff.
               <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
                         source="left_img"
                         pixels="{{_pixels}}"
+                        pixel_size="{{_pixel_size}}"
                         id="zoomLeft"
                         x="{{_x}}"
                         y="{{_y}}">
@@ -170,6 +171,7 @@ There are three images that it deals with, called left, top, and diff.
               <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
                         source="middle_img"
                         pixels="{{_pixels}}"
+                        pixel_size="{{_pixel_size}}"
                         id="zoomMiddle"
                         x="{{_x}}"
                         y="{{_y}}">
@@ -177,7 +179,8 @@ There are three images that it deals with, called left, top, and diff.
 
               <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
                        source="right_img"
-                        pixels="{{_pixels}}"
+                       pixels="{{_pixels}}"
+                       pixel_size="{{_pixel_size}}"
                        id="zoomRight"
                        x="{{_x}}"
                        y="{{_y}}">
@@ -267,6 +270,12 @@ There are three images that it deals with, called left, top, and diff.
         _pixels : {
           type: Number,
           value: 64,
+          notify: true
+        },
+
+        _pixel_size : {
+          type: Number,
+          value: 4,
           notify: true
         },
 
@@ -408,6 +417,9 @@ There are three images that it deals with, called left, top, and diff.
         if ("JKHLAZUM".indexOf(c) != -1 ) {
           e.stopPropagation();
         }
+        this.$.zoomLeft.updateZoom();
+        this.$.zoomMiddle.updateZoom();
+        this.$.zoomRight.updateZoom();
       },
 
       _moveToLargestDiff: function() {
