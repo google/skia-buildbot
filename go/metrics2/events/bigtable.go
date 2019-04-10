@@ -94,30 +94,32 @@ func (db *btEventDB) Insert(e *Event) error {
 // See documentation for EventDB interface.
 func (db *btEventDB) Range(stream string, start, end time.Time) ([]*Event, error) {
 	var rv []*Event
-	var rvErr error
-	s := btRowKey(stream, start)
-	e := btRowKey(stream, end)
-	ctx, cancel := context.WithTimeout(context.TODO(), QUERY_TIMEOUT)
-	defer cancel()
-	if err := db.table.ReadRows(ctx, bigtable.NewRange(s, e), func(row bigtable.Row) bool {
-		for _, ri := range row[BT_COLUMN_FAMILY] {
-			if ri.Column == BT_COLUMN_FULL {
-				var ev Event
-				rvErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&ev)
-				if rvErr != nil {
-					return false
+	if err := util.IterTimeChunks(start, end, 24*time.Hour, func(start, end time.Time) error {
+		var rvErr error
+		s := btRowKey(stream, start)
+		e := btRowKey(stream, end)
+		ctx, cancel := context.WithTimeout(context.TODO(), QUERY_TIMEOUT)
+		defer cancel()
+		if err := db.table.ReadRows(ctx, bigtable.NewRange(s, e), func(row bigtable.Row) bool {
+			for _, ri := range row[BT_COLUMN_FAMILY] {
+				if ri.Column == BT_COLUMN_FULL {
+					var ev Event
+					rvErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&ev)
+					if rvErr != nil {
+						return false
+					}
+					rv = append(rv, &ev)
+					// We only store one event per row.
+					return true
 				}
-				rv = append(rv, &ev)
-				// We only store one event per row.
-				return true
 			}
+			return true
+		}); err != nil {
+			return err
 		}
-		return true
+		return rvErr
 	}); err != nil {
 		return nil, err
-	}
-	if rvErr != nil {
-		return nil, rvErr
 	}
 	return rv, nil
 }

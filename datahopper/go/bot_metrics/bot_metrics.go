@@ -69,10 +69,10 @@ func fmtStream(repo string) string {
 }
 
 // read pulls all events from the EventDB and returns them in a convenient format.
-func read(edb events.EventDB, repos repograph.Map, now time.Time) (map[string]map[*repograph.Commit]*commitData, error) {
+func read(edb events.EventDB, repos repograph.Map, from, to time.Time) (map[string]map[*repograph.Commit]*commitData, error) {
 	rv := map[string]map[*repograph.Commit]*commitData{}
 	for repoUrl, repo := range repos {
-		ev, err := edb.Range(fmtStream(repoUrl), BEGINNING_OF_TIME, now)
+		ev, err := edb.Range(fmtStream(repoUrl), from, to)
 		if err != nil {
 			return nil, err
 		}
@@ -202,12 +202,6 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	// cfgs is a local cache for TaskCfgs.
 	cfgs := map[*repograph.Commit]*specs.TasksCfg{}
 
-	// Read cached data.
-	data, err := read(edb, repos, now)
-	if err != nil {
-		return fmt.Errorf("Failed to read cached data: %s", err)
-	}
-
 	// Compute lag times for all commits in range.
 	period := 24 * time.Hour
 	periodStart := lastFinished
@@ -216,6 +210,13 @@ func cycle(ctx context.Context, taskDb db.TaskReader, repos repograph.Map, tcc *
 	} else {
 		periodStart = periodStart.Add(-COMMIT_TASK_WINDOW) // In case we backfilled and finished some tasks.
 	}
+
+	// Read cached data.
+	data, err := read(edb, repos, periodStart, now)
+	if err != nil {
+		return fmt.Errorf("Failed to read cached data: %s", err)
+	}
+
 	for {
 		// Load tasks from the time period.
 		periodEnd := periodStart.Add(period)
