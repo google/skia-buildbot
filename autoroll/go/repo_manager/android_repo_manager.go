@@ -408,6 +408,8 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 			emails = append(emails, e)
 		}
 	}
+	// TODO(rmistry): Remove after we catch up with HEAD.
+	emails = append(emails, "rmistry@google.com")
 	emailStr := strings.Join(emails, ",")
 
 	// Commit the change with the above message.
@@ -458,16 +460,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 	// Set the topic of the merge change.
 	if err := r.setTopic(change.Issue); err != nil {
 		return 0, err
-	}
-
-	// TODO(rmistry): This is a temporary hack for a few weeks to make sure
-	// that android-master-roll does not accidentally switch out of dry run mode.
-	if r.parentBranch == "master" && r.childBranch == "master" && r.childPath == "external/skia" {
-		if !dryRun {
-			sklog.Error("android-master-roll is not running in dry run mode!")
-			sklog.Error("Forcing it back to dry run mode!")
-			dryRun = true
-		}
 	}
 
 	// Set labels.
@@ -530,5 +522,6 @@ func (r *androidRepoManager) DefaultStrategy() string {
 func (r *androidRepoManager) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_REMOTE_BATCH,
+		strategy.ROLL_STRATEGY_N_BATCH,
 	}
 }
