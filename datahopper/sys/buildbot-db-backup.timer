@@ -1,9 +1,0 @@
-[Unit]
-Description=Run buildbot_db_backup.service nightly.
-
-[Timer]
-OnCalendar=*-*-* 05:00:00
-Persistent=false
-
-[Install]
-WantedBy=timers.target
