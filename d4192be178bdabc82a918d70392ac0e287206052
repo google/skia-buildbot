@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "4d05430e_3e8a05a7",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-10T14:11:37Z",
+      "side": 1,
+      "message": "\u003e Nit: can this be:\n\u003e ROLL_STRATEGY_N_BATCH \u003d \"batch of \" + N_COMMITS\n\u003e ?\n\nThat\u0027s probably a good idea, but holding off on doing that now because we might have to play around with this number a few times till we catch up to head and I do not want to keep pushing the FE everytime. Added TODO.\n\n\u003e \n\u003e That way it\u0027s clear how many commits are in the batch from the config file (and UI).  We\u0027ll get validation failures if N_COMMITS changes and the config files don\u0027t.\n\nAFAIK this is not in the config file, it will only be in the UI.",
+      "parentUuid": "5d859df0_51b6d8be",
+      "range": {
+        "startLine": 22,
+        "startChar": 30,
+        "endLine": 22,
+        "endChar": 39
+      },
+      "revId": "d4192be178bdabc82a918d70392ac0e287206052",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f9e3dbb1_458c9ffc",
         "filename": "autoroll/go/strategy/strategies.go",
         "patchSetId": 13
@@ -92,6 +116,30 @@
       "revId": "d4192be178bdabc82a918d70392ac0e287206052",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfccea4d_2206fe18",
+        "filename": "autoroll/go/strategy/strategies.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-10T14:11:37Z",
+      "side": 1,
+      "message": "Leftover from the previous remote_n_commits thing.",
+      "parentUuid": "f9e3dbb1_458c9ffc",
+      "range": {
+        "startLine": 121,
+        "startChar": 15,
+        "endLine": 121,
+        "endChar": 47
+      },
+      "revId": "d4192be178bdabc82a918d70392ac0e287206052",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
