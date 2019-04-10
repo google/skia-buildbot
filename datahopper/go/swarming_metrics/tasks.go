@@ -28,7 +28,7 @@ import (
 
 const (
 	MEASUREMENT_SWARMING_TASKS = "swarming_task_events"
-	STREAM_SWARMING_TASKS      = "swarming-tasks"
+	STREAM_SWARMING_TASKS_TMPL = "swarming-tasks-%s"
 )
 
 var (
@@ -44,16 +44,18 @@ var (
 	errNoValue = fmt.Errorf("no value")
 )
 
+func streamForPool(pool string) string {
+	return fmt.Sprintf(STREAM_SWARMING_TASKS_TMPL, pool)
+}
+
 // loadSwarmingTasks loads the Swarming tasks which were created within the
 // given time range, plus any tasks we're explicitly told to load. Inserts all
 // completed tasks into the EventDB and perf. Then, it returns any unfinished
 // tasks so that they can be revisited later.
-func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, lastLoad, now time.Time, revisit []string) ([]string, error) {
+func loadSwarmingTasks(s swarming.ApiClient, pool string, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, lastLoad, now time.Time, revisit []string) ([]string, error) {
 	sklog.Info("Loading swarming tasks.")
 
-	// TODO(borenet): Load tasks for all pools we care about, including
-	// internal.
-	tasks, err := s.ListSkiaTasks(lastLoad, now)
+	tasks, err := s.ListTasks(lastLoad, now, []string{fmt.Sprintf("pool:%s", pool)}, "")
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +99,7 @@ func loadSwarmingTasks(s swarming.ApiClient, edb events.EventDB, perfClient perf
 			return nil, fmt.Errorf("Failed to parse Created time: %s", err)
 		}
 		if err := edb.Insert(&events.Event{
-			Stream:    STREAM_SWARMING_TASKS,
+			Stream:    streamForPool(pool),
 			Timestamp: created,
 			Data:      buf.Bytes(),
 		}); err != nil {
@@ -195,9 +197,10 @@ func decodeTasks(ev []*events.Event) ([]*swarming_api.SwarmingRpcsTaskRequestMet
 // metric name. It aggregates the data points returned by the given helper
 // function and computes the mean for each tag set. This simplifies the addition
 // of metrics in StartSwarmingTaskMetrics.
-func addMetric(s *events.EventStream, metric string, period time.Duration, fn func(*swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error)) error {
+func addMetric(s *events.EventStream, metric, pool string, period time.Duration, fn func(*swarming_api.SwarmingRpcsTaskRequestMetadata) (int64, error)) error {
 	tags := map[string]string{
 		"metric": metric,
+		"pool":   pool,
 	}
 	f := func(ev []*events.Event) ([]map[string]string, []float64, error) {
 		sklog.Infof("Computing value(s) for metric %q", metric)
@@ -329,7 +332,7 @@ func isolateCacheMissUpload(t *swarming_api.SwarmingRpcsTaskRequestMetadata) (in
 }
 
 // setupMetrics creates the event metrics for Swarming tasks.
-func setupMetrics(ctx context.Context, btProject, btInstance string, ts oauth2.TokenSource) (events.EventDB, *events.EventMetrics, error) {
+func setupMetrics(ctx context.Context, btProject, btInstance, pool string, ts oauth2.TokenSource) (events.EventDB, *events.EventMetrics, error) {
 	edb, err := events.NewBTEventDB(ctx, btProject, btInstance, ts)
 	if err != nil {
 		return nil, nil, err
@@ -338,42 +341,42 @@ func setupMetrics(ctx context.Context, btProject, btInstance string, ts oauth2.T
 	if err != nil {
 		return nil, nil, err
 	}
-	s := em.GetEventStream(STREAM_SWARMING_TASKS)
+	s := em.GetEventStream(streamForPool(pool))
 
 	// Add metrics.
 	for _, period := range []time.Duration{24 * time.Hour, 7 * 24 * time.Hour} {
 		// Duration.
-		if err := addMetric(s, "duration", period, taskDuration); err != nil {
+		if err := addMetric(s, "duration", pool, period, taskDuration); err != nil {
 			return nil, nil, err
 		}
 
 		// Pending time.
-		if err := addMetric(s, "pending-time", period, taskPendingTime); err != nil {
+		if err := addMetric(s, "pending-time", pool, period, taskPendingTime); err != nil {
 			return nil, nil, err
 		}
 
 		// Overhead (bot).
-		if err := addMetric(s, "overhead-bot", period, taskOverheadBot); err != nil {
+		if err := addMetric(s, "overhead-bot", pool, period, taskOverheadBot); err != nil {
 			return nil, nil, err
 		}
 
 		// Overhead (upload).
-		if err := addMetric(s, "overhead-upload", period, taskOverheadUpload); err != nil {
+		if err := addMetric(s, "overhead-upload", pool, period, taskOverheadUpload); err != nil {
 			return nil, nil, err
 		}
 
 		// Overhead (download).
-		if err := addMetric(s, "overhead-download", period, taskOverheadDownload); err != nil {
+		if err := addMetric(s, "overhead-download", pool, period, taskOverheadDownload); err != nil {
 			return nil, nil, err
 		}
 
 		// Isolate Cache Miss (download).
-		if err := addMetric(s, "isolate-cache-miss-download", period, isolateCacheMissDownload); err != nil {
+		if err := addMetric(s, "isolate-cache-miss-download", pool, period, isolateCacheMissDownload); err != nil {
 			return nil, nil, err
 		}
 
 		// Isolate Cache Miss (upload).
-		if err := addMetric(s, "isolate-cache-miss-upload", period, isolateCacheMissUpload); err != nil {
+		if err := addMetric(s, "isolate-cache-miss-upload", pool, period, isolateCacheMissUpload); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -382,14 +385,16 @@ func setupMetrics(ctx context.Context, btProject, btInstance string, ts oauth2.T
 
 // startLoadingTasks initiates the goroutine which periodically loads Swarming
 // tasks into the EventDB.
-func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser) {
+func startLoadingTasks(swarm swarming.ApiClient, pool string, ctx context.Context, edb events.EventDB, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser) {
 	// Start collecting the metrics.
-	lv := metrics2.NewLiveness("last_successful_swarming_task_metrics")
+	lv := metrics2.NewLiveness("last_successful_swarming_task_metrics", map[string]string{
+		"pool": pool,
+	})
 	lastLoad := time.Now().Add(-2 * time.Minute)
 	revisitTasks := []string{}
 	go util.RepeatCtx(10*time.Minute, ctx, func() {
 		now := time.Now()
-		revisit, err := loadSwarmingTasks(swarm, edb, perfClient, tnp, lastLoad, now, revisitTasks)
+		revisit, err := loadSwarmingTasks(swarm, pool, edb, perfClient, tnp, lastLoad, now, revisitTasks)
 		if err != nil {
 			sklog.Errorf("Failed to load swarming tasks into metrics: %s", err)
 		} else {
@@ -402,12 +407,14 @@ func startLoadingTasks(swarm swarming.ApiClient, ctx context.Context, edb events
 
 // StartSwarmingTaskMetrics initiates a goroutine which loads Swarming task
 // results and computes metrics.
-func StartSwarmingTaskMetrics(ctx context.Context, btProject, btInstance string, swarm swarming.ApiClient, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, ts oauth2.TokenSource) error {
-	edb, em, err := setupMetrics(ctx, btProject, btInstance, ts)
-	if err != nil {
-		return err
+func StartSwarmingTaskMetrics(ctx context.Context, btProject, btInstance string, swarm swarming.ApiClient, pools []string, perfClient perfclient.ClientInterface, tnp taskname.TaskNameParser, ts oauth2.TokenSource) error {
+	for _, pool := range pools {
+		edb, em, err := setupMetrics(ctx, btProject, btInstance, pool, ts)
+		if err != nil {
+			return err
+		}
+		em.Start(ctx)
+		startLoadingTasks(swarm, pool, ctx, edb, perfClient, tnp)
 	}
-	em.Start(ctx)
-	startLoadingTasks(swarm, ctx, edb, perfClient, tnp)
 	return nil
 }

@@ -266,14 +266,14 @@ func computeJobFailureMishapRate(ev []*events.Event) ([]map[string]string, []flo
 }
 
 // addJobAggregates adds aggregation functions for job events to the EventStream.
-func addJobAggregates(s *events.EventStream) error {
+func addJobAggregates(s *events.EventStream, instance string) error {
 	for _, period := range TIME_PERIODS {
-		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration"}, period, computeAvgJobDuration); err != nil {
+		if err := s.DynamicMetric(map[string]string{"metric": "avg-duration", "instance": instance}, period, computeAvgJobDuration); err != nil {
 			return err
 		}
 
 		// Job failure/mishap rate.
-		if err := s.DynamicMetric(nil, period, computeJobFailureMishapRate); err != nil {
+		if err := s.DynamicMetric(map[string]string{"instance": instance}, period, computeJobFailureMishapRate); err != nil {
 			return err
 		}
 	}
@@ -282,7 +282,7 @@ func addJobAggregates(s *events.EventStream) error {
 
 // StartJobMetrics starts a goroutine which ingests metrics data based on Jobs.
 // The caller is responsible for updating the passed-in repos and TaskCfgCache.
-func StartJobMetrics(ctx context.Context, jobDb db.JobReader, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
+func StartJobMetrics(ctx context.Context, jobDb db.JobReader, instance string, repos repograph.Map, tcc *task_cfg_cache.TaskCfgCache) error {
 	edb := &jobEventDB{
 		cached: []*events.Event{},
 		db:     jobDb,
@@ -294,7 +294,7 @@ func StartJobMetrics(ctx context.Context, jobDb db.JobReader, repos repograph.Ma
 	edb.em = em
 
 	s := em.GetEventStream(JOB_STREAM)
-	if err := addJobAggregates(s); err != nil {
+	if err := addJobAggregates(s, instance); err != nil {
 		return err
 	}
 
