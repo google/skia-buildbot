@@ -2,6 +2,7 @@ package scheduling
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -13,12 +14,14 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/google/uuid"
 	assert "github.com/stretchr/testify/require"
 	buildbucket_api "go.chromium.org/luci/common/api/buildbucket/buildbucket/v1"
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/deepequal"
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -214,7 +217,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 	assert.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, tmp, "fake.server", repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, gcs.NewMemoryGCSClient("diag_unit_tests"), btInstance)
 	assert.NoError(t, err)
 	return ctx, gb, d, swarmingClient, s, urlMock, func() {
 		testutils.AssertCloses(t, s)
@@ -223,6 +226,24 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, db.DB, *sw
 		btCleanupIsolate()
 		btCleanup()
 	}
+}
+
+func lastDiagnostics(t *testing.T, s *TaskScheduler) taskSchedulerMainLoopDiagnostics {
+	s.testWaitGroup.Wait()
+	ctx := context.Background()
+	lastname := ""
+	assert.NoError(t, s.diagClient.AllFilesInDirectory(ctx, path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR), func(item *storage.ObjectAttrs) {
+		if lastname == "" || item.Name > lastname {
+			lastname = item.Name
+		}
+	}))
+	assert.NotEqual(t, lastname, "")
+	reader, err := s.diagClient.FileReader(ctx, lastname)
+	assert.NoError(t, err)
+	defer testutils.AssertCloses(t, reader)
+	rv := taskSchedulerMainLoopDiagnostics{}
+	assert.NoError(t, json.NewDecoder(reader).Decode(&rv))
+	return rv
 }
 
 func TestGatherNewJobs(t *testing.T) {
@@ -489,6 +510,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 		},
 	}
 
+	clearDiagnostics := func(candidates map[types.TaskKey]*taskCandidate) {
+		for _, c := range candidates {
+			c.Diagnostics = nil
+		}
+	}
+
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
 	c, err := s.filterTaskCandidates(candidates)
@@ -501,6 +528,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 			for _, candidate := range byName {
 				assert.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 			}
+		}
+	}
+	// Check filtering diagnostics. Non-Build tasks have unmet dependencies.
+	for _, candidate := range candidates {
+		if candidate.Name != tcc_testutils.BuildTaskName {
+			assert.Equal(t, candidate.Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
 		}
 	}
 
@@ -521,6 +554,8 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	// We shouldn't duplicate pending or running tasks.
 	for _, status := range []types.TaskStatus{types.TASK_STATUS_PENDING, types.TASK_STATUS_RUNNING} {
+		clearDiagnostics(candidates)
+
 		t1.Status = status
 		assert.NoError(t, d.PutTask(t1))
 		assert.NoError(t, s.tCache.Update())
@@ -536,7 +571,19 @@ func TestFilterTaskCandidates(t *testing.T) {
 				}
 			}
 		}
+		// Check filtering diagnostics.
+		for _, candidate := range candidates {
+			if candidate.Name != tcc_testutils.BuildTaskName {
+				// Non-Build tasks have unmet dependencies.
+				assert.Equal(t, candidate.Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
+			} else if candidate.Revision == c1 {
+				// Blocked by t1
+				assert.Equal(t, candidate.Diagnostics.Filtering.SupersededByTask, t1.Id)
+			}
+		}
 	}
+
+	clearDiagnostics(candidates)
 
 	// The task failed. Ensure that its dependents are not candidates, but
 	// the task itself is back in the list of candidates, in case we want
@@ -557,6 +604,15 @@ func TestFilterTaskCandidates(t *testing.T) {
 			}
 		}
 	}
+	// Check filtering diagnostics.
+	for _, candidate := range candidates {
+		if candidate.Name != tcc_testutils.BuildTaskName {
+			// Non-Build tasks have unmet dependencies.
+			assert.Equal(t, candidate.Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
+		}
+	}
+
+	clearDiagnostics(candidates)
 
 	// The task succeeded. Ensure that its dependents are candidates and
 	// the task itself is not.
@@ -576,6 +632,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 			}
 		}
 	}
+	// Candidate with k1 is blocked by t1.
+	assert.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
+
+	clearDiagnostics(candidates)
 
 	// Create the other Build task.
 	var t2 *types.Task
@@ -608,6 +668,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 			}
 		}
 	}
+	// Build candidates are blocked by completed tasks.
+	assert.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
+	assert.Equal(t, candidates[k3].Diagnostics.Filtering.SupersededByTask, t2.Id)
+
+	clearDiagnostics(candidates)
 
 	// Add a try job. Ensure that no deps have been incorrectly satisfied.
 	tryKey := k4.Copy()
@@ -633,6 +698,8 @@ func TestFilterTaskCandidates(t *testing.T) {
 			}
 		}
 	}
+	// Check diagnostics for tryKey
+	assert.Equal(t, candidates[tryKey].Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
 }
 
 func TestProcessTaskCandidate(t *testing.T) {
@@ -645,6 +712,15 @@ func TestProcessTaskCandidate(t *testing.T) {
 	cache := newCacheWrapper(s.tCache)
 	now := time.Unix(0, 1470674884000000)
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+
+	checkDiagTryForced := func(c *taskCandidate, diag *taskCandidateScoringDiagnostics) {
+		assert.Equal(t, c.Jobs[0].Priority, diag.Priority)
+		assert.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
+		// The remaining fields should always be 0 for try/forced jobs.
+		assert.Equal(t, 0, diag.StoleFromCommits)
+		assert.Equal(t, 0.0, diag.TestednessIncrease)
+		assert.Equal(t, 0.0, diag.TimeDecay)
+	}
 
 	tryjobRs := types.RepoState{
 		Patch: types.Patch{
@@ -668,10 +744,12 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: tryjobRs,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	diag := &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	// Try job candidates have a specific score and no blamelist.
 	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
+	checkDiagTryForced(c, diag)
 
 	// Retries are scored lower.
 	c = &taskCandidate{
@@ -681,9 +759,11 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: tryjobRs,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	assert.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score, scoreDelta)
 	assert.Nil(t, c.Commits)
+	checkDiagTryForced(c, diag)
 
 	rs2 := types.RepoState{
 		Repo:     gb.RepoUrl(),
@@ -704,9 +784,11 @@ func TestProcessTaskCandidate(t *testing.T) {
 			ForcedJobId: forcedJob.Id,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	assert.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.5, c.Score, scoreDelta)
 	assert.Equal(t, 2, len(c.Commits))
+	checkDiagTryForced(c, diag)
 
 	// All other candidates have a blamelist and a time-decayed score.
 	regularJob := &types.Job{
@@ -722,9 +804,15 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: rs2,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	assert.True(t, c.Score > 0)
 	assert.Equal(t, 2, len(c.Commits))
+	assert.Equal(t, 0.5, diag.Priority)
+	assert.Equal(t, 1.0, diag.JobCreatedHours)
+	assert.Equal(t, 0, diag.StoleFromCommits)
+	assert.Equal(t, 3.5, diag.TestednessIncrease)
+	assert.InDelta(t, 1.0, diag.TimeDecay, scoreDelta)
 
 	// Now, replace the time window to ensure that this next candidate runs
 	// at a commit outside the window. Ensure that it gets the correct
@@ -738,7 +826,8 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: rs2,
 		},
 	}
-	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	assert.Equal(t, 0, len(c.Commits))
 }
 
@@ -752,6 +841,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	cache := newCacheWrapper(s.tCache)
 	now := time.Now()
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
+
+	checkDiag := func(c *taskCandidate, diag *taskCandidateScoringDiagnostics) {
+		// All candidates in this test have a single Job.
+		assert.Equal(t, c.Jobs[0].Priority, diag.Priority)
+		assert.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
+		// The commits are added close enough to "now" that there is no time decay.
+		assert.Equal(t, 1.0, diag.TimeDecay)
+	}
 
 	j1 := &types.Job{
 		Id:        "regularJobId1",
@@ -781,14 +878,22 @@ func TestRegularJobRetryScoring(t *testing.T) {
 		},
 	}
 	// Regular task at HEAD with 2 commits has score 3.5 scaled by priority 0.5.
-	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	diag := &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
 	assert.InDelta(t, 3.5*0.5, c2.Score, scoreDelta)
 	assert.Equal(t, 2, len(c2.Commits))
+	assert.Equal(t, 0, diag.StoleFromCommits)
+	assert.Equal(t, 3.5, diag.TestednessIncrease)
+	checkDiag(c2, diag)
 	// Regular task at HEAD^ (no backfill) with 1 commit has score 2 scaled by
 	// priority 0.5.
-	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
 	assert.InDelta(t, 2*0.5, c1.Score, scoreDelta)
 	assert.Equal(t, 1, len(c1.Commits))
+	assert.Equal(t, 0, diag.StoleFromCommits)
+	assert.Equal(t, 2.0, diag.TestednessIncrease)
+	checkDiag(c1, diag)
 
 	// Add a task at rs2 that failed.
 	t2 := makeTask(c2.Name, c2.Repo, c2.Revision)
@@ -803,14 +908,22 @@ func TestRegularJobRetryScoring(t *testing.T) {
 
 	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 0.75
 	// scaled by priority 0.5.
-	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
 	assert.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	assert.Equal(t, 2, len(c2.Commits))
+	assert.Equal(t, 2, diag.StoleFromCommits)
+	assert.Equal(t, 0.0, diag.TestednessIncrease)
+	checkDiag(c2, diag)
 	// Regular task at rs1 (backfilling failed task) with 1 commit has score 1.25
 	// scaled by priority 0.5.
-	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
 	assert.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	assert.Equal(t, 1, len(c1.Commits))
+	assert.Equal(t, 2, diag.StoleFromCommits)
+	assert.Equal(t, 0.5, diag.TestednessIncrease)
+	checkDiag(c1, diag)
 
 	// Actually, the task at rs2 had a mishap.
 	t2.Status = types.TASK_STATUS_MISHAP
@@ -818,12 +931,20 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Scores should be same as for FAILURE.
-	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf))
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
 	assert.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	assert.Equal(t, 2, len(c2.Commits))
-	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf))
+	assert.Equal(t, 2, diag.StoleFromCommits)
+	assert.Equal(t, 0.0, diag.TestednessIncrease)
+	checkDiag(c2, diag)
+	diag = &taskCandidateScoringDiagnostics{}
+	assert.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
 	assert.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	assert.Equal(t, 1, len(c1.Commits))
+	assert.Equal(t, 2, diag.StoleFromCommits)
+	assert.Equal(t, 0.5, diag.TestednessIncrease)
+	checkDiag(c1, diag)
 }
 
 func TestProcessTaskCandidates(t *testing.T) {
@@ -1487,7 +1608,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.jCache.Update())
 
 	// Regenerate the task queue.
-	queue, err := s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err := s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(queue)) // Two Build tasks.
 
@@ -1527,7 +1648,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain the other Build task and the one
@@ -1564,7 +1685,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(queue))
 	testSort()
@@ -1597,7 +1718,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.NoError(t, s.tCache.Update())
 
 	// Regenerate the task queue.
-	queue, err = s.regenerateTaskQueue(ctx, time.Now())
+	queue, _, err = s.regenerateTaskQueue(ctx, time.Now())
 	assert.NoError(t, err)
 
 	// Now we expect the queue to contain one Test and one Perf task. The
@@ -1646,9 +1767,43 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
 	assert.Equal(t, 0, len(rv))
 
+	// checkDiags takes a list of bots with the same dimensions and a list of
+	// ordered candidates that match those bots and checks the Diagnostics for
+	// candidates.
+	checkDiags := func(bots []*swarming_api.SwarmingRpcsBotInfo, candidates []*taskCandidate) {
+		var expectedBots []string
+		if len(bots) > 0 {
+			expectedBots = make([]string, len(bots), len(bots))
+			for i, b := range bots {
+				expectedBots[i] = b.BotId
+			}
+		}
+		for i, c := range candidates {
+			// These conditions are not tested.
+			assert.False(t, c.Diagnostics.Scheduling.OverSchedulingLimitPerTaskSpec)
+			assert.False(t, c.Diagnostics.Scheduling.ScoreBelowThreshold)
+			// This field will be the same for all candidates.
+			assert.Equal(t, expectedBots, c.Diagnostics.Scheduling.MatchingBots)
+			assert.Equal(t, i, c.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+			if i == 0 {
+				// First candidate.
+				assert.Nil(t, c.Diagnostics.Scheduling.LastSimilarCandidate)
+			} else {
+				last := candidates[i-1]
+				assert.Equal(t, &last.TaskKey, c.Diagnostics.Scheduling.LastSimilarCandidate)
+			}
+			assert.Equal(t, i < len(bots), c.Diagnostics.Scheduling.Selected)
+		}
+		// Clear diagnostics for next test.
+		for _, c := range candidates {
+			c.Diagnostics = nil
+		}
+	}
+
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
 	assert.Equal(t, 0, len(rv))
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
 
 	b1 := makeSwarmingBot("bot1", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{})
@@ -1657,31 +1812,39 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// Single match.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
 
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
 	assert.Equal(t, 0, len(rv))
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
 
 	// Add a task candidate to match b1.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
 
 	// Switch the task order.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
 
 	// Make both tasks match the bot, ensure that we pick the first one.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
 
 	// Multiple dimensions. Ensure that different permutations of the bots
 	// and tasks lists give us the expected results.
@@ -1697,20 +1860,64 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// TODO(borenet): Use a more optimal solution to avoid this case.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	// Can't use checkDiags for these cases.
+	assert.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.True(t, t1.Diagnostics.Scheduling.Selected)
+	t1.Diagnostics = nil
+	assert.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 1, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Equal(t, &t1.TaskKey, t2.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.False(t, t2.Diagnostics.Scheduling.Selected)
+	t2.Diagnostics = nil
+
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	assert.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.True(t, t1.Diagnostics.Scheduling.Selected)
+	t1.Diagnostics = nil
+	assert.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 1, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Equal(t, &t1.TaskKey, t2.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.False(t, t2.Diagnostics.Scheduling.Selected)
+	t2.Diagnostics = nil
+
 	// In these two cases, the task with more dimensions has the higher
 	// priority. Both tasks get scheduled.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	assert.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.True(t, t1.Diagnostics.Scheduling.Selected)
+	t1.Diagnostics = nil
+	assert.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 0, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Nil(t, t2.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.True(t, t2.Diagnostics.Scheduling.Selected)
+	t2.Diagnostics = nil
+
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	assert.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.True(t, t1.Diagnostics.Scheduling.Selected)
+	t1.Diagnostics = nil
+	assert.Equal(t, []string{b1.BotId}, t2.Diagnostics.Scheduling.MatchingBots)
+	assert.Equal(t, 0, t2.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
+	assert.Nil(t, t2.Diagnostics.Scheduling.LastSimilarCandidate)
+	assert.True(t, t2.Diagnostics.Scheduling.Selected)
+	t2.Diagnostics = nil
 
 	// Matching dimensions. More bots than tasks.
 	b2 = makeSwarmingBot("bot2", dims)
@@ -1720,6 +1927,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t3 := makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
 
 	// More tasks than bots.
 	t1 = makeTaskCandidate("task1", dims)
@@ -1727,6 +1935,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t3 = makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
 	deepequal.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
 }
 
 func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInfo {
@@ -2150,7 +2359,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
 	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil)
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, workdir, "fake.server", repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, tryjobs.API_URL_TESTING, tryjobs.BUCKET_TESTING, projectRepoMapping, swarming.POOLS_PUBLIC, "", depotTools, g, btProject, btInstance, nil, gcs.NewMemoryGCSClient("diag_unit_tests"), btInstance)
 	assert.NoError(t, err)
 
 	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
@@ -2449,6 +2658,22 @@ func TestBlacklist(t *testing.T) {
 	// The blacklisted commit should not have been triggered.
 	assert.Equal(t, 1, len(tasks))
 	assert.NotEqual(t, c1, tasks[0].Revision)
+	// Candidate diagnostics should indicate the blacklist rule.
+	diag := lastDiagnostics(t, s)
+	foundBlacklisted := 0
+	for _, c := range diag.Candidates {
+		if c.Revision == c1 {
+			foundBlacklisted++
+			assert.Equal(t, "My-Rule", c.Diagnostics.Filtering.BlacklistedByRule)
+		} else if c.TaskKey == tasks[0].TaskKey {
+			assert.Nil(t, c.Diagnostics.Filtering)
+		} else {
+			assert.Equal(t, "", c.Diagnostics.Filtering.BlacklistedByRule)
+			assert.True(t, len(c.Diagnostics.Filtering.UnmetDependencies) > 0)
+		}
+	}
+	// Should be one Build task and one Test task blacklisted.
+	assert.Equal(t, 2, foundBlacklisted)
 }
 
 func TestTrybots(t *testing.T) {
@@ -3499,6 +3724,28 @@ func TestTriggerTaskFailed(t *testing.T) {
 	sort.Strings(t3.Commits)
 	deepequal.AssertDeepEqual(t, expect1, t1.Commits)
 	deepequal.AssertDeepEqual(t, expect3, t3.Commits)
+
+	// Check diagnostics.
+	diag := lastDiagnostics(t, s)
+	failedTrigger := 0
+	for _, c := range diag.Candidates {
+		if c.Revision == commits[4] {
+			assert.Equal(t, "Failed to trigger task: Mocked trigger failure!", c.Diagnostics.Triggering.TriggerError)
+			failedTrigger++
+		} else {
+			if c.TaskKey == t1.TaskKey {
+				assert.Equal(t, "", c.Diagnostics.Triggering.TriggerError)
+				assert.Equal(t, t1.Id, c.Diagnostics.Triggering.TaskId)
+			} else if c.TaskKey == t3.TaskKey {
+				assert.Equal(t, "", c.Diagnostics.Triggering.TriggerError)
+				assert.Equal(t, t3.Id, c.Diagnostics.Triggering.TaskId)
+			} else {
+				assert.Nil(t, c.Diagnostics.Triggering)
+			}
+		}
+	}
+	// Should be one task that failed
+	assert.Equal(t, 1, failedTrigger)
 }
 
 func TestIsolateTaskFailed(t *testing.T) {
@@ -3540,7 +3787,8 @@ func TestIsolateTaskFailed(t *testing.T) {
 	assert.NoError(t, s.updateRepos(ctx))
 	err := s.MainLoop(ctx)
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "failed to process isolate")
+	const isolateErrStr = "failed to process isolate"
+	assert.Contains(t, err.Error(), isolateErrStr)
 	assert.True(t, specs.ErrorIsPermanent(err))
 	assert.NoError(t, s.tCache.Update())
 	// We'll try to trigger all tasks but the one for the bad commit will
@@ -3556,4 +3804,25 @@ func TestIsolateTaskFailed(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 18, numTasks)
+
+	// Check diagnostics.
+	diag := lastDiagnostics(t, s)
+	failedIsolate := 0
+	for _, c := range diag.Candidates {
+		if c.Revision == badCommit {
+			assert.Contains(t, c.Diagnostics.Triggering.IsolateError, isolateErrStr)
+			failedIsolate++
+		} else if c.Diagnostics.Triggering == nil {
+			// testMultipleCandidatesBackfillingEachOtherSetup triggers a task that is
+			// still PENDING at this point, causing candidates for that job to be
+			// superseded.
+			assert.NotNil(t, c.Diagnostics.Filtering)
+			assert.NotEqual(t, "", c.Diagnostics.Filtering.SupersededByTask)
+		} else {
+			assert.Equal(t, "", c.Diagnostics.Triggering.IsolateError)
+			assert.NotEqual(t, "", c.Diagnostics.Triggering.TaskId)
+		}
+	}
+	// Should be one task that failed
+	assert.Equal(t, 1, failedIsolate)
 }

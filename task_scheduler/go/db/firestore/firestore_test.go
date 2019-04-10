@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils"

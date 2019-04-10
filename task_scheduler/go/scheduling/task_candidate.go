@@ -36,11 +36,13 @@ type taskCandidate struct {
 	Score          float64      `json:"score"`
 	StealingFromId string       `json:"stealingFromId"`
 	types.TaskKey
-	TaskSpec *specs.TaskSpec `json:"taskSpec"`
+	TaskSpec    *specs.TaskSpec           `json:"taskSpec"`
+	Diagnostics *taskCandidateDiagnostics `json:"diagnostics,omitempty"`
 }
 
-// Copy returns a copy of the taskCandidate.
-func (c *taskCandidate) Copy() *taskCandidate {
+// CopyNoDiagnostics returns a copy of the taskCandidate, omitting the
+// Diagnostics field.
+func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
 	jobs := make([]*types.Job, len(c.Jobs))
 	copy(jobs, c.Jobs)
 	return &taskCandidate{
@@ -313,6 +315,7 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) (
 // values are their isolated outputs.
 func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
 	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
+	var missingDeps []string
 	for _, depName := range c.TaskSpec.Dependencies {
 		key := c.TaskKey.Copy()
 		key.Name = depName
@@ -329,8 +332,14 @@ func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 			}
 		}
 		if !ok {
-			return false, nil, nil
+			missingDeps = append(missingDeps, depName)
 		}
+	}
+	if len(missingDeps) > 0 {
+		c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{
+			UnmetDependencies: missingDeps,
+		}
+		return false, nil, nil
 	}
 	return true, rv, nil
 }
@@ -344,4 +353,102 @@ func (s taskCandidateSlice) Swap(i, j int) {
 }
 func (s taskCandidateSlice) Less(i, j int) bool {
 	return s[i].Score > s[j].Score // candidates sort in decreasing order.
+}
+
+// taskCandidateDiagnostics stores info about why a candidate was not triggered.
+type taskCandidateDiagnostics struct {
+	// Filtering contains reasons that a candidate would be rejected before scoring and scheduling.
+	// Not set if the candidate was not filtered out.
+	Filtering *taskCandidateFilteringDiagnostics `json:"filtering,omitempty"`
+	// Scoring contains intermediate results in the calculation of Score. Always set unless Filtering
+	// is set.
+	Scoring *taskCandidateScoringDiagnostics `json:"scoring,omitempty"`
+	// Scheduling contains details about selecting candidates from the queue. Always set unless
+	// Filtering is set.
+	Scheduling *taskCandidateSchedulingDiagnostics `json:"scheduling,omitempty"`
+	// Triggering contains detailed results of triggering tasks. Set only if this candidate was
+	// selected to be triggered (Scheduling.Selected is true).
+	Triggering *taskCandidateTriggeringDiagnostics `json:"triggering,omitempty"`
+}
+
+func (s *taskCandidate) GetDiagnostics() *taskCandidateDiagnostics {
+	if s.Diagnostics == nil {
+		s.Diagnostics = &taskCandidateDiagnostics{}
+	}
+	return s.Diagnostics
+}
+
+// taskCandidateFilteringDiagnostics contains information about a candidate rejected before scoring
+// and scheduling. Normally exactly one field is set.
+type taskCandidateFilteringDiagnostics struct {
+	// Name of rule blacklisting this task.
+	BlacklistedByRule string `json:"blacklistedByRule,omitempty"`
+	// True if this task's revision is outside the scheduling window (but its Job has not yet been
+	// flushed).
+	RevisionTooOld bool `json:"revisionTooOld,omitempty"`
+	// TaskId of a pending, running, or completed task with the same TaskKey.
+	SupersededByTask string `json:"supersededByTask,omitempty"`
+	// TaskIds of previous attempts; set when max attempts have been reached.
+	PreviousAttempts []string `json:"previousAttempts,omitempty"`
+	// Names of TaskSpec dependencies that have not completed.
+	UnmetDependencies []string `json:"unmetDependencies,omitempty"`
+}
+
+// taskCandidateScoringDiagnostics contains intermediate results in the calculation of Score. For
+// regular tasks (not forced or try jobs), all fields are set.
+type taskCandidateScoringDiagnostics struct {
+	// Priority calculated from all dependent Job priorities. (Note this is *not* the same as Score;
+	// Priority is an input to scoring while Score is the output.)
+	Priority float64 `json:"priority,omitempty"`
+	// Hours since this candidate's earliest Job was created (only used for forced and try jobs).
+	JobCreatedHours float64 `json:"jobCreatedHours,omitempty"`
+	// Number of commits in this candidate's blamelist that previously were in Task's or candidate's
+	// blamelist. (Note that the number of commits in this candidate's blamelist can be derived from
+	// the Commits field.) Not set for forced or try jobs.
+	StoleFromCommits int `json:"stoleFromCommits,omitempty"`
+	// Base score. See doc for testednessIncrease in task_scheduler.go. Not set for forced or try
+	// jobs.
+	TestednessIncrease float64 `json:"testednessIncrease,omitempty"`
+	// Multiplier to prioritize newer commits. Not set for forced or try jobs.
+	TimeDecay float64 `json:"timeDecay,omitempty"`
+}
+
+// taskCandidateSchedulingDiagnostics contains information about matching tasks with bots.
+type taskCandidateSchedulingDiagnostics struct {
+	// True if SCHEDULING_LIMIT_PER_TASK_SPEC was reached for this task spec. The remaining fields
+	// will not be set.
+	OverSchedulingLimitPerTaskSpec bool `json:"overSchedulingLimitPerTaskSpec,omitempty"`
+	// True if the candidate was skipped because its score was below the threshold. The remaining
+	// fields will not be set.
+	ScoreBelowThreshold bool `json:"scoreBelowThreshold,omitempty"`
+	// The list of available bots that match this candidate's dimensions, regardless of other
+	// candidates.
+	// This field also indicates whether NumHigherScoreSimilarCandidates and LastSimilarCandidate are
+	// approximate (empty) or exact (non-empty). (When there are no matching bots available, it is not
+	// possible to determine if the same bots would satisfy different sets of dimensions, e.g. CPU
+	// tasks vs GPU tasks.)
+	MatchingBots []string `json:"matchingBots,omitempty"`
+	// MatchingBots is non-empty: Count of candidates with a higher score that could have used one of
+	// the bots that match this candidate's dimensions.
+	// MatchingBots is empty: Count of candidates with a higher score that have the same dimensions
+	// as this candidate.
+	NumHigherScoreSimilarCandidates int `json:"numHigherScoreSimilarCandidates,omitempty"`
+	// Lowest-score candidate included in NumHigherScoreSimilarCandidates, identified by the
+	// candidate's TaskKey. In many cases, it is possible to identify all candidates included in
+	// NumHigherScoreSimilarCandidates by following the chain of LastSimilarCandidate.
+	LastSimilarCandidate *types.TaskKey `json:"lastSimilarCandidate,omitempty"`
+	// True if this candidate has been selected to run.
+	Selected bool `json:"selected,omitempty"`
+}
+
+// taskCandidateTriggeringDiagnostics contains information about triggering a Swarming task for this
+// candidate.
+type taskCandidateTriggeringDiagnostics struct {
+	// Error message from isolating inputs.
+	IsolateError string `json:"isolateError,omitempty"`
+	// Error message from triggering the task.
+	TriggerError string `json:"triggerError,omitempty"`
+	// Task Scheduler ID of the triggered task. If an error occurs after assigning an ID, the Task may
+	// not exist in the Task Scheduler DB.
+	TaskId string `json:"taskId,omitempty"`
 }

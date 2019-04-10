@@ -15,12 +15,14 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
@@ -45,6 +47,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/tryjobs"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -88,24 +91,24 @@ var (
 	isolateServer     = flag.String("isolate_server", isolate.ISOLATE_SERVER_URL, "Which Isolate server to use.")
 	local             = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	pubsubProject     = flag.String("pubsub_project", "", "GCE project to use for PubSub.")
-	// TODO(borenet): pubsubTopicSet is also used for as the blacklist
-	// instance name. Once all schedulers are using Firestore for their
-	// task DB, firestoreInstance will have the same value. We should
+	// TODO(borenet): pubsubTopicSet is also used for as the blacklist and
+	// diagnostics instance name. Once all schedulers are using Firestore for
+	// their task DB, firestoreInstance will have the same value. We should
 	// combine into a single instanceName flag. Additionally, the BigTable
 	// instance flag has the same set of values.
-	pubsubTopicSet = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
-	repoUrls       = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
-	recipesCfgFile = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
-	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
-	swarmingPools  = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
-	swarmingServer = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	timePeriod     = flag.String("timeWindow", "4d", "Time period to use.")
-	tryJobBucket   = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
-	commitWindow   = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
-	gsBucket       = flag.String("gsBucket", "skia-task-scheduler", "Name of Google Cloud Storage bucket to use for backups and recovery.")
-	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	pubsubTopicSet    = flag.String("pubsub_topic_set", "", fmt.Sprintf("Pubsub topic set; one of: %v", pubsub.VALID_TOPIC_SETS))
+	repoUrls          = common.NewMultiStringFlag("repo", nil, "Repositories for which to schedule tasks.")
+	recipesCfgFile    = flag.String("recipes_cfg", "", "Path to the recipes.cfg file.")
+	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank, assumes you're running inside a checkout and will attempt to find the resources relative to this source file.")
+	scoreDecay24Hr    = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
+	swarmingPools     = common.NewMultiStringFlag("pool", swarming.POOLS_PUBLIC, "Which Swarming pools to use.")
+	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
+	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
+	tryJobBucket      = flag.String("tryjob_bucket", tryjobs.BUCKET_PRIMARY, "Which Buildbucket bucket to use for try jobs.")
+	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
+	diagnosticsBucket = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
+	workdir           = flag.String("workdir", "workdir", "Working directory to use.")
+	promPort          = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	pubsubTopicName      = flag.String("pubsub_topic", swarming.PUBSUB_TOPIC_SWARMING_TASKS, "Pub/Sub topic to use for Swarming tasks.")
 	pubsubSubscriberName = flag.String("pubsub_subscriber", PUBSUB_SUBSCRIBER_TASK_SCHEDULER, "Pub/Sub subscriber name.")
@@ -644,6 +647,10 @@ func main() {
 		}
 	}
 
+	storageClient, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
+	diagClient := gcs.NewGCSClient(storageClient, *diagnosticsBucket)
+	diagInstance := *pubsubTopicSet
+
 	// Find depot_tools.
 	if *recipesCfgFile == "" {
 		*recipesCfgFile = path.Join(wdAbs, "recipes.cfg")
@@ -661,7 +668,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

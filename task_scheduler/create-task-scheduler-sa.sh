@@ -18,6 +18,7 @@ gcloud projects add-iam-policy-binding google.com:skia-buildbots --member servic
 gcloud projects add-iam-policy-binding skia-firestore --member serviceAccount:${SA_EMAIL} --role roles/datastore.user
 gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/pubsub.admin
 gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:${SA_EMAIL} --role roles/bigtable.user
+gsutil acl ch -u "${SA_EMAIL}:W" gs://skia-task-scheduler-diagnostics
 
 gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA_EMAIL}"
 

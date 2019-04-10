@@ -2,10 +2,13 @@ package scheduling
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
+	"path"
 	"reflect"
 	"sort"
 	"strings"
@@ -16,6 +19,7 @@ import (
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
@@ -77,6 +81,9 @@ const (
 	// limit (since we may need to update an existing whose blamelist was
 	// split by the new task).
 	SCHEDULING_LIMIT_PER_TASK_SPEC = firestore.MAX_TRANSACTION_DOCS / 2
+
+	GCS_MAIN_LOOP_DIAGNOSTICS_DIR = "MainLoop"
+	GCS_DIAGNOSTICS_WRITE_TIMEOUT = 60 * time.Second
 )
 
 var (
@@ -108,6 +115,8 @@ type TaskScheduler struct {
 	candidateMetricsMtx sync.Mutex
 	db                  db.DB
 	depotToolsDir       string
+	diagClient          gcs.GCSClient
+	diagInstance        string
 	isolateCache        *isolate_cache.Cache
 	isolateClient       *isolate.Client
 	jCache              cache.JobCache
@@ -120,16 +129,19 @@ type TaskScheduler struct {
 	pendingInsert    map[string]bool
 	pendingInsertMtx sync.RWMutex
 
-	pools                 []string
-	pubsubCount           metrics2.Counter
-	pubsubTopic           string
-	queue                 []*taskCandidate // protected by queueMtx.
-	queueMtx              sync.RWMutex
-	repos                 repograph.Map
-	swarming              swarming.ApiClient
-	syncer                *syncer.Syncer
-	taskCfgCache          *task_cfg_cache.TaskCfgCache
-	tCache                cache.TaskCache
+	pools        []string
+	pubsubCount  metrics2.Counter
+	pubsubTopic  string
+	queue        []*taskCandidate // protected by queueMtx.
+	queueMtx     sync.RWMutex
+	repos        repograph.Map
+	swarming     swarming.ApiClient
+	syncer       *syncer.Syncer
+	taskCfgCache *task_cfg_cache.TaskCfgCache
+	tCache       cache.TaskCache
+	// testWaitGroup keeps track of any goroutines the TaskScheduler methods
+	// create so that tests can ensure all goroutines finish before asserting.
+	testWaitGroup         sync.WaitGroup
 	timeDecayAmt24Hr      float64
 	triggeredCount        metrics2.Counter
 	tryjobs               *tryjobs.TryJobIntegrator
@@ -138,7 +150,7 @@ type TaskScheduler struct {
 	workdir               string
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, btProject, btInstance string, ts oauth2.TokenSource) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, workdir, host string, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, buildbucketApiUrl, trybotBucket string, projectRepoMapping map[string]string, pools []string, pubsubTopic, depotTools string, gerrit gerrit.GerritInterface, btProject, btInstance string, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -188,6 +200,8 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
 		db:                    d,
 		depotToolsDir:         depotTools,
+		diagClient:            diagClient,
+		diagInstance:          diagInstance,
 		isolateCache:          isolateCache,
 		isolateClient:         isolateClient,
 		jCache:                jCache,
@@ -339,17 +353,13 @@ type TaskSchedulerStatus struct {
 func (s *TaskScheduler) Status() *TaskSchedulerStatus {
 	s.queueMtx.RLock()
 	defer s.queueMtx.RUnlock()
-	candidates := make([]*taskCandidate, 0, NUM_TOP_CANDIDATES)
 	n := NUM_TOP_CANDIDATES
 	if len(s.queue) < n {
 		n = len(s.queue)
 	}
-	for _, c := range s.queue[:n] {
-		candidates = append(candidates, c.Copy())
-	}
 	return &TaskSchedulerStatus{
 		LastScheduled: s.lastScheduled,
-		TopCandidates: candidates,
+		TopCandidates: s.queue[:n],
 	}
 }
 
@@ -403,7 +413,7 @@ func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidat
 				continue
 			}
 		}
-		rv = append(rv, c.Copy())
+		rv = append(rv, c)
 	}
 	return rv
 }
@@ -644,6 +654,43 @@ func ComputeBlamelist(ctx context.Context, cache cache.TaskCache, repo *repograp
 	return rv, stealFrom, nil
 }
 
+type taskSchedulerMainLoopDiagnostics struct {
+	StartTime  time.Time                           `json:"startTime"`
+	EndTime    time.Time                           `json:"endTime"`
+	Error      string                              `json:"error,omitEmpty"`
+	Candidates []*taskCandidate                    `json:"candidates"`
+	FreeBots   []*swarming_api.SwarmingRpcsBotInfo `json:"freeBots"`
+}
+
+// writeMainLoopDiagnosticsToGCS writes JSON containing allCandidates and
+// freeBots to GCS. If called in a goroutine, the arguments may not be modified.
+func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*taskCandidate, freeBots []*swarming_api.SwarmingRpcsBotInfo, scheduleErr error) error {
+	defer metrics2.FuncTimer().Stop()
+	candidateSlice := make([]*taskCandidate, 0, len(allCandidates))
+	for _, c := range allCandidates {
+		candidateSlice = append(candidateSlice, c)
+	}
+	sort.Sort(taskCandidateSlice(candidateSlice))
+	content := taskSchedulerMainLoopDiagnostics{
+		StartTime:  start.UTC(),
+		EndTime:    end.UTC(),
+		Candidates: candidateSlice,
+		FreeBots:   freeBots,
+	}
+	if scheduleErr != nil {
+		content.Error = scheduleErr.Error()
+	}
+	filenameBase := start.UTC().Format("20060102T150405.000000000Z")
+	path := path.Join(diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR, filenameBase+".json")
+	ctx, cancel := context.WithTimeout(ctx, GCS_DIAGNOSTICS_WRITE_TIMEOUT)
+	defer cancel()
+	return gcs.WithWriteFileGzip(diagClient, ctx, path, func(w io.Writer) error {
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		return enc.Encode(&content)
+	})
+}
+
 // findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
 // currently-unfinished jobs.
 func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*taskCandidate, error) {
@@ -704,6 +751,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		// Reject blacklisted tasks.
 		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
 			sklog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", c.Name, c.Revision, rule)
+			c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{BlacklistedByRule: rule}
 			continue
 		}
 
@@ -712,6 +760,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 			if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
 				return nil, err
 			} else if !in {
+				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{RevisionTooOld: true}
 				continue
 			}
 		}
@@ -729,9 +778,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		}
 		if previous != nil {
 			if previous.Status == types.TASK_STATUS_PENDING || previous.Status == types.TASK_STATUS_RUNNING {
+				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
 				continue
 			}
 			if previous.Success() {
+				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
 				continue
 			}
 			// The attempt counts are only valid if the previous
@@ -750,6 +801,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 				previousAttempt = 1
 			}
 			if previousAttempt >= maxAttempts-1 {
+				previousIds := make([]string, 0, len(prevTasks))
+				for _, t := range prevTasks {
+					previousIds = append(previousIds, t.Id)
+				}
+				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{PreviousAttempts: previousIds}
 				continue
 			}
 			c.Attempt = previousAttempt + 1
@@ -762,6 +818,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 			return nil, err
 		}
 		if !depsMet {
+			// c.Filtering set in allDepsMet.
 			continue
 		}
 		hashes := make([]string, 0, len(idsToHashes))
@@ -788,7 +845,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit) error {
+func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *taskCandidateScoringDiagnostics) error {
 	if len(c.Jobs) == 0 {
 		// Log an error and return to allow scheduling other tasks.
 		sklog.Errorf("taskCandidate has no Jobs: %#v", c)
@@ -806,9 +863,11 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		inversePriorityProduct *= 1 - jobPriority
 	}
 	priority := 1 - inversePriorityProduct
+	diag.Priority = priority
 
 	// Use the earliest Job's Created time, which will maximize priority for older forced/try jobs.
 	earliestJob := c.Jobs[0]
+	diag.JobCreatedHours = now.Sub(earliestJob.Created).Hours()
 
 	if c.IsTryJob() {
 		c.Score = CANDIDATE_SCORE_TRY_JOB + now.Sub(earliestJob.Created).Hours()
@@ -865,7 +924,9 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 		stoleFromCommits = len(stealingFrom.Commits)
 		stoleFromStatus = stealingFrom.Status
 	}
+	diag.StoleFromCommits = stoleFromCommits
 	score := testednessIncrease(len(c.Commits), stoleFromCommits)
+	diag.TestednessIncrease = score
 
 	// Add a bonus when retrying or backfilling failures and mishaps.
 	if stoleFromStatus == types.TASK_STATUS_FAILURE || stoleFromStatus == types.TASK_STATUS_MISHAP {
@@ -877,6 +938,7 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 	if err != nil {
 		return err
 	}
+	diag.TimeDecay = decay
 	score *= decay
 	score *= priority
 
@@ -909,21 +971,31 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 				for {
 					// Find the best candidate.
 					idx := -1
+					var orig *taskCandidate
 					var best *taskCandidate
+					var bestDiag *taskCandidateScoringDiagnostics
 					for i, candidate := range candidates {
-						c := candidate.Copy()
-						if err := s.processTaskCandidate(ctx, c, now, cache, commitsBuf); err != nil {
+						c := candidate.CopyNoDiagnostics()
+						diag := &taskCandidateScoringDiagnostics{}
+						if err := s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag); err != nil {
 							errs <- err
 							return
 						}
 						if best == nil || c.Score > best.Score {
+							orig = candidate
 							best = c
+							bestDiag = diag
 							idx = i
 						}
 					}
 					if best == nil {
 						return
 					}
+					// Use the original candidate since we're holding on to that pointer for diagnostics.
+					*orig = *best
+					best = orig
+					best.GetDiagnostics().Scoring = bestDiag
+
 					processed <- best
 					t := best.MakeTask()
 					t.Id = best.MakeId()
@@ -1049,26 +1121,27 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 }
 
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
-// them, and prepares them to be triggered.
-func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*taskCandidate, error) {
+// them, and prepares them to be triggered. The second return value contains
+// all candidates.
+func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*taskCandidate, map[types.TaskKey]*taskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
 	unfinishedJobs, err := s.jCache.UnfinishedJobs()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Find TaskSpecs for all unfinished Jobs.
 	preFilterCandidates, err := s.findTaskCandidatesForJobs(ctx, unfinishedJobs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Filter task candidates.
 	candidates, err := s.filterTaskCandidates(preFilterCandidates)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Record the number of task candidates per dimension set.
@@ -1077,10 +1150,10 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 	// Process the remaining task candidates.
 	queue, err := s.processTaskCandidates(ctx, candidates, now)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return queue, nil
+	return queue, preFilterCandidates, nil
 }
 
 // getCandidatesToSchedule matches the list of free Swarming bots to task
@@ -1101,6 +1174,12 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			}
 		}
 	}
+	// BotIds that have been used by previous candidates.
+	usedBots := util.StringSet{}
+	// Map BotId to the candidates that could have used that bot. In the
+	// case that no bots are available for a candidate, map concatenated
+	// dimensions to candidates.
+	botToCandidates := map[string][]*taskCandidate{}
 
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
@@ -1109,14 +1188,18 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	rv := make([]*taskCandidate, 0, len(bots))
 	countByTaskSpec := make(map[string]int, len(bots))
 	for _, c := range tasks {
+		diag := &taskCandidateSchedulingDiagnostics{}
+		c.GetDiagnostics().Scheduling = diag
 		// Don't exceed SCHEDULING_LIMIT_PER_TASK_SPEC.
 		if countByTaskSpec[c.Name] == SCHEDULING_LIMIT_PER_TASK_SPEC {
 			sklog.Warningf("Too many tasks to schedule for %s; not scheduling more than %d", c.Name, SCHEDULING_LIMIT_PER_TASK_SPEC)
+			diag.OverSchedulingLimitPerTaskSpec = true
 			continue
 		}
 		// TODO(borenet): Make this threshold configurable.
 		if c.Score <= 0.0 {
 			sklog.Warningf("candidate %s @ %s has a score of %2f; skipping (%d commits).", c.Name, c.Revision, c.Score, len(c.Commits))
+			diag.ScoreBelowThreshold = true
 			continue
 		}
 
@@ -1129,32 +1212,55 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 				matches = matches.Intersect(botsByDim[d])
 			}
 		}
-		if len(matches) > 0 {
-			// We're going to run this task. Choose a bot. Sort the
-			// bots by ID so that the choice is deterministic.
-			choices := make([]string, 0, len(matches))
-			for botId := range matches {
-				choices = append(choices, botId)
-			}
-			sort.Strings(choices)
-			bot := choices[0]
 
-			// Remove the bot from consideration.
-			for dim, subset := range botsByDim {
-				delete(subset, bot)
-				if len(subset) == 0 {
-					delete(botsByDim, dim)
+		// Set of candidates that could have used the same bots.
+		similarCandidates := map[*taskCandidate]struct{}{}
+		var lowestScoreSimilarCandidate *taskCandidate
+		addCandidates := func(key string) {
+			candidates := botToCandidates[key]
+			for _, candidate := range candidates {
+				similarCandidates[candidate] = struct{}{}
+			}
+			if len(candidates) > 0 {
+				lastCandidate := candidates[len(candidates)-1]
+				if lowestScoreSimilarCandidate == nil || lowestScoreSimilarCandidate.Score > lastCandidate.Score {
+					lowestScoreSimilarCandidate = lastCandidate
 				}
 			}
+			botToCandidates[key] = append(candidates, c)
+		}
+
+		// Choose a particular bot to mark as used. Sort by ID so that the choice is deterministic.
+		var chosenBot string
+		if len(matches) > 0 {
+			diag.MatchingBots = matches.Keys()
+			sort.Strings(diag.MatchingBots)
+			for botId := range matches {
+				if (chosenBot == "" || botId < chosenBot) && !usedBots[botId] {
+					chosenBot = botId
+				}
+				addCandidates(botId)
+			}
+		} else {
+			diag.MatchingBots = nil
+			// Use sorted concatenated dimensions instead of botId as the key.
+			dims := util.CopyStringSlice(c.TaskSpec.Dimensions)
+			sort.Strings(dims)
+			addCandidates(strings.Join(dims, ","))
+		}
+		diag.NumHigherScoreSimilarCandidates = len(similarCandidates)
+		if lowestScoreSimilarCandidate != nil {
+			diag.LastSimilarCandidate = &lowestScoreSimilarCandidate.TaskKey
+		}
+
+		if chosenBot != "" {
+			// We're going to run this task.
+			diag.Selected = true
+			usedBots[chosenBot] = true
 
 			// Add the task to the scheduling list.
 			rv = append(rv, c)
 			countByTaskSpec[c.Name]++
-
-			// If we've exhausted the bot list, stop here.
-			if len(botsByDim) == 0 {
-				break
-			}
 		}
 	}
 	sort.Sort(taskCandidateSlice(rv))
@@ -1175,7 +1281,9 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 	for _, c := range candidates {
 		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
 		if err != nil {
-			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", err))
+			errStr := err.Error()
+			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
+			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
 			continue
 		}
 		for _, inc := range c.IsolatedHashes {
@@ -1210,13 +1318,21 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 		go func(candidate *taskCandidate) {
 			defer wg.Done()
 			t := candidate.MakeTask()
+			diag := &taskCandidateTriggeringDiagnostics{}
+			candidate.GetDiagnostics().Triggering = diag
+			recordErr := func(context string, err error) {
+				err = fmt.Errorf("%s: %s", context, err)
+				diag.TriggerError = err.Error()
+				errCh <- err
+			}
 			if err := s.db.AssignId(t); err != nil {
-				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
+				recordErr("Failed to assign id", err)
 				return
 			}
+			diag.TaskId = t.Id
 			req, err := candidate.MakeTaskRequest(t.Id, s.isolateClient.ServerURL(), s.pubsubTopic)
 			if err != nil {
-				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
+				recordErr("Failed to make task request", err)
 				return
 			}
 			s.pendingInsertMtx.Lock()
@@ -1231,12 +1347,12 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				s.pendingInsertMtx.Lock()
 				delete(s.pendingInsert, t.Id)
 				s.pendingInsertMtx.Unlock()
-				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
+				recordErr("Failed to trigger task", err)
 				return
 			}
 			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
 			if err != nil {
-				errCh <- fmt.Errorf("Failed to trigger task: %s", err)
+				recordErr("Failed to parse Swarming timestamp", err)
 				return
 			}
 			t.Created = created
@@ -1525,6 +1641,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
 	sklog.Infof("Task Scheduler MainLoop starting...")
+	start := time.Now()
 
 	var getSwarmingBotsErr error
 	var wg sync.WaitGroup
@@ -1543,7 +1660,6 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 
 	}()
 
-	now := time.Now()
 	if err := s.tCache.Update(); err != nil {
 		return fmt.Errorf("Failed to update task cache: %s", err)
 	}
@@ -1562,7 +1678,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 
 	// Regenerate the queue.
 	sklog.Infof("Task Scheduler regenerating the queue...")
-	queue, err := s.regenerateTaskQueue(ctx, now)
+	queue, allCandidates, err := s.regenerateTaskQueue(ctx, start)
 	if err != nil {
 		return fmt.Errorf("Failed to regenerate task queue: %s", err)
 	}
@@ -1573,7 +1689,20 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	}
 
 	sklog.Infof("Task Scheduler scheduling tasks...")
-	if err := s.scheduleTasks(ctx, bots, queue); err != nil {
+	err = s.scheduleTasks(ctx, bots, queue)
+
+	// An error from scheduleTasks can indicate a partial error; write diagnostics
+	// in either case.
+	if s.diagClient != nil {
+		end := time.Now()
+		s.testWaitGroup.Add(1)
+		go func() {
+			defer s.testWaitGroup.Done()
+			util.LogErr(writeMainLoopDiagnosticsToGCS(ctx, start, end, s.diagClient, s.diagInstance, allCandidates, bots, err))
+		}()
+	}
+
+	if err != nil {
 		return fmt.Errorf("Failed to schedule tasks: %s", err)
 	}
 
