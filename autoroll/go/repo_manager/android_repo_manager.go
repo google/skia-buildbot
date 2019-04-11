@@ -408,8 +408,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 			emails = append(emails, e)
 		}
 	}
-	// TODO(rmistry): Remove after we catch up with HEAD.
-	emails = append(emails, "rmistry@google.com")
 	emailStr := strings.Join(emails, ",")
 
 	// Commit the change with the above message.
