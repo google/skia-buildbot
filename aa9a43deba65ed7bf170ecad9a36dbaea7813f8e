@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "536231d4_03d7e786",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-11T19:21:38Z",
+      "side": 1,
+      "message": "The doc and the function are not correct IMO. \nThis function initializes the working directory with auth configuration that \nis retrieved later. The return value is only used in tests, but makes little sense \noutside of the package. \nIt would be clear to have this signature:\n\nfunc InitServiceAccountAuth(svcAccountFile, workDir string) error\n\nand in the test, use the LoadAuthOption to retrieve the Auth from the directory.\n\nReturning an interface guarantees that the return value implements that interface. \nIf you don\u0027t return an interface you need a separate type assertion, usually at the end\nof the file. i.g. \n\nvar _ AuthOpt \u003d (*authOpt)(nil)",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 79
+      },
+      "revId": "aa9a43deba65ed7bf170ecad9a36dbaea7813f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
