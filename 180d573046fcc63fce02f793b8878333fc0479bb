@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "363155d0_21bd1fb8",
+        "filename": "promk/create-backup-to-gcs-internal-sa.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T17:30:18Z",
+      "side": 1,
+      "message": "Should be W, right?",
+      "range": {
+        "startLine": 16,
+        "startChar": 30,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "180d573046fcc63fce02f793b8878333fc0479bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
