@@ -293,6 +293,15 @@ The main application element for the Skia Debugger.
     details-sk {
       display: block;
     }
+
+    #file_input {
+      width: 100%;
+    }
+
+    .delay-input {
+      width: 6em;
+      margin-top: -1em;
+    }
   </style>
   <template>
     <header class="horizontal layout center">
@@ -315,7 +324,10 @@ The main application element for the Skia Debugger.
               class=flex></paper-input>
             <button id=clear on-tap=_clearFilter>Clear</button>
           </div>
-          <play-sk id=play></play-sk>
+          <div class="layout horizontal">
+            <play-sk id=play></play-sk>
+            <paper-input label="Delay in ms" value="{{ _minPlaybackDelay }}" class=delay-input></paper-input>
+          </div>
           <commands-sk id=commands grouping=50></commands-sk>
         </div>
         <div id=center class="layout vertical flex-3">
@@ -350,7 +362,7 @@ The main application element for the Skia Debugger.
         </div>
         <div id=right class$="layout vertical flex-2">
           <div class="layout horizontal">
-            <paper-toggle-button on-iron-change="_replaceSurface" id=gpu checked="{{render_mode_gpu}}">GPU</paper-toggle-button>
+            <paper-toggle-button  title="Toggle between Skia making WebGL calls vs. using it's CPU backend and copying the buffer into a Canvas2D element." on-iron-change="_replaceSurface" id=gpu checked="{{render_mode_gpu}}">GPU</paper-toggle-button>
             <paper-checkbox disabled="{{!render_mode_gpu}}" checked="{{draw_gpu_op_bounds}}" id=gpuOpBounds on-change="_gpuOpBounds">Display GPU Op Bounds</paper-checkbox>
           </div>
           <div class="layout horizontal">
@@ -360,7 +372,7 @@ The main application element for the Skia Debugger.
             <summary-sk>
               Bounds and Matrix
             </summary-sk>
-            <paper-checkbox id=clip on-change="_clipHandler">Show Clip</paper-checkbox>
+            <paper-checkbox title="Show a semi-transparent teal overlay on the areas not within the current clip. This may not work in GPU mode." id=clip on-change="_clipHandler">Show Clip</paper-checkbox>
             <dbg-info-sk info="[[ info ]]"></dbg-info-sk>
           </details-sk>
           <details-sk id=gpuOpBoundsLegend class=hidden>
@@ -373,7 +385,7 @@ The main application element for the Skia Debugger.
               <tr><td class=gpuTotalOpColor>Total bounds of the current op.</td></tr>
             </table>
           </details-sk>
-          <details-sk id=histogram class="hidden">
+          <details-sk title="A table of the number of occurrences of each command." id=histogram class="hidden">
             <summary-sk>
               Histogram
             </summary-sk>
@@ -388,11 +400,11 @@ The main application element for the Skia Debugger.
             <dt>Postion</dt>
             <dd>([[ x ]], [[ y ]])</dd>
             <dt>Color</dt>
-            <dd>[[ rgb ]]</dd>
+            <dd><div class=color-preview id=prevColor style="background-color: [[ rgb ]]"></div>[[ rgb ]]</dd>
             <dd>[[ hex ]]</dd>
           </dl>
           <div>
-            <paper-checkbox disabled id=colorBreakPoint on-change="_breakPoint">Break on change.</paper-checkbox>
+            <paper-checkbox title="Pause command playback if the color of the selected pixel changes. To enable, selec a pixel by clicking on the canvas." disabled id=colorBreakPoint on-change="_breakPoint">Break on change.</paper-checkbox>
             <div id=colorText class="color-p hidden">
               Moving to command <span id=colorTextCommand></span> changed the color of the selected pixel from
               <div class=color-preview id=prevColor></div> <span id=colorTextColor1></span> to
@@ -466,7 +478,12 @@ The main application element for the Skia Debugger.
           type: Array,
           value: function() { return []; },
           reflectToAttribute: false,
-        }
+        },
+        _minPlaybackDelay: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: false,
+        },
       },
 
       ready: function() {
@@ -540,10 +557,9 @@ The main application element for the Skia Debugger.
         });
 
         this.$.commands.addEventListener('op-toggled', (e) => {
-          // Toggle the op and the trigger a reload of the image.
-          DebugCanvas.toggleOp(e.detail.index, e.detail.checked).then(() => {
-            this._updateDebuggerView();
-          }).catch(sk.errorMessage);
+          // Toggle the op and the trigger a redraw of the image.
+          this._player.setCommandVisibility(e.detail.index, e.detail.checked);
+          this._updateDebuggerView();
         });
 
         this.$.commands.addEventListener('op-zoom', (e) => {
@@ -919,25 +935,36 @@ The main application element for the Skia Debugger.
       },
 
       _keyDownHandler: function(e) {
-        let c = String.fromCharCode(e.keyCode);
-        switch (c) {
-          case 'J':
+        let flen = this._filtered.commands.length;
+        switch (e.keyCode) {
+          case 74: // J
             this.$.crosshair.y = this.$.crosshair.y+1;
+            this.$.crosshair.coordinatesUpdated();
             break;
-          case 'K':
+          case 75: // K
             this.$.crosshair.y = this.$.crosshair.y-1;
+            this.$.crosshair.coordinatesUpdated();
             break;
-          case 'H':
+          case 72: // H
             this.$.crosshair.x = this.$.crosshair.x-1;
+            this.$.crosshair.coordinatesUpdated();
             break;
-          case 'L':
+          case 76: // L
             this.$.crosshair.x = this.$.crosshair.x+1;
+            this.$.crosshair.coordinatesUpdated();
             break;
+          case 190: // Period, step command forward
+            this._targetItem = (flen + this._targetItem + 1) % flen;
+            this._moveToTargetItem();
+            break;
+          case 188: // Comma, step command back
+            this._targetItem = (flen + this._targetItem - 1) % flen;
+            this._moveToTargetItem();
+            break;
+          default:
+            return;
         }
-        if ('JKHL'.indexOf(c) !== -1 ) {
-          e.stopPropagation();
-        }
-        this.$.crosshair.coordinatesUpdated();
+        e.stopPropagation();
       },
 
       _deepCopy: function(o) {
