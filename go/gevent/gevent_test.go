@@ -38,10 +38,10 @@ func TestEventBus(t *testing.T) {
 	RegisterCodec("channel1", testCodec)
 	RegisterCodec("channel2", testCodec)
 
-	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1)
+	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_1, nil)
 	assert.NoError(t, err)
 
-	eventBusTwo, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2)
+	eventBusTwo, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_2, nil)
 	assert.NoError(t, err)
 
 	ch := make(chan int, 5)
@@ -89,7 +89,7 @@ func TestEventBus(t *testing.T) {
 func TestSynStorageEvents(t *testing.T) {
 	testutils.LargeTest(t)
 
-	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_STORAGE_EVT)
+	eventBus, err := New(PROJECT_ID, LOCAL_TOPIC, SUBSCRIBER_STORAGE_EVT, nil)
 	assert.NoError(t, err)
 
 	// Disable actual subscription to the bucket. It's not possible to test right now, but

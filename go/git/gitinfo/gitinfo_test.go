@@ -399,6 +399,26 @@ func TestBranchInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	allBranches, err := r.GetBranches(ctx)
+	assert.NoError(t, err)
+	branches := []string{}
+	for _, b := range allBranches {
+		branches = append(branches, b.Name)
+	}
+	vcstu.TestBranchInfo(t, r, branches)
+}
+
+func TestBranchInfoOLD(t *testing.T) {
+	testutils.MediumTest(t)
+	repoDir, cleanup := vcstu.InitTempRepo()
+	defer cleanup()
+
+	ctx := context.Background()
+	r, err := NewGitInfo(ctx, repoDir, false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	branches, err := r.GetBranches(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
