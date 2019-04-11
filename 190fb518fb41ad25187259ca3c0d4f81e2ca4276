@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "58604f99_b6b3de64",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 602,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-11T13:46:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0d44ee9a_66bfd23e",
+      "range": {
+        "startLine": 602,
+        "startChar": 22,
+        "endLine": 602,
+        "endChar": 24
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c397899a_330ba98a",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 3
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "4d210ad6_42eca779",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-11T13:46:26Z",
+      "side": 1,
+      "message": "It would exceed maximum call stack size.\nProbably the play element should be the one doing setTimeout.\n\nAlso, I\u0027ve decided not to skip DrawAnnotations because it seemed to make no signifigant performance difference.",
+      "parentUuid": "c397899a_330ba98a",
+      "range": {
+        "startLine": 603,
+        "startChar": 12,
+        "endLine": 603,
+        "endChar": 26
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83ce46fb_48c4b0dd",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 3
@@ -91,6 +139,30 @@
       "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f5bc190_c5378ffd",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 967,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2019-04-11T13:46:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83ce46fb_48c4b0dd",
+      "range": {
+        "startLine": 967,
+        "startChar": 32,
+        "endLine": 967,
+        "endChar": 37
+      },
+      "revId": "190fb518fb41ad25187259ca3c0d4f81e2ca4276",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
