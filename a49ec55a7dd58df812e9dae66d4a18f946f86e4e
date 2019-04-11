@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ab81e6e8_d978b3cb",
+        "filename": "promk/create-backup-to-gcs-internal-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-11T16:28:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "393baee1_0288271b",
+      "range": {
+        "startLine": 3,
+        "startChar": 57,
+        "endLine": 3,
+        "endChar": 63
+      },
+      "revId": "a49ec55a7dd58df812e9dae66d4a18f946f86e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48dc32b8_fc481cef",
         "filename": "promk/create-backup-to-gcs-internal-sa.sh",
         "patchSetId": 1
@@ -39,6 +63,24 @@
       "revId": "a49ec55a7dd58df812e9dae66d4a18f946f86e4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9cd28815_0140cdec",
+        "filename": "promk/create-backup-to-gcs-internal-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-11T16:28:51Z",
+      "side": 1,
+      "message": "Done, but the command failed for me with:\nCommandException: Failed to set acl for gs://skia-corp-backup/. Please ensure you have OWNER-role access to this resource.\nI\u0027m assuming something was wrong with my local setup.",
+      "parentUuid": "48dc32b8_fc481cef",
+      "revId": "a49ec55a7dd58df812e9dae66d4a18f946f86e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
