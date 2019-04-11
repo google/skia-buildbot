@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "393baee1_0288271b",
+        "filename": "promk/create-backup-to-gcs-internal-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T15:08:01Z",
+      "side": 1,
+      "message": "copy/pasto",
+      "range": {
+        "startLine": 3,
+        "startChar": 57,
+        "endLine": 3,
+        "endChar": 63
+      },
+      "revId": "a49ec55a7dd58df812e9dae66d4a18f946f86e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48dc32b8_fc481cef",
+        "filename": "promk/create-backup-to-gcs-internal-sa.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T15:08:01Z",
+      "side": 1,
+      "message": "nit: Give access to the bucket here?",
+      "revId": "a49ec55a7dd58df812e9dae66d4a18f946f86e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
