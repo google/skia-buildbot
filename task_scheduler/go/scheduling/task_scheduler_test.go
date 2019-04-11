@@ -1782,7 +1782,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 			// These conditions are not tested.
 			assert.False(t, c.Diagnostics.Scheduling.OverSchedulingLimitPerTaskSpec)
 			assert.False(t, c.Diagnostics.Scheduling.ScoreBelowThreshold)
-			// This field will be the same for all candidates.
+			// NoBotsAvailable and MatchingBots will be the same for all candidates.
+			assert.Equal(t, len(expectedBots) == 0, c.Diagnostics.Scheduling.NoBotsAvailable)
 			assert.Equal(t, expectedBots, c.Diagnostics.Scheduling.MatchingBots)
 			assert.Equal(t, i, c.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 			if i == 0 {

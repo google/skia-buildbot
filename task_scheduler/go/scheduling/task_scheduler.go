@@ -1242,6 +1242,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 				addCandidates(botId)
 			}
 		} else {
+			diag.NoBotsAvailable = true
 			diag.MatchingBots = nil
 			// Use sorted concatenated dimensions instead of botId as the key.
 			dims := util.CopyStringSlice(c.TaskSpec.Dimensions)
