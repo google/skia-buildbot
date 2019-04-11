@@ -1,0 +1,365 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "81f2c913_2d4adee4",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: you might consider combining all the apt-related commands into one RUN so it doesn\u0027t create useless layers.\n\nAlso, after apt-get stuff, you might want to do \u0027rm -rf /var/lib/apt/lists/*\u0027 to get rid of useless cache files.",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b2fbf7f_5e2b505f",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: same as above, you might want to combine these commands. Also, you may want to delete the tarfile after extracting it.",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a8de1e8_05f56a22",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "I guess \u0027z\u0027 is automatic?",
+      "range": {
+        "startLine": 14,
+        "startChar": 22,
+        "endLine": 14,
+        "endChar": 25
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c2417e18_2c75c1d6",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: I like to use long flags in scripts, unless it\u0027s something that people use the short flags all the time. \u0027-xvf\u0027 maybe falls into the second category, but \u0027-C\u0027 might be better as \u0027--directory\u003d/usr/lib/\u0027.",
+      "range": {
+        "startLine": 14,
+        "startChar": 8,
+        "endLine": 14,
+        "endChar": 10
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dffdd058_49cfb09e",
+        "filename": "alerts_checker/Makefile",
+        "patchSetId": 16
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "Will there also be a corp version?",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f84c2d51_0f661a63",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: Could we call this app \"kube_checker\" or something matching \"(kube|k8s)(_config)?_(check(er)?|mon(itoring)?|cop)\"?",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4ac8c7e_1b0c350f",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "tpo k8s",
+      "range": {
+        "startLine": 36,
+        "startChar": 42,
+        "endLine": 36,
+        "endChar": 44
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39bfade0_5a2734c2",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: Period or Frequency",
+      "range": {
+        "startLine": 41,
+        "startChar": 18,
+        "endLine": 41,
+        "endChar": 26
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4ef5c4a_c6b1b89c",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: doc function; seems like the name should be getLiveContainersToImages",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0bd0e07_a2090896",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: There are several places this could panic. I think you\u0027d be better off creating some one-off structs so that you can get an error from json.Unmarshal instead, similar to what you did with K8sConfig below.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 64
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc5a7796_ab3d73f4",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: Would it be possible to use gitiles? Seems like this URL gets me the list of configs: https://skia.googlesource.com/skia-public-config/+/refs/heads/master/?format\u003dJSON",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 2
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d20b37c2_765a7220",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: I\u0027m pretty sure this is the container name, not the pod name. AFAIK, the yaml configs only have app names and container names, not pod names. It will be confusing for the metric to call the container a pod (not sure if it will make us more confused than we are now, but it can\u0027t help).",
+      "range": {
+        "startLine": 126,
+        "startChar": 4,
+        "endLine": 126,
+        "endChar": 7
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ad03f1d_a07672c7",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: prefer sklog",
+      "range": {
+        "startLine": 137,
+        "startChar": 5,
+        "endLine": 137,
+        "endChar": 15
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "883254b7_70e49303",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: 0 and 1 seem backwards here; usually I think of 0 as false and 1 as true.",
+      "range": {
+        "startLine": 138,
+        "startChar": 33,
+        "endLine": 138,
+        "endChar": 34
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c60e83f4_29299491",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "Hmm, I suppose we could enforce this somehow, but we currently don\u0027t require container names to be unique across different apps. E.g. we previously had auth-proxy running for both prom and grafana until Joe set up auth directly in grafana.\n\nMaybe the easiest thing would be to map[app]map[container]image; there should be only a single image per app x container.",
+      "range": {
+        "startLine": 146,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 6
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ca5b095_9d890d7d",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "same nit as above",
+      "range": {
+        "startLine": 152,
+        "startChar": 31,
+        "endLine": 152,
+        "endChar": 32
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ad3be41_0464cb5f",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:22:14Z",
+      "side": 1,
+      "message": "nit: This cast shouldn\u0027t be necessary.",
+      "range": {
+        "startLine": 179,
+        "startChar": 21,
+        "endLine": 179,
+        "endChar": 34
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
