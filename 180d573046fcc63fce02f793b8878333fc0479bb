@@ -22,6 +22,30 @@
       "revId": "180d573046fcc63fce02f793b8878333fc0479bb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "beeb0117_83dbe7e6",
+        "filename": "promk/create-backup-to-gcs-internal-sa.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-11T17:32:41Z",
+      "side": 1,
+      "message": "The other service account had admin rights. IIRC writer doesn\u0027t give you delete permission, which means you can\u0027t overwrite objects.",
+      "parentUuid": "363155d0_21bd1fb8",
+      "range": {
+        "startLine": 16,
+        "startChar": 30,
+        "endLine": 16,
+        "endChar": 31
+      },
+      "revId": "180d573046fcc63fce02f793b8878333fc0479bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
