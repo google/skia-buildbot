@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b604acef_80ef97b4",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-11T14:41:40Z",
+      "side": 1,
+      "message": "Should return an instance of AuthOpt and maybe be called \nServiceAccountAuthOpt or WithServiceAccount\nSame for InitLUCIAuth and InitGSUtil",
+      "range": {
+        "startLine": 117,
+        "startChar": 62,
+        "endLine": 117,
+        "endChar": 69
+      },
+      "revId": "0f5489013d01f41714786598b0337d7630b3cf09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "378c544d_66485721",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-11T14:41:40Z",
+      "side": 1,
+      "message": "Nit: Early on I have used C-style constants as well, but it means exporting them as part of the package. That means when you look at a package/file you cannot tell whether a constant is used outside a package and therefore must be changed with care. \nBy using lower case constants you are guaranteed that the constant is only used within this package. \nSee https://stackoverflow.com/questions/22688906/go-naming-conventions-for-const\nfor a discussion.",
+      "range": {
+        "startLine": 32,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 12
+      },
+      "revId": "0f5489013d01f41714786598b0337d7630b3cf09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "da3ea188_b3004718",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-11T14:41:40Z",
+      "side": 1,
+      "message": "IMO this should be done by writing something like this in tests in the same package: \n\ncClient :\u003d goldClient.(*cloudClient) \ncClient.loadAndHashImage \u003d testFn\n\nbut not be part of the type.",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 0
+      },
+      "revId": "0f5489013d01f41714786598b0337d7630b3cf09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b69d824d_e7e92298",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-11T14:41:40Z",
+      "side": 1,
+      "message": "short doc what the function does.\nsame for getHostURL",
+      "range": {
+        "startLine": 568,
+        "startChar": 0,
+        "endLine": 568,
+        "endChar": 42
+      },
+      "revId": "0f5489013d01f41714786598b0337d7630b3cf09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfd6736e_5d1f8071",
+        "filename": "gold-client/go/goldclient/golduploader.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-11T14:41:40Z",
+      "side": 1,
+      "message": "Docs and/or name should reflect that you are uploading the bytes or the file pointed to by fileName.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 53
+      },
+      "revId": "0f5489013d01f41714786598b0337d7630b3cf09",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
