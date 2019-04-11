@@ -131,7 +131,7 @@ func (s *nCommitsStrategy) GetNextRollRev(ctx context.Context, notRolled []*vcsi
 	if len(notRolled) > N_COMMITS {
 		return notRolled[len(notRolled)-N_COMMITS].Hash, nil
 	} else if len(notRolled) > 0 {
-		return notRolled[len(notRolled)-1].Hash, nil
+		return notRolled[0].Hash, nil
 	} else {
 		return "", nil
 	}
