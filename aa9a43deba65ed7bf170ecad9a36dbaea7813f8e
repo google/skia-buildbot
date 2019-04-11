@@ -22,6 +22,30 @@
       "revId": "aa9a43deba65ed7bf170ecad9a36dbaea7813f8e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44d426e1_2a6cf56f",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-11T19:32:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "536231d4_03d7e786",
+      "range": {
+        "startLine": 115,
+        "startChar": 0,
+        "endLine": 117,
+        "endChar": 79
+      },
+      "revId": "aa9a43deba65ed7bf170ecad9a36dbaea7813f8e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
