@@ -421,12 +421,15 @@ type taskCandidateSchedulingDiagnostics struct {
 	// True if the candidate was skipped because its score was below the threshold. The remaining
 	// fields will not be set.
 	ScoreBelowThreshold bool `json:"scoreBelowThreshold,omitempty"`
-	// The list of available bots that match this candidate's dimensions, regardless of other
-	// candidates.
+	// True if no matching bots are available. (This is an explicit marker for len(MatchingBots) == 0
+	// since we use the JSON omitempty option.)
 	// This field also indicates whether NumHigherScoreSimilarCandidates and LastSimilarCandidate are
-	// approximate (empty) or exact (non-empty). (When there are no matching bots available, it is not
+	// approximate (true) or exact (false). (When there are no matching bots available, it is not
 	// possible to determine if the same bots would satisfy different sets of dimensions, e.g. CPU
 	// tasks vs GPU tasks.)
+	NoBotsAvailable bool `json:"noBotsAvailable,omitempty"`
+	// The list of available bots that match this candidate's dimensions, regardless of other
+	// candidates.
 	MatchingBots []string `json:"matchingBots,omitempty"`
 	// MatchingBots is non-empty: Count of candidates with a higher score that could have used one of
 	// the bots that match this candidate's dimensions.
