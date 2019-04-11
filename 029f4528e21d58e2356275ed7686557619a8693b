@@ -1,0 +1,108 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d04b4dac_d44f46a3",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:57:51Z",
+      "side": 1,
+      "message": "nit: maybe say \"0 (false) or 1 (true)\". (I wouldn\u0027t mention that, except https://skia-review.googlesource.com/c/buildbot/+/205881/16/alerts_checker/go/alerts_checker/main.go#138)",
+      "range": {
+        "startLine": 24,
+        "startChar": 38,
+        "endLine": 24,
+        "endChar": 44
+      },
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2488de0c_45aa12b7",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:57:51Z",
+      "side": 1,
+      "message": "nit: Is there a reason for using 3 maps instead of 1?",
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e71d447_d811aa87",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:57:51Z",
+      "side": 1,
+      "message": "nit: maybe log repo, branch, job, task here.",
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39ac3632_480f1ff9",
+        "filename": "go/cq/cq.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:57:51Z",
+      "side": 1,
+      "message": "\u003e \"returing\" is a possible misspelling of \"returning\".\n\nPlease Fix",
+      "parentUuid": "912f54e2_101a7656",
+      "range": {
+        "startLine": 62,
+        "startChar": 38,
+        "endLine": 62,
+        "endChar": 46
+      },
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3663d110_9700e22f",
+        "filename": "go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-11T20:57:51Z",
+      "side": 1,
+      "message": "nit: json5?",
+      "range": {
+        "startLine": 18,
+        "startChar": 47,
+        "endLine": 18,
+        "endChar": 51
+      },
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
