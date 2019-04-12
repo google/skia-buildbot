@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
@@ -128,11 +129,12 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 }
 
 // MemoryGCSClient is a struct used for testing. Instead of writing to GCS, it
-// stores data in memory. Not thread-safe.
+// stores data in memory.
 type MemoryGCSClient struct {
 	bucket string
 	data   map[string][]byte
 	opts   map[string]FileWriteOptions
+	mtx    sync.RWMutex
 }
 
 // Return a MemoryGCSClient instance.
@@ -146,6 +148,8 @@ func NewMemoryGCSClient(bucket string) *MemoryGCSClient {
 
 // See documentationn for GCSClient interface.
 func (c *MemoryGCSClient) FileReader(ctx context.Context, path string) (io.ReadCloser, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
 	contents, ok := c.data[path]
 	if !ok {
 		return nil, storage.ErrObjectNotExist
@@ -178,12 +182,16 @@ func (w *memoryWriter) Write(p []byte) (int, error) {
 
 // See documentation for io.Closer.
 func (w *memoryWriter) Close() error {
+	w.client.mtx.Lock()
+	defer w.client.mtx.Unlock()
 	w.client.data[w.path] = w.buf.Bytes()
 	return nil
 }
 
 // See documentation for GCSClient interface.
 func (c *MemoryGCSClient) FileWriter(ctx context.Context, path string, opts FileWriteOptions) io.WriteCloser {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	c.opts[path] = opts
 	return &memoryWriter{
 		buf:    bytes.NewBuffer(nil),
@@ -223,27 +231,37 @@ func (c *MemoryGCSClient) SetFileContents(ctx context.Context, path string, opts
 
 // See documentation for GCSClient interface.
 func (c *MemoryGCSClient) AllFilesInDirectory(ctx context.Context, prefix string, callback func(item *storage.ObjectAttrs)) error {
-	for key, data := range c.data {
-		if strings.HasPrefix(key, prefix) {
-			opts := c.opts[key]
-			item := &storage.ObjectAttrs{
-				Bucket:             c.bucket,
-				Name:               key,
-				ContentType:        opts.ContentType,
-				ContentLanguage:    opts.ContentLanguage,
-				Size:               int64(len(data)),
-				ContentEncoding:    opts.ContentEncoding,
-				ContentDisposition: opts.ContentDisposition,
-				Metadata:           util.CopyStringMap(opts.Metadata),
+	items := func() []*storage.ObjectAttrs {
+		c.mtx.RLock()
+		defer c.mtx.RUnlock()
+		var items []*storage.ObjectAttrs
+		for key, data := range c.data {
+			if strings.HasPrefix(key, prefix) {
+				opts := c.opts[key]
+				items = append(items, &storage.ObjectAttrs{
+					Bucket:             c.bucket,
+					Name:               key,
+					ContentType:        opts.ContentType,
+					ContentLanguage:    opts.ContentLanguage,
+					Size:               int64(len(data)),
+					ContentEncoding:    opts.ContentEncoding,
+					ContentDisposition: opts.ContentDisposition,
+					Metadata:           util.CopyStringMap(opts.Metadata),
+				})
 			}
-			callback(item)
 		}
+		return items
+	}()
+	for _, item := range items {
+		callback(item)
 	}
 	return nil
 }
 
 // See documentation for GCSClient interface.
 func (c *MemoryGCSClient) DeleteFile(ctx context.Context, path string) error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	delete(c.data, path)
 	delete(c.opts, path)
 	return nil
