@@ -51,7 +51,7 @@ var (
 )
 
 // NewClient creates a new client for interacting with CQ tools.
-func NewClient(gerritClient *gerrit.Gerrit, cqTryBotsFunc GetCQTryBots, metricName string) (*Client, error) {
+func NewClient(gerritClient *gerrit.Gerrit, cqTryBotsFunc GetCQTryBotsFn, metricName string) (*Client, error) {
 	cqTryBots, err := cqTryBotsFunc()
 	if err != nil {
 		return nil, err
@@ -59,24 +59,32 @@ func NewClient(gerritClient *gerrit.Gerrit, cqTryBotsFunc GetCQTryBots, metricNa
 	return &Client{gerritClient, util.NewStringSet(cqTryBots), cqTryBotsFunc, metricName}, err
 }
 
-// GetCQTryBots is an interface for returing the CQ trybots of a project.
-type GetCQTryBots func() ([]string, error)
+// GetCQTryBotsFn is an interface for returing the CQ trybots of a project.
+type GetCQTryBotsFn func() ([]string, error)
 
 type Client struct {
 	gerritClient  *gerrit.Gerrit
 	cqTryBots     util.StringSet
-	cqTryBotsFunc GetCQTryBots
+	cqTryBotsFunc GetCQTryBotsFn
 	metricName    string
 }
 
-// GetSkiaCQTryBots is a Skia implementation of GetCQTryBots.
+// GetSkiaCQTryBots is a Skia implementation of GetCQTryBotsFn.
 func GetSkiaCQTryBots() ([]string, error) {
-	return getCQTryBots(common.REPO_SKIA, MASTER_REF)
+	cfg, err := GetCQConfig(gitiles.NewRepo(common.REPO_SKIA, "", nil))
+	if err != nil {
+		return nil, err
+	}
+	return GetCQTryBots(cfg, MASTER_REF)
 }
 
-// GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBots.
+// GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBotsFn.
 func GetSkiaInfraCQTryBots() ([]string, error) {
-	return getCQTryBots(common.REPO_SKIA_INFRA, MASTER_REF)
+	cfg, err := GetCQConfig(gitiles.NewRepo(common.REPO_SKIA_INFRA, "", nil))
+	if err != nil {
+		return nil, err
+	}
+	return GetCQTryBots(cfg, MASTER_REF)
 }
 
 // MatchConfigGroup returns the ConfigGroup, ConfigGroup_Gerrit, and
@@ -102,18 +110,24 @@ func MatchConfigGroup(cqCfg *Config, ref string) (*ConfigGroup, *ConfigGroup_Ger
 	return nil, nil, nil, nil
 }
 
-// getCQTryBots is a convenience method for the Skia and Skia Infra CQ TryBots.
-func getCQTryBots(repo, ref string) ([]string, error) {
+// GetCQConfig returns the Config for the given repo.
+func GetCQConfig(repo *gitiles.Repo) (*Config, error) {
 	var buf bytes.Buffer
-	if err := gitiles.NewRepo(repo, "", nil).ReadFileAtRef(CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
+	if err := repo.ReadFileAtRef(CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
 		return nil, err
 	}
 	var cqCfg Config
 	if err := proto.UnmarshalText(buf.String(), &cqCfg); err != nil {
 		return nil, err
 	}
+	return &cqCfg, nil
+}
+
+// GetCQTryBots is a convenience method for retrieving the list of CQ trybots
+// from a Config.
+func GetCQTryBots(cqCfg *Config, ref string) ([]string, error) {
 	tryJobs := []string{}
-	configGroup, _, _, err := MatchConfigGroup(&cqCfg, ref)
+	configGroup, _, _, err := MatchConfigGroup(cqCfg, ref)
 	if err != nil {
 		return nil, err
 	}
