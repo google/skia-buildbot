@@ -99,7 +99,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 			jobExistsMetric := metrics2.GetInt64Metric(METRIC_TRYJOB_EXISTS, map[string]string{
 				"repo":   repo.URL,
 				"branch": branch.Ref,
-				"job":    job,
+				"tryjob": job,
 			})
 			jobExistsMetric.Update(jobExists)
 			newMetrics[jobExistsMetric] = struct{}{}
@@ -144,7 +144,7 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 				botExistsMetric := metrics2.GetInt64Metric(METRIC_BOT_EXISTS, map[string]string{
 					"repo":   repo.URL,
 					"branch": branch.Ref,
-					"job":    job,
+					"tryjob": job,
 				})
 				botExistsMetric.Update(botExists)
 				newMetrics[botExistsMetric] = struct{}{}
