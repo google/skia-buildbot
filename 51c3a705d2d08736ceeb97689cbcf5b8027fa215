@@ -16,6 +16,24 @@
       "revId": "51c3a705d2d08736ceeb97689cbcf5b8027fa215",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76bb9647_039e7c4c",
+        "filename": "autoroll/go/repo_manager/fuchsia_sdk_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T17:03:21Z",
+      "side": 1,
+      "message": "No, versionFileLinux is always set.",
+      "parentUuid": "97822f7e_8674bbb1",
+      "revId": "51c3a705d2d08736ceeb97689cbcf5b8027fa215",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
