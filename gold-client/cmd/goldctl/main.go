@@ -113,7 +113,7 @@ func logVerbose(cmd *cobra.Command, args ...interface{}) {
 func exitProcess(cmd *cobra.Command, exitCode int) {
 	// If this is a dryrun don't return a non-zero exit code.
 	if flagDryRun {
-		logInfof(cmd, "Dryrun: Exit code would have been %d", exitCode)
+		logInfof(cmd, "Dryrun: Exit code would have been %d\n", exitCode)
 		os.Exit(0)
 	}
 	os.Exit(exitCode)
