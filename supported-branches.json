@@ -1,0 +1,8 @@
+{
+  "branches": [
+    {
+      "ref": "refs/heads/master",
+      "owner": "skiabot@google.com"
+    }
+  ]
+}
