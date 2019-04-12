@@ -339,7 +339,7 @@ groups:
 # Swarming
 
   - alert: WindowsSkoloOSVersion
-    expr: round(avg_over_time(windows_skolo_os_version_count{pool="Skia"}[1h])) != 1
+    expr: round(avg_over_time(windows_skolo_os_version_count{pool="Skia"}[1h])) > 1
     labels:
       category: infra
       severity: warning
