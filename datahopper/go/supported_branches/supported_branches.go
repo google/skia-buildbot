@@ -64,12 +64,12 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 	}
 	for _, branch := range sbc.Branches {
 		// Find the CQ trybots for this branch.
-		cqTrybots, err := cq.GetCQTryBots(cqCfg, branch.Ref)
+		configGroup, _, _, err := cq.MatchConfigGroup(cqCfg, branch.Ref)
 		if err != nil {
-			return fmt.Errorf("Failed to get CQ trybots for %s from CQ config: %s\nConfig: %+v", branch.Ref, err, cqCfg)
+			return err
 		}
 		branchExists := int64(0)
-		if cqTrybots != nil {
+		if configGroup != nil {
 			branchExists = 1
 		}
 		branchExistsMetric := metrics2.GetInt64Metric(METRIC_BRANCH_EXISTS, map[string]string{
@@ -78,6 +78,23 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		})
 		branchExistsMetric.Update(branchExists)
 		newMetrics[branchExistsMetric] = struct{}{}
+		if configGroup == nil {
+			continue
+		}
+		cqTrybots := []string{}
+		for _, builder := range configGroup.GetVerifiers().GetTryjob().GetBuilders() {
+			name := builder.GetName()
+			split := strings.Split(name, "/")
+			if len(split) != 3 {
+				sklog.Errorf("Invalid builder name %q; skipping.", name)
+				continue
+			}
+			// Skip non-Skia trybots.
+			if !strings.Contains(split[0], "skia") && !strings.Contains(split[1], "skia") {
+				continue
+			}
+			cqTrybots = append(cqTrybots, split[2])
+		}
 
 		// Obtain the tasks cfg for this branch.
 		var buf bytes.Buffer
