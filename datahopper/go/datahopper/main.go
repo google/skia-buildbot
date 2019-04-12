@@ -16,12 +16,14 @@ import (
 	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/datahopper/go/bot_metrics"
+	"go.skia.org/infra/datahopper/go/supported_branches"
 	"go.skia.org/infra/datahopper/go/swarming_metrics"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -190,6 +192,13 @@ func main() {
 	if err := StartFirestoreBackupMetrics(ctx, ts); err != nil {
 		sklog.Fatal(err)
 	}
+
+	// Collect metrics for supported branches.
+	gitcookiesPath := "/tmp/.gitcookies"
+	if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
+		sklog.Fatal(err)
+	}
+	supported_branches.Start(ctx, *repoUrls, gitcookiesPath, httpClient, swarmClient, *swarmingPools)
 
 	// Wait while the above goroutines generate data.
 	httputils.RunHealthCheckServer(*port)
