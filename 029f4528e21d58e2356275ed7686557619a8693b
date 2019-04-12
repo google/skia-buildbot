@@ -187,6 +187,30 @@
       "revId": "029f4528e21d58e2356275ed7686557619a8693b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "925cd4de_52769b9b",
+        "filename": "go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T14:26:56Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "036118cd_961e2848",
+      "range": {
+        "startLine": 18,
+        "startChar": 47,
+        "endLine": 18,
+        "endChar": 51
+      },
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
