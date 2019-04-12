@@ -677,6 +677,7 @@ The main application element for the Skia Debugger.
           // Set player clip and overdraw setting to match UI selection, but don't update view yet.
           this._clipHandler(false);
           this._overdrawHandler(false);
+          this._gpuOpBounds();
           // Request and parse command list for this file.
           json = this._player.jsonCommandList(this._surface);
           this._setCommands(JSON.parse(json));
