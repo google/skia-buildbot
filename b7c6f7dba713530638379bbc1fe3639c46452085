@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "26c57430_388cc1a8",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T14:32:07Z",
+      "side": 1,
+      "message": "nit: This abbr is too long to see in am.skia.org. Maybe just use {{ $labels.branch }}. Same issue for other alerts.",
+      "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f9f933e1_402a9f3d",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -22,6 +39,30 @@
       "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e26f25ee_9d7fcce0",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T14:32:07Z",
+      "side": 1,
+      "message": "Yep. Maybe link to logs so we can see the task name that\u0027s causing a problem?",
+      "parentUuid": "f9f933e1_402a9f3d",
+      "range": {
+        "startLine": 473,
+        "startChar": 52,
+        "endLine": 473,
+        "endChar": 83
+      },
+      "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
