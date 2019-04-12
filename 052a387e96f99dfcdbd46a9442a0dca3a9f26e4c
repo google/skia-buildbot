@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a95ea478_dad65cdd",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81f2c913_2d4adee4",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b2fbf7f_5e2b505f",
         "filename": "alerts_checker/Dockerfile",
         "patchSetId": 16
@@ -33,6 +51,24 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ba1bf20_7102d5cf",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b2fbf7f_5e2b505f",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +118,54 @@
     },
     {
       "key": {
+        "uuid": "21d889dd_d8908987",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2417e18_2c75c1d6",
+      "range": {
+        "startLine": 14,
+        "startChar": 8,
+        "endLine": 14,
+        "endChar": 10
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "011bbe55_ee6d387f",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 16
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "I guess so",
+      "parentUuid": "3a8de1e8_05f56a22",
+      "range": {
+        "startLine": 14,
+        "startChar": 22,
+        "endLine": 14,
+        "endChar": 25
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dffdd058_49cfb09e",
         "filename": "alerts_checker/Makefile",
         "patchSetId": 16
@@ -99,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "990da7af_10371f4b",
+        "filename": "alerts_checker/Makefile",
+        "patchSetId": 16
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Yep, will set that up after this version is working.",
+      "parentUuid": "dffdd058_49cfb09e",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f84c2d51_0f661a63",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -113,6 +215,24 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffb8da76_8164b196",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "So I was trying to keep this generic incase we needed to latch on more checks later.\nEg: If cloud API ever starts returning quotas then this can be used to check our project\u0027s quota vs a threshold (80%?).",
+      "parentUuid": "f84c2d51_0f661a63",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -139,6 +259,30 @@
     },
     {
       "key": {
+        "uuid": "b6163f18_51786c37",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e4ac8c7e_1b0c350f",
+      "range": {
+        "startLine": 36,
+        "startChar": 42,
+        "endLine": 36,
+        "endChar": 44
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "39bfade0_5a2734c2",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -162,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "fa368e69_d7b6307a",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39bfade0_5a2734c2",
+      "range": {
+        "startLine": 41,
+        "startChar": 18,
+        "endLine": 41,
+        "endChar": 26
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d4ef5c4a_c6b1b89c",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -176,6 +344,24 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbfa223d_335c9f9e",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d4ef5c4a_c6b1b89c",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -202,6 +388,30 @@
     },
     {
       "key": {
+        "uuid": "e86340d2_60f74ac2",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0bd0e07_a2090896",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 64
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dc5a7796_ab3d73f4",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -222,6 +432,30 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "96911b50_5328e4f6",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Yep, this was just super easy to do. We can look into gitiles if actual checkout gives us any problems.",
+      "parentUuid": "dc5a7796_ab3d73f4",
+      "range": {
+        "startLine": 94,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 2
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -248,6 +482,30 @@
     },
     {
       "key": {
+        "uuid": "ecc5eb29_6d406620",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "All those names (app / container / pod / service) are confusing. Done.",
+      "parentUuid": "d20b37c2_765a7220",
+      "range": {
+        "startLine": 126,
+        "startChar": 4,
+        "endLine": 126,
+        "endChar": 7
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4ad03f1d_a07672c7",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -268,6 +526,30 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ce996e9_a6889e4b",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ad03f1d_a07672c7",
+      "range": {
+        "startLine": 137,
+        "startChar": 5,
+        "endLine": 137,
+        "endChar": 15
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -294,6 +576,30 @@
     },
     {
       "key": {
+        "uuid": "72a9acc0_0c7b7a6e",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "883254b7_70e49303",
+      "range": {
+        "startLine": 138,
+        "startChar": 33,
+        "endLine": 138,
+        "endChar": 34
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c60e83f4_29299491",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -314,6 +620,30 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28c10f3f_a775a4e3",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Gave this a shot.",
+      "parentUuid": "c60e83f4_29299491",
+      "range": {
+        "startLine": 146,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 6
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -340,6 +670,30 @@
     },
     {
       "key": {
+        "uuid": "c05ccd41_1efca471",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ca5b095_9d890d7d",
+      "range": {
+        "startLine": 152,
+        "startChar": 31,
+        "endLine": 152,
+        "endChar": 32
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7ad3be41_0464cb5f",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16
@@ -360,6 +714,30 @@
       "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd36b1ec_a32b7b71",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2019-04-12T14:56:24Z",
+      "side": 1,
+      "message": "I am not sure why I did that.",
+      "parentUuid": "7ad3be41_0464cb5f",
+      "range": {
+        "startLine": 179,
+        "startChar": 21,
+        "endLine": 179,
+        "endChar": 34
+      },
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
