@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/gold-client/go/goldclient"
 )
 
@@ -29,8 +30,7 @@ func getAuthCmd() *cobra.Command {
 		Long: `
 Authenticate against GCP and the Gold instance.
 Currently only service accounts are supported. `,
-		PreRunE: env.validateFlags,
-		Run:     env.runAuthCmd,
+		Run: env.runAuthCmd,
 	}
 
 	// add the service-account flag.
@@ -46,30 +46,21 @@ Currently only service accounts are supported. `,
 	return cmd
 }
 
-// validateFlags validates across individual flags.
-func (a *authEnv) validateFlags(cmd *cobra.Command, args []string) error {
-	if a.flagServiceAccount == "" && !a.flagUseLUCIContext {
-		return fmt.Errorf("ERROR: Either the %q or %q flag must be set to choose an auth token source.", fstrServiceAccount, fstrLUCI)
-	}
-	return nil
-}
-
 // runAuthCommand
 func (a *authEnv) runAuthCmd(cmd *cobra.Command, args []string) {
-	config := &goldclient.GoldClientConfig{
-		WorkDir: a.flagWorkDir,
+	_, err := fileutil.EnsureDirExists(a.flagWorkDir)
+	if err != nil {
+		logErrfAndExit(cmd, "Could not make work dir: %s", err)
 	}
 
-	// Create a cloud based Gold client and authenticate.
-	goldClient, err := goldclient.NewCloudClient(config, nil)
-	ifErrLogExit(cmd, err)
-
-	var authOpt *goldclient.AuthOpt
 	if a.flagUseLUCIContext {
-		authOpt = goldclient.LUCIAuthOpt()
+		err = goldclient.InitLUCIAuth(a.flagWorkDir)
+	} else if a.flagServiceAccount != "" {
+		err = goldclient.InitServiceAccountAuth(a.flagServiceAccount, a.flagWorkDir)
 	} else {
-		authOpt = goldclient.ServiceAccountAuthOpt(a.flagServiceAccount)
+		fmt.Println("Falling back to gsutil implementation")
+		fmt.Println("This should not be used in production.")
+		err = goldclient.InitGSUtil(a.flagWorkDir)
 	}
-	err = goldClient.SetAuthOpt(authOpt)
 	ifErrLogExit(cmd, err)
 }
