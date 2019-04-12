@@ -146,7 +146,7 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 	ifErrLogExit(cmd, validation.Errors())
 
 	// Define the meta data of the result that is shared by all tests.
-	gr := &jsonio.GoldResults{
+	gr := jsonio.GoldResults{
 		GitHash:       i.flagCommit,
 		Key:           keyMap,
 		Issue:         issueID,
@@ -154,13 +154,16 @@ func (i *imgTestEnv) runImgTestAddCmd(cmd *cobra.Command, args []string) {
 		BuildBucketID: jobID,
 	}
 
-	config := &goldclient.GoldClientConfig{
+	config := goldclient.GoldClientConfig{
 		InstanceID:      i.flagInstanceID,
 		WorkDir:         i.flagWorkDir,
 		PassFailStep:    i.flagPassFailStep,
 		OverrideGoldURL: i.flagURL,
 	}
-	goldClient, err := goldclient.NewCloudClient(auth, config, gr)
+	goldClient, err := goldclient.NewCloudClient(auth, config)
+	ifErrLogExit(cmd, err)
+
+	err = goldClient.SetSharedConfig(gr)
 	ifErrLogExit(cmd, err)
 
 	pass, err := goldClient.Test(i.flagTestName, i.flagPNGFile)
