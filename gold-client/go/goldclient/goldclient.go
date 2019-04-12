@@ -59,9 +59,17 @@ var md5Regexp = regexp.MustCompile(`^[a-f0-9]{32}$`)
 type GoldClient interface {
 	// Test adds a test result to the current testrun. If the GoldClient is configured to
 	// return PASS/FAIL for each test, the returned boolean indicates whether the test passed
-	// comparison with the expectations. An error is only returned if there was a technical problem
-	// in processing the test.
+	// comparison with the expectations (this involves uploading JSON to the server).
+	// This will upload the image if the hash of the pixels has not been seen before -
+	// using auth.SetDryRun(true) can prevent that.
+	//
+	// An error is only returned if there was a technical problem in processing the test.
 	Test(name string, imgFileName string) (bool, error)
+
+	// Upload the JSON file for all Test() calls previously seen.
+	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
+	// on the calls to Test().
+	Finalize() error
 }
 
 // HTTPClient makes it easier to mock out goldclient's dependencies on
@@ -84,7 +92,9 @@ type cloudClient struct {
 	// ready caches the result of the isReady call so we avoid duplicate work.
 	ready bool
 
+	// these functions are overwritable by tests
 	loadAndHashImage func(path string) ([]byte, string, error)
+	now              func() time.Time
 
 	// auth stores the authentication method to use.
 	auth       AuthOpt
@@ -131,6 +141,7 @@ func NewCloudClient(authOpt AuthOpt, config *GoldClientConfig, goldResult *jsoni
 		workDir:          workDir,
 		auth:             authOpt,
 		loadAndHashImage: loadAndHashImage,
+		now:              defaultNow,
 	}
 	if err := ret.setHttpClient(); err != nil {
 		return nil, skerr.Fmt("Error setting http client: %s", err)
@@ -149,7 +160,7 @@ func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
 
 	// If there was no error and this is new instance then save the resultState for the next call.
 	if err == nil && c.freshState {
-		if err := saveJSONFile(c.getResultStateFile(), c.resultState); err != nil {
+		if err := saveJSONFile(c.getResultStatePath(), c.resultState); err != nil {
 			return false, err
 		}
 	}
@@ -204,7 +215,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	if c.resultState.PerTestPassFail {
 		egroup.Go(func() error {
 			localFileName := filepath.Join(c.workDir, jsonTempFile)
-			resultFilePath := c.resultState.getResultFilePath()
+			resultFilePath := c.resultState.getResultFilePath(c.now())
 			if err := uploader.UploadJSON(c.resultState.GoldResults, localFileName, resultFilePath); err != nil {
 				return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
 			}
@@ -219,12 +230,16 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	return ret, nil
 }
 
+func (c *cloudClient) Finalize() error {
+	return skerr.Fmt("not implemented")
+}
+
 // initResultState assembles the information that needs to be uploaded based on previous calls
 // to the function and new arguments.
 func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *jsonio.GoldResults) error {
 	// Load the state from the workdir.
 	var err error
-	c.resultState, err = loadStateFromJson(c.getResultStateFile())
+	c.resultState, err = loadStateFromJson(c.getResultStatePath())
 	if err != nil {
 		return err
 	}
@@ -297,8 +312,8 @@ func (c *cloudClient) isReady() error {
 	return nil
 }
 
-// getResultStateFile returns the name of the temporary file where the state is cached as JSON
-func (c *cloudClient) getResultStateFile() string {
+// getResultStatePath returns the path of the temporary file where the state is cached as JSON
+func (c *cloudClient) getResultStatePath() string {
 	return filepath.Join(c.workDir, stateFile)
 }
 
@@ -341,6 +356,11 @@ func loadAndHashImage(fileName string) ([]byte, string, error) {
 	nrgbaImg := diff.GetNRGBA(img)
 	md5Hash := fmt.Sprintf("%x", md5.Sum(nrgbaImg.Pix))
 	return imgBytes, md5Hash, nil
+}
+
+// defaultNow returns what time it is now in UTC
+func defaultNow() time.Time {
+	return time.Now().UTC()
 }
 
 // resultState is an internal container for all information to upload results
@@ -486,8 +506,7 @@ func (r *resultState) loadExpectations() error {
 //    https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
-func (r *resultState) getResultFilePath() string {
-	now := time.Now().UTC()
+func (r *resultState) getResultFilePath(now time.Time) string {
 	year, month, day := now.Date()
 	hour := now.Hour()
 
@@ -506,7 +525,7 @@ func (r *resultState) getResultFilePath() string {
 		hour,
 		r.GoldResults.GitHash,
 		r.GoldResults.BuildBucketID,
-		time.Now().Unix(),
+		now.Unix(),
 		fileName}
 	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%d/%d/%s", segments...)
 
