@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "4afa1353_588b9255",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T15:14:09Z",
+      "side": 1,
+      "message": "The only limit is the width of the sidebar on am.skia.org. This field is entirely for convenience so that you can see at a glance whether it\u0027s an alert you\u0027ve seen before, whether it\u0027s for something really important, etc.\n\nActually, I think the alert name alone is probably too long for the sidebar. Probably not worth worrying too much about.",
+      "parentUuid": "ffd87ba0_11f6b879",
+      "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f9f933e1_402a9f3d",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -96,6 +114,30 @@
       "side": 1,
       "message": "Done. On the bug I mentioned that we might want to perform this check for all tasks, to ensure that all of the infrastructure continues to work.  One option is to export this metric for all tasks and add a label which indicates whether or not the task is part of a CQ job.  Then we could alert only for CQ tasks for now but it would be easy to alert for any task later by just removing the filter on the alert.",
       "parentUuid": "e26f25ee_9d7fcce0",
+      "range": {
+        "startLine": 473,
+        "startChar": 52,
+        "endLine": 473,
+        "endChar": 83
+      },
+      "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f2325a16_a8a42552",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T15:14:09Z",
+      "side": 1,
+      "message": "That seems like a reasonable thing to do, but I think it\u0027s good enough as-is.",
+      "parentUuid": "22656d06_f19a70b9",
       "range": {
         "startLine": 473,
         "startChar": 52,
