@@ -2,10 +2,12 @@ package goldclient
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
@@ -13,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/types"
 
+	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -80,11 +83,11 @@ func TestLoadBaseline(t *testing.T) {
 }
 
 // Report an image that does not match any previous digests.
-func TestNewReportNoPassFail(t *testing.T) {
+func TestNewReportNormal(t *testing.T) {
 	testutils.SmallTest(t)
 
 	wd, cleanup := testutils.TempDir(t)
-	defer cleanup()
+	defer fmt.Printf("checkout %s %p\n", wd, cleanup)
 
 	imgData := []byte("some bytes")
 	imgHash := "9d0568469d206c1aedf1b71f12f474bc"
@@ -103,7 +106,9 @@ func TestNewReportNoPassFail(t *testing.T) {
 	expectedUploadPath := "gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png"
 	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
 
-	goldClient, err := makeCloudClient(auth, false, wd)
+	// Notice the JSON is not uploaded if we are not in passfail mode - a client
+	// would need to call finalize first.
+	goldClient, err := makeCloudClient(auth, false /*=passFail*/, wd)
 	assert.NoError(t, err)
 
 	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
@@ -113,6 +118,206 @@ func TestNewReportNoPassFail(t *testing.T) {
 
 	pass, err := goldClient.Test("first-test", testImgPath)
 	assert.NoError(t, err)
+	// true is always returned if we are not on passFail mode.
+	assert.True(t, pass)
+}
+
+// Report an image that does not match any previous digests.
+func TestFinalizeNormal(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk
+	testutils.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	j := resultState{
+		PerTestPassFail: false,
+		InstanceID:      "testing",
+		GoldURL:         "https://testing-gold.skia.org",
+		Bucket:          "skia-gold-testing",
+		GoldResults: &jsonio.GoldResults{
+			GitHash: "cadbed23562",
+			Key: map[string]string{
+				"os":  "TestOS",
+				"cpu": "z80",
+			},
+			Results: []*jsonio.Result{
+				{
+					Key: map[string]string{
+						"name":        "first-test",
+						"source_type": "default",
+					},
+					Options: map[string]string{
+						"ext": "png",
+					},
+					Digest: "9d0568469d206c1aedf1b71f12f474bc",
+				},
+			},
+		},
+	}
+	fmt.Printf("results %#v\n", j)
+
+	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
+
+	// Notice the JSON is not uploaded if we are not in passfail mode - a client
+	// would need to call finalize first.
+	goldClient, err := makeCloudClient(auth, false /*=passFail*/, wd)
+	assert.NoError(t, err)
+
+	err = goldClient.Finalize()
+	assert.NoError(t, err)
+
+}
+
+func TestNewReportPassFail(t *testing.T) {
+	testutils.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	imgHash := "9d0568469d206c1aedf1b71f12f474bc"
+	testName := "TestNotSeenBefore"
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
+
+	expectedUploadPath := "gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png"
+	uploader.On("UploadBytes", imgData, testImgPath, expectedUploadPath).Return(nil)
+
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	c := uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath)
+	c.Run(func(args mock.Arguments) {
+		json := args.Get(0).(*jsonio.GoldResults)
+		// spot check some of the properties
+		assert.Equal(t, "abcd1234", json.GitHash)
+		assert.Equal(t, testBuildBucketID, json.BuildBucketID)
+		assert.Equal(t, "WinTest", json.Key["os"])
+
+		results := json.Results
+		assert.Len(t, results, 1)
+		r := results[0]
+		assert.Equal(t, imgHash, r.Digest)
+		assert.Equal(t, testName, r.Key["name"])
+		// Since we did not specify a source_type it defaults to the instance name, which is
+		// "testing"
+		assert.Equal(t, "testing", r.Key["source_type"])
+
+		assert.Equal(t, "png", r.Options["ext"])
+	}).Return(nil)
+
+	goldClient, err := makeCloudClient(auth, true /*=passFail*/, wd)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Test(testName, testImgPath)
+	assert.NoError(t, err)
+	// Returns false because the test name has never been seen before
+	// (and the digest is brand new)
+	assert.False(t, pass)
+}
+
+func TestNegativePassFail(t *testing.T) {
+	testutils.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := "badbadbad1325855590527db196112e0"
+	testName := "ThisIsTheOnlyTest"
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
+
+	// No upload expected because the bytes were already seen in json/hashes.
+
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+
+	goldClient, err := makeCloudClient(auth, true /*=passFail*/, wd)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Test(testName, testImgPath)
+	assert.NoError(t, err)
+	// Returns false because the test is negative
+	assert.False(t, pass)
+}
+
+func TestPositivePassFail(t *testing.T) {
+	testutils.SmallTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	imgData := []byte("some bytes")
+	// These are defined in mockBaselineJSON
+	imgHash := "beef00d3a1527db19619ec12a4e0df68"
+	testName := "ThisIsTheOnlyTest"
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	expectations := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations/commit/abcd1234?issue=867").Return(expectations, nil)
+
+	// No upload expected because the bytes were already seen in json/hashes.
+
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	uploader.On("UploadJSON", mock.AnythingOfType("*jsonio.GoldResults"), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+
+	goldClient, err := makeCloudClient(auth, true /*=passFail*/, wd)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, string, error) {
+		assert.Equal(t, testImgPath, path)
+		return imgData, imgHash, nil
+	})
+
+	pass, err := goldClient.Test(testName, testImgPath)
+	assert.NoError(t, err)
+	// Returns true because this test has been seen before and the digest was
+	// previously triaged positive.
 	assert.True(t, pass)
 }
 
@@ -200,7 +405,7 @@ func makeCloudClient(auth AuthOpt, passFail bool, workDir string) (*cloudClient,
 	config := &GoldClientConfig{
 		InstanceID:   testInstanceID,
 		WorkDir:      workDir,
-		PassFailStep: false,
+		PassFailStep: passFail,
 	}
 
 	gr := &jsonio.GoldResults{
@@ -213,7 +418,14 @@ func makeCloudClient(auth AuthOpt, passFail bool, workDir string) (*cloudClient,
 		Patchset:      testPatchsetID,
 		BuildBucketID: testBuildBucketID,
 	}
-	return NewCloudClient(auth, config, gr)
+	c, err := NewCloudClient(auth, config, gr)
+	if err != nil {
+		return nil, err
+	}
+	c.now = func() time.Time {
+		return time.Date(2019, time.April, 2, 19, 54, 3, 0, time.UTC)
+	}
+	return c, nil
 }
 
 func overrideLoadAndHashImage(c *cloudClient, testFn func(path string) ([]byte, string, error)) {
