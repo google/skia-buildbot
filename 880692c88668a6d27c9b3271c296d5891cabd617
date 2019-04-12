@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2772b72_2c1fab14",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T18:13:36Z",
+      "side": 1,
+      "message": "What we probably actually want is ANOTHER metric, which indicates whether this is a non-master branch with non-skia tryjobs, since those will almost certainly not work.",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 4
+      },
+      "revId": "880692c88668a6d27c9b3271c296d5891cabd617",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
