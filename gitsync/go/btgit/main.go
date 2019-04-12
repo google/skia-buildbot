@@ -4,12 +4,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // btgit is a script that queries a BigTable based GitStore.
@@ -112,6 +114,17 @@ func main() {
 		sklog.Fatalf("Error retrieving branch %q: %s", *branch, err)
 	}
 
+	var tsCommits []*vcsinfo.IndexCommit = nil
+	if len(indexCommits) > 0 {
+		// Also query the timerange and make sure we get similar commits
+		startTime := indexCommits[0].Timestamp
+		endTime := indexCommits[len(indexCommits)-1].Timestamp.Add(time.Second)
+		tsCommits, err = gitStore.RangeByTime(ctx, startTime, endTime, *branch)
+		if err != nil {
+			sklog.Fatalf("Error retrieving time base query: %s", err)
+		}
+	}
+
 	// Isolate the hashes and retrieve the LongCommits.
 	hashes := make([]string, 0, len(indexCommits))
 	for _, commit := range indexCommits {
@@ -132,7 +145,12 @@ func main() {
 			sklog.Fatalf("Programming error: Unable to retrieve long commit for hash %s", hashes[idx])
 		}
 		if *verbose {
-			fmt.Printf("%s %40s %v %s\n", c.Hash, c.Author, c.Timestamp, c.Subject)
+			tsIndex := -1
+			if len(tsCommits) > idx {
+				tsIndex = tsCommits[idx].Index
+			}
+
+			fmt.Printf("%8d %8d %s %50s %v %s\n", indexCommits[idx].Index, tsIndex, c.Hash, c.Author, c.Timestamp, c.Subject)
 		}
 	}
 }

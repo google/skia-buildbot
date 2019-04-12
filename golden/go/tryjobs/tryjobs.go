@@ -160,6 +160,7 @@ func (t *TryjobMonitor) getGerritMsg(issueID int64) string {
 
 // handleTryjobUpdate is triggered when a Tryjob is updated by the ingester.
 func (t *TryjobMonitor) handleTryjobUpdate(data interface{}) {
+	panic("Should not be called !!!")
 	tryjob := data.(*tryjobstore.Tryjob)
 	if err := t.WriteGoldLinkToGerrit(tryjob.IssueID); err != nil {
 		sklog.Errorf("Error adding comment to Gerrit CL: %s", err)

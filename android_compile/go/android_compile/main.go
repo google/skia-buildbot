@@ -267,7 +267,7 @@ func main() {
 	}()
 
 	// Subscribe to storage pubsub events.
-	eventBus, err := gevent.New(*projectID, *topic, *subscriberName)
+	eventBus, err := gevent.New(*projectID, *topic, *subscriberName, nil)
 	if err != nil {
 		sklog.Fatalf("Error creating event bus: %s", err)
 	}

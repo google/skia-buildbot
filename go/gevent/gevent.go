@@ -42,14 +42,15 @@ func RegisterCodec(channelID string, codec util.LRUCodec) {
 
 // distEventBus implements the eventbus.EventBus interface on top of Cloud PubSub.
 type distEventBus struct {
-	localEventBus eventbus.EventBus
-	client        *pubsub.Client
-	clientID      string
-	projectID     string
-	topicID       string
-	topic         *pubsub.Topic
-	sub           *pubsub.Subscription
-	wrapperCodec  util.LRUCodec
+	localEventBus   eventbus.EventBus
+	client          *pubsub.Client
+	clientID        string
+	projectID       string
+	topicID         string
+	topic           *pubsub.Topic
+	sub             *pubsub.Subscription
+	wrapperCodec    util.LRUCodec
+	receiverStarted bool
 
 	// storageNotifications keep track of storage events we have subscribed to.
 	// See eventbus.NotificationsMap for details.
@@ -78,7 +79,7 @@ type channelWrapper struct {
 // - subscriberName is an id that uniquely identifies this node within the
 //   event bus network.
 // - opts are the options used to create an authenticated PubSub client.
-func New(projectID, topicName, subscriberName string, opts ...option.ClientOption) (eventbus.EventBus, error) {
+func New(projectID, topicName, subscriberName string, triggerCh chan bool, opts ...option.ClientOption) (eventbus.EventBus, error) {
 	ret := &distEventBus{
 		localEventBus:        eventbus.New(),
 		wrapperCodec:         util.JSONCodec(&channelWrapper{}),
@@ -100,15 +101,17 @@ func New(projectID, topicName, subscriberName string, opts ...option.ClientOptio
 	}
 
 	// Start the receiver.
-	ret.startReceiver()
+	ret.startReceiver(nil)
 	return ret, nil
 }
 
 // Publish implements the eventbus.EventBus interface.
 func (d *distEventBus) Publish(channelID string, arg interface{}, globally bool) {
+	// sklog.Infof("gevent A")
 	if globally {
 		// publish to pubsub in the background.
 		go func() {
+			// sklog.Infof("gevent B")
 			codecInstance, ok := codecMap.Load(channelID)
 			if !ok {
 				sklog.Errorf("Unable to publish on channel '%s'. No codec defined.", channelID)
@@ -126,10 +129,14 @@ func (d *distEventBus) Publish(channelID string, arg interface{}, globally bool)
 				sklog.Errorf("Error publishing message: %s", err)
 				return
 			}
+			// sklog.Infof("gevent C")
 		}()
 	}
+	// sklog.Infof("gevent E")
+
 	// Publish the event locally.
 	d.localEventBus.Publish(channelID, arg, false)
+	// sklog.Infof("gevent F")
 }
 
 // SubscribeAsync implements the eventbus.EventBus interface.
@@ -230,10 +237,13 @@ func (d *distEventBus) setupTopicSub(topicName, subscriberName string) error {
 	return nil
 }
 
-// startReceiver start a goroutine that processes incoming pubsub messages
+// startReceiver starts a goroutine that processes incoming pubsub messages
 // and fires events on this node.
-func (d *distEventBus) startReceiver() {
+func (d *distEventBus) startReceiver(triggerCh chan bool) {
 	go func() {
+		if triggerCh != nil {
+			<-triggerCh
+		}
 		ctx := context.Background()
 		for {
 			err := d.sub.Receive(ctx, d.processReceivedMsg)
@@ -243,6 +253,7 @@ func (d *distEventBus) startReceiver() {
 			}
 		}
 	}()
+	d.receiverStarted = true
 }
 
 // processReceivedMsg handles each pubsub message that arrives. It unwraps the
@@ -258,6 +269,7 @@ func (d *distEventBus) processReceivedMsg(ctx context.Context, msg *pubsub.Messa
 
 	// If this was flagged to ignore then we are done.
 	if ignore {
+		sklog.Infof("Ignoreing message: %s", spew.Sdump(wrappers))
 		return
 	}
 
@@ -352,8 +364,10 @@ func (d *distEventBus) decodeStorageMsg(msg *pubsub.Message) ([]*channelWrapper,
 	bucketID := msg.Attributes["bucketId"]
 	objectID := msg.Attributes["objectId"]
 	notificationID := msg.Attributes[notificationIDAttr]
+	// sklog.Infof("Received: %s/%s", bucketID, objectID)
 
 	channelIDs := d.storageNotifications.MatchesByID(notificationID, objectID)
+	//	sklog.Infof("Matching channels: %v", channelIDs)
 	if len(channelIDs) == 0 {
 		// Ignore events that have not been registered. Not all clients register for
 		// all events.
