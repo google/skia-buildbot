@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "ff50e26d_535181bc",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T15:15:14Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4afa1353_588b9255",
+      "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f9f933e1_402a9f3d",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -138,6 +156,30 @@
       "side": 1,
       "message": "That seems like a reasonable thing to do, but I think it\u0027s good enough as-is.",
       "parentUuid": "22656d06_f19a70b9",
+      "range": {
+        "startLine": 473,
+        "startChar": 52,
+        "endLine": 473,
+        "endChar": 83
+      },
+      "revId": "b7c6f7dba713530638379bbc1fe3639c46452085",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb1e4154_843699bc",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T15:15:14Z",
+      "side": 1,
+      "message": "SGTM, we can do that if we find the alert cumbersome.",
+      "parentUuid": "f2325a16_a8a42552",
       "range": {
         "startLine": 473,
         "startChar": 52,
