@@ -26,7 +26,7 @@ const (
 	BT_COLUMN = "EVT"
 
 	INSERT_TIMEOUT = 30 * time.Second
-	QUERY_TIMEOUT  = 60 * time.Second
+	QUERY_TIMEOUT  = 3 * 60 * time.Second
 )
 
 var (
