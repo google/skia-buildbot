@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8e1715b0_5418cf00",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T14:02:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d04b4dac_d44f46a3",
+      "range": {
+        "startLine": 24,
+        "startChar": 38,
+        "endLine": 24,
+        "endChar": 44
+      },
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2488de0c_45aa12b7",
         "filename": "datahopper/go/supported_branches/supported_branches.go",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "572d7be2_393b554c",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T14:02:53Z",
+      "side": 1,
+      "message": "Now that I think about it, no. We don\u0027t even need maps for each repo.",
+      "parentUuid": "2488de0c_45aa12b7",
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6e71d447_d811aa87",
         "filename": "datahopper/go/supported_branches/supported_branches.go",
         "patchSetId": 1
@@ -56,6 +98,24 @@
       "revId": "029f4528e21d58e2356275ed7686557619a8693b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21aec7a2_479ddc75",
+        "filename": "datahopper/go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T14:02:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e71d447_d811aa87",
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +154,30 @@
       "writtenOn": "2019-04-11T20:57:51Z",
       "side": 1,
       "message": "nit: json5?",
+      "range": {
+        "startLine": 18,
+        "startChar": 47,
+        "endLine": 18,
+        "endChar": 51
+      },
+      "revId": "029f4528e21d58e2356275ed7686557619a8693b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "036118cd_961e2848",
+        "filename": "go/supported_branches/supported_branches.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-12T14:02:53Z",
+      "side": 1,
+      "message": "I want to support machine-writing this file (eg. by a branch-creation script).  Doing so while maintaining human-added comments would be difficult.",
+      "parentUuid": "3663d110_9700e22f",
       "range": {
         "startLine": 18,
         "startChar": 47,
