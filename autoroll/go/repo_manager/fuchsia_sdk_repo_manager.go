@@ -220,7 +220,7 @@ func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, strat strateg
 	if lastRollRevLinuxStr != nextRollRevLinuxStr {
 		edits[rm.versionFileLinux] = nextRollRevLinuxStr
 	}
-	if lastRollRevMacStr != nextRollRevMacStr {
+	if rm.versionFileMac != "" && lastRollRevMacStr != nextRollRevMacStr {
 		edits[rm.versionFileMac] = nextRollRevMacStr
 	}
 	return lastRollRevLinuxStr, nextRollRevLinuxStr, commitsNotRolled, edits, nil
