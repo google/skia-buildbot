@@ -236,6 +236,24 @@
     },
     {
       "key": {
+        "uuid": "a8c0bdf0_707e31d2",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T16:49:11Z",
+      "side": 1,
+      "message": "\"Alerts checker\" sounds like something that checks alerts. This app creates metrics for things we might want to alert on.\n\nAlso, I would suggest not adding more stuff into the same app; instead, just add another app with an appropriate name.",
+      "parentUuid": "ffb8da76_8164b196",
+      "revId": "052a387e96f99dfcdbd46a9442a0dca3a9f26e4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4ac8c7e_1b0c350f",
         "filename": "alerts_checker/go/alerts_checker/main.go",
         "patchSetId": 16

@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a1541312_571eef05",
+        "filename": "alerts_checker/Dockerfile",
+        "patchSetId": 18
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T16:49:11Z",
+      "side": 1,
+      "message": "Did you mean to remove this? If so, did you mean to include jq above?",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 41
+      },
+      "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "019ace77_62b488be",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T16:49:11Z",
+      "side": 1,
+      "message": "nit: include app in log",
+      "range": {
+        "startLine": 173,
+        "startChar": 24,
+        "endLine": 173,
+        "endChar": 26
+      },
+      "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5653cfc_e963e834",
+        "filename": "alerts_checker/go/alerts_checker/main.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-12T16:49:11Z",
+      "side": 1,
+      "message": "Need to add a liveness metric so that we can alert when this fails.",
+      "revId": "3ab1046e465e30b330c8f4b50757de0d79cf4fed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
