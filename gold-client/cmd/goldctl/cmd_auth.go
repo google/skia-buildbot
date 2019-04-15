@@ -41,7 +41,7 @@ Currently only service accounts are supported. `,
 
 	// add the workdir flag and make it required
 	cmd.Flags().StringVarP(&env.flagWorkDir, fstrWorkDir, "", "", "Temporary work directory")
-	_ = cmd.MarkFlagRequired(fstrWorkDir)
+	Must(cmd.MarkFlagRequired(fstrWorkDir))
 
 	return cmd
 }
