@@ -1,6 +1,7 @@
 package gerrit
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -27,7 +28,7 @@ func skipTestIfRequired(t *testing.T) {
 func TestHasOpenDependency(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	dep, err := api.HasOpenDependency(52160, 1)
@@ -42,7 +43,7 @@ func TestHasOpenDependency(t *testing.T) {
 func TestGerritOwnerModifiedSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
@@ -65,7 +66,7 @@ func TestGerritOwnerModifiedSearch(t *testing.T) {
 func TestGerritCommitSearch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 	api.TurnOnAuthenticatedGets()
 
@@ -89,7 +90,7 @@ func TestGerritCommitSearch(t *testing.T) {
 func GerritPollerTest(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	cache := NewCodeReviewCache(api, 10*time.Second, 3)
@@ -105,7 +106,7 @@ func GerritPollerTest(t *testing.T) {
 func TestGetPatch(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	patch, err := api.GetPatch(2370, "current")
@@ -129,7 +130,7 @@ index c0f0a49..d5733b3 100644
 func TestAddComment(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	changeInfo, err := api.GetIssueProperties(2370)
@@ -141,7 +142,7 @@ func TestAddComment(t *testing.T) {
 func TestSendToDryRun(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	// Send to dry run.
@@ -172,7 +173,7 @@ func TestSendToDryRun(t *testing.T) {
 func TestSendToCQ(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	// Send to CQ.
@@ -203,7 +204,7 @@ func TestSendToCQ(t *testing.T) {
 func TestApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	// Approve.
@@ -247,7 +248,7 @@ func TestReadOnlyFailure(t *testing.T) {
 func TestDisApprove(t *testing.T) {
 	skipTestIfRequired(t)
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	// DisApprove.
@@ -459,7 +460,7 @@ func TestGetCommit(t *testing.T) {
 	revision := "91740d74af689d53b9fa4d172544e0d5620de9bd"
 	expectedParent := "aaab3c73575d5502ae345dd71cf8748c2070ffda"
 
-	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(), nil)
+	api, err := NewGerrit(GERRIT_SKIA_URL, DefaultGitCookiesPath(context.Background()), nil)
 	assert.NoError(t, err)
 
 	commitInfo, err := api.GetCommit(issueID, revision)

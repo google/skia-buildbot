@@ -307,7 +307,7 @@ func main() {
 		gitcookiesPath := ""
 		if *authoritative {
 			// Set up an authenticated Gerrit client.
-			gitcookiesPath = gerrit.DefaultGitCookiesPath()
+			gitcookiesPath = gerrit.DefaultGitCookiesPath(ctx)
 			if !*local {
 				if gitcookiesPath, err = gerrit.GitCookieAuthDaemonPath(); err != nil {
 					sklog.Fatalf("Error retrieving git_cookie_authdaemon path: %s", err)
