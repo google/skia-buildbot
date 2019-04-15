@@ -89,7 +89,7 @@ func TestCalcCidsNotSparse(t *testing.T) {
 type mockVcs struct{}
 
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit {
-	return []*vcsinfo.IndexCommit{&vcsinfo.IndexCommit{Index: 2005}}
+	return []*vcsinfo.IndexCommit{{Index: 2005}}
 }
 func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error        { return nil }
 func (m *mockVcs) From(start time.Time) []string                                   { return nil }
@@ -125,13 +125,13 @@ func TestCalcCidsSparse(t *testing.T) {
 	begins := []int{}
 	type cidSlice []*cid.CommitID
 	rets := []cidSlice{
-		cidSlice{&cid.CommitID{Source: "master", Offset: 2000}},
-		cidSlice{
+		{&cid.CommitID{Source: "master", Offset: 2000}},
+		{
 			&cid.CommitID{Source: "master", Offset: 2001},
 			&cid.CommitID{Source: "master", Offset: 2002},
 			&cid.CommitID{Source: "master", Offset: 2004},
 		},
-		cidSlice{
+		{
 			&cid.CommitID{Source: "master", Offset: 1997},
 			&cid.CommitID{Source: "master", Offset: 1998},
 			&cid.CommitID{Source: "master", Offset: 1999},

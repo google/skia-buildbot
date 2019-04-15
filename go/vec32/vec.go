@@ -18,7 +18,7 @@ const (
 // with MISSING_DATA_SENTINEL.
 func New(size int) []float32 {
 	ret := make([]float32, size)
-	for i, _ := range ret {
+	for i := range ret {
 		ret[i] = MISSING_DATA_SENTINEL
 	}
 	return ret

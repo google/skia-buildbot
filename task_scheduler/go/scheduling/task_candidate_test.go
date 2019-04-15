@@ -20,7 +20,7 @@ func fullTaskCandidate() *taskCandidate {
 		Diagnostics:        &taskCandidateDiagnostics{},
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
-		Jobs: []*types.Job{&types.Job{
+		Jobs: []*types.Job{{
 			Id: "dummy",
 		}},
 		ParentTaskIds:  []string{"38", "39", "40"},

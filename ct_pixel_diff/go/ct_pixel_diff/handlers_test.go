@@ -54,7 +54,7 @@ func TestJsonRunsHandler(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	expected := map[string][]string{
-		"runs": []string{TEST_RUN_ID, TEST_RUN_ID_TWO},
+		"runs": {TEST_RUN_ID, TEST_RUN_ID_TWO},
 	}
 	results := map[string][]string{}
 	err = json.NewDecoder(rr.Body).Decode(&results)
@@ -210,7 +210,7 @@ func TestJsonURLsHandler(t *testing.T) {
 		resultstore.VALUE: "http://www.",
 	}
 	expected := map[string][]map[string]string{
-		"urls": []map[string]string{expectedOne, expectedTwo},
+		"urls": {expectedOne, expectedTwo},
 	}
 	results := map[string][]map[string]string{}
 	err = json.NewDecoder(rr.Body).Decode(&results)

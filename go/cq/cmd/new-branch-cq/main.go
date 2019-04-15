@@ -66,10 +66,10 @@ func main() {
 	// Create the CQ config for the new branch.
 	newCg := &cq.ConfigGroup{
 		Gerrit: []*cq.ConfigGroup_Gerrit{
-			&cq.ConfigGroup_Gerrit{
+			{
 				Url: oldGerrit.Url,
 				Projects: []*cq.ConfigGroup_Gerrit_Project{
-					&cq.ConfigGroup_Gerrit_Project{
+					{
 						Name: oldProject.Name,
 						RefRegexp: []string{
 							fmt.Sprintf("refs/heads/%s", *newBranch),

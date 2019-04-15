@@ -186,7 +186,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 	botIdToConfigs := map[string][]string{}
 	configsToMerge := util.NewStringSet()
 	for key, config := range botConfigs {
-		for botId, _ := range config.Bots {
+		for botId := range config.Bots {
 			if !util.In(key, botIdToConfigs[botId]) {
 				botIdToConfigs[botId] = append(botIdToConfigs[botId], key)
 			}
@@ -195,7 +195,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 			}
 		}
 	}
-	for key, _ := range configsToMerge {
+	for key := range configsToMerge {
 		if _, ok := botConfigs[key]; !ok {
 			// Already merged.
 			continue
@@ -209,7 +209,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 			}
 			groupKeys[key] = true
 			config := botConfigs[key]
-			for botId, _ := range config.Bots {
+			for botId := range config.Bots {
 				bots[botId] = true
 				for _, other := range botIdToConfigs[botId] {
 					gather(other)
@@ -219,7 +219,7 @@ func mergeBotConfigs(botConfigs map[string]BotConfig) {
 		gather(key)
 		dimSet := util.NewStringSet()
 		durs := []TaskDuration{}
-		for key, _ := range groupKeys {
+		for key := range groupKeys {
 			config := botConfigs[key]
 			dimSet.AddLists(config.Dimensions)
 			durs = append(durs, config.TaskAverageDurations...)

@@ -75,7 +75,7 @@ func TestDS(t *testing.T) {
 		ranges, err = st.Range(begin, end)
 		assert.NoError(t, err)
 		key := ""
-		for key, _ = range ranges {
+		for key = range ranges {
 			break
 		}
 		if ranges[key].ByAlertID["foo"].LowStatus.Status == POSITIVE {

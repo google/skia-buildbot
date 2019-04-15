@@ -55,7 +55,7 @@ func TestDB(t testutils.TestingT, d DB) {
 	expect := &TaskDriverRun{
 		TaskId: id,
 		Steps: map[string]*Step{
-			td.STEP_ID_ROOT: &Step{
+			td.STEP_ID_ROOT: {
 				Properties: &td.StepProperties{
 					Id: td.STEP_ID_ROOT,
 				},
