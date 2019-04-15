@@ -29,7 +29,7 @@ goldctl interacts with the Gold service.
 It can be used directly or in a scripted environment. `,
 	}
 	rootCmd.PersistentFlags().BoolVarP(&flagVerbose, "verbose", "v", false, "Verbose prints out extra information")
-	rootCmd.PersistentFlags().BoolVarP(&flagDryRun, "dryrun", "", false, "Dryrun causes goldctl to log errors and return a zero (0) exit code")
+	rootCmd.PersistentFlags().BoolVarP(&flagDryRun, "dryrun", "", false, "Dryrun causes goldctl to do everything except upload image. It will log any errors and always returns a zero (0) exit code")
 
 	// Wire up the other commands as children of the root command.
 	rootCmd.AddCommand(getValidateCmd())
@@ -117,4 +117,13 @@ func exitProcess(cmd *cobra.Command, exitCode int) {
 		os.Exit(0)
 	}
 	os.Exit(exitCode)
+}
+
+// Must is a helper for dealing with errors that shouldn't happen, or if they do,
+// it's an error with the code, not how the user is holding it.
+func Must(err error) {
+	if err != nil {
+		fmt.Printf("Fatal startup error: %s\n", err)
+		os.Exit(2)
+	}
 }

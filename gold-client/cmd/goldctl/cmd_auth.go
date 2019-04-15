@@ -40,8 +40,8 @@ Currently only service accounts are supported. `,
 	cmd.Flags().BoolVarP(&env.flagUseLUCIContext, fstrLUCI, "", false, "Use the LUCI context to retrieve an oauth token.")
 
 	// add the workdir flag and make it required
-	cmd.Flags().StringVarP(&env.flagWorkDir, fstrWorkDir, "", "", "Temporary work directory")
-	_ = cmd.MarkFlagRequired(fstrWorkDir)
+	cmd.Flags().StringVarP(&env.flagWorkDir, fstrWorkDir, "", "", "Work directory for intermediate results")
+	Must(cmd.MarkFlagRequired(fstrWorkDir))
 
 	return cmd
 }
