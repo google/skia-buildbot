@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"sort"
+	"strconv"
 
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/util"
@@ -25,6 +27,14 @@ type SupportedBranchesConfig struct {
 	Branches []*SupportedBranch `json:"branches"`
 }
 
+// Sort sorts the branches in a special order: master first, then all other
+// branches in alphanumeric order, with the exception of branches which differ
+// only by an integer suffix, which are compared according to the integer, ie.
+// refs/heads/chrome/m99 sorts before refs/heads/chrome/m100.
+func (c *SupportedBranchesConfig) Sort() {
+	sort.Sort(SupportedBranchList(c.Branches))
+}
+
 // SupportedBranch represents a single supported branch in a given repo.
 type SupportedBranch struct {
 	// Ref is the full name of the ref, including the "refs/heads/" prefix.
@@ -32,6 +42,43 @@ type SupportedBranch struct {
 	// Owner is the email address of the owner of this branch. It can be a
 	// comma-separated list.
 	Owner string `json:"owner"`
+}
+
+// SupportedBranchList is a helper used for sorting in a special order: master
+// first, then all other branches in alphanumeric order, with the exception of
+// Branches which differ only by an integer suffix, which are compared according
+// to the integer, ie. refs/heads/chrome/m99 sorts before
+// refs/heads/chrome/m100.
+type SupportedBranchList []*SupportedBranch
+
+func (l SupportedBranchList) Len() int { return len(l) }
+func (l SupportedBranchList) Less(a, b int) bool {
+	refA := l[a].Ref
+	refB := l[b].Ref
+	if refA == "refs/heads/master" {
+		return true
+	} else if refB == "refs/heads/master" {
+		return false
+	}
+	for i := 0; i < len(refA); i++ {
+		if i == len(refB) {
+			// refB is a substring of refA.
+			return false
+		}
+		if refA[i] == refB[i] {
+			continue
+		}
+		intA, errA := strconv.Atoi(refA[i:])
+		intB, errB := strconv.Atoi(refB[i:])
+		if errA == nil && errB == nil {
+			return intA < intB
+		}
+		return refA[i] < refB[i]
+	}
+	return refA < refB
+}
+func (l SupportedBranchList) Swap(a, b int) {
+	l[a], l[b] = l[b], l[a]
 }
 
 // DecodeConfig parses a SupportedBranchesConfig.
@@ -45,6 +92,7 @@ func DecodeConfig(r io.Reader) (*SupportedBranchesConfig, error) {
 
 // EncodeConfig writes a SupportedBranchesConfig.
 func EncodeConfig(w io.Writer, c *SupportedBranchesConfig) error {
+	c.Sort()
 	b, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
