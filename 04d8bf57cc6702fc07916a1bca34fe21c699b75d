@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35374200_e66916da",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-15T19:01:04Z",
+      "side": 1,
+      "message": "super nit: testSharedConfig would be better, seeing this out of context suggests there are default values for the shared config.",
+      "range": {
+        "startLine": 578,
+        "startChar": 4,
+        "endLine": 578,
+        "endChar": 23
+      },
+      "revId": "04d8bf57cc6702fc07916a1bca34fe21c699b75d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
