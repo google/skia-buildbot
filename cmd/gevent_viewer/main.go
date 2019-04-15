@@ -34,7 +34,7 @@ func main() {
 		sklog.Fatalf("project_id, topic, subscriber and channels flags must all be set.")
 	}
 
-	eventBus, err := gevent.New(*projectID, *topic, *subscriberName)
+	eventBus, err := gevent.New(*projectID, *topic, *subscriberName, nil)
 	if err != nil {
 		sklog.Fatalf("Error creating event bus: %s", err)
 	}
