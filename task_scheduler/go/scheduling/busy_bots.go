@@ -7,6 +7,7 @@ import (
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/trie"
 	"go.skia.org/infra/go/util"
@@ -21,6 +22,9 @@ const (
 	// bots and all free bots after allocating pending tasks to bots.
 	FILTER_ALL_FREE_BOTS       = "all_free_bots"
 	FILTER_MINUS_PENDING_TASKS = "minus_pending_tasks"
+
+	// Metric name for pending tasks.
+	MEASUREMENT_PENDING_TASK_COUNT = "pending_swarming_task_count"
 )
 
 var (
@@ -95,6 +99,7 @@ func (b *busyBots) recordBotMetrics(filter string, bots []*swarming_api.Swarming
 	for _, bot := range bots {
 		counts[dimensionsString(bot.Dimensions)]++
 	}
+	var sum int64 = 0
 	for dims, count := range counts {
 		metric, ok := metrics[dims]
 		if !ok {
@@ -105,7 +110,9 @@ func (b *busyBots) recordBotMetrics(filter string, bots []*swarming_api.Swarming
 			metrics[dims] = metric
 		}
 		metric.Update(count)
+		sum += count
 	}
+	sklog.Debugf("Sum of %s counts: %d", filter, sum)
 	for dims, metric := range metrics {
 		_, ok := counts[dims]
 		if !ok {
@@ -119,6 +126,11 @@ func (b *busyBots) recordBotMetrics(filter string, bots []*swarming_api.Swarming
 func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_api.SwarmingRpcsBotInfo {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
+	botNames := util.StringSet{}
+	for _, bot := range bots {
+		botNames[bot.BotId] = true
+	}
+	sklog.Debugf("busyBots.Filter num bots %d; unique %d", len(bots), len(botNames))
 	b.recordBotMetrics(FILTER_ALL_FREE_BOTS, bots)
 	matched := make(map[string]bool, len(bots))
 	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
@@ -149,10 +161,17 @@ func (b *busyBots) Filter(bots []*swarming_api.SwarmingRpcsBotInfo) []*swarming_
 func (b *busyBots) RefreshTasks(pending []*swarming_api.SwarmingRpcsTaskResult) {
 	b.mtx.Lock()
 	defer b.mtx.Unlock()
-
 	b.pendingTasks = trie.New()
 	for _, t := range pending {
 		dims := types.DimensionsFromTags(t.Tags)
 		b.pendingTasks.Insert(dims, t.TaskId)
 	}
+
+	taskIds := util.StringSet{}
+	for _, task := range pending {
+		taskIds[task.TaskId] = true
+	}
+	sklog.Debugf("busyBots.RefreshTasks num tasks %d; unique %d; trie len %d", len(pending), len(taskIds), b.pendingTasks.Len())
+
+	metrics2.GetInt64Metric(MEASUREMENT_PENDING_TASK_COUNT).Update(int64(len(pending)))
 }
