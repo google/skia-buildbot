@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"sort"
 
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/util"
@@ -25,6 +26,12 @@ type SupportedBranchesConfig struct {
 	Branches []*SupportedBranch `json:"branches"`
 }
 
+// Sort sorts the branches in a special order: master first, then all other
+// branches in alphanumeric order.
+func (c *SupportedBranchesConfig) Sort() {
+	sort.Sort(SupportedBranchList(c.Branches))
+}
+
 // SupportedBranch represents a single supported branch in a given repo.
 type SupportedBranch struct {
 	// Ref is the full name of the ref, including the "refs/heads/" prefix.
@@ -32,6 +39,23 @@ type SupportedBranch struct {
 	// Owner is the email address of the owner of this branch. It can be a
 	// comma-separated list.
 	Owner string `json:"owner"`
+}
+
+// SupportedBranchList is a helper used for sorting in a special order: master
+// first, then all other branches in alphanumeric order.
+type SupportedBranchList []*SupportedBranch
+
+func (l SupportedBranchList) Len() int { return len(l) }
+func (l SupportedBranchList) Less(a, b int) bool {
+	if l[a].Ref == "refs/heads/master" {
+		return true
+	} else if l[b].Ref == "refs/heads/master" {
+		return false
+	}
+	return l[a].Ref < l[b].Ref
+}
+func (l SupportedBranchList) Swap(a, b int) {
+	l[a], l[b] = l[b], l[a]
 }
 
 // DecodeConfig parses a SupportedBranchesConfig.
@@ -45,6 +69,7 @@ func DecodeConfig(r io.Reader) (*SupportedBranchesConfig, error) {
 
 // EncodeConfig writes a SupportedBranchesConfig.
 func EncodeConfig(w io.Writer, c *SupportedBranchesConfig) error {
+	c.Sort()
 	b, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
