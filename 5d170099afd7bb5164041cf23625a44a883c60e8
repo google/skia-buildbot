@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "62376893_883a90ff",
+        "filename": "go/cq/update.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-15T17:16:21Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c80d0f26_24e31a8d",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 47
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "88e7baf3_1928a7e2",
         "filename": "go/supported_branches/cmd/new-branch/main.go",
         "patchSetId": 3
@@ -64,6 +88,76 @@
         "startChar": 0,
         "endLine": 1,
         "endChar": 12
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4aae1903_c57fbe31",
+        "filename": "go/supported_branches/cmd/new-branch/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-15T17:16:21Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "88e7baf3_1928a7e2",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "118038a4_8e4bfa6a",
+        "filename": "go/supported_branches/cmd/new-branch/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-15T17:16:21Z",
+      "side": 1,
+      "message": "It looks like gerrit and gitiles packages handle response codes explicitly.",
+      "range": {
+        "startLine": 60,
+        "startChar": 63,
+        "endLine": 60,
+        "endChar": 76
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85de374a_26649ede",
+        "filename": "go/supported_branches/supported_branches.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-15T17:16:21Z",
+      "side": 1,
+      "message": "nit: We might want to sort chrome/m99 before chrome/m100.",
+      "range": {
+        "startLine": 30,
+        "startChar": 15,
+        "endLine": 30,
+        "endChar": 33
       },
       "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
