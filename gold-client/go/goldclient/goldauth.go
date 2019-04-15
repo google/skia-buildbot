@@ -84,8 +84,13 @@ func (a *authOpt) GetGoldUploader() (GoldUploader, error) {
 		if httpClient, err := a.GetHTTPClient(); err != nil {
 			return nil, err
 		} else {
+			hc, ok := httpClient.(*http.Client)
+			if !ok {
+				// Should never happen, but is easier to debug than a panic
+				return nil, skerr.Fmt("HTTPClient was wrong type: %#v", httpClient)
+			}
 			// TODO(kjlubick) Maybe take in context as a parameter here?
-			return newHttpUploader(context.TODO(), httpClient.(*http.Client))
+			return newHttpUploader(context.TODO(), hc)
 		}
 	}
 	return &gsutilUploader{}, nil
