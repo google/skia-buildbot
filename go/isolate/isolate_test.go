@@ -25,7 +25,7 @@ func TestCopyIsolatedFile(t *testing.T) {
 		Algo:    "smrt",
 		Command: []string{"sit", "shake"},
 		Files: map[string]isolated.File{
-			"my-file": isolated.File{
+			"my-file": {
 				Digest: "abc123",
 				Link:   &link,
 				Mode:   &mode,
@@ -183,7 +183,7 @@ func TestReUploadIsolatedFiles(t *testing.T) {
 		Algo:    "smrt",
 		Command: []string{"sit", "shake"},
 		Files: map[string]isolated.File{
-			"my-file": isolated.File{
+			"my-file": {
 				Digest: "abc123",
 				Link:   &link,
 				Mode:   &mode,

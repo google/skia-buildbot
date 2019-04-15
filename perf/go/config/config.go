@@ -41,7 +41,7 @@ const (
 
 var (
 	PERF_BIGTABLE_CONFIGS = map[string]*PerfBigTableConfig{
-		NANO: &PerfBigTableConfig{
+		NANO: {
 			TileSize: 256,
 			Project:  "skia-public",
 			Instance: "production",
@@ -51,7 +51,7 @@ var (
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
 		},
-		ANDROID: &PerfBigTableConfig{
+		ANDROID: {
 			TileSize: 256,
 			Project:  "skia-public",
 			Instance: "perf-bt",
@@ -61,7 +61,7 @@ var (
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/android-master-ingest"},
 		},
-		ANDROID_PROD: &PerfBigTableConfig{
+		ANDROID_PROD: {
 			TileSize: 8192,
 			Project:  "skia-public",
 			Instance: "production",
@@ -71,7 +71,7 @@ var (
 			Shards:   8,
 			Sources:  []string{"gs://skia-perf/android-master-ingest"},
 		},
-		CT: &PerfBigTableConfig{
+		CT: {
 			TileSize: 256,
 			Project:  "skia-public",
 			Instance: "perf-bt",
@@ -81,7 +81,7 @@ var (
 			Shards:   8,
 			Sources:  []string{"gs://cluster-telemetry-perf/ingest"},
 		},
-		CT_PROD: &PerfBigTableConfig{
+		CT_PROD: {
 			TileSize: 256,
 			Project:  "skia-public",
 			Instance: "production",

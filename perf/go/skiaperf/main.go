@@ -1104,7 +1104,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		// exactly line up with the regressions in regMap.
 		ids = make([]*cid.CommitID, 0, len(regMap))
 		keys := []string{}
-		for k, _ := range regMap {
+		for k := range regMap {
 			keys = append(keys, k)
 		}
 		sort.Sort(sort.StringSlice(keys))

@@ -95,7 +95,7 @@ func main() {
 				sklog.Info("Which tasks were still failing upon revert?")
 				failingEvenAfterRevert := failingTasksAtACommit(swarmApi, revertHash)
 				// Only count bots that appear in failed and not in failingEvenAfterRevert.
-				for k, _ := range failed {
+				for k := range failed {
 					if failingEvenAfterRevert[k] {
 						continue
 					}

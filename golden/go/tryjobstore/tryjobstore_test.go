@@ -140,9 +140,9 @@ func testTryjobStore(t *testing.T, store TryjobStore, expStoreFactory expstorage
 				Digest:   "digest-" + digestStr,
 				TestName: testName,
 				Params: map[string][]string{
-					"name":    []string{testName},
-					"param-1": []string{"value-1-1-" + digestStr, "value-1-2-" + digestStr},
-					"param-2": []string{"value-2-1" + digestStr, "value-2-2-" + digestStr},
+					"name":    {testName},
+					"param-1": {"value-1-1-" + digestStr, "value-1-2-" + digestStr},
+					"param-2": {"value-2-1" + digestStr, "value-2-2-" + digestStr},
 				},
 			})
 		}

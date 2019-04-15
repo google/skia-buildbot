@@ -232,7 +232,7 @@ TBR=me@google.com`, childPath, lastRollRev[:12], nextRollRev[:12], rm.CommitsNot
 		Id:       "123",
 		Issue:    123,
 		Revisions: map[string]*gerrit.Revision{
-			"ps1": &gerrit.Revision{
+			"ps1": {
 				ID:     "ps1",
 				Number: 1,
 			},

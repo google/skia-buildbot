@@ -65,7 +65,7 @@ func TestTimeJsonMs(t *testing.T) {
 	assert.Equal(t, expMs, string(jsonBytes))
 
 	tjs := []*Issue{
-		&Issue{Updated: time.Time(now)},
+		{Updated: time.Time(now)},
 	}
 
 	jsonBytes, err = json.Marshal(tjs)
