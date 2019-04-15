@@ -97,7 +97,7 @@ func TestBuildTraceMapper(t *testing.T) {
 func addValusAtIndex(store *btts.BigTableTraceStore, index int32, values map[string]float32, filename string, ts time.Time) error {
 	tileKey := store.TileKey(index)
 	ps := paramtools.ParamSet{}
-	for structuredKey, _ := range values {
+	for structuredKey := range values {
 		p, err := query.ParseKey(structuredKey)
 		if err != nil {
 			return err
@@ -145,14 +145,14 @@ func TestBuildNew(t *testing.T) {
 	now := time.Now()
 	v := &mockVCS{
 		ret: []*vcsinfo.IndexCommit{
-			&vcsinfo.IndexCommit{Index: 0, Hash: "123", Timestamp: now.Add(-7 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 1, Hash: "223", Timestamp: now.Add(-6 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 2, Hash: "323", Timestamp: now.Add(-5 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 3, Hash: "423", Timestamp: now.Add(-4 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 4, Hash: "523", Timestamp: now.Add(-3 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 5, Hash: "623", Timestamp: now.Add(-2 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 6, Hash: "723", Timestamp: now.Add(-1 * time.Minute)},
-			&vcsinfo.IndexCommit{Index: 7, Hash: "823", Timestamp: now},
+			{Index: 0, Hash: "123", Timestamp: now.Add(-7 * time.Minute)},
+			{Index: 1, Hash: "223", Timestamp: now.Add(-6 * time.Minute)},
+			{Index: 2, Hash: "323", Timestamp: now.Add(-5 * time.Minute)},
+			{Index: 3, Hash: "423", Timestamp: now.Add(-4 * time.Minute)},
+			{Index: 4, Hash: "523", Timestamp: now.Add(-3 * time.Minute)},
+			{Index: 5, Hash: "623", Timestamp: now.Add(-2 * time.Minute)},
+			{Index: 6, Hash: "723", Timestamp: now.Add(-1 * time.Minute)},
+			{Index: 7, Hash: "823", Timestamp: now},
 		},
 	}
 	builder := NewDataFrameBuilderFromBTTS(v, store)

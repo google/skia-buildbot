@@ -82,7 +82,7 @@ func NewStore(ds *datastore.Client) *Store {
 	}
 	// Start a go routine that expires old silences.
 	go func(store *Store) {
-		for _ = range time.Tick(15 * time.Second) {
+		for range time.Tick(15 * time.Second) {
 			now := time.Now()
 			silences, err := store.GetAll()
 			if err != nil {

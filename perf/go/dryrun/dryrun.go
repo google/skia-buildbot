@@ -102,7 +102,7 @@ func (d *Requests) cleanerStep() {
 
 // cleaner removes old dry runs from inFlight.
 func (d *Requests) cleaner() {
-	for _ = range time.Tick(CLEANUP_DURATION) {
+	for range time.Tick(CLEANUP_DURATION) {
 		d.cleanerStep()
 	}
 }
@@ -214,7 +214,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	running.mutex.Lock()
 	defer running.mutex.Unlock()
 	keys := []string{}
-	for id, _ := range running.Regressions {
+	for id := range running.Regressions {
 		keys = append(keys, id)
 	}
 	sort.Strings(keys)

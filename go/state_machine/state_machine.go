@@ -97,17 +97,17 @@ func (b *Builder) Build(ctx context.Context, gcsClient gcs.GCSClient, gsPath str
 
 	// Every state must have transitions defined to and from it, even if
 	// they are just self-transitions.
-	for state, _ := range states {
+	for state := range states {
 		if _, ok := transitions[state]; !ok {
 			return nil, fmt.Errorf("No transitions defined from state %q", state)
 		}
 	}
 	for _, toMap := range transitions {
-		for to, _ := range toMap {
+		for to := range toMap {
 			delete(states, to)
 		}
 	}
-	for s, _ := range states {
+	for s := range states {
 		if s != b.initialState {
 			return nil, fmt.Errorf("No transitions defined to state %q", s)
 		}

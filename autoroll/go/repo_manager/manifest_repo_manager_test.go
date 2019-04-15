@@ -138,7 +138,7 @@ func setupManifestFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
 		Issue:    12345,
 		ChangeId: "abc",
 		Revisions: map[string]*gerrit.Revision{
-			"1": &gerrit.Revision{},
+			"1": {},
 		},
 	})
 	assert.NoError(t, err)

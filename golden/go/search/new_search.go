@@ -176,7 +176,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 		ID:          issueID,
 		TimeStampMs: util.TimeStampMs(),
 		PatchSets: []*PatchsetSummary{
-			&PatchsetSummary{
+			{
 				PatchsetID:   1,
 				TotalJobs:    10,
 				FinishedJobs: 10,
@@ -184,7 +184,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 				NewImg:       91,
 				UntriagedImg: 44,
 			},
-			&PatchsetSummary{
+			{
 				PatchsetID:   2,
 				TotalJobs:    8,
 				FinishedJobs: 8,
@@ -192,7 +192,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 				NewImg:       64,
 				UntriagedImg: 12,
 			},
-			&PatchsetSummary{
+			{
 				PatchsetID:   5,
 				TotalJobs:    8,
 				FinishedJobs: 8,
@@ -200,7 +200,7 @@ func (s *SearchAPI) Summary(issueID int64) (*IssueSummary, error) {
 				NewImg:       12,
 				UntriagedImg: 6,
 			},
-			&PatchsetSummary{
+			{
 				PatchsetID:   6,
 				TotalJobs:    8,
 				FinishedJobs: 4,

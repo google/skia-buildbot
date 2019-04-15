@@ -45,7 +45,7 @@ func TestStrategyHistory(t *testing.T) {
 	}
 
 	expect := map[string][]*StrategyChange{
-		rollerName: []*StrategyChange{sc0},
+		rollerName: {sc0},
 	}
 	setStrategyAndCheck := func(sc *StrategyChange) {
 		assert.NoError(t, sh.Add(ctx, sc.Strategy, sc.User, sc.Message))

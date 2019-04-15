@@ -64,7 +64,7 @@ func main() {
 		"mykey": "myvalue",
 	}
 	var im instanceMetadataMap = map[string]map[string]string{
-		"inst": map[string]string{
+		"inst": {
 			"mykey2": "myvalue2",
 		},
 	}

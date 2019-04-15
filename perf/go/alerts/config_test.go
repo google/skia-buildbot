@@ -202,12 +202,12 @@ func TestGroupCombinations(t *testing.T) {
 	actual, err := cfg.GroupCombinations(ps)
 	assert.NoError(t, err)
 	expected := []Combination{
-		Combination{KeyValue{"arch", "ARM"}, KeyValue{"config", "565"}},
-		Combination{KeyValue{"arch", "ARM"}, KeyValue{"config", "8888"}},
-		Combination{KeyValue{"arch", "ARM"}, KeyValue{"config", "nvpr"}},
-		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "565"}},
-		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "8888"}},
-		Combination{KeyValue{"arch", "x86"}, KeyValue{"config", "nvpr"}},
+		{KeyValue{"arch", "ARM"}, KeyValue{"config", "565"}},
+		{KeyValue{"arch", "ARM"}, KeyValue{"config", "8888"}},
+		{KeyValue{"arch", "ARM"}, KeyValue{"config", "nvpr"}},
+		{KeyValue{"arch", "x86"}, KeyValue{"config", "565"}},
+		{KeyValue{"arch", "x86"}, KeyValue{"config", "8888"}},
+		{KeyValue{"arch", "x86"}, KeyValue{"config", "nvpr"}},
 	}
 	assert.Equal(t, expected, actual)
 }

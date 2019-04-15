@@ -627,7 +627,7 @@ func main() {
 	if *local {
 		wd := filepath.Join(wdAbs, "local_git_repos")
 		gitRepos := make(map[string]*git.Repo, len(repos))
-		for url, _ := range repos {
+		for url := range repos {
 			r, err := git.NewRepo(ctx, url, wd)
 			if err != nil {
 				sklog.Fatal(err)

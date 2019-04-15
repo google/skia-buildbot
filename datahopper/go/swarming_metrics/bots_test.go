@@ -353,8 +353,8 @@ func TestWindowsSkoloOSVersionCount(t *testing.T) {
 			BotId:      id,
 			LastSeenTs: now.Add(-time.Minute).Format("2006-01-02T15:04:05"),
 			Dimensions: swarming.StringMapToBotDimensions(map[string][]string{
-				"os":   []string{"Windows", "Windows-10", winVer},
-				"zone": []string{"us", "us-skolo", "us-skolo-1"},
+				"os":   {"Windows", "Windows-10", winVer},
+				"zone": {"us", "us-skolo", "us-skolo-1"},
 			}),
 		}
 	}

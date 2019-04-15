@@ -48,7 +48,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		Status:  "MERGED",
 		Updated: issueUpdated,
 		PatchsetDetails: []*tryjobstore.PatchsetDetail{
-			&tryjobstore.PatchsetDetail{
+			{
 				ID: 9,
 			},
 		},

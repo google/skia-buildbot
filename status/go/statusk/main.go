@@ -83,14 +83,14 @@ var (
 	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
 	AUTOROLLERS = map[string]map[string]string{
-		"autoroll.skia.org": map[string]string{
+		"autoroll.skia.org": {
 			"skia-flutter-autoroll":     "Flutter",
 			"skia-autoroll":             "Chrome",
 			"angle-skia-autoroll":       "ANGLE",
 			"skcms-skia-autoroll":       "skcms",
 			"swiftshader-skia-autoroll": "SwiftSh",
 		},
-		"skia-autoroll.corp.goog": map[string]string{
+		"skia-autoroll.corp.goog": {
 			"android-master-autoroll": "Android",
 			"google3-autoroll":        "Google3",
 		},

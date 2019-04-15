@@ -110,7 +110,7 @@ func taskSpecComments(inp map[string][]*types.TaskSpecComment) map[string][]*Tas
 // newCommentsCache returns a commentsCache instance.
 func newCommentsCache(d db.CommentDB, repos repograph.Map) *commentsCache {
 	repoNames := make([]string, 0, len(repos))
-	for repo, _ := range repos {
+	for repo := range repos {
 		repoNames = append(repoNames, repo)
 	}
 	pc := make(map[string]*types.RepoComments, len(repoNames))

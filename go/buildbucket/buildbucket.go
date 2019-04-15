@@ -229,7 +229,7 @@ func getTrybotsForCLPredicate(issue, patchset int64, gerritUrl string) (*buildbu
 	}
 	return &buildbucketpb.BuildPredicate{
 		GerritChanges: []*buildbucketpb.GerritChange{
-			&buildbucketpb.GerritChange{
+			{
 				Host:     u.Host,
 				Change:   issue,
 				Patchset: patchset,

@@ -19,7 +19,7 @@ const (
 var (
 	BuildTask = &specs.TaskSpec{
 		CipdPackages: []*specs.CipdPackage{
-			&specs.CipdPackage{
+			{
 				Name:    "android_sdk",
 				Path:    "android_sdk",
 				Version: "version:0",
@@ -36,12 +36,12 @@ var (
 	}
 	TestTask = &specs.TaskSpec{
 		CipdPackages: []*specs.CipdPackage{
-			&specs.CipdPackage{
+			{
 				Name:    "skimage",
 				Path:    "skimage",
 				Version: "version:0",
 			},
-			&specs.CipdPackage{
+			{
 				Name:    "skp",
 				Path:    "skp",
 				Version: "version:0",
@@ -51,19 +51,19 @@ var (
 		Dependencies: []string{BuildTaskName},
 		Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 		EnvPrefixes: map[string][]string{
-			"PATH": []string{"curdir"},
+			"PATH": {"curdir"},
 		},
 		Isolate:  "test_skia.isolate",
 		Priority: 0.8,
 	}
 	PerfTask = &specs.TaskSpec{
 		CipdPackages: []*specs.CipdPackage{
-			&specs.CipdPackage{
+			{
 				Name:    "skimage",
 				Path:    "skimage",
 				Version: "version:0",
 			},
-			&specs.CipdPackage{
+			{
 				Name:    "skp",
 				Path:    "skp",
 				Version: "version:0",

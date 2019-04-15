@@ -119,9 +119,9 @@ func TestAssertJSONRoundTrip(t *testing.T) {
 	testutils.AssertFails(t, `unsupported type: map\[\w+\.Success]struct`, func(t testutils.TestingT) {
 		AssertJSONRoundTrip(t, &Unencodable{
 			Unsupported: map[Success]struct{}{
-				Success{
+				{
 					Public: 5,
-				}: struct{}{},
+				}: {},
 			},
 		})
 	})

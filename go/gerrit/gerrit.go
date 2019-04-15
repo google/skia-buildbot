@@ -878,7 +878,7 @@ func (g *Gerrit) GetFileNames(issue int64, patch string) ([]string, error) {
 	}
 	// We only need the filenames.
 	ret := []string{}
-	for filename, _ := range files {
+	for filename := range files {
 		ret = append(ret, filename)
 	}
 	return ret, nil

@@ -306,7 +306,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 		for len(toProcess) > 0 {
 			// Choose a commit to process.
 			var c string
-			for commit, _ := range toProcess {
+			for commit := range toProcess {
 				c = commit
 				break
 			}
@@ -364,7 +364,7 @@ func (r *Graph) updateFrom(ctx context.Context, ri RepoImpl) ([]*vcsinfo.LongCom
 
 	if !needOrphanCheck {
 		// Check to see whether any branches were deleted.
-		for branch, _ := range oldBranchesMap {
+		for branch := range oldBranchesMap {
 			if _, ok := newBranchesMap[branch]; !ok {
 				needOrphanCheck = true
 				break
@@ -598,7 +598,7 @@ func (r *Graph) RevList(from, to string) ([]string, error) {
 	}
 
 	// include may contain some commits from the exclude map; remove them.
-	for c, _ := range include {
+	for c := range include {
 		if exclude[c] {
 			delete(include, c)
 		}
@@ -624,7 +624,7 @@ func TopologicalSort(commits []*Commit) []*Commit {
 func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
 	// children maps each commit to those commits which have it as a parent.
 	children := make(map[*Commit]map[*Commit]bool, len(commits))
-	for c, _ := range commits {
+	for c := range commits {
 		for _, p := range c.parents {
 			if commits[p] {
 				subMap, ok := children[p]
@@ -674,7 +674,7 @@ func topologicalSortHelper(commits map[*Commit]bool) []*Commit {
 	}
 	for len(commits) > 0 {
 		var next *Commit
-		for commit, _ := range commits {
+		for commit := range commits {
 			if len(children[commit]) == 0 {
 				// We are ready to process this commit.
 				if next == nil || commit.Less(next) {

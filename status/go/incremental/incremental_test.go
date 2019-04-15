@@ -73,7 +73,7 @@ func TestIncrementalCache(t *testing.T) {
 	defer cleanup()
 
 	repoUrl := ""
-	for r, _ := range repos {
+	for r := range repos {
 		repoUrl = r
 		break
 	}

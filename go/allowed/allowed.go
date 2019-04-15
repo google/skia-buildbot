@@ -75,7 +75,7 @@ func (a *AllowedFromList) Member(email string) bool {
 
 func (a *AllowedFromList) Emails() []string {
 	ret := make([]string, 0, len(a.emails))
-	for k, _ := range a.emails {
+	for k := range a.emails {
 		ret = append(ret, k)
 	}
 	return ret

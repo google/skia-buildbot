@@ -40,7 +40,7 @@ func main() {
 	if err := backup.Step(client, *project, *bucket); err != nil {
 		sklog.Errorf("Failed to do first backup step: %s", err)
 	}
-	for _ = range time.Tick(24 * time.Hour) {
+	for range time.Tick(24 * time.Hour) {
 		if err := backup.Step(client, *project, *bucket); err != nil {
 			sklog.Errorf("Failed to backup: %s", err)
 		}

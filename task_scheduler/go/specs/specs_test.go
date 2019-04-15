@@ -13,7 +13,7 @@ func TestCopyTaskSpec(t *testing.T) {
 	testutils.SmallTest(t)
 	v := &TaskSpec{
 		Caches: []*Cache{
-			&Cache{
+			{
 				Name: "cache-me",
 				Path: "if/you/can",
 			},
@@ -32,7 +32,7 @@ func TestCopyTaskSpec(t *testing.T) {
 			"Polluted": "true",
 		},
 		EnvPrefixes: map[string][]string{
-			"PATH": []string{"curdir"},
+			"PATH": {"curdir"},
 		},
 		ExecutionTimeout: 60 * time.Minute,
 		Expiration:       90 * time.Minute,

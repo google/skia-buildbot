@@ -162,7 +162,7 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 		Id:       "12345",
 		Issue:    12345,
 		Revisions: map[string]*gerrit.Revision{
-			"ps1": &gerrit.Revision{
+			"ps1": {
 				ID:     "ps1",
 				Number: 1,
 			},

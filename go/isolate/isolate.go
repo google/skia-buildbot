@@ -465,7 +465,7 @@ func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*iso
 		return nil, fmt.Errorf("Ended up with an incorrect number of isolated hashes:\n%s", string(output))
 	}
 	rv := make([]string, 0, len(isolatedFiles))
-	for i, _ := range isolatedFiles {
+	for i := range isolatedFiles {
 		rv = append(rv, hashes[fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))])
 	}
 	return rv, nil

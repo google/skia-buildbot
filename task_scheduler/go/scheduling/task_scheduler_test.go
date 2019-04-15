@@ -3800,7 +3800,7 @@ func TestIsolateTaskFailed(t *testing.T) {
 
 	numTasks := 0
 	for _, byName := range tasks {
-		for _, _ = range byName {
+		for range byName {
 			numTasks++
 		}
 	}

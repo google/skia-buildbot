@@ -60,7 +60,7 @@ func makeIssue(num int64, commit string) *autoroll.AutoRollIssue {
 		RollingTo:   commit,
 		Subject:     fmt.Sprintf("%d", num),
 		TryResults: []*autoroll.TryResult{
-			&autoroll.TryResult{
+			{
 				Builder:  "Test Summary",
 				Category: autoroll.TRYBOT_CATEGORY_CQ,
 				Created:  now,

@@ -272,7 +272,7 @@ func StartSwarmingBotMetrics(ctx context.Context, swarmingServer string, swarmin
 				newMetricsMap[m] = struct{}{}
 			}
 			var cleanup []metrics2.Int64Metric
-			for m, _ := range oldMetrics {
+			for m := range oldMetrics {
 				if _, ok := newMetricsMap[m]; !ok {
 					cleanup = append(cleanup, m)
 				}

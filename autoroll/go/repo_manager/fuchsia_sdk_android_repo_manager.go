@@ -215,7 +215,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) updateHelper(ctx context.Context, strat 
 			nextRollContents[f] = string(contents)
 		}
 	}
-	for f, _ := range oldContents {
+	for f := range oldContents {
 		if _, ok := newContents[f]; !ok {
 			nextRollContents[f] = ""
 		}

@@ -196,7 +196,7 @@ func (srv *Server) step() {
 // checkValid periodically checks if all the named fiddles are valid.
 func (srv *Server) checkValid() {
 	srv.step()
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		srv.step()
 	}
 }
@@ -270,7 +270,7 @@ func (srv *Server) exampleStep() {
 // nameExamples runs each Skia example and gives it a name.
 func (srv *Server) nameExamples() {
 	srv.exampleStep()
-	for _ = range time.Tick(time.Minute) {
+	for range time.Tick(time.Minute) {
 		srv.exampleStep()
 	}
 }

@@ -62,10 +62,10 @@ func CloneBranch(cfg *Config, oldBranch, newBranch string, includeExperimental, 
 	// Create the CQ config for the new branch.
 	newCg := &ConfigGroup{
 		Gerrit: []*ConfigGroup_Gerrit{
-			&ConfigGroup_Gerrit{
+			{
 				Url: oldGerrit.Url,
 				Projects: []*ConfigGroup_Gerrit_Project{
-					&ConfigGroup_Gerrit_Project{
+					{
 						Name: oldProject.Name,
 						RefRegexp: []string{
 							fmt.Sprintf("refs/heads/%s", newBranch),

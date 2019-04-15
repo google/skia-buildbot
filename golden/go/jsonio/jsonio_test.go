@@ -98,7 +98,7 @@ func TestValidate(t *testing.T) {
 	assertErrorFields(t, errMsgs, "results")
 
 	wrongResults.Results = []*Result{
-		&Result{Key: map[string]string{}},
+		{Key: map[string]string{}},
 	}
 	errMsgs, err = wrongResults.Validate(false)
 	assert.Error(t, err)

@@ -214,7 +214,7 @@ func TestGerritRoll(t *testing.T) {
 	tryjob.Result = autoroll.TRYBOT_RESULT_SUCCESS
 	roll.Labels[gerrit.COMMITQUEUE_LABEL] = &gerrit.LabelEntry{
 		All: []*gerrit.LabelDetail{
-			&gerrit.LabelDetail{
+			{
 				Value: gerrit.COMMITQUEUE_LABEL_NONE,
 			},
 		},
@@ -406,7 +406,7 @@ func TestGerritAndroidRoll(t *testing.T) {
 	// Success.
 	roll.Labels[gerrit.PRESUBMIT_VERIFIED_LABEL] = &gerrit.LabelEntry{
 		All: []*gerrit.LabelDetail{
-			&gerrit.LabelDetail{
+			{
 				Value: gerrit.PRESUBMIT_VERIFIED_LABEL_ACCEPTED,
 			},
 		},

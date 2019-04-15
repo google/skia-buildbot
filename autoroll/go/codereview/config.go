@@ -26,40 +26,40 @@ var (
 	// GERRIT_LABELS indicates which labels should be set on Gerrit CLs in
 	// normal and dry run modes, for each Gerrit configuration.
 	GERRIT_LABELS = map[string]map[bool]map[string]interface{}{
-		GERRIT_CONFIG_ANDROID: map[bool]map[string]interface{}{
+		GERRIT_CONFIG_ANDROID: {
 			// Normal mode.
-			false: map[string]interface{}{
+			false: {
 				gerrit.CODEREVIEW_LABEL:      "2",
 				gerrit.PRESUBMIT_READY_LABEL: "1",
 				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_SUBMIT,
 			},
 			// Dry run mode.
-			true: map[string]interface{}{
+			true: {
 				gerrit.CODEREVIEW_LABEL:      "2",
 				gerrit.PRESUBMIT_READY_LABEL: "1",
 				gerrit.AUTOSUBMIT_LABEL:      gerrit.AUTOSUBMIT_LABEL_NONE,
 			},
 		},
-		GERRIT_CONFIG_ANGLE: map[bool]map[string]interface{}{
+		GERRIT_CONFIG_ANGLE: {
 			// Normal mode.
-			false: map[string]interface{}{
+			false: {
 				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_SELF_APPROVE,
 				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
 			},
 			// Dry run mode.
-			true: map[string]interface{}{
+			true: {
 				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_SELF_APPROVE,
 				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
 			},
 		},
-		GERRIT_CONFIG_CHROMIUM: map[bool]map[string]interface{}{
+		GERRIT_CONFIG_CHROMIUM: {
 			// Normal mode.
-			false: map[string]interface{}{
+			false: {
 				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
 				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_SUBMIT,
 			},
 			// Dry run mode.
-			true: map[string]interface{}{
+			true: {
 				gerrit.CODEREVIEW_LABEL:  gerrit.CODEREVIEW_LABEL_APPROVE,
 				gerrit.COMMITQUEUE_LABEL: gerrit.COMMITQUEUE_LABEL_DRY_RUN,
 			},

@@ -27,10 +27,10 @@ var (
 	promPort = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 
 	serviceAccountIpMapping = map[*service_accounts.ServiceAccount][]string{
-		service_accounts.ChromeSwarming: []string{"*"},
-		service_accounts.ChromiumSwarm:  []string{"*"},
-		service_accounts.Jumphost:       []string{"self"},
-		service_accounts.RpiMaster:      []string{"192.168.1.98", "192.168.1.99"},
+		service_accounts.ChromeSwarming: {"*"},
+		service_accounts.ChromiumSwarm:  {"*"},
+		service_accounts.Jumphost:       {"self"},
+		service_accounts.RpiMaster:      {"192.168.1.98", "192.168.1.99"},
 	}
 )
 
@@ -68,7 +68,7 @@ func main() {
 		"mykey": "myvalue",
 	}
 	var im instanceMetadataMap = map[string]map[string]string{
-		"inst": map[string]string{
+		"inst": {
 			"mykey2": "myvalue2",
 		},
 	}

@@ -204,7 +204,7 @@ func FindImportPaths(ctx context.Context, startPkg, findPkg string) ([][]string,
 				foundPaths = append(foundPaths, recFoundPaths...)
 			}
 		}
-		for idx, _ := range foundPaths {
+		for idx := range foundPaths {
 			foundPaths[idx] = append(foundPaths[idx], currentPkg)
 		}
 

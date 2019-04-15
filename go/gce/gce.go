@@ -648,7 +648,7 @@ func (g *GCloud) createInstance(ctx context.Context, vm *Instance, ignoreExists 
 	}
 	if vm.Gpu {
 		i.GuestAccelerators = []*compute.AcceleratorConfig{
-			&compute.AcceleratorConfig{
+			{
 				AcceleratorCount: 1,
 				AcceleratorType:  ACCELERATOR_TYPE_NVIDIA_TESLA_K80,
 			},

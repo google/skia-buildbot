@@ -63,7 +63,7 @@ func main() {
 	}
 
 	liveness := metrics2.NewLiveness("backup", map[string]string{"input": *input, "output": *output, "bucket": *bucket})
-	for _ = range time.Tick(24 * time.Hour) {
+	for range time.Tick(24 * time.Hour) {
 		if err := step(storageClient); err != nil {
 			sklog.Error(err)
 		}

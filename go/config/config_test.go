@@ -65,13 +65,13 @@ func TestParseConfigFile(t *testing.T) {
 			Frequency: Duration{10 * time.Minute},
 		},
 		Items: []*TestInnerConfig{
-			&TestInnerConfig{
+			{
 				Name:      "cleanup",
 				Frequency: Duration{24 * time.Hour},
 			},
 			nil,
-			&TestInnerConfig{},
-			&TestInnerConfig{
+			{},
+			{
 				Name:      "refresh",
 				Frequency: Duration{100 * time.Millisecond},
 			},

@@ -737,7 +737,7 @@ func assertTopoSorted(t *testing.T, commits []*Commit) {
 		if len(children[c]) > 1 {
 			assert.True(t, idx > 0)
 			childIsAdjacent := false
-			for child, _ := range children[c] {
+			for child := range children[c] {
 				if commits[idx-1] == child {
 					childIsAdjacent = true
 					break

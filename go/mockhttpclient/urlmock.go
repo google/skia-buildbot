@@ -260,14 +260,14 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	} else {
 		// For debugging; find the closest match.
 		min := math.MaxInt32
-		for mocked, _ := range m.mockOnce {
+		for mocked := range m.mockOnce {
 			d := levenshtein.DistanceForStrings([]rune(url), []rune(mocked), levenshtein.DefaultOptions)
 			if d < min {
 				min = d
 				closest = mocked
 			}
 		}
-		for mocked, _ := range m.mockAlways {
+		for mocked := range m.mockAlways {
 			d := levenshtein.DistanceForStrings([]rune(url), []rune(mocked), levenshtein.DefaultOptions)
 			if d < min {
 				min = d

@@ -1210,7 +1210,7 @@ func AskForConfirmation(format string, args ...interface{}) (bool, error) {
 // of a slice.
 func PowerSet(n int) [][]int {
 	if n == 0 {
-		return [][]int{[]int{}}
+		return [][]int{{}}
 	}
 	subs := PowerSet(n - 1)
 	addl := [][]int{}

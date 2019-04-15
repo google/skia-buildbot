@@ -12,7 +12,7 @@ import (
 func GoldBase(name, ipAddress string) *gce.Instance {
 	vm := server.Server20170928(name)
 	vm.DataDisks = []*gce.Disk{
-		&gce.Disk{
+		{
 			Name:      fmt.Sprintf("%s-data", name),
 			SizeGb:    100,
 			Type:      gce.DISK_TYPE_PERSISTENT_STANDARD,

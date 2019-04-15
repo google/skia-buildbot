@@ -15,9 +15,9 @@ func TestFindImages(t *testing.T) {
 	buildInfo := cloudbuild.Build{
 		Results: &cloudbuild.Results{
 			Images: []*cloudbuild.BuiltImage{
-				&cloudbuild.BuiltImage{Name: "testing-clang9"},
-				&cloudbuild.BuiltImage{Name: "gcr.io/skia-public/fiddler:prod"},
-				&cloudbuild.BuiltImage{Name: "gcr.io/skia-public/skottie:prod"},
+				{Name: "testing-clang9"},
+				{Name: "gcr.io/skia-public/fiddler:prod"},
+				{Name: "gcr.io/skia-public/skottie:prod"},
 			},
 		},
 	}

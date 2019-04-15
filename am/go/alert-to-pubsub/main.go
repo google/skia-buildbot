@@ -208,7 +208,7 @@ func main() {
 	}
 	httpClient := httputils.NewTimeoutClient()
 	go func() {
-		for _ = range time.Tick(*period) {
+		for range time.Tick(*period) {
 			if err := singleStep(ctx, httpClient, topic); err != nil {
 				sklog.Errorf("Failed step: %s", err)
 			}

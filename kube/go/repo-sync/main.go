@@ -82,7 +82,7 @@ func main() {
 	if err := sync(ctx); err != nil {
 		sklog.Fatalf("Failed to sync: %s", err)
 	}
-	for _ = range time.Tick(*period) {
+	for range time.Tick(*period) {
 		if err := sync(ctx); err != nil {
 			sklog.Errorf("Failed to sync: %s", err)
 		}

@@ -44,11 +44,11 @@ type Project struct {
 
 var (
 	clusters = map[string]*Project{
-		"skia-public": &Project{
+		"skia-public": {
 			Zone:    "us-central1-a",
 			Project: "skia-public",
 		},
-		"skia-corp": &Project{
+		"skia-corp": {
 			Zone:    "us-central1-a",
 			Project: "google.com:skia-corp",
 		},
@@ -302,7 +302,7 @@ func main() {
 	if len(changed) != 0 {
 		filenameFlag := fmt.Sprintf("--filename=%s\n", strings.Join(changed.Keys(), ","))
 		if !*dryRun {
-			for filename, _ := range changed {
+			for filename := range changed {
 				msg, err := checkout.Git(ctx, "add", filepath.Base(filename))
 				if err != nil {
 					sklog.Fatalf("Failed to stage changes to the config repo: %s: %q", err, msg)

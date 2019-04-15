@@ -155,7 +155,7 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 	go util.RepeatCtx(time.Minute, ctx, func() {
 		c.activeOpsMtx.RLock()
 		ids := make([]int64, 0, len(c.activeOps))
-		for id, _ := range c.activeOps {
+		for id := range c.activeOps {
 			ids = append(ids, id)
 		}
 		sort.Sort(util.Int64Slice(ids))

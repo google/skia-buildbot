@@ -39,13 +39,13 @@ var (
 	// ops defines all the ops that are available on the command line
 	ops = map[string]*opsEntry{
 		// delete all entities of a kind
-		"delete": &opsEntry{
+		"delete": {
 			params: []string{"kind"},
 			fn:     deleteEntities,
 		},
 
 		// touch (= load and save) all entities of a kind
-		"touch": &opsEntry{
+		"touch": {
 			params: []string{"kind"},
 			fn:     touchEntities,
 		},

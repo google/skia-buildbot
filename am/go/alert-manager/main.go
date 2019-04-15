@@ -173,7 +173,7 @@ func New() (baseapp.App, error) {
 
 	// This is really just a backstop in case we miss a resolved event for the incident.
 	go func() {
-		for _ = range time.Tick(1 * time.Minute) {
+		for range time.Tick(1 * time.Minute) {
 			ins, err := srv.incidentStore.GetAll()
 			if err != nil {
 				sklog.Errorf("Failed to load incidents: %s", err)

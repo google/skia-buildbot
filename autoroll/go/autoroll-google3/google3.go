@@ -292,7 +292,7 @@ func (roll Roll) AsIssue() (*autoroll.AutoRollIssue, error) {
 		case autoroll.ROLL_RESULT_IN_PROGRESS:
 		}
 		tryResults = []*autoroll.TryResult{
-			&autoroll.TryResult{
+			{
 				Builder:  "Test Summary",
 				Category: autoroll.TRYBOT_CATEGORY_CQ,
 				Created:  time.Time(roll.Created),
