@@ -72,6 +72,10 @@ func (t *Trie) String() string {
 	return fmt.Sprintf("Trie(%s)", t.root.String(0))
 }
 
+func (t *Trie) Len() int {
+	return t.root.Len()
+}
+
 type trieNode struct {
 	children map[string]*trieNode
 	data     []interface{}
@@ -151,5 +155,13 @@ func (n *trieNode) String(indent int) string {
 		rv += fmt.Sprintf("%s\"%s\": %s,\n", util.RepeatJoin("  ", "", indent+1), k, n.children[k].String(indent+1))
 	}
 	rv += fmt.Sprintf("%s})", util.RepeatJoin("  ", "", indent))
+	return rv
+}
+
+func (n *trieNode) Len() int {
+	rv := len(n.data)
+	for _, child := range n.children {
+		rv += child.Len()
+	}
 	return rv
 }
