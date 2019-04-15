@@ -31,12 +31,12 @@ var (
 )
 
 // setupVCSLocalRepo loads the test repo into a new GitStore and returns an instance of vcsinfo.VCS.
-func setupVCSLocalRepo(t *testing.T) (vcsinfo.VCS, func()) {
+func setupVCSLocalRepo(t *testing.T, branch string) (vcsinfo.VCS, GitStore, func()) {
 	repoDir, cleanup := vcstu.InitTempRepo()
 	_, _, gitStore := setupAndLoadGitStore(t, localRepoURL, repoDir, true)
-	vcs, err := NewVCS(gitStore, "master", nil)
+	vcs, err := NewVCS(gitStore, branch, nil, nil, 0)
 	assert.NoError(t, err)
-	return vcs, cleanup
+	return vcs, gitStore, cleanup
 }
 
 // setupAndLoadGitStore loads the Git repo in repoDir into the Gitstore. It assumes that the
