@@ -1497,7 +1497,7 @@ func (s *TaskScheduler) recurseAllBranches(ctx context.Context, repoUrl string, 
 	return nil
 }
 
-// gatherNewJobs finds and returns Jobs for all new commits.
+// gatherNewJobs finds and returns Jobs for all new commits, keyed by RepoState.
 func (s *TaskScheduler) gatherNewJobs(ctx context.Context, repoUrl string, repo *repograph.Graph) ([]*types.Job, error) {
 	defer metrics2.FuncTimer().Stop()
 
@@ -1588,6 +1588,13 @@ func (s *TaskScheduler) gatherNewJobs(ctx context.Context, repoUrl string, repo 
 		return nil
 	}); err != nil {
 		return nil, err
+	}
+
+	// Reverse the new jobs list, so that if we fail to insert all of the
+	// jobs (eg. because the process is interrupted), the algorithm above
+	// will find the missing jobs and we'll pick up where we left off.
+	for a, b := 0, len(newJobs)-1; a < b; a, b = a+1, b-1 {
+		newJobs[a], newJobs[b] = newJobs[b], newJobs[a]
 	}
 	return newJobs, nil
 }
