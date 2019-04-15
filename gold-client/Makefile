@@ -7,7 +7,7 @@ include ../go/skiaversion/skiaversion.mk
 
 .PHONY: test
 test:
-	go test ./go/...
+	go test ./go/... -v
 
 .PHONY: allgo
 allgo: skiaversion
