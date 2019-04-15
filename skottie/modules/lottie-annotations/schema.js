@@ -62,6 +62,7 @@ const BLEND_MODE = {
   '13': 'saturation',
   '14': 'color',
   '15': 'luminosity',
+  '16': 'add',
 }
 
 const flatColor = {
