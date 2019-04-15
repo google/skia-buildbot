@@ -23,6 +23,7 @@ import (
 	"github.com/golang/groupcache/lru"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -271,7 +272,22 @@ func NewGerrit(gerritUrl, gitCookiesPath string, client *http.Client) (*Gerrit, 
 // DefaultGitCookiesPath returns the default cookie file. The return value
 // can be used as the input to NewGerrit. If it cannot be retrieved an
 // error will be logged and the empty string is returned.
-func DefaultGitCookiesPath() string {
+func DefaultGitCookiesPath(ctx context.Context) string {
+	out, err := exec.RunCommand(ctx, &exec.Command{
+		Name:      "git",
+		Args:      []string{"config", "--global", "http.cookiefile"},
+		LogStdout: false,
+		LogStderr: false,
+		Verbose:   exec.Silent,
+	})
+	if err != nil {
+		// This usually means the config isn't set. Use default.
+		sklog.Debug(err)
+	} else if strings.TrimSpace(out) == "" {
+		sklog.Debugf("'git config --global http.cookiefile' returned empty string: %q", out)
+	} else {
+		return strings.TrimSpace(out)
+	}
 	usr, err := user.Current()
 	if err != nil {
 		sklog.Errorf("Unable to retrieve default git cookies path")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -30,6 +31,7 @@ var (
 
 func main() {
 	common.Init()
+	ctx := context.Background()
 
 	if *branch == "" {
 		sklog.Fatal("--branch is required.")
@@ -59,7 +61,7 @@ func main() {
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
 	gUrl := strings.Split(*repoUrl, ".googlesource.com")[0] + "-review.googlesource.com"
-	gitcookiesPath := gerrit.DefaultGitCookiesPath()
+	gitcookiesPath := gerrit.DefaultGitCookiesPath(ctx)
 	g, err := gerrit.NewGerrit(gUrl, gitcookiesPath, client)
 	if err != nil {
 		sklog.Fatal(err)
