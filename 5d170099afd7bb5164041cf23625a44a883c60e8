@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af2b277_37a79ea5",
+        "filename": "go/cq/update.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-15T15:08:27Z",
+      "side": 1,
+      "message": "Refactored from cmd/new-branch-cq/main.go.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c80d0f26_24e31a8d",
+        "filename": "go/cq/update.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-15T15:08:27Z",
+      "side": 1,
+      "message": "Note that we no longer go line-by-line adding back removed lines, since we may have intentionally deleted a config. This means that we\u0027ll now lose all comments in the file.",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 47
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88e7baf3_1928a7e2",
+        "filename": "go/supported_branches/cmd/new-branch/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-15T15:08:27Z",
+      "side": 1,
+      "message": "I plan to wrap this with a thin script for adding a new Chrome milestone branch.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "5d170099afd7bb5164041cf23625a44a883c60e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
