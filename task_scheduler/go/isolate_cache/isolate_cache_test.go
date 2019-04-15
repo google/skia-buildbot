@@ -54,7 +54,7 @@ func TestIsolateCache(t *testing.T) {
 		Algo:    "smrt",
 		Command: []string{"sit", "stay"},
 		Files: map[string]isolated.File{
-			"myfile": isolated.File{
+			"myfile": {
 				Digest: "abc123",
 				Link:   &link,
 				Mode:   &mode,

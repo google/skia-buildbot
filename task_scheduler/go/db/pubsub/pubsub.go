@@ -62,21 +62,21 @@ var (
 	}
 
 	topics = map[string]topicSet{
-		TOPIC_SET_PRODUCTION: topicSet{
+		TOPIC_SET_PRODUCTION: {
 			tasks:            TOPIC_TASKS,
 			jobs:             TOPIC_JOBS,
 			taskComments:     TOPIC_TASK_COMMENTS,
 			taskSpecComments: TOPIC_TASKSPEC_COMMENTS,
 			commitComments:   TOPIC_COMMIT_COMMENTS,
 		},
-		TOPIC_SET_INTERNAL: topicSet{
+		TOPIC_SET_INTERNAL: {
 			tasks:            TOPIC_TASKS_INTERNAL,
 			jobs:             TOPIC_JOBS_INTERNAL,
 			taskComments:     TOPIC_TASK_COMMENTS_INTERNAL,
 			taskSpecComments: TOPIC_TASKSPEC_COMMENTS_INTERNAL,
 			commitComments:   TOPIC_COMMIT_COMMENTS_INTERNAL,
 		},
-		TOPIC_SET_STAGING: topicSet{
+		TOPIC_SET_STAGING: {
 			tasks:            TOPIC_TASKS_STAGING,
 			jobs:             TOPIC_JOBS_STAGING,
 			taskComments:     TOPIC_TASK_COMMENTS_STAGING,

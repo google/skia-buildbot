@@ -41,25 +41,25 @@ var (
 	// Determines which keys go on which machines:
 	// map[hostname][]*ServiceAccount
 	JumphostServiceAccountMapping = map[string][]*ServiceAccount{
-		"jumphost-internal-01": []*ServiceAccount{
+		"jumphost-internal-01": {
 			ChromeSwarming,
 			Jumphost,
 			RpiMaster,
 		},
-		"jumphost-linux-01": []*ServiceAccount{
+		"jumphost-linux-01": {
 			ChromiumSwarm,
 			Jumphost,
 		},
-		"jumphost-rpi-01": []*ServiceAccount{
+		"jumphost-rpi-01": {
 			ChromiumSwarm,
 			Jumphost,
 			RpiMaster,
 		},
-		"jumphost-win-02": []*ServiceAccount{
+		"jumphost-win-02": {
 			ChromiumSwarm,
 			Jumphost,
 		},
-		"jumphost-win-03": []*ServiceAccount{
+		"jumphost-win-03": {
 			ChromiumSwarm,
 			Jumphost,
 		},

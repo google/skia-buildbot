@@ -28,7 +28,7 @@ var mockPictureDetails = map[string]FuzzReport{
 	"bbbb": {
 		Stacktraces: map[string]StackTrace{
 			"CLANG_DEBUG":   makeStacktrace("alpha", "beta", 16),
-			"CLANG_RELEASE": StackTrace{},
+			"CLANG_RELEASE": {},
 		},
 		Flags:            map[string][]string{"CLANG_DEBUG": mockFlags},
 		FuzzName:         "bbbb",
@@ -57,8 +57,8 @@ var mockPictureDetails = map[string]FuzzReport{
 	},
 	"eeee": {
 		Stacktraces: map[string]StackTrace{
-			"CLANG_DEBUG":   StackTrace{},
-			"CLANG_RELEASE": StackTrace{},
+			"CLANG_DEBUG":   {},
+			"CLANG_RELEASE": {},
 		},
 		Flags:            map[string][]string{"CLANG_DEBUG": mockFlags},
 		FuzzName:         "eeee",
@@ -78,7 +78,7 @@ var mockPictureDetails = map[string]FuzzReport{
 	"gggg": {
 		Stacktraces: map[string]StackTrace{
 			"CLANG_DEBUG":   makeStacktrace("delta", "epsilon", 122),
-			"CLANG_RELEASE": StackTrace{},
+			"CLANG_RELEASE": {},
 		},
 		Flags:            map[string][]string{"CLANG_DEBUG": mockFlags},
 		FuzzName:         "gggg",
@@ -112,7 +112,7 @@ var mockAPIDetails = map[string]FuzzReport{
 	"iiii": {
 		Stacktraces: map[string]StackTrace{
 			"CLANG_DEBUG":   makeStacktrace("alpha", "beta", 16),
-			"CLANG_RELEASE": StackTrace{},
+			"CLANG_RELEASE": {},
 		},
 		Flags:            map[string][]string{"CLANG_DEBUG": mockFlags},
 		FuzzName:         "iiii",

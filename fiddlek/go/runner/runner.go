@@ -136,7 +136,7 @@ func (r *Runner) fiddlerIPsOneStep() error {
 // fiddlerIPsRefresher refreshes a list of fiddler pod IP addresses.
 func (r *Runner) fiddlerIPsRefresher() {
 	fiddlerIPLiveness := metrics2.NewLiveness("fiddler_ips")
-	for _ = range time.Tick(5 * time.Second) {
+	for range time.Tick(5 * time.Second) {
 		if err := r.fiddlerIPsOneStep(); err != nil {
 			sklog.Warningf("Failed to refresh fiddler IPs: %s", err)
 		} else {
@@ -392,7 +392,7 @@ func (r *Runner) metricsSingleStep() {
 func (r *Runner) Metrics() {
 	metricsLiveness := metrics2.NewLiveness("metrics")
 	r.metricsSingleStep()
-	for _ = range time.Tick(30 * time.Second) {
+	for range time.Tick(30 * time.Second) {
 		r.metricsSingleStep()
 		metricsLiveness.Reset()
 	}

@@ -87,7 +87,7 @@ func main() {
 		requestedAccts = validAccts
 	}
 	fmt.Println("Rotating service account keys for:")
-	for acct, _ := range requestedAccts {
+	for acct := range requestedAccts {
 		fmt.Println("  " + acct)
 	}
 
@@ -119,7 +119,7 @@ func main() {
 	}
 	deleteKeys := map[string][]string{}
 	newKeys := map[*service_accounts.ServiceAccount][]byte{}
-	for acc, _ := range serviceAccounts {
+	for acc := range serviceAccounts {
 		fmt.Println("Creating new key for " + acc.Email)
 		serviceAccountPath := admin.IamServiceAccountPath(acc.Project, acc.Email)
 		c := clients[acc.Project]

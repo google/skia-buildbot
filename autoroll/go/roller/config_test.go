@@ -88,7 +88,7 @@ func TestConfigs(t *testing.T) {
 
 	testErr(func(c *AutoRollerConfig) {
 		c.Notifiers = []*notifier.Config{
-			&notifier.Config{
+			{
 				Filter: "debug",
 			},
 		}
@@ -114,14 +114,14 @@ func TestConfigs(t *testing.T) {
 
 	testNoErr(func(c *AutoRollerConfig) {
 		c.Notifiers = []*notifier.Config{
-			&notifier.Config{
+			{
 				Filter:  "debug",
 				Subject: "Override Subject",
 				Email: &notifier.EmailNotifierConfig{
 					Emails: []string{"me@example.com"},
 				},
 			},
-			&notifier.Config{
+			{
 				Filter: "warning",
 				Chat: &notifier.ChatNotifierConfig{
 					RoomID: "dummy-room",
@@ -167,14 +167,14 @@ func TestConfigSerialization(t *testing.T) {
 	a.CqExtraTrybots = []string{"extra-bot"}
 	a.MaxRollFrequency = "1h"
 	a.Notifiers = []*notifier.Config{
-		&notifier.Config{
+		{
 			Filter:  "debug",
 			Subject: "Override Subject",
 			Email: &notifier.EmailNotifierConfig{
 				Emails: []string{"me@example.com"},
 			},
 		},
-		&notifier.Config{
+		{
 			Filter: "warning",
 			Chat: &notifier.ChatNotifierConfig{
 				RoomID: "dummy-room",
