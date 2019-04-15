@@ -18,10 +18,10 @@ import (
 func TestCopyStatus(t *testing.T) {
 	testutils.SmallTest(t)
 	recent := []*autoroll.AutoRollIssue{
-		&autoroll.AutoRollIssue{
+		{
 			RollingTo: "abc123",
 		},
-		&autoroll.AutoRollIssue{
+		{
 			RollingTo: "def456",
 		},
 	}
@@ -66,10 +66,10 @@ func TestStatus(t *testing.T) {
 
 	// Insert a status.
 	recent := []*autoroll.AutoRollIssue{
-		&autoroll.AutoRollIssue{
+		{
 			RollingTo: "abc123",
 		},
-		&autoroll.AutoRollIssue{
+		{
 			RollingTo: "def456",
 		},
 	}

@@ -118,7 +118,7 @@ func main() {
 		}
 
 		taskNames := make([]string, 0, len(cfgA.Tasks))
-		for name, _ := range cfgA.Tasks {
+		for name := range cfgA.Tasks {
 			taskNames = append(taskNames, name)
 		}
 		sort.Strings(taskNames)

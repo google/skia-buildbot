@@ -70,12 +70,12 @@ var (
 	// https://chrome-internal.googlesource.com/infradata/config/+/master/configs/cr-buildbucket/swarming_task_template.json#42)
 	// TODO(borenet): Roll these versions automatically!
 	CIPD_PKGS_PYTHON = []*specs.CipdPackage{
-		&specs.CipdPackage{
+		{
 			Name:    "infra/python/cpython/${platform}",
 			Path:    "cipd_bin_packages",
 			Version: "version:2.7.14.chromium14",
 		},
-		&specs.CipdPackage{
+		{
 			Name:    "infra/tools/luci/vpython/${platform}",
 			Path:    "cipd_bin_packages",
 			Version: "git_revision:96f81e737868d43124b4661cf1c325296ca04944",
@@ -83,12 +83,12 @@ var (
 	}
 
 	CIPD_PKGS_KITCHEN = append([]*specs.CipdPackage{
-		&specs.CipdPackage{
+		{
 			Name:    "infra/tools/luci/kitchen/${platform}",
 			Path:    ".",
 			Version: "git_revision:d8f38ca9494b5af249942631f9cee45927f6b4bc",
 		},
-		&specs.CipdPackage{
+		{
 			Name:    "infra/tools/luci-auth/${platform}",
 			Path:    "cipd_bin_packages",
 			Version: "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e",
@@ -96,17 +96,17 @@ var (
 	}, CIPD_PKGS_PYTHON...)
 
 	CIPD_PKGS_GIT = []*specs.CipdPackage{
-		&specs.CipdPackage{
+		{
 			Name:    "infra/git/${platform}",
 			Path:    "cipd_bin_packages",
 			Version: "version:2.17.1.chromium15",
 		},
-		&specs.CipdPackage{
+		{
 			Name:    "infra/tools/git/${platform}",
 			Path:    "cipd_bin_packages",
 			Version: "git_revision:c9c8a52bfeaf8bc00ece22fdfd447822c8fcad77",
 		},
-		&specs.CipdPackage{
+		{
 			Name:    "infra/tools/luci/git-credential-luci/${platform}",
 			Path:    "cipd_bin_packages",
 			Version: "git_revision:2c805f1c716f6c5ad2126b27ec88b8585a09481e",
@@ -114,7 +114,7 @@ var (
 	}
 
 	CIPD_PKGS_GSUTIL = []*specs.CipdPackage{
-		&specs.CipdPackage{
+		{
 			Name:    "infra/gsutil",
 			Path:    "cipd_bin_packages",
 			Version: "version:4.28",
@@ -122,7 +122,7 @@ var (
 	}
 
 	CACHES_GO = []*specs.Cache{
-		&specs.Cache{
+		{
 			Name: "go_cache",
 			Path: "cache/go_cache",
 		},
@@ -190,7 +190,7 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		},
 		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
 		EnvPrefixes: map[string][]string{
-			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin"},
 		},
 		Isolate: "infrabots.isolate",
 	})
@@ -234,7 +234,7 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder) string {
 		},
 		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
 		EnvPrefixes: map[string][]string{
-			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
 		Isolate: "whole_repo.isolate",
 	})
@@ -266,7 +266,7 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 	}
 	return &specs.TaskSpec{
 		Caches: []*specs.Cache{
-			&specs.Cache{
+			{
 				Name: "vpython",
 				Path: "cache/vpython",
 			},
@@ -298,8 +298,8 @@ func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []stri
 		Dependencies: []string{BUNDLE_RECIPES_NAME},
 		Dimensions:   dimensions,
 		EnvPrefixes: map[string][]string{
-			"PATH":                    []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
-			"VPYTHON_VIRTUALENV_ROOT": []string{"${cache_dir}/vpython"},
+			"PATH":                    {"cipd_bin_packages", "cipd_bin_packages/bin"},
+			"VPYTHON_VIRTUALENV_ROOT": {"${cache_dir}/vpython"},
 		},
 		ExtraTags: map[string]string{
 			"log_location": LOGDOG_ANNOTATION_URL,
@@ -357,11 +357,11 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	}
 	task := kitchenTask(name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
 	task.Caches = append(task.Caches, []*specs.Cache{
-		&specs.Cache{
+		{
 			Name: "git",
 			Path: "cache/git",
 		},
-		&specs.Cache{
+		{
 			Name: "git_cache",
 			Path: "cache/git_cache",
 		},
@@ -407,7 +407,7 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		Dependencies: []string{BUILD_TASK_DRIVERS_NAME, ISOLATE_GO_DEPS_NAME},
 		Dimensions:   linuxGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
-			"PATH": []string{"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
 		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,

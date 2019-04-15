@@ -311,7 +311,7 @@ func (s *TaskScheduler) initCaches(ctx context.Context) error {
 
 	// Actually cache the RepoStates.
 	var g errgroup.Group
-	for rs, _ := range repoStatesToCache {
+	for rs := range repoStatesToCache {
 		rs := rs // https://golang.org/doc/faq#closures_and_goroutines
 		g.Go(func() error {
 			if _, err := s.cacher.GetOrCacheRepoState(ctx, rs); err != nil {
@@ -2023,7 +2023,7 @@ func (s *TaskScheduler) GetJob(ctx context.Context, id string) (*types.Job, map[
 		return nil, nil, fmt.Errorf("Failed to retrieve Tasks cfg: %s", err)
 	}
 	taskSpecs := make(map[string][]string, len(job.Dependencies))
-	for taskName, _ := range job.Dependencies {
+	for taskName := range job.Dependencies {
 		taskSpec, ok := cfg.Tasks[taskName]
 		if !ok {
 			return nil, nil, fmt.Errorf("Job %s (%s) points to unknown task %q at repo state: %+v", job.Id, job.Name, taskName, job.RepoState)

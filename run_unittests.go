@@ -433,7 +433,6 @@ func main() {
 
 	// Other tests.
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet", testutils.SMALL_TEST))
-	tests = append(tests, cmdTest([]string{"gofmt", "-s", "-d"}, ".", "go simplify (gofmt -s -w .)", testutils.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"go", "run", "prober/go/build_probers_json5/main.go", "--srcdir=.", "--dest=/tmp/allprobers.json5"}, ".", "probers test", testutils.MEDIUM_TEST))
 	tests = append(tests, cmdTest([]string{"python", "infra/bots/recipes.py", "test", "run"}, ".", "recipes test", testutils.MEDIUM_TEST))
@@ -485,6 +484,27 @@ func main() {
 		Type: testutils.MEDIUM_TEST,
 	})
 
+	gosimplifyCmd := []string{"gofmt", "-s", "-d", "."}
+	tests = append(tests, &test{
+		Name: "go simplify (gofmt -s -w .)",
+		Cmd:  strings.Join(gosimplifyCmd, " "),
+		run: func() (string, error) {
+			command := exec.Command(gosimplifyCmd[0], gosimplifyCmd[1:]...)
+			output, err := command.Output()
+			outStr := strings.Trim(string(output), "\n")
+			if err != nil {
+				if _, err2 := exec.LookPath(gosimplifyCmd[0]); err2 != nil {
+					return outStr, fmt.Errorf(ERR_NEED_INSTALL, gosimplifyCmd[0], err)
+				}
+			}
+			if outStr != "" {
+				return outStr, fmt.Errorf(`gofmt -s detects diffs. run "gofmt -s -w ." to apply fixes`)
+			}
+			return "", nil
+		},
+		Type: testutils.SMALL_TEST,
+	})
+
 	if *race {
 		tests = gotests
 	} else {
@@ -511,6 +531,7 @@ func main() {
 			wg.Add(1)
 			go func(t *test) {
 				defer wg.Done()
+				sklog.Debugf("Running %s", t.Name)
 				if err := t.Run(); err != nil {
 					mutex.Lock()
 					errors[t.Name] = err

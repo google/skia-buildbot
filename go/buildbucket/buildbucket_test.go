@@ -83,7 +83,7 @@ func TestGetTrybotsForCL(t *testing.T) {
 	}
 	c.MockSearchBuilds(&buildbucketpb.BuildPredicate{
 		GerritChanges: []*buildbucketpb.GerritChange{
-			&buildbucketpb.GerritChange{
+			{
 				Host:     "skia-review.googlesource.com",
 				Change:   12345,
 				Patchset: 1,

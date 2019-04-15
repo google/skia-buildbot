@@ -44,7 +44,7 @@ func TestModeHistory(t *testing.T) {
 	}
 
 	expect := map[string][]*ModeChange{
-		mc0.Roller: []*ModeChange{mc0},
+		mc0.Roller: {mc0},
 	}
 
 	// Ensure that we set our initial state properly.

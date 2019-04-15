@@ -744,9 +744,9 @@ func TestContainsMapInSliceValues(t *testing.T) {
 		"b": "2",
 	}
 	parent := map[string][]string{
-		"a": []string{"1", "2"},
-		"b": []string{"2", "4"},
-		"c": []string{"3"},
+		"a": {"1", "2"},
+		"b": {"2", "4"},
+		"c": {"3"},
 	}
 	// Test success
 	assert.True(t, ContainsMapInSliceValues(parent, child))
@@ -775,9 +775,9 @@ func TestContainsAnyMapInSliceValues(t *testing.T) {
 		"c": "3",
 	}
 	parent := map[string][]string{
-		"a": []string{"1", "4"},
-		"b": []string{"2", "5"},
-		"c": []string{"3"},
+		"a": {"1", "4"},
+		"b": {"2", "5"},
+		"c": {"3"},
 	}
 	// Test success
 	assert.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
@@ -955,8 +955,8 @@ func TestPowerSet(t *testing.T) {
 	test := func(inp int, expect [][]int) {
 		deepequal.AssertDeepEqual(t, expect, PowerSet(inp))
 	}
-	test(0, [][]int{[]int{}})
-	test(1, [][]int{[]int{}, []int{0}})
-	test(2, [][]int{[]int{}, []int{0}, []int{1}, []int{0, 1}})
-	test(3, [][]int{[]int{}, []int{0}, []int{1}, []int{0, 1}, []int{2}, []int{0, 2}, []int{1, 2}, []int{0, 1, 2}})
+	test(0, [][]int{{}})
+	test(1, [][]int{{}, {0}})
+	test(2, [][]int{{}, {0}, {1}, {0, 1}})
+	test(3, [][]int{{}, {0}, {1}, {0, 1}, {2}, {0, 2}, {1, 2}, {0, 1, 2}})
 }
