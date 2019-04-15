@@ -111,6 +111,11 @@ func (c ClientConfig) WithDialTimeout(dialTimeout time.Duration) ClientConfig {
 	return c
 }
 
+func (c ClientConfig) WithRequestTimeout(requestTimeout time.Duration) ClientConfig {
+	c.RequestTimeout = requestTimeout
+	return c
+}
+
 // With2xxOnly returns a new ClientConfig where non-2xx responses cause an error.
 func (c ClientConfig) With2xxOnly() ClientConfig {
 	c.Response2xxOnly = true

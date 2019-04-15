@@ -197,7 +197,7 @@ func migrateExpectationStore(vdb *database.VersionedDB, dsClient *datastore.Clie
 	// accept a small number of discrepancies. The number 4 was chosen based on
 	// differences inspected in a very recent snapshot of the database.
 	// If it goes up this will fail and further investigation is necessary.
-	if testFailures > 0 || digestFailures > 4 {
+	if testFailures > 0 || digestFailures > 5 {
 		sklog.Fatalf("Got more errors than expected. Testfailures: %d  Digest failures: %d", testFailures, digestFailures)
 	}
 
