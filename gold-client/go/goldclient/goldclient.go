@@ -57,11 +57,24 @@ var md5Regexp = regexp.MustCompile(`^[a-f0-9]{32}$`)
 
 // GoldClient is the uniform interface to communicate with the Gold service.
 type GoldClient interface {
+	// SetSharedConfig populates the config with details that will be shared
+	// with all tests. This is safe to be called more than once, although
+	// new settings will overwrite the old ones. This will cause the
+	// baseline and known hashes to be (re-)downloaded from Gold.
+	SetSharedConfig(sharedConfig jsonio.GoldResults) error
 	// Test adds a test result to the current testrun. If the GoldClient is configured to
 	// return PASS/FAIL for each test, the returned boolean indicates whether the test passed
-	// comparison with the expectations. An error is only returned if there was a technical problem
-	// in processing the test.
+	// comparison with the expectations (this involves uploading JSON to the server).
+	// This will upload the image if the hash of the pixels has not been seen before -
+	// using auth.SetDryRun(true) can prevent that.
+	//
+	// An error is only returned if there was a technical problem in processing the test.
 	Test(name string, imgFileName string) (bool, error)
+
+	// Upload the JSON file for all Test() calls previously seen.
+	// A no-op if configured for PASS/FAIL mode, since the JSON would have been uploaded
+	// on the calls to Test().
+	Finalize() error
 }
 
 // HTTPClient makes it easier to mock out goldclient's dependencies on
@@ -78,13 +91,12 @@ type cloudClient struct {
 	// resultState keeps track of the all the information to generate and upload a valid result.
 	resultState *resultState
 
-	// freshState indicates that the instance was created from scratch, not loaded from disk.
-	freshState bool
-
 	// ready caches the result of the isReady call so we avoid duplicate work.
 	ready bool
 
+	// these functions are overwritable by tests
 	loadAndHashImage func(path string) ([]byte, string, error)
+	now              func() time.Time
 
 	// auth stores the authentication method to use.
 	auth       AuthOpt
@@ -106,14 +118,24 @@ type GoldClientConfig struct {
 	OverrideGoldURL string
 }
 
+// resultState is an internal container for all information to upload results
+// to Gold, including the jsonio.GoldResult structure itself.
+type resultState struct {
+	// SharedConfig is all the data that is common test to test, for example, the
+	// keys about this machine (e.g. GPU, OS).
+	SharedConfig    *jsonio.GoldResults
+	PerTestPassFail bool
+	InstanceID      string
+	GoldURL         string
+	Bucket          string
+	KnownHashes     util.StringSet
+	Expectations    types.TestExp
+}
+
 // NewCloudClient returns an implementation of the GoldClient that relies on the Gold service.
-// Arguments:
-//    - goldResults: A populated instance of jsonio.GoldResults that contains configuration
-//                   shared by all tests.
-//
 // If a new instance is created for each call to Test, the arguments of the first call are
 // preserved. They are cached in a JSON file in the work directory.
-func NewCloudClient(authOpt AuthOpt, config *GoldClientConfig, goldResult *jsonio.GoldResults) (*cloudClient, error) {
+func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*cloudClient, error) {
 	// Make sure the workdir was given and exists.
 	if config.WorkDir == "" {
 		return nil, skerr.Fmt("No 'workDir' provided to NewCloudClient")
@@ -124,36 +146,81 @@ func NewCloudClient(authOpt AuthOpt, config *GoldClientConfig, goldResult *jsoni
 		return nil, skerr.Fmt("Error setting up workdir: %s", err)
 	}
 
-	// TODO(stephana): When we add authentication via a service account this needs to be
-	// be triggered by an argument to this function or a config flag of some sort.
+	if config.InstanceID == "" {
+		return nil, skerr.Fmt("Can't have empty config")
+	}
 
 	ret := cloudClient{
 		workDir:          workDir,
 		auth:             authOpt,
 		loadAndHashImage: loadAndHashImage,
+		now:              defaultNow,
+
+		resultState: newResultState(nil, &config),
 	}
 	if err := ret.setHttpClient(); err != nil {
 		return nil, skerr.Fmt("Error setting http client: %s", err)
 	}
 
-	if err := ret.initResultState(config, goldResult); err != nil {
-		return nil, skerr.Fmt("Error initializing result in cloud GoldClient: %s", err)
+	// write it to disk
+	if err := saveJSONFile(ret.getResultStatePath(), ret.resultState); err != nil {
+		return nil, skerr.Fmt("Could not write the state to disk: %s", err)
 	}
 
 	return &ret, nil
 }
 
+// LoadCloudClient returns a GoldClient that has previously been stored to disk
+// in the path given by workDir.
+func LoadCloudClient(authOpt AuthOpt, workDir string) (*cloudClient, error) {
+	// Make sure the workdir was given and exists.
+	if workDir == "" {
+		return nil, skerr.Fmt("No 'workDir' provided to LoadCloudClient")
+	}
+	ret := cloudClient{
+		workDir:          workDir,
+		auth:             authOpt,
+		loadAndHashImage: loadAndHashImage,
+		now:              defaultNow,
+	}
+	var err error
+	ret.resultState, err = loadStateFromJson(ret.getResultStatePath())
+	if err != nil {
+		return nil, skerr.Fmt("Could not load disk from state: %s", err)
+	}
+	if err = ret.setHttpClient(); err != nil {
+		return nil, skerr.Fmt("Error setting http client: %s", err)
+	}
+
+	return &ret, nil
+}
+
+// SetSharedConfig implements the GoldClient interface.
+func (c *cloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
+	existingConfig := GoldClientConfig{
+		WorkDir: c.workDir,
+	}
+	if c.resultState != nil {
+		existingConfig.InstanceID = c.resultState.InstanceID
+		existingConfig.PassFailStep = c.resultState.PerTestPassFail
+		existingConfig.OverrideGoldURL = c.resultState.GoldURL
+	}
+	c.resultState = newResultState(&sharedConfig, &existingConfig)
+
+	// The GitHash may have changed (or been set for the first time),
+	// So we can now load the baseline. We can also download the hashes
+	// at this time, although we could have done it at any time before since
+	// that does not depend on the GitHash we have.
+	if err := c.downloadHashesAndBaselineFromGold(); err != nil {
+		return skerr.Fmt("Error downloading from Gold: %s", err)
+	}
+
+	return saveJSONFile(c.getResultStatePath(), c.resultState)
+}
+
 // Test implements the GoldClient interface.
 func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
-	passed, err := c.addTest(name, imgFileName)
-
-	// If there was no error and this is new instance then save the resultState for the next call.
-	if err == nil && c.freshState {
-		if err := saveJSONFile(c.getResultStateFile(), c.resultState); err != nil {
-			return false, err
-		}
-	}
-	return passed, err
+	return c.addTest(name, imgFileName)
 }
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
@@ -195,7 +262,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	c.addResult(name, imgHash)
 
 	// At this point the result should be correct for uploading.
-	if _, err := c.resultState.GoldResults.Validate(false); err != nil {
+	if _, err := c.resultState.SharedConfig.Validate(false); err != nil {
 		return false, err
 	}
 
@@ -203,13 +270,9 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	ret := true
 	if c.resultState.PerTestPassFail {
 		egroup.Go(func() error {
-			localFileName := filepath.Join(c.workDir, jsonTempFile)
-			resultFilePath := c.resultState.getResultFilePath()
-			if err := uploader.UploadJSON(c.resultState.GoldResults, localFileName, resultFilePath); err != nil {
-				return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
-			}
-			return nil
+			return c.uploadResultJSON(uploader)
 		})
+
 		ret = c.resultState.Expectations[name][imgHash] == types.POSITIVE
 	}
 
@@ -219,32 +282,22 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	return ret, nil
 }
 
-// initResultState assembles the information that needs to be uploaded based on previous calls
-// to the function and new arguments.
-func (c *cloudClient) initResultState(config *GoldClientConfig, goldResult *jsonio.GoldResults) error {
-	// Load the state from the workdir.
-	var err error
-	c.resultState, err = loadStateFromJson(c.getResultStateFile())
+func (c *cloudClient) Finalize() error {
+	if err := c.isReady(); err != nil {
+		return skerr.Fmt("Cannot finalize - client not ready: %s", err)
+	}
+	uploader, err := c.auth.GetGoldUploader()
 	if err != nil {
-		return err
+		return skerr.Fmt("Error retrieving uploader: %s", err)
 	}
+	return c.uploadResultJSON(uploader)
+}
 
-	// If we are ready that means we have loaded the resultState from the temporary directory.
-	if err := c.isReady(); err == nil {
-		return nil
-	}
-
-	// If we have enough information we create an instance of the result state. Sometimes we
-	// might create an instance with minimal information to, e.g. add auth information.
-	if config != nil && config.InstanceID != "" {
-		c.resultState, err = newResultState(goldResult, config, c.workDir, c.httpClient)
-		if err != nil {
-			return err
-		}
-
-		// Setting freshState to true indicates that this needs
-		// to be stored to disk once a test has been added successfully.
-		c.freshState = true
+func (c *cloudClient) uploadResultJSON(uploader GoldUploader) error {
+	localFileName := filepath.Join(c.workDir, jsonTempFile)
+	resultFilePath := c.resultState.getResultFilePath(c.now())
+	if err := uploader.UploadJSON(c.resultState.SharedConfig, localFileName, resultFilePath); err != nil {
+		return skerr.Fmt("Error uploading JSON file to GCS path %s: %s", resultFilePath, err)
 	}
 	return nil
 }
@@ -289,7 +342,7 @@ func (c *cloudClient) isReady() error {
 	}
 
 	// Check if the GoldResults instance is complete once results are added.
-	if _, err := c.resultState.GoldResults.Validate(true); err != nil {
+	if _, err := c.resultState.SharedConfig.Validate(true); err != nil {
 		return skerr.Fmt("Gold results fields invalid: %s", err)
 	}
 
@@ -297,13 +350,13 @@ func (c *cloudClient) isReady() error {
 	return nil
 }
 
-// getResultStateFile returns the name of the temporary file where the state is cached as JSON
-func (c *cloudClient) getResultStateFile() string {
+// getResultStatePath returns the path of the temporary file where the state is cached as JSON
+func (c *cloudClient) getResultStatePath() string {
 	return filepath.Join(c.workDir, stateFile)
 }
 
+// addResult adds the given test to the overall results.
 func (c *cloudClient) addResult(name, imgHash string) {
-	// Add the result to the overall results.
 	newResult := &jsonio.Result{
 		Digest: imgHash,
 		Key:    map[string]string{types.PRIMARY_KEY_FIELD: name},
@@ -312,11 +365,26 @@ func (c *cloudClient) addResult(name, imgHash string) {
 		Options: map[string]string{"ext": "png"},
 	}
 
-	// TODO(stephana): Make the corpus field an option.
-	if _, ok := c.resultState.GoldResults.Key[types.CORPUS_FIELD]; !ok {
+	// TODO(kjlubick): Maybe make the corpus field an option.
+	if _, ok := c.resultState.SharedConfig.Key[types.CORPUS_FIELD]; !ok {
 		newResult.Key[types.CORPUS_FIELD] = c.resultState.InstanceID
 	}
-	c.resultState.GoldResults.Results = append(c.resultState.GoldResults.Results, newResult)
+	c.resultState.SharedConfig.Results = append(c.resultState.SharedConfig.Results, newResult)
+}
+
+// downloadHashesAndBaselineFromGold downloads the hashes and baselines
+// and stores them to resultState.
+func (c *cloudClient) downloadHashesAndBaselineFromGold() error {
+	// What hashes have we seen already (to avoid uploading them again).
+	if err := c.resultState.loadKnownHashes(c.httpClient); err != nil {
+		return err
+	}
+
+	// Fetch the baseline (may be empty but should not fail).
+	if err := c.resultState.loadExpectations(c.httpClient); err != nil {
+		return err
+	}
+	return nil
 }
 
 // loadAndHashImage loads an image from disk and hashes the internal Pixel buffer. It returns
@@ -343,25 +411,13 @@ func loadAndHashImage(fileName string) ([]byte, string, error) {
 	return imgBytes, md5Hash, nil
 }
 
-// resultState is an internal container for all information to upload results
-// to Gold, including the jsonio.GoldResult structure itself.
-type resultState struct {
-	// Extend the GoldResults struct with some meta data about uploading.
-	GoldResults     *jsonio.GoldResults
-	PerTestPassFail bool
-	InstanceID      string
-	GoldURL         string
-	Bucket          string
-	KnownHashes     util.StringSet
-	Expectations    types.TestExp
-
-	// not saved as state
-	httpClient HTTPClient
-	workDir    string
+// defaultNow returns what time it is now in UTC
+func defaultNow() time.Time {
+	return time.Now().UTC()
 }
 
-// newResultState creates a new instance resultState and downloads the relevant files from Gold.
-func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, workDir string, httpClient HTTPClient) (*resultState, error) {
+// newResultState creates a new instance of resultState
+func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) *resultState {
 
 	// TODO(stephana): Move deriving the URLs and the bucket to a central place in the backend
 	// or get rid of the bucket entirely and expose an upload URL (requires authentication)
@@ -372,25 +428,14 @@ func newResultState(goldResult *jsonio.GoldResults, config *GoldClientConfig, wo
 	}
 
 	ret := &resultState{
-		GoldResults:     goldResult,
+		SharedConfig:    sharedConfig,
 		PerTestPassFail: config.PassFailStep,
 		InstanceID:      config.InstanceID,
 		GoldURL:         goldURL,
 		Bucket:          getBucket(config.InstanceID),
-		workDir:         workDir,
-		httpClient:      httpClient,
 	}
 
-	if err := ret.loadKnownHashes(); err != nil {
-		return nil, err
-	}
-
-	// TODO(stephana): Fetch the baseline (may be empty but should not fail).
-	if err := ret.loadExpectations(); err != nil {
-		return nil, err
-	}
-
-	return ret, nil
+	return ret
 }
 
 // loadStateFromJson loads a serialization of a resultState instance that was previously written
@@ -408,12 +453,12 @@ func loadStateFromJson(fileName string) (*resultState, error) {
 }
 
 // loadKnownHashes loads the list of known hashes from the Gold instance.
-func (r *resultState) loadKnownHashes() error {
+func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 	r.KnownHashes = util.StringSet{}
 
 	// Fetch the known hashes via http
 	hashesURL := fmt.Sprintf("%s/%s", r.GoldURL, knownHashesPath)
-	resp, err := r.httpClient.Get(hashesURL)
+	resp, err := httpClient.Get(hashesURL)
 	if err != nil {
 		return skerr.Fmt("Error retrieving known hashes file: %s", err)
 	}
@@ -445,14 +490,14 @@ func (r *resultState) loadKnownHashes() error {
 }
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
-func (r *resultState) loadExpectations() error {
-	urlPath := strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.GoldResults.GitHash, 1)
-	if r.GoldResults.Issue > 0 {
-		urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.GoldResults.Issue)
+func (r *resultState) loadExpectations(httpClient HTTPClient) error {
+	urlPath := strings.Replace(shared.EXPECTATIONS_ROUTE, "{commit_hash}", r.SharedConfig.GitHash, 1)
+	if r.SharedConfig.Issue > 0 {
+		urlPath = fmt.Sprintf("%s?issue=%d", urlPath, r.SharedConfig.Issue)
 	}
 	url := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
 
-	resp, err := r.httpClient.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return err
 	}
@@ -469,11 +514,11 @@ func (r *resultState) loadExpectations() error {
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
 		if len(jsonBytes) > 100 {
-			fmt.Printf("Invalid JSON: %s...", string(jsonBytes[0:100]))
+			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:100]))
 		} else {
-			fmt.Printf("Invalid JSON: %s", string(jsonBytes))
+			fmt.Printf(`Invalid JSON: "%s"`, string(jsonBytes))
 		}
-		return skerr.Fmt("Error parsing JSON: %s", err)
+		return skerr.Fmt("Error parsing JSON; this sometimes means auth issues: %s", err)
 	}
 
 	r.Expectations = exp.Baseline
@@ -486,8 +531,7 @@ func (r *resultState) loadExpectations() error {
 //    https://github.com/google/skia-buildbot/blob/master/golden/docs/INGESTION.md
 // The file name of the path also contains a timestamp to make it unique since all
 // calls within the same test run are written to the same output path.
-func (r *resultState) getResultFilePath() string {
-	now := time.Now().UTC()
+func (r *resultState) getResultFilePath(now time.Time) string {
 	year, month, day := now.Date()
 	hour := now.Hour()
 
@@ -504,13 +548,13 @@ func (r *resultState) getResultFilePath() string {
 		month,
 		day,
 		hour,
-		r.GoldResults.GitHash,
-		r.GoldResults.BuildBucketID,
-		time.Now().Unix(),
+		r.SharedConfig.GitHash,
+		r.SharedConfig.BuildBucketID,
+		now.Unix(),
 		fileName}
 	path := fmt.Sprintf("%s/%04d/%02d/%02d/%02d/%s/%d/%d/%s", segments...)
 
-	if r.GoldResults.Issue > 0 {
+	if r.SharedConfig.Issue > 0 {
 		path = "trybot/" + path
 	}
 	return fmt.Sprintf("%s/%s", r.Bucket, path)
@@ -575,3 +619,6 @@ func getHostURL(instanceID string) string {
 	}
 	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
+
+// Make sure cloudClient fulfils the GoldClient interface
+var _ GoldClient = (*cloudClient)(nil)
