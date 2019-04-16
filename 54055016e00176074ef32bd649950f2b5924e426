@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2bf4391b_84a1edbd",
+        "filename": "golden/sys/skiacorrectness-prod.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T20:12:06Z",
+      "side": 1,
+      "message": "Is this allowed syntax?\n\nSame Q for skiacorrectness-public.service.",
+      "range": {
+        "startLine": 11,
+        "startChar": 29,
+        "endLine": 11,
+        "endChar": 30
+      },
+      "revId": "54055016e00176074ef32bd649950f2b5924e426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b177e57_cbed2dcf",
+        "filename": "golden/sys/skiacorrectness-prod.service",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T20:12:06Z",
+      "side": 1,
+      "message": "not sure which of these will be used, but you did a stable sort, so it should still work.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 63
+      },
+      "revId": "54055016e00176074ef32bd649950f2b5924e426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

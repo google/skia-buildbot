@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09f94d8b_78337f2e",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T20:12:06Z",
+      "side": 1,
+      "message": "nit: auth.SCOPE_USERINFO_EMAIL\n\nx2",
+      "range": {
+        "startLine": 62,
+        "startChar": 76,
+        "endLine": 62,
+        "endChar": 124
+      },
+      "revId": "bfcc5a9ba13e3676869fac67ce20bcfcd86e06c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
