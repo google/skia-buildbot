@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c16bd370_c0763b1c",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T11:00:24Z",
+      "side": 1,
+      "message": "Just curious why we need this?  gitauth.New() takes a path to the gitcookies file, so if you don\u0027t want to use the default (~/.gitcookies) then you don\u0027t have to.",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 56
+      },
+      "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
