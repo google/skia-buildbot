@@ -25,6 +25,47 @@
     },
     {
       "key": {
+        "uuid": "2bcdd1da_f04c2ad9",
+        "filename": "fuzzer/go/fuzzer-be/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T18:12:16Z",
+      "side": 1,
+      "message": "We have multiple instances of fuzzer-be that use the same executable, e.g. fuzzer-be-0, fuzzer-be-1.  It\u0027s essentially a manual sharding of work.\n\nThe name is given by the flag",
+      "parentUuid": "272cf7f7_a0c14b82",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 2
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bc2d781_f97bd678",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T18:12:16Z",
+      "side": 1,
+      "message": "nit values :\u003d []string{}",
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a738b46f_99dabc62",
         "filename": "go/common/common.go",
         "patchSetId": 2
@@ -69,6 +110,30 @@
       "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e222fc5_0f0746ea",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T18:12:16Z",
+      "side": 1,
+      "message": "Maybe assert that target is empty when this function is called?",
+      "parentUuid": "a738b46f_99dabc62",
+      "range": {
+        "startLine": 187,
+        "startChar": 24,
+        "endLine": 187,
+        "endChar": 73
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
