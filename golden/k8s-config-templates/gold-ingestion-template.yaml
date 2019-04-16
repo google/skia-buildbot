@@ -28,13 +28,15 @@ spec:
           image: {{.INGESTION_IMAGE}}
           args:
             - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config.json5"
-            - "--namespace=gold-{{.INSTANCE_ID}}"
+            - "--git_bt_instance={{.GIT_BT_INSTANCE}}"
+            - "--git_bt_table={{.GIT_BT_TABLE}}"
             - "--http_port=:9091"
             - "--logtostderr"
+            - "--namespace=gold-{{.INSTANCE_ID}}"
             - "--no_cloud_log"
-            - "--project_id=skia-public"
+            - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
-            - "--service_account_file=/etc/gold-config/service-account.json"
+            - "--service_account_file=/var/secrets/google/key.json"
           ports:
             - containerPort: 9091
               name: http-health
@@ -43,8 +45,11 @@ spec:
               mountPath: /etc/gold-ingestion
             - name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
               mountPath: /data
-            - name: gold-service-account-secrets
-              mountPath: /etc/gold-config/
+            - name: gold-sa
+              mountPath: /var/secrets/google
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
           resources:
             limits:
               memory: "4Gi"
@@ -60,9 +65,9 @@ spec:
           configMap:
             defaultMode: 420
             name: gold-{{.INSTANCE_ID}}-ingestion-config
-        - name: gold-service-account-secrets
+        - name: gold-sa
           secret:
-            secretName: gold-service-account-secrets
+            secretName: skia-gold
   volumeClaimTemplates:
     - metadata:
         name: gold-{{.INSTANCE_ID}}-ingestion-storage-volume
@@ -71,4 +76,4 @@ spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
           requests:
-            storage: 100Gi
+            storage: 50Gi

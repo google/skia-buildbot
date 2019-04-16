@@ -20,8 +20,11 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -63,7 +66,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *gitstore.BTConfig) ([]*Ingester, error) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
@@ -76,8 +79,20 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
 	var err error
-	if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
-		return nil, err
+	if btConf != nil {
+		gitStore, err := gitstore.NewBTGitStore(ctx, btConf, config.GitRepoURL)
+		if err != nil {
+			return nil, skerr.Fmt("Error instantiating gitstore: %s", err)
+		}
+
+		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, "", nil)
+		if vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo); err != nil {
+			return nil, err
+		}
+	} else {
+		if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
+			return nil, err
+		}
 	}
 
 	// Instantiate the secondary repo if one was specified.

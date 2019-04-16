@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gevent"
+	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -30,21 +31,23 @@ import (
 	storage "google.golang.org/api/storage/v1"
 )
 
-// Command line flags.
-var (
-	btInstance         = flag.String("bt_instance", "", "Bigtable instance to use in the project identified by 'project_id'")
-	configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
-	namespace          = flag.String("namespace", "", "Namespace to be used with Cloud datastore and BigTable (as a row-prefix).")
-	httpPort           = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
-	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
-	promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
-)
-
 func main() {
+	// Command line flags.
+	var (
+		btInstance         = flag.String("bt_instance", "", "Bigtable instance to use in the project identified by 'project_id'")
+		configFilename     = flag.String("config_filename", "default.json5", "Configuration file in JSON5 format.")
+		gitBTInstanceID    = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
+		gitBTTableID       = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
+		httpPort           = flag.String("http_port", ":9091", "The http port where ready-ness endpoints are served.")
+		local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+		memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+		namespace          = flag.String("namespace", "", "Namespace to be used with Cloud datastore and BigTable (as a row-prefix).")
+		noCloudLog         = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
+		projectID          = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
+		promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	)
+
 	// Parse the options. So we can configure logging.
 	flag.Parse()
 
@@ -64,9 +67,14 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
+	sklog.Infof("Service account file: %s", *serviceAccountFile)
 	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, storage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
+	}
+	_, err = tokenSrc.Token()
+	if err != nil {
+		sklog.Fatalf("Error retrieving token: %s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().Client()
 
@@ -111,11 +119,21 @@ func main() {
 		eventBus = eventbus.New()
 	}
 
+	// Set up the gitstore if we have the necessary bigtable configuration.
+	var btConf *gitstore.BTConfig = nil
+	if *gitBTInstanceID != "" && *gitBTTableID != "" {
+		btConf = &gitstore.BTConfig{
+			ProjectID:  *projectID,
+			InstanceID: *gitBTInstanceID,
+			TableID:    *gitBTTableID,
+		}
+	}
+
 	// Set up the ingesters in the background.
 	var ingesters []*ingestion.Ingester
 	go func() {
 		var err error
-		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore)
+		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore, btConf)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 		}
