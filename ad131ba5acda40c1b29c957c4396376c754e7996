@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dda97443_1bb0de7a",
+        "filename": "run_unittests.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T11:04:52Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "26c21108_6af00992",
+      "range": {
+        "startLine": 492,
+        "startChar": 0,
+        "endLine": 492,
+        "endChar": 1
+      },
+      "revId": "ad131ba5acda40c1b29c957c4396376c754e7996",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
