@@ -3,13 +3,14 @@
 
 set -e
 
-mkdir /tmp/ramdisk
+mkdir -p /tmp/ramdisk
 echo "sudo is needed to create the ramdisk."
 sudo mount  -t tmpfs -o size=10m tmpfs /tmp/ramdisk
 
 function finish {
-  sleep 2
+  sleep 10
   sudo umount /tmp/ramdisk
+  sleep 10
   rmdir /tmp/ramdisk
 }
 trap finish EXIT

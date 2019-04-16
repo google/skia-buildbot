@@ -70,6 +70,8 @@ kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
               -parse_conf=false -quote -strict \
               -o "${BASELINE_SERVER_CONF}"
 
+set +x
+
 # Push the config map to kubernetes
 echo "# To push these run:\n"
 echo "kubectl delete configmap $CONF_MAP"

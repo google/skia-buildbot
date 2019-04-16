@@ -360,6 +360,7 @@ func NewJWTServiceAccountTokenSource(metadataname, filename string, scopes ...st
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't find JWT via metadata or in a local file.")
 		}
+		sklog.Infof("Read from file %s", filename)
 	} else {
 		body = []byte(jwt)
 	}

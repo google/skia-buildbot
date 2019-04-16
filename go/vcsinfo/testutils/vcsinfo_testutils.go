@@ -42,7 +42,7 @@ func TestDisplay(t testutils.TestingT, vcs vcsinfo.VCS) {
 		},
 	}
 	for _, tc := range testCases {
-		details, err := vcs.Details(ctx, tc.hash, true)
+		details, err := vcs.Details(ctx, tc.hash, false)
 		if err != nil {
 			t.Fatal(err)
 		}
