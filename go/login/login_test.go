@@ -43,6 +43,7 @@ func TestLoginURL(t *testing.T) {
 func TestLoggedInAs(t *testing.T) {
 	testutils.SmallTest(t)
 	once.Do(loginInit)
+	setActiveWhitelists(DEFAULT_DOMAIN_WHITELIST)
 
 	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
 	if err != nil {
@@ -83,4 +84,63 @@ func TestDomainFromHost(t *testing.T) {
 	assert.Equal(t, "skia.org", domainFromHost("perf.skia.org"))
 	assert.Equal(t, "skia.org", domainFromHost("perf.skia.org:443"))
 	assert.Equal(t, "skia.org", domainFromHost("example.com:443"))
+}
+
+func TestSplitAuthWhiteList(t *testing.T) {
+	testutils.SmallTest(t)
+
+	type testCase struct {
+		Input           string
+		ExpectedDomains map[string]bool
+		ExpectedEmails  map[string]bool
+	}
+
+	tests := []testCase{
+		{
+			Input: "google.com chromium.org skia.org",
+			ExpectedDomains: map[string]bool{
+				"google.com":   true,
+				"chromium.org": true,
+				"skia.org":     true,
+			},
+			ExpectedEmails: map[string]bool{},
+		},
+		{
+			Input: "google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com",
+			ExpectedDomains: map[string]bool{
+				"google.com":   true,
+				"chromium.org": true,
+				"skia.org":     true,
+			},
+			ExpectedEmails: map[string]bool{
+				"service-account@proj.iam.gserviceaccount.com": true,
+			},
+		},
+		{
+			Input:           "user@example.com service-account@proj.iam.gserviceaccount.com",
+			ExpectedDomains: map[string]bool{},
+			ExpectedEmails: map[string]bool{
+				"user@example.com": true,
+				"service-account@proj.iam.gserviceaccount.com": true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		d, e := splitAuthWhiteList(tc.Input)
+		assert.Equal(t, tc.ExpectedDomains, d)
+		assert.Equal(t, tc.ExpectedEmails, e)
+	}
+}
+
+func TestInWhitelist(t *testing.T) {
+	testutils.SmallTest(t)
+	once.Do(loginInit)
+	setActiveWhitelists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
+
+	assert.True(t, inWhitelist("fred@chromium.org"))
+	assert.True(t, inWhitelist("service-account@proj.iam.gserviceaccount.com"))
+
+	assert.False(t, inWhitelist("fred@example.com"))
+	assert.False(t, inWhitelist("evil@proj.iam.gserviceaccount.com"))
 }
