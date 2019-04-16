@@ -311,7 +311,11 @@ func LoggedInAs(r *http.Request) string {
 		email = e
 	}
 	if inWhitelist(email) {
+		sklog.Debugf("User %s is on the whitelist", email)
 		return email
+	}
+	if email != "" {
+		sklog.Debugf("User %s is not on whitelist", email)
 	}
 	return ""
 }

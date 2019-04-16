@@ -28,6 +28,7 @@ ExecStart=/usr/local/bin/skiacorrectness-prod  \
     --diff_server_grpc=skia-diffserver-prod:8000 \
     --diff_server_http=skia-diffserver-prod:8001 \
     --force_login \
+    --auth_whitelist="google.com chromium.org skia.org skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com" \
     --event_topic=gold-prod-eventbus \
     --ds_namespace=gold-skia-prod \
     --match_fields=name,style

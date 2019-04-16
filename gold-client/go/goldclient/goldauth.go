@@ -59,9 +59,9 @@ func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
 	var tokenSrc oauth2.TokenSource
 	var err error
 	if a.Luci {
-		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl)
+		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, "https://www.googleapis.com/auth/userinfo.email")
 	} else {
-		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("#bogus", a.ServiceAccount, gstorage.ScopeFullControl)
+		tokenSrc, err = auth.NewJWTServiceAccountTokenSource("", a.ServiceAccount, gstorage.ScopeFullControl, "https://www.googleapis.com/auth/userinfo.email")
 	}
 	if err != nil {
 		return nil, skerr.Fmt("Unable to instantiate auth token source: %s", err)
