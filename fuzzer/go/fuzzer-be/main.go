@@ -79,7 +79,7 @@ var (
 func main() {
 	flag.Parse()
 	// Reset this because flag.Parse() will be called again with common.Init*
-	fuzzesToRun.Reset()
+	*fuzzesToRun = nil
 	if *overrideHostname != "" {
 		mc := tests.NewMockCommonImpl()
 		mc.On("Hostname").Return(*overrideHostname)
