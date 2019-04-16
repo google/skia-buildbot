@@ -513,8 +513,9 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	exp := &baseline.CommitableBaseLine{}
 
 	if err := json.Unmarshal(jsonBytes, exp); err != nil {
-		if len(jsonBytes) > 100 {
-			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:100]))
+		fmt.Printf("Fetched from %s\n", url)
+		if len(jsonBytes) > 200 {
+			fmt.Printf(`Invalid JSON: "%s..."`, string(jsonBytes[0:200]))
 		} else {
 			fmt.Printf(`Invalid JSON: "%s"`, string(jsonBytes))
 		}
