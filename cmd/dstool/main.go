@@ -25,8 +25,9 @@ import (
 
 // Command line flags.
 var (
-	dsNamespace = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
-	projectID   = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
+	concurrently = flag.Int("concurrent", 500, "Concurrently processed entities. Lower if error occur.")
+	dsNamespace  = flag.String("ds_namespace", "", "Cloud datastore namespace to be used by this instance.")
+	projectID    = flag.String("project_id", common.PROJECT_ID, "GCP project ID.")
 )
 
 // opsEntry defines the parameters and the function for an operation
@@ -99,7 +100,7 @@ func deleteEntities(client *datastore.Client, params ...string) {
 			sklog.Errorf("Error deleting slice: %s", err)
 		}
 	}
-	processConcurrently(client, procFn, entityName, 500)
+	processConcurrently(client, procFn, entityName, *concurrently)
 }
 
 // touchEntities implements the touch command.
