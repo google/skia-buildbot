@@ -8,29 +8,31 @@ Environment=DATA_DIR=/mnt/pd0/data  \
   RESOURCE_DIR=/usr/local/share/skiacorrectness  \
 
 ExecStart=/usr/local/bin/skiacorrectness-prod  \
-    --port=:8001  \
-    --logtostderr \
-    --trace_service=skia-tracedb:9090 \
-    --git_repo_dir=${DATA_DIR}/gold/skia \
-    --image_dir=${DATA_DIR}/imageStore  \
-    --internal_port=:19000 \
-    --storage_dir=${DATA_DIR}/datastore  \
-    --resources_dir=${RESOURCE_DIR}  \
+    --auth_users="google.com \
+mtklein@chromium.org \
+skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com" \
+    --baseline_gs_path=skia-infra-gm/baselines/gold-prod \
+    --cache_size=20 \
     --db_host=173.194.109.248  \
     --db_name=skiacorrectness  \
-    --redirect_url=https://gold.skia.org/oauth2callback/  \
-    --n_commits=100   \
-    --cache_size=20 \
-    --resources_dir=/usr/local/share/skiacorrectness/frontend \
-    --prom_port=:20001 \
-    --hashes_gs_path=skia-infra-gm/hash_files/gold-prod-hashes.txt \
-    --baseline_gs_path=skia-infra-gm/baselines/gold-prod \
     --diff_server_grpc=skia-diffserver-prod:8000 \
     --diff_server_http=skia-diffserver-prod:8001 \
-    --force_login \
-    --event_topic=gold-prod-eventbus \
     --ds_namespace=gold-skia-prod \
-    --match_fields=name,style
+    --event_topic=gold-prod-eventbus \
+    --force_login \
+    --git_repo_dir=${DATA_DIR}/gold/skia \
+    --hashes_gs_path=skia-infra-gm/hash_files/gold-prod-hashes.txt \
+    --image_dir=${DATA_DIR}/imageStore  \
+    --internal_port=:19000 \
+    --logtostderr \
+    --match_fields=name,style \
+    --n_commits=100   \
+    --port=:8001  \
+    --prom_port=:20001 \
+    --redirect_url=https://gold.skia.org/oauth2callback/  \
+    --resources_dir=${RESOURCE_DIR}/frontend \
+    --storage_dir=${DATA_DIR}/datastore  \
+    --trace_service=skia-tracedb:9090
 
 Restart=always
 User=default

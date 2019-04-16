@@ -8,29 +8,39 @@ Environment=DATA_DIR=/mnt/pd0/data  \
   RESOURCE_DIR=/usr/local/share/skiacorrectness  \
 
 ExecStart=/usr/local/bin/skiacorrectness-public  \
-    --port=:8001  \
-    --logtostderr \
-    --trace_service=skia-tracedb:9090 \
+    --app_title="Public Skia Gold" \
+    --auth_users="google.com \
+chromium.org \
+skia.org \
+kkinnunen@nvidia.com \
+mjk@nvidia.com \
+vbuzinov@nvidia.com \
+martina.kollarova@intel.com \
+this.is.harry.stern@gmail.com \
+dvonbeck@gmail.com \
+zakerinasab@chromium.org \
+afar.lin@imgtec.com" \
+    --cache_size=20 \
+    --db_host=173.194.109.248  \
+    --db_name=skiacorrectness  \
+    --diff_server_grpc=skia-diffserver-prod:8000 \
+    --diff_server_http=skia-diffserver-prod:8001 \
+    --ds_namespace=gold-skia-prod \
+    --event_topic=gold-prod-eventbus \
+    --force_login=false \
     --git_repo_dir=${DATA_DIR}/gold/skia \
     --image_dir=${DATA_DIR}/imageStore  \
     --internal_port=:19000 \
-    --storage_dir=${DATA_DIR}/datastore  \
-    --resources_dir=${RESOURCE_DIR}  \
-    --db_host=173.194.109.248  \
-    --db_name=skiacorrectness  \
-    --redirect_url=https://public-gold.skia.org/oauth2callback/  \
+    --logtostderr \
+    --match_fields=name,style \
     --n_commits=100   \
-    --cache_size=20 \
-    --resources_dir=/usr/local/share/skiacorrectness/frontend \
+    --port=:8001  \
     --prom_port=:20001 \
-    --diff_server_grpc=skia-diffserver-prod:8000 \
-    --diff_server_http=skia-diffserver-prod:8001 \
     --public_whitelist=${RESOURCE_DIR}/skiacorrectness-public-whitelist.json5 \
-    --force_login=false \
-    --event_topic=gold-prod-eventbus \
-    --app_title="Public Skia Gold" \
-    --ds_namespace=gold-skia-prod \
-    --match_fields=name,style
+    --redirect_url=https://public-gold.skia.org/oauth2callback/  \
+    --resources_dir=${RESOURCE_DIR}/frontend \
+    --storage_dir=${DATA_DIR}/datastore  \
+    --trace_service=skia-tracedb:9090
 
 Restart=always
 User=default
