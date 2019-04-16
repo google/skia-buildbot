@@ -145,8 +145,8 @@ func Defer() {
 	sklog.Flush()
 }
 
-// MultiString implements flag.Value, allowing it to be used as
-// var slice common.MultiString
+// multiString implements flag.Value, allowing it to be used as
+// var slice multiString
 // func init() {
 // 	flag.Var(&slice, "someArg", "list of frobulators")
 // }
@@ -157,41 +157,49 @@ func Defer() {
 // my_executable --someArg foo,bar,baz
 // or any combination of
 // my_executable --someArg alpha --someArg beta,gamma --someArg delta
-type MultiString []string
-
-// NewMultiStringFlag returns a MultiString flag, loaded with the given
-// preloadedValues, usage string and name.
-// NOTE: because of how MultiString functions, the values passed in are
-// not the traditional "default" values, because they will not be replaced
-// by the flags, only appended to.
-func NewMultiStringFlag(name string, preloadedValues []string, usage string) *MultiString {
-	m := MultiString(preloadedValues)
-	flag.Var(&m, name, usage)
-	return &m
+type multiString struct {
+	values *[]string
+	set    bool
 }
 
-// MultiStringFlagVar defines a MultiString flag with the specified name, preloadedValues, and usage string.
-// The argument target points to a MultiString variable in which to store the values of the flag.
-func MultiStringFlagVar(target *[]string, name string, preloadedValues []string, usage string) {
-	*target = append([]string{}, preloadedValues...)
-	flag.Var((*MultiString)(target), name, usage)
+// newMultiString is a helper for creating a new MultiString.
+func newMultiString(target *[]string, defaults []string) *multiString {
+	if defaults != nil {
+		*target = append([]string{}, defaults...)
+	}
+	return &multiString{
+		values: target,
+	}
 }
 
-// String() returns the current value of MultiString, as a comma seperated list
-func (m *MultiString) String() string {
-	return strings.Join(*m, ",")
+// NewMultiStringFlag returns a []string flag, loaded with the given
+// defaults, usage string and name.
+func NewMultiStringFlag(name string, defaults []string, usage string) *[]string {
+	var values []string
+	m := newMultiString(&values, defaults)
+	flag.Var(m, name, usage)
+	return &values
+}
+
+// MultiStringFlagVar defines a MultiString flag with the specified name,
+// defaults, and usage string. The argument target points to a []string
+// variable in which to store the values of the flag.
+func MultiStringFlagVar(target *[]string, name string, defaults []string, usage string) {
+	m := newMultiString(target, defaults)
+	flag.Var(m, name, usage)
+}
+
+// String() returns the current values of multiString, as a comma separated list
+func (m *multiString) String() string {
+	return strings.Join(*m.values, ",")
 }
 
 // From the flag docs: "Set is called once, in command line order, for each flag present.""
-func (m *MultiString) Set(value string) error {
-	for _, s := range strings.Split(value, ",") {
-		*m = append(*m, s)
+func (m *multiString) Set(value string) error {
+	if !m.set {
+		*m.values = []string{}
+		m.set = true
 	}
+	*m.values = append(*m.values, strings.Split(value, ",")...)
 	return nil
-}
-
-// Reset() removes all flags seen so far. If flag.Parse() is called twice, everything
-// gets duplicated, so this prevents duplication.
-func (m *MultiString) Reset() {
-	*m = nil
 }

@@ -41,7 +41,7 @@ func main() {
 	if *dimensions == nil && *includeBots == nil {
 		sklog.Fatal("So one does not accidentally shutdown the entire pool, you must specify a dimension or an include rule.")
 	}
-	requestedDims, err := swarming.ParseDimensionFlags(dimensions)
+	requestedDims, err := swarming.ParseDimensionsSingleValue(*dimensions)
 	if err != nil {
 		sklog.Fatalf("Problem parsing dimensions: %s", err)
 	}
@@ -152,11 +152,7 @@ func logIfVerbose(f string, args ...interface{}) {
 	}
 }
 
-func parseRegex(flags common.MultiString) (retval []*regexp.Regexp, e error) {
-	if len(flags) == 0 {
-		return retval, nil
-	}
-
+func parseRegex(flags []string) (retval []*regexp.Regexp, e error) {
 	for _, s := range flags {
 		r, err := regexp.Compile(s)
 		if err != nil {

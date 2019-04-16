@@ -64,7 +64,7 @@ func main() {
 		*taskName = fmt.Sprintf("run_%s", scriptName)
 	}
 
-	dims, err := swarming.ParseDimensionFlags(dimensions)
+	dims, err := swarming.ParseDimensionsSingleValue(*dimensions)
 	if err != nil {
 		sklog.Fatalf("Problem parsing dimensions: %s", err)
 	}
@@ -180,11 +180,7 @@ func main() {
 	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
 }
 
-func parseRegex(flags common.MultiString) (retval []*regexp.Regexp, e error) {
-	if len(flags) == 0 {
-		return retval, nil
-	}
-
+func parseRegex(flags []string) (retval []*regexp.Regexp, e error) {
 	for _, s := range flags {
 		r, err := regexp.Compile(s)
 		if err != nil {

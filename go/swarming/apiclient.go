@@ -11,7 +11,6 @@ import (
 	"time"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -550,12 +549,11 @@ func ParseDimensions(dims []string) (map[string][]string, error) {
 	return rv, nil
 }
 
-// ParseDimensionFlags parses the MultiString flag into a map[string]string.
-func ParseDimensionFlags(dimensionFlags *common.MultiString) (map[string]string, error) {
-	if dimensionFlags == nil {
-		return map[string]string{}, nil
-	}
-	dims, err := ParseDimensions(*dimensionFlags)
+// ParseDimensionsSingleValue parses the MultiString flag into a
+// map[string]string. Like ParseDimensions, except a single value is expected
+// for each key.
+func ParseDimensionsSingleValue(dimensions []string) (map[string]string, error) {
+	dims, err := ParseDimensions(dimensions)
 	if err != nil {
 		return nil, err
 	}
