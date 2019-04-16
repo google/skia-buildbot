@@ -67,16 +67,11 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize oauth client and start the ingesters.
-	sklog.Infof("Service account file: %s", *serviceAccountFile)
 	tokenSrc, err := auth.NewJWTServiceAccountTokenSource("", *serviceAccountFile, storage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
-	_, err = tokenSrc.Token()
-	if err != nil {
-		sklog.Fatalf("Error retrieving token: %s", err)
-	}
-	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().Client()
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSrc).With2xxOnly().WithDialTimeout(time.Second * 10).Client()
 
 	// Make sure we have a namespace.
 	if *namespace == "" {
@@ -105,12 +100,14 @@ func main() {
 
 	// Set up the eventbus.
 	var eventBus eventbus.EventBus
+	var evtBusTriggerCh chan bool = nil
 	if config.EventTopic != "" {
 		nodeName, err := gevent.GetNodeName(appName, *local)
 		if err != nil {
 			sklog.Fatalf("Error getting node name: %s", err)
 		}
-		eventBus, err = gevent.New(*projectID, config.EventTopic, nodeName, option.WithTokenSource(tokenSrc))
+		evtBusTriggerCh = make(chan bool)
+		eventBus, err = gevent.New(*projectID, config.EventTopic, nodeName, evtBusTriggerCh, option.WithTokenSource(tokenSrc))
 		if err != nil {
 			sklog.Fatalf("Error creating global eventbus: %s", err)
 		}
@@ -141,6 +138,11 @@ func main() {
 			if err := oneIngester.Start(ctx); err != nil {
 				sklog.Fatalf("Unable to start ingester: %s", err)
 			}
+		}
+
+		// Start the eventbus if it's distributed.
+		if evtBusTriggerCh != nil {
+			close(evtBusTriggerCh)
 		}
 	}()
 

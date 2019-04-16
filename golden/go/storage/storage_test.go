@@ -148,7 +148,7 @@ func TestWritingBaselines(t *testing.T) {
 	combined.Baseline.Update(issueBaseline.Baseline)
 	combined.Issue = issueBaseline.Issue
 
-	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, issueID, 0)
+	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, issueID, 0, false)
 	assert.NoError(t, err)
 	assert.Equal(t, combined, foundBaseline)
 }
@@ -192,7 +192,7 @@ func TestBaselineRobustness(t *testing.T) {
 	expBaseline.Baseline = masterBaseline.Baseline.DeepCopy()
 	expBaseline.Issue = 5344
 
-	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0)
+	foundBaseline, err = storages.Baseliner.FetchBaseline(endCommit.Hash, 5344, 0, false)
 	assert.NoError(t, err)
 	assert.Equal(t, expBaseline, foundBaseline)
 }
@@ -424,6 +424,10 @@ func (m *mockVCS) DetailsMulti(ctx context.Context, hashes []string, includeBran
 		}
 	}
 	return ret, nil
+}
+
+func (m *mockVCS) GetBranch() string {
+	return "master"
 }
 
 func (m *mockVCS) IndexOf(ctx context.Context, hash string) (int, error) { return 0, nil }
