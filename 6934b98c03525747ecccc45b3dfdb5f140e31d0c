@@ -282,6 +282,24 @@
       "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ccf8b1d5_66a90521",
+        "filename": "scripts/run_swarming_tasks_api/run_swarming_tasks_api.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T18:53:21Z",
+      "side": 1,
+      "message": "Oops, sorry, missed that.",
+      "parentUuid": "2ec207b4_1dd2b4cc",
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
