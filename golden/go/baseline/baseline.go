@@ -46,10 +46,17 @@ type CommitableBaseLine struct {
 	Issue int64
 }
 
+func (c *CommitableBaseLine) DeepCopyBaseline() *CommitableBaseLine {
+	ret := &CommitableBaseLine{}
+	*ret = *c
+	ret.Baseline = c.Baseline.DeepCopy()
+	return ret
+}
+
 // TODO(stephana): Add tests for GetBaselinePerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
-func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) (map[string]*CommitableBaseLine, error) {
+func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, extraCommits []*tiling.Commit) (map[string]*CommitableBaseLine, error) {
 	allCommits := cpxTile.AllCommits()
 	if len(allCommits) == 0 {
 		return map[string]*CommitableBaseLine{}, nil
@@ -94,10 +101,18 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) 
 	}
 
 	// Iterate over all commits. If the tile is sparse we substitute the expectations with the
-	// expectations of the closest ancestor that has expecations.
-	ret := make(map[string]*CommitableBaseLine, len(allCommits))
+	// expectations of the closest ancestor that has expecations. We also add the commits that
+	// have landed already, but are not captured in the current tile.
+	combined := allCommits
+	if len(extraCommits) > 0 {
+		combined = make([]*tiling.Commit, 0, len(allCommits)+len(extraCommits))
+		combined = append(combined, allCommits...)
+		combined = append(combined, extraCommits...)
+	}
+
+	ret := make(map[string]*CommitableBaseLine, len(combined))
 	var currBL *CommitableBaseLine = nil
-	for _, commit := range allCommits {
+	for _, commit := range combined {
 		bl, ok := denseBaseLines[commit.Hash]
 		if ok {
 			md5Sum, err := util.MD5Sum(bl)
