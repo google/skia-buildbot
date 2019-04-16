@@ -56,7 +56,7 @@ func main() {
 	if _, ok := supportedCmds[*cmd]; !ok {
 		sklog.Fatalf("--cmd must be one of %v", supportedCmds)
 	}
-	if tags.String() == "" {
+	if *tags == nil {
 		sklog.Fatal("Atleast one --tag is required.")
 	}
 	if *pool == "" {
