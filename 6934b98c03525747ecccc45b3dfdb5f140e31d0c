@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "272cf7f7_a0c14b82",
+        "filename": "fuzzer/go/fuzzer-be/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T17:37:11Z",
+      "side": 1,
+      "message": "Drive-by: it seems to me that the only reason this is needed is because overrideHostname as the app name, which doesn\u0027t really make sense to me in the first place.  Otherwise, there is no need to parse flags or to have more than one call to InitWithMust.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 2
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a738b46f_99dabc62",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T17:37:11Z",
+      "side": 1,
+      "message": "This is kind of goofy, in that *target could already be pre-loaded with default values, in which case we\u0027ll append the defaults to it.  In other words, maybe it doesn\u0027t make sense to pass defaults to this function; the caller can just pre-fill *target with the values they want as the default.",
+      "range": {
+        "startLine": 187,
+        "startChar": 24,
+        "endLine": 187,
+        "endChar": 73
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
