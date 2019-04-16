@@ -1023,6 +1023,7 @@ func (wh *WebHandlers) JsonCompareTestHandler(w http.ResponseWriter, r *http.Req
 func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Request) {
 	commitHash := ""
 	issueID := int64(0)
+	issueOnly := false
 	var err error
 
 	// TODO(stephana): The codepath for using issue_id as segment of the request path is
@@ -1042,16 +1043,18 @@ func (wh *WebHandlers) JsonBaselineHandler(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		if issueIDStr := r.URL.Query().Get("issue"); issueIDStr != "" {
+		q := r.URL.Query()
+		if issueIDStr := q.Get("issue"); issueIDStr != "" {
 			issueID, err = strconv.ParseInt(issueIDStr, 10, 64)
 			if err != nil {
 				httputils.ReportError(w, r, err, "Issue ID must be valid integer.")
 				return
 			}
+			issueOnly = q.Get("issueOnly") == "true"
 		}
 	}
 
-	baseline, err := wh.Storages.Baseliner.FetchBaseline(commitHash, issueID, 0)
+	baseline, err := wh.Storages.Baseliner.FetchBaseline(commitHash, issueID, 0, issueOnly)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fetching baselines failed.")
 		return
