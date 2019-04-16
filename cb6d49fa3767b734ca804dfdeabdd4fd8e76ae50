@@ -1,0 +1,510 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6256664a_8b7c2424",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "its",
+      "range": {
+        "startLine": 168,
+        "startChar": 35,
+        "endLine": 168,
+        "endChar": 39
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0da28ebb_aab419f4",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Do you mean this can deadlock if Publish is called by something in callbacks without this fix?  Do I understand the problem correctly?",
+      "range": {
+        "startLine": 168,
+        "startChar": 67,
+        "endLine": 168,
+        "endChar": 85
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "087a10d9_f6931db8",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "I think you only want one of these words",
+      "range": {
+        "startLine": 49,
+        "startChar": 75,
+        "endLine": 49,
+        "endChar": 86
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0773177e_2a2d4a12",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Add comment reminding the reader you need to wrap this in a closure since you are executing a go function in a loop",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 145,
+        "endChar": 9
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47a73690_40bd0657",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "add skerr.Fmt and include the commit hash in the error",
+      "range": {
+        "startLine": 149,
+        "startChar": 14,
+        "endLine": 149,
+        "endChar": 17
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cc60c17_22024e83",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "skerr.Fmt",
+      "range": {
+        "startLine": 187,
+        "startChar": 15,
+        "endLine": 187,
+        "endChar": 18
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd55579f_42709c0d",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Why only look over this interval?  Would we ever want to do c.Timestamp - second as the start time?",
+      "range": {
+        "startLine": 203,
+        "startChar": 49,
+        "endLine": 203,
+        "endChar": 90
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b91d6531_2b55d3da",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Add skerr.Fmt and include the branch name",
+      "range": {
+        "startLine": 205,
+        "startChar": 12,
+        "endLine": 205,
+        "endChar": 16
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95a3467c_896a5865",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "one branch?  (nit: wrap to 100 cols)",
+      "range": {
+        "startLine": 208,
+        "startChar": 80,
+        "endLine": 208,
+        "endChar": 98
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2edfa0aa_c0d4e508",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "dangling thought",
+      "range": {
+        "startLine": 363,
+        "startChar": 21,
+        "endLine": 363,
+        "endChar": 32
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcaa84eb_fb34b997",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Why not use golang\u0027s copy method to be more clear?",
+      "range": {
+        "startLine": 392,
+        "startChar": 16,
+        "endLine": 392,
+        "endChar": 60
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1890a37d_57dedd37",
+        "filename": "go/vcsinfo/testutils/vcsinfo_testutils.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Are these just made up hashes or do they relate to real-world data?",
+      "range": {
+        "startLine": 238,
+        "startChar": 16,
+        "endLine": 238,
+        "endChar": 56
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cf5a445_61eff0c4",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "add [deprecated] to the description",
+      "range": {
+        "startLine": 106,
+        "startChar": 100,
+        "endLine": 106,
+        "endChar": 104
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d84cf64d_ac9a35cf",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "(*nCommits)*10",
+      "range": {
+        "startLine": 292,
+        "startChar": 68,
+        "endLine": 292,
+        "endChar": 77
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "687378d5_0d55435b",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "what?",
+      "range": {
+        "startLine": 119,
+        "startChar": 4,
+        "endLine": 119,
+        "endChar": 16
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e9e7cb0_2e944eb3",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Should this always be 1? Why?",
+      "range": {
+        "startLine": 148,
+        "startChar": 38,
+        "endLine": 148,
+        "endChar": 39
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c226ea3_d22d0248",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Is subscribeAsync ok with the possibility of its callback blocking?  At the moment, I notice commitCh is unbuffered, so if two commits come in in close succession, line 240 will block.",
+      "range": {
+        "startLine": 239,
+        "startChar": 23,
+        "endLine": 239,
+        "endChar": 37
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8589d5fd_52da752a",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "I don\u0027t know if I\u0027ve ever seen this idiom before.  Why not do a for tn :\u003d range expCh ?",
+      "range": {
+        "startLine": 271,
+        "startChar": 4,
+        "endLine": 271,
+        "endChar": 12
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a35c955b_6d3eccb8",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "unused param?",
+      "range": {
+        "startLine": 302,
+        "startChar": 35,
+        "endLine": 302,
+        "endChar": 45
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15f10b25_8b76f13d",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "update doc to talk about new param and return value",
+      "range": {
+        "startLine": 88,
+        "startChar": 67,
+        "endLine": 88,
+        "endChar": 73
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebeb8870_bfd7683e",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "Why?  Because we are searching for targetHash?",
+      "range": {
+        "startLine": 110,
+        "startChar": 4,
+        "endLine": 110,
+        "endChar": 33
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef9ef800_bb2ac203",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 28
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-16T20:52:40Z",
+      "side": 1,
+      "message": "true?",
+      "range": {
+        "startLine": 7,
+        "startChar": 31,
+        "endLine": 7,
+        "endChar": 36
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
