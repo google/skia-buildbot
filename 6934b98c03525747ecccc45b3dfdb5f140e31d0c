@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "e91dcf14_319ba43b",
+        "filename": "fuzzer/go/fuzzer-be/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T18:29:34Z",
+      "side": 1,
+      "message": "Ok, I still don\u0027t understand why that\u0027s needed (eg. all ~40 of the autoroll backends use the same \"autoroll-be\" app name), but it\u0027s not relevant right now.",
+      "parentUuid": "2bcdd1da_f04c2ad9",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 2
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4bc2d781_f97bd678",
         "filename": "go/common/common.go",
         "patchSetId": 2
@@ -60,6 +84,24 @@
       "writtenOn": "2019-04-16T18:12:16Z",
       "side": 1,
       "message": "nit values :\u003d []string{}",
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed3349fe_e6658361",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T18:29:34Z",
+      "side": 1,
+      "message": "Actually, when I do this:\nvar things \u003d NewMultiStringFlag(\"things\", nil, \"Names of things\")  // defaults to a nil slice\nI expect that things \u003d\u003d nil, not that things is an empty slice.",
+      "parentUuid": "4bc2d781_f97bd678",
       "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
@@ -137,6 +179,30 @@
     },
     {
       "key": {
+        "uuid": "51ad8aa1_9f573bd8",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T18:29:34Z",
+      "side": 1,
+      "message": "I changed the behavior of newMultiString so that if defaults are provided, the contents of target are replaced with the defaults, rather than appended to.  That brings the behavior in line with the other flag functions.",
+      "parentUuid": "1e222fc5_0f0746ea",
+      "range": {
+        "startLine": 187,
+        "startChar": 24,
+        "endLine": 187,
+        "endChar": 73
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f5a4f8e_4d6201de",
         "filename": "go/common/common.go",
         "patchSetId": 2
@@ -160,6 +226,30 @@
     },
     {
       "key": {
+        "uuid": "db3b2651_7f6a4e2b",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T18:29:34Z",
+      "side": 1,
+      "message": "Good catch, thanks.  Fixed the test to check both, and fixed this line.",
+      "parentUuid": "7f5a4f8e_4d6201de",
+      "range": {
+        "startLine": 200,
+        "startChar": 2,
+        "endLine": 200,
+        "endChar": 24
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64bb601b_b2ae6d43",
         "filename": "scripts/run_swarming_tasks_api/run_swarming_tasks_api.go",
         "patchSetId": 2
@@ -174,6 +264,24 @@
       "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ec207b4_1dd2b4cc",
+        "filename": "scripts/run_swarming_tasks_api/run_swarming_tasks_api.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-16T18:29:34Z",
+      "side": 1,
+      "message": "Actually, the unit test does verify that if the default is nil and the flag isn\u0027t set, then the result is nil.  Changed this anyway.",
+      "parentUuid": "64bb601b_b2ae6d43",
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
