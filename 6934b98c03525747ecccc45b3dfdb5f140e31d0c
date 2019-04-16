@@ -45,6 +45,70 @@
       "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41374db9_d2ec06f8",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T18:09:05Z",
+      "side": 1,
+      "message": "You could say the same for any of the flag.FooVar functions, but yet they have explicit default params.",
+      "parentUuid": "a738b46f_99dabc62",
+      "range": {
+        "startLine": 187,
+        "startChar": 24,
+        "endLine": 187,
+        "endChar": 73
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f5a4f8e_4d6201de",
+        "filename": "go/common/common.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T18:09:05Z",
+      "side": 1,
+      "message": "I don\u0027t see how this works. When creating the multiString, we expect the values field to point to the slice we passed in. If we reset the pointer, that\u0027s no longer true.\n\nIn other words, don\u0027t you need to do:\n*m.values \u003d []string{}\n?\n\nYour unit test doesn\u0027t catch this because you\u0027re only checking the value of m.values.",
+      "range": {
+        "startLine": 200,
+        "startChar": 2,
+        "endLine": 200,
+        "endChar": 24
+      },
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64bb601b_b2ae6d43",
+        "filename": "scripts/run_swarming_tasks_api/run_swarming_tasks_api.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T18:09:05Z",
+      "side": 1,
+      "message": "Seems like \"len(*tags) \u003d\u003d 0\" would be less risky. There\u0027s nothing in the docs for NewMultiStringFlag that says the result will be nil if empty, and the unit test doesn\u0027t cover that case.",
+      "revId": "6934b98c03525747ecccc45b3dfdb5f140e31d0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
