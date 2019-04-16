@@ -137,7 +137,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Fail when there is not secondary repo defined.
 	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
-	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit"))
+	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
 
 	// Inject a secondary repo and test its use.
 	secVCS := ingestion.MockVCS(SECONDARY_TEST_COMMITS, SECONDARY_DEPS_FILE_MAP, nil)
@@ -146,9 +146,9 @@ func TestGoldProcessor(t *testing.T) {
 
 	_ = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE)
 	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_INVALID)
-	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit "))
+	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
 	err = testProcessor(t, ctx, processor, TEST_SECONDARY_FILE_NO_DEPS)
-	assert.True(t, strings.HasPrefix(err.Error(), "Unable to resolve commit "))
+	assert.Equal(t, err, ingestion.IgnoreResultsFileErr)
 }
 
 func testProcessor(t *testing.T, ctx context.Context, processor ingestion.Processor, testFileName string) error {

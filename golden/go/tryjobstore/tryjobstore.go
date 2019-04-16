@@ -93,8 +93,10 @@ type TryjobStore interface {
 	// is returned.
 	UpdateTryjob(buildBucketID int64, tryjob *Tryjob, newValFn NewValueFn) error
 
-	// UpdateTryjobResult updates the results for the given tryjob.
-	UpdateTryjobResult(tryjob *Tryjob, results []*TryjobResult) error
+	// UpdateTryjobResult updates the results for the given tryjob. It assumes that the
+	// BuildBucketID field in the given instances of TryjobResult are set correctly, thus
+	// linking it to the instance of Tryjob that corresponds to that BuildBucketID.
+	UpdateTryjobResult(results []*TryjobResult) error
 }
 
 const (
@@ -345,9 +347,8 @@ func (c *cloudTryjobStore) GetTryjobResults(tryjobs []*Tryjob) ([][]*TryjobResul
 	return tryjobResults, nil
 }
 
-// UpdateTryjobResults implements the TryjobStore interface.
-func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobResult) error {
-	tryjobKey := c.getTryjobKey(tryjob.BuildBucketID)
+// UpdateTryjobResult implements the TryjobStore interface.
+func (c *cloudTryjobStore) UpdateTryjobResult(results []*TryjobResult) error {
 	keys := make([]*datastore.Key, 0, len(results))
 	uniqueEntries := util.StringSet{}
 	for _, result := range results {
@@ -355,8 +356,7 @@ func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobR
 		if len(result.Params[types.PRIMARY_KEY_FIELD]) != 1 {
 			return fmt.Errorf("Parameter value for primary key field '%s' must exactly contain one value. Found: %v", types.PRIMARY_KEY_FIELD, result.Params[types.PRIMARY_KEY_FIELD])
 		}
-
-		keys = append(keys, c.getTryjobResultKey(tryjobKey))
+		keys = append(keys, c.getTryjobResultKey())
 		uniqueEntries[result.TestName+result.Digest] = true
 	}
 
@@ -364,7 +364,6 @@ func (c *cloudTryjobStore) UpdateTryjobResult(tryjob *Tryjob, results []*TryjobR
 		return fmt.Errorf("All (test,digest) pairs must be unique when adding tryjob results.")
 	}
 
-	// var egroup errgroup.Group
 	for i := 0; i < len(keys); i += batchSize {
 		endIdx := util.MinInt(i+batchSize, len(keys))
 		if _, err := c.client.PutMulti(context.Background(), keys[i:endIdx], results[i:endIdx]); err != nil {
@@ -422,7 +421,7 @@ func (c *cloudTryjobStore) getResultsForTryjobs(tryjobKeys []*datastore.Key, key
 	for idx, key := range tryjobKeys {
 		func(idx int, key *datastore.Key) {
 			egroup.Go(func() error {
-				query := ds.NewQuery(ds.TRYJOB_RESULT).Ancestor(key)
+				query := ds.NewQuery(ds.TRYJOB_RESULT).Filter("BuildBucketID =", key.ID)
 				if keysOnly {
 					query = query.KeysOnly()
 				}
@@ -632,8 +631,6 @@ func (c *cloudTryjobStore) getTryjobKey(buildBucketID int64) *datastore.Key {
 }
 
 // getTryjobResultKey returns a key for the given tryjobResult.
-func (c *cloudTryjobStore) getTryjobResultKey(tryjobKey *datastore.Key) *datastore.Key {
-	ret := ds.NewKey(ds.TRYJOB_RESULT)
-	ret.Parent = tryjobKey
-	return ret
+func (c *cloudTryjobStore) getTryjobResultKey() *datastore.Key {
+	return ds.NewKey(ds.TRYJOB_RESULT)
 }
