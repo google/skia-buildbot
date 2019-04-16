@@ -77,7 +77,6 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: mocks.NewMockTileBuilder(t, digests, params, commits),
-		DigestStore:       &mocks.MockDigestStore{FirstSeen: start + 1000, OkValue: true},
 		EventBus:          eventBus,
 	}
 	blamer := New(storages)
@@ -158,7 +157,6 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, &BlameDistribution{Freq: []int{2}}, blamer.GetBlame("bar", DI_9, commits))
 
 	// Simulate the case where the digest is not found in digest store.
-	storages.DigestStore.(*mocks.MockDigestStore).OkValue = false
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 	time.Sleep(10 * time.Millisecond)
 	blameLists, _ = blamer.GetAllBlameLists()
@@ -198,11 +196,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: tileBuilder,
-		DigestStore: &mocks.MockDigestStore{
-			FirstSeen: time.Now().Unix(),
-			OkValue:   true,
-		},
-		EventBus: eventBus,
+		EventBus:          eventBus,
 	}
 
 	blamer := New(storages)
@@ -262,15 +256,12 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 
 	// Set 'First' for all digests in the past and trigger another
 	// calculation.
-	storages.DigestStore.(*mocks.MockDigestStore).FirstSeen = 0
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 	waitForChange(blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
 	// Randomly assign labels to the different digests and make sure
 	// that the blamelists are correct.
-	storages.DigestStore.(*mocks.MockDigestStore).FirstSeen = time.Now().Unix()
-
 	changes = types.TestExp{}
 	choices := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
 	forEachTestDigestDo(tile, func(testName, digest string) {

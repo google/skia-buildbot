@@ -165,17 +165,19 @@ func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
 		return
 	}
 
-	e.mutex.Lock()
-	defer e.mutex.Unlock()
-	if callbacks, ok := e.handlers[channel]; ok {
-		for _, callback := range callbacks {
-			e.concurrentPub <- true
-			go func(callback CallbackFn) {
-				defer func() { <-e.concurrentPub }()
-				callback(arg)
-			}(callback)
+	go func() {
+		e.mutex.Lock()
+		defer e.mutex.Unlock()
+		if callbacks, ok := e.handlers[channel]; ok {
+			for _, callback := range callbacks {
+				e.concurrentPub <- true
+				go func(callback CallbackFn) {
+					defer func() { <-e.concurrentPub }()
+					callback(arg)
+				}(callback)
+			}
 		}
-	}
+	}()
 }
 
 // SubscribeAsync implements the EventBus interface.
