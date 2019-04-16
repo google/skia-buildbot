@@ -335,6 +335,7 @@ func (i *Ingester) addToProcessedFiles(md5 string) {
 
 // processResult processes a single result file.
 func (i *Ingester) processResult(ctx context.Context, resultLocation ResultFileLocation) {
+
 	resultMD5 := resultLocation.MD5()
 	if i.inProcessedFiles(resultMD5) {
 		return
