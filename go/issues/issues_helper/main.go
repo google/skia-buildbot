@@ -92,7 +92,7 @@ func handleComment(args []string) {
 
 func handleCreate() {
 	ccPeople := make([]issues.MonorailPerson, 0)
-	for _, p := range *cc {
+	for _, p := range cc.Values() {
 		ccPeople = append(ccPeople, issues.MonorailPerson{
 			Name: p,
 		})
@@ -103,7 +103,7 @@ func handleCreate() {
 			Name: *owner,
 		},
 		CC:          ccPeople,
-		Labels:      *labels,
+		Labels:      labels.Values(),
 		Summary:     *summary,
 		Description: *description,
 	}

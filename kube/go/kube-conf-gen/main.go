@@ -36,11 +36,11 @@ func main() {
 	if *outputFileName == "" {
 		sklog.Fatal("-o is required.")
 	}
-	if len(*configFileNames) == 0 {
+	if len(configFileNames.Values()) == 0 {
 		sklog.Fatal("-c is required.")
 	}
 	extraVarsMap := map[string]string{}
-	for _, pair := range *extraVars {
+	for _, pair := range extraVars.Values() {
 		split := strings.SplitN(pair, ":", 2)
 		if len(split) != 2 {
 			sklog.Fatalf("Invalid key/value pair for --extra: %q; should be \"key:value\"", pair)
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Assemble the config map.
-	config, err := loadConfigFiles(*parseConf, *strict, *emptyQuotes, *configFileNames...)
+	config, err := loadConfigFiles(*parseConf, *strict, *emptyQuotes, configFileNames.Values()...)
 	if err != nil {
 		sklog.Fatalf("Error loading config files: %s", err)
 	}

@@ -63,8 +63,8 @@ func main() {
 		}
 	}
 	requestedAccts := map[string]bool{}
-	if len(*nicknames) > 0 {
-		for _, nickname := range *nicknames {
+	if len(nicknames.Values()) > 0 {
+		for _, nickname := range nicknames.Values() {
 			if _, ok := validAccts[nickname]; !ok {
 				sklog.Fatalf("Unknown service account %q", nickname)
 			}

@@ -183,7 +183,7 @@ func repoNameToUrl(repoName string) (string, error) {
 		return common.REPO_SKIA_INFRA, nil
 	}
 	// Search the list of repos used by this server.
-	for _, repoUrl := range *repoUrls {
+	for _, repoUrl := range repoUrls.Values() {
 		if repoUrlToName(repoUrl) == repoName {
 			return repoUrl, nil
 		}
@@ -204,8 +204,8 @@ func getRepo(r *http.Request) (string, string, error) {
 
 // getRepoNames returns the nicknames for all repos on this server.
 func getRepoNames() []string {
-	repoNames := make([]string, 0, len(*repoUrls))
-	for _, repoUrl := range *repoUrls {
+	repoNames := make([]string, 0, len(repoUrls.Values()))
+	for _, repoUrl := range repoUrls.Values() {
 		repoNames = append(repoNames, repoUrlToName(repoUrl))
 	}
 	return repoNames
@@ -511,7 +511,7 @@ type commitsTemplateData struct {
 }
 
 func defaultRedirectHandler(w http.ResponseWriter, r *http.Request) {
-	defaultRepo := repoUrlToName((*repoUrls)[0])
+	defaultRepo := repoUrlToName((repoUrls.Values())[0])
 	http.Redirect(w, r, fmt.Sprintf("/repo/%s", defaultRepo), http.StatusFound)
 }
 
@@ -760,7 +760,7 @@ func main() {
 	if err := os.MkdirAll(reposDir, os.ModePerm); err != nil {
 		sklog.Fatalf("Failed to create repos dir: %s", err)
 	}
-	if *repoUrls == nil {
+	if repoUrls.Values() == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
 	btConf := &gitstore.BTConfig{
@@ -768,7 +768,7 @@ func main() {
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
 	}
-	repos, err = repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	repos, err = repograph.NewBTGitStoreMap(ctx, repoUrls.Values(), btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}

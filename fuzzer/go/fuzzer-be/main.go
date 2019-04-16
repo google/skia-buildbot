@@ -114,12 +114,12 @@ func main() {
 		sklog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
-	generators := make([]*generator.Generator, 0, len(*fuzzesToRun))
+	generators := make([]*generator.Generator, 0, len(fuzzesToRun.Values()))
 	startingReports := make(map[string]<-chan data.FuzzReport)
 
 	// TODO(kjlubick) implement a sharding scheme for fuzzer to avoid running out of CPUs.
 	neededCPUs := 0
-	for _, category := range *fuzzesToRun {
+	for _, category := range fuzzesToRun.Values() {
 		if strings.HasPrefix(category, "api_") {
 			neededCPUs += config.Generator.NumAPIFuzzProcesses
 		} else {
@@ -132,7 +132,7 @@ func main() {
 		sklog.Infof("Going to allocate %d cpus (could go up to %d)", neededCPUs, totalCPUs)
 	}
 
-	for _, category := range *fuzzesToRun {
+	for _, category := range fuzzesToRun.Values() {
 		gen := generator.New(category)
 
 		if err := gen.DownloadSeedFiles(client); err != nil {
@@ -237,12 +237,12 @@ func writeFlagsToConfig() error {
 	config.Common.ForceReanalysis = *forceReanalysis
 
 	// Check all the fuzzes are valid ones we can handle
-	for _, f := range *fuzzesToRun {
+	for _, f := range fuzzesToRun.Values() {
 		if !fcommon.HasCategory(f) {
 			return fmt.Errorf("Unknown fuzz category %q", f)
 		}
 	}
-	config.Generator.FuzzesToGenerate = *fuzzesToRun
+	config.Generator.FuzzesToGenerate = fuzzesToRun.Values()
 	return nil
 }
 

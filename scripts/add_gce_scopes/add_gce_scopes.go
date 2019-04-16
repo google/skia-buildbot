@@ -24,10 +24,10 @@ func main() {
 	common.Init()
 
 	// Setup.
-	if instances == nil || len(*instances) == 0 {
+	if instances == nil || len(instances.Values()) == 0 {
 		sklog.Fatal("--instance is required.")
 	}
-	if scopes == nil || len(*scopes) == 0 {
+	if scopes == nil || len(scopes.Values()) == 0 {
 		sklog.Fatal("--scope is required.")
 	}
 
@@ -40,9 +40,9 @@ func main() {
 	sklog.Infof("Running on instances: %v", instances)
 
 	// Determine the set of scopes for each instance.
-	emailsByInstance := make(map[string]string, len(*instances))
-	scopesByInstance := make(map[string]util.StringSet, len(*instances))
-	for _, name := range *instances {
+	emailsByInstance := make(map[string]string, len(instances.Values()))
+	scopesByInstance := make(map[string]util.StringSet, len(instances.Values()))
+	for _, name := range instances.Values() {
 		inst, err := is.Get(*project, *zone, name).Do()
 		if err != nil {
 			sklog.Fatal(err)
@@ -55,7 +55,7 @@ func main() {
 			emailsByInstance[name] = *serviceAccount
 		}
 		s := util.NewStringSet(inst.ServiceAccounts[0].Scopes)
-		for _, scope := range *scopes {
+		for _, scope := range scopes.Values() {
 			s[scope] = true
 		}
 		scopesByInstance[name] = s

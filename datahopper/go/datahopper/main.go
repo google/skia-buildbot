@@ -105,7 +105,7 @@ func main() {
 	tnp := taskname.DefaultTaskNameParser()
 
 	// Shared repo objects.
-	if *repoUrls == nil {
+	if repoUrls.Values() == nil {
 		sklog.Fatal("At least one --repo is required.")
 	}
 	btConf := &gitstore.BTConfig{
@@ -113,7 +113,7 @@ func main() {
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
 	}
-	repos, err := repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	repos, err := repograph.NewBTGitStoreMap(ctx, repoUrls.Values(), btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -144,10 +144,10 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	swarming_metrics.StartSwarmingBotMetrics(ctx, *swarmingServer, *swarmingPools, swarmClient, metrics2.GetDefaultClient())
+	swarming_metrics.StartSwarmingBotMetrics(ctx, *swarmingServer, swarmingPools.Values(), swarmClient, metrics2.GetDefaultClient())
 
 	// Swarming tasks.
-	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarmClient, *swarmingPools, pc, tnp, ts); err != nil {
+	if err := swarming_metrics.StartSwarmingTaskMetrics(ctx, *btProject, *btInstance, swarmClient, swarmingPools.Values(), pc, tnp, ts); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -198,7 +198,7 @@ func main() {
 	if _, err := gitauth.New(ts, gitcookiesPath, true, ""); err != nil {
 		sklog.Fatal(err)
 	}
-	supported_branches.Start(ctx, *repoUrls, gitcookiesPath, httpClient, swarmClient, *swarmingPools)
+	supported_branches.Start(ctx, repoUrls.Values(), gitcookiesPath, httpClient, swarmClient, swarmingPools.Values())
 
 	// Wait while the above goroutines generate data.
 	httputils.RunHealthCheckServer(*port)

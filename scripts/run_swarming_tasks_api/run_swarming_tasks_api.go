@@ -88,7 +88,7 @@ func main() {
 
 	// Obtain the list of tasks.
 	tagsWithPool := []string{fmt.Sprintf("pool:%s", *pool)}
-	for _, t := range *tags {
+	for _, t := range tags.Values() {
 		tagsWithPool = append(tagsWithPool, t)
 	}
 	tasks, err := swarmApi.ListTasks(time.Time{}, time.Time{}, tagsWithPool, *state)

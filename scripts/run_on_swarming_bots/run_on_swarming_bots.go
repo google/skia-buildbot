@@ -75,7 +75,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	includeRegs, err := parseRegex(*includeBots)
+	includeRegs, err := parseRegex(includeBots.Values())
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func main() {
 	sklog.Infof("Triggered Swarming tasks. Visit this link to track progress:\n%s", tasksLink)
 }
 
-func parseRegex(flags common.MultiString) (retval []*regexp.Regexp, e error) {
+func parseRegex(flags []string) (retval []*regexp.Regexp, e error) {
 	if len(flags) == 0 {
 		return retval, nil
 	}

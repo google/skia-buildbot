@@ -157,35 +157,45 @@ func Defer() {
 // my_executable --someArg foo,bar,baz
 // or any combination of
 // my_executable --someArg alpha --someArg beta,gamma --someArg delta
-type MultiString []string
+type MultiString struct {
+	defaults []string
+	values   []string
+}
+
+// Values returns the values of the MultiString.
+func (m *MultiString) Values() []string {
+	if len(m.values) == 0 {
+		return m.defaults
+	}
+	return m.values
+}
 
 // NewMultiStringFlag returns a MultiString flag, loaded with the given
 // preloadedValues, usage string and name.
-// NOTE: because of how MultiString functions, the values passed in are
-// not the traditional "default" values, because they will not be replaced
-// by the flags, only appended to.
-func NewMultiStringFlag(name string, preloadedValues []string, usage string) *MultiString {
-	m := MultiString(preloadedValues)
+func NewMultiStringFlag(name string, defaults []string, usage string) *MultiString {
+	m := MultiString{
+		defaults: defaults,
+	}
 	flag.Var(&m, name, usage)
 	return &m
 }
 
 // MultiStringFlagVar defines a MultiString flag with the specified name, preloadedValues, and usage string.
 // The argument target points to a MultiString variable in which to store the values of the flag.
-func MultiStringFlagVar(target *[]string, name string, preloadedValues []string, usage string) {
-	*target = append([]string{}, preloadedValues...)
-	flag.Var((*MultiString)(target), name, usage)
+func MultiStringFlagVar(target *MultiString, name string, defaults []string, usage string) {
+	target.defaults = append(target.defaults, defaults...)
+	flag.Var(target, name, usage)
 }
 
-// String() returns the current value of MultiString, as a comma seperated list
+// String() returns the current value of MultiString, as a comma separated list
 func (m *MultiString) String() string {
-	return strings.Join(*m, ",")
+	return strings.Join(m.Values(), ",")
 }
 
 // From the flag docs: "Set is called once, in command line order, for each flag present.""
 func (m *MultiString) Set(value string) error {
 	for _, s := range strings.Split(value, ",") {
-		*m = append(*m, s)
+		m.values = append(m.values, s)
 	}
 	return nil
 }
@@ -193,5 +203,5 @@ func (m *MultiString) Set(value string) error {
 // Reset() removes all flags seen so far. If flag.Parse() is called twice, everything
 // gets duplicated, so this prevents duplication.
 func (m *MultiString) Reset() {
-	*m = nil
+	m.values = nil
 }

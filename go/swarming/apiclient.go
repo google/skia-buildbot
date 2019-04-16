@@ -555,7 +555,7 @@ func ParseDimensionFlags(dimensionFlags *common.MultiString) (map[string]string,
 	if dimensionFlags == nil {
 		return map[string]string{}, nil
 	}
-	dims, err := ParseDimensions(*dimensionFlags)
+	dims, err := ParseDimensions(dimensionFlags.Values())
 	if err != nil {
 		return nil, err
 	}

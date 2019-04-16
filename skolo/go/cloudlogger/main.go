@@ -35,7 +35,7 @@ func main() {
 
 	sklog.Info("Begin Cloud Logging")
 	scanners := []logagents.LogScanner{}
-	for _, r := range *rolloverLogs {
+	for _, r := range rolloverLogs.Values() {
 		scanners = append(scanners, logagents.NewRollover(logparser.ParsePythonLog, cleanupName(r), r, r+".1"))
 	}
 

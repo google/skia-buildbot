@@ -61,7 +61,7 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/down_bots", downBotsHandler)
-	allow := allowed.NewAllowedFromList(*authorizedEmails)
+	allow := allowed.NewAllowedFromList(authorizedEmails.Values())
 	r.HandleFunc("/powercycled_bots", login.RestrictFn(powercycledBotsHandler, allow))
 	r.PathPrefix("/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
@@ -124,7 +124,7 @@ func setupGatherer() error {
 	}
 	c := httputils.DefaultClientConfig().With2xxOnly().Client()
 	ac := alertclient.New(c, *alertsEndpoint)
-	d, hostMap, err := decider.New(*powercycleConfigs)
+	d, hostMap, err := decider.New(powercycleConfigs.Values())
 	if err != nil {
 		return fmt.Errorf("Could not initialize down bot decider: %s", err)
 	}

@@ -37,8 +37,8 @@ func main() {
 	if *owner == "" {
 		sklog.Fatal("--owner is required.")
 	}
-	excludeTrybotRegexp := make([]*regexp.Regexp, 0, len(*excludeTrybots))
-	for _, excludeTrybot := range *excludeTrybots {
+	excludeTrybotRegexp := make([]*regexp.Regexp, 0, len(excludeTrybots.Values()))
+	for _, excludeTrybot := range excludeTrybots.Values() {
 		re, err := regexp.Compile(excludeTrybot)
 		if err != nil {
 			sklog.Fatalf("Failed to compile regular expression from %q; %s", excludeTrybot, err)

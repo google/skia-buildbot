@@ -38,7 +38,7 @@ func main() {
 		sklog.Fatal("--pool is required.")
 	}
 
-	if *dimensions == nil && *includeBots == nil {
+	if len(dimensions.Values()) == 0 && len(includeBots.Values()) == 0 {
 		sklog.Fatal("So one does not accidentally shutdown the entire pool, you must specify a dimension or an include rule.")
 	}
 	requestedDims, err := swarming.ParseDimensionFlags(dimensions)
@@ -47,13 +47,13 @@ func main() {
 	}
 	sklog.Infof("Using dimensions: %q", requestedDims)
 
-	includeRegs, err = parseRegex(*includeBots)
+	includeRegs, err = parseRegex(includeBots.Values())
 	if err != nil {
-		sklog.Fatalf("Invalid regexp detected in include_bot %q: %s", *includeBots, err)
+		sklog.Fatalf("Invalid regexp detected in include_bot %q: %s", includeBots.Values(), err)
 	}
-	excludeRegs, err = parseRegex(*excludeBots)
+	excludeRegs, err = parseRegex(excludeBots.Values())
 	if err != nil {
-		sklog.Fatalf("Invalid regexp detected in exclude_bot %q: %s", *excludeBots, err)
+		sklog.Fatalf("Invalid regexp detected in exclude_bot %q: %s", excludeBots.Values(), err)
 	}
 
 	*workdir, err = filepath.Abs(*workdir)
@@ -152,7 +152,7 @@ func logIfVerbose(f string, args ...interface{}) {
 	}
 }
 
-func parseRegex(flags common.MultiString) (retval []*regexp.Regexp, e error) {
+func parseRegex(flags []string) (retval []*regexp.Regexp, e error) {
 	if len(flags) == 0 {
 		return retval, nil
 	}

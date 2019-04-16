@@ -376,7 +376,7 @@ func jobSearchHandler(w http.ResponseWriter, r *http.Request) {
 		Servers  []string          `json:"recent_servers"`
 		Statuses []types.JobStatus `json:"valid_statuses"`
 	}{
-		Repos:    *repoUrls,
+		Repos:    repoUrls.Values(),
 		Servers:  []string{gerrit.GERRIT_SKIA_URL},
 		Statuses: types.VALID_JOB_STATUSES,
 	}
@@ -609,7 +609,7 @@ func main() {
 	}
 
 	// Git repos.
-	if *repoUrls == nil {
+	if repoUrls.Values() == nil {
 		sklog.Fatal("--repo is required.")
 	}
 	btConf := &gitstore.BTConfig{
@@ -617,7 +617,7 @@ func main() {
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
 	}
-	repos, err = repograph.NewBTGitStoreMap(ctx, *repoUrls, btConf)
+	repos, err = repograph.NewBTGitStoreMap(ctx, repoUrls.Values(), btConf)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -668,7 +668,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, *swarmingPools, *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource, diagClient, diagInstance)
+	ts, err = scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, wdAbs, serverURL, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, tryjobs.API_URL_PROD, *tryJobBucket, common.PROJECT_REPO_MAPPING, swarmingPools.Values(), *pubsubTopicName, depotTools, gerrit, *btProject, *btInstance, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}
