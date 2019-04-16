@@ -34,6 +34,7 @@ func main() {
 	if *branch == "" {
 		sklog.Fatal("--branch is required.")
 	}
+	newRef := fmt.Sprintf("refs/heads/%s", *branch)
 	if *owner == "" {
 		sklog.Fatal("--owner is required.")
 	}
@@ -77,8 +78,16 @@ func main() {
 		sklog.Fatal(err)
 	}
 	newCfgBytes, err := cq.WithUpdateCQConfig(buf.Bytes(), func(cfg *cq.Config) error {
-		if err := cq.CloneBranch(cfg, "master", *branch, false, false, excludeTrybotRegexp); err != nil {
+		cg, _, _, err := cq.MatchConfigGroup(cfg, newRef)
+		if err != nil {
 			return err
+		}
+		if cg != nil {
+			fmt.Println(fmt.Sprintf("Already have %s in %s; not adding a duplicate.", newRef, cq.CQ_CFG_FILE))
+		} else {
+			if err := cq.CloneBranch(cfg, "master", *branch, false, false, excludeTrybotRegexp); err != nil {
+				return err
+			}
 		}
 		if *deleteBranch != "" {
 			if err := cq.DeleteBranch(cfg, *deleteBranch); err != nil {
@@ -101,16 +110,24 @@ func main() {
 	if *deleteBranch != "" {
 		deleteRef = fmt.Sprintf("refs/heads/%s", *deleteBranch)
 	}
+	foundNewRef := false
 	newBranches := make([]*supported_branches.SupportedBranch, 0, len(sbc.Branches)+1)
 	for _, sb := range sbc.Branches {
 		if deleteRef == "" || deleteRef != sb.Ref {
 			newBranches = append(newBranches, sb)
 		}
+		if sb.Ref == newRef {
+			foundNewRef = true
+		}
 	}
-	newBranches = append(newBranches, &supported_branches.SupportedBranch{
-		Ref:   fmt.Sprintf("refs/heads/%s", *branch),
-		Owner: *owner,
-	})
+	if foundNewRef {
+		fmt.Println(fmt.Sprintf("Already have %s in %s; not adding a duplicate.", newRef, supported_branches.SUPPORTED_BRANCHES_FILE))
+	} else {
+		newBranches = append(newBranches, &supported_branches.SupportedBranch{
+			Ref:   newRef,
+			Owner: *owner,
+		})
+	}
 	sbc.Branches = newBranches
 	buf = bytes.Buffer{}
 	if err := supported_branches.EncodeConfig(&buf, sbc); err != nil {
