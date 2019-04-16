@@ -311,7 +311,11 @@ func LoggedInAs(r *http.Request) string {
 		email = e
 	}
 	if inWhitelist(email) {
+		sklog.Debugf("User %s is on the whitelist", email)
 		return email
+	}
+	if email != "" {
+		sklog.Debugf("User %s is not on whitelist", email)
 	}
 	return ""
 }
@@ -717,6 +721,8 @@ func RestrictViewerFn(h http.HandlerFunc) http.HandlerFunc {
 	return RestrictViewer(h).(http.HandlerFunc)
 }
 
+// splitAuthWhiteList splits the given whitelist into a set of domains and a set of
+// individual emails
 func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 	domains := map[string]bool{}
 	emails := map[string]bool{}
