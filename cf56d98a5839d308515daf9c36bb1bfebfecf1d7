@@ -46,6 +46,30 @@
       "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2c0db55_9a6b9c64",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2019-04-16T15:05:41Z",
+      "side": 1,
+      "message": "This function is only used for CLI programs, AFAICT. git/gerrit use the value from http.cookiefile.\n\n$ git config --global http.cookiefile\n/home/benjaminwagner/.cache/git/cookies",
+      "parentUuid": "794a777d_f9596524",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 56
+      },
+      "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
