@@ -22,6 +22,30 @@
       "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "794a777d_f9596524",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-16T11:45:00Z",
+      "side": 1,
+      "message": "+1. If not covered by the gitauth package then it should be added there. \n\nsuper nit: It seems non-intuitive to me that a function like this needs a context. \nIf using TODO() or Background() internally is not an option then the documentation should \nhave a note why a context has to be passed.",
+      "parentUuid": "c16bd370_c0763b1c",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 56
+      },
+      "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
