@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "722e062a_871174c4",
+        "filename": "go/ingestion/helpers.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T16:26:30Z",
+      "side": 1,
+      "message": "Bravo much better !",
+      "range": {
+        "startLine": 70,
+        "startChar": 1,
+        "endLine": 72,
+        "endChar": 2
+      },
+      "revId": "a8830bbf4dad3c6f6ec72d00067123102479ab4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
