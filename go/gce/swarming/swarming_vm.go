@@ -134,7 +134,7 @@ func main() {
 		sklog.Fatalf("Could not find matching instance type for --type %s", *instanceType)
 	}
 	if *internal {
-		project = gce.PROJECT_ID_SERVER
+		project = gce.PROJECT_ID_INTERNAL_SWARMING
 		getInstanceInner := getInstance
 		getInstance = func(num int) *gce.Instance {
 			return instance_types.Internal(getInstanceInner(num))
