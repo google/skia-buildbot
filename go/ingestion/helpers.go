@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -22,7 +23,6 @@ import (
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -67,6 +67,10 @@ func Register(id string, constructor Constructor) {
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
 func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *gitstore.BTConfig) ([]*Ingester, error) {
+	if client == nil {
+		return nil, errors.New("httpClient cannot be nil")
+	}
+
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
@@ -104,11 +108,6 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 		}
 		extractor = depot_tools.NewRegExDEPSExtractor(config.SecondaryRegEx)
 		vcs.(*gitinfo.GitInfo).SetSecondaryRepo(secondaryVCS, extractor)
-	}
-
-	// Set up the Google storage client.
-	if client == nil {
-		client = httputils.DefaultClientConfig().With2xxOnly().Client()
 	}
 
 	// for each defined ingester create an instance.

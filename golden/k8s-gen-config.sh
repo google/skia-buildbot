@@ -30,6 +30,9 @@ mkdir -p $CONF_OUT_DIR
 rm -f $CONF_OUT_DIR/*
 rm -f $INGEST_CONF
 
+# Make sure we have the latest and greatest kube-conf-gen
+go install ../kube/go/kube-conf-gen
+
 # generate the deployment file for the trace server.
 kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
               -c "${INSTANCE_DIR}/${INSTANCE_ID}-instance.json5" \
