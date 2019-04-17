@@ -10,5 +10,5 @@ groups:
       category: infra
       severity: critical
     annotations:
-      abbr: 'skia-public'
-      description: 'Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project=skia-public&advancedFilter=logName%3D"projects%2Fskia-public%2Flogs%2F{{ $labels.job }}"'
+      abbr: '{{ $labels.project }}'
+      description: 'Failed to send alert via PubSub. https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=200&interval=PT1H&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
