@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7898fc73_60708988",
+        "filename": "golden/create-gold-corp-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:17:05Z",
+      "side": 1,
+      "message": "Because that setup was created by hand instead of a script.",
+      "parentUuid": "bf43a696_0331ffca",
+      "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4fd0648b_ce0ba779",
         "filename": "golden/create-gold-corp-sa.sh",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "cace5369_4fe30aa3",
+        "filename": "golden/create-gold-corp-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:17:05Z",
+      "side": 1,
+      "message": "Because if I have run this script before and the secret is already in K8s then the create step below will fail. Instead I first delete the secret (and ignore any error via the \u0027set +e\u0027) and then create it.\n\nIf you wanted this script to be completely robust to re-runs, we should also delete the IAM entries at the very top (before we create them).",
+      "parentUuid": "4fd0648b_ce0ba779",
+      "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6fe968df_212ba4ad",
         "filename": "golden/k8s-config-templates/gold-ingestion-template.yaml",
         "patchSetId": 4
@@ -50,6 +86,24 @@
       "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a02eec79_6f2a5a86",
+        "filename": "golden/k8s-config-templates/gold-ingestion-template.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:17:05Z",
+      "side": 1,
+      "message": "Done\nPer offline conversation.",
+      "parentUuid": "6fe968df_212ba4ad",
+      "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -73,6 +127,30 @@
       "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb3b099d_a2122851",
+        "filename": "golden/k8s-config-templates/gold-ingestion-template.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:17:05Z",
+      "side": 1,
+      "message": "Done\nPer offline conversation.",
+      "parentUuid": "a1b65d2d_905e2d24",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 23
+      },
+      "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
