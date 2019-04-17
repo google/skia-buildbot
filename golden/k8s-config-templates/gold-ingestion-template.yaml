@@ -36,7 +36,6 @@ spec:
             - "--no_cloud_log"
             - "--project_id={{.PROJECT_ID}}"
             - "--prom_port=:20000"
-            - "--service_account_file=/var/secrets/google/key.json"
           ports:
             - containerPort: 9091
               name: http-health
