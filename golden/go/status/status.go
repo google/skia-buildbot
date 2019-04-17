@@ -204,13 +204,7 @@ func (s *StatusWatcher) calcStatus(cpxTile *types.ComplexTile) error {
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		status := expectations.Classification(testName, digest)
 
-		digestInfo, err := s.storages.GetOrUpdateDigestInfo(testName, digest, dataTile.Commits[idx])
-		if err != nil {
-			return err
-		}
-
-		okByCorpus[corpus] = okByCorpus[corpus] && ((status == types.POSITIVE) ||
-			((status == types.NEGATIVE) && (len(digestInfo.IssueIDs) > 0)))
+		okByCorpus[corpus] = okByCorpus[corpus] && (status == types.POSITIVE)
 		byCorpus[corpus][status][testName+digest] = true
 	}
 

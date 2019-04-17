@@ -506,10 +506,14 @@ func (b *BuildBucketState) ignoreBuild(build *bb_api.ApiCommonBuildMessage, para
 // given interval with the given time windows. All results are written to buildCh.
 // If the first poll fails, an error is returned.
 func (b *BuildBucketState) startSearchPoller(buildsCh chan<- *bb_api.ApiCommonBuildMessage, interval, timeWindow time.Duration) error {
-	if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
-		return err
-	}
+	// Start the poller in the background. This is necessary to keep startup time to a minimum.
 	go func() {
+		// Immediately run a search so we don't have to wait for the passing of the first interval
+		// below.
+		if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
+			sklog.Errorf("Error polling BuildBucket: %s", err)
+		}
+
 		for range time.Tick(interval) {
 			if err := b.searchForNewBuilds(buildsCh, timeWindow); err != nil {
 				sklog.Errorf("Error polling BuildBucket: %s", err)

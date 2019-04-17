@@ -46,10 +46,24 @@ type CommitableBaseLine struct {
 	Issue int64
 }
 
+// DeepCopyBaseline returns a copy of the given instance of CommitableBaseline.
+// Note: It assumes all members except for BaseLine to be immutable, thus only
+// BaseLine is "deep" copied.
+func (c *CommitableBaseLine) DeepCopyBaseline() *CommitableBaseLine {
+	ret := &CommitableBaseLine{}
+	*ret = *c
+	ret.Baseline = c.Baseline.DeepCopy()
+	return ret
+}
+
 // TODO(stephana): Add tests for GetBaselinePerCommit.
 
 // GetBaselinesPerCommit calculates the baselines for each commit in the tile.
-func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) (map[string]*CommitableBaseLine, error) {
+// If extraCommits is not empty they are assumed to be commits immediately following the commits
+// in the given complex tile and BaseLines for these should be essentially copies of the last
+// commit in the tile. This covers the case when the current tile is slightly behind all commits
+// that have already been added to the repository.
+func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile, extraCommits []*tiling.Commit) (map[string]*CommitableBaseLine, error) {
 	allCommits := cpxTile.AllCommits()
 	if len(allCommits) == 0 {
 		return map[string]*CommitableBaseLine{}, nil
@@ -94,10 +108,18 @@ func GetBaselinesPerCommit(exps types.Expectations, cpxTile *types.ComplexTile) 
 	}
 
 	// Iterate over all commits. If the tile is sparse we substitute the expectations with the
-	// expectations of the closest ancestor that has expecations.
-	ret := make(map[string]*CommitableBaseLine, len(allCommits))
+	// expectations of the closest ancestor that has expecations. We also add the commits that
+	// have landed already, but are not captured in the current tile.
+	combined := allCommits
+	if len(extraCommits) > 0 {
+		combined = make([]*tiling.Commit, 0, len(allCommits)+len(extraCommits))
+		combined = append(combined, allCommits...)
+		combined = append(combined, extraCommits...)
+	}
+
+	ret := make(map[string]*CommitableBaseLine, len(combined))
 	var currBL *CommitableBaseLine = nil
-	for _, commit := range allCommits {
+	for _, commit := range combined {
 		bl, ok := denseBaseLines[commit.Hash]
 		if ok {
 			md5Sum, err := util.MD5Sum(bl)
