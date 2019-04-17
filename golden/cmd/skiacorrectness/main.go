@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
@@ -41,7 +42,6 @@ import (
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
@@ -74,7 +74,7 @@ func main() {
 	var (
 		appTitle            = flag.String("app_title", "Skia Gold", "Title of the deployed up on the front end.")
 		authoritative       = flag.Bool("authoritative", false, "Indicates that this instance should write changes that could be triggered on multiple instances running in parallel.")
-		authorizedUsers     = flag.String("auth_users", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+		authWhiteList       = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 		cacheSize           = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
 		clientSecretFile    = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		cpuProfile          = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
@@ -103,7 +103,7 @@ func main() {
 		resourcesDir        = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 		gerritURL           = flag.String("gerrit_url", gerrit.GERRIT_SKIA_URL, "URL of the Gerrit instance where we retrieve CL metadata.")
 		siteURL             = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
-		storageDir          = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+		storageDir          = flag.String("storage_dir", "", "Directory to store reproducible application data.")
 		gitBTInstanceID     = flag.String("git_bt_instance", "", "ID of the BigTable instance that contains Git metadata")
 		gitBTTableID        = flag.String("git_bt_table", "", "ID of the BigTable table that contains Git metadata")
 		gitRepoDir          = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
@@ -207,8 +207,8 @@ func main() {
 		if *local {
 			useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 		}
-		sklog.Infof("The allowed list of users is: %q", *authorizedUsers)
-		if err := login.Init(useRedirectURL, *authorizedUsers, *clientSecretFile); err != nil {
+		authWhiteList := metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, *authWhiteList)
+		if err := login.Init(useRedirectURL, authWhiteList, *clientSecretFile); err != nil {
 			sklog.Fatalf("Failed to initialize the login system: %s", err)
 		}
 
@@ -255,9 +255,18 @@ func main() {
 			}
 			sklog.Infof("DiffStore: MemDiffStore initiated.")
 		}
-		digestStore, err := digeststore.New(*storageDir)
-		if err != nil {
-			sklog.Fatal(err)
+
+		// Set up the event bus which can either be in-process or distributed
+		// depending whether an PubSub topic was defined.
+		var evt eventbus.EventBus = nil
+		if *eventTopic != "" {
+			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
+			if err != nil {
+				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
+			}
+			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
+		} else {
+			evt = eventbus.New()
 		}
 
 		var vcs vcsinfo.VCS
@@ -280,25 +289,12 @@ func main() {
 				sklog.Fatalf("Error instantiating gitstore: %s", err)
 			}
 			gitilesRepo := gitiles.NewRepo("", "", nil)
-			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo)
+			vcs, err = gitstore.NewVCS(gitStore, "master", gitilesRepo, evt, *nCommits*10)
 		} else {
 			vcs, err = gitinfo.CloneOrUpdate(ctx, *gitRepoURL, *gitRepoDir, false)
 		}
 		if err != nil {
 			sklog.Fatalf("Error creating VCS instance: %s", err)
-		}
-
-		// Set up the event bus which can either be in-process or distributed
-		// depending whether an PubSub topic was defined.
-		var evt eventbus.EventBus = nil
-		if *eventTopic != "" {
-			evt, err = gevent.New(*projectID, *eventTopic, nodeName, option.WithTokenSource(tokenSource))
-			if err != nil {
-				sklog.Fatalf("Unable to create global event client. Got error: %s", err)
-			}
-			sklog.Infof("Global eventbus for topic '%s' and subscriber '%s' created.", *eventTopic, nodeName)
-		} else {
-			evt = eventbus.New()
 		}
 
 		// If this is an authoritative instance we need an authenticated Gerrit client
@@ -324,7 +320,16 @@ func main() {
 			sklog.Fatalf("Failed to connect to tracedb: %s", err)
 		}
 
-		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, filepath.Join(*storageDir, "cached-last-tile"))
+		// TODO(stephana): All dependencies on storageDir should be removed once we have landed
+		// all instances in K8s.
+
+		// If a storage directory was provided we can use it to cache tiles.
+		mtbCache := ""
+		if *storageDir != "" {
+			mtbCache = filepath.Join(*storageDir, "cached-last-tile")
+		}
+
+		masterTileBuilder, err := tracedb.NewMasterTileBuilder(ctx, db, vcs, *nCommits, evt, mtbCache)
 		if err != nil {
 			sklog.Fatalf("Failed to build trace/db.DB: %s", err)
 		}
@@ -388,7 +393,6 @@ func main() {
 			IssueExpStoreFactory: issueExpStoreFactory,
 			TraceDB:              db,
 			MasterTileBuilder:    masterTileBuilder,
-			DigestStore:          digestStore,
 			NCommits:             *nCommits,
 			EventBus:             evt,
 			TryjobStore:          tryjobStore,
@@ -595,12 +599,10 @@ func main() {
 		}
 	})
 
-	// set up a router that logs for all URLs except the status and the health endpoints.
+	// set up the app router that might be authenticated and logs everything except for the status
+	// endpoint which is polled a lot.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
-	appRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-
-	// Wrap all other routes in in logging middleware.
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
 
 	// Set up the external handler to enforce authentication if necessary.
@@ -609,10 +611,19 @@ func main() {
 		externalHandler = login.ForceAuth(appRouter, OAUTH2_CALLBACK_PATH)
 	}
 
+	// Set up the root router. Some endpoints are unauthenticated.
+	rootRouter := mux.NewRouter()
+	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	rootRouter.PathPrefix("/").Handler(externalHandler)
+
 	// Start the internal server on the internal port if requested.
 	if *internalPort != "" {
 		// Add the profiling endpoints to the internal router.
 		internalRouter := mux.NewRouter()
+
+		// Set up the health check endpoint.
+		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
 		// Register pprof handlers
 		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
 		internalRouter.HandleFunc("/debug/pprof/cmdline", netpprof.Cmdline)
@@ -627,9 +638,11 @@ func main() {
 			sklog.Infof("Internal server on  http://127.0.0.1" + *internalPort)
 			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
 		}()
+	} else {
+		sklog.Warning("No internal point configured -> no health endpoint exposed.")
 	}
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
-	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
+	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
 }
