@@ -331,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "7b49ff45_cf32948e",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T18:36:49Z",
+      "side": 1,
+      "message": "Would it be extra cautious to start at c.Timestamp.Add(-time.Second) since there\u0027s that second granularity?",
+      "parentUuid": "5713f23d_9add73a1",
+      "range": {
+        "startLine": 203,
+        "startChar": 49,
+        "endLine": 203,
+        "endChar": 90
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b91d6531_2b55d3da",
         "filename": "go/gitstore/bt_vcs.go",
         "patchSetId": 28
@@ -507,6 +531,30 @@
       "side": 1,
       "message": "copy(...) requires two lines of code and IMO should only be used when we want to copy between already allocated slices. \nThis also less error prone, with copy I have to get the length of allocated slice right and the order of arguments (admittedly not big problems, but a potential source of very subtle bugs)\nPerformance is also about the same.",
       "parentUuid": "fcaa84eb_fb34b997",
+      "range": {
+        "startLine": 392,
+        "startChar": 16,
+        "endLine": 392,
+        "endChar": 60
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b04c389f_7037f7ac",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T18:36:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "780ddaaa_d17e6f56",
       "range": {
         "startLine": 392,
         "startChar": 16,
@@ -836,6 +884,30 @@
       "side": 1,
       "message": "Because when doing \u0027for x :\u003d range ch\u0027 the channel has to be closed for the loop to end.\nHere I only want to read what\u0027s immediately in the channel and available for reading. \nIf nothing is left in the channel we leave the loop. \nIt\u0027s designed to drain the channel but only to the point of what I can get right now. \nAdded documentation about why drain the channels (also added draining the commitCh channel).\n\nReplace the boolean with a break statement.",
       "parentUuid": "8589d5fd_52da752a",
+      "range": {
+        "startLine": 271,
+        "startChar": 4,
+        "endLine": 271,
+        "endChar": 12
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "de4579bb_412449c9",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T18:36:49Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bf292469_7945d66d",
       "range": {
         "startLine": 271,
         "startChar": 4,
