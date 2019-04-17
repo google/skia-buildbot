@@ -595,12 +595,10 @@ func main() {
 		}
 	})
 
-	// set up a router that logs for all URLs except the status and the health endpoints.
+	// set up the app router that might be authenticated and logs everything except for the status
+	// endpoint which is polled a lot.
 	appRouter := mux.NewRouter()
 	appRouter.HandleFunc("/json/trstatus", handlers.JsonStatusHandler)
-	appRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-
-	// Wrap all other routes in in logging middleware.
 	appRouter.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(router))
 
 	// Set up the external handler to enforce authentication if necessary.
@@ -609,10 +607,19 @@ func main() {
 		externalHandler = login.ForceAuth(appRouter, OAUTH2_CALLBACK_PATH)
 	}
 
+	// Set up the root router. Some endpoints are unauthenticated.
+	rootRouter := mux.NewRouter()
+	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+	rootRouter.PathPrefix("/").Handler(externalHandler)
+
 	// Start the internal server on the internal port if requested.
 	if *internalPort != "" {
 		// Add the profiling endpoints to the internal router.
 		internalRouter := mux.NewRouter()
+
+		// Set up the health check endpoint.
+		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
+
 		// Register pprof handlers
 		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
 		internalRouter.HandleFunc("/debug/pprof/cmdline", netpprof.Cmdline)
@@ -627,9 +634,11 @@ func main() {
 			sklog.Infof("Internal server on  http://127.0.0.1" + *internalPort)
 			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
 		}()
+	} else {
+		sklog.Warning("No internal point configured -> no health endpoint exposed.")
 	}
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + *port)
-	sklog.Fatal(http.ListenAndServe(*port, externalHandler))
+	sklog.Fatal(http.ListenAndServe(*port, rootRouter))
 }
