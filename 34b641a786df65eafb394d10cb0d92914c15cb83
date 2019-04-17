@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "bf43a696_0331ffca",
+        "filename": "golden/create-gold-corp-sa.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T13:46:16Z",
+      "side": 1,
+      "message": "Why isn\u0027t the create gold-public-sa.sh checked in?",
+      "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6fe968df_212ba4ad",
         "filename": "golden/k8s-config-templates/gold-ingestion-template.yaml",
         "patchSetId": 4
@@ -13,6 +30,29 @@
       "writtenOn": "2019-04-17T13:42:54Z",
       "side": 1,
       "message": "I don\u0027t understand this change.",
+      "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1b65d2d_905e2d24",
+        "filename": "golden/k8s-config-templates/gold-ingestion-template.yaml",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T13:46:16Z",
+      "side": 1,
+      "message": "This name isn\u0027t very descriptive",
+      "range": {
+        "startLine": 68,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 23
+      },
       "revId": "34b641a786df65eafb394d10cb0d92914c15cb83",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
