@@ -70,6 +70,30 @@
       "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d04ab75_c8534c69",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T16:29:22Z",
+      "side": 1,
+      "message": "I have to defer to Eric on this one. I have not objection to the code here, but it still seems like a redundancy to me that you might want to avoid in the long run.",
+      "parentUuid": "f2c0db55_9a6b9c64",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 56
+      },
+      "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
