@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a15fe6d7_db746c2f",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T19:01:22Z",
+      "side": 1,
+      "message": "Can we remove this? It seems to me to be a red herring?",
+      "range": {
+        "startLine": 476,
+        "startChar": 24,
+        "endLine": 476,
+        "endChar": 34
+      },
+      "revId": "f034908b92a572833e77aff9d9e0fc1f0bdc7d26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1030830_5ed830ef",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-17T19:01:22Z",
+      "side": 1,
+      "message": "no internal health endpoint...",
+      "range": {
+        "startLine": 644,
+        "startChar": 49,
+        "endLine": 644,
+        "endChar": 58
+      },
+      "revId": "f034908b92a572833e77aff9d9e0fc1f0bdc7d26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
