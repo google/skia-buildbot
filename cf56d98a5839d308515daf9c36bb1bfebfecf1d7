@@ -94,6 +94,30 @@
       "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "870569a6_e3393764",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2019-04-17T16:31:33Z",
+      "side": 1,
+      "message": "Personally I don\u0027t mind this code but would prefer it to be in the git package and named something like FindGitCookies, not DefaultGitCookiesPath.",
+      "parentUuid": "5d04ab75_c8534c69",
+      "range": {
+        "startLine": 275,
+        "startChar": 0,
+        "endLine": 275,
+        "endChar": 56
+      },
+      "revId": "cf56d98a5839d308515daf9c36bb1bfebfecf1d7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
