@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "63a0ee88_73a1a9a3",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Yes you are correct. Reworded the comment to make it clearer.",
+      "parentUuid": "0da28ebb_aab419f4",
+      "range": {
+        "startLine": 168,
+        "startChar": 67,
+        "endLine": 168,
+        "endChar": 85
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "45337a22_e36f171f",
+        "filename": "go/eventbus/eventbus.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6256664a_8b7c2424",
+      "range": {
+        "startLine": 168,
+        "startChar": 35,
+        "endLine": 168,
+        "endChar": 39
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "087a10d9_f6931db8",
         "filename": "go/gitstore/bt_vcs.go",
         "patchSetId": 28
@@ -68,6 +116,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c61a1f9_18ad8fd3",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "087a10d9_f6931db8",
+      "range": {
+        "startLine": 49,
+        "startChar": 75,
+        "endLine": 49,
+        "endChar": 86
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "bdc676f5_4e7cac9c",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0773177e_2a2d4a12",
+      "range": {
+        "startLine": 145,
+        "startChar": 4,
+        "endLine": 145,
+        "endChar": 9
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47a73690_40bd0657",
         "filename": "go/gitstore/bt_vcs.go",
         "patchSetId": 28
@@ -114,6 +210,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06ccf921_6a2689b9",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "47a73690_40bd0657",
+      "range": {
+        "startLine": 149,
+        "startChar": 14,
+        "endLine": 149,
+        "endChar": 17
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "c8f8a9cd_aeca9517",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0cc60c17_22024e83",
+      "range": {
+        "startLine": 187,
+        "startChar": 15,
+        "endLine": 187,
+        "endChar": 18
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd55579f_42709c0d",
         "filename": "go/gitstore/bt_vcs.go",
         "patchSetId": 28
@@ -160,6 +304,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5713f23d_9add73a1",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Added this comment:\n\n// Since we cannot look up a commit in a branch directly we query for all commits that\n// occurred at that specific timestamp (Git has second granularity) on the target branch.\n// Then we check whether the target commit is returned as part of the result.\n\nto make this clearer why we make this query.",
+      "parentUuid": "cd55579f_42709c0d",
+      "range": {
+        "startLine": 203,
+        "startChar": 49,
+        "endLine": 203,
+        "endChar": 90
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "8f3d1116_86c594b7",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b91d6531_2b55d3da",
+      "range": {
+        "startLine": 205,
+        "startChar": 12,
+        "endLine": 205,
+        "endChar": 16
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "95a3467c_896a5865",
         "filename": "go/gitstore/bt_vcs.go",
         "patchSetId": 28
@@ -206,6 +398,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b36bbda_16631119",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "95a3467c_896a5865",
+      "range": {
+        "startLine": 208,
+        "startChar": 80,
+        "endLine": 208,
+        "endChar": 98
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "7dd4cac3_e6ab0db4",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2edfa0aa_c0d4e508",
+      "range": {
+        "startLine": 363,
+        "startChar": 21,
+        "endLine": 363,
+        "endChar": 32
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fcaa84eb_fb34b997",
         "filename": "go/gitstore/bt_vcs.go",
         "patchSetId": 28
@@ -252,6 +492,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "780ddaaa_d17e6f56",
+        "filename": "go/gitstore/bt_vcs.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 392,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "copy(...) requires two lines of code and IMO should only be used when we want to copy between already allocated slices. \nThis also less error prone, with copy I have to get the length of allocated slice right and the order of arguments (admittedly not big problems, but a potential source of very subtle bugs)\nPerformance is also about the same.",
+      "parentUuid": "fcaa84eb_fb34b997",
+      "range": {
+        "startLine": 392,
+        "startChar": 16,
+        "endLine": 392,
+        "endChar": 60
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -278,6 +542,30 @@
     },
     {
       "key": {
+        "uuid": "db0b356e_2685aee8",
+        "filename": "go/vcsinfo/testutils/vcsinfo_testutils.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Yes, they are in the repository that are in the repository that is checked in at ./testdata/testrepo.zip and that has to be opened by an implementation of VCS. \nI added comment strings wherever we refer to that repo.",
+      "parentUuid": "1890a37d_57dedd37",
+      "range": {
+        "startLine": 238,
+        "startChar": 16,
+        "endLine": 238,
+        "endChar": 56
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1cf5a445_61eff0c4",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 28
@@ -298,6 +586,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bcd0544_c9c92794",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1cf5a445_61eff0c4",
+      "range": {
+        "startLine": 106,
+        "startChar": 100,
+        "endLine": 106,
+        "endChar": 104
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "666f785f_fbd448cf",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d84cf64d_ac9a35cf",
+      "range": {
+        "startLine": 292,
+        "startChar": 68,
+        "endLine": 292,
+        "endChar": 77
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "687378d5_0d55435b",
         "filename": "golden/go/goldingestion/tryjob_ingestion.go",
         "patchSetId": 28
@@ -344,6 +680,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ef28257_b1c8548a",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done\nRemoved because it was obsolete.",
+      "parentUuid": "687378d5_0d55435b",
+      "range": {
+        "startLine": 119,
+        "startChar": 4,
+        "endLine": 119,
+        "endChar": 16
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -370,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "7f448dfe_a8f82b1b",
+        "filename": "golden/go/goldingestion/tryjob_ingestion.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done\nYes and documented.",
+      "parentUuid": "4e9e7cb0_2e944eb3",
+      "range": {
+        "startLine": 148,
+        "startChar": 38,
+        "endLine": 148,
+        "endChar": 39
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c226ea3_d22d0248",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 28
@@ -390,6 +774,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f98dbe0_3b5e306b",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "The function that is passed to SubscribeAsync is always called on it\u0027s own go-routine when the corresponding event is published. \nI made both channels (commitCh and expCh) buffered with plenty of room. I don\u0027t think it will make a huge difference, but there are edge cases where it could increase throughput significantly and the buffer size (100) is negligible.",
+      "parentUuid": "2c226ea3_d22d0248",
+      "range": {
+        "startLine": 239,
+        "startChar": 23,
+        "endLine": 239,
+        "endChar": 37
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -416,6 +824,30 @@
     },
     {
       "key": {
+        "uuid": "bf292469_7945d66d",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Because when doing \u0027for x :\u003d range ch\u0027 the channel has to be closed for the loop to end.\nHere I only want to read what\u0027s immediately in the channel and available for reading. \nIf nothing is left in the channel we leave the loop. \nIt\u0027s designed to drain the channel but only to the point of what I can get right now. \nAdded documentation about why drain the channels (also added draining the commitCh channel).\n\nReplace the boolean with a break statement.",
+      "parentUuid": "8589d5fd_52da752a",
+      "range": {
+        "startLine": 271,
+        "startChar": 4,
+        "endLine": 271,
+        "endChar": 12
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a35c955b_6d3eccb8",
         "filename": "golden/go/indexer/indexer.go",
         "patchSetId": 28
@@ -436,6 +868,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6bd5fb8_44289338",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a35c955b_6d3eccb8",
+      "range": {
+        "startLine": 302,
+        "startChar": 35,
+        "endLine": 302,
+        "endChar": 45
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -462,6 +918,30 @@
     },
     {
       "key": {
+        "uuid": "a583fd2d_0dc428b3",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "15f10b25_8b76f13d",
+      "range": {
+        "startLine": 88,
+        "startChar": 67,
+        "endLine": 88,
+        "endChar": 73
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebeb8870_bfd7683e",
         "filename": "golden/go/storage/baseliner.go",
         "patchSetId": 28
@@ -485,6 +965,30 @@
     },
     {
       "key": {
+        "uuid": "1bf959fd_ee1a5b04",
+        "filename": "golden/go/storage/baseliner.go",
+        "patchSetId": 28
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Updated the comment to \n\n// Make sure we have all commits, not just the ones that are in the tile. Currently a tile is\n// fetched in intervals. New commits might have arrived since the last tile was read. Below we\n// extrapolate the baselines of the new commits to be identical to the last commit in the tile.\n// As new data arrive in the next tile, we update the baselines for these commits.",
+      "parentUuid": "ebeb8870_bfd7683e",
+      "range": {
+        "startLine": 110,
+        "startChar": 4,
+        "endLine": 110,
+        "endChar": 33
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ef9ef800_bb2ac203",
         "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
         "patchSetId": 28
@@ -505,6 +1009,30 @@
       "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb54fd78_21c02d45",
+        "filename": "golden/k8s-instances/chrome-gpu-instance.json5",
+        "patchSetId": 28
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-17T18:22:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ef9ef800_bb2ac203",
+      "range": {
+        "startLine": 7,
+        "startChar": 31,
+        "endLine": 7,
+        "endChar": 36
+      },
+      "revId": "cb6d49fa3767b734ca804dfdeabdd4fd8e76ae50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
