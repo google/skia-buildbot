@@ -122,6 +122,9 @@ func (h *httpUploader) copyBytes(data []byte, dst string) error {
 	bucket, objPath := gcs.SplitGSPath(dst)
 	handle := h.client.Bucket(bucket).Object(objPath)
 
+	// TODO(kjlubick): Check if the file exists before-hand and skip uploading unless
+	// force is set. This could remove the need to read known_hashes
+
 	w := handle.NewWriter(context.Background())
 	_, err := w.Write(data)
 	if err != nil {
