@@ -84,7 +84,7 @@ func main() {
 			return err
 		}
 		if cg != nil {
-			fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, cq.CQ_CFG_FILE)
+			_, _ = fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, cq.CQ_CFG_FILE)
 		} else {
 			if err := cq.CloneBranch(cfg, "master", *branch, false, false, excludeTrybotRegexp); err != nil {
 				return err
@@ -122,7 +122,7 @@ func main() {
 		}
 	}
 	if foundNewRef {
-		fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, supported_branches.SUPPORTED_BRANCHES_FILE)
+		_, _ = fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, supported_branches.SUPPORTED_BRANCHES_FILE)
 	} else {
 		newBranches = append(newBranches, &supported_branches.SupportedBranch{
 			Ref:   newRef,

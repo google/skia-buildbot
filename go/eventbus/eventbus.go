@@ -165,17 +165,22 @@ func (e *MemEventBus) Publish(channel string, arg interface{}, globally bool) {
 		return
 	}
 
-	e.mutex.Lock()
-	defer e.mutex.Unlock()
-	if callbacks, ok := e.handlers[channel]; ok {
-		for _, callback := range callbacks {
-			e.concurrentPub <- true
-			go func(callback CallbackFn) {
-				defer func() { <-e.concurrentPub }()
-				callback(arg)
-			}(callback)
+	// It is essential that this runs in its own go-routine in case the calling go-routine
+	// is itself a handler of an event. Specifically, deadlock can occur if the caller were blocked
+	// by 'e.concurrentPub <- true' below.
+	go func() {
+		e.mutex.Lock()
+		defer e.mutex.Unlock()
+		if callbacks, ok := e.handlers[channel]; ok {
+			for _, callback := range callbacks {
+				e.concurrentPub <- true
+				go func(callback CallbackFn) {
+					defer func() { <-e.concurrentPub }()
+					callback(arg)
+				}(callback)
+			}
 		}
-	}
+	}()
 }
 
 // SubscribeAsync implements the EventBus interface.

@@ -19,7 +19,9 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/bbstate"
 	"go.skia.org/infra/golden/go/config"
@@ -54,6 +56,7 @@ type goldTryjobProcessor struct {
 	tryjobStore    tryjobstore.TryjobStore
 	vcs            vcsinfo.VCS
 	cfgFile        string
+	syncMonitor    *util.CondMonitor
 }
 
 // newGoldTryjobProcessor implements the ingestion.Constructor function.
@@ -96,12 +99,14 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	if err != nil {
 		return nil, sklog.FmtErrorf("Unable to create cloud expectations store: %s", err)
 	}
+	sklog.Infof("Cloud Expectations Store created")
 
 	// Create the cloud tryjob store.
 	tryjobStore, err := tryjobstore.NewCloudTryjobStore(ds.DS, expStoreFactory, eventBus)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating tryjob store: %s", err)
 	}
+	sklog.Infof("Cloud Tryjobstore Store created")
 
 	// Instantiate the Gerrit API client.
 	ts, err := auth.NewJWTServiceAccountTokenSource("", svcAccountFile, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
@@ -109,11 +114,13 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, fmt.Errorf("Failed to authenticate service account: %s", err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
+	sklog.Infof("HTTP client instantiated")
 
 	gerritReview, err := gerrit.NewGerrit(gerritURL, "", client)
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("Gerrit client instantiated")
 
 	bbConf := &bbstate.Config{
 		BuildBucketURL:  buildBucketURL,
@@ -130,12 +137,17 @@ func newGoldTryjobProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 	if err != nil {
 		return nil, err
 	}
+	sklog.Infof("BuildBucketState created")
 
 	ret := &goldTryjobProcessor{
 		buildIssueSync: bbGerritClient,
 		tryjobStore:    tryjobStore,
 		vcs:            vcs,
 		cfgFile:        cfgFile,
+
+		// The argument to NewCondMonitor is 1 because we always want exactly one go-routine per unique
+		// issue ID to enter the critical section. See the syncIssueAndTryjob function.
+		syncMonitor: util.NewCondMonitor(1),
 	}
 	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, ret.tryjobUpdatedHandler)
 
@@ -170,28 +182,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 		return ingestion.IgnoreResultsFileErr
 	}
 
-	// Fetch the issue and check if the trybot is contained.
-	issue, err := g.tryjobStore.GetIssue(issueID, false)
+	tryjob, err = g.syncIssueAndTryjob(issueID, tryjob, dmResults, resultsFile.Name())
 	if err != nil {
-		sklog.Errorf("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultsFile.Name(), err)
-		return ingestion.IgnoreResultsFileErr
-	}
-
-	// If we haven't loaded the tryjob then see if we can fetch it from
-	// Gerrit and Buildbucket. This should be the exception since tryjobs should
-	// be picket up by BuildBucketState as they are added.
-	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
-		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
-			sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
-			return ingestion.IgnoreResultsFileErr
-		}
-
-		// If the issue is nil, that means it could not be found (404) and we don't want to ingest this
-		// file again (and avoid repeated errors).
-		if issue == nil {
-			sklog.Errorf("Unable to find issue %d. Received 404 from Gerrit.", issueID)
-			return ingestion.IgnoreResultsFileErr
-		}
+		return err
 	}
 
 	// Add the Githash of the underlying result.
@@ -211,9 +204,10 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 			found.Params.AddParams(entry.Params)
 		} else {
 			resultsMap[key] = &tryjobstore.TryjobResult{
-				TestName: testName,
-				Digest:   string(entry.Value),
-				Params:   paramtools.NewParamSet(entry.Params),
+				BuildBucketID: tryjob.BuildBucketID,
+				TestName:      testName,
+				Digest:        string(entry.Value),
+				Params:        paramtools.NewParamSet(entry.Params),
 			}
 		}
 	}
@@ -224,13 +218,47 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, resultsFile ingestion
 	}
 
 	// Update the database with the results.
-	if err := g.tryjobStore.UpdateTryjobResult(tryjob, tjResults); err != nil {
-		sklog.Errorf("Error updating tryjob results: %s", err)
-		return ingestion.IgnoreResultsFileErr
+	if err := g.tryjobStore.UpdateTryjobResult(tjResults); err != nil {
+		return skerr.Fmt("Error updating tryjob results: %s", err)
 	}
 
 	tryjob.Status = tryjobstore.TRYJOB_INGESTED
-	return g.tryjobStore.UpdateTryjob(0, tryjob, nil)
+	if err := g.tryjobStore.UpdateTryjob(0, tryjob, nil); err != nil {
+		return err
+	}
+	sklog.Infof("Ingested: %s", resultsFile.Name())
+	return nil
+}
+
+func (g *goldTryjobProcessor) syncIssueAndTryjob(issueID int64, tryjob *tryjobstore.Tryjob, dmResults *DMResults, resultFileName string) (*tryjobstore.Tryjob, error) {
+	// Only let one thread in at time for each issueID. In most cases they will follow the fast
+	// path of finding the issue and having an non-nil tryjob.
+	defer g.syncMonitor.Enter(issueID).Release()
+
+	// Fetch the issue and check if the trybot is contained.
+	issue, err := g.tryjobStore.GetIssue(issueID, false)
+	if err != nil {
+		return nil, skerr.Fmt("Unable to retrieve issue %d to process file %s. Got error: %s", issueID, resultFileName, err)
+	}
+
+	// If we haven't loaded the tryjob then see if we can fetch it from
+	// Gerrit and Buildbucket. This should be the exception since tryjobs should
+	// be picket up by BuildBucketState as they are added.
+	if (tryjob == nil) || (issue == nil) || !issue.HasPatchset(tryjob.PatchsetID) {
+		var err error
+		if issue, tryjob, err = g.buildIssueSync.SyncIssueTryjob(issueID, dmResults.BuildBucketID); err != nil {
+			sklog.Errorf("Error fetching the issue and tryjob information: %s", err)
+			return nil, ingestion.IgnoreResultsFileErr
+		}
+
+		// If the issue is nil, that means it could not be found (404) and we don't want to ingest this
+		// file again (and avoid repeated errors).
+		if issue == nil {
+			sklog.Errorf("Unable to find issue %d. Received 404 from Gerrit.", issueID)
+			return nil, ingestion.IgnoreResultsFileErr
+		}
+	}
+	return tryjob, nil
 }
 
 // setTryjobToState is a utility function that updates the status of a tryjob

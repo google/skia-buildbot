@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/tryjobstore"
@@ -116,6 +117,7 @@ func TestTryjobGoldProcessor(t *testing.T) {
 		tryjobStore:    tryjobStore,
 		vcs:            mockVCS,
 		cfgFile:        cfgFile,
+		syncMonitor:    util.NewCondMonitor(1),
 	}
 	eventBus.SubscribeAsync(tryjobstore.EV_TRYJOB_UPDATED, func(data interface{}) {
 		processor.tryjobUpdatedHandler(data)

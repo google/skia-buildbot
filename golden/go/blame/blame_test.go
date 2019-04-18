@@ -77,7 +77,6 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: mocks.NewMockTileBuilder(t, digests, params, commits),
-		DigestStore:       &mocks.MockDigestStore{FirstSeen: start + 1000, OkValue: true},
 		EventBus:          eventBus,
 	}
 	blamer := New(storages)
@@ -122,7 +121,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 
 	// Wait for the change to propagate.
-	waitForChange(blamer, blameLists)
+	waitForChange(t, blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
 	assert.Equal(t, 3, len(blameLists))
@@ -147,7 +146,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 
 	// Wait for the change to propagate.
-	waitForChange(blamer, blameLists)
+	waitForChange(t, blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
 	assert.Equal(t, 3, len(blameLists))
@@ -158,7 +157,6 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, &BlameDistribution{Freq: []int{2}}, blamer.GetBlame("bar", DI_9, commits))
 
 	// Simulate the case where the digest is not found in digest store.
-	storages.DigestStore.(*mocks.MockDigestStore).OkValue = false
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 	time.Sleep(10 * time.Millisecond)
 	blameLists, _ = blamer.GetAllBlameLists()
@@ -198,11 +196,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: tileBuilder,
-		DigestStore: &mocks.MockDigestStore{
-			FirstSeen: time.Now().Unix(),
-			OkValue:   true,
-		},
-		EventBus: eventBus,
+		EventBus:          eventBus,
 	}
 
 	blamer := New(storages)
@@ -247,7 +241,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 
 	// Wait for change to propagate.
-	waitForChange(blamer, blameLists)
+	waitForChange(t, blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
 	// Assert the correctness of the blamelists.
@@ -260,34 +254,22 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 		}
 	})
 
-	// Set 'First' for all digests in the past and trigger another
-	// calculation.
-	storages.DigestStore.(*mocks.MockDigestStore).FirstSeen = 0
-	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
-	waitForChange(blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
-
 	// Randomly assign labels to the different digests and make sure
 	// that the blamelists are correct.
-	storages.DigestStore.(*mocks.MockDigestStore).FirstSeen = time.Now().Unix()
-
 	changes = types.TestExp{}
 	choices := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
 	forEachTestDigestDo(tile, func(testName, digest string) {
-		targetTest := changes[testName]
-		if targetTest == nil {
-			targetTest = map[string]types.Label{}
-		}
 		// Randomly skip some digests.
 		label := choices[rand.Int()%len(choices)]
 		if label != types.UNTRIAGED {
-			targetTest[digest] = label
+			changes.AddDigest(testName, digest, label)
 		}
 	})
 
 	// Add the labels and wait for the recalculation.
 	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
-	waitForChange(blamer, blameLists)
+	waitForChange(t, blamer, blameLists)
 	blameLists, commits := blamer.GetAllBlameLists()
 
 	expectations, err := storages.ExpectationsStore.Get()
@@ -311,14 +293,14 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	})
 }
 
-func waitForChange(blamer *Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
-	for {
-		time.Sleep(500 * time.Millisecond)
+func waitForChange(t assert.TestingT, blamer *Blamer, oldBlameLists map[string]map[string]*BlameDistribution) {
+	assert.NoError(t, testutils.EventuallyConsistent(time.Second*10, func() error {
 		blameLists, _ := blamer.GetAllBlameLists()
 		if !reflect.DeepEqual(blameLists, oldBlameLists) {
-			return
+			return nil
 		}
-	}
+		return testutils.TryAgainErr
+	}))
 }
 
 func forEachTestDigestDo(tile *tiling.Tile, fn func(string, string)) {

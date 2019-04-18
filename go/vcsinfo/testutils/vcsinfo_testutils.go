@@ -25,6 +25,7 @@ func InitTempRepo() (string, func()) {
 
 func TestDisplay(t testutils.TestingT, vcs vcsinfo.VCS) {
 	ctx := context.Background()
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	testCases := []struct {
 		hash    string
 		author  string
@@ -56,7 +57,8 @@ func TestDisplay(t testutils.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestFrom(t testutils.TestingT, vcs vcsinfo.VCS) {
-	// The two commits in the repo have timestamps of:
+	// All timestamps refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// The two commits in the master branch of the repo have timestamps:
 	// 1406721715 and 1406721642.
 	testCases := []struct {
 		ts     int64
@@ -88,6 +90,7 @@ func TestFrom(t testutils.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestByIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	commit, err := vcs.ByIndex(ctx, 0)
 	assert.NoError(t, err)
@@ -100,6 +103,7 @@ func TestByIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestLastNIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	c1 := &vcsinfo.IndexCommit{
 		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
 		Index:     0,
@@ -139,6 +143,7 @@ func TestLastNIndex(t testutils.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestIndexOf(t testutils.TestingT, vcs vcsinfo.VCS) {
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ctx := context.Background()
 	idx, err := vcs.IndexOf(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
 	assert.NoError(t, err)
@@ -151,6 +156,7 @@ func TestIndexOf(t testutils.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestRange(t testutils.TestingT, vcs vcsinfo.VCS) {
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
 	ts1 := time.Unix(1406721642, 0).UTC()
 	ts2 := time.Unix(1406721715, 0).UTC()
 
@@ -211,5 +217,51 @@ func TestRange(t testutils.TestingT, vcs vcsinfo.VCS) {
 		actual := vcs.Range(tc.begin, tc.end)
 		assert.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
 		deepequal.AssertDeepEqual(t, tc.expected, actual)
+	}
+}
+
+func TestBranchInfo(t assert.TestingT, vcs vcsinfo.VCS, branches []string) {
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	ctx := context.Background()
+	assert.Equal(t, 2, len(branches))
+
+	// Make sure commits across all branches show up.
+	commits := []string{
+		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+		"3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+	}
+	found := vcs.From(time.Unix(1406721641, 0))
+	assert.Equal(t, commits, found)
+
+	// The timestamps of the three commits commits in the entire repository start
+	// at timestamp 1406721642.
+	testCases := []struct {
+		commitHash string
+		branchName string
+		branches   map[string]bool
+	}{
+		{
+			commitHash: "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+			branchName: "master",
+			branches:   map[string]bool{"master": true, "test-branch-1": true},
+		},
+		{
+			commitHash: "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+			branchName: "master",
+			branches:   map[string]bool{"master": true, "test-branch-1": true},
+		},
+		{
+			commitHash: "3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+			branchName: "test-branch-1",
+			branches:   map[string]bool{"test-branch-1": true},
+		},
+	}
+
+	for _, tc := range testCases {
+		details, err := vcs.Details(ctx, tc.commitHash, true)
+		assert.NoError(t, err)
+		assert.True(t, details.Branches[tc.branchName])
+		assert.Equal(t, tc.branches, details.Branches)
 	}
 }
