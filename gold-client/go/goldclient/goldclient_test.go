@@ -120,6 +120,7 @@ func TestInit(t *testing.T) {
 	state, err := loadStateFromJson(outFile)
 	assert.NoError(t, err)
 	assert.True(t, state.PerTestPassFail)
+	assert.False(t, state.UploadOnly)
 	assert.Equal(t, "testing", state.InstanceID)
 	assert.Equal(t, "https://testing-gold.skia.org", state.GoldURL)
 	assert.Equal(t, "skia-gold-testing", state.Bucket)
@@ -127,6 +128,46 @@ func TestInit(t *testing.T) {
 	assert.Len(t, state.Expectations, 1)
 	assert.Len(t, state.Expectations["ThisIsTheOnlyTest"], 2)
 	assert.Equal(t, testSharedConfig, *state.SharedConfig)
+}
+
+// Test that the client does not fetch from the server if UploadOnly is set.
+// This is effectively a test for "goldctl imgtest init --upload-only"
+func TestInitUploadOnly(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk
+	testutils.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	auth, httpClient, uploader := makeMocks()
+	defer auth.AssertExpectations(t)
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+
+	// no calls of any kind
+
+	config := GoldClientConfig{
+		InstanceID:   "fuchsia",
+		WorkDir:      wd,
+		PassFailStep: false,
+		UploadOnly:   true,
+	}
+
+	goldClient, err := NewCloudClient(auth, config)
+	assert.NoError(t, err)
+	err = goldClient.SetSharedConfig(testSharedConfig)
+	assert.NoError(t, err)
+
+	outFile := filepath.Join(wd, stateFile)
+	assert.True(t, fileutil.FileExists(outFile))
+
+	state, err := loadStateFromJson(outFile)
+	assert.NoError(t, err)
+	assert.False(t, state.PerTestPassFail)
+	assert.True(t, state.UploadOnly)
+	assert.Equal(t, "fuchsia", state.InstanceID)
+	assert.Equal(t, "https://fuchsia-gold.corp.goog", state.GoldURL)
+	assert.Equal(t, "skia-gold-fuchsia", state.Bucket)
 }
 
 // Report an image that does not match any previous digests.

@@ -116,6 +116,10 @@ type GoldClientConfig struct {
 
 	// OverrideGoldURL is optional and allows to override the GoldURL for testing.
 	OverrideGoldURL string
+
+	// UploadOnly is a mode where we don't check expectations against the server - i.e.
+	// we just operate in upload mode.
+	UploadOnly bool
 }
 
 // resultState is an internal container for all information to upload results
@@ -125,6 +129,7 @@ type resultState struct {
 	// keys about this machine (e.g. GPU, OS).
 	SharedConfig    *jsonio.GoldResults
 	PerTestPassFail bool
+	UploadOnly      bool
 	InstanceID      string
 	GoldURL         string
 	Bucket          string
@@ -204,15 +209,18 @@ func (c *cloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 		existingConfig.InstanceID = c.resultState.InstanceID
 		existingConfig.PassFailStep = c.resultState.PerTestPassFail
 		existingConfig.OverrideGoldURL = c.resultState.GoldURL
+		existingConfig.UploadOnly = c.resultState.UploadOnly
 	}
 	c.resultState = newResultState(&sharedConfig, &existingConfig)
 
-	// The GitHash may have changed (or been set for the first time),
-	// So we can now load the baseline. We can also download the hashes
-	// at this time, although we could have done it at any time before since
-	// that does not depend on the GitHash we have.
-	if err := c.downloadHashesAndBaselineFromGold(); err != nil {
-		return skerr.Fmt("Error downloading from Gold: %s", err)
+	if !c.resultState.UploadOnly {
+		// The GitHash may have changed (or been set for the first time),
+		// So we can now load the baseline. We can also download the hashes
+		// at this time, although we could have done it at any time before since
+		// that does not depend on the GitHash we have.
+		if err := c.downloadHashesAndBaselineFromGold(); err != nil {
+			return skerr.Fmt("Error downloading from Gold: %s", err)
+		}
 	}
 
 	return saveJSONFile(c.getResultStatePath(), c.resultState)
@@ -431,6 +439,7 @@ func newResultState(sharedConfig *jsonio.GoldResults, config *GoldClientConfig) 
 		SharedConfig:    sharedConfig,
 		PerTestPassFail: config.PassFailStep,
 		InstanceID:      config.InstanceID,
+		UploadOnly:      config.UploadOnly,
 		GoldURL:         goldURL,
 		Bucket:          getBucket(config.InstanceID),
 	}
@@ -601,6 +610,9 @@ const (
 	bucketSkiaLegacy     = "skia-infra-gm"
 	hostSkiaLegacy       = "https://gold.skia.org"
 	instanceIDSkiaLegacy = "skia-legacy"
+
+	hostFuchsiaLegacy = "https://fuchsia-gold.corp.goog"
+	instanceIDFuchsia = "fuchsia"
 )
 
 // getBucket returns the bucket name for a given instance id.
@@ -617,6 +629,9 @@ func getBucket(instanceID string) string {
 func getHostURL(instanceID string) string {
 	if instanceID == instanceIDSkiaLegacy {
 		return hostSkiaLegacy
+	}
+	if instanceID == instanceIDFuchsia {
+		return hostFuchsiaLegacy
 	}
 	return fmt.Sprintf(goldHostTemplate, instanceID)
 }
