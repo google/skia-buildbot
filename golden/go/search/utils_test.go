@@ -150,12 +150,8 @@ func getStoragesAndIndexerFromTile(t assert.TestingT, path string, randomize boo
 	storages := &storage.Storage{
 		ExpectationsStore: expStore,
 		MasterTileBuilder: tileBuilder,
-		DigestStore: &mocks.MockDigestStore{
-			FirstSeen: time.Now().Unix(),
-			OkValue:   true,
-		},
-		DiffStore: mocks.NewMockDiffStore(),
-		EventBus:  eventBus,
+		DiffStore:         mocks.NewMockDiffStore(),
+		EventBus:          eventBus,
 	}
 	assert.NoError(t, storages.InitBaseliner())
 

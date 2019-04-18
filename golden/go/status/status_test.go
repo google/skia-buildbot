@@ -63,7 +63,6 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		MasterTileBuilder: tileBuilder,
-		DigestStore:       &MockDigestStore{},
 		EventBus:          eventBus,
 	}
 
@@ -75,9 +74,6 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 	assert.NotNil(t, status)
 
 	for idx, corpStatus := range status.CorpStatus {
-		// Make sure no digests has any issues attached.
-		storages.DigestStore.(*MockDigestStore).issueIDs = nil
-
 		assert.False(t, corpStatus.OK)
 		cpxTile, err := storages.GetLastTileTrimmed()
 		assert.NoError(t, err)
@@ -100,18 +96,11 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		// Update the expectations and wait for the status to change.
 		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
-		newStatus := watcher.GetStatus()
-		assert.False(t, newStatus.CorpStatus[idx].OK)
-		assert.False(t, newStatus.OK)
-
-		// Make sure all tests have an issue attached to each DigestInfo and
-		// trigger another expectations update.
-		storages.DigestStore.(*MockDigestStore).issueIDs = []int{1}
 		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 
 		// Make sure the current corpus is now ok.
-		newStatus = watcher.GetStatus()
+		newStatus := watcher.GetStatus()
 		assert.True(t, newStatus.CorpStatus[idx].OK)
 	}
 

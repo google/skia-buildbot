@@ -39,6 +39,12 @@ type GitInfo struct {
 	mutex sync.Mutex
 }
 
+// GetBranch implements the vcsinfo.VCS interface.
+func (g *GitInfo) GetBranch() string {
+	// This was added later and we have implicitly assumed that we are tracking master.
+	return "master"
+}
+
 // NewGitInfo creates a new GitInfo for the Git repository found in directory
 // dir. If pull is true then a git pull is done on the repo before querying it
 // for history.
