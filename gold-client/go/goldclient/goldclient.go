@@ -43,7 +43,7 @@ const (
 	stateFile = "result-state.json"
 
 	// jsonTempFile is the temporary file that is created to upload results via gsutil.
-	jsonTempFile = "gsutil_dm.json"
+	jsonTempFile = "dm.json"
 
 	// goldHostTemplate constructs the URL of the Gold instance from the instance id
 	goldHostTemplate = "https://%s-gold.skia.org"
@@ -228,7 +228,11 @@ func (c *cloudClient) SetSharedConfig(sharedConfig jsonio.GoldResults) error {
 
 // Test implements the GoldClient interface.
 func (c *cloudClient) Test(name string, imgFileName string) (bool, error) {
-	return c.addTest(name, imgFileName)
+	if res, err := c.addTest(name, imgFileName); err != nil {
+		return false, err
+	} else {
+		return res, saveJSONFile(c.getResultStatePath(), c.resultState)
+	}
 }
 
 // addTest adds a test to results. If perTestPassFail is true it will also upload the result.
@@ -290,6 +294,7 @@ func (c *cloudClient) addTest(name string, imgFileName string) (bool, error) {
 	return ret, nil
 }
 
+// Finalize implements the GoldClient interface.
 func (c *cloudClient) Finalize() error {
 	if err := c.isReady(); err != nil {
 		return skerr.Fmt("Cannot finalize - client not ready: %s", err)
