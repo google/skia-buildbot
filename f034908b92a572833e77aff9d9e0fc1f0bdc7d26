@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f8c722dc_f74b4817",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2019-04-18T12:41:57Z",
+      "side": 1,
+      "message": "I disagree with that philosophy then - you can configure kubernetes to wait longer.  \"Cheating\" the healthcheck seems like a bad idea, IMO",
+      "parentUuid": "920c420c_295eec06",
+      "range": {
+        "startLine": 476,
+        "startChar": 24,
+        "endLine": 476,
+        "endChar": 34
+      },
+      "revId": "f034908b92a572833e77aff9d9e0fc1f0bdc7d26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d1030830_5ed830ef",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 4
