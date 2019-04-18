@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "67feea46_58a9f771",
+        "filename": "gold-client/cmd/goldctl/cmd_imgtest.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5620
+      },
+      "writtenOn": "2019-04-18T17:51:02Z",
+      "side": 1,
+      "message": "suggestion: put this in one place/function and maybe bring back the PreRunE step like in previous versions to call the function. e.g.\n\nimgTestAddCmd :\u003d \u0026cobra.Command{\n                .... \n\t\tPreRunE: env.validateFlags,\n\t\tRun:  env.runImgTestAddCmd,\n                ... \n}",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 184,
+        "endChar": 2
+      },
+      "revId": "b7d682dd4fffd1e98d78f565e2f0bd2e56b1b5ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
